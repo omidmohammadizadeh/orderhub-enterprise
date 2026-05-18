@@ -5,6 +5,7 @@ import type { OrderStatus } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../infrastructure/prisma.service";
 import { PlatformSyncFactory } from "../sync/platform-sync.factory";
+import { TokenRefreshService } from "../sync/token-refresh.service";
 
 interface SyncStatusJobData {
   orderId: string;
@@ -21,6 +22,7 @@ export class OrderSyncProcessor {
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncFactory: PlatformSyncFactory,
+    private readonly tokenRefresh: TokenRefreshService,
   ) {}
 
   @Process(ORDER_JOBS.SYNC_STATUS)
@@ -67,7 +69,8 @@ export class OrderSyncProcessor {
       return;
     }
 
-    const credentials = integration.credentials as Record<string, string>;
+    // Get fresh credentials — refreshes OAuth token if expiring within 5 minutes
+    const credentials = await this.tokenRefresh.getCredentials(integration.id);
     const result = await client.syncStatus(
       order.externalId,
       toStatus as OrderStatus,

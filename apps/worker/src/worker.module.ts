@@ -17,6 +17,7 @@ import {
   JustEatSyncClient,
   HubRiseSyncClient,
 } from "./sync/platform-sync.factory";
+import { TokenRefreshService } from "./sync/token-refresh.service";
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import {
     JustEatSyncClient,
     HubRiseSyncClient,
     PlatformSyncFactory,
+    TokenRefreshService,
     // Processors
     OrderProcessingProcessor,
     OrderSyncProcessor,

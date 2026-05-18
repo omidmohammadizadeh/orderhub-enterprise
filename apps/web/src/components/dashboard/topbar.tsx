@@ -18,16 +18,30 @@ const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/inventory":         { title: "Inventory", description: "Stock levels, suppliers, and purchase orders" },
   "/dashboard/payments":          { title: "Payments", description: "Ledger, payouts, and Stripe Connect" },
   "/dashboard/billing":           { title: "Billing", description: "Subscription, plans, and invoices" },
-  "/dashboard/settings/security": { title: "Security", description: "MFA, sessions, IP allowlist, and audit log" },
-  "/dashboard/settings/branding": { title: "Branding", description: "White-label customisation and custom domains" },
-  "/dashboard/settings":          { title: "Settings", description: "Workspace settings" },
+  "/dashboard/settings/printers":  { title: "Printers", description: "Printer diagnostics, heartbeat, and job history" },
+  "/dashboard/settings/security":  { title: "Security", description: "MFA, sessions, IP allowlist, and audit log" },
+  "/dashboard/settings/branding":  { title: "Branding", description: "White-label customisation and custom domains" },
+  "/dashboard/settings":           { title: "Settings", description: "Workspace settings" },
+  "/dashboard/orders/rush-hour":   { title: "Rush Hour", description: "High-density order management with keyboard shortcuts" },
+  "/dashboard/orders/kitchen":     { title: "Kitchen Display", description: "Full-screen KDS with auto-aging and BUMP" },
+  "/dashboard/orders/dispatch":    { title: "Dispatch", description: "Driver dispatch and delivery tracking" },
+  "/dashboard/orders/cashier":     { title: "Cashier", description: "Collection and payment at the counter" },
+  "/dashboard/sandbox":            { title: "Sandbox", description: "Testing and simulation tools — non-production only" },
 };
 
 function getPageMeta(pathname: string) {
+  // Exact match first
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  // Longest prefix match — handles /dashboard/orders vs /dashboard/orders/rush-hour
+  let best: { title: string; description?: string } | null = null;
+  let bestLen = 0;
   for (const [key, value] of Object.entries(PAGE_TITLES)) {
-    if (pathname.startsWith(key)) return value;
+    if (pathname.startsWith(key) && key.length > bestLen) {
+      best = value;
+      bestLen = key.length;
+    }
   }
-  return { title: "Dashboard" };
+  return best ?? { title: "Dashboard" };
 }
 
 export function Topbar() {

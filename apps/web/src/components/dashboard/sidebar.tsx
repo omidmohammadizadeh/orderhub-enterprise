@@ -22,6 +22,10 @@ import {
   Package,
   Shield,
   Palette,
+  Printer,
+  Zap,
+  ChefHat,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +52,13 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },
 ];
 
+const operationsNav: NavItem[] = [
+  { href: "/dashboard/orders/rush-hour", label: "Rush Hour", icon: Zap },
+  { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat },
+  { href: "/dashboard/orders/dispatch", label: "Dispatch", icon: Truck },
+  { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag },
+];
+
 const financeNav: NavItem[] = [
   { href: "/dashboard/payments", label: "Payments", icon: DollarSign },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
@@ -55,9 +66,11 @@ const financeNav: NavItem[] = [
 
 const secondaryNav: NavItem[] = [
   { href: "/dashboard/onboarding", label: "Setup guide", icon: Rocket },
+  { href: "/dashboard/settings/printers", label: "Printers", icon: Printer },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical },
 ];
 
 export function Sidebar() {
@@ -101,6 +114,17 @@ export function Sidebar() {
             key={item.href}
             item={item}
             isActive={pathname.startsWith(item.href)}
+          />
+        ))}
+
+        <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+
+        <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Operations</p>
+        {operationsNav.map((item) => (
+          <SidebarNavItem
+            key={item.href}
+            item={item}
+            isActive={pathname === item.href}
           />
         ))}
 

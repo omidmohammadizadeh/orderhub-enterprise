@@ -72,16 +72,26 @@ export class WebhookIngestionService {
       return { duplicate: true };
     }
 
-    // 3. Store raw event immediately (before processing so crashes don't re-process)
-    const event = await this.prisma.webhookEvent.create({
-      data: {
-        platform,
-        externalEventId,
-        signature: (headers["x-uber-signature"] ?? headers["deliveroo-signature"] ??
-          headers["x-je-signature"] ?? headers["x-hubrise-signature"] ?? null) as string | null,
-        rawPayload: payload as any,
-      },
-    });
+    // 3. Store raw event immediately (before processing so crashes don't re-process).
+    // Use try/catch to handle P2002 from a concurrent duplicate webhook — same fix as ingestCanonical.
+    let event: { id: string };
+    try {
+      event = await this.prisma.webhookEvent.create({
+        data: {
+          platform,
+          externalEventId,
+          signature: (headers["x-uber-signature"] ?? headers["deliveroo-signature"] ??
+            headers["x-je-signature"] ?? headers["x-hubrise-signature"] ?? null) as string | null,
+          rawPayload: payload as any,
+        },
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        this.logger.warn(`Concurrent duplicate webhook for ${platform}/${externalEventId} — ignoring`);
+        return { duplicate: true };
+      }
+      throw err;
+    }
 
     // 4. Normalize to canonical form
     const canonical = adapter.normalize(payload, locationId);

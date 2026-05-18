@@ -66,13 +66,15 @@ export class OrderProcessingProcessor {
     this.logger.log(`[${orderId}] Status change: ${fromStatus} → ${toStatus}`);
 
     // ── 1. Enqueue outbound platform sync ─────────────────
+    // Deterministic jobId prevents duplicate sync jobs on Redis restart or
+    // double-delivery of the STATUS_CHANGE queue message.
     await this.syncQueue.add(
       ORDER_JOBS.SYNC_STATUS,
       { orderId, tenantId, locationId, toStatus, cancelReason },
       {
         attempts: 5,
         backoff: { type: "exponential", delay: 3000 },
-        jobId: `sync-${orderId}-${toStatus}-${Date.now()}`,
+        jobId: `sync-${orderId}-${toStatus}`,
       },
     );
 

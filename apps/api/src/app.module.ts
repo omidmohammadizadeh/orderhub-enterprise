@@ -5,6 +5,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { BullModule } from "@nestjs/bull";
 import { WinstonModule } from "nest-winston";
 import { CacheModule } from "@nestjs/cache-manager";
+import { ScheduleModule } from "@nestjs/schedule";
 import * as redisStore from "cache-manager-redis-store";
 
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
@@ -49,6 +50,7 @@ import { BrandingModule } from "./modules/branding/branding.module";
 import { ProviderRegistryModule } from "./modules/provider-registry/provider-registry.module";
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
+import { SandboxModule } from "./modules/sandbox/sandbox.module";
 import { QUEUES } from "@orderhub/shared";
 
 @Module({
@@ -127,6 +129,9 @@ import { QUEUES } from "@orderhub/shared";
       { name: QUEUES.WEBHOOK_DISPATCH },
     ),
 
+    // ── Scheduled Tasks ──────────────────────────────────
+    ScheduleModule.forRoot(),
+
     // ── Infrastructure ───────────────────────────────────
     DatabaseModule,
     SocketModule,
@@ -161,6 +166,7 @@ import { QUEUES } from "@orderhub/shared";
     ProviderRegistryModule,
     MobileModule,
     InventoryModule,
+    SandboxModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

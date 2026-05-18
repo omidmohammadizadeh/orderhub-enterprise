@@ -54,30 +54,12 @@ export class OrdersService {
     tenantId: string,
     locationId: string,
   ): Promise<Order> {
-    // Idempotency check via (externalId, platform) unique key
-    const existing = await this.prisma.order.findUnique({
-      where: {
-        externalId_platform: {
-          externalId: canonical.externalId,
-          platform: canonical.platform,
-        },
-      },
-    });
-    if (existing) {
-      this.logger.debug(
-        `Duplicate order ignored: ${canonical.platform}/${canonical.externalId}`,
-      );
-      return existing;
-    }
-
-    // Idempotency key check for direct/online orders
-    if (canonical.idempotencyKey) {
-      const existing = await this.prisma.order.findUnique({
-        where: { idempotencyKey: canonical.idempotencyKey },
-      });
-      if (existing) return existing;
-    }
-
+    // Attempt creation first — the DB unique constraints on (externalId, platform)
+    // and idempotencyKey are the authoritative deduplication mechanism.
+    // A pre-check + create is a TOCTOU race: two concurrent webhook deliveries for
+    // the same order would both pass the check and one would violate the unique
+    // constraint. We handle the P2002 here and return the existing row instead.
+    try {
     const order = await this.prisma.order.create({
       data: {
         tenantId,
@@ -133,7 +115,11 @@ export class OrdersService {
     );
 
     // Enqueue downstream processing (KDS + print + notifications)
-    await this.orderQueue.add(ORDER_JOBS.INGEST, { orderId: order.id, tenantId, locationId });
+    await this.orderQueue.add(
+      ORDER_JOBS.INGEST,
+      { orderId: order.id, tenantId, locationId },
+      { jobId: `ingest-${order.id}` }, // deterministic — safe to re-add on retry
+    );
 
     // Broadcast new order to connected dashboards
     this.socket.emitNewOrder(locationId, {
@@ -153,6 +139,25 @@ export class OrdersService {
     });
 
     return order;
+    } catch (err: any) {
+      // P2002 = unique constraint violation — a concurrent ingest already created this order.
+      // Return the existing record so the webhook handler can respond 200 without reprocessing.
+      if (err?.code === "P2002") {
+        this.logger.warn(
+          `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
+        );
+        const existing = await this.prisma.order.findUnique({
+          where: {
+            externalId_platform: {
+              externalId: canonical.externalId,
+              platform: canonical.platform,
+            },
+          },
+        });
+        if (existing) return existing;
+      }
+      throw err;
+    }
   }
 
   // ── Direct order creation (POS / staff) ──────────────

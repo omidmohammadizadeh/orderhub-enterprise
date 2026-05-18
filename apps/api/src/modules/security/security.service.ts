@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { createHmac, randomUUID, randomBytes } from "crypto";
+import { createHmac, randomUUID, randomBytes, timingSafeEqual } from "crypto";
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
@@ -98,9 +98,16 @@ function computeTotp(secret: string, counter: number): string {
 }
 
 function verifyTotp(secret: string, token: string, windowSize = 1): boolean {
+  // Tokens must be exactly 6 digits
+  if (!/^\d{6}$/.test(token)) return false;
+
   const counter = Math.floor(Date.now() / 1000 / 30);
+  const tokenBuf = Buffer.from(token.padStart(6, "0"));
+
   for (let i = -windowSize; i <= windowSize; i++) {
-    if (computeTotp(secret, counter + i) === token) return true;
+    const expected = computeTotp(secret, counter + i);
+    // timingSafeEqual prevents timing attacks — always compare same-length buffers
+    if (timingSafeEqual(tokenBuf, Buffer.from(expected.padStart(6, "0")))) return true;
   }
   return false;
 }
