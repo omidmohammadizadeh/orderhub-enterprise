@@ -1,0 +1,58 @@
+# ── Stage 1: Dependencies ─────────────────────────────────
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/config/package.json ./packages/config/
+COPY integrations/uber-eats/package.json ./integrations/uber-eats/
+COPY integrations/deliveroo/package.json ./integrations/deliveroo/
+COPY integrations/just-eat/package.json ./integrations/just-eat/
+
+RUN pnpm install --frozen-lockfile --prod=false
+
+# ── Stage 2: Build ────────────────────────────────────────
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+
+COPY tsconfig.base.json ./
+COPY packages ./packages
+COPY integrations ./integrations
+COPY apps/api ./apps/api
+
+RUN pnpm --filter @orderhub/database db:generate
+RUN pnpm --filter @orderhub/shared build
+RUN pnpm --filter @orderhub/api build
+
+# ── Stage 3: Production ───────────────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# dumb-init: PID-1 signal proxy so SIGTERM reaches Node on K8s/Docker stop
+RUN apk add --no-cache dumb-init && \
+    addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
+
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+
+USER nestjs
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:4000/api/v1/health || exit 1
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["node", "dist/main"]

@@ -1,0 +1,112 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiResponse,
+} from "@nestjs/swagger";
+import { OrdersService, OrderFilters } from "./orders.service";
+import { CreateOrderDto } from "./dto/create-order.dto";
+import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+
+@ApiTags("orders")
+@ApiBearerAuth()
+@Controller({ path: "orders", version: "1" })
+export class OrdersController {
+  constructor(private readonly orders: OrdersService) {}
+
+  // ── POST /api/v1/orders ───────────────────────────────
+  @Post()
+  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Create a direct / POS order" })
+  @ApiResponse({ status: 201 })
+  async create(
+    @Body() dto: CreateOrderDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.create(dto, user.tenantId);
+  }
+
+  // ── GET /api/v1/orders ────────────────────────────────
+  @Get()
+  @ApiOperation({ summary: "List orders with filters" })
+  @ApiQuery({ name: "locationId", required: false })
+  @ApiQuery({ name: "status", required: false })
+  @ApiQuery({ name: "platform", required: false })
+  @ApiQuery({ name: "orderSource", required: false })
+  @ApiQuery({ name: "from", required: false })
+  @ApiQuery({ name: "to", required: false })
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  async findMany(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+    @Query("status") status?: string,
+    @Query("platform") platform?: string,
+    @Query("orderSource") orderSource?: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    const filters: OrderFilters = {
+      locationId,
+      status: status as any,
+      platform,
+      orderSource,
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? Math.min(parseInt(limit, 10), 200) : 50,
+    };
+    return this.orders.findMany(user.tenantId, filters);
+  }
+
+  // ── GET /api/v1/orders/live ───────────────────────────
+  @Get("live")
+  @ApiOperation({ summary: "Get live (in-progress) orders" })
+  @ApiQuery({ name: "locationId", required: false })
+  async findLive(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.orders.findLiveOrders(user.tenantId, locationId);
+  }
+
+  // ── GET /api/v1/orders/:id ────────────────────────────
+  @Get(":id")
+  @ApiOperation({ summary: "Get single order with full relations" })
+  async findOne(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.findOne(id, user.tenantId);
+  }
+
+  // ── PATCH /api/v1/orders/:id/status ──────────────────
+  @Patch(":id/status")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Transition order status" })
+  async updateStatus(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateOrderStatusDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.updateStatus(id, user.tenantId, dto, user.userId);
+  }
+}

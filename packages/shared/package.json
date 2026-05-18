@@ -1,0 +1,19 @@
+{
+  "name": "@orderhub/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.23.8",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@orderhub/tsconfig": "workspace:*",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "_comment": "Used with POST /api/v1/orders. Requires Authorization: Bearer <token>",
+  "locationId": "__REPLACE_WITH_LOCATION_ID__",
+  "orderSource": "DIRECT",
+  "fulfillmentType": "DELIVERY",
+  "customerInfo": {
+    "name": "Test Customer",
+    "phone": "+44 7700 900099",
+    "email": "test@example.com"
+  },
+  "deliveryAddress": {
+    "line1": "1 Restaurant Row",
+    "city": "London",
+    "postcode": "EC1A 1BB"
+  },
+  "items": [
+    {
+      "name": "Cheeseburger",
+      "quantity": 2,
+      "unitPrice": 12.00,
+      "totalPrice": 24.00,
+      "modifiers": [
+        { "name": "Extra Patty", "price": 3.00, "quantity": 1 }
+      ]
+    },
+    {
+      "name": "Coca Cola",
+      "quantity": 2,
+      "unitPrice": 2.50,
+      "totalPrice": 5.00
+    }
+  ],
+  "subtotal": 29.00,
+  "deliveryFee": 2.99,
+  "taxAmount": 0,
+  "discount": 0,
+  "total": 31.99,
+  "specialInstructions": "Please ring the doorbell"
+}

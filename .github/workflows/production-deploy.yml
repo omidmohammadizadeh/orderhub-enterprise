@@ -1,0 +1,188 @@
+name: Deploy to Production
+
+# Production deploys are manual-only and require approval from the
+# "production" environment configured in GitHub repository settings.
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. staging-abc1234). Must be a tag that passed staging."
+        required: true
+        type: string
+      run_migrations:
+        description: "Run database migrations before deploy"
+        type: boolean
+        default: true
+      skip_health_check:
+        description: "Skip post-deploy health check (emergency only)"
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/orderhub
+
+jobs:
+  # ── Pre-flight checks ──────────────────────────────────
+  preflight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate image tag format
+        run: |
+          TAG="${{ github.event.inputs.image_tag }}"
+          if [[ ! "$TAG" =~ ^staging- ]]; then
+            echo "❌ Image tag must start with 'staging-' (must be promoted from staging)"
+            exit 1
+          fi
+          echo "✅ Image tag valid: $TAG"
+
+      - name: Check deployment window
+        run: |
+          # Block deploys during peak hours (11:00–23:00 UTC, Mon-Fri)
+          HOUR=$(date -u +%H)
+          DOW=$(date -u +%u)  # 1=Mon, 7=Sun
+          if [ "$DOW" -le 5 ] && [ "$HOUR" -ge 11 ] && [ "$HOUR" -lt 23 ]; then
+            echo "⚠️  Deploying during peak hours (${HOUR}:xx UTC). Ensure you have monitoring open."
+          fi
+
+  # ── Database migrations ────────────────────────────────
+  migrate:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: preflight
+    environment: production-migrate   # requires separate approval
+    if: github.event.inputs.run_migrations == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "9.14.2"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Dry-run migration check
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          echo "Checking pending migrations..."
+          pnpm --filter @orderhub/database exec prisma migrate status
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: pnpm --filter @orderhub/database exec prisma migrate deploy
+
+  # ── Rolling deploy ─────────────────────────────────────
+  deploy:
+    name: Production Deploy
+    runs-on: ubuntu-latest
+    needs: [preflight, migrate]
+    if: always() && needs.preflight.result == 'success' && (needs.migrate.result == 'success' || needs.migrate.result == 'skipped')
+    environment:
+      name: production
+      url: https://app.orderhub.io
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy — rolling restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/orderhub
+
+            echo "Pulling images..."
+            IMAGE_TAG=${{ github.event.inputs.image_tag }} docker compose -f docker-compose.prod.yml pull api worker web
+
+            echo "Rolling restart — worker first (no traffic impact)..."
+            IMAGE_TAG=${{ github.event.inputs.image_tag }} docker compose -f docker-compose.prod.yml up -d --no-deps worker
+
+            echo "Waiting 15s for worker health..."
+            sleep 15
+
+            echo "Rolling restart — API..."
+            IMAGE_TAG=${{ github.event.inputs.image_tag }} docker compose -f docker-compose.prod.yml up -d --no-deps api
+
+            echo "Waiting for API health..."
+            for i in 1 2 3 4 5; do
+              sleep 10
+              if docker compose -f docker-compose.prod.yml exec -T api wget -qO- http://localhost:4000/api/v1/health/ready 2>/dev/null; then
+                echo "✅ API healthy"
+                break
+              fi
+              if [ $i -eq 5 ]; then
+                echo "❌ API health check failed"
+                exit 1
+              fi
+            done
+
+            echo "Rolling restart — Web..."
+            IMAGE_TAG=${{ github.event.inputs.image_tag }} docker compose -f docker-compose.prod.yml up -d --no-deps web
+
+      - name: Post-deploy health check
+        if: github.event.inputs.skip_health_check != 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            echo "Running post-deploy health checks..."
+            sleep 20
+            docker compose -f /opt/orderhub/docker-compose.prod.yml exec -T api \
+              wget -qO- http://localhost:4000/api/v1/health/ready
+
+      - name: Notify production deploy
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '🚀' || '🚨' }} Production deploy ${{ job.status }}: `${{ github.event.inputs.image_tag }}`",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deploy* — ${{ job.status }}\nImage: `${{ github.event.inputs.image_tag }}`\nTriggered by: ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Create deployment record
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id ?? 0,
+              state: 'success',
+              environment_url: 'https://app.orderhub.io',
+              description: 'Production deploy successful'
+            });

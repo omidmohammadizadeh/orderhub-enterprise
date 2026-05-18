@@ -1,0 +1,15 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": { "module": "commonjs" } }]
+  },
+  "setupFiles": ["./test/jest-setup.ts"],
+  "moduleNameMapper": {
+    "^@orderhub/shared(.*)$": "<rootDir>/packages/shared/src$1",
+    "^@orderhub/database(.*)$": "<rootDir>/packages/database/src$1"
+  },
+  "testTimeout": 30000
+}

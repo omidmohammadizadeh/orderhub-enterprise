@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ─────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --primary: 24 95% 53%; /* brand orange */
+    --primary-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 24 95% 53%;
+    --radius: 0.5rem;
+  }
+}
+
+/* ── Base styles ────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-zinc-200;
+  }
+
+  html {
+    @apply antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-zinc-50 text-zinc-900;
+  }
+
+  /* Remove number input spinners */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/* ── Focus ring ─────────────────────────────────────────── */
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2;
+  }
+
+  /* Sidebar scrollbar */
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-zinc-700 rounded-full;
+  }
+}
+
+/* ── Auth page gradient mesh ───────────────────────────── */
+.auth-bg {
+  background-color: #0a0a0b;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(249, 115, 22, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 110%, rgba(124, 58, 237, 0.1) 0%, transparent 60%);
+}
+
+/* ── Dashboard content fade ────────────────────────────── */
+.page-enter {
+  animation: fadeIn 0.18s ease-out;
+}

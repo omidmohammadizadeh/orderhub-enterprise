@@ -1,0 +1,102 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────
+# Order Hub Solutions — Local development services
+# NOT for production use.
+# Production uses managed cloud services (RDS, ElastiCache).
+# ─────────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL ────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: orderhub_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orderhub
+      POSTGRES_PASSWORD: orderhub_secret
+      POSTGRES_DB: orderhub_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./.docker-volumes/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderhub -d orderhub_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: orderhub_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ""
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.docker-volumes/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis UI (dev only) ───────────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: orderhub_redis_ui
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: "local:redis:6379"
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Bull Dashboard (queue monitoring) ─────────────────
+  bull-board:
+    image: deadly0/bull-board:latest
+    container_name: orderhub_bull_board
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3001:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── pgAdmin (dev only) ────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: orderhub_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@orderhub.io
+      PGADMIN_DEFAULT_PASSWORD: devpassword
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./.docker-volumes/pgadmin:/var/lib/pgadmin
+
+  # ── Mailpit (local email testing) ─────────────────────
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: orderhub_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+
+networks:
+  default:
+    name: orderhub_network

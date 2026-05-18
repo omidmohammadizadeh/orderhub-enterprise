@@ -1,0 +1,64 @@
+{
+  "event_type": "orders.notification",
+  "order": {
+    "id": "test-ue-order-001",
+    "display_id": "UE-001",
+    "restaurant_id": "demo-restaurant-id",
+    "cart": {
+      "items": [
+        {
+          "id": "item-1",
+          "title": "Classic Burger",
+          "quantity": 2,
+          "base_unit_price": { "amount": 1200, "currency_code": "GBP" },
+          "price": { "amount": 2400, "currency_code": "GBP" },
+          "selected_modifier_groups": [
+            {
+              "id": "extras",
+              "title": "Extras",
+              "selected_items": [
+                {
+                  "id": "mod-1",
+                  "title": "Extra Cheese",
+                  "quantity": 1,
+                  "price": { "amount": 100, "currency_code": "GBP" }
+                }
+              ]
+            }
+          ],
+          "special_instructions": "No pickles please"
+        },
+        {
+          "id": "item-2",
+          "title": "Fries",
+          "quantity": 2,
+          "base_unit_price": { "amount": 350, "currency_code": "GBP" },
+          "price": { "amount": 700, "currency_code": "GBP" }
+        }
+      ]
+    },
+    "eater": {
+      "first_name": "John",
+      "last_name": "Smith",
+      "phone": "+44 7700 900001"
+    },
+    "delivery_information": {
+      "type": "DELIVERY",
+      "location": {
+        "address": "123 Test Street",
+        "city": "London",
+        "zip_code": "E1 1AA",
+        "country": "GB"
+      }
+    },
+    "payment": {
+      "charges": {
+        "subtotal": { "amount": 3100, "currency_code": "GBP" },
+        "tax": { "amount": 0, "currency_code": "GBP" },
+        "delivery_fee": { "amount": 249, "currency_code": "GBP" },
+        "promotion": { "amount": 0, "currency_code": "GBP" },
+        "total": { "amount": 3349, "currency_code": "GBP" }
+      }
+    }
+  }
+}

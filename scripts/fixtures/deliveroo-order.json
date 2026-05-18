@@ -1,0 +1,52 @@
+{
+  "event": {
+    "id": "evt-deliveroo-001",
+    "type": "order.created"
+  },
+  "order": {
+    "id": "test-dr-order-001",
+    "display_id": "DR-001",
+    "items": [
+      {
+        "id": "item-1",
+        "name": "Margherita Pizza",
+        "count": 1,
+        "total_price_with_addons": 1400,
+        "modifier_groups": [
+          {
+            "id": "size",
+            "name": "Size",
+            "modifiers": [
+              { "name": "Large", "unit_price": 200, "count": 1 }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "item-2",
+        "name": "Garlic Bread",
+        "count": 2,
+        "total_price_with_addons": 600
+      }
+    ],
+    "customer": {
+      "name": "Jane Doe",
+      "phone_number": "+44 7700 900002",
+      "email": "jane@example.com"
+    },
+    "fulfillment": {
+      "method": "delivery",
+      "delivery": {
+        "address": {
+          "address1": "456 Sample Road",
+          "city": "London",
+          "postcode": "W1A 1AA"
+        }
+      }
+    },
+    "subtotal": 2000,
+    "delivery_charge": 299,
+    "discount": 0,
+    "total": 2299
+  }
+}
