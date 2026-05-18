@@ -80,6 +80,21 @@ export class PrintQueueService {
     });
   }
 
+  // Enqueue an already-created print job record (used for test prints, retries)
+  async enqueueRawJob(
+    jobId: string,
+    tenantId: string,
+    locationId: string,
+    printerId: string | null,
+  ): Promise<{ jobId: string }> {
+    await this.printQueue.add(
+      PRINT_JOBS.RECEIPT,
+      { jobId, tenantId, locationId, printerId },
+      { jobId: `print-${jobId}`, attempts: 1 },
+    );
+    return { jobId };
+  }
+
   async reprint(jobId: string): Promise<void> {
     const original = await this.prisma.printJob.findUnique({ where: { id: jobId } });
     if (!original) return;

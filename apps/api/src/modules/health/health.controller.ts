@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
@@ -74,5 +74,107 @@ export class HealthController {
   @ApiOperation({ summary: "Kubernetes liveness probe endpoint" })
   kubeLiveness(): { status: "ok" } {
     return { status: "ok" };
+  }
+
+  @Get("release-readiness")
+  @ApiOperation({ summary: "Release readiness check for a specific tenant/location" })
+  async releaseReadiness(
+    @Query("tenantId") tenantId: string,
+    @Query("locationId") locationId?: string,
+  ): Promise<Record<string, unknown>> {
+    const checks: Record<string, unknown> = {};
+    const warnings: string[] = [];
+
+    // Environment
+    const nodeEnv = this.config.get<string>("app.nodeEnv") ?? "unknown";
+    checks.environment = nodeEnv;
+    if (nodeEnv !== "production") warnings.push("NODE_ENV is not production");
+
+    // Sandbox guard
+    checks.sandboxEnabled = nodeEnv !== "production";
+    if (nodeEnv !== "production") warnings.push("Sandbox tools are ENABLED — disable before go-live");
+
+    // DB
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      checks.database = "ok";
+    } catch { checks.database = "DOWN"; warnings.push("Database connection failed"); }
+
+    // Redis
+    try {
+      await this.orderQueue.client.ping();
+      checks.redis = "ok";
+    } catch { checks.redis = "degraded"; warnings.push("Redis/queue unreachable"); }
+
+    if (!tenantId) {
+      return { checks, warnings, readyScore: 0 };
+    }
+
+    // Integrations
+    const integrations = await this.prisma.integration.findMany({
+      where: { location: { brand: { tenantId } }, status: "ACTIVE" },
+      select: { platform: true, status: true, locationId: true },
+    });
+    checks.activeIntegrations = integrations.map((i) => i.platform);
+
+    // Printers
+    const printerWhere: any = { location: { brand: { tenantId } } };
+    if (locationId) printerWhere.locationId = locationId;
+    const printers = await this.prisma.printer.findMany({
+      where: printerWhere,
+      select: { id: true, isOnline: true, name: true },
+    });
+    checks.printersOnline = printers.filter((p) => p.isOnline).length;
+    checks.printersOffline = printers.filter((p) => !p.isOnline).length;
+    if (printers.length === 0) warnings.push("No printers configured");
+    if (printers.some((p) => !p.isOnline)) warnings.push("Some printers are offline");
+
+    // Failed print jobs
+    const failedPrintJobs = await this.prisma.printJob.count({
+      where: {
+        ...(locationId ? { locationId } : {}),
+        tenantId,
+        status: "FAILED",
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60_000) },
+      },
+    });
+    checks.failedPrintJobsLast24h = failedPrintJobs;
+    if (failedPrintJobs > 5) warnings.push(`${failedPrintJobs} failed print jobs in last 24h`);
+
+    // Queue stats
+    try {
+      const [waiting, active, failed] = await Promise.all([
+        this.orderQueue.getWaitingCount(),
+        this.orderQueue.getActiveCount(),
+        this.orderQueue.getFailedCount(),
+      ]);
+      checks.queueWaiting = waiting;
+      checks.queueActive = active;
+      checks.queueFailed = failed;
+      if (failed > 10) warnings.push(`${failed} failed queue jobs — check worker`);
+    } catch { checks.queueStats = "unavailable"; }
+
+    // Last successful order
+    const lastOrder = await this.prisma.order.findFirst({
+      where: { tenantId, ...(locationId ? { locationId } : {}) },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, createdAt: true, platform: true },
+    });
+    checks.lastOrderAt = lastOrder?.createdAt.toISOString() ?? null;
+    checks.lastOrderPlatform = lastOrder?.platform ?? null;
+
+    // Last webhook
+    const lastWebhook = await this.prisma.webhookEvent.findFirst({
+      where: { processedAt: { not: null } },
+      orderBy: { processedAt: "desc" },
+      select: { platform: true, processedAt: true },
+    });
+    checks.lastWebhookAt = lastWebhook?.processedAt?.toISOString() ?? null;
+    checks.lastWebhookPlatform = lastWebhook?.platform ?? null;
+
+    // Score: 100 - 10 per warning, min 0
+    const readyScore = Math.max(0, 100 - warnings.length * 10);
+
+    return { checks, warnings, readyScore, generatedAt: new Date().toISOString() };
   }
 }

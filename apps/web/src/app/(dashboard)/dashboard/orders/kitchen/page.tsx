@@ -113,7 +113,7 @@ export default function KitchenPage() {
   const { data: orders } = useQuery<Order[]>({
     queryKey: ["orders-kitchen"],
     queryFn: () =>
-      apiFetch("/v1/orders?status=CONFIRMED&limit=20&sort=createdAt:asc"),
+      apiFetch("/v1/orders?status=ACCEPTED,PREPARING&limit=20&sort=createdAt:asc"),
     refetchInterval: 8_000,
   });
 

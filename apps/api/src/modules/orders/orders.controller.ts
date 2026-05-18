@@ -64,9 +64,16 @@ export class OrdersController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
+    // Parse comma-separated status values: "PENDING,ACCEPTED" → ["PENDING", "ACCEPTED"]
+    const parsedStatus = status
+      ? status.includes(",")
+        ? (status.split(",").map((s) => s.trim()) as any)
+        : (status as any)
+      : undefined;
+
     const filters: OrderFilters = {
       locationId,
-      status: status as any,
+      status: parsedStatus,
       platform,
       orderSource,
       from: from ? new Date(from) : undefined,

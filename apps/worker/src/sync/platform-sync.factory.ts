@@ -114,16 +114,47 @@ export class DeliverooSyncClient extends PlatformSyncClient {
 export class JustEatSyncClient extends PlatformSyncClient {
   readonly platform = "JUST_EAT";
 
+  private static readonly BASE_URL = "https://uk-api.just-eat.io";
+
+  private client(credentials: Record<string, string>): AxiosInstance {
+    return axios.create({
+      baseURL: JustEatSyncClient.BASE_URL,
+      headers: {
+        Authorization: `Bearer ${credentials.accessToken}`,
+        "Content-Type": "application/json",
+        ...(credentials.applicationId
+          ? { "x-je-application-id": credentials.applicationId }
+          : {}),
+      },
+      timeout: 10_000,
+    });
+  }
+
   async syncStatus(
     externalId: string,
     newStatus: OrderStatus,
     credentials: Record<string, string>,
     opts: { cancelReason?: string } = {},
   ): Promise<SyncResult> {
-    // Just Eat UK uses a different partner API that varies by territory.
-    // This is a placeholder that logs the intended sync without making the call.
-    // Replace with actual implementation when Just Eat API credentials are available.
-    return { success: true };
+    const http = this.client(credentials);
+    try {
+      if (newStatus === "ACCEPTED") {
+        const dueDate = new Date(Date.now() + 30 * 60_000).toISOString();
+        await http.put(`/orders/${externalId}/accept`, { dueDate });
+      } else if (newStatus === "REJECTED" || newStatus === "CANCELLED") {
+        await http.put(`/orders/${externalId}/reject`, {
+          reason: opts.cancelReason ?? "RestaurantClosed",
+        });
+      } else if (newStatus === "READY") {
+        await http.put(`/orders/${externalId}/ready`);
+      } else {
+        // PREPARING, DISPATCHED, COMPLETED — no Just Eat API call needed
+        return { success: true };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.response?.data?.message ?? String(err) };
+    }
   }
 }
 

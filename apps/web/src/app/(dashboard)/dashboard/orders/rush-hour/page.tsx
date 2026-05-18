@@ -56,7 +56,7 @@ function ageSeconds(createdAt: string) {
 }
 
 function urgencyClass(ageS: number, status: string): string {
-  if (status !== "PENDING" && status !== "CONFIRMED") return "";
+  if (status !== "PENDING" && status !== "ACCEPTED") return "";
   if (ageS > 300) return "ring-2 ring-red-500 animate-pulse";
   if (ageS > 180) return "ring-2 ring-orange-400";
   return "";
@@ -81,7 +81,7 @@ function OrderCard({
   const ageMin = Math.floor(age / 60);
   const ageSec = age % 60;
   const isPending = order.status === "PENDING";
-  const isConfirmed = order.status === "CONFIRMED";
+  const isConfirmed = order.status === "ACCEPTED";
 
   return (
     <div
@@ -158,13 +158,13 @@ export default function RushHourPage() {
   const { data: orders } = useQuery<Order[]>({
     queryKey: ["orders-rush"],
     queryFn: () =>
-      apiFetch("/v1/orders?status=PENDING,CONFIRMED&limit=50&sort=createdAt:asc"),
+      apiFetch("/v1/orders?status=PENDING,ACCEPTED&limit=50&sort=createdAt:asc"),
     refetchInterval: 5_000,
   });
 
   const accept = useMutation({
     mutationFn: (id: string) =>
-      apiFetch(`/v1/orders/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: "CONFIRMED" }) }),
+      apiFetch(`/v1/orders/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: "ACCEPTED" }) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["orders-rush"] }),
   });
 
@@ -175,7 +175,7 @@ export default function RushHourPage() {
   });
 
   const pending = orders?.filter((o) => o.status === "PENDING") ?? [];
-  const confirmed = orders?.filter((o) => o.status === "CONFIRMED") ?? [];
+  const confirmed = orders?.filter((o) => o.status === "ACCEPTED") ?? [];
   const allActive = [...pending, ...confirmed];
 
   const focused = allActive[focusedIdx];
@@ -200,7 +200,7 @@ export default function RushHourPage() {
           break;
         case "r":
         case "R":
-          if (focused?.status === "CONFIRMED") ready.mutate(focused.id);
+          if (focused?.status === "ACCEPTED") ready.mutate(focused.id);
           break;
       }
     },

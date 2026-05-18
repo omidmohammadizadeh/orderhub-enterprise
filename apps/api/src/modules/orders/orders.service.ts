@@ -12,6 +12,7 @@ import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { AuditLogService } from "../auth/services/audit-log.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
@@ -43,6 +44,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
+    private readonly audit: AuditLogService,
     @InjectQueue(QUEUES.ORDER_PROCESSING) private readonly orderQueue: Queue,
     @InjectQueue(QUEUES.PRINTING) private readonly printQueue: Queue,
   ) {}
@@ -113,6 +115,19 @@ export class OrdersService {
     this.logger.log(
       `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId})`,
     );
+
+    void this.audit.log({
+      tenantId,
+      event: "order.received",
+      resource: "order",
+      resourceId: order.id,
+      meta: {
+        platform: canonical.platform,
+        externalId: canonical.externalId,
+        locationId,
+        total: canonical.total,
+      },
+    });
 
     // Enqueue downstream processing (KDS + print + notifications)
     await this.orderQueue.add(
@@ -261,6 +276,22 @@ export class OrdersService {
       });
 
       return updated;
+    });
+
+    void this.audit.log({
+      tenantId,
+      userId: changedBy,
+      event: `order.status.${newStatus.toLowerCase()}`,
+      resource: "order",
+      resourceId: orderId,
+      before: { status: order.status },
+      after: { status: newStatus },
+      meta: {
+        locationId: order.locationId,
+        platform: order.platform,
+        actorType,
+        cancelReason: dto.cancelReason,
+      },
     });
 
     // Enqueue status-change jobs (print, notifications, platform sync)

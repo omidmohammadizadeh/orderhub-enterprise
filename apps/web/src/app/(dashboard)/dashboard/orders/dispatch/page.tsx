@@ -31,8 +31,8 @@ async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
   READY: { label: "Ready", color: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
-  OUT_FOR_DELIVERY: { label: "Out for Delivery", color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
-  DELIVERED: { label: "Delivered", color: "bg-gray-50 text-gray-500 border-gray-200", dot: "bg-gray-400" },
+  DISPATCHED: { label: "Out for Delivery", color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
+  COMPLETED: { label: "Delivered", color: "bg-gray-50 text-gray-500 border-gray-200", dot: "bg-gray-400" },
 };
 
 function ageMinutes(createdAt: string) {
@@ -95,7 +95,7 @@ function DispatchCard({ order, onDispatch, onComplete }: {
             <Truck className="w-4 h-4" /> Dispatch
           </button>
         )}
-        {order.status === "OUT_FOR_DELIVERY" && (
+        {order.status === "DISPATCHED" && (
           <button
             onClick={() => onComplete(order.id)}
             className="flex-1 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
@@ -118,7 +118,7 @@ export default function DispatchPage() {
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["orders-dispatch"],
     queryFn: () =>
-      apiFetch("/v1/orders?status=READY,OUT_FOR_DELIVERY,DELIVERED&limit=100&sort=createdAt:desc"),
+      apiFetch("/v1/orders?status=READY,DISPATCHED,COMPLETED&limit=100&sort=createdAt:desc"),
     refetchInterval: 10_000,
   });
 
@@ -130,12 +130,12 @@ export default function DispatchPage() {
 
   const filtered = (orders ?? []).filter((o) => {
     if (filter === "ready") return o.status === "READY";
-    if (filter === "out") return o.status === "OUT_FOR_DELIVERY";
-    return ["READY", "OUT_FOR_DELIVERY"].includes(o.status);
+    if (filter === "out") return o.status === "DISPATCHED";
+    return ["READY", "DISPATCHED"].includes(o.status);
   });
 
   const readyCount = orders?.filter((o) => o.status === "READY").length ?? 0;
-  const outCount = orders?.filter((o) => o.status === "OUT_FOR_DELIVERY").length ?? 0;
+  const outCount = orders?.filter((o) => o.status === "DISPATCHED").length ?? 0;
 
   if (isLoading) {
     return (
@@ -193,8 +193,8 @@ export default function DispatchPage() {
             <DispatchCard
               key={order.id}
               order={order}
-              onDispatch={(id) => updateStatus.mutate({ id, status: "OUT_FOR_DELIVERY" })}
-              onComplete={(id) => updateStatus.mutate({ id, status: "DELIVERED" })}
+              onDispatch={(id) => updateStatus.mutate({ id, status: "DISPATCHED" })}
+              onComplete={(id) => updateStatus.mutate({ id, status: "COMPLETED" })}
             />
           ))}
         </div>
