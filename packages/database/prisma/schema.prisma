@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// OrderHub Enterprise — Prisma Schema v3 (Phase E)
-// Multi-tenant omnichannel restaurant integration platform
+// OrderHub Enterprise — Prisma Schema v4 (Phase F)
+// Multi-tenant omnichannel restaurant commerce platform
 //
 // Design principles:
 //  1. tenantId is ALWAYS denormalised on write-heavy tables to avoid JOINs
@@ -8,20 +8,20 @@
 //     layer; RLS can be added at the Postgres level in a future phase.
 //  2. Soft-delete (deletedAt) is used only for configuration entities that
 //     operators manage (brands, locations, menus, printers, integrations).
-//     Transactional records (orders, webhooks, print jobs, audit logs) are
-//     NEVER soft-deleted — they are archived or retained per policy instead.
+//     Transactional records (orders, webhooks, print jobs, audit logs, payments,
+//     ledger entries) are NEVER soft-deleted — they are archived per retention policy.
 //  3. Cascade rules are explicit on every FK:
 //       - Cascade: child record has no independent identity (e.g. OrderItem)
 //       - Restrict: FK prevents accidental parent deletion (e.g. Order→Tenant)
 //       - SetNull: FK becomes nullable when parent removed (e.g. PrintJob→Printer)
 //  4. All timeline/audit columns are written ONCE; updatedAt is omitted from
-//     immutable records (OrderStatusHistory, AuditLog, WebhookEvent, OrderItem)
-//     to make immutability explicit rather than implicit.
-//  5. customerPhone and customerName are extracted from customerInfo JSON to
-//     support indexed searches without computed columns or GIN indexes.
-//  6. Partitioning preparation: orders are keyed (tenantId, createdAt) and all
-//     composite indexes lead with tenantId or locationId to match future
-//     Postgres RANGE partitioning by created_at within tenant shards.
+//     immutable records to make immutability explicit.
+//  5. Partitioning preparation: orders, payments, and stock_movements are keyed
+//     (tenantId, createdAt) for future RANGE partitioning.
+//  6. Ledger is append-only and double-entry ready: every payment creates paired
+//     LedgerEntry rows (debit + credit), enabling accounting reconciliation.
+//  7. Inventory deduction is eventual: StockMovement rows are written by the
+//     worker after order acceptance, not inline in the API path.
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -46,14 +46,19 @@ model Tenant {
   settings Json         @default("{}")
   metadata Json         @default("{}")
 
-  brands     Brand[]
-  users      User[]
-  apiKeys    ApiKey[]
-  orders     Order[]
-  printJobs  PrintJob[]
-  customers  Customer[]
-  promoCodes PromoCode[]
-  drivers    Driver[]
+  brands         Brand[]
+  users          User[]
+  apiKeys        ApiKey[]
+  orders         Order[]
+  printJobs      PrintJob[]
+  customers      Customer[]
+  promoCodes     PromoCode[]
+  drivers        Driver[]
+  suppliers      Supplier[]
+  ipAllowlists   IpAllowlist[]
+  connectAccount StripeConnectAccount[]
+  branding       TenantBranding?
+  subscription   TenantSubscription?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,9 +82,12 @@ model User {
   isVerified  Boolean   @default(false)
   lastLoginAt DateTime?
 
-  refreshTokens RefreshToken[]
-  oauthAccounts OAuthAccount[]
-  auditLogs     AuditLog[]
+  refreshTokens  RefreshToken[]
+  oauthAccounts  OAuthAccount[]
+  auditLogs      AuditLog[]
+  mfaConfig      MfaConfig?
+  deviceSessions DeviceSession[]
+  deviceTokens   DeviceToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -230,13 +238,13 @@ model Location {
   onboardingStep Int     @default(0)
 
   // ── Store Operations ──────────────────────────────────
-  isOpen          Boolean   @default(true)   // current open/closed state
-  isPaused        Boolean   @default(false)  // temporarily pausing new orders
-  pauseUntil      DateTime?                  // auto-resume at this time
-  busyMode        Boolean   @default(false)  // kitchen busy — shows extended wait
-  currentPrepTime Int       @default(20)     // quoted prep time in minutes
-  throttleLimit   Int?                       // max new orders per hour (null = unlimited)
-  storeStatusNote String?                    // displayed to customers when paused/closed
+  isOpen          Boolean   @default(true)
+  isPaused        Boolean   @default(false)
+  pauseUntil      DateTime?
+  busyMode        Boolean   @default(false)
+  currentPrepTime Int       @default(20)
+  throttleLimit   Int?
+  storeStatusNote String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -325,21 +333,22 @@ model MenuItem {
   sku         String?
   isAvailable Boolean  @default(true)
   allergens   String[]
-  dietaryTags String[] // VEGAN, VEGETARIAN, GLUTEN_FREE, DAIRY_FREE, HALAL, KOSHER
+  dietaryTags String[]
   calories    Int?
-  prepTime    Int?     // minutes — overrides location default when set
+  prepTime    Int?
   metadata    Json     @default("{}")
 
   // Inventory tracking
   isInventoryTracked Boolean @default(false)
   inventoryCount     Int?
 
-  // Platform-specific pricing overrides — { "UBER_EATS": { "price": 12.99 }, ... }
+  // Platform-specific pricing overrides
   platformPricingOverrides Json @default("{}")
 
   categories         MenuItemOnCategory[]
   modifierGroupLinks ModifierGroupOnItem[]
   variants           MenuItemVariant[]
+  recipe             Recipe?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -362,7 +371,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups (normalized, replaces MenuItem.modifierGroups JSON) ───────
+// ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
   id            String  @id @default(cuid())
   brandId       String
@@ -370,13 +379,12 @@ model ModifierGroup {
   name          String
   description   String?
   minSelections Int     @default(0)
-  maxSelections Int?    // null = unlimited
+  maxSelections Int?
   isRequired    Boolean @default(false)
   sortOrder     Int     @default(0)
 
-  options   ModifierOption[]
-  itemLinks ModifierGroupOnItem[]
-  // Back-reference for nested modifier groups (this group is nested under an option)
+  options            ModifierOption[]
+  itemLinks          ModifierGroupOnItem[]
   nestedUnderOptions ModifierOption[] @relation("NestedModifier")
 
   createdAt DateTime @default(now())
@@ -399,7 +407,6 @@ model ModifierOption {
   isAvailable     Boolean       @default(true)
   sortOrder       Int           @default(0)
 
-  // Nested modifier group — selecting this option reveals a further sub-group
   nestedGroupId String?
   nestedGroup   ModifierGroup? @relation("NestedModifier", fields: [nestedGroupId], references: [id], onDelete: SetNull)
 
@@ -422,12 +429,11 @@ model ModifierGroupOnItem {
   @@map("modifier_groups_on_items")
 }
 
-// ── MenuItem variants (size / format pricing) ──────────────────────────────────
 model MenuItemVariant {
   id          String   @id @default(cuid())
   itemId      String
   item        MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  name        String   // "Small", "Regular", "Large"
+  name        String
   sku         String?
   price       Decimal  @db.Decimal(10, 2)
   sortOrder   Int      @default(0)
@@ -440,15 +446,14 @@ model MenuItemVariant {
   @@map("menu_item_variants")
 }
 
-// ── Menu versioning — snapshot on every publish for rollback ──────────────────
 model MenuVersion {
   id        String  @id @default(cuid())
   menuId    String
   menu      Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
   version   Int
-  snapshot  Json    // full menu + categories + items denormalized
+  snapshot  Json
   label     String?
-  createdBy String? // userId who published
+  createdBy String?
 
   createdAt DateTime @default(now())
 
@@ -458,8 +463,6 @@ model MenuVersion {
 }
 
 // ── Customer CRM ──────────────────────────────────────────────────────────────
-// Customers are not Users — they are end-consumers placing orders.
-// A customer may exist without an account (guest checkout), identified by email/phone.
 model Customer {
   id               String   @id @default(cuid())
   tenantId         String
@@ -470,12 +473,13 @@ model Customer {
   lastName         String?
   marketingConsent Boolean  @default(false)
   isActive         Boolean  @default(true)
-  tags             String[] // e.g. ["vip", "regular"]
+  tags             String[]
   metadata         Json     @default("{}")
 
-  addresses CustomerAddress[]
-  orders    Order[]
-  loyalty   LoyaltyAccount?
+  addresses      CustomerAddress[]
+  orders         Order[]
+  loyalty        LoyaltyAccount?
+  paymentMethods PaymentMethod[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -491,14 +495,14 @@ model CustomerAddress {
   id          String   @id @default(cuid())
   customerId  String
   customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  label       String?  // "Home", "Work", "Other"
+  label       String?
   line1       String
   line2       String?
   city        String
   postcode    String
   country     String   @default("GB")
   isDefault   Boolean  @default(false)
-  coordinates Json?    // { lat: number, lng: number }
+  coordinates Json?
 
   createdAt DateTime @default(now())
 
@@ -506,14 +510,13 @@ model CustomerAddress {
   @@map("customer_addresses")
 }
 
-// Loyalty-ready schema — points/tiers can be implemented on top of this
 model LoyaltyAccount {
   id          String   @id @default(cuid())
   customerId  String   @unique
   customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   tenantId    String
   points      Int      @default(0)
-  tier        String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  tier        String   @default("BRONZE")
   totalSpend  Decimal  @db.Decimal(10, 2) @default(0)
   totalOrders Int      @default(0)
   metadata    Json     @default("{}")
@@ -535,12 +538,12 @@ model PromoCode {
   type          PromoCodeType
   value         Decimal       @db.Decimal(10, 2)
   minOrderValue Decimal?      @db.Decimal(10, 2)
-  maxUses       Int?          // null = unlimited
+  maxUses       Int?
   usedCount     Int           @default(0)
   startAt       DateTime?
   expiresAt     DateTime?
   isActive      Boolean       @default(true)
-  locationIds   String[]      // empty = all locations
+  locationIds   String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -558,34 +561,26 @@ model Order {
   tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   locationId        String
   location          Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  customerId        String?
+  customer          Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  // ── Customer link (optional — guest checkout has no customer record) ──────
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-
-  // ── External platform reference ──────────────────────────
   externalId String?
   platform   OrderPlatform
   displayId  String?
 
-  // ── Channel & integration provenance ─────────────────────
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
   viaHubrise        Boolean           @default(false)
 
-  // ── Lifecycle ─────────────────────────────────────────────
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
 
-  // ── Customer data ──────────────────────────────────────────
   customerInfo  Json
   customerName  String?
   customerPhone String?
 
-  // ── Delivery ──────────────────────────────────────────────
   deliveryAddress Json?
 
-  // ── Financials ────────────────────────────────────────────
   subtotal      Decimal @db.Decimal(10, 2)
   taxAmount     Decimal @db.Decimal(10, 2) @default(0)
   serviceCharge Decimal @db.Decimal(10, 2) @default(0)
@@ -593,23 +588,17 @@ model Order {
   discount      Decimal @db.Decimal(10, 2) @default(0)
   total         Decimal @db.Decimal(10, 2)
 
-  // ── Payment ───────────────────────────────────────────────
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod String?
 
-  // ── Promo ─────────────────────────────────────────────────
-  promoCode     String?  // code applied
+  promoCode     String?
   promoDiscount Decimal? @db.Decimal(10, 2)
 
-  // ── Scheduling ────────────────────────────────────────────
   specialInstructions String?
   scheduledFor        DateTime?
   estimatedReadyAt    DateTime?
+  idempotencyKey      String?   @unique
 
-  // ── Idempotency ───────────────────────────────────────────
-  idempotencyKey String? @unique
-
-  // ── Timeline ──────────────────────────────────────────────
   receivedAt       DateTime  @default(now())
   acceptedAt       DateTime?
   preparingAt      DateTime?
@@ -619,7 +608,6 @@ model Order {
   cancelledAt      DateTime?
   cancelReason     String?
 
-  // ── Metadata ──────────────────────────────────────────────
   metadata       Json @default("{}")
   sourceMetadata Json @default("{}")
 
@@ -628,6 +616,7 @@ model Order {
   kdsTickets       KdsTicket[]
   printJobs        PrintJob[]
   driverAssignment DriverAssignment?
+  payments         Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -651,7 +640,6 @@ model Order {
   @@map("orders")
 }
 
-// ── OrderItem ─────────────────────────────────────────────────────────────────
 model OrderItem {
   id         String  @id @default(cuid())
   orderId    String
@@ -671,7 +659,6 @@ model OrderItem {
   @@map("order_items")
 }
 
-// ── OrderStatusHistory ────────────────────────────────────────────────────────
 model OrderStatusHistory {
   id         String               @id @default(cuid())
   orderId    String
@@ -770,7 +757,6 @@ model Printer {
   isOnline       Boolean               @default(false)
   deletedAt      DateTime?
 
-  // Failover: if this printer fails, route to failoverPrinterId
   failoverPrinterId String?
 
   supportsReceipts   Boolean @default(true)
@@ -779,12 +765,9 @@ model Printer {
   supportsCut        Boolean @default(true)
   supportsCashDrawer Boolean @default(false)
 
-  // Auto-print rules stored as JSON:
-  // [{ "event": "order:new", "types": ["RECEIPT", "KITCHEN_TICKET"] }]
   autoPrintRules Json @default("[]")
-
-  settings  Json @default("{}")
-  metadata  Json @default("{}")
+  settings       Json @default("{}")
+  metadata       Json @default("{}")
 
   printJobs PrintJob[]
 
@@ -799,7 +782,6 @@ model Printer {
   @@map("printers")
 }
 
-// ── PrintJob ──────────────────────────────────────────────────────────────────
 model PrintJob {
   id            String         @id @default(cuid())
   tenantId      String
@@ -830,15 +812,13 @@ model PrintJob {
   @@map("print_jobs")
 }
 
-// ── Print Templates ───────────────────────────────────────────────────────────
-// Custom receipt / kitchen ticket / label templates per tenant or location
 model PrintTemplate {
   id         String       @id @default(cuid())
   tenantId   String
-  locationId String?      // null = applies to all locations in tenant
+  locationId String?
   name       String
   type       PrintJobType
-  template   Json         // template slots and layout config
+  template   Json
   isDefault  Boolean      @default(false)
   isActive   Boolean      @default(true)
 
@@ -850,18 +830,18 @@ model PrintTemplate {
   @@map("print_templates")
 }
 
-// ── Driver / Dispatch Foundation ──────────────────────────────────────────────
+// ── Driver / Dispatch ─────────────────────────────────────────────────────────
 model Driver {
   id          String  @id @default(cuid())
   tenantId    String
   tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId      String? // link to User if driver has a dashboard login
+  userId      String?
   firstName   String
   lastName    String
   phone       String
   email       String?
   isActive    Boolean @default(true)
-  vehicleType String? // BIKE, SCOOTER, CAR, FOOT
+  vehicleType String?
   metadata    Json    @default("{}")
 
   assignments DriverAssignment[]
@@ -893,7 +873,6 @@ model DriverAssignment {
   @@map("driver_assignments")
 }
 
-// Append-only GPS breadcrumb trail for delivery tracking
 model DeliveryTracking {
   id           String           @id @default(cuid())
   assignmentId String
@@ -903,12 +882,673 @@ model DeliveryTracking {
   accuracy     Float?
   heading      Float?
   speed        Float?
-  event        String?          // "PICKUP", "DELIVERY", "WAYPOINT"
+  event        String?
 
   recordedAt DateTime @default(now())
 
   @@index([assignmentId, recordedAt(sort: Desc)])
   @@map("delivery_tracking")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — PAYMENT & FINANCIAL SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Stripe Connect account per tenant (or per brand/location for multi-entity)
+model StripeConnectAccount {
+  id                 String  @id @default(cuid())
+  tenantId           String
+  tenant             Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId         String? // null = tenant-level account
+  stripeAccountId    String  @unique
+  accountType        String  @default("EXPRESS")
+  chargesEnabled     Boolean @default(false)
+  payoutsEnabled     Boolean @default(false)
+  defaultCurrency    String  @default("gbp")
+  country            String  @default("GB")
+  onboardingComplete Boolean @default(false)
+  metadata           Json    @default("{}")
+
+  payments Payment[]
+  payouts  Payout[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("stripe_connect_accounts")
+}
+
+// Immutable payment record — one per payment attempt
+model Payment {
+  id                     String              @id @default(cuid())
+  tenantId               String
+  orderId                String
+  order                  Order               @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  stripeConnectAccountId String?
+  connectAccount         StripeConnectAccount? @relation(fields: [stripeConnectAccountId], references: [id], onDelete: SetNull)
+  stripePaymentIntentId  String?             @unique
+  stripeChargeId         String?             @unique
+  amount                 Decimal             @db.Decimal(10, 2)
+  currency               String              @default("gbp")
+  status                 PaymentRecordStatus
+  method                 PaymentMethodType
+  tipAmount              Decimal             @db.Decimal(10, 2) @default(0)
+  platformFee            Decimal             @db.Decimal(10, 2) @default(0)
+  processingFee          Decimal             @db.Decimal(10, 2) @default(0)
+  netAmount              Decimal             @db.Decimal(10, 2)
+  metadata               Json                @default("{}")
+
+  refunds       Refund[]
+  ledgerEntries LedgerEntry[]
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([orderId])
+  @@map("payments")
+}
+
+// Saved customer payment methods (Stripe PaymentMethod objects)
+model PaymentMethod {
+  id                    String   @id @default(cuid())
+  customerId            String
+  customer              Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  stripePaymentMethodId String   @unique
+  type                  PaymentMethodType
+  last4                 String?
+  brand                 String?
+  expMonth              Int?
+  expYear               Int?
+  isDefault             Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+  @@map("payment_methods")
+}
+
+// Refund record — supports full and partial refunds
+model Refund {
+  id             String       @id @default(cuid())
+  tenantId       String
+  paymentId      String
+  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  stripeRefundId String?      @unique
+  amount         Decimal      @db.Decimal(10, 2)
+  reason         String?
+  status         RefundStatus
+  isPartial      Boolean      @default(false)
+  processedBy    String?
+  note           String?
+
+  ledgerEntries LedgerEntry[]
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+// Append-only double-entry ledger — every financial event produces rows here
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  tenantId    String
+  paymentId   String?
+  payment     Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  refundId    String?
+  refund      Refund?         @relation(fields: [refundId], references: [id], onDelete: SetNull)
+  type        LedgerEntryType
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    String          @default("gbp")
+  description String
+  reference   String?
+  metadata    Json            @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([paymentId])
+  @@map("ledger_entries")
+}
+
+// Stripe payout record
+model Payout {
+  id               String                @id @default(cuid())
+  tenantId         String
+  connectAccountId String?
+  connectAccount   StripeConnectAccount? @relation(fields: [connectAccountId], references: [id], onDelete: SetNull)
+  stripePayoutId   String                @unique
+  amount           Decimal               @db.Decimal(10, 2)
+  currency         String                @default("gbp")
+  status           PayoutStatus
+  arrivalDate      DateTime?
+  description      String?
+  metadata         Json                  @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("payouts")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — INVENTORY & STOCK SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+
+model Supplier {
+  id       String  @id @default(cuid())
+  tenantId String
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name     String
+  email    String?
+  phone    String?
+  address  Json?
+  isActive Boolean @default(true)
+  metadata Json    @default("{}")
+
+  ingredients    Ingredient[]
+  purchaseOrders PurchaseOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("suppliers")
+}
+
+model Ingredient {
+  id            String     @id @default(cuid())
+  tenantId      String
+  locationId    String
+  supplierId    String?
+  supplier      Supplier?  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  name          String
+  unit          String     // "g", "ml", "each", "kg", "L"
+  costPerUnit   Decimal    @db.Decimal(10, 4)
+  lowStockAlert Int?
+  isActive      Boolean    @default(true)
+  metadata      Json       @default("{}")
+
+  stockLevels  StockLevel[]
+  recipeUsages RecipeIngredient[]
+  movements    StockMovement[]
+  poLines      PurchaseOrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, locationId])
+  @@map("ingredients")
+}
+
+// Current stock level per ingredient per location (denormalised for fast reads)
+model StockLevel {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  locationId   String
+  quantity     Decimal    @db.Decimal(10, 3)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([ingredientId, locationId])
+  @@index([locationId])
+  @@map("stock_levels")
+}
+
+// Recipe definition — links a menu item to its required ingredients
+model Recipe {
+  id         String   @id @default(cuid())
+  tenantId   String
+  menuItemId String   @unique
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  yields     Decimal  @db.Decimal(6, 2) @default(1) // portions per recipe batch
+
+  ingredients RecipeIngredient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  quantity     Decimal    @db.Decimal(10, 3) // per 1 unit of the dish
+
+  @@unique([recipeId, ingredientId])
+  @@map("recipe_ingredients")
+}
+
+// Append-only stock movement log — every change is auditable
+model StockMovement {
+  id              String            @id @default(cuid())
+  tenantId        String
+  locationId      String
+  ingredientId    String
+  ingredient      Ingredient        @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  type            StockMovementType
+  quantity        Decimal           @db.Decimal(10, 3) // positive = in, negative = out
+  reason          String?
+  orderId         String?
+  purchaseOrderId String?
+  recordedBy      String?
+  metadata        Json              @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, locationId, createdAt(sort: Desc)])
+  @@index([ingredientId, createdAt(sort: Desc)])
+  @@map("stock_movements")
+}
+
+model PurchaseOrder {
+  id         String              @id @default(cuid())
+  tenantId   String
+  locationId String
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  status     PurchaseOrderStatus @default(DRAFT)
+  orderedAt  DateTime?
+  expectedAt DateTime?
+  receivedAt DateTime?
+  totalCost  Decimal             @db.Decimal(10, 2) @default(0)
+  notes      String?
+
+  lines PurchaseOrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, locationId])
+  @@index([supplierId])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  ingredientId    String
+  ingredient      Ingredient    @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  quantity        Decimal       @db.Decimal(10, 3)
+  unitCost        Decimal       @db.Decimal(10, 4)
+  totalCost       Decimal       @db.Decimal(10, 2)
+  receivedQty     Decimal?      @db.Decimal(10, 3)
+
+  @@index([purchaseOrderId])
+  @@index([ingredientId])
+  @@map("purchase_order_lines")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — PUSH NOTIFICATION SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+
+model DeviceToken {
+  id       String         @id @default(cuid())
+  userId   String
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId String
+  token    String         @unique
+  platform DevicePlatform
+  deviceId String?
+  appId    String?        // "driver", "kds", "pos", "manager"
+  isActive Boolean        @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tenantId])
+  @@map("device_tokens")
+}
+
+model NotificationLog {
+  id         String              @id @default(cuid())
+  tenantId   String
+  userId     String?
+  type       NotificationType
+  channel    NotificationChannel
+  title      String
+  body       String
+  data       Json                @default("{}")
+  status     String              @default("SENT")
+  errorMsg   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("notification_logs")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — WHITE-LABEL BRANDING
+// ══════════════════════════════════════════════════════════════════════════════
+
+model TenantBranding {
+  id              String  @id @default(cuid())
+  tenantId        String  @unique
+  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logoUrl         String?
+  faviconUrl      String?
+  primaryColor    String  @default("#f97316")
+  secondaryColor  String  @default("#1a1a2e")
+  accentColor     String  @default("#fb923c")
+  fontFamily      String  @default("Inter")
+  customCss       String?
+  appName         String?
+  metaTitle       String?
+  metaDescription String?
+  emailFromName   String?
+  emailFromAddr   String?
+  emailFooterHtml String?
+  senderSmsName   String?
+  socialLinks     Json    @default("{}")
+
+  customDomains CustomDomain[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tenant_branding")
+}
+
+model CustomDomain {
+  id         String         @id @default(cuid())
+  tenantId   String
+  brandingId String
+  branding   TenantBranding @relation(fields: [brandingId], references: [id], onDelete: Cascade)
+  domain     String         @unique
+  status     DomainStatus   @default(PENDING)
+  verifiedAt DateTime?
+  sslAt      DateTime?
+  txtRecord  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("custom_domains")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — SUBSCRIPTIONS & BILLING
+// ══════════════════════════════════════════════════════════════════════════════
+
+model SubscriptionPlan {
+  id               String  @id @default(cuid())
+  name             String  @unique // "STARTER", "PROFESSIONAL", "ENTERPRISE"
+  displayName      String
+  stripePriceId    String? @unique
+  pricePerMonth    Decimal @db.Decimal(10, 2)
+  pricePerLocation Decimal @db.Decimal(10, 2) @default(0)
+  maxLocations     Int?
+  maxUsers         Int?
+  features         Json    @default("[]") // feature flag keys
+  isActive         Boolean @default(true)
+
+  subscriptions TenantSubscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscription_plans")
+}
+
+model TenantSubscription {
+  id               String             @id @default(cuid())
+  tenantId         String             @unique
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  stripeSubId      String?            @unique
+  stripeCustomerId String?
+  status           SubscriptionStatus
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean          @default(false)
+  trialEndsAt        DateTime?
+  locationCount      Int              @default(1)
+  metadata           Json             @default("{}")
+
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("tenant_subscriptions")
+}
+
+model Invoice {
+  id              String             @id @default(cuid())
+  tenantId        String
+  subscriptionId  String
+  subscription    TenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  stripeInvoiceId String?            @unique
+  number          String             @unique
+  status          InvoiceStatus
+  amountDue       Decimal            @db.Decimal(10, 2)
+  amountPaid      Decimal            @db.Decimal(10, 2) @default(0)
+  currency        String             @default("gbp")
+  dueDate         DateTime?
+  paidAt          DateTime?
+  pdfUrl          String?
+
+  lineItems InvoiceLineItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([subscriptionId])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int     @default(1)
+  unitAmount  Decimal @db.Decimal(10, 2)
+  amount      Decimal @db.Decimal(10, 2)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — ENTERPRISE SECURITY
+// ══════════════════════════════════════════════════════════════════════════════
+
+// TOTP MFA configuration per user
+model MfaConfig {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secret      String  // TOTP secret (AES-256 encrypted at rest)
+  isEnabled   Boolean @default(false)
+  backupCodes Json    @default("[]") // bcrypt-hashed one-time codes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("mfa_configs")
+}
+
+model IpAllowlist {
+  id       String  @id @default(cuid())
+  tenantId String
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cidr     String  // CIDR notation e.g. "192.168.1.0/24" or "1.2.3.4/32"
+  label    String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, isActive])
+  @@map("ip_allowlists")
+}
+
+model DeviceSession {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId     String
+  sessionToken String    @unique
+  deviceName   String?
+  deviceType   String?   // WEB, IOS, ANDROID, POS, KDS
+  appVersion   String?
+  ipAddress    String?
+  userAgent    String?
+  lastSeenAt   DateTime  @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tenantId, lastSeenAt(sort: Desc)])
+  @@map("device_sessions")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — ADVANCED ANALYTICS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Pre-computed daily sales rollup — feeds dashboards without scanning orders
+model DailySalesSnapshot {
+  id            String   @id @default(cuid())
+  tenantId      String
+  locationId    String
+  date          DateTime @db.Date
+  platform      String?  // null = all-platform aggregate
+  totalRevenue  Decimal  @db.Decimal(12, 2)
+  totalOrders   Int
+  avgOrderValue Decimal  @db.Decimal(10, 2)
+  newCustomers  Int      @default(0)
+  repeatCustomers Int    @default(0)
+  cancelledOrders Int    @default(0)
+  avgPrepTimeMin  Decimal @db.Decimal(6, 2) @default(0)
+  metadata      Json     @default("{}")
+
+  @@unique([tenantId, locationId, date, platform])
+  @@index([tenantId, date(sort: Desc)])
+  @@index([locationId, date(sort: Desc)])
+  @@map("daily_sales_snapshots")
+}
+
+// Item-level performance snapshot — daily rollup per menu item
+model ItemPerformanceSnapshot {
+  id            String   @id @default(cuid())
+  tenantId      String
+  menuItemId    String
+  locationId    String
+  date          DateTime @db.Date
+  totalSold     Int
+  totalRevenue  Decimal  @db.Decimal(12, 2)
+  cancelledQty  Int      @default(0)
+
+  @@unique([tenantId, menuItemId, locationId, date])
+  @@index([tenantId, date(sort: Desc)])
+  @@index([menuItemId, date(sort: Desc)])
+  @@map("item_performance_snapshots")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — PROVIDER / MARKETPLACE REGISTRY
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Registry of all supported integration providers
+model ProviderDefinition {
+  id           String  @id @default(cuid())
+  key          String  @unique // "UBER_EATS", "DELIVEROO", "TALABAT", "DOORDASH", etc.
+  name         String
+  category     ProviderCategory
+  capabilities Json    @default("[]") // ["order_sync", "menu_push", "availability", "dispatch", "accounting"]
+  webhookPath  String?
+  logoUrl      String?
+  docsUrl      String?
+  isEnabled    Boolean @default(true)
+  isBeta       Boolean @default(false)
+  metadata     Json    @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("provider_definitions")
+}
+
+// Routing rules: which tenant/location receives webhooks from which provider
+model WebhookRoute {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String?
+  providerKey String
+  pathPattern String  // glob/regex pattern matched against incoming URL path
+  isActive   Boolean @default(true)
+  metadata   Json    @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([providerKey])
+  @@map("webhook_routes")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE F — MOBILE ARCHITECTURE
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Mobile/POS app sessions — separate from web DeviceSession
+model MobileSession {
+  id          String  @id @default(cuid())
+  userId      String
+  tenantId    String
+  appId       String  // "driver", "kds", "pos", "manager"
+  deviceId    String
+  deviceModel String?
+  osVersion   String?
+  appVersion  String
+  fcmToken    String? // current FCM token for this session
+  isActive    Boolean @default(true)
+  lastSyncAt  DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, deviceId, appId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("mobile_sessions")
+}
+
+// Web push subscriptions (Web Push API)
+model WebPushSubscription {
+  id       String @id @default(cuid())
+  userId   String
+  tenantId String
+  endpoint String @unique
+  p256dh   String // Public key
+  auth     String // Auth secret
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tenantId])
+  @@map("web_push_subscriptions")
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -952,6 +1592,10 @@ enum IntegrationPlatform {
   JUST_EAT
   HUBRISE
   DIRECT
+  TALABAT
+  DOORDASH
+  GRUBHUB
+  CAREEM
 }
 
 enum IntegrationStatus {
@@ -969,6 +1613,10 @@ enum OrderPlatform {
   DIRECT
   POS
   ONLINE
+  TALABAT
+  DOORDASH
+  GRUBHUB
+  CAREEM
 }
 
 enum OrderSource {
@@ -979,6 +1627,10 @@ enum OrderSource {
   JUST_EAT
   HUBRISE
   DIRECT
+  TALABAT
+  DOORDASH
+  GRUBHUB
+  CAREEM
 }
 
 enum IntegrationSource {
@@ -1019,6 +1671,123 @@ enum PaymentStatus {
   REFUNDED
   PARTIALLY_REFUNDED
   FAILED
+}
+
+enum PaymentRecordStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethodType {
+  CARD
+  APPLE_PAY
+  GOOGLE_PAY
+  CASH
+  VOUCHER
+  BANK_TRANSFER
+  CRYPTO
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum LedgerEntryType {
+  PAYMENT
+  REFUND
+  PAYOUT
+  PLATFORM_FEE
+  PROCESSING_FEE
+  ADJUSTMENT
+  TIP
+}
+
+enum PayoutStatus {
+  PENDING
+  IN_TRANSIT
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE_DEDUCTION
+  WASTE
+  ADJUSTMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  RETURN
+  COUNT_CORRECTION
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  ORDERED
+  PARTIAL
+  RECEIVED
+  CANCELLED
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum NotificationType {
+  ORDER_NEW
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  DRIVER_ASSIGNED
+  DELIVERY_UPDATE
+  PRINT_FAILURE
+  INTEGRATION_FAILURE
+  LOW_STOCK
+  MARKETING
+  SYSTEM
+}
+
+enum NotificationChannel {
+  FCM
+  APNS
+  WEB_PUSH
+  SMS
+  EMAIL
+  IN_APP
+}
+
+enum DomainStatus {
+  PENDING
+  VERIFYING
+  VERIFIED
+  ACTIVE
+  FAILED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  PAUSED
+  INCOMPLETE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
 }
 
 enum PrinterType {
@@ -1081,4 +1850,14 @@ enum DriverAssignmentStatus {
   PICKED_UP
   DELIVERED
   CANCELLED
+}
+
+enum ProviderCategory {
+  DELIVERY_MARKETPLACE
+  OWN_DELIVERY
+  POS
+  DISPATCH
+  ACCOUNTING
+  MARKETING
+  PAYMENT
 }

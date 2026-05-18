@@ -15,7 +15,12 @@ const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/analytics": { title: "Analytics", description: "Sales and performance insights" },
   "/dashboard/integrations": { title: "Integrations", description: "Connected delivery platforms" },
   "/dashboard/locations": { title: "Locations", description: "Your restaurant locations" },
-  "/dashboard/settings": { title: "Settings", description: "Workspace settings" },
+  "/dashboard/inventory":         { title: "Inventory", description: "Stock levels, suppliers, and purchase orders" },
+  "/dashboard/payments":          { title: "Payments", description: "Ledger, payouts, and Stripe Connect" },
+  "/dashboard/billing":           { title: "Billing", description: "Subscription, plans, and invoices" },
+  "/dashboard/settings/security": { title: "Security", description: "MFA, sessions, IP allowlist, and audit log" },
+  "/dashboard/settings/branding": { title: "Branding", description: "White-label customisation and custom domains" },
+  "/dashboard/settings":          { title: "Settings", description: "Workspace settings" },
 };
 
 function getPageMeta(pathname: string) {

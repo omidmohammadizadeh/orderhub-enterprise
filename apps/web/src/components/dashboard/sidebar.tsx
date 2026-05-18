@@ -17,6 +17,11 @@ import {
   Store,
   Users,
   Truck,
+  CreditCard,
+  DollarSign,
+  Package,
+  Shield,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +43,20 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/customers", label: "Customers", icon: Users },
   { href: "/dashboard/drivers", label: "Drivers", icon: Truck },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package },
   { href: "/dashboard/integrations", label: "Integrations", icon: Plug2 },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },
 ];
 
+const financeNav: NavItem[] = [
+  { href: "/dashboard/payments", label: "Payments", icon: DollarSign },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+];
+
 const secondaryNav: NavItem[] = [
   { href: "/dashboard/onboarding", label: "Setup guide", icon: Rocket },
+  { href: "/dashboard/settings/security", label: "Security", icon: Shield },
+  { href: "/dashboard/settings/branding", label: "Branding", icon: Palette },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -93,11 +106,22 @@ export function Sidebar() {
 
         <div className="my-3 mx-1 h-px bg-white/[0.06]" />
 
-        {secondaryNav.map((item) => (
+        <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Finance</p>
+        {financeNav.map((item) => (
           <SidebarNavItem
             key={item.href}
             item={item}
             isActive={pathname.startsWith(item.href)}
+          />
+        ))}
+
+        <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+
+        {secondaryNav.map((item) => (
+          <SidebarNavItem
+            key={item.href}
+            item={item}
+            isActive={pathname === item.href || (item.href !== "/dashboard/settings" && pathname.startsWith(item.href))}
           />
         ))}
 

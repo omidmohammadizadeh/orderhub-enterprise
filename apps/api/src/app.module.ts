@@ -41,6 +41,14 @@ import { OrderingModule } from "./modules/ordering/ordering.module";
 import { StoreOpsModule } from "./modules/store-ops/store-ops.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DriversModule } from "./modules/drivers/drivers.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
+import { BillingModule } from "./modules/billing/billing.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { SecurityModule } from "./modules/security/security.module";
+import { BrandingModule } from "./modules/branding/branding.module";
+import { ProviderRegistryModule } from "./modules/provider-registry/provider-registry.module";
+import { MobileModule } from "./modules/mobile/mobile.module";
+import { InventoryModule } from "./modules/inventory/inventory.module";
 import { QUEUES } from "@orderhub/shared";
 
 @Module({
@@ -145,6 +153,14 @@ import { QUEUES } from "@orderhub/shared";
     StoreOpsModule,
     CustomersModule,
     DriversModule,
+    PaymentsModule,
+    BillingModule,
+    NotificationsModule,
+    SecurityModule,
+    BrandingModule,
+    ProviderRegistryModule,
+    MobileModule,
+    InventoryModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

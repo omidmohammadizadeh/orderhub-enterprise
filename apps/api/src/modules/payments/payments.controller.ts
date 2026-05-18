@@ -1,0 +1,145 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  Headers,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { Request } from "express";
+import {
+  PaymentsService,
+  CreatePaymentIntentDto,
+  CreateRefundDto,
+  GetLedgerOpts,
+} from "./payments.service";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
+import { Public } from "../../common/decorators/public.decorator";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+
+@ApiTags("payments")
+@ApiBearerAuth()
+@Controller({ path: "payments", version: "1" })
+export class PaymentsController {
+  constructor(private readonly payments: PaymentsService) {}
+
+  // POST /v1/payments/intent
+  @Post("intent")
+  @ApiOperation({ summary: "Create a Stripe PaymentIntent and persist a Payment record" })
+  createPaymentIntent(
+    @Body() body: { orderId: string } & CreatePaymentIntentDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const { orderId, ...dto } = body;
+    return this.payments.createPaymentIntent(user.tenantId, orderId, dto);
+  }
+
+  // POST /v1/payments/webhook  — @Public so JwtAuthGuard is skipped
+  @Post("webhook")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Stripe webhook endpoint (raw body required)" })
+  handleWebhook(
+    @Req() req: Request,
+    @Headers("stripe-signature") signature: string,
+  ) {
+    // Express should be configured with express.raw() for this route upstream.
+    // If body is already a Buffer we use it directly; otherwise we serialise.
+    const rawBody: Buffer = Buffer.isBuffer(req.body)
+      ? req.body
+      : Buffer.from(JSON.stringify(req.body));
+    return this.payments.handleStripeWebhook(rawBody, signature ?? "");
+  }
+
+  // GET /v1/payments/orders/:orderId
+  @Get("orders/:orderId")
+  @ApiOperation({ summary: "Get all payments and refunds for an order" })
+  getPaymentsByOrder(
+    @Param("orderId") orderId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.payments.getPaymentsByOrder(orderId, user.tenantId);
+  }
+
+  // POST /v1/payments/:paymentId/refund
+  @Post(":paymentId/refund")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Issue a refund against a succeeded payment" })
+  createRefund(
+    @Param("paymentId") paymentId: string,
+    @Body() dto: CreateRefundDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.payments.createRefund(user.tenantId, paymentId, dto);
+  }
+
+  // GET /v1/payments/ledger
+  @Get("ledger")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Paginated ledger entries for the tenant" })
+  getLedger(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("startDate") startDate?: string,
+    @Query("endDate") endDate?: string,
+    @Query("limit") limit?: string,
+    @Query("offset") offset?: string,
+  ) {
+    const opts: GetLedgerOpts = {
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      limit: limit ? parseInt(limit, 10) : 50,
+      offset: offset ? parseInt(offset, 10) : 0,
+    };
+    return this.payments.getLedger(user.tenantId, opts);
+  }
+
+  // GET /v1/payments/payouts
+  @Get("payouts")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Get Stripe payout history" })
+  getPayouts(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("limit") limit?: string,
+  ) {
+    return this.payments.getPayoutHistory(
+      user.tenantId,
+      limit ? parseInt(limit, 10) : 20,
+    );
+  }
+
+  // GET /v1/payments/reconcile?date=YYYY-MM-DD
+  @Get("reconcile")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Daily financial reconciliation summary" })
+  reconcile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("date") date: string,
+  ) {
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      date = new Date().toISOString().slice(0, 10);
+    }
+    return this.payments.reconcile(user.tenantId, date);
+  }
+
+  // GET /v1/payments/connect/account
+  @Get("connect/account")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Get Stripe Connect account for the tenant" })
+  getConnectAccount(@CurrentUser() user: AuthenticatedUser) {
+    return this.payments.getConnectAccount(user.tenantId);
+  }
+
+  // POST /v1/payments/connect/onboard
+  @Post("connect/onboard")
+  @Roles("TENANT_OWNER")
+  @ApiOperation({ summary: "Start Stripe Connect onboarding flow" })
+  startOnboarding(@CurrentUser() user: AuthenticatedUser) {
+    return this.payments.createConnectOnboardingLink(user.tenantId);
+  }
+}
