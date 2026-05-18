@@ -9,7 +9,9 @@ export type WorkerEventType =
   | "order:updated"
   | "order:cancelled"
   | "print:job"
-  | "integration:status";
+  | "integration:status"
+  | "kds:order:new"
+  | "kds:ticket:bumped";
 
 export interface WorkerEvent<T = unknown> {
   type: WorkerEventType;

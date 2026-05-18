@@ -5,8 +5,11 @@ import {
   Logger,
   ForbiddenException,
 } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bull";
+import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { QUEUES, MENU_JOBS } from "@orderhub/shared";
 import type {
   CreateMenuDto,
   UpdateMenuDto,
@@ -35,7 +38,10 @@ const MENU_INCLUDE = {
 export class MenusService {
   private readonly logger = new Logger(MenusService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue(QUEUES.MENU_SYNC) private readonly menuSyncQueue: Queue,
+  ) {}
 
   // ── Menu CRUD ─────────────────────────────────────────────────────────────
 
@@ -78,11 +84,23 @@ export class MenusService {
   }
 
   async publish(menuId: string, tenantId: string) {
-    await this.assertMenuAccess(menuId, tenantId);
-    return this.prisma.menu.update({
+    const menu = await this.assertMenuAccess(menuId, tenantId);
+    const updated = await this.prisma.menu.update({
       where: { id: menuId },
       data: { status: "PUBLISHED", isActive: true },
     });
+
+    await this.menuSyncQueue.add(
+      MENU_JOBS.PUSH_TO_PLATFORM,
+      { menuId, brandId: menu.brandId, tenantId },
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5000 },
+        jobId: `menu-push-${menuId}-${Date.now()}`,
+      },
+    );
+
+    return updated;
   }
 
   async archive(menuId: string, tenantId: string) {

@@ -7,6 +7,7 @@ import { QUEUES } from "@orderhub/shared";
 import { OrderProcessingProcessor } from "./processors/order-processing.processor";
 import { OrderSyncProcessor } from "./processors/order-sync.processor";
 import { PrintingProcessor } from "./processors/printing.processor";
+import { MenuSyncProcessor } from "./processors/menu-sync.processor";
 import { PrismaService } from "./infrastructure/prisma.service";
 import { EventPublisherService } from "./infrastructure/event-publisher.service";
 import {
@@ -74,6 +75,7 @@ import {
     OrderProcessingProcessor,
     OrderSyncProcessor,
     PrintingProcessor,
+    MenuSyncProcessor,
   ],
 })
 export class WorkerModule {}

@@ -75,6 +75,12 @@ export class RedisSubscriberService implements OnModuleInit, OnModuleDestroy {
         case "integration:status":
           this.socket.emitToLocation(locationId, "integration:status", payload as any);
           break;
+        case "kds:order:new":
+          this.socket.emitToLocation(locationId, "kds:order:new", payload as any);
+          break;
+        case "kds:ticket:bumped":
+          this.socket.emitToLocation(locationId, "kds:ticket:bumped", payload as any);
+          break;
         default:
           this.logger.warn(`Unknown worker event type: ${type}`);
       }

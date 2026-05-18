@@ -184,9 +184,23 @@ export class OrderProcessingProcessor {
   }
 
   private async bumpKdsTickets(orderId: string) {
-    await this.prisma.kdsTicket.updateMany({
+    const bumpedAt = new Date();
+    const result = await this.prisma.kdsTicket.updateMany({
       where: { orderId, bumpedAt: null },
-      data: { bumpedAt: new Date() },
+      data: { bumpedAt },
+    });
+
+    if (result.count === 0) return;
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { tenantId: true, locationId: true },
+    });
+    if (!order) return;
+
+    await this.events.publish("kds:ticket:bumped", order.locationId, order.tenantId, {
+      orderId,
+      bumpedAt: bumpedAt.toISOString(),
     });
   }
 
@@ -194,6 +208,8 @@ export class OrderProcessingProcessor {
     const screens = await this.prisma.kdsScreen.findMany({
       where: { locationId, isActive: true },
     });
+
+    if (screens.length === 0) return;
 
     for (const screen of screens) {
       try {
@@ -204,6 +220,21 @@ export class OrderProcessingProcessor {
         // @@unique([kdsScreenId, orderId]) — safe to ignore if already exists
       }
     }
+
+    // Look up the order's tenantId for the event (needed by event publisher)
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { tenantId: true, displayId: true, platform: true, fulfillmentType: true },
+    });
+    if (!order) return;
+
+    await this.events.publish("kds:order:new", locationId, order.tenantId, {
+      orderId,
+      screenIds: screens.map((s) => s.id),
+      displayId: order.displayId,
+      platform: order.platform,
+      fulfillmentType: order.fulfillmentType,
+    });
   }
 
   private async enqueuePrintJob(

@@ -122,6 +122,31 @@ export default function OnboardingPage() {
     onSuccess: () => completeStep("printer"),
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: async () => {
+      const emails = inviteEmails
+        .split("\n")
+        .map((e) => e.trim())
+        .filter(Boolean);
+      const results = await Promise.allSettled(
+        emails.map((email) =>
+          apiClient.post("/v1/users/invite", {
+            email,
+            firstName: email.split("@")[0] ?? "Team",
+            lastName: "Member",
+            role: "VIEWER",
+          }).then((r) => r.data),
+        ),
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0 && failed === emails.length) {
+        throw new Error("All invites failed to send");
+      }
+      return { sent: results.filter((r) => r.status === "fulfilled").length, failed };
+    },
+    onSuccess: () => completeStep("team"),
+  });
+
   const completeStep = (stepId: string) => {
     setCompleted((p) => new Set([...p, stepId]));
     if (currentStep < STEPS.length - 1) {
@@ -417,12 +442,17 @@ export default function OnboardingPage() {
               <Button
                 className="bg-orange-500 hover:bg-orange-600 text-white"
                 size="sm"
-                disabled={!inviteEmails.trim()}
-                onClick={() => completeStep("team")}
+                disabled={!inviteEmails.trim() || inviteMutation.isPending}
+                onClick={() => inviteMutation.mutate()}
               >
-                Send invites
+                {inviteMutation.isPending ? "Sending…" : "Send invites"}
               </Button>
               <Button variant="outline" size="sm" onClick={skipStep}>Skip for now</Button>
+              {inviteMutation.isError && (
+                <p className="text-xs text-red-500 self-center">
+                  {inviteMutation.error instanceof Error ? inviteMutation.error.message : "Failed to send invites"}
+                </p>
+              )}
             </div>
           </div>
         )}
