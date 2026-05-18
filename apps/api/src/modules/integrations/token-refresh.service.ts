@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { CredentialEncryptionService } from "./credential-encryption.service";
 
 export interface PlatformCredentials {
   accessToken: string;
@@ -21,12 +22,11 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 export class TokenRefreshService {
   private readonly logger = new Logger(TokenRefreshService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly encryption: CredentialEncryptionService,
+  ) {}
 
-  /**
-   * Returns credentials for an integration, refreshing the access token first
-   * if it expires within 5 minutes.
-   */
   async getCredentials(integrationId: string): Promise<PlatformCredentials> {
     const integration = await this.prisma.integration.findUnique({
       where: { id: integrationId },
@@ -36,21 +36,19 @@ export class TokenRefreshService {
       throw new Error(`Integration ${integrationId} not found`);
     }
 
-    const credentials = (integration.credentials ?? {}) as PlatformCredentials;
+    const stored = integration.credentials as Record<string, unknown>;
+    const credentials = this.encryption.decrypt(stored) as PlatformCredentials;
     await this.refreshIfExpired(integrationId, integration.platform, credentials);
 
-    // Re-read after potential update
+    // Re-read after potential token update
     const updated = await this.prisma.integration.findUnique({
       where: { id: integrationId },
       select: { credentials: true },
     });
-    return (updated?.credentials ?? credentials) as PlatformCredentials;
+    const updatedStored = (updated?.credentials ?? stored) as Record<string, unknown>;
+    return this.encryption.decrypt(updatedStored) as PlatformCredentials;
   }
 
-  /**
-   * Checks if the access token expires within 5 minutes and refreshes it if so.
-   * Silently skips if required env vars are absent.
-   */
   async refreshIfExpired(
     integrationId: string,
     platform: string,
@@ -63,9 +61,7 @@ export class TokenRefreshService {
 
     if (!needsRefresh) return;
 
-    this.logger.log(
-      `[${integrationId}] Token for ${platform} expires soon — refreshing`,
-    );
+    this.logger.log(`[${integrationId}] Token for ${platform} expires soon — refreshing`);
 
     try {
       const result = await this.doRefresh(platform, credentials);
@@ -78,9 +74,13 @@ export class TokenRefreshService {
         ...(result.refreshToken ? { refreshToken: result.refreshToken } : {}),
       };
 
+      // Encrypt before persisting
+      const encrypted = this.encryption.encrypt(
+        newCredentials as unknown as Record<string, unknown>,
+      );
       await this.prisma.integration.update({
         where: { id: integrationId },
-        data: { credentials: newCredentials as any },
+        data: { credentials: encrypted as any },
       });
 
       this.logger.log(
@@ -90,7 +90,6 @@ export class TokenRefreshService {
       this.logger.error(
         `[${integrationId}] Token refresh failed for ${platform}: ${err.message}`,
       );
-      // Mark integration as ERROR so health dashboard surfaces it
       await this.prisma.integration
         .update({
           where: { id: integrationId },
@@ -103,8 +102,6 @@ export class TokenRefreshService {
         .catch(() => {});
     }
   }
-
-  // ── Platform-specific refresh logic ───────────────────────────────────────
 
   private async doRefresh(
     platform: string,

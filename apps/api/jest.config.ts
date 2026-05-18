@@ -12,8 +12,9 @@ const config: Config = {
   testEnvironment: "node",
   setupFiles: ["<rootDir>/../test/jest-setup.ts"],
   moduleNameMapper: {
-    "^@orderhub/shared(.*)$": "<rootDir>/../../packages/shared/src$1",
-    "^@orderhub/database(.*)$": "<rootDir>/../../packages/database/src$1",
+    // rootDir = apps/api/src; go up 3 levels to monorepo root, then into packages
+    "^@orderhub/shared(.*)$": "<rootDir>/../../../packages/shared/src$1",
+    "^@orderhub/database(.*)$": "<rootDir>/../../../packages/database/src$1",
   },
   testTimeout: 10000,
 };

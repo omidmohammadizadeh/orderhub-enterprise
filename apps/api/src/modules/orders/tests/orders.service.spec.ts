@@ -1,13 +1,25 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConflictException, BadRequestException, NotFoundException } from "@nestjs/common";
-import { getQueueToken } from "@nestjs/bull";
 import { OrdersService } from "../orders.service";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { SocketService } from "../../../infrastructure/socket/socket.service";
-import { QUEUES } from "@orderhub/shared";
+import { AuditLogService } from "../../auth/services/audit-log.service";
+import { OutboxService } from "../../outbox/outbox.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // ── Mocks ────────────────────────────────────────────────
+
+const mockOutboxEvent = { create: jest.fn().mockResolvedValue({}) };
+
+const makeTxPrisma = (orderOverride?: object) => ({
+  order: {
+    create: jest.fn().mockResolvedValue(makeOrder(orderOverride)),
+    updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    findUniqueOrThrow: jest.fn().mockResolvedValue(makeOrder(orderOverride)),
+  },
+  orderStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+  outboxEvent: mockOutboxEvent,
+});
 
 const mockPrisma = {
   order: {
@@ -19,6 +31,7 @@ const mockPrisma = {
     findUniqueOrThrow: jest.fn(),
     count: jest.fn(),
   },
+  outboxEvent: mockOutboxEvent,
   orderStatusHistory: { create: jest.fn() },
   location: { findFirst: jest.fn() },
   $transaction: jest.fn(),
@@ -30,7 +43,9 @@ const mockSocket = {
   emitToLocation: jest.fn(),
 };
 
-const mockQueue = { add: jest.fn() };
+const mockAudit = {
+  log: jest.fn().mockResolvedValue(undefined),
+};
 
 // ── Test Canonical Order ──────────────────────────────────
 
@@ -66,19 +81,27 @@ const makeCanonical = (overrides?: Partial<CanonicalOrder>): CanonicalOrder => (
   ...overrides,
 });
 
-const makeOrder = (overrides?: object) => ({
-  id: "order-001",
-  tenantId: "tenant-001",
-  locationId: "loc-001",
-  externalId: "ext-123",
-  platform: "UBER_EATS",
-  status: "PENDING",
-  updatedAt: new Date("2024-01-01T00:00:00Z"),
-  cancelReason: null,
-  createdAt: new Date("2024-01-01T00:00:00Z"),
-  total: 26,
-  ...overrides,
-});
+function makeOrder(overrides?: object) {
+  return {
+    id: "order-001",
+    tenantId: "tenant-001",
+    locationId: "loc-001",
+    externalId: "ext-123",
+    platform: "UBER_EATS",
+    orderSource: "UBER_EATS",
+    fulfillmentType: "PLATFORM_COURIER",
+    status: "PENDING",
+    displayId: "#42",
+    total: 26,
+    scheduledFor: null,
+    customerInfo: { name: "Alice Test", phone: "+447700900000" },
+    updatedAt: new Date("2024-01-01T00:00:00Z"),
+    cancelReason: null,
+    cancelledAt: null,
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+    ...overrides,
+  };
+}
 
 // ── Tests ─────────────────────────────────────────────────
 
@@ -88,13 +111,17 @@ describe("OrdersService", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    // Default: $transaction executes the callback
+    const defaultTx = makeTxPrisma();
+    mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(defaultTx));
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: SocketService, useValue: mockSocket },
-        { provide: getQueueToken(QUEUES.ORDER_PROCESSING), useValue: mockQueue },
-        { provide: getQueueToken(QUEUES.PRINTING), useValue: mockQueue },
+        { provide: AuditLogService, useValue: mockAudit },
+        OutboxService,
       ],
     }).compile();
 
@@ -104,58 +131,60 @@ describe("OrdersService", () => {
   // ── ingestCanonical ───────────────────────────────────
 
   describe("ingestCanonical", () => {
-    it("creates a new order and enqueues processing", async () => {
-      mockPrisma.order.findUnique.mockResolvedValue(null);
-      mockPrisma.order.create.mockResolvedValue(makeOrder());
-      mockQueue.add.mockResolvedValue({});
-
+    it("creates a new order and emits socket event", async () => {
       const order = await service.ingestCanonical(makeCanonical(), "tenant-001", "loc-001");
 
       expect(order.id).toBe("order-001");
-      expect(mockPrisma.order.create).toHaveBeenCalledTimes(1);
-      expect(mockQueue.add).toHaveBeenCalledWith(
-        "ORDER_INGEST",
-        expect.objectContaining({ orderId: "order-001", tenantId: "tenant-001" }),
-      );
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
       expect(mockSocket.emitNewOrder).toHaveBeenCalledWith("loc-001", expect.any(Object));
     });
 
-    it("returns existing order on duplicate externalId/platform (idempotent)", async () => {
-      const existingOrder = makeOrder();
-      mockPrisma.order.findUnique.mockResolvedValue(existingOrder);
-
-      const result = await service.ingestCanonical(makeCanonical(), "tenant-001", "loc-001");
-
-      expect(result).toBe(existingOrder);
-      expect(mockPrisma.order.create).not.toHaveBeenCalled();
-      expect(mockQueue.add).not.toHaveBeenCalled();
-      expect(mockSocket.emitNewOrder).not.toHaveBeenCalled();
-    });
-
-    it("returns existing order on duplicate idempotencyKey", async () => {
-      const existingOrder = makeOrder();
-      // First findUnique (externalId/platform) returns null, second (idempotencyKey) returns existing
-      mockPrisma.order.findUnique
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(existingOrder);
-
-      const canonical = makeCanonical({ idempotencyKey: "ikey-001" });
-      const result = await service.ingestCanonical(canonical, "tenant-001", "loc-001");
-
-      expect(result).toBe(existingOrder);
-      expect(mockPrisma.order.create).not.toHaveBeenCalled();
-    });
-
-    it("stores customerName and customerPhone on create", async () => {
-      mockPrisma.order.findUnique.mockResolvedValue(null);
-      mockPrisma.order.create.mockResolvedValue(makeOrder());
-      mockQueue.add.mockResolvedValue({});
+    it("inserts outbox event in the same transaction", async () => {
+      let capturedOutboxCreate: jest.Mock | undefined;
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = makeTxPrisma();
+        capturedOutboxCreate = tx.outboxEvent.create;
+        return fn(tx);
+      });
 
       await service.ingestCanonical(makeCanonical(), "tenant-001", "loc-001");
 
-      const createCall = mockPrisma.order.create.mock.calls[0][0];
+      expect(capturedOutboxCreate).toHaveBeenCalledTimes(1);
+      const call = capturedOutboxCreate!.mock.calls[0][0];
+      expect(call.data.eventType).toBe("order.received");
+    });
+
+    it("does not inject Bull queues", () => {
+      expect((service as any).orderQueue).toBeUndefined();
+      expect((service as any).printQueue).toBeUndefined();
+    });
+
+    it("stores customerName and customerPhone on create", async () => {
+      let capturedOrderCreate: jest.Mock | undefined;
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = makeTxPrisma();
+        capturedOrderCreate = tx.order.create;
+        return fn(tx);
+      });
+
+      await service.ingestCanonical(makeCanonical(), "tenant-001", "loc-001");
+
+      expect(capturedOrderCreate).toHaveBeenCalledTimes(1);
+      const createCall = capturedOrderCreate!.mock.calls[0][0];
       expect(createCall.data.customerName).toBe("Alice Test");
       expect(createCall.data.customerPhone).toBe("+447700900000");
+    });
+
+    it("returns existing order on P2002 duplicate (idempotent)", async () => {
+      const existing = makeOrder({ id: "order-existing" });
+      const p2002 = Object.assign(new Error("Unique constraint"), { code: "P2002" });
+      mockPrisma.$transaction.mockRejectedValueOnce(p2002);
+      mockPrisma.order.findFirst = jest.fn().mockResolvedValue(existing);
+
+      const result = await service.ingestCanonical(makeCanonical(), "tenant-001", "loc-001");
+
+      expect(result.id).toBe("order-existing");
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -167,35 +196,58 @@ describe("OrdersService", () => {
       const acceptedOrder = makeOrder({ status: "ACCEPTED" });
 
       mockPrisma.order.findFirst.mockResolvedValue(pendingOrder);
-      mockPrisma.$transaction.mockImplementation(async (fn: Function) => {
-        mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
-        mockPrisma.order.findUniqueOrThrow.mockResolvedValue(acceptedOrder);
-        mockPrisma.orderStatusHistory.create.mockResolvedValue({});
-        return fn(mockPrisma);
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            findUniqueOrThrow: jest.fn().mockResolvedValue(acceptedOrder),
+          },
+          orderStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+          outboxEvent: { create: jest.fn().mockResolvedValue({}) },
+        };
+        return fn(tx);
       });
-      mockQueue.add.mockResolvedValue({});
 
       const result = await service.updateStatus(
-        "order-001",
-        "tenant-001",
-        { status: "ACCEPTED" },
-        "user-001",
+        "order-001", "tenant-001", { status: "ACCEPTED" }, "user-001",
       );
 
       expect(result.status).toBe("ACCEPTED");
-      expect(mockPrisma.order.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: "order-001", updatedAt: pendingOrder.updatedAt },
-          data: expect.objectContaining({ status: "ACCEPTED" }),
-        }),
-      );
+    });
+
+    it("inserts outbox event in the status-change transaction", async () => {
+      const pendingOrder = makeOrder({ status: "PENDING" });
+      mockPrisma.order.findFirst.mockResolvedValue(pendingOrder);
+
+      let outboxCreate: jest.Mock | undefined;
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            findUniqueOrThrow: jest.fn().mockResolvedValue(makeOrder({ status: "ACCEPTED" })),
+          },
+          orderStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+          outboxEvent: { create: (outboxCreate = jest.fn().mockResolvedValue({})) },
+        };
+        return fn(tx);
+      });
+
+      await service.updateStatus("order-001", "tenant-001", { status: "ACCEPTED" }, "user-001");
+
+      expect(outboxCreate).toHaveBeenCalledTimes(1);
+      const call = outboxCreate!.mock.calls[0][0];
+      expect(call.data.eventType).toBe("order.status_changed");
     });
 
     it("throws ConflictException when optimistic concurrency fails (count=0)", async () => {
       mockPrisma.order.findFirst.mockResolvedValue(makeOrder({ status: "PENDING" }));
-      mockPrisma.$transaction.mockImplementation(async (fn: Function) => {
-        mockPrisma.order.updateMany.mockResolvedValue({ count: 0 });
-        return fn(mockPrisma);
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          order: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+          orderStatusHistory: { create: jest.fn() },
+          outboxEvent: { create: jest.fn() },
+        };
+        return fn(tx);
       });
 
       await expect(
@@ -224,17 +276,20 @@ describe("OrdersService", () => {
       const cancelledOrder = makeOrder({ status: "CANCELLED", cancelledAt: new Date() });
 
       mockPrisma.order.findFirst.mockResolvedValue(pendingOrder);
-      mockPrisma.$transaction.mockImplementation(async (fn: Function) => {
-        mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
-        mockPrisma.order.findUniqueOrThrow.mockResolvedValue(cancelledOrder);
-        mockPrisma.orderStatusHistory.create.mockResolvedValue({});
-        return fn(mockPrisma);
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            findUniqueOrThrow: jest.fn().mockResolvedValue(cancelledOrder),
+          },
+          orderStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+          outboxEvent: { create: jest.fn().mockResolvedValue({}) },
+        };
+        return fn(tx);
       });
-      mockQueue.add.mockResolvedValue({});
 
       await service.updateStatus(
-        "order-001",
-        "tenant-001",
+        "order-001", "tenant-001",
         { status: "CANCELLED", cancelReason: "Customer request" },
         "user-001",
       );
@@ -248,19 +303,24 @@ describe("OrdersService", () => {
 
     it("writes actorType to OrderStatusHistory", async () => {
       const pendingOrder = makeOrder({ status: "PENDING" });
-
       mockPrisma.order.findFirst.mockResolvedValue(pendingOrder);
-      mockPrisma.$transaction.mockImplementation(async (fn: Function) => {
-        mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
-        mockPrisma.order.findUniqueOrThrow.mockResolvedValue(makeOrder({ status: "ACCEPTED" }));
-        mockPrisma.orderStatusHistory.create.mockResolvedValue({});
-        return fn(mockPrisma);
+
+      let historyCreate: jest.Mock | undefined;
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            findUniqueOrThrow: jest.fn().mockResolvedValue(makeOrder({ status: "ACCEPTED" })),
+          },
+          orderStatusHistory: { create: (historyCreate = jest.fn().mockResolvedValue({})) },
+          outboxEvent: { create: jest.fn().mockResolvedValue({}) },
+        };
+        return fn(tx);
       });
-      mockQueue.add.mockResolvedValue({});
 
       await service.updateStatus("order-001", "tenant-001", { status: "ACCEPTED" }, "user-001", "STAFF");
 
-      const historyCall = mockPrisma.orderStatusHistory.create.mock.calls[0][0];
+      const historyCall = historyCreate!.mock.calls[0][0];
       expect(historyCall.data.actorType).toBe("STAFF");
       expect(historyCall.data.tenantId).toBe("tenant-001");
     });

@@ -18,6 +18,7 @@ import {
   HubRiseSyncClient,
 } from "./sync/platform-sync.factory";
 import { TokenRefreshService } from "./sync/token-refresh.service";
+import { CredentialEncryptionService } from "./infrastructure/credential-encryption.service";
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { TokenRefreshService } from "./sync/token-refresh.service";
   providers: [
     PrismaService,
     EventPublisherService,
+    CredentialEncryptionService,
     // Sync clients
     UberEatsSyncClient,
     DeliverooSyncClient,

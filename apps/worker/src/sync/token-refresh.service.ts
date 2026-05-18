@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { PrismaService } from "../infrastructure/prisma.service";
+import { CredentialEncryptionService } from "../infrastructure/credential-encryption.service";
 
 export interface PlatformCredentials {
   accessToken: string;
@@ -21,7 +22,10 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 export class TokenRefreshService {
   private readonly logger = new Logger(TokenRefreshService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly encryption: CredentialEncryptionService,
+  ) {}
 
   /**
    * Returns credentials for an integration, refreshing the access token first
@@ -36,15 +40,17 @@ export class TokenRefreshService {
       throw new Error(`Integration ${integrationId} not found`);
     }
 
-    const credentials = (integration.credentials ?? {}) as PlatformCredentials;
+    const stored = (integration.credentials ?? {}) as Record<string, unknown>;
+    const credentials = this.encryption.decrypt(stored) as PlatformCredentials;
     await this.refreshIfExpired(integrationId, integration.platform, credentials);
 
-    // Re-read after potential update
+    // Re-read after potential token update
     const updated = await this.prisma.integration.findUnique({
       where: { id: integrationId },
       select: { credentials: true },
     });
-    return (updated?.credentials ?? credentials) as PlatformCredentials;
+    const updatedStored = (updated?.credentials ?? stored) as Record<string, unknown>;
+    return this.encryption.decrypt(updatedStored) as PlatformCredentials;
   }
 
   /**
@@ -78,9 +84,13 @@ export class TokenRefreshService {
         ...(result.refreshToken ? { refreshToken: result.refreshToken } : {}),
       };
 
+      // Encrypt before persisting
+      const encrypted = this.encryption.encrypt(
+        newCredentials as unknown as Record<string, unknown>,
+      );
       await this.prisma.integration.update({
         where: { id: integrationId },
-        data: { credentials: newCredentials as any },
+        data: { credentials: encrypted as any },
       });
 
       this.logger.log(

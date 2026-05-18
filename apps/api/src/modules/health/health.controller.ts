@@ -6,6 +6,8 @@ import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
 import { QUEUES } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { OutboxDispatcherCron } from "../outbox/outbox-dispatcher.cron";
+import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 
 export interface HealthStatus {
   status: "ok" | "degraded" | "down";
@@ -22,6 +24,8 @@ export class HealthController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly outboxDispatcher: OutboxDispatcherCron,
+    private readonly encryption: CredentialEncryptionService,
     @InjectQueue(QUEUES.ORDER_PROCESSING) private readonly orderQueue: Queue,
   ) {}
 
@@ -94,6 +98,11 @@ export class HealthController {
     checks.sandboxEnabled = nodeEnv !== "production";
     if (nodeEnv !== "production") warnings.push("Sandbox tools are ENABLED — disable before go-live");
 
+    // Encryption key
+    const encryptionKeySet = !!process.env.CREDENTIAL_ENCRYPTION_KEY;
+    checks.encryptionKeySet = encryptionKeySet;
+    if (!encryptionKeySet) warnings.push("CREDENTIAL_ENCRYPTION_KEY is not set — credentials stored in plaintext");
+
     // DB
     try {
       await this.prisma.$queryRaw`SELECT 1`;
@@ -110,6 +119,41 @@ export class HealthController {
       return { checks, warnings, readyScore: 0 };
     }
 
+    // Credential encryption status
+    if (encryptionKeySet) {
+      try {
+        const rows = await this.prisma.integration.findMany({
+          where: { tenantId, deletedAt: null },
+          select: { credentials: true },
+        });
+        const plaintextCount = this.encryption.countPlaintext(rows.map((r) => r.credentials));
+        checks.plaintextCredentials = plaintextCount;
+        if (plaintextCount > 0) {
+          warnings.push(`${plaintextCount} integration(s) still have plaintext credentials — run backfill script`);
+        }
+      } catch { checks.plaintextCredentials = "unavailable"; }
+    }
+
+    // Outbox health
+    try {
+      const outboxStats = await this.outboxDispatcher.getStats();
+      checks.outboxPending = outboxStats.pending;
+      checks.outboxProcessing = outboxStats.processing;
+      checks.outboxFailed = outboxStats.failed;
+      checks.outboxDead = outboxStats.dead;
+      checks.outboxOldestPendingAgeMs = outboxStats.oldestPendingAgeMs;
+
+      if (outboxStats.dead > 0) {
+        warnings.push(`${outboxStats.dead} dead outbox event(s) — manual intervention required`);
+      }
+      if (outboxStats.failed > 5) {
+        warnings.push(`${outboxStats.failed} failed outbox event(s) — check dispatcher logs`);
+      }
+      if (outboxStats.oldestPendingAgeMs !== null && outboxStats.oldestPendingAgeMs > 5 * 60_000) {
+        warnings.push("Outbox has events older than 5 minutes — dispatcher may be stalled");
+      }
+    } catch { checks.outboxStats = "unavailable"; }
+
     // Integrations
     const integrations = await this.prisma.integration.findMany({
       where: { location: { brand: { tenantId } }, status: "ACTIVE" },
@@ -122,12 +166,13 @@ export class HealthController {
     if (locationId) printerWhere.locationId = locationId;
     const printers = await this.prisma.printer.findMany({
       where: printerWhere,
-      select: { id: true, isOnline: true, name: true },
+      select: { id: true, isOnline: true, isActive: true, name: true },
     });
-    checks.printersOnline = printers.filter((p) => p.isOnline).length;
-    checks.printersOffline = printers.filter((p) => !p.isOnline).length;
-    if (printers.length === 0) warnings.push("No printers configured");
-    if (printers.some((p) => !p.isOnline)) warnings.push("Some printers are offline");
+    const activePrinters = printers.filter((p) => p.isActive);
+    checks.printersOnline = activePrinters.filter((p) => p.isOnline).length;
+    checks.printersOffline = activePrinters.filter((p) => !p.isOnline).length;
+    if (activePrinters.length === 0) warnings.push("No active printers configured");
+    if (activePrinters.some((p) => !p.isOnline)) warnings.push("Some printers are offline");
 
     // Failed print jobs
     const failedPrintJobs = await this.prisma.printJob.count({
@@ -172,9 +217,7 @@ export class HealthController {
     checks.lastWebhookAt = lastWebhook?.processedAt?.toISOString() ?? null;
     checks.lastWebhookPlatform = lastWebhook?.platform ?? null;
 
-    // Score: 100 - 10 per warning, min 0
     const readyScore = Math.max(0, 100 - warnings.length * 10);
-
     return { checks, warnings, readyScore, generatedAt: new Date().toISOString() };
   }
 }

@@ -13,15 +13,41 @@
 - [ ] `.env.production` does not contain `localhost` or test keys
 - [ ] CORS `SOCKET_CORS_ORIGIN` set to production frontend domain
 - [ ] `JWT_SECRET` is at least 32 chars, randomly generated, not default
+- [ ] `CREDENTIAL_ENCRYPTION_KEY` set (64 hex chars) — `openssl rand -hex 32`
 
 ---
 
 ## 2. Database
 
-- [ ] All Prisma migrations applied (`prisma migrate deploy`)
+- [ ] All Prisma migrations applied (`prisma migrate deploy` — includes Phase I migration `20260518210000_phase_i`)
 - [ ] `prisma generate` run with production DATABASE_URL
 - [ ] Database connection tested via `/api/v1/health/ready`
 - [ ] Redis connection tested via `/api/v1/health/ready`
+- [ ] `outbox_events` table exists and accessible (confirm in DB)
+
+---
+
+## 2a. Credential Encryption Backfill
+
+- [ ] Run backfill script against production DB:
+  ```bash
+  DRY_RUN=true CREDENTIAL_ENCRYPTION_KEY=<key> DATABASE_URL=<url> \
+    npx ts-node -P apps/api/tsconfig.json \
+    apps/api/src/scripts/backfill-credential-encryption.ts
+  ```
+- [ ] Review dry-run output — confirm integration count is correct
+- [ ] Run without `DRY_RUN=true` to apply encryption
+- [ ] Confirm `plaintextCredentials: 0` in release readiness check
+- [ ] Confirm all provider integrations still work after backfill (test webhook receipt)
+
+---
+
+## 2b. Outbox Health Check
+
+- [ ] Confirm `outboxPending: 0` after initial startup
+- [ ] Confirm `outboxDead: 0` before go-live
+- [ ] Confirm outbox dispatcher is running (check API logs for "Outbox: claimed" messages)
+- [ ] Send a test order and confirm `outboxPending` drops to 0 within 10 seconds
 
 ---
 

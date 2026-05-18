@@ -6,13 +6,12 @@ import {
   HttpException,
   HttpStatus,
 } from "@nestjs/common";
-import { InjectQueue } from "@nestjs/bull";
-import type { Queue } from "bull";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
+import { OutboxService } from "../outbox/outbox.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
@@ -45,8 +44,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
     private readonly audit: AuditLogService,
-    @InjectQueue(QUEUES.ORDER_PROCESSING) private readonly orderQueue: Queue,
-    @InjectQueue(QUEUES.PRINTING) private readonly printQueue: Queue,
+    private readonly outbox: OutboxService,
   ) {}
 
   // ── Ingest from adapter (webhook / public ordering) ───
@@ -56,118 +54,130 @@ export class OrdersService {
     tenantId: string,
     locationId: string,
   ): Promise<Order> {
-    // Attempt creation first — the DB unique constraints on (externalId, platform)
-    // and idempotencyKey are the authoritative deduplication mechanism.
-    // A pre-check + create is a TOCTOU race: two concurrent webhook deliveries for
-    // the same order would both pass the check and one would violate the unique
-    // constraint. We handle the P2002 here and return the existing row instead.
+    // Order creation and outbox event insertion are atomic. If the process dies
+    // between DB commit and queue enqueue, the OutboxDispatcherCron picks up the
+    // pending outbox event on its next tick and enqueues the job safely.
     try {
-    const order = await this.prisma.order.create({
-      data: {
+      const order = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.order.create({
+          data: {
+            tenantId,
+            locationId,
+            externalId: canonical.externalId,
+            platform: canonical.platform,
+            displayId: canonical.displayId,
+            orderSource: canonical.orderSource,
+            integrationSource: canonical.integrationSource,
+            viaHubrise: canonical.viaHubrise,
+            fulfillmentType: canonical.fulfillmentType,
+            status: "PENDING",
+            customerName: canonical.customerInfo.name ?? null,
+            customerPhone: canonical.customerInfo.phone ?? null,
+            customerInfo: canonical.customerInfo as Prisma.InputJsonValue,
+            deliveryAddress: canonical.deliveryAddress
+              ? (canonical.deliveryAddress as Prisma.InputJsonValue)
+              : undefined,
+            subtotal: canonical.subtotal,
+            taxAmount: canonical.taxAmount,
+            deliveryFee: canonical.deliveryFee,
+            discount: canonical.discount,
+            total: canonical.total,
+            specialInstructions: canonical.specialInstructions,
+            scheduledFor: canonical.scheduledFor,
+            idempotencyKey: canonical.idempotencyKey,
+            metadata: canonical.metadata as Prisma.InputJsonValue,
+            statusHistory: {
+              create: {
+                tenantId,
+                toStatus: "PENDING",
+                actorType: (canonical.integrationSource !== "DIRECT"
+                  ? "WEBHOOK"
+                  : "SYSTEM") as OrderStatusActorType,
+                changedBy:
+                  canonical.integrationSource !== "DIRECT"
+                    ? `webhook:${canonical.integrationSource}`
+                    : "system",
+              },
+            },
+            items: {
+              create: canonical.items.map((item) => ({
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                modifiers: item.modifiers as Prisma.InputJsonValue,
+                notes: item.notes,
+              })),
+            },
+          },
+        });
+
+        // Outbox event is written in the same transaction — either both commit or neither does.
+        await tx.outboxEvent.create({
+          data: this.outbox.forOrderReceived(
+            tenantId,
+            locationId,
+            created.id,
+            canonical.platform,
+            canonical.externalId ?? created.id,
+          ),
+        });
+
+        return created;
+      });
+
+      this.logger.log(
+        `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId})`,
+      );
+
+      void this.audit.log({
+        tenantId,
+        event: "order.received",
+        resource: "order",
+        resourceId: order.id,
+        meta: {
+          platform: canonical.platform,
+          externalId: canonical.externalId,
+          locationId,
+          total: canonical.total,
+        },
+      });
+
+      // Socket emit is best-effort and immediate — it does NOT affect downstream
+      // processing which is guaranteed by the outbox.
+      this.socket.emitNewOrder(locationId, {
+        orderId: order.id,
         tenantId,
         locationId,
-        externalId: canonical.externalId,
-        platform: canonical.platform,
-        displayId: canonical.displayId,
-        orderSource: canonical.orderSource,
-        integrationSource: canonical.integrationSource,
-        viaHubrise: canonical.viaHubrise,
-        fulfillmentType: canonical.fulfillmentType,
-        status: "PENDING",
-        customerName: canonical.customerInfo.name ?? null,
-        customerPhone: canonical.customerInfo.phone ?? null,
-        customerInfo: canonical.customerInfo as Prisma.InputJsonValue,
-        deliveryAddress: canonical.deliveryAddress
-          ? (canonical.deliveryAddress as Prisma.InputJsonValue)
-          : undefined,
-        subtotal: canonical.subtotal,
-        taxAmount: canonical.taxAmount,
-        deliveryFee: canonical.deliveryFee,
-        discount: canonical.discount,
-        total: canonical.total,
-        specialInstructions: canonical.specialInstructions,
-        scheduledFor: canonical.scheduledFor,
-        idempotencyKey: canonical.idempotencyKey,
-        metadata: canonical.metadata as Prisma.InputJsonValue,
-        statusHistory: {
-          create: {
-            tenantId,
-            toStatus: "PENDING",
-            actorType: (canonical.integrationSource !== "DIRECT" ? "WEBHOOK" : "SYSTEM") as OrderStatusActorType,
-            changedBy: canonical.integrationSource !== "DIRECT"
-              ? `webhook:${canonical.integrationSource}`
-              : "system",
-          },
-        },
-        items: {
-          create: canonical.items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-            modifiers: item.modifiers as Prisma.InputJsonValue,
-            notes: item.notes,
-          })),
-        },
-      },
-    });
+        platform: order.platform,
+        orderSource: order.orderSource,
+        fulfillmentType: order.fulfillmentType,
+        displayId: order.displayId,
+        status: order.status,
+        total: Number(order.total),
+        itemCount: canonical.items.reduce((sum, i) => sum + i.quantity, 0),
+        customerName: canonical.customerInfo.name,
+        scheduledFor: order.scheduledFor?.toISOString() ?? null,
+        createdAt: order.createdAt.toISOString(),
+      });
 
-    this.logger.log(
-      `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId})`,
-    );
-
-    void this.audit.log({
-      tenantId,
-      event: "order.received",
-      resource: "order",
-      resourceId: order.id,
-      meta: {
-        platform: canonical.platform,
-        externalId: canonical.externalId,
-        locationId,
-        total: canonical.total,
-      },
-    });
-
-    // Enqueue downstream processing (KDS + print + notifications)
-    await this.orderQueue.add(
-      ORDER_JOBS.INGEST,
-      { orderId: order.id, tenantId, locationId },
-      { jobId: `ingest-${order.id}` }, // deterministic — safe to re-add on retry
-    );
-
-    // Broadcast new order to connected dashboards
-    this.socket.emitNewOrder(locationId, {
-      orderId: order.id,
-      tenantId,
-      locationId,
-      platform: order.platform,
-      orderSource: order.orderSource,
-      fulfillmentType: order.fulfillmentType,
-      displayId: order.displayId,
-      status: order.status,
-      total: Number(order.total),
-      itemCount: canonical.items.reduce((sum, i) => sum + i.quantity, 0),
-      customerName: canonical.customerInfo.name,
-      scheduledFor: order.scheduledFor?.toISOString() ?? null,
-      createdAt: order.createdAt.toISOString(),
-    });
-
-    return order;
+      return order;
     } catch (err: any) {
-      // P2002 = unique constraint violation — a concurrent ingest already created this order.
-      // Return the existing record so the webhook handler can respond 200 without reprocessing.
+      // P2002 = unique constraint violation — concurrent ingest already created this order.
+      // The matching outbox event was also not created (transaction rolled back), which is correct.
       if (err?.code === "P2002") {
         this.logger.warn(
           `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
         );
-        const existing = await this.prisma.order.findUnique({
-          where: {
-            externalId_platform: {
-              externalId: canonical.externalId,
-              platform: canonical.platform,
-            },
-          },
+        const existing = await this.prisma.order.findFirst({
+          where: canonical.externalId
+            ? {
+                externalId: canonical.externalId,
+                platform: canonical.platform,
+              }
+            : {
+                idempotencyKey: canonical.idempotencyKey,
+              },
         });
         if (existing) return existing;
       }
@@ -244,8 +254,6 @@ export class OrdersService {
 
     const updated = await this.prisma.$transaction(async (tx) => {
       // Optimistic concurrency: include updatedAt in where clause.
-      // If another request updated the order between our read and this write,
-      // the update will match 0 rows and we throw a 409 Conflict.
       const result = await tx.order.updateMany({
         where: { id: orderId, updatedAt: order.updatedAt },
         data: {
@@ -275,6 +283,18 @@ export class OrdersService {
         },
       });
 
+      // Outbox event is written in the same transaction as the status update.
+      await tx.outboxEvent.create({
+        data: this.outbox.forStatusChanged(
+          tenantId,
+          order.locationId,
+          orderId,
+          order.status,
+          newStatus,
+          dto.cancelReason,
+        ),
+      });
+
       return updated;
     });
 
@@ -294,17 +314,7 @@ export class OrdersService {
       },
     });
 
-    // Enqueue status-change jobs (print, notifications, platform sync)
-    await this.orderQueue.add(ORDER_JOBS.STATUS_CHANGE, {
-      orderId,
-      tenantId,
-      locationId: order.locationId,
-      fromStatus: order.status,
-      toStatus: newStatus,
-      cancelReason: dto.cancelReason,
-    });
-
-    // Broadcast update
+    // Broadcast update — best-effort, immediate
     if (newStatus === "CANCELLED") {
       this.socket.emitToLocation(order.locationId, "order:cancelled", {
         orderId,
@@ -323,7 +333,7 @@ export class OrdersService {
         displayId: updated.displayId,
         status: updated.status,
         total: Number(updated.total),
-        itemCount: 0, // not needed for updates
+        itemCount: 0,
         customerName: (updated.customerInfo as any)?.name ?? "",
         scheduledFor: updated.scheduledFor?.toISOString() ?? null,
         createdAt: updated.createdAt.toISOString(),
