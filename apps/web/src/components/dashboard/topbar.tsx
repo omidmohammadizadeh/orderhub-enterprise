@@ -1,13 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { UserMenu } from "./user-menu";
+import { LiveNotifications } from "./live-notifications";
 import { cn } from "@/lib/utils";
 
 const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/orders": { title: "Orders", description: "Live and recent orders" },
   "/dashboard/menu": { title: "Menu", description: "Manage your menu and pricing" },
+  "/dashboard/store-ops": { title: "Store Operations", description: "Control live store status and availability" },
+  "/dashboard/customers": { title: "Customers", description: "CRM, loyalty, and promo codes" },
+  "/dashboard/drivers": { title: "Drivers", description: "Dispatch and delivery tracking" },
   "/dashboard/analytics": { title: "Analytics", description: "Sales and performance insights" },
   "/dashboard/integrations": { title: "Integrations", description: "Connected delivery platforms" },
   "/dashboard/locations": { title: "Locations", description: "Your restaurant locations" },
@@ -54,15 +58,7 @@ export function Topbar() {
           </kbd>
         </button>
 
-        {/* Notifications */}
-        <button
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-          {/* Unread dot */}
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-orange-500" />
-        </button>
+        <LiveNotifications />
 
         <div className="ml-1 h-6 w-px bg-zinc-200" />
 

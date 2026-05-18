@@ -14,6 +14,9 @@ import {
   Building2,
   Monitor,
   Rocket,
+  Store,
+  Users,
+  Truck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +34,9 @@ interface NavItem {
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0" },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed },
+  { href: "/dashboard/store-ops", label: "Store Ops", icon: Store },
+  { href: "/dashboard/customers", label: "Customers", icon: Users },
+  { href: "/dashboard/drivers", label: "Drivers", icon: Truck },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/integrations", label: "Integrations", icon: Plug2 },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },

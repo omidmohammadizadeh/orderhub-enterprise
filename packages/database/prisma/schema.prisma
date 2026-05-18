@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// OrderHub Enterprise — Prisma Schema v2
+// OrderHub Enterprise — Prisma Schema v3 (Phase E)
 // Multi-tenant omnichannel restaurant integration platform
 //
 // Design principles:
@@ -46,11 +46,14 @@ model Tenant {
   settings Json         @default("{}")
   metadata Json         @default("{}")
 
-  brands    Brand[]
-  users     User[]
-  apiKeys   ApiKey[]
-  orders    Order[]
-  printJobs PrintJob[]
+  brands     Brand[]
+  users      User[]
+  apiKeys    ApiKey[]
+  orders     Order[]
+  printJobs  PrintJob[]
+  customers  Customer[]
+  promoCodes PromoCode[]
+  drivers    Driver[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -88,7 +91,6 @@ model User {
 }
 
 // ── RefreshToken ──────────────────────────────────────────────────────────────
-// Immutable once created — only revokedAt changes. updatedAt intentionally omitted.
 model RefreshToken {
   id                String    @id @default(cuid())
   userId            String
@@ -152,10 +154,6 @@ model ApiKey {
 }
 
 // ── AuditLog ──────────────────────────────────────────────────────────────────
-// Immutable append-only record. userId is nullable so system events (no actor)
-// and post-user-deletion events are still recorded. updatedAt intentionally omitted.
-// tenantId is a raw column — no FK relation because audit logs must survive
-// tenant deletion (legal/compliance requirement).
 model AuditLog {
   id         String  @id @default(cuid())
   tenantId   String
@@ -180,8 +178,6 @@ model AuditLog {
 }
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
-// Soft-delete: set deletedAt instead of removing. Preserves referential
-// integrity with historical orders.
 model Brand {
   id        String    @id @default(cuid())
   tenantId  String
@@ -194,8 +190,9 @@ model Brand {
   isActive  Boolean   @default(true)
   deletedAt DateTime?
 
-  locations Location[]
-  menus     Menu[]
+  locations      Location[]
+  menus          Menu[]
+  modifierGroups ModifierGroup[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -207,8 +204,6 @@ model Brand {
 }
 
 // ── Location ──────────────────────────────────────────────────────────────────
-// Soft-delete. A location may have thousands of historical orders; hard deletion
-// would orphan them or force a cascade that destroys operational history.
 model Location {
   id          String    @id @default(cuid())
   brandId     String
@@ -223,16 +218,25 @@ model Location {
   metadata    Json      @default("{}")
   deletedAt   DateTime?
 
-  integrations   Integration[]
-  orders         Order[]
-  printers       Printer[]
-  kdsScreens     KdsScreen[]
+  integrations Integration[]
+  orders       Order[]
+  printers     Printer[]
+  kdsScreens   KdsScreen[]
 
   // Online ordering
-  slug           String?   @unique  // e.g. "the-pizza-place-shoreditch" → /order/the-pizza-place-shoreditch
-  openingHours   Json      @default("[]")  // array of { day: 0-6, open: "HH:MM", close: "HH:MM" }
-  deliveryConfig Json      @default("{}")  // deliveryFeeFixed, deliveryFeePercent, minimumOrder, deliveryRadius
-  onboardingStep Int       @default(0)     // tracks setup wizard progress (0-6)
+  slug           String? @unique
+  openingHours   Json    @default("[]")
+  deliveryConfig Json    @default("{}")
+  onboardingStep Int     @default(0)
+
+  // ── Store Operations ──────────────────────────────────
+  isOpen          Boolean   @default(true)   // current open/closed state
+  isPaused        Boolean   @default(false)  // temporarily pausing new orders
+  pauseUntil      DateTime?                  // auto-resume at this time
+  busyMode        Boolean   @default(false)  // kitchen busy — shows extended wait
+  currentPrepTime Int       @default(20)     // quoted prep time in minutes
+  throttleLimit   Int?                       // max new orders per hour (null = unlimited)
+  storeStatusNote String?                    // displayed to customers when paused/closed
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -243,23 +247,21 @@ model Location {
 }
 
 // ── Integration ───────────────────────────────────────────────────────────────
-// Soft-delete. Credentials and settings must be preserved after deactivation
-// for audit purposes. tenantId denormalised to avoid Brand→Location JOIN.
 model Integration {
-  id          String              @id @default(cuid())
-  tenantId    String
-  locationId  String
-  location    Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  platform    IntegrationPlatform
-  status      IntegrationStatus   @default(INACTIVE)
-  credentials Json
-  settings    Json                @default("{}")
-  webhookUrl  String?
-  syncMetadata Json               @default("{}")
-  lastSyncAt  DateTime?
-  lastErrorAt DateTime?
-  lastError   String?
-  deletedAt   DateTime?
+  id           String              @id @default(cuid())
+  tenantId     String
+  locationId   String
+  location     Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  platform     IntegrationPlatform
+  status       IntegrationStatus   @default(INACTIVE)
+  credentials  Json
+  settings     Json                @default("{}")
+  webhookUrl   String?
+  syncMetadata Json                @default("{}")
+  lastSyncAt   DateTime?
+  lastErrorAt  DateTime?
+  lastError    String?
+  deletedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -273,7 +275,6 @@ model Integration {
 }
 
 // ── Menu / Category / Item ────────────────────────────────────────────────────
-// Menus are soft-deleted to preserve historical display names on past orders.
 model Menu {
   id          String     @id @default(cuid())
   brandId     String
@@ -285,6 +286,7 @@ model Menu {
   deletedAt   DateTime?
 
   categories MenuCategory[]
+  versions   MenuVersion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -295,11 +297,14 @@ model Menu {
 }
 
 model MenuCategory {
-  id        String @id @default(cuid())
-  menuId    String
-  menu      Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  name      String
-  sortOrder Int    @default(0)
+  id          String  @id @default(cuid())
+  menuId      String
+  menu        Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  imageUrl    String?
+  sortOrder   Int     @default(0)
+  isVisible   Boolean @default(true)
 
   items MenuItemOnCategory[]
 
@@ -311,20 +316,30 @@ model MenuCategory {
 }
 
 model MenuItem {
-  id             String   @id @default(cuid())
-  brandId        String
-  name           String
-  description    String?
-  basePrice      Decimal  @db.Decimal(10, 2)
-  imageUrl       String?
-  sku            String?
-  isAvailable    Boolean  @default(true)
-  modifierGroups Json     @default("[]")
-  allergens      String[]
-  calories       Int?
-  metadata       Json     @default("{}")
+  id          String   @id @default(cuid())
+  brandId     String
+  name        String
+  description String?
+  basePrice   Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  sku         String?
+  isAvailable Boolean  @default(true)
+  allergens   String[]
+  dietaryTags String[] // VEGAN, VEGETARIAN, GLUTEN_FREE, DAIRY_FREE, HALAL, KOSHER
+  calories    Int?
+  prepTime    Int?     // minutes — overrides location default when set
+  metadata    Json     @default("{}")
 
-  categories MenuItemOnCategory[]
+  // Inventory tracking
+  isInventoryTracked Boolean @default(false)
+  inventoryCount     Int?
+
+  // Platform-specific pricing overrides — { "UBER_EATS": { "price": 12.99 }, ... }
+  platformPricingOverrides Json @default("{}")
+
+  categories         MenuItemOnCategory[]
+  modifierGroupLinks ModifierGroupOnItem[]
+  variants           MenuItemVariant[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -341,35 +356,202 @@ model MenuItemOnCategory {
   item          MenuItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   sortOrder     Int          @default(0)
   priceOverride Decimal?     @db.Decimal(10, 2)
+  isVisible     Boolean      @default(true)
 
   @@id([categoryId, itemId])
   @@map("menu_items_on_categories")
 }
 
+// ── Modifier Groups (normalized, replaces MenuItem.modifierGroups JSON) ───────
+model ModifierGroup {
+  id            String  @id @default(cuid())
+  brandId       String
+  brand         Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  minSelections Int     @default(0)
+  maxSelections Int?    // null = unlimited
+  isRequired    Boolean @default(false)
+  sortOrder     Int     @default(0)
+
+  options   ModifierOption[]
+  itemLinks ModifierGroupOnItem[]
+  // Back-reference for nested modifier groups (this group is nested under an option)
+  nestedUnderOptions ModifierOption[] @relation("NestedModifier")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@map("modifier_groups")
+}
+
+model ModifierOption {
+  id              String        @id @default(cuid())
+  groupId         String
+  group           ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  priceAdjustment Decimal       @db.Decimal(10, 2) @default(0)
+  imageUrl        String?
+  allergens       String[]
+  isDefault       Boolean       @default(false)
+  isAvailable     Boolean       @default(true)
+  sortOrder       Int           @default(0)
+
+  // Nested modifier group — selecting this option reveals a further sub-group
+  nestedGroupId String?
+  nestedGroup   ModifierGroup? @relation("NestedModifier", fields: [nestedGroupId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+  @@map("modifier_options")
+}
+
+model ModifierGroupOnItem {
+  itemId    String
+  item      MenuItem      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sortOrder Int           @default(0)
+
+  @@id([itemId, groupId])
+  @@index([itemId])
+  @@map("modifier_groups_on_items")
+}
+
+// ── MenuItem variants (size / format pricing) ──────────────────────────────────
+model MenuItemVariant {
+  id          String   @id @default(cuid())
+  itemId      String
+  item        MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name        String   // "Small", "Regular", "Large"
+  sku         String?
+  price       Decimal  @db.Decimal(10, 2)
+  sortOrder   Int      @default(0)
+  isAvailable Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([itemId])
+  @@map("menu_item_variants")
+}
+
+// ── Menu versioning — snapshot on every publish for rollback ──────────────────
+model MenuVersion {
+  id        String  @id @default(cuid())
+  menuId    String
+  menu      Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  version   Int
+  snapshot  Json    // full menu + categories + items denormalized
+  label     String?
+  createdBy String? // userId who published
+
+  createdAt DateTime @default(now())
+
+  @@unique([menuId, version])
+  @@index([menuId])
+  @@map("menu_versions")
+}
+
+// ── Customer CRM ──────────────────────────────────────────────────────────────
+// Customers are not Users — they are end-consumers placing orders.
+// A customer may exist without an account (guest checkout), identified by email/phone.
+model Customer {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email            String?
+  phone            String?
+  firstName        String?
+  lastName         String?
+  marketingConsent Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  tags             String[] // e.g. ["vip", "regular"]
+  metadata         Json     @default("{}")
+
+  addresses CustomerAddress[]
+  orders    Order[]
+  loyalty   LoyaltyAccount?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+  @@index([tenantId, email])
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label       String?  // "Home", "Work", "Other"
+  line1       String
+  line2       String?
+  city        String
+  postcode    String
+  country     String   @default("GB")
+  isDefault   Boolean  @default(false)
+  coordinates Json?    // { lat: number, lng: number }
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
+
+// Loyalty-ready schema — points/tiers can be implemented on top of this
+model LoyaltyAccount {
+  id          String   @id @default(cuid())
+  customerId  String   @unique
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenantId    String
+  points      Int      @default(0)
+  tier        String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  totalSpend  Decimal  @db.Decimal(10, 2) @default(0)
+  totalOrders Int      @default(0)
+  metadata    Json     @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("loyalty_accounts")
+}
+
+// ── Promo Codes ───────────────────────────────────────────────────────────────
+model PromoCode {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code          String
+  description   String?
+  type          PromoCodeType
+  value         Decimal       @db.Decimal(10, 2)
+  minOrderValue Decimal?      @db.Decimal(10, 2)
+  maxUses       Int?          // null = unlimited
+  usedCount     Int           @default(0)
+  startAt       DateTime?
+  expiresAt     DateTime?
+  isActive      Boolean       @default(true)
+  locationIds   String[]      // empty = all locations
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@map("promo_codes")
+}
+
 // ── Order ─────────────────────────────────────────────────────────────────────
-// The canonical order record. All platforms normalise into this single model.
-//
-// Cascade / FK policy:
-//   Order → Tenant: RESTRICT — a tenant with orders cannot be deleted
-//   Order → Location: RESTRICT — a location with orders cannot be deleted
-//   (deletion of these entities must go through soft-delete + archival)
-//
-// Customer search columns:
-//   customerName and customerPhone are extracted from customerInfo JSON at
-//   write time to support B-tree indexed searches without GIN overhead.
-//   customerInfo JSON is the authoritative source; these are search projections.
-//
-// Partitioning readiness:
-//   The primary composite query patterns (tenantId + createdAt, locationId + status)
-//   are the intended future partition keys for Postgres RANGE partitioning.
-//   When volume exceeds ~50M rows, partition by RANGE(created_at) within
-//   tenant shards. All indexes lead with tenant/location to remain valid
-//   after partitioning.
-//
-// Analytics readiness:
-//   sourceMetadata stores the raw platform context (original displayId, courier
-//   assignment, scheduling info) without polluting the normalized columns.
-//   This JSON blob is intended to be streamed to ClickHouse or BigQuery.
 model Order {
   id                String            @id @default(cuid())
   tenantId          String
@@ -377,41 +559,47 @@ model Order {
   locationId        String
   location          Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
+  // ── Customer link (optional — guest checkout has no customer record) ──────
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   // ── External platform reference ──────────────────────────
-  externalId        String?
-  platform          OrderPlatform
-  displayId         String?
+  externalId String?
+  platform   OrderPlatform
+  displayId  String?
 
   // ── Channel & integration provenance ─────────────────────
-  // orderSource = "who sent this order" (the sales channel)
-  // integrationSource = "how did it arrive" (the adapter)
-  // viaHubrise = audit flag for compliance reporting
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
   viaHubrise        Boolean           @default(false)
 
   // ── Lifecycle ─────────────────────────────────────────────
-  status            OrderStatus       @default(PENDING)
-  fulfillmentType   FulfillmentType   @default(DELIVERY)
+  status          OrderStatus     @default(PENDING)
+  fulfillmentType FulfillmentType @default(DELIVERY)
 
-  // ── Customer (full record + extracted search columns) ─────
-  customerInfo      Json
-  customerName      String?           // extracted from customerInfo.name at write time
-  customerPhone     String?           // extracted from customerInfo.phone at write time
+  // ── Customer data ──────────────────────────────────────────
+  customerInfo  Json
+  customerName  String?
+  customerPhone String?
 
   // ── Delivery ──────────────────────────────────────────────
-  deliveryAddress   Json?
+  deliveryAddress Json?
 
-  // ── Financials (Decimal for accounting precision) ─────────
-  subtotal          Decimal           @db.Decimal(10, 2)
-  taxAmount         Decimal           @db.Decimal(10, 2) @default(0)
-  deliveryFee       Decimal           @db.Decimal(10, 2) @default(0)
-  discount          Decimal           @db.Decimal(10, 2) @default(0)
-  total             Decimal           @db.Decimal(10, 2)
+  // ── Financials ────────────────────────────────────────────
+  subtotal      Decimal @db.Decimal(10, 2)
+  taxAmount     Decimal @db.Decimal(10, 2) @default(0)
+  serviceCharge Decimal @db.Decimal(10, 2) @default(0)
+  deliveryFee   Decimal @db.Decimal(10, 2) @default(0)
+  discount      Decimal @db.Decimal(10, 2) @default(0)
+  total         Decimal @db.Decimal(10, 2)
 
   // ── Payment ───────────────────────────────────────────────
-  paymentStatus     PaymentStatus     @default(PENDING)
-  paymentMethod     String?
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod String?
+
+  // ── Promo ─────────────────────────────────────────────────
+  promoCode     String?  // code applied
+  promoDiscount Decimal? @db.Decimal(10, 2)
 
   // ── Scheduling ────────────────────────────────────────────
   specialInstructions String?
@@ -419,69 +607,56 @@ model Order {
   estimatedReadyAt    DateTime?
 
   // ── Idempotency ───────────────────────────────────────────
-  idempotencyKey    String?           @unique
+  idempotencyKey String? @unique
 
-  // ── Timeline (each written exactly once, never updated) ───
-  receivedAt        DateTime          @default(now())
-  acceptedAt        DateTime?
-  preparingAt       DateTime?
-  readyAt           DateTime?
-  outForDeliveryAt  DateTime?
-  deliveredAt       DateTime?
-  cancelledAt       DateTime?
-  cancelReason      String?
+  // ── Timeline ──────────────────────────────────────────────
+  receivedAt       DateTime  @default(now())
+  acceptedAt       DateTime?
+  preparingAt      DateTime?
+  readyAt          DateTime?
+  outForDeliveryAt DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
 
   // ── Metadata ──────────────────────────────────────────────
-  metadata          Json              @default("{}")
-  sourceMetadata    Json              @default("{}")  // raw platform payload context
+  metadata       Json @default("{}")
+  sourceMetadata Json @default("{}")
 
-  items             OrderItem[]
-  statusHistory     OrderStatusHistory[]
-  kdsTickets        KdsTicket[]
-  printJobs         PrintJob[]
+  items            OrderItem[]
+  statusHistory    OrderStatusHistory[]
+  kdsTickets       KdsTicket[]
+  printJobs        PrintJob[]
+  driverAssignment DriverAssignment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Idempotency: NULL externalId rows do NOT conflict (PG treats NULLs as distinct)
   @@unique([externalId, platform])
-
-  // ── Tenant-scoped indexes (primary query pattern) ─────────
   @@index([tenantId, createdAt(sort: Desc)])
   @@index([tenantId, status])
   @@index([tenantId, locationId])
   @@index([tenantId, orderSource])
-
-  // ── Location-scoped indexes (dashboard query pattern) ─────
   @@index([locationId, createdAt(sort: Desc)])
   @@index([locationId, status])
   @@index([locationId, orderSource])
-
-  // ── Platform / source indexes ─────────────────────────────
   @@index([platform])
   @@index([orderSource])
   @@index([integrationSource])
-
-  // ── Customer search indexes ───────────────────────────────
   @@index([tenantId, customerPhone])
   @@index([tenantId, customerName])
-
-  // ── Operational / live board ──────────────────────────────
-  @@index([locationId, status, createdAt(sort: Asc)])  // live board ordering
+  @@index([locationId, status, createdAt(sort: Asc)])
   @@index([scheduledFor])
-
+  @@index([customerId])
   @@map("orders")
 }
 
 // ── OrderItem ─────────────────────────────────────────────────────────────────
-// Immutable after creation. updatedAt intentionally omitted.
-// Modifiers are stored as a JSON array — no separate table needed unless
-// modifier-level analytics are required (future phase).
 model OrderItem {
   id         String  @id @default(cuid())
   orderId    String
   order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItemId String? // nullable: platform items may not map to a local menu item
+  menuItemId String?
   name       String
   quantity   Int
   unitPrice  Decimal @db.Decimal(10, 2)
@@ -497,18 +672,15 @@ model OrderItem {
 }
 
 // ── OrderStatusHistory ────────────────────────────────────────────────────────
-// Immutable append-only audit trail. updatedAt intentionally omitted.
-// actorType identifies who triggered the transition for compliance reporting.
-// tenantId denormalised so this table can be queried without joining orders.
 model OrderStatusHistory {
   id         String               @id @default(cuid())
   orderId    String
   order      Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  tenantId   String               // denormalised for audit queries without JOIN
+  tenantId   String
   fromStatus OrderStatus?
   toStatus   OrderStatus
   actorType  OrderStatusActorType @default(SYSTEM)
-  changedBy  String?              // userId, "system", "webhook:{platform}", "api-key:{prefix}"
+  changedBy  String?
   note       String?
   metadata   Json                 @default("{}")
 
@@ -521,16 +693,12 @@ model OrderStatusHistory {
 }
 
 // ── WebhookEvent ──────────────────────────────────────────────────────────────
-// Idempotency log and raw payload archive for all inbound webhook deliveries.
-// Immutable once created. processedAt and processingError are written at most
-// once per record after initial insert. updatedAt intentionally omitted.
-// tenantId / locationId are nullable — populated during processing, not on receipt.
 model WebhookEvent {
   id              String    @id @default(cuid())
   platform        String
   externalEventId String
-  tenantId        String?   // populated after integration lookup
-  locationId      String?   // populated after integration lookup
+  tenantId        String?
+  locationId      String?
   signature       String?
   rawPayload      Json
   processedAt     DateTime?
@@ -551,7 +719,7 @@ model WebhookEvent {
 // ── KDS ───────────────────────────────────────────────────────────────────────
 model KdsScreen {
   id         String   @id @default(cuid())
-  tenantId   String   // denormalised for fast tenant-scoped queries
+  tenantId   String
   locationId String
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   name       String
@@ -570,8 +738,6 @@ model KdsScreen {
   @@map("kds_screens")
 }
 
-// KdsTicket: immutable display assignment. bumpedAt and recalledAt are the
-// lifecycle markers; updatedAt omitted since we don't need last-write tracking.
 model KdsTicket {
   id          String    @id @default(cuid())
   kdsScreenId String
@@ -590,11 +756,9 @@ model KdsTicket {
 }
 
 // ── Printer ───────────────────────────────────────────────────────────────────
-// Soft-delete. Printers accumulate historical print jobs; hard deletion would
-// set PrintJob.printerId to NULL via SetNull, losing hardware routing history.
 model Printer {
   id             String                @id @default(cuid())
-  tenantId       String                // denormalised for fast tenant-scoped queries
+  tenantId       String
   locationId     String
   location       Location              @relation(fields: [locationId], references: [id], onDelete: Cascade)
   name           String
@@ -606,15 +770,21 @@ model Printer {
   isOnline       Boolean               @default(false)
   deletedAt      DateTime?
 
-  // Capability flags — used to route jobs without querying hardware state
+  // Failover: if this printer fails, route to failoverPrinterId
+  failoverPrinterId String?
+
   supportsReceipts   Boolean @default(true)
   supportsKitchen    Boolean @default(false)
   supportsLabels     Boolean @default(false)
   supportsCut        Boolean @default(true)
   supportsCashDrawer Boolean @default(false)
 
+  // Auto-print rules stored as JSON:
+  // [{ "event": "order:new", "types": ["RECEIPT", "KITCHEN_TICKET"] }]
+  autoPrintRules Json @default("[]")
+
   settings  Json @default("{}")
-  metadata  Json @default("{}")  // hardware-specific config (baud rate, model, etc.)
+  metadata  Json @default("{}")
 
   printJobs PrintJob[]
 
@@ -630,26 +800,23 @@ model Printer {
 }
 
 // ── PrintJob ──────────────────────────────────────────────────────────────────
-// Immutable intent record + mutable status. The payload JSON contains a
-// fully-rendered print document — enough to re-dispatch without reading Order.
-// retryMetadata records attempt history for operational debugging.
 model PrintJob {
-  id           String         @id @default(cuid())
-  tenantId     String
-  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  locationId   String
-  printerId    String?
-  printer      Printer?       @relation(fields: [printerId], references: [id], onDelete: SetNull)
-  orderId      String?
-  order        Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  type         PrintJobType
-  status       PrintJobStatus @default(QUEUED)
-  payload      Json           // fully self-contained print document
-  attempts     Int            @default(0)
-  maxRetries   Int            @default(3)
-  error        String?
-  retryMetadata Json          @default("{}")  // per-attempt error log
-  printedAt    DateTime?
+  id            String         @id @default(cuid())
+  tenantId      String
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  locationId    String
+  printerId     String?
+  printer       Printer?       @relation(fields: [printerId], references: [id], onDelete: SetNull)
+  orderId       String?
+  order         Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  type          PrintJobType
+  status        PrintJobStatus @default(QUEUED)
+  payload       Json
+  attempts      Int            @default(0)
+  maxRetries    Int            @default(3)
+  error         String?
+  retryMetadata Json           @default("{}")
+  printedAt     DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -661,6 +828,87 @@ model PrintJob {
   @@index([printerId, status])
   @@index([orderId])
   @@map("print_jobs")
+}
+
+// ── Print Templates ───────────────────────────────────────────────────────────
+// Custom receipt / kitchen ticket / label templates per tenant or location
+model PrintTemplate {
+  id         String       @id @default(cuid())
+  tenantId   String
+  locationId String?      // null = applies to all locations in tenant
+  name       String
+  type       PrintJobType
+  template   Json         // template slots and layout config
+  isDefault  Boolean      @default(false)
+  isActive   Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, type])
+  @@map("print_templates")
+}
+
+// ── Driver / Dispatch Foundation ──────────────────────────────────────────────
+model Driver {
+  id          String  @id @default(cuid())
+  tenantId    String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String? // link to User if driver has a dashboard login
+  firstName   String
+  lastName    String
+  phone       String
+  email       String?
+  isActive    Boolean @default(true)
+  vehicleType String? // BIKE, SCOOTER, CAR, FOOT
+  metadata    Json    @default("{}")
+
+  assignments DriverAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@map("drivers")
+}
+
+model DriverAssignment {
+  id          String                 @id @default(cuid())
+  orderId     String                 @unique
+  order       Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId    String
+  driver      Driver                 @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  status      DriverAssignmentStatus @default(ASSIGNED)
+  assignedAt  DateTime               @default(now())
+  acceptedAt  DateTime?
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+
+  tracking DeliveryTracking[]
+
+  @@index([driverId])
+  @@index([driverId, status])
+  @@map("driver_assignments")
+}
+
+// Append-only GPS breadcrumb trail for delivery tracking
+model DeliveryTracking {
+  id           String           @id @default(cuid())
+  assignmentId String
+  assignment   DriverAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  lat          Float
+  lng          Float
+  accuracy     Float?
+  heading      Float?
+  speed        Float?
+  event        String?          // "PICKUP", "DELIVERY", "WAYPOINT"
+
+  recordedAt DateTime @default(now())
+
+  @@index([assignmentId, recordedAt(sort: Desc)])
+  @@map("delivery_tracking")
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -723,50 +971,46 @@ enum OrderPlatform {
   ONLINE
 }
 
-// The sales channel that originated the order
 enum OrderSource {
-  ONLINE       // Customer ordered via our direct ordering URL
-  POS          // Order created at the point-of-sale terminal
-  UBER_EATS    // Order came from Uber Eats marketplace
-  DELIVEROO    // Order came from Deliveroo marketplace
-  JUST_EAT     // Order came from Just Eat marketplace
-  HUBRISE      // Order was routed via HubRise middleware
-  DIRECT       // Internal/manual order (default)
+  ONLINE
+  POS
+  UBER_EATS
+  DELIVEROO
+  JUST_EAT
+  HUBRISE
+  DIRECT
 }
 
-// Which integration adapter delivered the order into our system
 enum IntegrationSource {
-  DIRECT   // Our own webhook / API / online ordering
-  HUBRISE  // HubRise routed it (may proxy Uber Eats, Deliveroo, etc.)
+  DIRECT
+  HUBRISE
 }
 
 enum FulfillmentType {
-  PICKUP             // Customer collects in person
-  DELIVERY           // Generic delivery (courier TBD at dispatch)
-  DINE_IN            // Table service — customer eats in
-  MERCHANT_DELIVERY  // Restaurant owns the delivery operation
-  PLATFORM_COURIER   // Platform arranges courier (Uber driver, Deliveroo rider)
+  PICKUP
+  DELIVERY
+  DINE_IN
+  MERCHANT_DELIVERY
+  PLATFORM_COURIER
 }
 
 enum OrderStatus {
-  PENDING    // Received, awaiting acceptance
-  ACCEPTED   // Restaurant confirmed the order
-  PREPARING  // Kitchen is actively working on it
-  READY      // Complete, waiting for collection / courier handoff
-  DISPATCHED // With a courier / en route
-  COMPLETED  // Successfully delivered or collected
-  CANCELLED  // Cancelled by restaurant, platform, or customer
-  REJECTED   // Restaurant explicitly refused the order
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+  REJECTED
 }
 
-// Who or what triggered a status transition — essential for audit trails
-// and for distinguishing between staff actions and automated platform syncs.
 enum OrderStatusActorType {
-  STAFF     // Human staff member via dashboard or POS
-  SYSTEM    // Automatic transition by platform logic or scheduler
-  WEBHOOK   // Inbound status update from a delivery platform
-  API       // API key holder (third-party integration)
-  KIOSK     // Self-service kiosk
+  STAFF
+  SYSTEM
+  WEBHOOK
+  API
+  KIOSK
 }
 
 enum PaymentStatus {
@@ -786,11 +1030,11 @@ enum PrinterType {
 
 enum PrinterConnectionType {
   USB
-  LAN           // TCP/IP thermal printer (most common)
+  LAN
   BLUETOOTH
-  EPSON_EPOS    // Epson ePOS SDK over HTTP
-  STAR          // Star Micronics CloudPRNT
-  CLOUD         // Cloud relay service
+  EPSON_EPOS
+  STAR
+  CLOUD
 }
 
 enum PrinterStation {
@@ -802,25 +1046,39 @@ enum PrinterStation {
 }
 
 enum PrintJobType {
-  RECEIPT         // Customer receipt (with totals, payment)
-  KITCHEN_TICKET  // Kitchen order ticket (items only, no prices)
-  LABEL           // Item / packaging label
-  DRIVER_RECEIPT  // Driver pickup slip
-  CANCEL_TICKET   // Cancellation notice for kitchen
-  REPRINT         // Manual reprint of a previous job
-  EOD_REPORT      // End-of-day summary report
+  RECEIPT
+  KITCHEN_TICKET
+  LABEL
+  DRIVER_RECEIPT
+  CANCEL_TICKET
+  REPRINT
+  EOD_REPORT
 }
 
 enum PrintJobStatus {
-  QUEUED    // Waiting for processing
-  PRINTING  // Sent to hardware, awaiting confirmation
-  PRINTED   // Hardware confirmed receipt
-  FAILED    // All retries exhausted
-  RETRYING  // Waiting for next retry attempt
+  QUEUED
+  PRINTING
+  PRINTED
+  FAILED
+  RETRYING
 }
 
 enum MenuStatus {
-  DRAFT      // Work in progress — not visible to customers
-  PUBLISHED  // Live — served to ordering channels
-  ARCHIVED   // No longer active — preserved for history
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PromoCodeType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_DELIVERY
+}
+
+enum DriverAssignmentStatus {
+  ASSIGNED
+  ACCEPTED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
 }

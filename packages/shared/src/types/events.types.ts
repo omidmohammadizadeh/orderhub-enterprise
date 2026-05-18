@@ -12,12 +12,23 @@ export interface ServerToClientEvents {
   "order:cancelled": (payload: OrderCancelledPayload) => void;
   // Kitchen display: a ticket was bumped (completed by cook)
   "kds:bump": (payload: KdsBumpPayload) => void;
+  // KDS: new order tickets created
+  "kds:order:new": (payload: KdsOrderNewPayload) => void;
+  // KDS: ticket bumped via worker
+  "kds:ticket:bumped": (payload: KdsTicketBumpedPayload) => void;
   // Integration went offline / came back
   "integration:status": (payload: IntegrationStatusPayload) => void;
   // A printer changed online status
   "printer:status": (payload: PrinterStatusPayload) => void;
   // A print job changed status
   "print:job": (payload: PrintJobEventPayload) => void;
+  // Store status changed (emergency close, pause, resume)
+  "store:emergency-closed": (payload: StoreStatusPayload) => void;
+  "store:status-changed": (payload: StoreStatusPayload) => void;
+  // Dispatch events
+  "dispatch:driver:assigned": (payload: DriverAssignedPayload) => void;
+  "dispatch:assignment:updated": (payload: DriverAssignedPayload) => void;
+  "dispatch:tracking:update": (payload: TrackingUpdatePayload) => void;
 }
 
 export interface ClientToServerEvents {
@@ -79,4 +90,40 @@ export interface PrintJobEventPayload {
   type: string;
   status: string;
   printedAt: string | null;
+}
+
+export interface KdsOrderNewPayload {
+  orderId: string;
+  screenIds: string[];
+  displayId: string | null;
+  platform: string;
+  fulfillmentType: string;
+}
+
+export interface KdsTicketBumpedPayload {
+  orderId: string;
+  bumpedAt: string;
+}
+
+export interface StoreStatusPayload {
+  locationId: string;
+  locationName: string;
+  status: string;
+  reason?: string;
+}
+
+export interface DriverAssignedPayload {
+  orderId: string;
+  displayId: string;
+  driverId: string;
+  driverName: string;
+  status: string;
+}
+
+export interface TrackingUpdatePayload {
+  orderId: string;
+  driverId: string;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
 }

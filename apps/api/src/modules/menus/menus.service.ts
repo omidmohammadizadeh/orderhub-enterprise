@@ -2,8 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
   Logger,
-  ForbiddenException,
 } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
@@ -23,12 +23,21 @@ import type {
 
 const MENU_INCLUDE = {
   categories: {
-    where: { items: undefined },
     orderBy: { sortOrder: "asc" as const },
     include: {
       items: {
         orderBy: { sortOrder: "asc" as const },
-        include: { item: true },
+        include: {
+          item: {
+            include: {
+              modifierGroupLinks: {
+                include: { group: { include: { options: { orderBy: { sortOrder: "asc" as const } } } } },
+                orderBy: { sortOrder: "asc" as const },
+              },
+              variants: { orderBy: { sortOrder: "asc" as const } },
+            },
+          },
+        },
       },
     },
   },
@@ -49,7 +58,10 @@ export class MenusService {
     await this.assertBrandAccess(brandId, tenantId);
     return this.prisma.menu.findMany({
       where: { brandId, deletedAt: null },
-      include: { _count: { select: { categories: true } } },
+      include: {
+        _count: { select: { categories: true, versions: true } },
+        versions: { orderBy: { version: "desc" }, take: 1, select: { version: true, label: true, createdAt: true } },
+      },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -83,12 +95,32 @@ export class MenusService {
     });
   }
 
-  async publish(menuId: string, tenantId: string) {
+  async publish(menuId: string, tenantId: string, userId?: string) {
     const menu = await this.assertMenuAccess(menuId, tenantId);
-    const updated = await this.prisma.menu.update({
-      where: { id: menuId },
-      data: { status: "PUBLISHED", isActive: true },
+
+    // Snapshot for versioning
+    const fullMenu = await this.findOne(menuId, tenantId);
+    const lastVersion = await this.prisma.menuVersion.findFirst({
+      where: { menuId },
+      orderBy: { version: "desc" },
+      select: { version: true },
     });
+
+    await this.prisma.$transaction([
+      this.prisma.menu.update({
+        where: { id: menuId },
+        data: { status: "PUBLISHED", isActive: true },
+      }),
+      this.prisma.menuVersion.create({
+        data: {
+          menuId,
+          version: (lastVersion?.version ?? 0) + 1,
+          snapshot: fullMenu as any,
+          label: `Published ${new Date().toISOString().split("T")[0]}`,
+          createdBy: userId ?? null,
+        },
+      }),
+    ]);
 
     await this.menuSyncQueue.add(
       MENU_JOBS.PUSH_TO_PLATFORM,
@@ -100,7 +132,7 @@ export class MenusService {
       },
     );
 
-    return updated;
+    return this.prisma.menu.findUnique({ where: { id: menuId } });
   }
 
   async archive(menuId: string, tenantId: string) {
@@ -129,7 +161,12 @@ export class MenusService {
 
       for (const cat of source.categories) {
         const newCat = await tx.menuCategory.create({
-          data: { menuId: cloned.id, name: cat.name, sortOrder: cat.sortOrder },
+          data: {
+            menuId: cloned.id,
+            name: cat.name,
+            description: (cat as any).description ?? null,
+            sortOrder: cat.sortOrder,
+          },
         });
         for (const link of cat.items) {
           await tx.menuItemOnCategory.create({
@@ -143,8 +180,71 @@ export class MenusService {
         }
       }
 
-      return tx.menu.findUnique({ where: { id: cloned.id }, include: MENU_INCLUDE });
+      return cloned;
     });
+  }
+
+  // ── Menu Versioning ────────────────────────────────────────────────────────
+
+  async getVersions(menuId: string, tenantId: string) {
+    await this.assertMenuAccess(menuId, tenantId);
+    return this.prisma.menuVersion.findMany({
+      where: { menuId },
+      orderBy: { version: "desc" },
+      select: {
+        id: true, version: true, label: true, createdBy: true, createdAt: true,
+      },
+    });
+  }
+
+  async rollback(menuId: string, versionId: string, tenantId: string) {
+    await this.assertMenuAccess(menuId, tenantId);
+
+    const version = await this.prisma.menuVersion.findFirst({
+      where: { id: versionId, menuId },
+    });
+    if (!version) throw new NotFoundException("Version not found");
+
+    // Restore: delete all current categories, recreate from snapshot
+    const snapshot = version.snapshot as any;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.menuCategory.deleteMany({ where: { menuId } });
+
+      for (const cat of snapshot.categories ?? []) {
+        const newCat = await tx.menuCategory.create({
+          data: {
+            menuId,
+            name: cat.name,
+            description: cat.description ?? null,
+            sortOrder: cat.sortOrder,
+          },
+        });
+        for (const link of cat.items ?? []) {
+          const item = link.item;
+          // Ensure item still exists
+          const exists = await tx.menuItem.findUnique({ where: { id: item.id } });
+          if (exists) {
+            await tx.menuItemOnCategory.create({
+              data: {
+                categoryId: newCat.id,
+                itemId: item.id,
+                sortOrder: link.sortOrder,
+                priceOverride: link.priceOverride,
+              },
+            }).catch(() => {});  // ignore if already linked
+          }
+        }
+      }
+
+      await tx.menu.update({
+        where: { id: menuId },
+        data: { status: "DRAFT" },
+      });
+    });
+
+    this.logger.log(`Menu ${menuId} rolled back to version ${version.version}`);
+    return this.findOne(menuId, tenantId);
   }
 
   // ── Category CRUD ─────────────────────────────────────────────────────────
@@ -159,7 +259,8 @@ export class MenusService {
       data: {
         menuId,
         name: dto.name,
-        sortOrder: dto.sortOrder ?? (maxOrder._max.sortOrder ?? -1) + 1,
+        description: (dto as any).description ?? null,
+        sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
       },
     });
   }
@@ -168,7 +269,12 @@ export class MenusService {
     await this.assertCategoryAccess(categoryId, tenantId);
     return this.prisma.menuCategory.update({
       where: { id: categoryId },
-      data: dto,
+      data: {
+        ...(dto.name && { name: dto.name }),
+        ...((dto as any).description !== undefined && { description: (dto as any).description }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        ...(dto.isActive !== undefined && { isVisible: dto.isActive }),
+      },
     });
   }
 
@@ -180,11 +286,8 @@ export class MenusService {
   async reorderCategories(menuId: string, tenantId: string, dto: ReorderDto) {
     await this.assertMenuAccess(menuId, tenantId);
     await this.prisma.$transaction(
-      dto.items.map((item) =>
-        this.prisma.menuCategory.update({
-          where: { id: item.id },
-          data: { sortOrder: item.sortOrder },
-        }),
+      dto.order.map(({ id, sortOrder }) =>
+        this.prisma.menuCategory.update({ where: { id }, data: { sortOrder } }),
       ),
     );
   }
@@ -195,6 +298,12 @@ export class MenusService {
     await this.assertBrandAccess(brandId, tenantId);
     return this.prisma.menuItem.findMany({
       where: { brandId },
+      include: {
+        modifierGroupLinks: {
+          include: { group: { include: { options: true } } },
+        },
+        variants: { orderBy: { sortOrder: "asc" } },
+      },
       orderBy: { name: "asc" },
     });
   }
@@ -211,7 +320,15 @@ export class MenusService {
         sku: dto.sku,
         calories: dto.calories,
         allergens: dto.allergens ?? [],
-        modifierGroups: (dto.modifierGroups ?? []) as any,
+        dietaryTags: (dto as any).dietaryTags ?? [],
+        prepTime: (dto as any).prepTime ?? null,
+        isInventoryTracked: (dto as any).isInventoryTracked ?? false,
+        inventoryCount: (dto as any).inventoryCount ?? null,
+        platformPricingOverrides: (dto as any).platformPricingOverrides ?? {},
+      },
+      include: {
+        variants: true,
+        modifierGroupLinks: { include: { group: { include: { options: true } } } },
       },
     });
   }
@@ -229,7 +346,15 @@ export class MenusService {
         ...(dto.calories !== undefined && { calories: dto.calories }),
         ...(dto.allergens !== undefined && { allergens: dto.allergens }),
         ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
-        ...(dto.modifierGroups !== undefined && { modifierGroups: dto.modifierGroups as any }),
+        ...((dto as any).dietaryTags !== undefined && { dietaryTags: (dto as any).dietaryTags }),
+        ...((dto as any).prepTime !== undefined && { prepTime: (dto as any).prepTime }),
+        ...((dto as any).isInventoryTracked !== undefined && { isInventoryTracked: (dto as any).isInventoryTracked }),
+        ...((dto as any).inventoryCount !== undefined && { inventoryCount: (dto as any).inventoryCount }),
+        ...((dto as any).platformPricingOverrides !== undefined && { platformPricingOverrides: (dto as any).platformPricingOverrides }),
+      },
+      include: {
+        variants: true,
+        modifierGroupLinks: { include: { group: { include: { options: true } } } },
       },
     });
   }
@@ -247,16 +372,263 @@ export class MenusService {
     await this.prisma.menuItem.delete({ where: { id: itemId } });
   }
 
+  // ── Bulk Operations ────────────────────────────────────────────────────────
+
+  async bulkToggleAvailability(itemIds: string[], tenantId: string, isAvailable: boolean) {
+    // Validate all items belong to tenant
+    const items = await this.prisma.menuItem.findMany({
+      where: { id: { in: itemIds }, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (items.length !== itemIds.length) {
+      throw new BadRequestException("Some items not found or not accessible");
+    }
+    return this.prisma.menuItem.updateMany({
+      where: { id: { in: itemIds } },
+      data: { isAvailable },
+    });
+  }
+
+  async bulkUpdatePrice(
+    itemIds: string[],
+    tenantId: string,
+    adjustment: { type: "fixed" | "percentage"; value: number },
+  ) {
+    const items = await this.prisma.menuItem.findMany({
+      where: { id: { in: itemIds }, brand: { tenantId } },
+    });
+    if (items.length !== itemIds.length) {
+      throw new BadRequestException("Some items not found");
+    }
+
+    await this.prisma.$transaction(
+      items.map((item) => {
+        const currentPrice = Number(item.basePrice);
+        const newPrice =
+          adjustment.type === "fixed"
+            ? currentPrice + adjustment.value
+            : currentPrice * (1 + adjustment.value / 100);
+        return this.prisma.menuItem.update({
+          where: { id: item.id },
+          data: { basePrice: Math.max(0, Math.round(newPrice * 100) / 100) },
+        });
+      }),
+    );
+
+    return { updated: items.length };
+  }
+
+  // ── Item Variants ──────────────────────────────────────────────────────────
+
+  async createVariant(
+    itemId: string,
+    tenantId: string,
+    dto: { name: string; price: number; sku?: string; sortOrder?: number },
+  ) {
+    await this.assertItemAccess(itemId, tenantId);
+    return this.prisma.menuItemVariant.create({
+      data: {
+        itemId,
+        name: dto.name,
+        price: dto.price,
+        sku: dto.sku ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+      },
+    });
+  }
+
+  async updateVariant(
+    variantId: string,
+    tenantId: string,
+    dto: { name?: string; price?: number; sku?: string; sortOrder?: number; isAvailable?: boolean },
+  ) {
+    const variant = await this.prisma.menuItemVariant.findFirst({
+      where: { id: variantId, item: { brand: { tenantId } } },
+    });
+    if (!variant) throw new NotFoundException("Variant not found");
+    return this.prisma.menuItemVariant.update({
+      where: { id: variantId },
+      data: {
+        ...(dto.name && { name: dto.name }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.sku !== undefined && { sku: dto.sku }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
+      },
+    });
+  }
+
+  async removeVariant(variantId: string, tenantId: string) {
+    const variant = await this.prisma.menuItemVariant.findFirst({
+      where: { id: variantId, item: { brand: { tenantId } } },
+    });
+    if (!variant) throw new NotFoundException("Variant not found");
+    await this.prisma.menuItemVariant.delete({ where: { id: variantId } });
+  }
+
+  // ── Modifier Groups ────────────────────────────────────────────────────────
+
+  async findModifierGroupsByBrand(brandId: string, tenantId: string) {
+    await this.assertBrandAccess(brandId, tenantId);
+    return this.prisma.modifierGroup.findMany({
+      where: { brandId },
+      include: { options: { orderBy: { sortOrder: "asc" } }, _count: { select: { itemLinks: true } } },
+      orderBy: { name: "asc" },
+    });
+  }
+
+  async createModifierGroup(
+    brandId: string,
+    tenantId: string,
+    dto: {
+      name: string;
+      description?: string;
+      minSelections?: number;
+      maxSelections?: number;
+      isRequired?: boolean;
+    },
+  ) {
+    await this.assertBrandAccess(brandId, tenantId);
+    return this.prisma.modifierGroup.create({
+      data: {
+        brandId,
+        name: dto.name,
+        description: dto.description ?? null,
+        minSelections: dto.minSelections ?? 0,
+        maxSelections: dto.maxSelections ?? null,
+        isRequired: dto.isRequired ?? false,
+      },
+      include: { options: true },
+    });
+  }
+
+  async updateModifierGroup(
+    groupId: string,
+    tenantId: string,
+    dto: {
+      name?: string;
+      description?: string;
+      minSelections?: number;
+      maxSelections?: number | null;
+      isRequired?: boolean;
+    },
+  ) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    return this.prisma.modifierGroup.update({
+      where: { id: groupId },
+      data: {
+        ...(dto.name && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.minSelections !== undefined && { minSelections: dto.minSelections }),
+        ...(dto.maxSelections !== undefined && { maxSelections: dto.maxSelections }),
+        ...(dto.isRequired !== undefined && { isRequired: dto.isRequired }),
+      },
+      include: { options: true },
+    });
+  }
+
+  async removeModifierGroup(groupId: string, tenantId: string) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    await this.prisma.modifierGroup.delete({ where: { id: groupId } });
+  }
+
+  async addModifierOption(
+    groupId: string,
+    tenantId: string,
+    dto: {
+      name: string;
+      priceAdjustment?: number;
+      isDefault?: boolean;
+      imageUrl?: string;
+      allergens?: string[];
+      nestedGroupId?: string;
+    },
+  ) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    const maxOrder = await this.prisma.modifierOption.aggregate({
+      where: { groupId },
+      _max: { sortOrder: true },
+    });
+    return this.prisma.modifierOption.create({
+      data: {
+        groupId,
+        name: dto.name,
+        priceAdjustment: dto.priceAdjustment ?? 0,
+        isDefault: dto.isDefault ?? false,
+        imageUrl: dto.imageUrl ?? null,
+        allergens: dto.allergens ?? [],
+        nestedGroupId: dto.nestedGroupId ?? null,
+        sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
+      },
+    });
+  }
+
+  async updateModifierOption(
+    optionId: string,
+    tenantId: string,
+    dto: {
+      name?: string;
+      priceAdjustment?: number;
+      isDefault?: boolean;
+      isAvailable?: boolean;
+      imageUrl?: string;
+      allergens?: string[];
+      nestedGroupId?: string | null;
+      sortOrder?: number;
+    },
+  ) {
+    const option = await this.prisma.modifierOption.findFirst({
+      where: { id: optionId, group: { brand: { tenantId } } },
+    });
+    if (!option) throw new NotFoundException("Option not found");
+    return this.prisma.modifierOption.update({
+      where: { id: optionId },
+      data: {
+        ...(dto.name && { name: dto.name }),
+        ...(dto.priceAdjustment !== undefined && { priceAdjustment: dto.priceAdjustment }),
+        ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
+        ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.allergens !== undefined && { allergens: dto.allergens }),
+        ...(dto.nestedGroupId !== undefined && { nestedGroupId: dto.nestedGroupId }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+      },
+    });
+  }
+
+  async removeModifierOption(optionId: string, tenantId: string) {
+    const option = await this.prisma.modifierOption.findFirst({
+      where: { id: optionId, group: { brand: { tenantId } } },
+    });
+    if (!option) throw new NotFoundException("Option not found");
+    await this.prisma.modifierOption.delete({ where: { id: optionId } });
+  }
+
+  async linkModifierGroupToItem(itemId: string, groupId: string, tenantId: string, sortOrder = 0) {
+    await this.assertItemAccess(itemId, tenantId);
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    try {
+      return await this.prisma.modifierGroupOnItem.create({
+        data: { itemId, groupId, sortOrder },
+        include: { group: { include: { options: true } } },
+      });
+    } catch {
+      throw new ConflictException("Modifier group already linked to this item");
+    }
+  }
+
+  async unlinkModifierGroupFromItem(itemId: string, groupId: string, tenantId: string) {
+    await this.assertItemAccess(itemId, tenantId);
+    await this.prisma.modifierGroupOnItem.delete({
+      where: { itemId_groupId: { itemId, groupId } },
+    });
+  }
+
   // ── Category ↔ Item links ────────────────────────────────────────────────
 
-  async addItemToCategory(
-    categoryId: string,
-    tenantId: string,
-    dto: AddItemToCategoryDto,
-  ) {
+  async addItemToCategory(categoryId: string, tenantId: string, dto: AddItemToCategoryDto) {
     await this.assertCategoryAccess(categoryId, tenantId);
     await this.assertItemAccess(dto.itemId, tenantId);
-
     try {
       return await this.prisma.menuItemOnCategory.create({
         data: {
@@ -279,6 +651,18 @@ export class MenusService {
     });
   }
 
+  async reorderItemsInCategory(categoryId: string, tenantId: string, order: Array<{ itemId: string; sortOrder: number }>) {
+    await this.assertCategoryAccess(categoryId, tenantId);
+    await this.prisma.$transaction(
+      order.map(({ itemId, sortOrder }) =>
+        this.prisma.menuItemOnCategory.update({
+          where: { categoryId_itemId: { categoryId, itemId } },
+          data: { sortOrder },
+        }),
+      ),
+    );
+  }
+
   // ── Public menu (for online ordering) ────────────────────────────────────
 
   async findPublishedByBrand(brandId: string) {
@@ -286,12 +670,32 @@ export class MenusService {
       where: { brandId, status: "PUBLISHED", deletedAt: null, isActive: true },
       include: {
         categories: {
+          where: { isVisible: true },
           orderBy: { sortOrder: "asc" },
           include: {
             items: {
-              where: { item: { isAvailable: true } },
+              where: { isVisible: true, item: { isAvailable: true } },
               orderBy: { sortOrder: "asc" },
-              include: { item: true },
+              include: {
+                item: {
+                  include: {
+                    modifierGroupLinks: {
+                      include: {
+                        group: {
+                          include: {
+                            options: {
+                              where: { isAvailable: true },
+                              orderBy: { sortOrder: "asc" },
+                            },
+                          },
+                        },
+                      },
+                      orderBy: { sortOrder: "asc" },
+                    },
+                    variants: { where: { isAvailable: true }, orderBy: { sortOrder: "asc" } },
+                  },
+                },
+              },
             },
           },
         },
@@ -331,5 +735,13 @@ export class MenusService {
     });
     if (!item) throw new NotFoundException("Menu item not found");
     return item;
+  }
+
+  private async assertModifierGroupAccess(groupId: string, tenantId: string) {
+    const group = await this.prisma.modifierGroup.findFirst({
+      where: { id: groupId, brand: { tenantId } },
+    });
+    if (!group) throw new NotFoundException("Modifier group not found");
+    return group;
   }
 }

@@ -242,4 +242,200 @@ export class MenusController {
   ) {
     return this.menus.removeItemFromCategory(categoryId, itemId, user.tenantId);
   }
+
+  @Patch("categories/:categoryId/items/reorder")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reorder items within a category" })
+  reorderItems(
+    @Param("categoryId") categoryId: string,
+    @Body() body: { order: Array<{ itemId: string; sortOrder: number }> },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.reorderItemsInCategory(categoryId, user.tenantId, body.order);
+  }
+
+  // ── Bulk operations ───────────────────────────────────────────────────────
+
+  @Post("items/bulk/availability")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk toggle availability for multiple items" })
+  bulkAvailability(
+    @Body() body: { itemIds: string[]; isAvailable: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.bulkToggleAvailability(body.itemIds, user.tenantId, body.isAvailable);
+  }
+
+  @Post("items/bulk/price")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk price adjustment" })
+  bulkPrice(
+    @Body() body: { itemIds: string[]; adjustment: { type: "fixed" | "percentage"; value: number } },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.bulkUpdatePrice(body.itemIds, user.tenantId, body.adjustment);
+  }
+
+  // ── Item variants ─────────────────────────────────────────────────────────
+
+  @Post("items/:itemId/variants")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Add a size/variant to an item" })
+  createVariant(
+    @Param("itemId") itemId: string,
+    @Body() dto: { name: string; price: number; sku?: string; sortOrder?: number },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.createVariant(itemId, user.tenantId, dto);
+  }
+
+  @Patch("items/variants/:variantId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Update a variant" })
+  updateVariant(
+    @Param("variantId") variantId: string,
+    @Body() dto: { name?: string; price?: number; sku?: string; sortOrder?: number; isAvailable?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.updateVariant(variantId, user.tenantId, dto);
+  }
+
+  @Delete("items/variants/:variantId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Remove a variant" })
+  removeVariant(
+    @Param("variantId") variantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.removeVariant(variantId, user.tenantId);
+  }
+
+  // ── Menu versioning ───────────────────────────────────────────────────────
+
+  @Get(":menuId/versions")
+  @ApiOperation({ summary: "List menu version history" })
+  getVersions(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.getVersions(menuId, user.tenantId);
+  }
+
+  @Post(":menuId/rollback/:versionId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Rollback menu to a previous version" })
+  rollback(
+    @Param("menuId") menuId: string,
+    @Param("versionId") versionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.rollback(menuId, versionId, user.tenantId);
+  }
+
+  // ── Modifier groups ───────────────────────────────────────────────────────
+
+  @Get("brands/:brandId/modifier-groups")
+  @ApiOperation({ summary: "List modifier groups for a brand" })
+  listModifierGroups(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findModifierGroupsByBrand(brandId, user.tenantId);
+  }
+
+  @Post("brands/:brandId/modifier-groups")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Create a modifier group" })
+  createModifierGroup(
+    @Param("brandId") brandId: string,
+    @Body() dto: { name: string; description?: string; minSelections?: number; maxSelections?: number; isRequired?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.createModifierGroup(brandId, user.tenantId, dto);
+  }
+
+  @Patch("modifier-groups/:groupId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Update a modifier group" })
+  updateModifierGroup(
+    @Param("groupId") groupId: string,
+    @Body() dto: { name?: string; description?: string; minSelections?: number; maxSelections?: number | null; isRequired?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.updateModifierGroup(groupId, user.tenantId, dto);
+  }
+
+  @Delete("modifier-groups/:groupId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete a modifier group" })
+  removeModifierGroup(
+    @Param("groupId") groupId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.removeModifierGroup(groupId, user.tenantId);
+  }
+
+  @Post("modifier-groups/:groupId/options")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Add an option to a modifier group" })
+  addModifierOption(
+    @Param("groupId") groupId: string,
+    @Body() dto: { name: string; priceAdjustment?: number; isDefault?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.addModifierOption(groupId, user.tenantId, dto);
+  }
+
+  @Patch("modifier-options/:optionId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Update a modifier option" })
+  updateModifierOption(
+    @Param("optionId") optionId: string,
+    @Body() dto: { name?: string; priceAdjustment?: number; isDefault?: boolean; isAvailable?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string | null; sortOrder?: number },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.updateModifierOption(optionId, user.tenantId, dto);
+  }
+
+  @Delete("modifier-options/:optionId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Remove a modifier option" })
+  removeModifierOption(
+    @Param("optionId") optionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.removeModifierOption(optionId, user.tenantId);
+  }
+
+  @Post("items/:itemId/modifier-groups/:groupId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Link a modifier group to an item" })
+  linkModifierGroup(
+    @Param("itemId") itemId: string,
+    @Param("groupId") groupId: string,
+    @Body() body: { sortOrder?: number },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.linkModifierGroupToItem(itemId, groupId, user.tenantId, body.sortOrder);
+  }
+
+  @Delete("items/:itemId/modifier-groups/:groupId")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Unlink a modifier group from an item" })
+  unlinkModifierGroup(
+    @Param("itemId") itemId: string,
+    @Param("groupId") groupId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.unlinkModifierGroupFromItem(itemId, groupId, user.tenantId);
+  }
 }
