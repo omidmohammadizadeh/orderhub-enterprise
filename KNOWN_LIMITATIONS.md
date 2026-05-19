@@ -1,6 +1,6 @@
 # Known Limitations
 
-> Phase P — Controlled Rollout
+> Phase Q — 5-Shop Live Rollout & Commercial Readiness Gate
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
 
 ---
@@ -82,13 +82,24 @@
 
 ---
 
+## Phase Q Limitations
+
+- **Just Eat not production-validated**: The Just Eat webhook adapter exists and is unit-tested but was NOT activated in any Phase Q shop. Shops must NOT set Just Eat Integration.status = ACTIVE until a production-level webhook exchange is validated. Phase R: schedule validation with Just Eat API team before onboarding Just Eat shops.
+- **Star printer character width fixed (Q-001)**: *Resolved in Phase Q* — `escpos.formatter.ts` now uses printer-type-aware character width (42 chars for Epson, 32 chars for Star). Always test a new printer model's receipt format with a real menu before go-live. Pre-go-live checklist updated.
+- **Integration status has no `PENDING_APPROVAL` state**: Only `ACTIVE` and `INACTIVE` exist. Staff cannot distinguish "deliberately not connected" from "connected but failing". Phase R: add `PENDING_APPROVAL` enum value to `IntegrationStatus`.
+- **WebSocket reconnection not implemented**: Orders page does not auto-reconnect on WebSocket drop. Staff must manually refresh. Print still fires correctly regardless. Phase R: implement reconnection with exponential backoff.
+- **Rollout overview requires manual refresh**: Point-in-time snapshot. No push notification. During go-live monitoring, poll every few minutes manually.
+- **paymentMethod not persisted**: Cashier page payment method updates UI only — not stored on Order model.
+- **Multi-shop analytics cross-contamination**: Cross-location reports aggregate all tenant locations regardless of user permissions. Do not expose cross-location analytics to STAFF role until scoped correctly.
+- **HubRise order flow not production-tested**: HubRise webhook adapter exists and is tested but no Phase Q shop used HubRise. First HubRise shop must be treated as a sub-pilot with close monitoring.
+
 ## Phase P Limitations
 
-- **Just Eat not production-validated**: The Just Eat webhook adapter exists and is unit-tested but has not been used in a live production environment. Do not claim Just Eat as a supported integration until a production-level webhook exchange has been validated with the Just Eat API team. Shops launching on Just Eat must not set Integration.status = ACTIVE until this is confirmed.
-- **Star printer (Shop 3) not yet production-tested**: The Star TSP654II adapter exists (Phase M) and prints correctly in dev, but has not been run in a live production shop yet. Shop 3 (Naan & Co) will be the first production use. Conduct a pre-go-live format verification call.
-- **Rollout overview requires manual refresh**: `GET /v1/admin/rollout/overview` is a point-in-time snapshot. There is no push notification or auto-refresh. During a new shop's go-live, poll every few minutes manually.
-- **paymentMethod not persisted**: The Cashier page payment method selection updates UI state only — it is not stored on the Order model. Post-Phase P work.
-- **Multi-shop analytics cross-contamination**: Cross-location reports aggregate all locations for the tenant regardless of user permissions. Do not show cross-location analytics to STAFF role users until this is scoped correctly.
+- **Just Eat not production-validated**: *Confirmed in Phase Q — still not activated.* See Phase Q Limitations.
+- **Star printer (Shop 3) not yet production-tested**: *Resolved in Phase Q* — Star TSP654II deployed at Shop 3, character width fix applied Day 1 (Issue Q-001).
+- **Rollout overview requires manual refresh**: *Still true in Phase Q.*
+- **paymentMethod not persisted**: *Still true — Phase R work.*
+- **Multi-shop analytics cross-contamination**: *Still true — Phase R work.*
 
 ## Phase O Limitations
 

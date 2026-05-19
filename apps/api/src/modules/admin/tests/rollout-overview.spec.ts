@@ -216,4 +216,92 @@ describe("AdminService.getRolloutOverview", () => {
     expect(result.locationCount).toBe(0);
     expect(result.locations).toHaveLength(0);
   });
+
+  // ── Alert level derivation ────────────────────────────────────────────────
+
+  it("returns alertLevel:none when everything is healthy", async () => {
+    const prisma = makePrismaMock([makeLocation({ goLiveStatus: "LIVE" })]);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    expect(result.locations[0].alertLevel).toBe("none");
+    expect(result.locations[0].alertReasons).toHaveLength(0);
+  });
+
+  it("returns alertLevel:critical when dead outbox events exist", async () => {
+    const prisma = makePrismaMock([makeLocation({ goLiveStatus: "LIVE" })]);
+    prisma.outboxEvent.count.mockResolvedValue(2);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    expect(result.locations[0].alertLevel).toBe("critical");
+    expect(result.locations[0].alertReasons).toContain(
+      "2 dead outbox event(s) — manual intervention required",
+    );
+  });
+
+  it("returns alertLevel:warn when printer is offline", async () => {
+    const prisma = makePrismaMock([
+      makeLocation({
+        goLiveStatus: "LIVE",
+        printers: [{ isOnline: false, metadata: {} }],
+      }),
+    ]);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    expect(result.locations[0].alertLevel).toBe("warn");
+    expect(result.locations[0].alertReasons).toContain("Printer offline or heartbeat stale");
+  });
+
+  it("returns alertLevel:warn when a LIVE provider integration has a recent error", async () => {
+    const recentError = new Date(Date.now() - 5 * 60_000);
+    const prisma = makePrismaMock([
+      makeLocation({
+        goLiveStatus: "LIVE",
+        integrations: [
+          { platform: "UBER_EATS", status: "ACTIVE", lastErrorAt: recentError, lastSyncAt: null },
+        ],
+      }),
+    ]);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    expect(result.locations[0].alertLevel).toBe("warn");
+    expect(result.locations[0].alertReasons).toContain(
+      "UBER_EATS: integration error in last hour",
+    );
+  });
+
+  it("does NOT warn on disconnected integration for non-LIVE locations (TESTING)", async () => {
+    const prisma = makePrismaMock([
+      makeLocation({
+        goLiveStatus: "TESTING",
+        integrations: [
+          { platform: "DELIVEROO", status: "INACTIVE", lastErrorAt: null, lastSyncAt: null },
+        ],
+      }),
+    ]);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    // Printer is online + no dead events → should be none (disconnected only warns for LIVE)
+    expect(result.locations[0].alertLevel).toBe("none");
+  });
+
+  it("returns alertLevel:warn when failedPrintJobsLastHour >= 3", async () => {
+    const prisma = makePrismaMock([makeLocation({ goLiveStatus: "LIVE" })]);
+    prisma.printJob.count.mockResolvedValue(3);
+    const service = makeService(prisma);
+
+    const result = await service.getRolloutOverview();
+
+    expect(result.locations[0].alertLevel).toBe("warn");
+    expect(result.locations[0].alertReasons).toContain("3 failed print jobs in last hour");
+  });
 });

@@ -1,8 +1,8 @@
 # Controlled Rollout Plan — Shops 2–5
 
 > Created: 2026-05-22
-> Updated: 2026-05-19 (Phase P start)
-> Status: Phase P active — Spice Garden stable; Curry Leaf and Naan & Co scheduled
+> Updated: 2026-06-13 (Phase Q complete)
+> Status: Phase Q complete — all 5 shops live. Commercial readiness confirmed. Phase R next.
 
 ---
 
@@ -236,17 +236,36 @@ Before marking any shop LIVE, confirm:
 
 ---
 
-## Phase P Trigger Criteria
+## Phase Q Trigger Criteria (met 2026-06-13)
 
-Move to Phase Q (wider rollout, 6–20 shops) when:
+Move to Phase R (commercial launch) when:
 
-- [ ] At least 3 shops have traded successfully for ≥ 2 weeks with 0 P0/P1 issues
-- [ ] Staff from all pilot shops operating independently
-- [ ] No unresolved systemic issues (outbox reliability, printer, provider rate limits)
-- [ ] Support load is manageable (< 1 support call per shop per week)
-- [ ] Decision confirmed by operations manager
+- [x] At least 3 shops have traded successfully for ≥ 2 weeks with 0 P0/P1 issues
+- [x] Staff from all pilot shops operating independently
+- [x] No unresolved systemic issues (outbox reliability, printer, provider rate limits)
+- [x] Support load manageable (avg < 1 call per shop per week)
+- [x] Decision confirmed by operations manager
+- [x] `COMMERCIAL_READINESS_NOTES.md` completed (billing plan documented, not yet built)
 
 ---
+
+## Phase Q Lessons Learned (2026-06-13)
+
+### Star printer character width must be tested per printer type
+
+The `escpos.formatter.ts` used Epson's 42-char column width for all printers. Star TSP654II uses 32 chars. Adding a new printer model requires a pre-go-live receipt format test with a real menu, not just an offline unit test. Add "test receipt with full menu" to the printer checklist for any new printer model type.
+
+### Alert level in rollout overview saves investigation time
+
+The `alertLevel: warn` on Shop 4's rate-limit spike was visible from the overview endpoint within 1 hour. Without it, the team would have needed to check each shop's logs individually. At 5+ shops live, a single alert dashboard becomes essential — not optional.
+
+### Peer training (ambassador model) eliminates support calls
+
+Shop 4 (Peri Palace) was pre-trained by Arjun Mehta from Spice Garden and had 0 support calls in the first week. Phase R: formalise the "restaurant ambassador" programme — existing satisfied customers brief new shops before go-live.
+
+### Just Eat "pending" must be clearly labelled, not silently inactive
+
+Staff at Shop 3 assumed "Just Eat: disconnected" was a system failure. Add explicit `PENDING_APPROVAL` integration status in Phase R to distinguish intentional deactivation from real errors.
 
 ## Phase P Lessons Learned (2026-05-19)
 

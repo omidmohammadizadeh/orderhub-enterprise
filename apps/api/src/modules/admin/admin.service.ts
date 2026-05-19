@@ -406,12 +406,38 @@ export class AdminService {
                 : "connected";
         }
 
+        // ── Alert level derivation ─────────────────────────
+        // "critical": dead outbox events (messages silently lost)
+        // "warn":     offline printer | ≥3 failed prints/hour | provider error/disconnected on live shop
+        // "none":     everything nominal
+        const alertReasons: string[] = [];
+        const goLiveStatus = (loc as any).goLiveStatus as string;
+
+        if (deadOutboxCount > 0) {
+          alertReasons.push(`${deadOutboxCount} dead outbox event(s) — manual intervention required`);
+        }
+        if (printerStatus === "offline") {
+          alertReasons.push("Printer offline or heartbeat stale");
+        }
+        if (failedPrintJobsLastHour >= 3) {
+          alertReasons.push(`${failedPrintJobsLastHour} failed print jobs in last hour`);
+        }
+        if (goLiveStatus === "LIVE") {
+          for (const [platform, status] of Object.entries(providerStatuses)) {
+            if (status === "error") alertReasons.push(`${platform}: integration error in last hour`);
+            if (status === "disconnected") alertReasons.push(`${platform}: integration disconnected`);
+          }
+        }
+
+        const alertLevel: "none" | "warn" | "critical" =
+          deadOutboxCount > 0 ? "critical" : alertReasons.length > 0 ? "warn" : "none";
+
         return {
           locationId: loc.id,
           locationName: loc.name,
           tenantId,
           brandName: loc.brand.name,
-          goLiveStatus: (loc as any).goLiveStatus as string,
+          goLiveStatus,
           printerStatus,
           lastHeartbeatAt,
           providerStatuses,
@@ -419,7 +445,9 @@ export class AdminService {
           lastPrintAt: lastPrint?.updatedAt?.toISOString() ?? null,
           failedPrintJobsLastHour,
           deadOutboxEvents: deadOutboxCount,
-          paused: (loc as any).goLiveStatus === "PAUSED",
+          paused: goLiveStatus === "PAUSED",
+          alertLevel,
+          alertReasons,
         };
       }),
     );

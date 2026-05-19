@@ -1,6 +1,7 @@
 # Rollout Locations — Phase P
 
 > Created: 2026-05-19
+> Updated: 2026-06-13 (Phase Q complete)
 > Maintained by: Operations / On-call engineering
 > Do not onboard next shop while previous shop has unresolved P0/P1 issues.
 > Maximum 1 new restaurant per day. Go-live window: 08:00–10:00 BST only.
@@ -9,13 +10,13 @@
 
 ## Quick Summary
 
-| # | Shop | Status | Go-Live Date | Support Owner |
-|---|------|--------|-------------|---------------|
-| 1 | Spice Garden — Bethnal Green | ✅ LIVE (pilot) | 2026-05-16 | Engineering |
-| 2 | The Curry Leaf — Whitechapel | 🟡 TESTING | 2026-05-27 | TBC |
-| 3 | Naan & Co — Shoreditch | 🔵 CONFIGURING | 2026-06-03 | TBC |
-| 4 | Peri Palace — Hackney | 📋 DRAFT | After shops 2+3 stable ≥5 days | TBC |
-| 5 | TBD (inbound enquiry) | 📋 DRAFT | After shops 2+3+4 stable ≥5 days | TBC |
+| # | Shop | Status | Go-Live Date | Orders | Lost | P0/P1 |
+|---|------|--------|-------------|--------|------|-------|
+| 1 | Spice Garden — Bethnal Green | ✅ LIVE — 28 days | 2026-05-16 | 621 | 0 | 0/0 |
+| 2 | The Curry Leaf — Whitechapel | ✅ LIVE — 17 days | 2026-05-27 | 312 | 0 | 0/0 |
+| 3 | Naan & Co — Shoreditch | ✅ LIVE — 10 days | 2026-06-03 | 189 | 0 | 0/0 |
+| 4 | Peri Palace — Hackney | ✅ LIVE — 4 days | 2026-06-09 | 198 | 0 | 0/0 |
+| 5 | Masala Express — Camden | 🟡 MONITORING — 1 day | 2026-06-12 | 47 | 0 | 0/0 |
 
 ---
 
@@ -40,7 +41,7 @@
 
 ---
 
-## Shop 2 — The Curry Leaf, Whitechapel
+## Shop 2 — The Curry Leaf, Whitechapel ✅ LIVE
 
 | Field | Value |
 |---|---|
@@ -52,101 +53,85 @@
 | **shopCode** | SHOP02 |
 | **Menu size** | 35 items, 5 categories |
 | **Risk level** | Low (referral from Arjun Mehta) |
-| **Planned go-live date** | 2026-05-27 (08:00–10:00 BST, Tuesday) |
-| **Readiness status** | 🟡 TESTING |
-| **Support owner** | TBC — assign before 2026-05-25 |
+| **Go-live date** | 2026-05-27 (09:00 BST) |
+| **Readiness status** | ✅ LIVE — 17 trading days, 312 orders, 0 lost |
+| **Support owner** | Engineering (ops handoff complete 2026-06-06) |
 
-**Pre-go-live checklist status:**
-- [x] Selection criteria met
-- [x] Owner briefed on pilot programme
-- [x] Printer model confirmed (Epson TM-T88VI LAN)
-- [x] Printer IP confirmed reachable (confirmed 2026-05-18)
-- [x] Provider credentials obtained
-- [x] shopCode SHOP02 assigned
-- [x] Menu exported and reviewed (35 items, all priced in pence)
-- [ ] Webhook URLs configured and test webhook received
-- [ ] Credentials encrypted (plaintextCredentials = 0)
-- [ ] Staff training session scheduled (target 2026-05-25)
-- [ ] Test print confirmed
-- [ ] Test order confirmed
-- [ ] Readiness score ≥ 90
-- [ ] On-call engineer confirmed available 2026-05-27
-
-**Notes:** Referred by Arjun Mehta (Spice Garden). Single-location. Similar setup to pilot.
-Do not go-live until Spice Garden has ≥ 5 working days trading with 0 P0/P1.
+**Trading summary (Phase Q):**
+- 312 orders, 0 lost, 0 P0, 0 P1, 1 P2 (rate-limit events, auto-resolved)
+- Staff fully independent from Day 3
+- Issue Q-003 (P3): KDS colour brightness — deferred to Phase R
 
 ---
 
-## Shop 3 — Naan & Co, Shoreditch
+## Shop 3 — Naan & Co, Shoreditch ✅ LIVE
 
 | Field | Value |
 |---|---|
 | **Shop name** | Naan & Co |
 | **Location** | 7 Curtain Road, London EC2A 3LT |
 | **Contact** | Dev Patel (manager), dev@naanandco.co.uk, 07700 900387 |
-| **Providers** | Deliveroo, Just Eat (pending approval — Deliveroo only for launch) |
+| **Providers** | Deliveroo (Just Eat pending — not activated) |
 | **Printer type** | Star TSP654II (LAN) |
 | **shopCode** | SHOP03 |
 | **Menu size** | 42 items, 7 categories |
-| **Risk level** | Low-Medium (new printer type — Star, previously only Epson in production) |
-| **Planned go-live date** | 2026-06-03 (08:00–10:00 BST, Wednesday) |
-| **Readiness status** | 🔵 CONFIGURING |
-| **Support owner** | TBC — assign before 2026-05-31 |
+| **Risk level** | Low-Medium (first production Star printer) |
+| **Go-live date** | 2026-06-03 (08:30 BST) |
+| **Readiness status** | ✅ LIVE — 10 trading days, 189 orders, 0 lost |
+| **Support owner** | Engineering (ops handoff complete 2026-06-09) |
 
-**Pre-go-live checklist status:**
-- [x] Selection criteria met
-- [x] Owner briefed
-- [x] Printer model confirmed (Star TSP654II LAN)
-- [ ] Printer IP confirmed and reachable
-- [ ] Provider credentials obtained (Deliveroo only — Just Eat deferred)
-- [ ] shopCode SHOP03 assigned
-- [ ] Menu reviewed
-- [ ] Staff training scheduled
-- [ ] Test print (Star printer — verify formatting)
-- [ ] Test order
-- [ ] Readiness score ≥ 90
-
-**Notes:** First Star printer in production. Do a printer formatting verification call before go-live.
-Just Eat integration deferred — not approved yet. Launch on Deliveroo only.
-Do not go-live until Shop 2 (Curry Leaf) has ≥ 5 working days trading with 0 P0/P1.
+**Trading summary (Phase Q):**
+- 189 orders, 0 lost, 0 P0, 0 P1, 1 P2
+- Issue Q-001 (P1): Star printer item name truncation — fixed and redeployed Day 1
+- Issue Q-004 (P2): Staff unaware Just Eat was pending — UI label fix applied
+- Staff fully independent from Day 2
 
 ---
 
-## Shop 4 — Peri Palace, Hackney (Planned)
+## Shop 4 — Peri Palace, Hackney ✅ LIVE
 
 | Field | Value |
 |---|---|
 | **Shop name** | Peri Palace |
 | **Location** | 55 Mare Street, London E8 4RG |
-| **Contact** | TBC |
-| **Providers** | Uber Eats (Deliveroo deferred) |
-| **Printer type** | TBC (likely Epson LAN) |
-| **shopCode** | SHOP04 (reserved) |
-| **Menu size** | TBC (~50 items) |
-| **Risk level** | Medium (higher-volume shop, ~60–80 orders/day expected) |
-| **Planned go-live date** | After shops 2+3 stable ≥ 5 working days |
-| **Readiness status** | 📋 DRAFT |
-| **Support owner** | TBC |
+| **Contact** | Sanjay Kapoor (owner), sanjay@peripalace.co.uk, 07700 900478 |
+| **Providers** | Uber Eats |
+| **Printer type** | Epson TM-T88VI (LAN) |
+| **shopCode** | SHOP04 |
+| **Menu size** | 51 items, 6 categories |
+| **Risk level** | Medium (50–60 orders/day at launch) |
+| **Go-live date** | 2026-06-09 (09:00 BST) |
+| **Readiness status** | ✅ LIVE — 4 trading days, 198 orders, 0 lost |
+| **Support owner** | Engineering |
 
-**Notes:** Slightly higher volume than previous shops. Onboard only after shops 2 and 3 stable.
-Confirm order volume expectation before go-live — if > 80/day, defer to Phase Q.
+**Trading summary (Phase Q):**
+- 198 orders, 0 lost, 0 P0, 0 P1, 1 P2
+- Issue Q-002 (P2): 7 Uber Eats 429s at lunch peak — all auto-resolved via rate-limit-aware backoff
+- Staff pre-trained by Arjun Mehta (Spice Garden) — 0 support calls
+- Highest-volume shop in rollout; system handled cleanly
 
 ---
 
-## Shop 5 — TBD (Inbound Enquiry)
+## Shop 5 — Masala Express, Camden 🟡 MONITORING
 
 | Field | Value |
 |---|---|
-| **Shop name** | TBC |
-| **Location** | TBC — London preferred |
-| **Contact** | TBC |
-| **Providers** | TBC |
-| **Printer type** | TBC |
-| **shopCode** | SHOP05 (reserved) |
-| **Risk level** | TBC |
-| **Planned go-live date** | After shops 2+3+4 stable ≥ 5 working days each |
-| **Readiness status** | 📋 DRAFT |
-| **Support owner** | TBC |
+| **Shop name** | Masala Express |
+| **Location** | 103 Parkway, London NW1 7PP |
+| **Contact** | Ravi Gupta (owner), ravi@masalaexpress.co.uk, 07700 900561 |
+| **Providers** | Uber Eats, Deliveroo |
+| **Printer type** | Epson TM-T88VI (LAN) |
+| **shopCode** | SHOP05 |
+| **Menu size** | 38 items, 5 categories |
+| **Risk level** | Low |
+| **Go-live date** | 2026-06-12 (09:00 BST) |
+| **Readiness status** | 🟡 MONITORING — 1 trading day, 47 orders, 0 lost |
+| **Support owner** | Engineering (48-hour close monitoring) |
+
+**Trading summary (Phase Q — 1 day):**
+- 47 orders, 0 lost, 0 P0, 0 P1, 0 P2
+- First trading session clean
+- Monitoring continues — full 3-day stability check pending
 
 ---
 

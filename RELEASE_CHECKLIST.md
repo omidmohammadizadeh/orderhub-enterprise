@@ -311,10 +311,26 @@ For each new shop in the Phase P rollout (shops 2–5):
 
 ---
 
+## 10k. Commercial Readiness Gate (Phase Q)
+
+Before any billing/subscription or mass rollout:
+
+- [ ] ≥ 3 shops have completed 3 stable trading days (0 lost orders, 0 P0/P1)
+- [ ] `PHASE_Q_REPORT.md` commercial readiness decision is Option A
+- [ ] `COMMERCIAL_READINESS_NOTES.md` billing plan documented and approved
+- [ ] All Phase Q P0/P1 issues resolved (0 active)
+- [ ] All shops' provider limitations documented in `KNOWN_LIMITATIONS.md`
+- [ ] Just Eat not marked ACTIVE unless production-validated
+- [ ] Star printer character width fix deployed and tested
+- [ ] `alertLevel: "critical"` on rollout overview is 0 across all live shops
+- [ ] Operations manager sign-off for commercial launch
+
+---
+
 ## 12. Post Go-Live (First 30 minutes)
 
 - [ ] Monitor /api/v1/health/ready — stays green
-- [ ] Monitor `GET /api/v1/admin/rollout/overview` — this location shows printerStatus: online
+- [ ] Monitor `GET /api/v1/admin/rollout/overview` — this location shows printerStatus: online and alertLevel: none
 - [ ] Monitor Bull Board for queue failures
 - [ ] Confirm first real order received and printed
 - [ ] Confirm first real order status synced back to platform
