@@ -13,6 +13,7 @@ import { MaintenanceMiddleware } from "./common/middleware/maintenance.middlewar
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
+import { BillingGuard } from "./common/guards/billing.guard";
 
 import { appConfig } from "./config/app.config";
 import { winstonConfig } from "./config/logger.config";
@@ -175,6 +176,7 @@ import { QUEUES } from "@orderhub/shared";
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: BillingGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],

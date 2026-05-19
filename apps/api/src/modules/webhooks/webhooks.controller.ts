@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { Request } from "express";
 import { Public } from "../../common/decorators/public.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import { WebhookIngestionService } from "./webhook-ingestion.service";
 
 const PLATFORM_TO_INTEGRATION: Record<string, string> = {
@@ -24,6 +25,7 @@ const PLATFORM_TO_INTEGRATION: Record<string, string> = {
 };
 
 @ApiTags("webhooks")
+@BillingExempt() // Provider webhooks must always be accepted regardless of billing state
 @Controller({ path: "webhooks", version: "1" })
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);

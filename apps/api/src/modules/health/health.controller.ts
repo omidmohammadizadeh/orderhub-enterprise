@@ -4,6 +4,7 @@ import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import { QUEUES } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OutboxDispatcherCron } from "../outbox/outbox-dispatcher.cron";
@@ -19,6 +20,7 @@ export interface HealthStatus {
 }
 
 @ApiTags("Health")
+@BillingExempt() // Health checks must always be accessible regardless of billing state
 @Controller({ path: "health", version: "1" })
 export class HealthController {
   constructor(

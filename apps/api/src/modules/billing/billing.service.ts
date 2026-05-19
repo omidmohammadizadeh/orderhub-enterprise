@@ -682,4 +682,240 @@ export class BillingService {
       // Do NOT expose stripeCustomerId, stripeSubId, or Stripe keys to tenants
     };
   }
+
+  // ── Phase S: Admin billing controls (PLATFORM_ADMIN only) ─────────────────
+
+  async adminGetBillingDetail(tenantId: string) {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      include: {
+        plan: true,
+        invoices: { orderBy: { createdAt: "desc" }, take: 5 },
+      },
+    });
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+
+    const usageSummary = await this.db.usageRecord.findMany({
+      where: { tenantId },
+      orderBy: { billingMonth: "desc" },
+      take: 3,
+      select: { locationId: true, billingMonth: true, orderCount: true, printJobCount: true, reportedToStripe: true },
+    });
+
+    const auditLog = await this.db.auditLog.findMany({
+      where: { tenantId, event: { startsWith: "billing." } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { event: true, meta: true, createdAt: true, userId: true },
+    });
+
+    return {
+      ...sub,
+      // Admin sees Stripe IDs — never expose these to tenant-facing endpoints
+      stripeCustomerId: sub.stripeCustomerId ?? null,
+      stripeSubId: sub.stripeSubId ?? null,
+      usageSummary,
+      auditLog,
+    };
+  }
+
+  async adminExtendFreePilot(
+    tenantId: string,
+    newEndDate: Date,
+    reason: string,
+    adminUserId: string,
+  ): Promise<void> {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { status: true, trialEndsAt: true },
+    });
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+    if (sub.status !== "FREE_PILOT") {
+      throw new BadRequestException(
+        `Cannot extend FREE_PILOT: current status is '${sub.status}'`,
+      );
+    }
+
+    const previousEnd = sub.trialEndsAt;
+    await this.db.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        trialEndsAt: newEndDate,
+        metadata: {
+          extendedAt: new Date().toISOString(),
+          extendedBy: adminUserId,
+          extendedReason: reason,
+          previousTrialEndsAt: previousEnd?.toISOString() ?? null,
+        },
+      },
+    });
+
+    await this.writeAuditLog(tenantId, "billing.free_pilot_extended", adminUserId, {
+      reason,
+      previousEnd: previousEnd?.toISOString() ?? null,
+      newEnd: newEndDate.toISOString(),
+    });
+
+    this.logger.log(
+      `Admin ${adminUserId} extended FREE_PILOT for tenant ${tenantId} → ${newEndDate.toISOString().slice(0, 10)} (${reason})`,
+    );
+  }
+
+  async adminConvertToTrial(
+    tenantId: string,
+    reason: string,
+    adminUserId: string,
+  ): Promise<void> {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { status: true },
+    });
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+
+    const allowedFromStatuses = ["FREE_PILOT", "INCOMPLETE", "UNPAID"];
+    if (!allowedFromStatuses.includes(sub.status)) {
+      throw new BadRequestException(
+        `Cannot convert to TRIALING from status '${sub.status}'`,
+      );
+    }
+
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+
+    await this.db.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        status: SubscriptionStatus.TRIALING,
+        trialEndsAt,
+        cancelAtPeriodEnd: false,
+        gracePeriodEndsAt: null,
+        metadata: {
+          convertedToTrialAt: new Date().toISOString(),
+          convertedBy: adminUserId,
+          convertedReason: reason,
+          previousStatus: sub.status,
+        },
+      },
+    });
+
+    await this.writeAuditLog(tenantId, "billing.converted_to_trial", adminUserId, {
+      reason,
+      previousStatus: sub.status,
+      trialEndsAt: trialEndsAt.toISOString(),
+    });
+
+    this.logger.log(
+      `Admin ${adminUserId} converted tenant ${tenantId} from ${sub.status} → TRIALING (${reason})`,
+    );
+  }
+
+  async adminAssignPlan(
+    tenantId: string,
+    planId: string,
+    reason: string,
+    adminUserId: string,
+  ): Promise<void> {
+    const plan = await this.getPlanById(planId);
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { planId: true, status: true },
+    });
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+
+    const now = new Date();
+    const periodEnd = new Date(now);
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+    await this.db.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        planId: plan.id,
+        metadata: {
+          planAssignedByAdmin: adminUserId,
+          planAssignedAt: now.toISOString(),
+          planAssignedReason: reason,
+          previousPlanId: sub.planId,
+        },
+      },
+    });
+
+    await this.writeAuditLog(tenantId, "billing.plan_assigned_by_admin", adminUserId, {
+      reason,
+      newPlanId: plan.id,
+      newPlanName: plan.name,
+      previousPlanId: sub.planId,
+    });
+
+    this.logger.log(
+      `Admin ${adminUserId} assigned plan '${plan.name}' to tenant ${tenantId} (${reason})`,
+    );
+  }
+
+  async adminGrantException(
+    tenantId: string,
+    targetStatus: string,
+    reason: string,
+    adminUserId: string,
+  ): Promise<void> {
+    const allowedTargets = ["ACTIVE", "TRIALING", "FREE_PILOT", "PAUSED"];
+    if (!allowedTargets.includes(targetStatus)) {
+      throw new BadRequestException(
+        `Cannot grant exception to status '${targetStatus}'. Allowed: ${allowedTargets.join(", ")}`,
+      );
+    }
+
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { status: true },
+    });
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+
+    await this.db.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        status: targetStatus,
+        gracePeriodEndsAt: null,
+        metadata: {
+          exceptionGrantedBy: adminUserId,
+          exceptionGrantedAt: new Date().toISOString(),
+          exceptionReason: reason,
+          previousStatus: sub.status,
+        },
+      },
+    });
+
+    await this.writeAuditLog(tenantId, "billing.exception_granted", adminUserId, {
+      reason,
+      targetStatus,
+      previousStatus: sub.status,
+    });
+
+    this.logger.warn(
+      `Admin ${adminUserId} granted billing exception for tenant ${tenantId}: ` +
+        `${sub.status} → ${targetStatus} (${reason})`,
+    );
+  }
+
+  // ── Private audit helper ───────────────────────────────────────────────────
+
+  private async writeAuditLog(
+    tenantId: string,
+    event: string,
+    userId: string,
+    meta: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      await this.db.auditLog.create({
+        data: {
+          tenantId,
+          userId,
+          event,
+          resource: "subscription",
+          meta: meta as any,
+        },
+      });
+    } catch (err: any) {
+      this.logger.warn(`Failed to write billing audit log for ${event}: ${err.message}`);
+    }
+  }
 }

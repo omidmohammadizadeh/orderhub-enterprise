@@ -13,10 +13,12 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { StoreOpsService, UpdateStoreStatusDto } from "./store-ops.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("store-ops")
 @ApiBearerAuth()
+@BillingExempt() // Emergency store close/resume must never be blocked by billing state
 @Controller({ path: "store-ops", version: "1" })
 export class StoreOpsController {
   constructor(private readonly storeOps: StoreOpsService) {}

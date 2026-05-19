@@ -14,6 +14,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import { PrintersService } from "./printers.service";
 import { PrintQueueService } from "./print-queue.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -23,6 +24,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 
 @ApiTags("printers")
 @ApiBearerAuth()
+@BillingExempt() // Printer polling and Flutter app contract must never be blocked by billing
 @Controller({ path: "printers", version: "1" })
 export class PrintersController {
   constructor(

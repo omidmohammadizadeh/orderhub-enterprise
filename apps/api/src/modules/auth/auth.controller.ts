@@ -29,6 +29,7 @@ import { LocalAuthGuard } from "../../common/guards/local-auth.guard";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { Public } from "../../common/decorators/public.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "./interfaces/jwt-payload.interface";
 import type { RequestMeta } from "./interfaces/request-meta.interface";
 
@@ -43,6 +44,7 @@ function extractMeta(req: Request): RequestMeta {
 }
 
 @ApiTags("auth")
+@BillingExempt() // Auth endpoints must always be accessible regardless of billing state
 @Controller({ path: "auth", version: "1" })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

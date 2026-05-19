@@ -2,6 +2,7 @@ import { Controller, Get, Query, NotFoundException } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // Threshold after which a missing heartbeat is reported as stale (2× the 30s probe interval)
@@ -23,6 +24,7 @@ export interface StaffHealthStatus {
 
 @ApiTags("Health")
 @ApiBearerAuth()
+@BillingExempt() // Staff health status must always be accessible for live shop support
 @Controller({ path: "health", version: "1" })
 export class StaffHealthController {
   constructor(private readonly prisma: PrismaService) {}

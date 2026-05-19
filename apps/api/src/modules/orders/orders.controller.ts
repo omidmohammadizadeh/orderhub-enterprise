@@ -22,10 +22,12 @@ import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("orders")
 @ApiBearerAuth()
+@BillingExempt() // Live order operations must never be blocked by billing status
 @Controller({ path: "orders", version: "1" })
 export class OrdersController {
   constructor(private readonly orders: OrdersService) {}

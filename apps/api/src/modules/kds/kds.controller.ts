@@ -14,10 +14,12 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { KdsService, CreateKdsScreenDto, UpdateKdsScreenDto } from "./kds.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("kds")
 @ApiBearerAuth()
+@BillingExempt() // Live kitchen display operations must never be blocked by billing
 @Controller({ path: "kds", version: "1" })
 export class KdsController {
   constructor(private readonly kds: KdsService) {}

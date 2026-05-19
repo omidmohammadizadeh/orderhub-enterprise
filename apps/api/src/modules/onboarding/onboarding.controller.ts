@@ -13,6 +13,7 @@ import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 import { OnboardingService } from "./onboarding.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ export class EmergencyControlDto {
 
 @ApiTags("onboarding")
 @ApiBearerAuth()
+@BillingExempt() // Emergency provider/printer controls must always be accessible regardless of billing state
 @Controller({ path: "onboarding", version: "1" })
 export class OnboardingController {
   constructor(private readonly onboarding: OnboardingService) {}

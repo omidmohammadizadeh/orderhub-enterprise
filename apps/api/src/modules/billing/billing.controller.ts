@@ -20,13 +20,18 @@ import {
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
+import { BillingExempt } from "../../common/guards/billing.guard";
+import { PlanLimitsService } from "./plan-limits.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("billing")
 @ApiBearerAuth()
 @Controller({ path: "billing", version: "1" })
 export class BillingController {
-  constructor(private readonly billing: BillingService) {}
+  constructor(
+    private readonly billing: BillingService,
+    private readonly planLimits: PlanLimitsService,
+  ) {}
 
   // GET /v1/billing/plans  — public so unauthenticated users can browse plans
   @Get("plans")
@@ -166,8 +171,94 @@ export class BillingController {
   // GET /v1/billing/admin/overview — all tenant subscriptions
   @Get("admin/overview")
   @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
   @ApiOperation({ summary: "Admin: all tenant subscription statuses — PLATFORM_ADMIN only" })
   getAdminBillingOverview() {
     return this.billing.getAdminBillingOverview();
+  }
+
+  // ── Phase S: Admin billing controls ───────────────────────────────────────
+
+  // GET /v1/billing/admin/tenants/:tenantId — full detail including Stripe IDs
+  @Get("admin/tenants/:tenantId")
+  @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
+  @ApiOperation({ summary: "Admin: get full billing detail for a tenant (includes Stripe IDs)" })
+  adminGetBillingDetail(@Param("tenantId") tenantId: string) {
+    return this.billing.adminGetBillingDetail(tenantId);
+  }
+
+  // POST /v1/billing/admin/tenants/:tenantId/extend-pilot
+  @Post("admin/tenants/:tenantId/extend-pilot")
+  @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
+  @ApiOperation({ summary: "Admin: extend FREE_PILOT end date (requires reason)" })
+  adminExtendFreePilot(
+    @Param("tenantId") tenantId: string,
+    @Body() body: { newEndDate: string; reason: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.adminExtendFreePilot(
+      tenantId,
+      new Date(body.newEndDate),
+      body.reason,
+      user.userId,
+    );
+  }
+
+  // POST /v1/billing/admin/tenants/:tenantId/convert-to-trial
+  @Post("admin/tenants/:tenantId/convert-to-trial")
+  @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
+  @ApiOperation({ summary: "Admin: convert FREE_PILOT/UNPAID to TRIALING (requires reason)" })
+  adminConvertToTrial(
+    @Param("tenantId") tenantId: string,
+    @Body() body: { reason: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.adminConvertToTrial(tenantId, body.reason, user.userId);
+  }
+
+  // PATCH /v1/billing/admin/tenants/:tenantId/plan
+  @Patch("admin/tenants/:tenantId/plan")
+  @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
+  @ApiOperation({ summary: "Admin: assign a subscription plan (requires reason)" })
+  adminAssignPlan(
+    @Param("tenantId") tenantId: string,
+    @Body() body: { planId: string; reason: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.adminAssignPlan(tenantId, body.planId, body.reason, user.userId);
+  }
+
+  // POST /v1/billing/admin/tenants/:tenantId/grant-exception
+  @Post("admin/tenants/:tenantId/grant-exception")
+  @Roles("PLATFORM_ADMIN")
+  @BillingExempt()
+  @ApiOperation({ summary: "Admin: override billing status (requires reason, audit logged)" })
+  adminGrantException(
+    @Param("tenantId") tenantId: string,
+    @Body() body: { targetStatus: string; reason: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.adminGrantException(
+      tenantId,
+      body.targetStatus,
+      body.reason,
+      user.userId,
+    );
+  }
+
+  // ── Phase S: Billing warnings for tenant UI ────────────────────────────────
+
+  // GET /v1/billing/warnings — warnings for current tenant (trial end, past due, etc.)
+  @Get("warnings")
+  @BillingExempt()
+  @ApiOperation({ summary: "Get billing warnings for current tenant (trial end, past due, etc.)" })
+  getBillingWarnings(@CurrentUser() user: AuthenticatedUser) {
+    return this.planLimits
+      .getBillingWarnings(user.tenantId)
+      .then((warnings) => ({ tenantId: user.tenantId, warnings }));
   }
 }
