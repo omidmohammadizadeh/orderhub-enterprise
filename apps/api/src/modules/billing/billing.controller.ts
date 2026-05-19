@@ -153,7 +153,10 @@ export class BillingController {
   }
 
   // POST /v1/billing/portal — open Stripe Billing Portal
+  // IMPORTANT: exempt from billing guard so UNPAID/CANCELLED tenants can reach this
+  // to fix their payment method. Without this exemption they cannot self-serve out of UNPAID.
   @Post("portal")
+  @BillingExempt()
   @Roles("TENANT_OWNER")
   @ApiOperation({ summary: "Create a Stripe Billing Portal session to manage payment method" })
   createPortal(

@@ -48,12 +48,13 @@ export class EmergencyControlDto {
 
 @ApiTags("onboarding")
 @ApiBearerAuth()
-@BillingExempt() // Emergency provider/printer controls must always be accessible regardless of billing state
 @Controller({ path: "onboarding", version: "1" })
 export class OnboardingController {
   constructor(private readonly onboarding: OnboardingService) {}
 
+  // Read-only: accessible even for UNPAID tenants so staff can see status before using emergency controls
   @Get("locations")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @ApiOperation({ summary: "List all locations with go-live status (wizard overview)" })
   listLocations(
@@ -65,7 +66,9 @@ export class OnboardingController {
     return this.onboarding.listLocationsWithStatus(scopedTenantId);
   }
 
+  // Read-only diagnostic: accessible even for UNPAID tenants for live support
   @Get("locations/:locationId/readiness")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @ApiOperation({ summary: "Get full readiness check for a location" })
   getReadiness(
@@ -156,8 +159,11 @@ export class OnboardingController {
   }
 
   // ── Emergency controls ────────────────────────────────────────────────────
+  // These must always be accessible regardless of billing state.
+  // A shop that can't pay must still be able to pause a broken provider to protect customers.
 
   @Post("locations/:locationId/providers/:integrationId/pause")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Emergency: disable one provider for a location (audited)" })
@@ -174,6 +180,7 @@ export class OnboardingController {
   }
 
   @Post("locations/:locationId/providers/:integrationId/resume")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Resume a paused provider for a location (audited)" })
@@ -190,6 +197,7 @@ export class OnboardingController {
   }
 
   @Post("locations/:locationId/printers/:printerId/pause")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Emergency: deactivate a printer for a location (audited)" })
@@ -206,6 +214,7 @@ export class OnboardingController {
   }
 
   @Post("locations/:locationId/printers/:printerId/resume")
+  @BillingExempt()
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Resume a deactivated printer for a location (audited)" })

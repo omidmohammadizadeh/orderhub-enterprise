@@ -366,8 +366,11 @@ export class BillingService {
         break;
       }
 
-      case "invoice.paid": {
+      case "invoice.paid":
+      case "invoice.payment_succeeded": {
         const stripeInvoice = event.data.object;
+
+        // Update invoice record
         await this.db.invoice.updateMany({
           where: { stripeInvoiceId: stripeInvoice.id },
           data: {
@@ -376,6 +379,69 @@ export class BillingService {
             paidAt: new Date(),
           },
         });
+
+        // If this payment clears a PAST_DUE subscription, restore it to ACTIVE
+        // This handles the case where a customer updates their payment method after failing.
+        // customer.subscription.updated will also fire with status=active, but this ensures
+        // the grace period and lastInvoiceStatus are cleared immediately.
+        if (stripeInvoice.subscription) {
+          await this.db.tenantSubscription.updateMany({
+            where: {
+              stripeSubId: stripeInvoice.subscription,
+              status: SubscriptionStatus.PAST_DUE,
+            },
+            data: {
+              status: SubscriptionStatus.ACTIVE,
+              gracePeriodEndsAt: null,
+              lastInvoiceStatus: "PAID",
+            },
+          });
+        }
+        break;
+      }
+
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        const stripeCustomerId = session.customer as string;
+        const stripeSubId = session.subscription as string;
+
+        if (!stripeSubId) break; // one-time payment, not a subscription
+
+        const sub = await this.db.tenantSubscription.findFirst({
+          where: { stripeCustomerId },
+        });
+
+        if (!sub) {
+          this.logger.warn(
+            `checkout.session.completed: no TenantSubscription for customer ${stripeCustomerId}`,
+          );
+          break;
+        }
+
+        // Link the subscription ID created by Stripe Checkout to the TenantSubscription.
+        // customer.subscription.created will also fire and set the status — this just ensures
+        // the stripeSubId is stored so subsequent events can find the record.
+        await this.db.tenantSubscription.update({
+          where: { id: sub.id },
+          data: {
+            stripeSubId,
+            metadata: {
+              ...(sub.metadata as Record<string, unknown>),
+              checkoutCompletedAt: new Date().toISOString(),
+              checkoutSessionId: session.id,
+            },
+          },
+        });
+
+        await this.writeAuditLog(sub.tenantId, "billing.checkout_completed", "system", {
+          stripeCustomerId,
+          stripeSubId,
+          sessionId: session.id,
+        });
+
+        this.logger.log(
+          `Checkout completed: tenant=${sub.tenantId}, customer=${stripeCustomerId}, sub=${stripeSubId}`,
+        );
         break;
       }
 

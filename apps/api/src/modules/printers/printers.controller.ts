@@ -24,7 +24,6 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 
 @ApiTags("printers")
 @ApiBearerAuth()
-@BillingExempt() // Printer polling and Flutter app contract must never be blocked by billing
 @Controller({ path: "printers", version: "1" })
 export class PrintersController {
   constructor(
@@ -34,6 +33,7 @@ export class PrintersController {
   ) {}
 
   @Get()
+  @BillingExempt() // Read-only: UNPAID tenants need to see printer state for support/emergency
   @ApiOperation({ summary: "List printers for a location" })
   findAll(
     @CurrentUser() user: AuthenticatedUser,
@@ -42,6 +42,8 @@ export class PrintersController {
     return this.printers.findByLocation(locationId, user.tenantId);
   }
 
+  // Registering a new printer is a commercial action — blocked for UNPAID/CANCELLED tenants.
+  // Existing printers continue to work (all other endpoints are billing-exempt).
   @Post()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Register a printer" })
@@ -54,6 +56,7 @@ export class PrintersController {
   }
 
   @Patch(":id")
+  @BillingExempt() // Updating existing printer config is live ops — never blocked
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update printer configuration" })
   update(
@@ -65,6 +68,7 @@ export class PrintersController {
   }
 
   @Delete(":id")
+  @BillingExempt() // Deregistering a printer is live ops — never blocked
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a printer" })
@@ -76,6 +80,7 @@ export class PrintersController {
   }
 
   @Get(":id/jobs")
+  @BillingExempt() // Job history is live ops view — never blocked
   @ApiOperation({ summary: "Get recent print jobs for a printer" })
   getJobs(
     @Param("id", ParseUUIDPipe) id: string,
@@ -85,6 +90,7 @@ export class PrintersController {
   }
 
   @Post(":id/jobs/:jobId/reprint")
+  @BillingExempt() // Reprinting a live order receipt is critical — never blocked
   @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Reprint a job" })
   reprint(@Param("jobId") jobId: string) {
@@ -93,6 +99,7 @@ export class PrintersController {
 
   // Retry endpoint used by the printer diagnostics frontend page
   @Post(":id/jobs/:jobId/retry")
+  @BillingExempt() // Retrying a failed live job is critical — never blocked
   @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Retry a failed print job" })
   retry(@Param("jobId") jobId: string) {
@@ -101,6 +108,7 @@ export class PrintersController {
 
   // Test print — triggers a minimal receipt to confirm printer connectivity
   @Post(":id/test")
+  @BillingExempt() // Diagnostic test print is a live ops tool — never blocked
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Send a test print to a printer" })
   async testPrint(
@@ -150,6 +158,7 @@ export class PrintersController {
 
   @Get("/jobs")
   @Public()
+  @BillingExempt() // Flutter polling is the live printer contract — must never be blocked
   @ApiOperation({ summary: "Flutter app: poll pending print jobs by location code" })
   async getPrintJobsForFlutter(
     @Query("shop_code") shopCode: string,
@@ -194,6 +203,7 @@ export class PrintersController {
 
   @Patch("/jobs/:jobId")
   @Public()
+  @BillingExempt() // Flutter status update is the live printer contract — must never be blocked
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Flutter app: update print job status (e.g. mark as printed)" })
   async updatePrintJobStatus(
