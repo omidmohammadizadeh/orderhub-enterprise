@@ -239,6 +239,11 @@ model Location {
   deliveryConfig Json    @default("{}")
   onboardingStep Int     @default(0)
 
+  // ── Go-live lifecycle ─────────────────────────────────
+  goLiveStatus    LocationGoLiveStatus @default(DRAFT)
+  lastTestOrderAt DateTime?
+  lastTestPrintAt DateTime?
+
   // ── Store Operations ──────────────────────────────────
   isOpen          Boolean   @default(true)
   isPaused        Boolean   @default(false)
@@ -1587,6 +1592,16 @@ model OutboxEvent {
 // ══════════════════════════════════════════════════════════════════════════════
 // Enums
 // ══════════════════════════════════════════════════════════════════════════════
+
+enum LocationGoLiveStatus {
+  DRAFT              // not yet started
+  CONFIGURING        // setup in progress
+  TESTING            // test orders/prints being run
+  READY_FOR_GO_LIVE  // all critical checks pass
+  LIVE               // actively taking real orders
+  PAUSED             // temporarily disabled
+  BLOCKED            // critical check failure prevents go-live
+}
 
 enum OutboxEventStatus {
   PENDING

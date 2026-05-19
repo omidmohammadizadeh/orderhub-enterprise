@@ -178,6 +178,18 @@ For each enabled platform:
 
 ---
 
+## 10c. Onboarding Lifecycle Check (Phase K)
+
+- [ ] Run `prisma migrate deploy` — confirms `20260519000000_phase_k` migration applied
+- [ ] `Location.goLiveStatus` column exists in database (default: `DRAFT`)
+- [ ] Go-Live Wizard accessible at `/dashboard/admin/go-live`
+- [ ] Each pilot location has been advanced through CONFIGURING → TESTING → READY_FOR_GO_LIVE
+- [ ] `goLiveStatus = READY_FOR_GO_LIVE` before clicking LIVE in wizard
+- [ ] All readiness blockers resolved (LIVE button enabled only when zero blockers)
+- [ ] Audit log entries confirmed for all status transitions
+
+---
+
 ## 11. Go-Live Approval
 
 - [ ] All webhook test suites pass (0 failures)

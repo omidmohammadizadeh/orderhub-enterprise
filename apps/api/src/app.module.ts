@@ -52,6 +52,7 @@ import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
 import { SandboxModule } from "./modules/sandbox/sandbox.module";
 import { OutboxModule } from "./modules/outbox/outbox.module";
+import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { QUEUES } from "@orderhub/shared";
 
 @Module({
@@ -169,6 +170,7 @@ import { QUEUES } from "@orderhub/shared";
     InventoryModule,
     SandboxModule,
     OutboxModule,
+    OnboardingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

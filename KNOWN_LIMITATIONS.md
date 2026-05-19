@@ -72,9 +72,18 @@
 
 ## Future Work
 
-1. **Transactional Outbox**: Order creation + queue enqueue are not atomic. A server crash between DB create and queue.add could result in an order with no downstream processing. Implement the outbox pattern.
-2. **Credential encryption**: Integration credentials are stored as plaintext JSON in the database. Encrypt at-rest using field-level encryption before production.
-3. **WebSocket reconnection**: The frontend does not implement automatic WebSocket reconnection with exponential backoff. Orders may go stale if the socket drops.
-4. **Menu sync bidirectional**: Currently one-way (platform → OrderHub). Publishing menu changes back to platforms is not implemented.
-5. **Multi-store analytics**: Cross-location reports are not scoped correctly — they aggregate all locations for the tenant regardless of user permissions.
-6. **Jest test coverage**: Current test coverage is limited to auth module. Order lifecycle, webhook deduplication, and printer job tests exist as specs but may need updating.
+1. **WebSocket reconnection**: The frontend does not implement automatic WebSocket reconnection with exponential backoff. Orders may go stale if the socket drops.
+2. **Menu sync bidirectional**: Currently one-way (platform → OrderHub). Publishing menu changes back to platforms is not implemented.
+3. **Multi-store analytics**: Cross-location reports are not scoped correctly — they aggregate all locations for the tenant regardless of user permissions.
+
+> Items 1 and 2 from the original list (outbox pattern, credential encryption) were resolved in Phase J.
+> Item 6 (test coverage) was resolved across Phases I–K — 122 tests now passing.
+
+---
+
+## Phase K Limitations
+
+- **Readiness score not cached**: `getLocationReadiness` is computed on every request. For a location list with many locations, individual scores are returned as `null` and computed on drill-down. A cache layer (Redis, 60s TTL) would improve the wizard's initial load.
+- **Go-live wizard is admin-only**: The frontend wizard is scoped to `PLATFORM_ADMIN` role. Tenant owners can call the API directly but have no dedicated UI yet.
+- **No email notifications on status change**: When a location transitions to `LIVE` or `BLOCKED`, no notification is sent to the tenant owner. Integrate with `NotificationsModule` in a future iteration.
+- **No scheduled readiness polling**: The wizard shows a point-in-time readiness snapshot. There is no background job that periodically re-checks LIVE locations and auto-transitions to `BLOCKED` on degradation.
