@@ -1,0 +1,159 @@
+# ─────────────────────────────────────────────────────────
+# OrderHub — Render Blueprint
+#
+# Deploys:
+#   - API (NestJS) — Web Service, port 4000
+#   - Worker (NestJS) — Background Worker (no HTTP)
+#   - Web (Next.js) — Web Service, port 3000
+#
+# External services (configure manually):
+#   - Database: Supabase Postgres → set DATABASE_URL env var
+#   - Redis:    Upstash Redis     → set REDIS_URL and QUEUE_REDIS_URL env vars
+#
+# Usage:
+#   1. Push this file to your GitHub repo
+#   2. In Render dashboard → New → Blueprint → connect your repo
+#   3. Fill in required env vars (marked *required*)
+#   4. Deploy
+#
+# See STAGING_ENVIRONMENT.md for full setup instructions.
+# ─────────────────────────────────────────────────────────
+
+services:
+  # ── API — NestJS REST + WebSocket ────────────────────────
+  - type: web
+    name: orderhub-api
+    runtime: docker
+    dockerfilePath: infrastructure/docker/Dockerfile.api
+    dockerContext: .
+    region: frankfurt
+    plan: starter       # upgrade to standard for production
+    healthCheckPath: /api/v1/health
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      # ── Required: set these in the Render dashboard or via secrets ──
+      - key: DATABASE_URL
+        sync: false      # set manually in dashboard
+      - key: REDIS_URL
+        sync: false
+      - key: QUEUE_REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true  # Render generates a random value on first deploy
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CREDENTIAL_ENCRYPTION_KEY
+        sync: false      # Must be 64 hex chars — generate with: openssl rand -hex 32
+      # ── App URLs ──
+      - key: APP_URL
+        fromService:
+          type: web
+          name: orderhub-web
+          property: host
+          prefix: "https://"
+      - key: API_PUBLIC_URL
+        fromService:
+          type: web
+          name: orderhub-api
+          property: host
+          prefix: "https://"
+      - key: SOCKET_CORS_ORIGIN
+        fromService:
+          type: web
+          name: orderhub-web
+          property: host
+          prefix: "https://"
+      # ── Stripe (set manually) ──
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      # ── Optional: provider credentials ──
+      - key: UBER_EATS_CLIENT_ID
+        sync: false
+      - key: UBER_EATS_CLIENT_SECRET
+        sync: false
+      - key: DELIVEROO_CLIENT_ID
+        sync: false
+      - key: DELIVEROO_CLIENT_SECRET
+        sync: false
+      # ── JWT config ──
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+      # ── Logging ──
+      - key: LOG_LEVEL
+        value: info
+
+  # ── Worker — Bull queue processor (no HTTP) ───────────────
+  - type: worker
+    name: orderhub-worker
+    runtime: docker
+    dockerfilePath: infrastructure/docker/Dockerfile.worker
+    dockerContext: .
+    region: frankfurt
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: QUEUE_REDIS_URL
+        sync: false
+      - key: CREDENTIAL_ENCRYPTION_KEY
+        sync: false
+      # ── Provider credentials for status sync ──
+      - key: UBER_EATS_CLIENT_ID
+        sync: false
+      - key: UBER_EATS_CLIENT_SECRET
+        sync: false
+      - key: DELIVEROO_CLIENT_ID
+        sync: false
+      - key: DELIVEROO_CLIENT_SECRET
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+
+  # ── Web — Next.js dashboard ───────────────────────────────
+  - type: web
+    name: orderhub-web
+    runtime: docker
+    dockerfilePath: infrastructure/docker/Dockerfile.web
+    dockerContext: .
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # API URL for server-side rewrites (internal Render networking)
+      - key: API_URL
+        fromService:
+          type: web
+          name: orderhub-api
+          property: host
+          prefix: "https://"
+      # Public URL for Next.js allowed origins (same as web service URL)
+      - key: APP_URL
+        fromService:
+          type: web
+          name: orderhub-web
+          property: host
+          prefix: "https://"
+      # Stripe publishable key (safe to expose to frontend)
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false

@@ -74,7 +74,7 @@ export class OrderSyncProcessor {
     const result = await client.syncStatus(
       order.externalId,
       toStatus as OrderStatus,
-      credentials,
+      credentials as Record<string, string>,
       { cancelReason },
     );
 

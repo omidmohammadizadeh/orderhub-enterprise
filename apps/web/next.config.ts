@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone output bundles the server into a single self-contained directory.
+  // Required by infrastructure/docker/Dockerfile.web which copies .next/standalone.
+  // Also used by Render/Railway Docker deployments.
+  output: "standalone",
+
   // Turborepo-friendly transpilation of workspace packages
   transpilePackages: ["@orderhub/shared", "@orderhub/ui"],
 

@@ -1,7 +1,21 @@
 # Known Limitations
 
-> Last updated: Phase Y — Local Run Handoff & Provider Parity Audit (2026-05-19)
+> Last updated: Phase Z — Cloud Deployment & Production Infrastructure (2026-05-19)
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
+
+---
+
+## Phase Z Infrastructure Limitations
+
+- **Render starter plan sleeps on free tier**: Render free-tier services sleep after 15 minutes of inactivity. Upgrade to a paid Render account or use an uptime monitor to avoid cold starts. The `starter` plan on a paid account does not sleep.
+- **Supabase free tier pauses**: Supabase free projects pause after 7 days of inactivity. Upgrade to Supabase Pro for always-on staging/production.
+- **No internal Render networking for Upstash**: Upstash Redis is accessed over TLS via public internet. This adds ~5–10ms latency vs. co-located Redis. Acceptable for current load. Mitigate with co-located Redis if latency becomes a concern.
+- **Single Upstash instance for all Redis uses**: Staging uses one Upstash database for both `REDIS_URL` and `QUEUE_REDIS_URL`. For production, consider separate instances to isolate queue backpressure from real-time Socket.IO adapter traffic.
+- **Socket.IO multi-instance not verified in staging**: The Render Blueprint sets `numInstances: 1`. Socket.IO uses Redis adapter for multi-instance pub/sub, but this has not been load-tested with >1 API instance.
+- **Docker build not triggered on `claude/**` branches in production-deploy.yml**: `production-deploy.yml` runs on `main` only (manual dispatch). `ci.yml` now includes `claude/**` for CI but Docker build validation still only runs on PRs and main/develop.
+- **CI docker-build skipped on `claude/**` pushes**: The `docker-build` job has an `if` condition that skips on non-PR, non-main, non-develop pushes. Docker validation therefore does not run on `claude/**` branches — run `docker build` locally if making Dockerfile changes.
+- **`noUncheckedIndexedAccess` not enabled** *(carried forward)*: See Phase X/Y section.
+- **`StoreStatusPayload` too narrow** *(carried forward)*: See Phase X/Y section.
 
 ---
 
