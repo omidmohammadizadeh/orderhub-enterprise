@@ -37,6 +37,12 @@ export class AdminOverrideDto {
   reason!: string;
 }
 
+export class EmergencyControlDto {
+  @IsString()
+  @IsNotEmpty()
+  reason!: string;
+}
+
 // ── Controller ────────────────────────────────────────────────────────────────
 
 @ApiTags("onboarding")
@@ -145,5 +151,71 @@ export class OnboardingController {
         ? tenantIdOverride
         : user.tenantId;
     return this.onboarding.recordTestPrint(locationId, tenantId, user.sub);
+  }
+
+  // ── Emergency controls ────────────────────────────────────────────────────
+
+  @Post("locations/:locationId/providers/:integrationId/pause")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Emergency: disable one provider for a location (audited)" })
+  pauseProvider(
+    @Param("locationId") locationId: string,
+    @Param("integrationId") integrationId: string,
+    @Body() dto: EmergencyControlDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("tenantId") tenantIdOverride?: string,
+  ) {
+    const tenantId =
+      user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
+    return this.onboarding.pauseProvider(locationId, tenantId, integrationId, user.sub, dto.reason);
+  }
+
+  @Post("locations/:locationId/providers/:integrationId/resume")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Resume a paused provider for a location (audited)" })
+  resumeProvider(
+    @Param("locationId") locationId: string,
+    @Param("integrationId") integrationId: string,
+    @Body() dto: EmergencyControlDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("tenantId") tenantIdOverride?: string,
+  ) {
+    const tenantId =
+      user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
+    return this.onboarding.resumeProvider(locationId, tenantId, integrationId, user.sub, dto.reason);
+  }
+
+  @Post("locations/:locationId/printers/:printerId/pause")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Emergency: deactivate a printer for a location (audited)" })
+  pausePrinter(
+    @Param("locationId") locationId: string,
+    @Param("printerId") printerId: string,
+    @Body() dto: EmergencyControlDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("tenantId") tenantIdOverride?: string,
+  ) {
+    const tenantId =
+      user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
+    return this.onboarding.pausePrinter(locationId, tenantId, printerId, user.sub, dto.reason);
+  }
+
+  @Post("locations/:locationId/printers/:printerId/resume")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "MANAGER")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Resume a deactivated printer for a location (audited)" })
+  resumePrinter(
+    @Param("locationId") locationId: string,
+    @Param("printerId") printerId: string,
+    @Body() dto: EmergencyControlDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("tenantId") tenantIdOverride?: string,
+  ) {
+    const tenantId =
+      user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
+    return this.onboarding.resumePrinter(locationId, tenantId, printerId, user.sub, dto.reason);
   }
 }

@@ -228,6 +228,23 @@ For each enabled platform:
 
 ---
 
+## 10g. Pilot Location Readiness (Phase M)
+
+- [ ] `PILOT_LOCATION_PLAN.md` fully completed and reviewed
+- [ ] Restaurant contact confirmed and has support number
+- [ ] All provider integrations connected and encrypted
+- [ ] Printer online and test print confirmed
+- [ ] Staff training completed — `PILOT_STAFF_TRAINING.md` reviewed with staff
+- [ ] Emergency pause tested — `/v1/onboarding/locations/:id/transition` to PAUSED works
+- [ ] Provider pause tested — `/v1/onboarding/locations/:id/providers/:id/pause` works
+- [ ] Printer pause tested — `/v1/onboarding/locations/:id/printers/:id/pause` works
+- [ ] All audit log entries verified for lifecycle transitions
+- [ ] `PILOT_ISSUES.md` open and assigned to on-call engineer
+- [ ] Go-live time agreed — not during peak hours
+- [ ] Rollback plan confirmed in `PILOT_LAUNCH_RUNBOOK.md`
+
+---
+
 ## 11. Go-Live Approval
 
 - [ ] All webhook test suites pass (0 failures)

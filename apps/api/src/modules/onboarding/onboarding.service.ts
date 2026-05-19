@@ -485,6 +485,168 @@ export class OnboardingService {
     });
   }
 
+  // ── Emergency controls ────────────────────────────────────────────────────
+
+  async pauseProvider(
+    locationId: string,
+    tenantId: string,
+    integrationId: string,
+    userId: string,
+    reason: string,
+  ): Promise<{ integrationId: string; status: string }> {
+    if (!reason?.trim()) {
+      throw new BadRequestException("Reason is required to pause a provider");
+    }
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, location: { id: locationId, brand: { tenantId } }, deletedAt: null },
+    });
+    if (!integration) {
+      throw new NotFoundException(`Integration ${integrationId} not found for location ${locationId}`);
+    }
+
+    await this.prisma.integration.update({
+      where: { id: integrationId },
+      data: { status: "INACTIVE" as any },
+    });
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      event: "location.provider_paused",
+      resource: "integration",
+      resourceId: integrationId,
+      before: { status: integration.status },
+      after: { status: "INACTIVE" },
+      meta: { locationId, platform: integration.platform, reason },
+    });
+
+    this.logger.warn(
+      `EMERGENCY: Provider ${integration.platform} paused on location ${locationId} by ${userId} — reason: "${reason}"`,
+    );
+
+    return { integrationId, status: "INACTIVE" };
+  }
+
+  async resumeProvider(
+    locationId: string,
+    tenantId: string,
+    integrationId: string,
+    userId: string,
+    reason: string,
+  ): Promise<{ integrationId: string; status: string }> {
+    if (!reason?.trim()) {
+      throw new BadRequestException("Reason is required to resume a provider");
+    }
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, location: { id: locationId, brand: { tenantId } }, deletedAt: null },
+    });
+    if (!integration) {
+      throw new NotFoundException(`Integration ${integrationId} not found for location ${locationId}`);
+    }
+
+    await this.prisma.integration.update({
+      where: { id: integrationId },
+      data: { status: "ACTIVE" as any },
+    });
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      event: "location.provider_resumed",
+      resource: "integration",
+      resourceId: integrationId,
+      before: { status: integration.status },
+      after: { status: "ACTIVE" },
+      meta: { locationId, platform: integration.platform, reason },
+    });
+
+    this.logger.log(
+      `Provider ${integration.platform} resumed on location ${locationId} by ${userId}`,
+    );
+
+    return { integrationId, status: "ACTIVE" };
+  }
+
+  async pausePrinter(
+    locationId: string,
+    tenantId: string,
+    printerId: string,
+    userId: string,
+    reason: string,
+  ): Promise<{ printerId: string; isActive: boolean }> {
+    if (!reason?.trim()) {
+      throw new BadRequestException("Reason is required to pause a printer");
+    }
+    const printer = await this.prisma.printer.findFirst({
+      where: { id: printerId, location: { id: locationId, brand: { tenantId } } },
+    });
+    if (!printer) {
+      throw new NotFoundException(`Printer ${printerId} not found for location ${locationId}`);
+    }
+
+    await this.prisma.printer.update({
+      where: { id: printerId },
+      data: { isActive: false },
+    });
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      event: "location.printer_paused",
+      resource: "printer",
+      resourceId: printerId,
+      before: { isActive: printer.isActive },
+      after: { isActive: false },
+      meta: { locationId, printerName: printer.name, reason },
+    });
+
+    this.logger.warn(
+      `EMERGENCY: Printer ${printer.name} (${printerId}) deactivated on location ${locationId} by ${userId} — reason: "${reason}"`,
+    );
+
+    return { printerId, isActive: false };
+  }
+
+  async resumePrinter(
+    locationId: string,
+    tenantId: string,
+    printerId: string,
+    userId: string,
+    reason: string,
+  ): Promise<{ printerId: string; isActive: boolean }> {
+    if (!reason?.trim()) {
+      throw new BadRequestException("Reason is required to resume a printer");
+    }
+    const printer = await this.prisma.printer.findFirst({
+      where: { id: printerId, location: { id: locationId, brand: { tenantId } } },
+    });
+    if (!printer) {
+      throw new NotFoundException(`Printer ${printerId} not found for location ${locationId}`);
+    }
+
+    await this.prisma.printer.update({
+      where: { id: printerId },
+      data: { isActive: true },
+    });
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      event: "location.printer_resumed",
+      resource: "printer",
+      resourceId: printerId,
+      before: { isActive: printer.isActive },
+      after: { isActive: true },
+      meta: { locationId, printerName: printer.name, reason },
+    });
+
+    this.logger.log(
+      `Printer ${printer.name} (${printerId}) reactivated on location ${locationId} by ${userId}`,
+    );
+
+    return { printerId, isActive: true };
+  }
+
   // ── Location list for wizard ──────────────────────────────────────────────
 
   async listLocationsWithStatus(tenantId?: string): Promise<

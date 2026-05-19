@@ -81,6 +81,15 @@
 
 ---
 
+## Phase M Limitations
+
+- **Emergency pause is not automated**: When a critical issue is detected (e.g. dead outbox events increasing rapidly), the location is not automatically paused. An operator must take manual action via the Go-Live Wizard or API. Future work: add a scheduled job that auto-pauses LIVE locations with > N dead events.
+- **Provider store open/close not implemented**: Pausing a location in OrderHub does not signal to providers (Uber Eats, Deliveroo) to pause the store on their platform. Staff must also pause the store in each provider's tablet app or dashboard. This is a known limitation for the pilot phase.
+- **Menu availability sync is one-way**: Marking an item unavailable in OrderHub does not sync to providers. Staff must also remove/pause the item in each provider's portal or app.
+- **No pilot-specific observability dashboard**: There is no dedicated pilot monitoring page. Operators use the Go-Live Wizard, Bull Board, and the release readiness endpoint to monitor the pilot location.
+
+---
+
 ## Phase L Limitations
 
 - **Smoke test requires Redis client library**: The smoke test (`apps/api/src/scripts/smoke-test.ts`) imports `createClient` from `redis`. If this package is not in the runtime environment, the Redis check will fail. Install `redis` as a dev dependency if running the smoke test outside the app container.

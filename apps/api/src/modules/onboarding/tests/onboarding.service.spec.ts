@@ -471,4 +471,136 @@ describe("OnboardingService", () => {
       );
     });
   });
+
+  // ── Emergency controls ────────────────────────────────────────────────────
+
+  describe("pauseProvider", () => {
+    const mockIntegration = {
+      id: "int-1",
+      platform: "UBER_EATS",
+      status: "ACTIVE",
+    };
+
+    beforeEach(() => {
+      // integration.findFirst and update
+      (makePrismaMock() as any); // reset handled in buildModule()
+    });
+
+    it("sets integration status to INACTIVE and writes audit log", async () => {
+      await buildModule();
+      prismaMock.integration = {
+        findFirst: jest.fn().mockResolvedValue(mockIntegration),
+        update: jest.fn().mockResolvedValue({}),
+      };
+
+      const result = await service.pauseProvider("loc-1", "tenant-1", "int-1", "user-1", "Deliveroo sync issue");
+
+      expect(result.status).toBe("INACTIVE");
+      expect(prismaMock.integration.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: "INACTIVE" } }),
+      );
+      expect(auditMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "location.provider_paused" }),
+      );
+    });
+
+    it("throws BadRequestException when reason is empty", async () => {
+      await buildModule();
+      await expect(
+        service.pauseProvider("loc-1", "tenant-1", "int-1", "user-1", ""),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("throws NotFoundException when integration not found", async () => {
+      await buildModule();
+      prismaMock.integration = {
+        findFirst: jest.fn().mockResolvedValue(null),
+        update: jest.fn(),
+      };
+
+      await expect(
+        service.pauseProvider("loc-1", "tenant-1", "int-1", "user-1", "Emergency"),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("resumeProvider", () => {
+    it("sets integration status to ACTIVE and writes audit log", async () => {
+      await buildModule();
+      prismaMock.integration = {
+        findFirst: jest.fn().mockResolvedValue({ id: "int-1", platform: "UBER_EATS", status: "INACTIVE" }),
+        update: jest.fn().mockResolvedValue({}),
+      };
+
+      const result = await service.resumeProvider("loc-1", "tenant-1", "int-1", "user-1", "Issue resolved");
+
+      expect(result.status).toBe("ACTIVE");
+      expect(auditMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "location.provider_resumed" }),
+      );
+    });
+
+    it("throws BadRequestException when reason is empty", async () => {
+      await buildModule();
+      await expect(
+        service.resumeProvider("loc-1", "tenant-1", "int-1", "user-1", "  "),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe("pausePrinter", () => {
+    it("sets printer isActive to false and writes audit log", async () => {
+      await buildModule();
+      prismaMock.printer = {
+        findFirst: jest.fn().mockResolvedValue({ id: "printer-1", name: "Kitchen Printer", isActive: true }),
+        update: jest.fn().mockResolvedValue({}),
+      };
+
+      const result = await service.pausePrinter("loc-1", "tenant-1", "printer-1", "user-1", "Printer offline");
+
+      expect(result.isActive).toBe(false);
+      expect(prismaMock.printer.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { isActive: false } }),
+      );
+      expect(auditMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "location.printer_paused" }),
+      );
+    });
+
+    it("throws BadRequestException when reason is empty", async () => {
+      await buildModule();
+      await expect(
+        service.pausePrinter("loc-1", "tenant-1", "printer-1", "user-1", ""),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("throws NotFoundException when printer not found", async () => {
+      await buildModule();
+      prismaMock.printer = {
+        findFirst: jest.fn().mockResolvedValue(null),
+        update: jest.fn(),
+      };
+
+      await expect(
+        service.pausePrinter("loc-1", "tenant-1", "printer-1", "user-1", "Emergency"),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("resumePrinter", () => {
+    it("sets printer isActive to true and writes audit log", async () => {
+      await buildModule();
+      prismaMock.printer = {
+        findFirst: jest.fn().mockResolvedValue({ id: "printer-1", name: "Kitchen Printer", isActive: false }),
+        update: jest.fn().mockResolvedValue({}),
+      };
+
+      const result = await service.resumePrinter("loc-1", "tenant-1", "printer-1", "user-1", "Printer fixed");
+
+      expect(result.isActive).toBe(true);
+      expect(auditMock.log).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "location.printer_resumed" }),
+      );
+    });
+  });
 });
