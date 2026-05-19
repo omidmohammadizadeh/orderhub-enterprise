@@ -294,7 +294,7 @@ describe("BillingService", () => {
       expect(db.tenantSubscription.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { stripeSubId: "sub_stripe_123" },
-          data: { status: "PAST_DUE" },
+          data: expect.objectContaining({ status: "PAST_DUE" }),
         }),
       );
     });

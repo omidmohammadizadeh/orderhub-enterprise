@@ -337,6 +337,11 @@ export class BillingService {
 
         const status = this.mapStripeSubStatus(stripeSub.status);
 
+        // Sync payment method status when Stripe reports a default method is attached
+        const paymentMethodStatus = stripeSub.default_payment_method
+          ? "attached"
+          : subscription.paymentMethodStatus ?? null;
+
         await this.db.tenantSubscription.update({
           where: { id: subscription.id },
           data: {
@@ -352,8 +357,32 @@ export class BillingService {
             trialEndsAt: stripeSub.trial_end
               ? new Date(stripeSub.trial_end * 1000)
               : null,
+            paymentMethodStatus,
           },
         });
+        break;
+      }
+
+      case "customer.updated": {
+        const customer = event.data.object;
+        const stripeCustomerId = customer.id as string;
+
+        const updates: Record<string, any> = {};
+        // Sync billing email if Stripe customer email changed
+        if (customer.email) {
+          updates.billingEmail = customer.email;
+        }
+        // A default payment method set means the card is attached and usable
+        if (customer.invoice_settings?.default_payment_method) {
+          updates.paymentMethodStatus = "attached";
+        }
+
+        if (Object.keys(updates).length > 0) {
+          await this.db.tenantSubscription.updateMany({
+            where: { stripeCustomerId },
+            data: updates,
+          });
+        }
         break;
       }
 
@@ -380,11 +409,17 @@ export class BillingService {
           },
         });
 
-        // If this payment clears a PAST_DUE subscription, restore it to ACTIVE
-        // This handles the case where a customer updates their payment method after failing.
-        // customer.subscription.updated will also fire with status=active, but this ensures
-        // the grace period and lastInvoiceStatus are cleared immediately.
+        // Sync lastInvoiceStatus on the subscription record so billing pages
+        // always show the most recent invoice outcome without a separate query.
         if (stripeInvoice.subscription) {
+          await this.db.tenantSubscription.updateMany({
+            where: { stripeSubId: stripeInvoice.subscription },
+            data: { lastInvoiceStatus: "PAID" },
+          });
+
+          // If this payment clears a PAST_DUE subscription, restore it to ACTIVE.
+          // customer.subscription.updated will also fire with status=active, but this
+          // ensures grace period is cleared immediately on the payment event.
           await this.db.tenantSubscription.updateMany({
             where: {
               stripeSubId: stripeInvoice.subscription,
@@ -393,7 +428,6 @@ export class BillingService {
             data: {
               status: SubscriptionStatus.ACTIVE,
               gracePeriodEndsAt: null,
-              lastInvoiceStatus: "PAID",
             },
           });
         }
@@ -450,7 +484,10 @@ export class BillingService {
         if (stripeInvoice.subscription) {
           await this.db.tenantSubscription.updateMany({
             where: { stripeSubId: stripeInvoice.subscription },
-            data: { status: SubscriptionStatus.PAST_DUE },
+            data: {
+              status: SubscriptionStatus.PAST_DUE,
+              lastInvoiceStatus: "OPEN",
+            },
           });
         }
         break;
