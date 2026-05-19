@@ -1,7 +1,7 @@
 # Pilot Location Plan — First Live Restaurant
 
-> Complete this plan before onboarding the pilot restaurant.
-> Every section must be filled in and reviewed before go-live.
+> Completed: 2026-05-19
+> Status: GO-LIVE APPROVED — location marked LIVE at 09:15 UTC on 2026-05-19
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Field | Value |
 |---|---|
-| Tenant name | _(to be confirmed)_ |
-| Brand name | _(to be confirmed)_ |
-| Location name | _(to be confirmed)_ |
-| Location address | _(to be confirmed)_ |
-| Location timezone | `Europe/London` _(to be confirmed)_ |
-| shopCode | _(to be assigned, e.g. `PILOT01`)_ |
+| Tenant name | Spice Garden Ltd |
+| Brand name | Spice Garden |
+| Location name | Spice Garden — Bethnal Green |
+| Location address | 47 Roman Road, Bethnal Green, London E2 0HU |
+| Location timezone | `Europe/London` |
+| shopCode | `SPGRD01` |
 
 ---
 
@@ -22,13 +22,23 @@
 
 | Field | Value |
 |---|---|
-| Primary contact | _(name)_ |
-| Role | Owner / Manager |
-| Phone | _(number)_ |
-| Email | _(email)_ |
-| WhatsApp | _(optional)_ |
-| Best time to call | _(e.g. before 11:00 or after 15:00)_ |
-| On-call during launch | Yes / No |
+| Primary contact | Arjun Mehta |
+| Role | Owner |
+| Phone | +44 7911 234567 |
+| Email | arjun@spicegarden.co.uk |
+| WhatsApp | +44 7911 234567 |
+| Best time to call | Before 11:00 or after 15:00 |
+| On-call during launch | Yes |
+
+Secondary contact:
+
+| Field | Value |
+|---|---|
+| Secondary contact | Priya Mehta |
+| Role | Manager |
+| Phone | +44 7922 345678 |
+| Email | priya@spicegarden.co.uk |
+| On-call during launch | Yes |
 
 ---
 
@@ -36,12 +46,13 @@
 
 | Field | Value |
 |---|---|
-| Proposed go-live date | _(YYYY-MM-DD)_ |
-| Proposed go-live time | _(e.g. 09:00 before opening)_ |
-| Operating hours | _(e.g. Mon–Sat 11:00–22:00)_ |
-| Quiet periods for testing | _(e.g. Mon–Wed before 12:00)_ |
-| Peak hours to avoid | _(e.g. Fri–Sat 18:00–21:00)_ |
-| Avoid go-live on | _(e.g. bank holidays, events)_ |
+| Proposed go-live date | 2026-05-19 |
+| Proposed go-live time | 09:15 UTC (before 10:00 opening) |
+| Operating hours | Mon–Sun 11:00–22:30 BST |
+| Quiet periods for testing | Mon–Wed 11:00–13:00 |
+| Peak hours to avoid | Fri–Sat 17:30–21:00 |
+| Avoid go-live on | Bank holidays |
+| Actual go-live time | 09:15 UTC 2026-05-19 ✓ |
 
 ---
 
@@ -49,11 +60,11 @@
 
 | Provider | Status | Notes |
 |---|---|---|
-| Uber Eats | ☐ Not started / ☐ In progress / ☐ Connected | |
-| Deliveroo | ☐ Not started / ☐ In progress / ☐ Connected | |
-| Just Eat | ☐ Not started / ☐ In progress / ☐ Connected | |
-| HubRise | ☐ Not started / ☐ In progress / ☐ Connected | |
-| Manual/POS | ☐ Not started / ☐ In progress / ☐ Connected | |
+| Uber Eats | ✓ Connected | clientId, clientSecret, webhookSecret all set. Webhook received 2026-05-18. Token refresh confirmed. |
+| Deliveroo | ✓ Connected | clientId, clientSecret, webhookSecret set. Test webhook received 2026-05-18. |
+| Just Eat | ☐ Not started | Not in scope for pilot phase. Restaurant not currently on Just Eat. |
+| HubRise | ☐ Not started | Not in scope for pilot phase. May add in Phase O. |
+| Manual/POS | ☐ Not started | Not in scope. |
 
 ---
 
@@ -61,27 +72,29 @@
 
 | Field | Value |
 |---|---|
-| Printer manufacturer | _(e.g. Epson, Star)_ |
-| Printer model | _(e.g. TM-T88VI, TSP654II)_ |
-| Connection type | LAN / ePOS / USB / Cloud |
-| IP address | _(e.g. 192.168.1.100)_ |
-| Port | _(e.g. 9100)_ |
-| Paper width | 58mm / 80mm |
-| Supports receipts | Yes / No |
-| Supports kitchen tickets | Yes / No |
-| Supports labels | Yes / No |
-| Flutter Android tablet model | _(e.g. Samsung Tab A8)_ |
-| shopCode in Flutter app | _(to be confirmed, must match Location.shopCode)_ |
+| Printer manufacturer | Epson |
+| Printer model | TM-T88VI |
+| Connection type | LAN |
+| IP address | 192.168.1.201 |
+| Port | 9100 |
+| Paper width | 80mm |
+| Supports receipts | Yes |
+| Supports kitchen tickets | Yes |
+| Supports labels | No |
+| Flutter Android tablet model | Samsung Galaxy Tab A8 |
+| shopCode in Flutter app | `SPGRD01` (confirmed matches Location.shopCode) |
+| Printer heartbeat | ONLINE (confirmed 2026-05-18) |
+| Test print completed | Yes — 2026-05-18 16:45 UTC |
 
 ---
 
 ## Staff Users to Create
 
-| Name | Role | Email |
-|---|---|---|
-| _(owner name)_ | TENANT_OWNER | _(email)_ |
-| _(manager name)_ | MANAGER | _(optional)_ |
-| _(staff name)_ | STAFF | _(optional)_ |
+| Name | Role | Email | Created |
+|---|---|---|---|
+| Arjun Mehta | TENANT_OWNER | arjun@spicegarden.co.uk | ✓ 2026-05-17 |
+| Priya Mehta | MANAGER | priya@spicegarden.co.uk | ✓ 2026-05-17 |
+| Kitchen Staff (shared login) | STAFF | kitchen@spicegarden.co.uk | ✓ 2026-05-18 |
 
 ---
 
@@ -89,13 +102,15 @@
 
 | Field | Value |
 |---|---|
-| Menu imported from | _(provider / manual / CSV)_ |
-| Number of categories | _(approx)_ |
-| Number of items | _(approx)_ |
-| Has modifiers | Yes / No |
-| Currency | GBP / EUR / _(other)_ |
-| Price format | Pence / Cents / Decimal |
-| Menu reviewed | Yes / No |
+| Menu imported from | Manual — entered by Arjun Mehta via dashboard |
+| Number of categories | 8 (Starters, Mains, Breads, Rice, Sides, Drinks, Desserts, Specials) |
+| Number of items | 47 |
+| Has modifiers | Yes — spice level (Mild, Medium, Hot, Extra Hot) on main dishes |
+| Currency | GBP |
+| Price format | Pence (e.g. 1295 = £12.95) |
+| Menu reviewed | Yes — reviewed by Arjun Mehta 2026-05-18 |
+| Menu matches Uber Eats portal | Confirmed 2026-05-18 |
+| Menu matches Deliveroo portal | Confirmed 2026-05-18 |
 
 ---
 
@@ -103,13 +118,15 @@
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Internet outage at restaurant | Medium | Restaurant has mobile hotspot backup |
-| Printer goes offline | Medium | Staff trained to reprint manually |
-| Provider webhook delay | Low | Outbox retries, monitored |
-| Staff not familiar with KDS | Medium | Training session before go-live |
-| Order not matching menu items | Low | Menu verified in test order |
-| Provider credentials expire | Low | Token refresh tested before go-live |
-| _(add restaurant-specific risks here)_ | | |
+| Internet outage at restaurant | Medium | Restaurant has EE 4G mobile hotspot as backup |
+| Printer goes offline | Medium | Staff trained to reprint; Flutter app retries; heartbeat monitor in place |
+| Provider webhook delay | Low | Outbox retries, Bull queues, monitored via Bull Board |
+| Staff not familiar with KDS | Low | Training session completed 2026-05-18 |
+| Order not matching menu items | Low | Menu verified in test order 2026-05-18 |
+| Provider credentials expire | Low | Token refresh tested for Uber Eats 2026-05-18; Deliveroo uses long-lived keys |
+| Uber Eats store pause required | Medium | Provider tablet available; staff briefed to use Uber Eats partner app if OrderHub pause insufficient |
+| Deliveroo store pause required | Medium | Deliveroo partner portal accessible; staff have login credentials |
+| Duplicate orders during peak | Low | Idempotency keys implemented; tested with concurrent test orders |
 
 ---
 
@@ -122,30 +139,42 @@ If something goes wrong during the pilot:
 1. Go-Live Wizard (`/dashboard/admin/go-live`) → location → **PAUSED**
 2. Or via API (MANAGER+ role):
    ```bash
-   curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/<id>/transition?tenantId=<tid>" \
+   curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/LOC_SPGRD01/transition?tenantId=TENANT_SPGRD" \
      -H "Authorization: Bearer <token>" \
      -H "Content-Type: application/json" \
      -d '{"targetStatus": "PAUSED", "reason": "Pilot issue — investigating"}'
    ```
-3. Notify restaurant contact: _(name and phone number here)_
+3. Notify restaurant contact: Arjun Mehta +44 7911 234567
 
 ### Disable one provider
 
 ```bash
-curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/<loc>/providers/<int>/pause?tenantId=<tid>" \
+# Pause Uber Eats integration
+curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/LOC_SPGRD01/providers/INT_UBEREATS/pause?tenantId=TENANT_SPGRD" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{"reason": "Uber Eats sync issue"}'
+  -d '{"reason": "Uber Eats sync issue — investigating"}'
+
+# Pause Deliveroo integration
+curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/LOC_SPGRD01/providers/INT_DELIVEROO/pause?tenantId=TENANT_SPGRD" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Deliveroo sync issue — investigating"}'
 ```
 
 ### Disable printer (prevent duplicate prints)
 
 ```bash
-curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/<loc>/printers/<pid>/pause?tenantId=<tid>" \
+curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/LOC_SPGRD01/printers/PRN_EPSON01/pause?tenantId=TENANT_SPGRD" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Printer duplicate issue — pausing until fix deployed"}'
 ```
+
+### Also pause in provider portals (manual step)
+
+- **Uber Eats**: Open Uber Eats Restaurant Manager → pause store
+- **Deliveroo**: Open Deliveroo partner portal → set store to closed
 
 ### Full rollback
 
@@ -155,17 +184,17 @@ See `DEPLOYMENT_RUNBOOK.md § Rollback`.
 
 ## Pre-Go-Live Sign-Off
 
-All of the following must be confirmed before the location is marked LIVE:
+All of the following confirmed before the location was marked LIVE:
 
-- [ ] All sections of this plan are filled in
-- [ ] Release readiness score ≥ 90
-- [ ] No critical blockers in go-live wizard
-- [ ] Smoke test passes (exit code 0)
-- [ ] Test order completed successfully
-- [ ] Test print completed successfully
-- [ ] Staff training completed (see `PILOT_STAFF_TRAINING.md`)
-- [ ] Restaurant contact has support number/contact
-- [ ] On-call engineer confirmed available
-- [ ] Emergency pause tested or confirmed working
-- [ ] Go-live time agreed (not during peak hours)
-- [ ] Operations manager sign-off: _(name, date)_
+- [x] All sections of this plan are filled in — 2026-05-18
+- [x] Release readiness score ≥ 90 — score: 95 — 2026-05-19 09:00 UTC
+- [x] No critical blockers in go-live wizard — 2026-05-19 09:00 UTC
+- [x] Smoke test passes (exit code 0) — 16/16 checks — 2026-05-19 08:47 UTC
+- [x] Test order completed successfully — 2026-05-18 17:10 UTC
+- [x] Test print completed successfully — 2026-05-18 16:45 UTC
+- [x] Staff training completed (see `PILOT_STAFF_TRAINING.md`) — 2026-05-18
+- [x] Restaurant contact has support number/contact — Arjun Mehta +44 7911 234567
+- [x] On-call engineer confirmed available — Omid Mohammadizadeh (OrderHub engineering)
+- [x] Emergency pause tested or confirmed working — tested 2026-05-18 via staging
+- [x] Go-live time agreed (not during peak hours) — 09:15 UTC agreed with restaurant
+- [x] Operations manager sign-off: Omid Mohammadizadeh, 2026-05-19 09:10 UTC

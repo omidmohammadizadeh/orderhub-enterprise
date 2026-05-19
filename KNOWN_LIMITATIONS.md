@@ -12,6 +12,7 @@
 - **Order completed webhook**: When Uber marks an order complete on their side, no lifecycle call is expected from the restaurant.
 - **Store availability API**: Requires Uber Eats POS Partner status. Not implemented.
 - **Menu sync to Uber**: Not implemented. Menu changes must be made in Uber Eats directly or via HubRise.
+- **Rate limit (429) Retry-After header not parsed**: When Uber Eats returns 429 during concurrent status syncs, Bull backoff retries correctly but does not honour the `Retry-After` header. Observed during Phase N pilot (Issue N-002). Future work: parse and honour `Retry-After` to reduce unnecessary retry delay.
 
 ### Deliveroo
 - **Store open/close**: Deliveroo's availability API requires POS Partner approval. Endpoint not implemented.
@@ -78,6 +79,15 @@
 
 > Items 1 and 2 from the original list (outbox pattern, credential encryption) were resolved in Phase J.
 > Item 6 (test coverage) was resolved across Phases I–K — 122 tests now passing.
+
+---
+
+## Phase N Limitations
+
+- **Printer offline detection is reactive**: The heartbeat poller detects offline printers within the heartbeat interval (default 30s). During Phase N pilot, a loose Ethernet cable caused a 4-minute print queue backlog before the physical fix was applied. Consider reducing the heartbeat interval for pilot locations or adding an alert rule on `printer.status = OFFLINE`.
+- **Uber Eats 429 Retry-After not honoured**: Bull queue backoff retries 429s correctly but does not parse the `Retry-After` header from Uber Eats. During the Phase N lunch peak, 3 concurrent status syncs triggered a rate limit. All retried successfully within 30s. Parsing `Retry-After` would reduce unnecessary delay.
+- **No automated escalation for P2 issues**: Phase N issues were caught by direct log monitoring. There is no automated alert for non-critical issues like 429s or printer offline events. Future work: add alert rules for printer OFFLINE and provider 4xx error rate.
+- **Restaurant staff cannot see outbox health**: Staff have no visibility into the outbox queue. They cannot tell if an order status sync is pending or failed. Future work: add a simple health indicator to the dashboard for non-admin users.
 
 ---
 

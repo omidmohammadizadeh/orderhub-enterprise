@@ -273,3 +273,34 @@ Fill in for each pilot:
 | On-call engineer | | |
 | Restaurant contact | | |
 | Provider account manager | | |
+
+---
+
+## Phase N Lessons Learned
+
+The following were learned during the first live pilot (Spice Garden, 2026-05-19):
+
+### Printer cable check before go-live
+
+Before marking a location LIVE, physically verify the printer's Ethernet cable is fully seated at both ends (printer and switch). A loose cable caused a 4-minute print queue backlog during the first trading hour (Issue N-001). Add to the pre-go-live on-site checklist.
+
+### Uber Eats rate limiting during peak
+
+Uber Eats rate limits concurrent status sync calls. During the lunch peak with 3 orders accepted within 45 seconds, a 429 was returned. Bull queue backoff handled it automatically. Brief the restaurant that a 30-second status sync delay is normal during peak — orders are not lost.
+
+### Staff need a "printer is offline" drill
+
+During staff training, include a deliberate printer-offline drill so staff know to:
+1. Check the printer power light
+2. Check the Ethernet cable
+3. Restart the printer
+4. Call the manager if not resolved in 5 minutes
+This resolved Issue N-001 before any permanent impact.
+
+### Handoff after first 2 hours
+
+After the first 2 hours of trading, the on-call engineer can reduce monitoring frequency to hourly. By hour 3, if no P0/P1 issues have occurred, monitoring can be handed off to the restaurant manager using the health endpoint dashboard.
+
+### 3-day review checkpoint
+
+Schedule the 3-day review (see `PHASE_N_REPORT.md`) before going live. The review date should be booked with the restaurant contact before go-live, not after the first trading day.

@@ -262,6 +262,22 @@ For each enabled platform:
 
 ---
 
+## 10h. First Live Trading Validation (Phase N)
+
+- [ ] Smoke test re-run immediately before go-live (exit code 0, all 16 checks)
+- [ ] Release readiness score ≥ 90 confirmed on day of go-live
+- [ ] On-call engineer monitoring logs for first 2 hours of trading
+- [ ] First real order received and confirmed printed
+- [ ] First real order status synced back to provider
+- [ ] Bull Board checked — no failed jobs accumulating
+- [ ] `outboxDead: 0` confirmed after first order
+- [ ] Printer heartbeat ONLINE confirmed during peak
+- [ ] No 5xx errors in structured logs during first trading hour
+- [ ] P2 issues logged in `PILOT_ISSUES.md` with root cause
+- [ ] 3-day review date agreed before handing off monitoring
+
+---
+
 ## 12. Post Go-Live (First 30 minutes)
 
 - [ ] Monitor /api/v1/health/ready — stays green
