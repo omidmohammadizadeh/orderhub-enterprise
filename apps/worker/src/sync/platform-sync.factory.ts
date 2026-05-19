@@ -6,6 +6,27 @@ export interface SyncResult {
   success: boolean;
   platformOrderId?: string;
   error?: string;
+  rateLimited?: boolean;
+  retryAfterMs?: number;
+}
+
+/** Parse a Retry-After header value into milliseconds.
+ *  Accepts integer seconds ("30") or an HTTP-date ("Wed, 21 Oct 2026 07:28:00 GMT").
+ *  Returns null when the header is absent or unparseable. */
+export function parseRetryAfterMs(headers: Record<string, string | undefined>): number | null {
+  const raw = headers["retry-after"] ?? headers["Retry-After"];
+  if (!raw) return null;
+
+  const seconds = Number(raw);
+  if (!isNaN(seconds) && seconds >= 0) return Math.ceil(seconds) * 1000;
+
+  const date = new Date(raw);
+  if (!isNaN(date.getTime())) {
+    const delay = date.getTime() - Date.now();
+    return delay > 0 ? delay : 0;
+  }
+
+  return null;
 }
 
 // Base contract for all outbound platform sync clients.
@@ -61,6 +82,10 @@ export class UberEatsSyncClient extends PlatformSyncClient {
       }
       return { success: true };
     } catch (err: any) {
+      if (err?.response?.status === 429) {
+        const retryAfterMs = parseRetryAfterMs(err.response.headers ?? {});
+        return { success: false, error: "RATE_LIMITED", rateLimited: true, retryAfterMs: retryAfterMs ?? undefined };
+      }
       return { success: false, error: err?.response?.data?.message ?? String(err) };
     }
   }
@@ -104,6 +129,10 @@ export class DeliverooSyncClient extends PlatformSyncClient {
       }
       return { success: true };
     } catch (err: any) {
+      if (err?.response?.status === 429) {
+        const retryAfterMs = parseRetryAfterMs(err.response.headers ?? {});
+        return { success: false, error: "RATE_LIMITED", rateLimited: true, retryAfterMs: retryAfterMs ?? undefined };
+      }
       return { success: false, error: err?.response?.data?.message ?? String(err) };
     }
   }
@@ -153,6 +182,10 @@ export class JustEatSyncClient extends PlatformSyncClient {
       }
       return { success: true };
     } catch (err: any) {
+      if (err?.response?.status === 429) {
+        const retryAfterMs = parseRetryAfterMs(err.response.headers ?? {});
+        return { success: false, error: "RATE_LIMITED", rateLimited: true, retryAfterMs: retryAfterMs ?? undefined };
+      }
       return { success: false, error: err?.response?.data?.message ?? String(err) };
     }
   }
@@ -203,6 +236,10 @@ export class HubRiseSyncClient extends PlatformSyncClient {
       );
       return { success: true };
     } catch (err: any) {
+      if (err?.response?.status === 429) {
+        const retryAfterMs = parseRetryAfterMs(err.response.headers ?? {});
+        return { success: false, error: "RATE_LIMITED", rateLimited: true, retryAfterMs: retryAfterMs ?? undefined };
+      }
       return { success: false, error: err?.response?.data?.message ?? String(err) };
     }
   }

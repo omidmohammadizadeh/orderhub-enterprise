@@ -82,6 +82,15 @@ export class OrderSyncProcessor {
       this.logger.log(
         `[${orderId}] Status synced to ${syncPlatform}: ${toStatus}`,
       );
+    } else if (result.rateLimited) {
+      const retryInfo = result.retryAfterMs != null
+        ? `Retry-After: ${result.retryAfterMs}ms`
+        : "no Retry-After header";
+      this.logger.warn(
+        `[${orderId}] Rate limited by ${syncPlatform} (${retryInfo}) — Bull will retry with exponential backoff`,
+      );
+      // Throw so Bull records the failure and schedules the next retry via its backoff config
+      throw new Error(`RATE_LIMITED by ${syncPlatform}: ${retryInfo}`);
     } else {
       // Throw to trigger Bull retry
       throw new Error(
@@ -93,9 +102,16 @@ export class OrderSyncProcessor {
   @OnQueueFailed()
   onFailed(job: Job, err: Error) {
     const data = job.data as SyncStatusJobData;
-    this.logger.error(
-      `Sync job failed [${data.orderId}] attempt ${job.attemptsMade}/${job.opts.attempts}: ${err.message}`,
-    );
+    const isRateLimit = err.message.startsWith("RATE_LIMITED");
+    if (isRateLimit) {
+      this.logger.warn(
+        `Sync job rate-limited [${data.orderId}] attempt ${job.attemptsMade}/${job.opts.attempts} — ${err.message}`,
+      );
+    } else {
+      this.logger.error(
+        `Sync job failed [${data.orderId}] attempt ${job.attemptsMade}/${job.opts.attempts}: ${err.message}`,
+      );
+    }
     // After maxAttempts the job lands in the failed set (Dead Letter Queue).
     // Use Bull Board or manual inspection to handle DLQ entries.
   }

@@ -304,3 +304,29 @@ After the first 2 hours of trading, the on-call engineer can reduce monitoring f
 ### 3-day review checkpoint
 
 Schedule the 3-day review (see `PHASE_N_REPORT.md`) before going live. The review date should be booked with the restaurant contact before go-live, not after the first trading day.
+
+---
+
+## Phase O Lessons Learned
+
+The following were learned during the 3-day pilot stabilisation:
+
+### Staff health panel reduces support calls
+
+Show restaurant staff the `GET /v1/health/staff-status?locationId=X` endpoint (or the dashboard status page when it becomes available). On Day 3, a paper jam was self-diagnosed and resolved by staff without any support call, purely from seeing `printerStatus: offline` and `actionRequired: check_printer` in the panel.
+
+### Daily printer pre-shift check prevents surprises
+
+Add the printer pre-shift check to the staff onboarding training for every new shop. See `PILOT_STAFF_TRAINING.md`. Taking 2 minutes before opening to verify power, cable, paper, and test print catches almost every printer issue before it affects real orders.
+
+### Uber Eats 429 events are now visible in logs
+
+After the Phase O fix, Uber Eats rate-limit events appear in logs as:
+```
+WARN [OrderSyncProcessor] [orderId] Rate limited by UBER_EATS (Retry-After: 12000ms) — Bull will retry with exponential backoff
+```
+No action is needed when you see these. Bull retries automatically. If you see > 5 per hour, check Uber Eats API status.
+
+### Heartbeat stale detection catches network issues faster
+
+The Phase O improvement writes `lastHeartbeatAt` to the printer's metadata on every 30s probe. If a printer appears online but the heartbeat is stale (> 90s), the readiness engine and staff health panel mark it as offline. This caught the paper jam within 90s rather than waiting for the next status-change probe.

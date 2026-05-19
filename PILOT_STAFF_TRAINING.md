@@ -157,6 +157,55 @@ Or ask your manager to use the Go-Live Wizard to pause the location.
 
 ---
 
+## Daily Printer Check (Before Opening)
+
+Every day before opening, complete this check:
+
+1. Press printer power button — green light should be on
+2. Check Ethernet cable is firmly pushed in at both ends (printer and router/switch)
+3. Check paper roll — if near the end, replace before trading starts
+4. Open OrderHub and go to the **System Status** page (`/dashboard/status`)
+5. Confirm printer shows **Online**
+6. Send a test print → confirm it prints a test ticket
+
+If test print fails → see **Printer Troubleshooting** section below.
+
+---
+
+## Printer Troubleshooting
+
+| Symptom | Step |
+|---|---|
+| Printer light off | Check power cable, switch on |
+| Printer light on but no print | Check Ethernet cable — push it firmly in |
+| Paper jam message | Open printer cover, clear paper jam, reload roll, press Feed |
+| Out of paper | Replace paper roll (80mm), close cover, press Feed |
+| Still offline after cable check | Restart printer (power off/on), wait 30 seconds |
+| Still offline after restart | Call manager / OrderHub support |
+
+If printer was offline and comes back, check **Orders** page — queued orders will print automatically.
+
+---
+
+## System Status Panel
+
+Your manager or support team may ask you to check the **System Status** panel.
+
+Ask your manager for the link: `https://app.orderhub.io/api/v1/health/staff-status?locationId=XXXX`
+
+This page shows:
+- **System status**: online / offline
+- **Printer status**: online / offline
+- **Last print time**: when the last successful print happened
+- **Providers**: whether Uber Eats and Deliveroo are connected
+- **Action required**: none / check printer / contact support
+
+Share this information with the support team if they ask.
+
+This page does NOT show any passwords, credentials, or financial information.
+
+---
+
 ## Quick Reference
 
 ```
@@ -165,5 +214,6 @@ Orders page:    Accept → Preparing → Ready → Dispatch/Complete
 Kitchen:        KDS page — Bump when ready
 Reprint:        Order details → Reprint
 Pause item:     Menu → toggle Unavailable
+Daily check:    Printer power ✓ / Cable ✓ / Paper ✓ / Test print ✓
 Emergency:      Call manager / OrderHub support immediately
 ```

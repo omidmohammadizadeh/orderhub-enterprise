@@ -78,8 +78,16 @@ export class PrinterHeartbeatCron {
       reachable = false;
     }
 
+    // Always record heartbeat timestamp so staff health panel can detect stale probes
+    const heartbeatPayload = JSON.stringify({ lastHeartbeatAt: new Date().toISOString() });
+    await this.prisma.$executeRaw`
+      UPDATE "Printer"
+      SET metadata = COALESCE(metadata::jsonb, '{}'::jsonb) || ${heartbeatPayload}::jsonb
+      WHERE id = ${printer.id}
+    `;
+
     const wasOnline = printer.isOnline;
-    if (reachable === wasOnline) return; // No change — skip update
+    if (reachable === wasOnline) return; // No status change — skip setOnlineStatus
 
     this.logger.log(
       `Printer ${printer.id} status changed: ${wasOnline ? "ONLINE" : "OFFLINE"} → ${reachable ? "ONLINE" : "OFFLINE"}`,

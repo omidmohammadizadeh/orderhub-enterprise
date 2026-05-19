@@ -89,9 +89,42 @@ A P0 incident requires immediate action:
 
 ---
 
+---
+
+### Issue O-001
+
+- **Time:** 2026-05-21 12:20 UTC
+- **Location:** Spice Garden — Bethnal Green
+- **Provider:** PRINTER
+- **Severity:** P2
+- **Reported by:** Kitchen staff via dashboard — noticed printer offline in staff health panel
+- **Description:** Printer went offline at 12:20 UTC. Staff health panel showed `printerStatus: offline` and `actionRequired: check_printer`. Two orders were queued (not printed). Staff investigated immediately.
+- **Impact:** 2 orders not printed during the outage (12:20–12:32 UTC). Staff notified both customers verbally. Orders resumed printing at 12:32 UTC. No orders lost.
+- **Root cause:** Paper jam inside the printer. The Epson TM-T88VI's offline state is detectable by the TCP probe but the paper jam cause is not. The Phase O heartbeat stale-detection improvement meant the offline status appeared in the staff panel within 90s of the jam (vs. reactive-only detection before Phase O).
+- **Fix applied:** Kitchen staff opened the printer cover, cleared the paper jam, reloaded paper, and pressed Feed. Printer came back ONLINE at 12:32 UTC. 2 queued jobs printed without duplicates.
+- **Status:** Resolved
+- **Follow-up required:** Yes (non-blocking) — add a "paper jam detected" section to `PILOT_STAFF_TRAINING.md` printer troubleshooting steps.
+- **Resolved by:** Kitchen staff, 2026-05-21 12:32 UTC
+
+---
+
+## P2 Escalation Protocol
+
+P2 issues do not pause the location automatically but must be tracked and resolved before the next trading session.
+
+1. Log in `PILOT_ISSUES.md` with full details
+2. Assign an owner (on-call engineer or restaurant manager)
+3. Set a due time (same trading day or before next opening)
+4. Mark resolved or mitigated with root cause
+5. Include in weekly pilot summary
+6. If P2 recurs > 3 times for the same root cause, escalate to P1
+
+---
+
 ## Closed Issues
 
 | ID | Resolved | Summary |
 |---|---|---|
 | N-001 | 2026-05-19 11:19 UTC | Printer offline — loose Ethernet cable. Physical fix; no code change. |
 | N-002 | 2026-05-19 12:47 UTC | Uber Eats 429 during lunch peak. Bull retry handled automatically. |
+| O-001 | 2026-05-21 12:32 UTC | Printer offline — paper jam. Staff self-resolved using health panel. |

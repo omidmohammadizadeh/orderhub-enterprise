@@ -776,11 +776,14 @@ export class OnboardingService {
       isActive: boolean;
       isOnline: boolean;
       connectionType: string;
+      metadata?: unknown;
     }>,
     locationId: string,
   ): Promise<PrinterReadiness[]> {
     const now = Date.now();
     const cutoff = new Date(now - 24 * 60 * 60_000);
+    // Heartbeat is considered stale if older than 2× the 30s probe interval
+    const HEARTBEAT_STALE_MS = 90_000;
 
     return Promise.all(
       printers.map(async (printer) => {
@@ -794,6 +797,13 @@ export class OnboardingService {
           select: { createdAt: true },
         });
 
+        // Read last heartbeat from metadata (written by PrinterHeartbeatCron)
+        const meta = (printer.metadata as Record<string, unknown>) ?? {};
+        const lastHeartbeatAt = typeof meta.lastHeartbeatAt === "string" ? meta.lastHeartbeatAt : null;
+        const heartbeatStale = lastHeartbeatAt
+          ? now - new Date(lastHeartbeatAt).getTime() > HEARTBEAT_STALE_MS
+          : false;
+
         const checks: ReadinessCheck[] = [
           {
             key: `printer.${printer.id}.active`,
@@ -805,8 +815,24 @@ export class OnboardingService {
           {
             key: `printer.${printer.id}.online`,
             label: `${printer.name} is online`,
-            status: printer.isOnline ? "pass" : "warn",
-            detail: printer.isOnline ? undefined : "Check printer power and network connection",
+            status: printer.isOnline && !heartbeatStale ? "pass" : "warn",
+            detail: !printer.isOnline
+              ? "Check printer power and network connection"
+              : heartbeatStale
+              ? `Heartbeat stale since ${lastHeartbeatAt} — check network connection`
+              : undefined,
+            critical: false,
+            adminOverridable: true,
+          },
+          {
+            key: `printer.${printer.id}.heartbeat`,
+            label: `${printer.name} heartbeat recent`,
+            status: lastHeartbeatAt && !heartbeatStale ? "pass" : "warn",
+            detail: lastHeartbeatAt
+              ? heartbeatStale
+                ? `Last heartbeat ${lastHeartbeatAt} — may be stale`
+                : `Last heartbeat ${lastHeartbeatAt}`
+              : "No heartbeat recorded yet — printer may not have been probed",
             critical: false,
             adminOverridable: true,
           },
@@ -826,11 +852,11 @@ export class OnboardingService {
           printerId: printer.id,
           printerName: printer.name,
           isActive: printer.isActive,
-          isOnline: printer.isOnline,
+          isOnline: printer.isOnline && !heartbeatStale,
           connectionType: printer.connectionType,
           lastTestPrintAt: lastSuccess?.createdAt ?? null,
           failedJobsLast24h: failedCount,
-          ready: printer.isActive && printer.isOnline && failedCount < 5,
+          ready: printer.isActive && printer.isOnline && !heartbeatStale && failedCount < 5,
           checks,
         };
       }),

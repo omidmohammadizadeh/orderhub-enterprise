@@ -262,6 +262,19 @@ For each enabled platform:
 
 ---
 
+## 10i. 3-Day Pilot Stability (Phase O)
+
+- [ ] 3-day monitoring log completed in `PHASE_O_REPORT.md`
+- [ ] 0 lost orders over 3 days
+- [ ] 0 unresolved P0 or P1 issues at end of Day 3
+- [ ] Staff operating independently from Day 2
+- [ ] Printer stale-heartbeat detection confirmed working (Phase O improvement)
+- [ ] Provider rate-limit events logged with Retry-After detail (Phase O improvement)
+- [ ] Staff health panel accessible and used by restaurant staff
+- [ ] 3-day success criteria decision recorded: expand / hold / pause
+
+---
+
 ## 10h. First Live Trading Validation (Phase N)
 
 - [ ] Smoke test re-run immediately before go-live (exit code 0, all 16 checks)
