@@ -111,7 +111,7 @@ This document defines the billing access rules for every key endpoint group.
 | `GET /billing/plans` | ✅ `@Public()` | ✅ | ✅ | ✅ | ✅ | Unauthenticated plan browsing |
 | `GET /billing/status` | ❌ | 🔒 | 🔒 | ⚠️ | 👑 | Tenant billing page — restricted when blocked |
 | `GET /billing/warnings` | ✅ | ✅ | ✅ | ✅ | ✅ | Warnings must always show (especially for UNPAID) |
-| `POST /billing/checkout` | ❌ | 🔒 | 🔒 | ⚠️ | 👑 | Checkout initiates payment — blocked when unpaid |
+| `POST /billing/checkout` | ✅ | ✅ | ✅ | ✅ | ✅ | UNPAID/INCOMPLETE tenants must be able to reach checkout to self-serve into a paid plan |
 | `POST /billing/portal` | ✅ | ✅ | ✅ | ✅ | ✅ | UNPAID tenants must reach this to fix their payment method |
 | Admin endpoints (`/admin/*`) | ✅ `@BillingExempt()` + `@Roles("PLATFORM_ADMIN")` | ✅ | ✅ | ✅ | ✅ | Admin management always accessible |
 
@@ -175,8 +175,9 @@ A `PLATFORM_ADMIN` can always bypass billing restrictions. Additionally, specifi
 
 ---
 
-## Known Gaps (Phase U)
+## Known Gaps (Phase V)
 
 1. **Menu publish not restricted** — `MenusController` has no plan-limit or billing-guard integration. Publishing menus for UNPAID tenants is currently not restricted.
 2. **Integration CRUD not audited against plan limits** — Connecting a new provider isn't checked against plan feature flags in `IntegrationsController`.
-3. **Billing portal checkout access** — `POST /billing/checkout` is currently restricted for UNPAID tenants. Consider exempting it too so tenants with INCOMPLETE subscriptions can self-serve into a paid plan.
+
+> Gap #3 from Phase U (POST /billing/checkout blocked for UNPAID) was resolved in Phase V — `@BillingExempt()` added to the checkout endpoint.

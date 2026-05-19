@@ -137,7 +137,10 @@ export class BillingController {
   // ── Phase R: Stripe Checkout & Portal ──────────────────────────────────────
 
   // POST /v1/billing/checkout — start a Stripe Checkout session
+  // IMPORTANT: exempt from billing guard so UNPAID/INCOMPLETE tenants can self-serve
+  // into a paid plan. Without this exemption they cannot escape the UNPAID state.
   @Post("checkout")
+  @BillingExempt()
   @Roles("TENANT_OWNER")
   @ApiOperation({ summary: "Create a Stripe Checkout session to subscribe or upgrade" })
   createCheckout(

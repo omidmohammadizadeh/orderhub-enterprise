@@ -327,6 +327,26 @@ Before any billing/subscription or mass rollout:
 
 ---
 
+## 10m. Paid Rollout Gate (Phase V)
+
+Before activating any new paid customer after the first:
+
+- [ ] FIRST_REAL_PAID_CUSTOMER_SIGNOFF.md signed and on file
+- [ ] First paid activation smoke test passed (see PHASE_V_REPORT.md)
+- [ ] Payment failure + recovery confirmed in Stripe test mode
+- [ ] FREE_PILOT protection verified: all 5 pilot shops still FREE_PILOT, unaffected
+- [ ] 327 tests passing (0 failures) — confirm with `npx jest --forceExit`
+- [ ] PAID_CUSTOMER_SUPPORT_RUNBOOK.md reviewed by support/operations team
+- [ ] Written customer agreement confirmed (email/contract on file)
+- [ ] Billing email confirmed in TenantSubscription record
+- [ ] Subscription plan assigned via admin API with reason (not via direct DB)
+- [ ] Activation window respected: 08:00–10:00 BST, Mon–Thu, not bank holiday
+- [ ] No previous activation has unresolved billing issue
+- [ ] Post-activation smoke test run and passed
+- [ ] Activation recorded in PAID_ROLLOUT_PLAN.md rollout log
+
+---
+
 ## 10l. Billing Activation (Phase R)
 
 Before activating commercial billing:

@@ -563,3 +563,51 @@ describe("Billing: tenant isolation", () => {
     expect(result.stripeSubId).toBe("sub_ADMIN_VISIBLE");
   });
 });
+
+// ── Section 6: Phase V — checkout @BillingExempt() fix ───────────────────────
+
+describe("Billing: POST /billing/checkout is billing-exempt (Phase V fix)", () => {
+  // The checkout endpoint has @BillingExempt() added in Phase V so that UNPAID/CANCELLED
+  // tenants can self-serve into a paid plan without being blocked by BillingGuard.
+
+  it("UNPAID tenant can reach checkout — BillingGuard passes when @BillingExempt() is set", async () => {
+    const prisma = makePrisma({ status: "UNPAID", gracePeriodEndsAt: null });
+    const guard = new BillingGuard(makeReflector(true), prisma as any);
+    const result = await guard.canActivate(
+      makeContext({ tenantId: "t1", role: "TENANT_OWNER" }),
+    );
+    expect(result).toBe(true);
+    // Guard must not hit the database when exempt
+    expect(prisma.tenantSubscription.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("CANCELLED tenant can reach checkout — BillingGuard passes when @BillingExempt() is set", async () => {
+    const prisma = makePrisma({ status: "CANCELLED", gracePeriodEndsAt: null });
+    const guard = new BillingGuard(makeReflector(true), prisma as any);
+    const result = await guard.canActivate(
+      makeContext({ tenantId: "t1", role: "TENANT_OWNER" }),
+    );
+    expect(result).toBe(true);
+    expect(prisma.tenantSubscription.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("INCOMPLETE tenant can reach checkout — BillingGuard passes when @BillingExempt() is set", async () => {
+    const prisma = makePrisma({ status: "INCOMPLETE", gracePeriodEndsAt: null });
+    const guard = new BillingGuard(makeReflector(true), prisma as any);
+    const result = await guard.canActivate(
+      makeContext({ tenantId: "t1", role: "TENANT_OWNER" }),
+    );
+    expect(result).toBe(true);
+    expect(prisma.tenantSubscription.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("without @BillingExempt, UNPAID tenant would be blocked — confirms guard behaviour is correct", async () => {
+    // This verifies that the exemption actually matters: if we remove @BillingExempt()
+    // the guard would correctly throw ForbiddenException for UNPAID tenants.
+    const prisma = makePrisma({ status: "UNPAID", gracePeriodEndsAt: null });
+    const guard = new BillingGuard(makeReflector(false), prisma as any);
+    await expect(
+      guard.canActivate(makeContext({ tenantId: "t1", role: "TENANT_OWNER" })),
+    ).rejects.toThrow(ForbiddenException);
+  });
+});

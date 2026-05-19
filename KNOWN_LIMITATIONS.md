@@ -84,13 +84,23 @@
 
 ## Phase R Limitations
 
-- **BillingGuard not globally applied**: `BillingGuard` is available but must be explicitly added to modules. It is NOT applied globally. Before applying globally, every live-order endpoint (order ingestion, KDS, printer polling) must be decorated with `@BillingExempt()`. Phase S: audit all endpoints and apply guard globally.
-- **Grace period expiry not automated**: `BillingService.expireGracePeriods()` exists but is not wired to a scheduled cron. PAST_DUE tenants will not automatically move to UNPAID until a cron is added. Phase S: add nightly cron.
-- **Usage not reported to Stripe**: `UsageService.aggregateMonthlyUsage()` computes totals but the nightly cron to call it — and to call `StripeService.reportMeteredUsage()` — is not yet wired. Phase S: add cron.
-- **FREE_PILOT conversion not automated**: When `trialEndsAt` passes for a FREE_PILOT tenant, there is no job to start their Stripe trial. Phase S: add conversion job.
-- **Payment method status not synced**: `TenantSubscription.paymentMethodStatus` field exists but is not populated from Stripe. Phase S: sync from `customer.updated` webhook.
-- **Stripe not configured in test/staging**: StripeService throws on Stripe calls if `STRIPE_SECRET_KEY` is absent. Use test keys in staging. See `STRIPE_SETUP.md`.
+- **BillingGuard not globally applied**: *Resolved in Phase S* — BillingGuard registered as APP_GUARD. All critical trading endpoints have `@BillingExempt()`.
+- **Grace period expiry not automated**: *Resolved in Phase S* — hourly cron moves PAST_DUE → UNPAID.
+- **Usage not reported to Stripe**: *Partially resolved in Phase S* — daily cron aggregates usage into `usage_records`. Stripe metered billing reporting is still not wired (Phase W).
+- **FREE_PILOT conversion not automated**: *Resolved in Phase S* — daily cron moves FREE_PILOT → TRIALING after trialEndsAt (not ACTIVE).
+- **Payment method status not synced**: *Resolved in Phase U* — `customer.updated` and `customer.subscription.updated` webhooks sync `paymentMethodStatus`.
+- **Stripe not configured in test/staging**: StripeService lazy-loads and `isConfigured` returns false when key absent. No startup failure. Use test keys in staging.
 - **Pilot shop notice not yet sent**: Written notice must be sent to 5 pilot shops before 2026-08-01 explaining transition from FREE_PILOT to Starter tier on 2026-09-01.
+
+## Phase V Limitations
+
+- **Menu publish not billing-gated for UNPAID tenants**: `MenusController` has no `BillingGuard` integration. Publishing menus for UNPAID tenants is not restricted. Phase W.
+- **Integration CRUD not audited against plan limits**: Connecting a new provider isn't checked against plan feature flags in `IntegrationsController`. Phase W.
+- **No email notification on payment failure**: UNPAID tenants receive Stripe's default payment failure email (if configured in Stripe dashboard) but OrderHub sends no custom notification. Staff may not know access is restricted. Phase W.
+- **Stripe metered usage not reported to Stripe**: Usage is tracked internally in `usage_records` but not sent to Stripe's metered billing API. Billing is flat-rate only for now. Phase W.
+- **Mass rollout controls not enforced in code**: The 2-per-day activation limit and pre-activation checks in `PAID_ROLLOUT_PLAN.md` are process controls only — not enforced in code. Phase W.
+- **Just Eat not production-validated**: *Still unresolved from Phase Q.* Do not set Just Eat Integration.status = ACTIVE for any new paid customer until a production-level webhook exchange is validated.
+- **HubRise not production-validated**: *Still unresolved from Phase Q.* Do not activate paid customers using HubRise as their primary provider until validated.
 
 ## Phase Q Limitations
 

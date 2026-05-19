@@ -96,6 +96,17 @@ Complete all items before switching to live Stripe mode.
 
 ---
 
+## Phase V Code Changes Applied
+
+These gaps were identified and fixed before first paid activation:
+
+- [x] **POST /billing/checkout now @BillingExempt()** — UNPAID/CANCELLED tenants can self-serve into a new paid plan without being blocked. Applied in Phase V.
+- [x] **All 8 webhook events implemented** — including `customer.updated` (Phase U), `checkout.session.completed` (Phase T), `invoice.paid` recovery (Phase T).
+- [x] **paymentMethodStatus synced** from `customer.updated` and `customer.subscription.updated`.
+- [x] **lastInvoiceStatus synced** from `invoice.paid` and `invoice.payment_failed`.
+
+---
+
 ## Emergency Contacts
 
 If something goes wrong during live activation:
@@ -103,3 +114,4 @@ If something goes wrong during live activation:
 2. Run `adminGrantException` to restore tenant to usable status
 3. Check `stripe_webhook_events` table for error messages
 4. Replay failed webhooks from Stripe dashboard → Webhooks → Event details → Resend
+5. See `PAID_CUSTOMER_SUPPORT_RUNBOOK.md` for detailed issue-by-issue guidance
