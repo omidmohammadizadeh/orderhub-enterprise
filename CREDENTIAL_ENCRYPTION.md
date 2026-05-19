@@ -1,6 +1,6 @@
 # Credential Encryption
 
-> Phase I — Production Safety
+> Phase I — Production Safety | Updated Phase J — Key Rotation
 
 ## Overview
 
@@ -8,11 +8,21 @@ All `Integration.credentials` values are encrypted at rest using AES-256-GCM aut
 
 ---
 
-## Required Environment Variable
+## Environment Variables
+
+### Primary key (Phase I / legacy)
 
 ```
 CREDENTIAL_ENCRYPTION_KEY=<64 hex characters>
 ```
+
+### Key rotation variables (Phase J)
+
+| Variable | Description |
+|---|---|
+| `CREDENTIAL_ENCRYPTION_KEY_CURRENT` | Current key — takes precedence over `CREDENTIAL_ENCRYPTION_KEY` |
+| `CREDENTIAL_ENCRYPTION_KEY_PREVIOUS` | Previous key — used as fallback during rotation |
+| `CREDENTIAL_ENCRYPTION_KEY_ID` | String label for current key, e.g. `v1`, `v2` (default: `v1`) |
 
 Generate a key:
 ```bash
@@ -41,29 +51,69 @@ Encrypted credentials are stored as a JSON object in the `credentials` JSONB col
   "alg": "aes-256-gcm",
   "iv": "<32 hex chars — 16 bytes random IV>",
   "tag": "<32 hex chars — 16 bytes GCM auth tag>",
-  "ct": "<hex encoded ciphertext>"
+  "ct": "<hex encoded ciphertext>",
+  "kid": "v1"
 }
 ```
 
-- `v` — format version (enables future key rotation)
+- `v` — format version
 - `alg` — algorithm identifier
 - `iv` — unique random IV per encryption call; never reused
 - `tag` — GCM authentication tag; tampering detected on decrypt
 - `ct` — encrypted JSON of the original credentials object
+- `kid` — key ID (added in Phase J; absent on Phase I envelopes, treated as needing re-encryption)
 
 ---
 
 ## Key Rotation
 
-To rotate to a new key:
+The service supports zero-downtime rotation: set both the current and previous keys, deploy, then re-encrypt all records.
 
-1. Generate a new key: `openssl rand -hex 32`
-2. Run the backfill script with both old and new keys (or temporarily decrypt with old key then re-encrypt with new key — contact ops)
-3. Update `CREDENTIAL_ENCRYPTION_KEY` in your secrets manager
-4. Restart API and worker
-5. Run the backfill script again with the new key to confirm 0 plaintext rows
+### Step-by-step
 
-The `v` (version) field is reserved for a future key-ID scheme that allows multiple keys to coexist during rotation.
+```bash
+# 1. Generate new key
+NEW_KEY=$(openssl rand -hex 32)
+echo "New key: $NEW_KEY"
+
+# 2. Dry run — confirm which records will be rotated
+DRY_RUN=true \
+  CREDENTIAL_ENCRYPTION_KEY_CURRENT=$NEW_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=$OLD_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
+  DATABASE_URL=$DATABASE_URL \
+  npx ts-node -P apps/api/tsconfig.json \
+  apps/api/src/scripts/rotate-credential-encryption.ts
+
+# 3. Deploy the new build with both keys set:
+#    CREDENTIAL_ENCRYPTION_KEY_CURRENT=$NEW_KEY
+#    CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=$OLD_KEY
+#    CREDENTIAL_ENCRYPTION_KEY_ID=v2
+#    (API can now decrypt both old and new ciphertext during the window)
+
+# 4. Apply rotation
+CREDENTIAL_ENCRYPTION_KEY_CURRENT=$NEW_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=$OLD_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
+  DATABASE_URL=$DATABASE_URL \
+  npx ts-node -P apps/api/tsconfig.json \
+  apps/api/src/scripts/rotate-credential-encryption.ts
+
+# 5. Verify: encryptedWithOldKey must be 0
+curl "https://api/v1/health/release-readiness?tenantId=<id>" | \
+  jq '.checks.credentialEncryption'
+
+# 6. Remove CREDENTIAL_ENCRYPTION_KEY_PREVIOUS from the environment
+# 7. Rename CREDENTIAL_ENCRYPTION_KEY_CURRENT → CREDENTIAL_ENCRYPTION_KEY
+# 8. Redeploy
+```
+
+### Safety rules
+
+- **Never** remove `PREVIOUS` key before `encryptedWithOldKey === 0`
+- **Never** log key hex values in application code
+- The rotation script is idempotent — safe to re-run
+- No downtime during rotation — both keys are active simultaneously
 
 ---
 
@@ -119,6 +169,7 @@ Only these paths decrypt credentials, and only at the point of API call:
 
 1. `TokenRefreshService.getCredentials()` — decrypts before returning to platform sync clients
 2. `IntegrationsService.getDecryptedCredentials()` — internal use only, never called from controllers
-3. `CredentialEncryptionService.decrypt()` — called by both of the above
+3. `WebhookIngestionService.ingest()` — decrypts `webhookSecret` from stored credentials before signature verification (Phase J)
+4. `CredentialEncryptionService.decrypt()` — called by all of the above
 
 Credentials are **never logged**. The `Logger` in `TokenRefreshService` logs only token expiry/refresh metadata, not the credential values.

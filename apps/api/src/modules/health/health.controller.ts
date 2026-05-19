@@ -98,18 +98,24 @@ export class HealthController {
     checks.sandboxEnabled = nodeEnv !== "production";
     if (nodeEnv !== "production") warnings.push("Sandbox tools are ENABLED — disable before go-live");
 
-    // Encryption key
-    const encryptionKeySet = !!process.env.CREDENTIAL_ENCRYPTION_KEY;
-    checks.encryptionKeySet = encryptionKeySet;
+    // ── Encryption key ───────────────────────────────────
+    const encryptionKeySet = !!(
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT ?? process.env.CREDENTIAL_ENCRYPTION_KEY
+    );
+    checks.encryption = {
+      keySet: encryptionKeySet,
+      keyId: this.encryption.keyId,
+      previousKeyConfigured: this.encryption.hasPreviousKey,
+    };
     if (!encryptionKeySet) warnings.push("CREDENTIAL_ENCRYPTION_KEY is not set — credentials stored in plaintext");
 
-    // DB
+    // ── Database ─────────────────────────────────────────
     try {
       await this.prisma.$queryRaw`SELECT 1`;
       checks.database = "ok";
     } catch { checks.database = "DOWN"; warnings.push("Database connection failed"); }
 
-    // Redis
+    // ── Redis ────────────────────────────────────────────
     try {
       await this.orderQueue.client.ping();
       checks.redis = "ok";
@@ -119,49 +125,101 @@ export class HealthController {
       return { checks, warnings, readyScore: 0 };
     }
 
-    // Credential encryption status
+    // ── Credential encryption status ─────────────────────
     if (encryptionKeySet) {
       try {
         const rows = await this.prisma.integration.findMany({
           where: { tenantId, deletedAt: null },
           select: { credentials: true },
         });
-        const plaintextCount = this.encryption.countPlaintext(rows.map((r) => r.credentials));
-        checks.plaintextCredentials = plaintextCount;
+        const credentialBlobs = rows.map((r) => r.credentials);
+        const plaintextCount = this.encryption.countPlaintext(credentialBlobs);
+        const oldKeyCount = this.encryption.countOldKey(credentialBlobs);
+        const currentKeyCount = this.encryption.countCurrentKey(credentialBlobs);
+        checks.credentialEncryption = {
+          plaintextCredentials: plaintextCount,
+          encryptedWithCurrentKey: currentKeyCount,
+          encryptedWithOldKey: oldKeyCount,
+        };
         if (plaintextCount > 0) {
           warnings.push(`${plaintextCount} integration(s) still have plaintext credentials — run backfill script`);
         }
-      } catch { checks.plaintextCredentials = "unavailable"; }
+        if (oldKeyCount > 0 && !this.encryption.hasPreviousKey) {
+          warnings.push(`${oldKeyCount} integration(s) encrypted with unknown old key`);
+        }
+      } catch { checks.credentialEncryption = "unavailable"; }
     }
 
-    // Outbox health
+    // ── Outbox health ─────────────────────────────────────
     try {
-      const outboxStats = await this.outboxDispatcher.getStats();
-      checks.outboxPending = outboxStats.pending;
-      checks.outboxProcessing = outboxStats.processing;
-      checks.outboxFailed = outboxStats.failed;
-      checks.outboxDead = outboxStats.dead;
-      checks.outboxOldestPendingAgeMs = outboxStats.oldestPendingAgeMs;
-
-      if (outboxStats.dead > 0) {
-        warnings.push(`${outboxStats.dead} dead outbox event(s) — manual intervention required`);
-      }
-      if (outboxStats.failed > 5) {
-        warnings.push(`${outboxStats.failed} failed outbox event(s) — check dispatcher logs`);
-      }
-      if (outboxStats.oldestPendingAgeMs !== null && outboxStats.oldestPendingAgeMs > 5 * 60_000) {
+      const s = await this.outboxDispatcher.getStats();
+      checks.outbox = {
+        pending: s.pending,
+        processing: s.processing,
+        stuckProcessing: s.stuckProcessing,
+        failed: s.failed,
+        dead: s.dead,
+        oldestPendingAgeMs: s.oldestPendingAgeMs,
+        lastRecoveredAt: s.lastRecoveredAt?.toISOString() ?? null,
+      };
+      if (s.dead > 0) warnings.push(`${s.dead} dead outbox event(s) — manual intervention required`);
+      if (s.stuckProcessing > 0) warnings.push(`${s.stuckProcessing} outbox event(s) stuck in PROCESSING`);
+      if (s.failed > 5) warnings.push(`${s.failed} failed outbox event(s) — check dispatcher logs`);
+      if (s.oldestPendingAgeMs !== null && s.oldestPendingAgeMs > 5 * 60_000) {
         warnings.push("Outbox has events older than 5 minutes — dispatcher may be stalled");
       }
-    } catch { checks.outboxStats = "unavailable"; }
+    } catch { checks.outbox = "unavailable"; }
 
-    // Integrations
+    // ── Webhook health ─────────────────────────────────────
+    try {
+      const platforms = ["UBER_EATS", "DELIVEROO", "JUST_EAT", "HUBRISE"] as const;
+      const webhookHealth: Record<string, unknown> = {};
+
+      for (const platform of platforms) {
+        const [lastSuccess, lastFailed, failedCount, duplicateCount] = await Promise.all([
+          this.prisma.webhookEvent.findFirst({
+            where: { platform, processedAt: { not: null } },
+            orderBy: { processedAt: "desc" },
+            select: { processedAt: true },
+          }),
+          this.prisma.webhookEvent.findFirst({
+            where: { platform, processingError: { not: null } },
+            orderBy: { createdAt: "desc" },
+            select: { createdAt: true, processingError: true },
+          }),
+          this.prisma.webhookEvent.count({
+            where: {
+              platform,
+              processingError: { not: null },
+              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60_000) },
+            },
+          }),
+          this.prisma.webhookEvent.count({
+            where: {
+              platform,
+              processedAt: null,
+              processingError: null,
+            },
+          }),
+        ]);
+        webhookHealth[platform] = {
+          lastSuccessAt: lastSuccess?.processedAt?.toISOString() ?? null,
+          lastFailedAt: lastFailed?.createdAt?.toISOString() ?? null,
+          failedLast24h: failedCount,
+          duplicatesIgnored: duplicateCount,
+        };
+      }
+      checks.webhooks = webhookHealth;
+    } catch { checks.webhooks = "unavailable"; }
+
+    // ── Active integrations ──────────────────────────────
     const integrations = await this.prisma.integration.findMany({
       where: { location: { brand: { tenantId } }, status: "ACTIVE" },
       select: { platform: true, status: true, locationId: true },
     });
     checks.activeIntegrations = integrations.map((i) => i.platform);
 
-    // Printers
+    // ── Printers ─────────────────────────────────────────
     const printerWhere: any = { location: { brand: { tenantId } } };
     if (locationId) printerWhere.locationId = locationId;
     const printers = await this.prisma.printer.findMany({
@@ -174,7 +232,7 @@ export class HealthController {
     if (activePrinters.length === 0) warnings.push("No active printers configured");
     if (activePrinters.some((p) => !p.isOnline)) warnings.push("Some printers are offline");
 
-    // Failed print jobs
+    // ── Failed print jobs ────────────────────────────────
     const failedPrintJobs = await this.prisma.printJob.count({
       where: {
         ...(locationId ? { locationId } : {}),
@@ -186,7 +244,7 @@ export class HealthController {
     checks.failedPrintJobsLast24h = failedPrintJobs;
     if (failedPrintJobs > 5) warnings.push(`${failedPrintJobs} failed print jobs in last 24h`);
 
-    // Queue stats
+    // ── Queue stats ──────────────────────────────────────
     try {
       const [waiting, active, failed] = await Promise.all([
         this.orderQueue.getWaitingCount(),
@@ -199,7 +257,7 @@ export class HealthController {
       if (failed > 10) warnings.push(`${failed} failed queue jobs — check worker`);
     } catch { checks.queueStats = "unavailable"; }
 
-    // Last successful order
+    // ── Last successful order ────────────────────────────
     const lastOrder = await this.prisma.order.findFirst({
       where: { tenantId, ...(locationId ? { locationId } : {}) },
       orderBy: { createdAt: "desc" },
@@ -207,15 +265,6 @@ export class HealthController {
     });
     checks.lastOrderAt = lastOrder?.createdAt.toISOString() ?? null;
     checks.lastOrderPlatform = lastOrder?.platform ?? null;
-
-    // Last webhook
-    const lastWebhook = await this.prisma.webhookEvent.findFirst({
-      where: { processedAt: { not: null } },
-      orderBy: { processedAt: "desc" },
-      select: { platform: true, processedAt: true },
-    });
-    checks.lastWebhookAt = lastWebhook?.processedAt?.toISOString() ?? null;
-    checks.lastWebhookPlatform = lastWebhook?.platform ?? null;
 
     const readyScore = Math.max(0, 100 - warnings.length * 10);
     return { checks, warnings, readyScore, generatedAt: new Date().toISOString() };

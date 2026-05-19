@@ -159,9 +159,33 @@ For each enabled platform:
 
 ---
 
+## 10a. Smoke Test (Phase J)
+
+- [ ] Run smoke test script: `SMOKE_BASE_URL=<url> SMOKE_TENANT_ID=<id> ... pnpm smoke-test`
+- [ ] All 9 checks pass (exit code 0)
+- [ ] Encryption roundtrip check passes
+- [ ] `outbox_events` table exists (confirms migration applied)
+- [ ] Webhook endpoint reachable (returns 400 for unknown platform, not 404/502)
+
+---
+
+## 10b. Key Rotation Check (Phase J)
+
+- [ ] `CREDENTIAL_ENCRYPTION_KEY_ID` set (e.g. `v1`)
+- [ ] `credentialEncryption.encryptedWithOldKey === 0` in release readiness (or rotation is explicitly in progress)
+- [ ] If rotation in progress: `CREDENTIAL_ENCRYPTION_KEY_PREVIOUS` still set until rotation completes
+- [ ] Rotation script dry run completed successfully before final launch
+
+---
+
 ## 11. Go-Live Approval
 
-- [ ] Release Readiness score ≥ 80
+- [ ] All webhook test suites pass (0 failures)
+- [ ] `outbox.stuckProcessing === 0`
+- [ ] `outbox.dead === 0`
+- [ ] `credentialEncryption.plaintextCredentials === 0`
+- [ ] `credentialEncryption.encryptedWithOldKey === 0` (pre-launch target — acceptable during rotation window)
+- [ ] Release Readiness score ≥ 90
 - [ ] No CRITICAL warnings in release readiness check
 - [ ] All printers online
 - [ ] At least one active integration

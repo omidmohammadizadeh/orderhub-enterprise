@@ -1,6 +1,6 @@
 # Transactional Outbox Architecture
 
-> Phase I — Production Safety
+> Phase I — Production Safety | Updated Phase J
 
 ## Why the Outbox Pattern?
 
@@ -124,12 +124,26 @@ After `maxAttempts` (default 10) the event moves to `DEAD` and requires manual i
 2. Reset: `UPDATE outbox_events SET status = 'PENDING', attempts = 0, next_attempt_at = NULL WHERE id = '...'`
 3. The dispatcher will pick it up on the next tick
 
-**PROCESSING events that are stuck**: These indicate a dispatcher crash mid-flight. After a reasonable timeout (e.g. 10 minutes), reset these to PENDING for retry:
-```sql
-UPDATE outbox_events SET status = 'PENDING'
-WHERE status = 'PROCESSING'
-  AND updated_at < NOW() - INTERVAL '10 minutes';
-```
+**PROCESSING events that are stuck**: These indicate a dispatcher crash mid-flight. The dispatcher automatically recovers them via `recoverStuckProcessing()` — no manual SQL needed. See the section below.
+
+---
+
+## Stuck PROCESSING Recovery (Phase J)
+
+If the API process crashes after claiming an event (setting it to PROCESSING) but before marking it PROCESSED, the event is stuck forever without housekeeping.
+
+`OutboxDispatcherCron` calls `recoverStuckProcessing()` at the start of every dispatch tick. It:
+
+1. Queries `status = 'PROCESSING' AND updatedAt < now - timeout` using `FOR UPDATE SKIP LOCKED` — safe across concurrent API instances
+2. For each stuck event: increments `attempts`, sets `lastError = "Stuck in PROCESSING for >Ns — recovered by housekeeping"`, moves to `PENDING` (with backoff) or `DEAD` (if `attempts >= maxAttempts`)
+3. Logs a `WARN` for each recovered event
+
+**Configuration:**
+- `OUTBOX_PROCESSING_TIMEOUT_SECONDS` — default `300` (5 minutes). Set lower in high-volume environments.
+
+**No duplicate dispatch risk:** Bull job IDs are deterministic. If the event was actually dispatched before the crash, the recovered PENDING event will re-dispatch the same Bull job ID, which Bull ignores as a duplicate.
+
+**Monitoring:** `getStats()` now returns `stuckProcessing` (count of PROCESSING events older than the timeout) and `lastRecoveredAt` (timestamp of most recently recovered event). Both surfaced in `/v1/health/release-readiness`.
 
 ---
 
@@ -143,15 +157,14 @@ Bull's deterministic job IDs (`jobId: 'ingest-...'`) provide a second layer — 
 
 ## Monitoring
 
-The dispatcher exposes `getStats()` which is surfaced in `/v1/health/release-readiness`:
+The dispatcher exposes `getStats()` which is surfaced in `/v1/health/release-readiness` under the `outbox` key:
 
-- `outboxPending` — events waiting to be dispatched
-- `outboxProcessing` — events currently being dispatched
-- `outboxFailed` — events that failed at least once (will retry)
-- `outboxDead` — events that exhausted all retries (needs manual attention)
-- `outboxOldestPendingAgeMs` — age of the oldest pending event (alert if > 5 minutes)
-
-Warnings are added to the release readiness response when:
-- `dead > 0`
-- `failed > 5`
-- `oldestPendingAgeMs > 5 minutes`
+| Field | Description | Alert threshold |
+|---|---|---|
+| `pending` | Events waiting to be dispatched | — |
+| `processing` | Events currently being dispatched | — |
+| `stuckProcessing` | PROCESSING events older than timeout | > 0 |
+| `failed` | Events that failed at least once (will retry) | > 5 |
+| `dead` | Events that exhausted all retries | > 0 |
+| `oldestPendingAgeMs` | Age of oldest pending/failed event | > 5 minutes |
+| `lastRecoveredAt` | When housekeeping last recovered a stuck event | informational |

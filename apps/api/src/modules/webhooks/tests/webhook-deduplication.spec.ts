@@ -5,15 +5,12 @@
 // 4. Retry behaviour after failed processing
 
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { WebhookIngestionService } from "../webhook-ingestion.service";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { OrdersService } from "../../orders/orders.service";
-import { UberEatsAdapter } from "../adapters/uber-eats.adapter";
-import { DeliverooAdapter } from "../adapters/deliveroo.adapter";
-import { JustEatAdapter } from "../adapters/just-eat.adapter";
-import { HubRiseAdapter } from "../adapters/hubrise.adapter";
 import { WebhookAdapterFactory } from "../webhook-adapter.factory";
+import { CredentialEncryptionService } from "../../integrations/credential-encryption.service";
 
 const mockPrisma = {
   webhookEvent: {
@@ -39,6 +36,18 @@ const mockAdapter = {
 
 const mockAdapterFactory = {
   get: jest.fn().mockReturnValue(mockAdapter),
+};
+
+// Passthrough encryption — credentials stored as plaintext in tests
+const mockEncryption = {
+  decrypt: jest.fn().mockImplementation((c: unknown) => c),
+  isEncrypted: jest.fn().mockReturnValue(false),
+};
+
+const MOCK_INTEGRATION = {
+  id: "int-001",
+  credentials: { webhookSecret: "test-secret" },
+  location: { brand: { tenantId: "tenant-001" } },
 };
 
 const SAMPLE_UBER_EVENT = {
@@ -73,6 +82,7 @@ describe("WebhookIngestionService", () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockAdapterFactory.get.mockReturnValue(mockAdapter);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -80,6 +90,7 @@ describe("WebhookIngestionService", () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: OrdersService, useValue: mockOrdersService },
         { provide: WebhookAdapterFactory, useValue: mockAdapterFactory },
+        { provide: CredentialEncryptionService, useValue: mockEncryption },
       ],
     }).compile();
 
@@ -88,10 +99,7 @@ describe("WebhookIngestionService", () => {
 
   describe("duplicate detection", () => {
     it("returns { duplicate: true } when event ID was already processed", async () => {
-      mockPrisma.integration.findFirst.mockResolvedValue({
-        id: "int-001",
-        credentials: { webhookSecret: "test-secret" },
-      });
+      mockPrisma.integration.findFirst.mockResolvedValue(MOCK_INTEGRATION);
       mockAdapter.verifySignature.mockReturnValue({ valid: true });
       mockAdapter.extractEventId.mockReturnValue("event-abc");
       // Simulate duplicate: create throws a unique constraint error
@@ -113,10 +121,7 @@ describe("WebhookIngestionService", () => {
 
     it("processes a new event and creates a WebhookEvent record", async () => {
       const createdWebhookEvent = { id: "whe-001", status: "PENDING" };
-      mockPrisma.integration.findFirst.mockResolvedValue({
-        id: "int-001",
-        credentials: { webhookSecret: "test-secret" },
-      });
+      mockPrisma.integration.findFirst.mockResolvedValue(MOCK_INTEGRATION);
       mockAdapter.verifySignature.mockReturnValue({ valid: true });
       mockAdapter.extractEventId.mockReturnValue("event-new-123");
       mockPrisma.webhookEvent.create.mockResolvedValue(createdWebhookEvent);
@@ -140,10 +145,7 @@ describe("WebhookIngestionService", () => {
 
   describe("signature verification", () => {
     it("rejects webhooks with invalid signature", async () => {
-      mockPrisma.integration.findFirst.mockResolvedValue({
-        id: "int-001",
-        credentials: { webhookSecret: "real-secret" },
-      });
+      mockPrisma.integration.findFirst.mockResolvedValue(MOCK_INTEGRATION);
       mockAdapter.verifySignature.mockReturnValue({ valid: false, reason: "Signature mismatch" });
 
       await expect(
@@ -168,7 +170,7 @@ describe("WebhookIngestionService", () => {
           headers: {},
           payload: {},
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -185,6 +187,37 @@ describe("WebhookIngestionService", () => {
           payload: {},
         }),
       ).rejects.toThrow();
+    });
+  });
+
+  describe("encrypted credentials", () => {
+    it("decrypts credentials before extracting webhook secret", async () => {
+      const encryptedIntegration = {
+        ...MOCK_INTEGRATION,
+        credentials: { v: 1, alg: "aes-256-gcm", iv: "deadbeef", tag: "abcd", ct: "cafe" },
+      };
+      mockPrisma.integration.findFirst.mockResolvedValue(encryptedIntegration);
+      mockEncryption.decrypt.mockReturnValueOnce({ webhookSecret: "decrypted-secret" });
+      mockAdapter.verifySignature.mockReturnValue({ valid: true });
+      mockAdapter.extractEventId.mockReturnValue("event-enc-001");
+      mockPrisma.webhookEvent.create.mockResolvedValue({ id: "whe-enc" });
+      mockAdapter.normalize.mockReturnValue(null); // non-order event — stops early
+      mockPrisma.webhookEvent.update.mockResolvedValue({});
+
+      await service.ingest({
+        platform: "UBER_EATS",
+        locationId: "loc-001",
+        rawBody: Buffer.from("{}"),
+        headers: {},
+        payload: {},
+      });
+
+      expect(mockEncryption.decrypt).toHaveBeenCalledWith(encryptedIntegration.credentials);
+      expect(mockAdapter.verifySignature).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        expect.any(Object),
+        "decrypted-secret",
+      );
     });
   });
 });

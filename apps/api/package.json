@@ -10,7 +10,12 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:migrate": "prisma migrate deploy --schema=../../packages/database/prisma/schema.prisma",
+    "db:generate": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
+    "db:backfill-encryption": "ts-node -P tsconfig.json src/scripts/backfill-credential-encryption.ts",
+    "db:rotate-keys": "ts-node -P tsconfig.json src/scripts/rotate-credential-encryption.ts",
+    "deploy:preflight": "pnpm db:generate && pnpm type-check && pnpm test -- --no-coverage"
   },
   "dependencies": {
     "@nestjs/bull": "^10.2.1",

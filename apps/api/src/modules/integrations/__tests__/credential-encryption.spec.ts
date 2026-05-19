@@ -2,15 +2,23 @@ import { CredentialEncryptionService } from "../credential-encryption.service";
 
 describe("CredentialEncryptionService", () => {
   const VALID_KEY = "a".repeat(64); // 32 bytes as hex
+  const OLD_KEY   = "b".repeat(64);
   let service: CredentialEncryptionService;
 
   beforeEach(() => {
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_ID;
     process.env.CREDENTIAL_ENCRYPTION_KEY = VALID_KEY;
     service = new CredentialEncryptionService();
   });
 
   afterEach(() => {
     delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS;
+    delete process.env.CREDENTIAL_ENCRYPTION_KEY_ID;
   });
 
   describe("encrypt / decrypt roundtrip", () => {
@@ -37,13 +45,23 @@ describe("CredentialEncryptionService", () => {
       expect((enc1 as any).iv).not.toBe((enc2 as any).iv);
     });
 
-    it("includes v, alg, iv, tag, ct in the envelope", () => {
+    it("includes v, alg, iv, tag, ct, kid in the envelope", () => {
       const encrypted = service.encrypt({ key: "value" }) as any;
       expect(encrypted.v).toBe(1);
       expect(encrypted.alg).toBe("aes-256-gcm");
       expect(typeof encrypted.iv).toBe("string");
       expect(typeof encrypted.tag).toBe("string");
       expect(typeof encrypted.ct).toBe("string");
+      expect(typeof encrypted.kid).toBe("string");
+    });
+
+    it("stores the current key ID in the kid field", () => {
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v2";
+      const svc = new CredentialEncryptionService();
+      const enc = svc.encrypt({ x: 1 }) as any;
+      expect(enc.kid).toBe("v2");
     });
   });
 
@@ -74,14 +92,14 @@ describe("CredentialEncryptionService", () => {
   describe("authentication", () => {
     it("throws on tampered ciphertext (GCM auth tag check)", () => {
       const encrypted = service.encrypt({ secret: "value" }) as any;
-      encrypted.ct = "deadbeef" + encrypted.ct.slice(8); // corrupt ciphertext
+      encrypted.ct = "deadbeef" + encrypted.ct.slice(8);
 
       expect(() => service.decrypt(encrypted)).toThrow();
     });
 
     it("throws when auth tag is tampered", () => {
       const encrypted = service.encrypt({ secret: "value" }) as any;
-      encrypted.tag = "00".repeat(16); // zero out the tag
+      encrypted.tag = "00".repeat(16);
 
       expect(() => service.decrypt(encrypted)).toThrow();
     });
@@ -93,7 +111,7 @@ describe("CredentialEncryptionService", () => {
       const noKeySvc = new CredentialEncryptionService();
       const creds = { accessToken: "tok" };
       const result = noKeySvc.encrypt(creds as any);
-      expect(result).toEqual(creds); // passthrough
+      expect(result).toEqual(creds);
     });
 
     it("in production mode, throws if key is missing", () => {
@@ -102,7 +120,7 @@ describe("CredentialEncryptionService", () => {
       process.env.NODE_ENV = "production";
       try {
         expect(() => new CredentialEncryptionService()).toThrow(
-          "CREDENTIAL_ENCRYPTION_KEY must be set in production",
+          "CREDENTIAL_ENCRYPTION_KEY",
         );
       } finally {
         process.env.NODE_ENV = origEnv;
@@ -113,9 +131,89 @@ describe("CredentialEncryptionService", () => {
       process.env.CREDENTIAL_ENCRYPTION_KEY = "tooshort";
       expect(() => new CredentialEncryptionService()).toThrow("64 hex characters");
     });
+
+    it("CREDENTIAL_ENCRYPTION_KEY_CURRENT takes precedence over legacy key", () => {
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT = VALID_KEY;
+      const svc = new CredentialEncryptionService();
+      const enc = svc.encrypt({ x: 1 });
+      expect(svc.isEncrypted(enc)).toBe(true);
+    });
   });
 
-  describe("countPlaintext", () => {
+  describe("key rotation", () => {
+    it("decrypts ciphertext encrypted with previous key when previous key is configured", () => {
+      // Encrypt with old key
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY = OLD_KEY;
+      const oldSvc = new CredentialEncryptionService();
+      const encryptedWithOldKey = oldSvc.encrypt({ secret: "rotate-me" });
+
+      // New service knows both keys
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT  = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS = OLD_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v2";
+      const newSvc = new CredentialEncryptionService();
+
+      const decrypted = newSvc.decrypt(encryptedWithOldKey as any);
+      expect(decrypted).toEqual({ secret: "rotate-me" });
+    });
+
+    it("throws when tampered ciphertext and no previous key can recover it", () => {
+      const enc = service.encrypt({ x: 1 }) as any;
+      enc.tag = "00".repeat(16);
+      expect(() => service.decrypt(enc)).toThrow();
+    });
+
+    it("throws when ciphertext cannot be decrypted with either key", () => {
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT  = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS = OLD_KEY;
+      const svc = new CredentialEncryptionService();
+
+      const totally_different_key = "c".repeat(64);
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT;
+      process.env.CREDENTIAL_ENCRYPTION_KEY = totally_different_key;
+      const otherSvc = new CredentialEncryptionService();
+      const enc = otherSvc.encrypt({ x: 1 });
+
+      expect(() => svc.decrypt(enc as any)).toThrow();
+    });
+
+    it("hasPreviousKey is true when CREDENTIAL_ENCRYPTION_KEY_PREVIOUS is set", () => {
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT  = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS = OLD_KEY;
+      const svc = new CredentialEncryptionService();
+      expect(svc.hasPreviousKey).toBe(true);
+    });
+
+    it("hasPreviousKey is false when no previous key is configured", () => {
+      expect(service.hasPreviousKey).toBe(false);
+    });
+
+    it("isEncryptedWithCurrentKey returns true for current key, false for old key", () => {
+      // Encrypt with old key
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY = OLD_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v1";
+      const oldSvc = new CredentialEncryptionService();
+      const encOld = oldSvc.encrypt({ x: 1 });
+
+      // New service with key ID v2
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT  = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS = OLD_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v2";
+      const newSvc = new CredentialEncryptionService();
+      const encNew = newSvc.encrypt({ x: 1 });
+
+      expect(newSvc.isEncryptedWithCurrentKey(encNew)).toBe(true);
+      expect(newSvc.isEncryptedWithCurrentKey(encOld)).toBe(false);
+    });
+  });
+
+  describe("countPlaintext / countCurrentKey / countOldKey", () => {
     it("counts credentials that are not encrypted", () => {
       const enc = service.encrypt({ k: "v" });
       const plain = { accessToken: "tok" };
@@ -125,6 +223,28 @@ describe("CredentialEncryptionService", () => {
     it("returns 0 when all are encrypted", () => {
       const enc = service.encrypt({ k: "v" });
       expect(service.countPlaintext([enc, enc])).toBe(0);
+    });
+
+    it("countCurrentKey returns count of envelopes with matching kid", () => {
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT  = VALID_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_PREVIOUS = OLD_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v2";
+      const svc = new CredentialEncryptionService();
+
+      // Encrypt with old key (kid=v1)
+      delete process.env.CREDENTIAL_ENCRYPTION_KEY_CURRENT;
+      process.env.CREDENTIAL_ENCRYPTION_KEY = OLD_KEY;
+      process.env.CREDENTIAL_ENCRYPTION_KEY_ID = "v1";
+      const oldSvc = new CredentialEncryptionService();
+      const encOld = oldSvc.encrypt({ x: 1 });
+
+      const encNew = svc.encrypt({ x: 2 });
+      const plain = { x: 3 };
+
+      expect(svc.countCurrentKey([encNew, encOld, plain])).toBe(1);
+      expect(svc.countOldKey([encNew, encOld, plain])).toBe(1);
+      expect(svc.countPlaintext([encNew, encOld, plain])).toBe(1);
     });
   });
 });

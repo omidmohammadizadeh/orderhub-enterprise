@@ -37,59 +37,84 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
 
   normalize(rawPayload: unknown, locationId: string): CanonicalOrder | null {
     const p = rawPayload as Record<string, any>;
-    if (p?.event?.type !== "order.created") return null;
+
+    // Skip non-order events when an explicit event wrapper is present.
+    // Deliveroo sends both: { event: { type }, order: {...} } and bare { order: {...} }.
+    if (p?.event?.type && p.event.type !== "order.created") return null;
 
     const order = p?.order ?? {};
     const externalId: string = order.id;
     if (!externalId) return null;
 
+    // Deliveroo amounts arrive as { amount: "12.50" } strings (human-readable pounds)
+    // or occasionally as integer pence.  Normalise both to a JS float in pounds.
+    const parseMoney = (val: unknown): number => {
+      if (!val) return 0;
+      if (typeof val === "number") return val > 100 ? val / 100 : val; // pence heuristic
+      if (typeof val === "object" && "amount" in (val as object))
+        return parseFloat((val as Record<string, string>).amount ?? "0");
+      return 0;
+    };
+
     const items = (order.items ?? []).map((item: any) => ({
       name: item.name,
-      quantity: item.count ?? 1,
-      unitPrice: (item.total_price_with_addons ?? 0) / (item.count ?? 1) / 100,
-      totalPrice: (item.total_price_with_addons ?? 0) / 100,
+      quantity: item.quantity ?? item.count ?? 1,
+      unitPrice: parseMoney(item.unit_price_including_tax ?? item.unit_price),
+      totalPrice: parseMoney(item.total_including_tax ?? item.total_price_with_addons),
       modifiers: (item.modifier_groups ?? []).flatMap((g: any) =>
         (g.modifiers ?? []).map((m: any) => ({
           name: m.name,
-          price: (m.unit_price ?? 0) / 100,
-          quantity: m.count ?? 1,
+          price: parseMoney(m.unit_price),
+          quantity: m.quantity ?? m.count ?? 1,
         })),
       ),
       notes: item.notes ?? null,
     }));
 
     const customer = order.customer ?? {};
-    const delivery = order.fulfillment?.delivery ?? {};
+    // Support both name layouts: combined name field and first_name/last_name
+    const fullName = `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim();
+    const customerName = customer.name ?? (fullName || "Deliveroo Customer");
+
+    // Delivery address comes in two layouts depending on API version:
+    //   v1: order.fulfillment.delivery.address
+    //   v2: order.delivery.address
+    const delivery = order.delivery ?? order.fulfillment?.delivery ?? {};
+    const address = delivery.address ?? {};
+    const hasAddress = address.address_line_1 || address.address1;
+
+    const isPickup =
+      delivery.type === "pickup" || order.fulfillment?.method === "pickup";
 
     return {
       externalId,
       platform: "DELIVEROO",
-      displayId: order.display_id ?? null,
+      displayId: order.display_reference ?? order.display_id ?? null,
       orderSource: "DELIVEROO",
       integrationSource: "DIRECT",
       viaHubrise: false,
-      fulfillmentType: order.fulfillment?.method === "pickup" ? "PICKUP" : "PLATFORM_COURIER",
+      fulfillmentType: isPickup ? "PICKUP" : "PLATFORM_COURIER",
       customerInfo: {
-        name: customer.name ?? "Deliveroo Customer",
-        phone: customer.phone_number ?? undefined,
+        name: customerName,
+        phone: customer.phone_number ?? customer.phone ?? undefined,
         email: customer.email ?? undefined,
       },
-      deliveryAddress: delivery.address
+      deliveryAddress: hasAddress
         ? {
-            line1: delivery.address.address1 ?? "",
-            line2: delivery.address.address2 ?? undefined,
-            city: delivery.address.city ?? "",
-            postcode: delivery.address.postcode ?? "",
+            line1: address.address_line_1 ?? address.address1 ?? "",
+            line2: address.address_line_2 ?? address.address2 ?? undefined,
+            city: address.city ?? "",
+            postcode: address.postcode ?? address.zip_code ?? "",
             country: "GB",
           }
         : undefined,
       items,
-      subtotal: (order.subtotal ?? 0) / 100,
-      taxAmount: 0,
-      deliveryFee: (order.delivery_charge ?? 0) / 100,
-      discount: (order.discount ?? 0) / 100,
-      total: (order.total ?? 0) / 100,
-      specialInstructions: order.notes ?? undefined,
+      subtotal: parseMoney(order.subtotal_including_tax ?? order.subtotal),
+      taxAmount: parseMoney(order.tax ?? null),
+      deliveryFee: parseMoney(order.delivery_charge),
+      discount: parseMoney(order.discount ?? null),
+      total: parseMoney(order.total),
+      specialInstructions: order.notes ?? order.special_instructions ?? undefined,
       scheduledFor: order.scheduled_for ? new Date(order.scheduled_for) : undefined,
       idempotencyKey: undefined,
       metadata: { rawOrderId: order.id, restaurantId: order.restaurant?.id },

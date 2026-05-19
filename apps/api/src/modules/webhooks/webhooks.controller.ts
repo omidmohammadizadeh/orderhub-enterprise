@@ -7,14 +7,13 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  NotFoundException,
   BadRequestException,
+  NotFoundException,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiExcludeEndpoint } from "@nestjs/swagger";
+import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { Request } from "express";
 import { Public } from "../../common/decorators/public.decorator";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { WebhookIngestionService } from "./webhook-ingestion.service";
 
 const PLATFORM_TO_INTEGRATION: Record<string, string> = {
@@ -29,15 +28,10 @@ const PLATFORM_TO_INTEGRATION: Record<string, string> = {
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 
-  constructor(
-    private readonly ingestion: WebhookIngestionService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly ingestion: WebhookIngestionService) {}
 
   // POST /api/v1/webhooks/:platform/:locationId
   // Public — signature verification is the auth mechanism.
-  // Uses the "webhook" throttle tier: 300 req/min per IP, generous enough
-  // for legitimate platform bursts but blocks flood attacks.
   @Post(":platform/:locationId")
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -58,38 +52,19 @@ export class WebhooksController {
       throw new BadRequestException("Raw body unavailable — check NestJS rawBody config");
     }
 
-    // Resolve the integration to get the webhook secret and tenantId
-    const integration = await this.prisma.integration.findFirst({
-      where: {
-        locationId,
-        platform: platform as any,
-        status: "ACTIVE",
-      },
-      include: { location: { include: { brand: { select: { tenantId: true } } } } },
-    });
-
-    if (!integration) {
-      this.logger.warn(`No active integration for ${platform}/${locationId}`);
-      // Return 200 to prevent platform retrying — we'll just discard
-      return { received: true };
-    }
-
-    const credentials = integration.credentials as Record<string, string>;
-    const secret: string = credentials.webhookSecret ?? credentials.secret ?? "";
-    const tenantId: string = integration.location.brand.tenantId;
-
     const headers = req.headers as Record<string, string | string[] | undefined>;
 
-    const result = await this.ingestion.ingest({
-      platform,
-      rawBody,
-      headers,
-      secret,
-      tenantId,
-      locationId,
-    });
-
-    this.logger.log(`Webhook processed: ${platform}/${locationId} → ${JSON.stringify(result)}`);
-    return { received: true, ...result };
+    try {
+      const result = await this.ingestion.ingest({ platform, locationId, rawBody, headers });
+      this.logger.log(`Webhook processed: ${platform}/${locationId} → ${JSON.stringify(result)}`);
+      return { received: true, ...result };
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        // No active integration — return 200 so the platform stops retrying
+        this.logger.warn(`No active integration for ${platform}/${locationId} — discarding`);
+        return { received: true };
+      }
+      throw err;
+    }
   }
 }
