@@ -10,6 +10,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   APP_URL: z.string().url().default("http://localhost:3000"),
   API_URL: z.string().url().default("http://localhost:4000"),
+  WEB_URL: z.string().url().optional(),
+  CORS_ALLOWED_ORIGINS: z.string().optional(),
 
   // Database
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
@@ -27,10 +29,29 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
   JWT_REFRESH_TTL: z.string().default("7d"),
 
-  // Encryption (32-byte hex = 64 chars)
+  // Encryption — Phase I primary key (still accepted; superseded by _CURRENT in Phase J)
   ENCRYPTION_KEY: z
     .string()
-    .regex(/^[0-9a-f]{64}$/i, "ENCRYPTION_KEY must be a 64-char hex string (32 bytes)"),
+    .regex(/^[0-9a-f]{64}$/i, "ENCRYPTION_KEY must be a 64-char hex string (32 bytes)")
+    .optional(),
+
+  // Credential encryption (Phase J) — preferred over ENCRYPTION_KEY in production
+  CREDENTIAL_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, "CREDENTIAL_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)")
+    .optional(),
+  CREDENTIAL_ENCRYPTION_KEY_CURRENT: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, "CREDENTIAL_ENCRYPTION_KEY_CURRENT must be a 64-char hex string")
+    .optional(),
+  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, "CREDENTIAL_ENCRYPTION_KEY_PREVIOUS must be a 64-char hex string")
+    .optional(),
+  CREDENTIAL_ENCRYPTION_KEY_ID: z.string().default("v1"),
+
+  // Outbox dispatcher tuning
+  OUTBOX_PROCESSING_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(300),
 
   // Stripe
   STRIPE_SECRET_KEY: z.string().optional(),
@@ -86,6 +107,21 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+// ── Insecure default patterns to reject in production ─────────────────────────
+
+const INSECURE_PATTERNS: Array<[keyof Env, string]> = [
+  ["JWT_SECRET",         "change-me"],
+  ["JWT_SECRET",         "secret"],
+  ["JWT_SECRET",         "password"],
+  ["JWT_REFRESH_SECRET", "change-me"],
+  ["JWT_REFRESH_SECRET", "secret"],
+  ["JWT_REFRESH_SECRET", "password"],
+];
+
+const ZERO_PATTERN = /^0+$/;
+
+// ── Validation ────────────────────────────────────────────────────────────────
+
 export function validateEnv(rawEnv: Record<string, unknown>): Env {
   const result = envSchema.safeParse(rawEnv);
 
@@ -98,23 +134,64 @@ export function validateEnv(rawEnv: Record<string, unknown>): Env {
       `\n❌  Environment validation failed. Fix the following before starting:\n\n${errors}\n`,
     );
     process.exit(1);
+    return {} as Env; // unreachable in production; guards against mocked exit in tests
   }
 
-  // Warn about insecure defaults in production
-  if (result.data.NODE_ENV === "production") {
-    const insecurePatterns = [
-      ["JWT_SECRET", result.data.JWT_SECRET, "change-me"],
-      ["JWT_REFRESH_SECRET", result.data.JWT_REFRESH_SECRET, "change-me"],
-      ["ENCRYPTION_KEY", result.data.ENCRYPTION_KEY, "000000"],
-    ] as const;
+  const env = result.data;
 
-    for (const [key, value, pattern] of insecurePatterns) {
-      if (value.includes(pattern)) {
-        console.error(`\n❌  Production safety: ${key} contains insecure default value.\n`);
-        process.exit(1);
+  if (env.NODE_ENV === "production") {
+    const productionErrors: string[] = [];
+
+    // At least one credential encryption key must be set
+    const hasEncKey = !!(
+      env.CREDENTIAL_ENCRYPTION_KEY_CURRENT ??
+      env.CREDENTIAL_ENCRYPTION_KEY ??
+      env.ENCRYPTION_KEY
+    );
+    if (!hasEncKey) {
+      productionErrors.push(
+        "CREDENTIAL_ENCRYPTION_KEY (or CREDENTIAL_ENCRYPTION_KEY_CURRENT) is required in production",
+      );
+    }
+
+    // Reject all-zero keys
+    if (env.CREDENTIAL_ENCRYPTION_KEY && ZERO_PATTERN.test(env.CREDENTIAL_ENCRYPTION_KEY)) {
+      productionErrors.push("CREDENTIAL_ENCRYPTION_KEY must not be all zeros");
+    }
+    if (env.CREDENTIAL_ENCRYPTION_KEY_CURRENT && ZERO_PATTERN.test(env.CREDENTIAL_ENCRYPTION_KEY_CURRENT)) {
+      productionErrors.push("CREDENTIAL_ENCRYPTION_KEY_CURRENT must not be all zeros");
+    }
+
+    // Reject known-insecure JWT values
+    for (const [key, pattern] of INSECURE_PATTERNS) {
+      const value = env[key] as string | undefined;
+      if (value && value.toLowerCase().includes(pattern)) {
+        productionErrors.push(`${key} contains insecure default value ("${pattern}") — regenerate with: openssl rand -base64 48`);
       }
+    }
+
+    // Warn (non-fatal) about localhost CORS in production
+    const corsOrigin = env.SOCKET_CORS_ORIGIN ?? "";
+    if (corsOrigin.includes("localhost") || corsOrigin === "*") {
+      console.warn(
+        `\n⚠️   SOCKET_CORS_ORIGIN is "${corsOrigin}" — set to your production frontend domain before going live.\n`,
+      );
+    }
+
+    // APP_URL must not be localhost in production
+    if (env.APP_URL.includes("localhost")) {
+      productionErrors.push(
+        `APP_URL is "${env.APP_URL}" — set to the production frontend URL in production`,
+      );
+    }
+
+    if (productionErrors.length > 0) {
+      console.error(
+        `\n❌  Production safety checks failed:\n\n${productionErrors.map((e) => `  - ${e}`).join("\n")}\n`,
+      );
+      process.exit(1);
     }
   }
 
-  return result.data;
+  return env;
 }

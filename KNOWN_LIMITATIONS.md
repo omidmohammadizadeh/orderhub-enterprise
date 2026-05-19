@@ -81,6 +81,15 @@
 
 ---
 
+## Phase L Limitations
+
+- **Smoke test requires Redis client library**: The smoke test (`apps/api/src/scripts/smoke-test.ts`) imports `createClient` from `redis`. If this package is not in the runtime environment, the Redis check will fail. Install `redis` as a dev dependency if running the smoke test outside the app container.
+- **Monitoring is documentation-only**: `MONITORING_AND_ALERTS.md` defines alert thresholds and investigation steps but does not wire up alerting infrastructure (Datadog/PagerDuty/etc.). Operators must configure their own alert rules against the health endpoint.
+- **Backup schedule is manual**: `BACKUP_AND_RECOVERY.md` provides the backup commands but does not add automated backup cron jobs. Use managed Postgres (RDS, Supabase, etc.) or configure cron separately.
+- **`ProductionStartupService` does not check plaintext credentials**: The startup guard validates connectivity but does not query the database for unencrypted credentials. Use the smoke test or release readiness endpoint for that check.
+
+---
+
 ## Phase K Limitations
 
 - **Readiness score not cached**: `getLocationReadiness` is computed on every request. For a location list with many locations, individual scores are returned as `null` and computed on drill-down. A cache layer (Redis, 60s TTL) would improve the wizard's initial load.

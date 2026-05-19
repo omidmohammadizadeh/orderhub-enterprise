@@ -198,6 +198,56 @@ Expected:
 If issues arise:
 - Use Go-Live Wizard to set status to `PAUSED` immediately
 - Investigate before re-enabling
+- See `MONITORING_AND_ALERTS.md` for investigation steps per alert type
+
+---
+
+## Emergency Pause
+
+**If the location needs to stop taking orders immediately:**
+
+1. Go-Live Wizard → select location → click **PAUSED**
+2. Or via API (no UI needed):
+   ```bash
+   curl -X POST "https://api.orderhub.io/api/v1/onboarding/locations/<id>/transition?tenantId=<tid>" \
+     -H "Authorization: Bearer <admin-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"targetStatus": "PAUSED", "reason": "Emergency pause — investigating issue"}'
+   ```
+3. Disable the affected provider integration(s) at `/dashboard/integrations` if needed
+4. Notify the restaurant contact
+5. Document the incident in audit log (all transitions are logged automatically)
+
+**If only one provider needs to stop:**
+- Set that Integration's `status` to `INACTIVE` via `/dashboard/integrations`
+- Other providers continue operating
+
+**If all providers need to stop:**
+- Pause the location AND set all Integrations to INACTIVE
+
+---
+
+## Monitoring During Pilot
+
+Check these every 15 minutes for the first hour, then hourly:
+
+```bash
+# Health check
+curl https://api.orderhub.io/api/v1/health/ready | jq '.status'
+
+# Release readiness (replace tenantId)
+curl -H "Authorization: Bearer <token>" \
+  "https://api.orderhub.io/api/v1/health/release-readiness?tenantId=<id>" \
+  | jq '{score: .readyScore, dead: .checks.outbox.dead, stuck: .checks.outbox.stuckProcessing}'
+```
+
+Expected during normal operation:
+- `status: "ok"` from health/ready
+- `readyScore >= 85`
+- `dead: 0`
+- `stuckProcessing: 0`
+
+If any of the above deviates, see `MONITORING_AND_ALERTS.md` for investigation steps.
 
 ---
 

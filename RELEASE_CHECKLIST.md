@@ -190,6 +190,44 @@ For each enabled platform:
 
 ---
 
+## 10d. Production Environment Check (Phase L)
+
+- [ ] All variables in `PRODUCTION_ENVIRONMENT.md` reviewed and set
+- [ ] `CREDENTIAL_ENCRYPTION_KEY` stored in secrets manager (not committed to git)
+- [ ] `JWT_SECRET` and `JWT_REFRESH_SECRET` randomly generated, ≥ 32 chars, no insecure defaults
+- [ ] `APP_URL` is production URL (not localhost)
+- [ ] `SOCKET_CORS_ORIGIN` is production frontend domain (not `*`)
+- [ ] Provider base URLs confirmed to point to production endpoints
+- [ ] Production startup validation passes (no `STARTUP FAILED` in logs)
+- [ ] Smoke test passes (exit code 0): `npx ts-node apps/api/src/scripts/smoke-test.ts`
+- [ ] Smoke test: `no_plaintext_credentials` passes
+- [ ] Smoke test: `no_dead_outbox_events` passes
+- [ ] Smoke test: `phase_k_migration_applied` passes
+- [ ] Smoke test: `release_readiness_score` ≥ 80
+
+---
+
+## 10e. Monitoring Setup (Phase L)
+
+- [ ] Log aggregation configured (Datadog / CloudWatch / equivalent)
+- [ ] Uptime monitor on `GET /api/v1/health` configured
+- [ ] Alert on `outbox.dead > 0`
+- [ ] Alert on `outbox.stuckProcessing > 0` for > 300s
+- [ ] Alert on webhook failures increasing
+- [ ] On-call runbook link shared with team (`MONITORING_AND_ALERTS.md`)
+
+---
+
+## 10f. Backup Verified (Phase L)
+
+- [ ] Pre-deploy database backup taken
+- [ ] Backup file verified non-empty
+- [ ] Backup uploaded to S3 or equivalent
+- [ ] `CREDENTIAL_ENCRYPTION_KEY` confirmed available for backup restore
+- [ ] Restore procedure reviewed (`BACKUP_AND_RECOVERY.md`)
+
+---
+
 ## 11. Go-Live Approval
 
 - [ ] All webhook test suites pass (0 failures)

@@ -1,53 +1,87 @@
 # Deployment Runbook — OrderHub API
 
 > Exact commands to deploy to production. Follow in order. Do not skip steps.
+> For the first pilot deploy, also follow `PILOT_LAUNCH_RUNBOOK.md`.
 
 ---
 
 ## Required Environment Variables
 
-Set all of these before running any deploy command.
+See `PRODUCTION_ENVIRONMENT.md` for the full reference.
 
-| Variable | Description | Example |
+Critical variables (startup will fail without these in production):
+
+| Variable | Description | Generate with |
 |---|---|---|
-| `NODE_ENV` | Must be `production` | `production` |
-| `DATABASE_URL` | Postgres connection string | `postgresql://user:pass@host:5432/orderhub` |
-| `REDIS_URL` | Redis connection string | `redis://host:6379` |
+| `NODE_ENV` | Must be `production` | — |
+| `DATABASE_URL` | Postgres connection string | — |
+| `REDIS_URL` | Redis connection string | — |
+| `QUEUE_REDIS_URL` | Bull queue Redis | — |
 | `CREDENTIAL_ENCRYPTION_KEY` | AES-256 key — 64 hex chars | `openssl rand -hex 32` |
-| `JWT_SECRET` | At least 32 random chars | `openssl rand -base64 32` |
-| `SOCKET_CORS_ORIGIN` | Frontend production domain | `https://app.orderhub.example.com` |
+| `JWT_SECRET` | At least 32 random chars | `openssl rand -base64 48` |
+| `JWT_REFRESH_SECRET` | At least 32 random chars | `openssl rand -base64 48` |
+| `APP_URL` | Production frontend URL | — |
+| `SOCKET_CORS_ORIGIN` | Production frontend domain | — |
 
-**Key rotation (if rotating — see below):**
+**Key rotation (if rotating):**
 
 | Variable | Description |
 |---|---|
 | `CREDENTIAL_ENCRYPTION_KEY_CURRENT` | New key (replaces `CREDENTIAL_ENCRYPTION_KEY`) |
-| `CREDENTIAL_ENCRYPTION_KEY_PREVIOUS` | Old key — keep set until all credentials are rotated |
+| `CREDENTIAL_ENCRYPTION_KEY_PREVIOUS` | Old key — keep set until all credentials re-encrypted |
 | `CREDENTIAL_ENCRYPTION_KEY_ID` | String label for current key, e.g. `v2` |
-
-**Outbox tuning (optional):**
-
-| Variable | Default | Description |
-|---|---|---|
-| `OUTBOX_PROCESSING_TIMEOUT_SECONDS` | `300` | Seconds before a stuck PROCESSING event is recovered |
 
 ---
 
-## Step 1 — Apply Database Migration
+## Pre-Deploy Checklist
 
-Run from the monorepo root. Applies only pending migrations.
+- [ ] Branch/commit confirmed and reviewed
+- [ ] `pnpm test` passes (all suites)
+- [ ] `pnpm build` succeeds
+- [ ] All required env vars set in deployment target
+- [ ] Database backup taken (see Step 0)
+- [ ] Migration reviewed — is it additive? Any data transformation needed?
+- [ ] On-call engineer available
+
+---
+
+## Step 0 — Database Backup
+
+Always back up before migrating or deploying.
+
+```bash
+PGPASSWORD="$DB_PASS" pg_dump \
+  --host="$DB_HOST" --port="${DB_PORT:-5432}" \
+  --username="$DB_USER" --dbname="$DB_NAME" \
+  --format=custom \
+  --file="backup-$(date +%Y%m%d-%H%M%S).dump"
+
+# Verify backup
+ls -lh backup-*.dump
+pg_restore --list backup-*.dump | head -20
+
+# Upload to backup storage
+aws s3 cp backup-*.dump s3://orderhub-backups/pre-deploy/
+```
+
+---
+
+## Step 1 — Apply Database Migrations
+
+Run from the monorepo root.
 
 ```bash
 DATABASE_URL=<url> npx prisma migrate deploy \
   --schema=packages/database/prisma/schema.prisma
 ```
 
-**Verify:** Check migration table for `20260518210000_phase_i`.
-
+Verify all migrations applied:
 ```bash
 DATABASE_URL=<url> npx prisma migrate status \
   --schema=packages/database/prisma/schema.prisma
 ```
+
+Expected: `20260519000000_phase_k` is the most recent applied migration.
 
 ---
 
@@ -61,7 +95,6 @@ DATABASE_URL=<url> npx prisma generate \
 ```
 
 Or via npm script from `apps/api`:
-
 ```bash
 pnpm --filter @orderhub/api db:generate
 ```
@@ -70,10 +103,10 @@ pnpm --filter @orderhub/api db:generate
 
 ## Step 3 — Credential Encryption Backfill
 
-Encrypts any remaining plaintext credentials in the database.
+Encrypts any remaining plaintext credentials. Safe to run even if all credentials are already encrypted (idempotent).
 
 ```bash
-# Dry run first — confirm count
+# Dry run — confirm count
 DRY_RUN=true \
   CREDENTIAL_ENCRYPTION_KEY=<key> \
   DATABASE_URL=<url> \
@@ -85,7 +118,7 @@ CREDENTIAL_ENCRYPTION_KEY=<key> \
   pnpm --filter @orderhub/api db:backfill-encryption
 ```
 
-**Verify:** Release readiness page must show `plaintextCredentials: 0`.
+**Verify:** Readiness must show `plaintextCredentials: 0`.
 
 ---
 
@@ -98,144 +131,227 @@ pnpm --filter @orderhub/worker build
 
 ---
 
-## Step 5 — Run Tests (pre-deploy gate)
+## Step 5 — Run Tests
+
+All suites must pass before deploying.
 
 ```bash
 pnpm --filter @orderhub/api test -- --no-coverage
 ```
 
-All 9 suites must pass. If any fail, do not deploy.
+Expected: 148 tests passing, 12 suites. Do not deploy if any test fails.
 
 ---
 
-## Step 6 — Start Worker
+## Step 6 — Optional: Enable Maintenance Mode
 
+If using maintenance mode to prevent orders during deploy window:
 ```bash
-node apps/worker/dist/main.js
-```
-
-The worker processes Bull jobs from the outbox dispatcher.
-
----
-
-## Step 7 — Start API
-
-```bash
-node apps/api/dist/main.js
+# Set env var and restart API
+ENABLE_MAINTENANCE_MODE=true MAINTENANCE_MESSAGE="System update in progress — back shortly" \
+  node apps/api/dist/main.js
 ```
 
 ---
 
-## Step 8 — Verify Health
+## Step 7 — Start/Restart Worker
 
 ```bash
-curl https://api.orderhub.example.com/api/v1/health/ready
-
-# Expected:
-# { "status": "ok", "checks": { "database": { "status": "ok" }, "redis": { "status": "ok" } } }
+systemctl restart orderhub-worker
+# Or for Docker: docker restart orderhub-worker
 ```
 
 ---
 
-## Step 9 — Release Readiness Check
+## Step 8 — Start/Restart API
 
 ```bash
-curl "https://api.orderhub.example.com/api/v1/health/release-readiness?tenantId=<tenantId>"
+systemctl restart orderhub-api
+# Or for Docker: docker restart orderhub-api
 ```
 
-**Go-live gate — all of these must be satisfied:**
+Watch startup logs for:
+```
+[ProductionStartupService] Production startup validation passed.
+[Bootstrap] API running on port 4000 [production]
+```
 
+If you see `STARTUP FAILED`, check logs for the specific failing check before proceeding.
+
+---
+
+## Step 9 — Verify Health
+
+```bash
+curl https://api.orderhub.io/api/v1/health/ready
+```
+
+Expected:
+```json
+{
+  "status": "ok",
+  "checks": {
+    "database": { "status": "ok" },
+    "redis": { "status": "ok" }
+  }
+}
+```
+
+---
+
+## Step 10 — Run Smoke Test
+
+```bash
+CREDENTIAL_ENCRYPTION_KEY=<key> \
+  DATABASE_URL=<url> \
+  SMOKE_BASE_URL=https://api.orderhub.io \
+  SMOKE_TENANT_ID=<tenantId> \
+  npx ts-node -P apps/api/tsconfig.json apps/api/src/scripts/smoke-test.ts
+```
+
+All checks must pass (exit code 0) before removing maintenance mode or routing traffic.
+
+Checks include:
+- Encryption key valid
+- Encryption roundtrip passes
+- Database connected
+- Phase K migration applied
+- Redis connected
+- No plaintext credentials
+- No dead outbox events
+- No stuck PROCESSING events
+- API liveness and readiness
+- Release readiness score ≥ 80
+- Webhook endpoint reachable
+
+---
+
+## Step 11 — Release Readiness Check
+
+```bash
+curl "https://api.orderhub.io/api/v1/health/release-readiness?tenantId=<tenantId>" \
+  -H "Authorization: Bearer <token>" | jq '.'
+```
+
+**Gate — all of these must pass:**
 - `encryption.keySet: true`
 - `credentialEncryption.plaintextCredentials: 0`
-- `credentialEncryption.encryptedWithOldKey: 0` (if doing key rotation)
+- `credentialEncryption.encryptedWithOldKey: 0` (unless rotation is explicitly in progress)
 - `outbox.dead: 0`
 - `outbox.stuckProcessing: 0`
 - `readyScore >= 90`
 
 ---
 
-## Step 10 — Smoke Test (Optional)
-
-Run the smoke test script against the live URL before routing traffic:
+## Step 12 — Disable Maintenance Mode
 
 ```bash
-CREDENTIAL_ENCRYPTION_KEY=<key> \
-  DATABASE_URL=<url> \
-  SMOKE_BASE_URL=https://api.orderhub.example.com \
-  SMOKE_TENANT_ID=<tenantId> \
-  npx ts-node -P apps/api/tsconfig.json apps/api/src/scripts/smoke-test.ts
+# Remove ENABLE_MAINTENANCE_MODE from env (or set to false) and restart
+systemctl restart orderhub-api
 ```
-
-Exit code 0 = all checks pass.
-
----
-
-## Key Rotation
-
-Run this when you need to replace `CREDENTIAL_ENCRYPTION_KEY` with a new value.
-
-### Before you start
-
-1. Generate new key: `openssl rand -hex 32`
-2. Note your current key (this becomes `PREVIOUS`)
-
-### Rotation steps
-
-```bash
-# 1. Set both keys in the environment
-export CREDENTIAL_ENCRYPTION_KEY_CURRENT=<new-key>
-export CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=<old-key>
-export CREDENTIAL_ENCRYPTION_KEY_ID=v2
-
-# 2. Deploy the new build — the API now reads with both keys
-#    (all existing ciphertext is still readable via the previous key)
-
-# 3. Dry run the rotation script
-DRY_RUN=true \
-  CREDENTIAL_ENCRYPTION_KEY_CURRENT=<new-key> \
-  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=<old-key> \
-  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
-  DATABASE_URL=<url> \
-  pnpm --filter @orderhub/api db:rotate-keys
-
-# 4. Apply rotation
-CREDENTIAL_ENCRYPTION_KEY_CURRENT=<new-key> \
-  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=<old-key> \
-  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
-  DATABASE_URL=<url> \
-  pnpm --filter @orderhub/api db:rotate-keys
-
-# 5. Verify: release readiness must show encryptedWithOldKey: 0
-
-# 6. Remove CREDENTIAL_ENCRYPTION_KEY_PREVIOUS from the environment
-# 7. Rename CREDENTIAL_ENCRYPTION_KEY_CURRENT → CREDENTIAL_ENCRYPTION_KEY
-```
-
-### Safety notes
-
-- Never remove `CREDENTIAL_ENCRYPTION_KEY_PREVIOUS` before rotation is verified complete
-- Never log key hex values — check scripts before running
-- The API continues to serve requests during rotation (no downtime)
-- The rotation script is idempotent — safe to re-run
-
----
-
-## Rollback
-
-If the deploy fails and you need to roll back:
-
-1. Stop the API/worker processes
-2. Restore the previous build artifact (`dist/`)
-3. Point traffic back to the previous instance
-4. Prisma migrations are additive and do not need to be rolled back (new columns have defaults)
-5. If a migration must be reversed, use `prisma migrate resolve --rolled-back <migration-name>` and run a manual SQL rollback
 
 ---
 
 ## Post-Deploy Monitoring (First 30 Minutes)
 
-- Watch `GET /api/v1/health/ready` — stays `{ "status": "ok" }`
-- Watch `outbox.stuckProcessing` and `outbox.dead` in release readiness
-- Watch Bull Board for queue failures
-- Confirm first real order received and printer job created
-- Confirm signature verification logs no `UnauthorizedException`
+- [ ] `GET /api/v1/health/ready` stays green
+- [ ] Bull Board shows no queue failures
+- [ ] First real order received and printed
+- [ ] First real order status synced back to provider
+- [ ] No `STARTUP FAILED` in logs
+- [ ] No `UnauthorizedException` in webhook logs
+- [ ] Outbox `dead: 0` and `stuckProcessing: 0`
+
+---
+
+## Key Rotation
+
+Run when you need to replace the credential encryption key without downtime.
+
+```bash
+# 1. Generate new key
+NEW_KEY=$(openssl rand -hex 32)
+
+# 2. Dry run with both keys
+DRY_RUN=true \
+  CREDENTIAL_ENCRYPTION_KEY_CURRENT=$NEW_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=$OLD_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
+  DATABASE_URL=<url> \
+  pnpm --filter @orderhub/api db:rotate-keys
+
+# 3. Deploy with both keys set in env
+
+# 4. Apply rotation
+CREDENTIAL_ENCRYPTION_KEY_CURRENT=$NEW_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_PREVIOUS=$OLD_KEY \
+  CREDENTIAL_ENCRYPTION_KEY_ID=v2 \
+  DATABASE_URL=<url> \
+  pnpm --filter @orderhub/api db:rotate-keys
+
+# 5. Verify: encryptedWithOldKey must be 0
+curl "https://api.orderhub.io/api/v1/health/release-readiness?tenantId=<id>" | \
+  jq '.checks.credentialEncryption'
+
+# 6. Remove CREDENTIAL_ENCRYPTION_KEY_PREVIOUS from env
+# 7. Rename CREDENTIAL_ENCRYPTION_KEY_CURRENT → CREDENTIAL_ENCRYPTION_KEY
+# 8. Redeploy
+```
+
+---
+
+## Rollback
+
+### App version rollback
+
+```bash
+# Redeploy previous build artifact
+systemctl stop orderhub-api orderhub-worker
+# Swap dist/ to previous version
+systemctl start orderhub-api orderhub-worker
+```
+
+### Migration rollback
+
+Migrations are additive (new columns with defaults) and generally do not need reverting. If a migration must be rolled back:
+
+```bash
+# Mark migration as rolled back in prisma migrations table
+DATABASE_URL=<url> npx prisma migrate resolve \
+  --rolled-back 20260519000000_phase_k \
+  --schema=packages/database/prisma/schema.prisma
+
+# Apply the corresponding manual SQL rollback
+DATABASE_URL=<url> psql "$DATABASE_URL" <<SQL
+ALTER TABLE locations DROP COLUMN IF EXISTS "goLiveStatus";
+ALTER TABLE locations DROP COLUMN IF EXISTS "lastTestOrderAt";
+ALTER TABLE locations DROP COLUMN IF EXISTS "lastTestPrintAt";
+DROP TYPE IF EXISTS "LocationGoLiveStatus";
+SQL
+```
+
+### Pause a provider during rollback
+
+```bash
+# Set integration status to INACTIVE to stop receiving orders from a platform
+UPDATE integrations SET status = 'INACTIVE' WHERE platform = 'UBER_EATS' AND "locationId" = '<id>';
+```
+
+### Stop workers safely
+
+```bash
+# SIGTERM lets Bull finish in-flight jobs before shutting down
+kill -TERM $(cat /var/run/orderhub-worker.pid)
+# Or: systemctl stop orderhub-worker
+```
+
+Do NOT use `kill -9` — it will interrupt in-flight jobs and may cause duplicate dispatches.
+
+### Prevent duplicate printing during rollback
+
+Print jobs use `UNIQUE` constraints on the outbox event ID. If the API restarts mid-job:
+1. The outbox dispatcher will retry the event
+2. The printer service deduplicates by `printJobId` before creating a new print job
+3. The Flutter app deduplicates by polling — already-printed jobs are not resent
+
+No special action needed during rollback.
