@@ -327,6 +327,21 @@ Before any billing/subscription or mass rollout:
 
 ---
 
+## 10n. Repository Safety Gate (Phase W)
+
+Before any paid activation or deployment:
+
+- [ ] `git ls-remote origin claude/xenodochial-brahmagupta-5521f8` returns `04473b2` (or later)
+- [ ] Branch is not behind remote: `git status` shows "up to date"
+- [ ] 328 tests passing: `cd apps/api && npx jest --forceExit`
+- [ ] Billing module TS-clean: `npx tsc -p tsconfig.json --noEmit 2>&1 | grep "^src/modules/billing"` (no output)
+- [ ] `prisma migrate deploy` run in target environment
+- [ ] `prisma generate` run after migrations
+- [ ] `REPOSITORY_HANDOFF.md` shared with team
+- [ ] PHASE_W_REPORT.md decision is Option A or Option B (not C)
+
+---
+
 ## 10m. Paid Rollout Gate (Phase V)
 
 Before activating any new paid customer after the first:

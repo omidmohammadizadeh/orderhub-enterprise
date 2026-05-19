@@ -42,7 +42,8 @@ export class UsageService {
           tenantId,
           locationId,
           createdAt: { gte: billingMonth, lt: monthEnd },
-          isSandbox: false,
+          // isSandbox not yet in generated client — added via schema migration (see KNOWN_LIMITATIONS.md)
+          ...(({ isSandbox: false }) as any),
         },
       }),
       this.prisma.printJob.count({

@@ -96,6 +96,14 @@ Complete all items before switching to live Stripe mode.
 
 ---
 
+## Phase W Findings
+
+- ✅ **Branch pushed to GitHub** — confirmed via `git ls-remote`, commit `04473b2` on remote
+- ✅ **Billing module TS-clean** — `src/modules/billing/` has 0 TypeScript errors after Phase W fix
+- ✅ **328 tests passing** — 23 test suites, 0 failures
+- ⚠️ **Pre-existing TS build errors** — `analytics.service.ts`, `branding.service.ts` etc. block `nest build`; resolve by running `prisma migrate deploy && prisma generate` before building
+- ⚠️ **ESLint v9 config gap** — migrate in Phase X; billing files pass manual review
+
 ## Phase V Code Changes Applied
 
 These gaps were identified and fixed before first paid activation:

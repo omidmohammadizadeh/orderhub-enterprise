@@ -92,6 +92,12 @@
 - **Stripe not configured in test/staging**: StripeService lazy-loads and `isConfigured` returns false when key absent. No startup failure. Use test keys in staging.
 - **Pilot shop notice not yet sent**: Written notice must be sent to 5 pilot shops before 2026-08-01 explaining transition from FREE_PILOT to Starter tier on 2026-09-01.
 
+## Phase W Limitations
+
+- **`nest build` exits non-zero due to pre-existing TS errors**: `analytics.service.ts`, `branding.service.ts`, `redis-subscriber.service.ts`, and `onboarding.service.ts` have Prisma schema-lag errors that predate Phase R. Resolve by running `prisma migrate deploy && prisma generate` before building in CI/CD. The billing module is clean.
+- **ESLint v9 config missing**: ESLint v9 requires `eslint.config.js` but only `.eslintrc.*` config exists (removed in ESLint v9). Billing files pass manual review. Migrate config in Phase X.
+- **`usage.service.ts` isSandbox Prisma lag**: *Resolved in Phase W* — `as any` spread applied. Will resolve cleanly after `prisma generate` with full schema.
+
 ## Phase V Limitations
 
 - **Menu publish not billing-gated for UNPAID tenants**: `MenusController` has no `BillingGuard` integration. Publishing menus for UNPAID tenants is not restricted. Phase W.
