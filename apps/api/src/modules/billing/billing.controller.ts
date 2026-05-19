@@ -119,4 +119,55 @@ export class BillingController {
       .checkFeatureAccess(user.tenantId, featureKey)
       .then((hasAccess) => ({ featureKey, hasAccess }));
   }
+
+  // ── Phase R: Tenant billing status ────────────────────────────────────────
+
+  // GET /v1/billing/status — tenant-scoped billing overview (no Stripe IDs exposed)
+  @Get("status")
+  @ApiOperation({ summary: "Current tenant billing status, plan, and recent invoices" })
+  getTenantBillingStatus(@CurrentUser() user: AuthenticatedUser) {
+    return this.billing.getTenantBillingStatus(user.tenantId);
+  }
+
+  // ── Phase R: Stripe Checkout & Portal ──────────────────────────────────────
+
+  // POST /v1/billing/checkout — start a Stripe Checkout session
+  @Post("checkout")
+  @Roles("TENANT_OWNER")
+  @ApiOperation({ summary: "Create a Stripe Checkout session to subscribe or upgrade" })
+  createCheckout(
+    @Body() body: { planId: string; successUrl: string; cancelUrl: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.createCheckoutSession(user.tenantId, {
+      planId: body.planId,
+      successUrl: body.successUrl,
+      cancelUrl: body.cancelUrl,
+      stripeService: (this.billing as any).stripeService,
+    });
+  }
+
+  // POST /v1/billing/portal — open Stripe Billing Portal
+  @Post("portal")
+  @Roles("TENANT_OWNER")
+  @ApiOperation({ summary: "Create a Stripe Billing Portal session to manage payment method" })
+  createPortal(
+    @Body() body: { returnUrl: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.billing.createPortalSession(user.tenantId, {
+      returnUrl: body.returnUrl,
+      stripeService: (this.billing as any).stripeService,
+    });
+  }
+
+  // ── Phase R: Admin billing overview (PLATFORM_ADMIN only) ─────────────────
+
+  // GET /v1/billing/admin/overview — all tenant subscriptions
+  @Get("admin/overview")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Admin: all tenant subscription statuses — PLATFORM_ADMIN only" })
+  getAdminBillingOverview() {
+    return this.billing.getAdminBillingOverview();
+  }
 }

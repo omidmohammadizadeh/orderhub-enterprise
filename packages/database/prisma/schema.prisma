@@ -1331,12 +1331,20 @@ model TenantSubscription {
   locationCount      Int              @default(1)
   metadata           Json             @default("{}")
 
-  invoices Invoice[]
+  // Phase R billing fields
+  billingEmail          String?   // billing contact — may differ from owner email
+  paymentMethodStatus   String?   // "ok" | "expiring_soon" | "expired" | "missing"
+  lastInvoiceStatus     String?   // mirrors InvoiceStatus of last invoice
+  gracePeriodEndsAt     DateTime? // set when payment fails; UNPAID after this date
+
+  invoices     Invoice[]
+  usageRecords UsageRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([tenantId])
+  @@index([status])
   @@map("tenant_subscriptions")
 }
 
@@ -1375,6 +1383,49 @@ model InvoiceLineItem {
 
   @@index([invoiceId])
   @@map("invoice_line_items")
+}
+
+// ── Phase R: Usage Tracking ───────────────────────────────────────────────────
+// Monthly aggregate of billable events per tenant per location.
+// Written by a nightly cron — never in the order hot path.
+model UsageRecord {
+  id             String             @id @default(cuid())
+  tenantId       String
+  subscriptionId String
+  subscription   TenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  locationId     String
+  billingMonth   DateTime           @db.Date // first day of the month
+  orderCount     Int                @default(0)
+  printJobCount  Int                @default(0)
+  activeProviders Int               @default(0)
+  reportedToStripe Boolean          @default(false)
+  reportedAt     DateTime?
+  metadata       Json               @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, locationId, billingMonth])
+  @@index([tenantId, billingMonth(sort: Desc)])
+  @@index([subscriptionId])
+  @@map("usage_records")
+}
+
+// ── Phase R: Stripe Webhook Idempotency Log ───────────────────────────────────
+// Every Stripe event we receive is stored here before processing.
+// If stripeEventId already exists → skip (idempotent).
+model StripeWebhookEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique // stripe evt_xxx
+  type          String
+  processedAt   DateTime?
+  error         String?
+  payload       Json
+
+  receivedAt DateTime @default(now())
+
+  @@index([type, receivedAt(sort: Desc)])
+  @@map("stripe_webhook_events")
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1836,6 +1887,8 @@ enum SubscriptionStatus {
   CANCELLED
   PAUSED
   INCOMPLETE
+  FREE_PILOT  // existing pilot shops — free until trialEndsAt, then auto-migrate to TRIALING
+  UNPAID      // payment failed and grace period expired; read-only access only
 }
 
 enum InvoiceStatus {

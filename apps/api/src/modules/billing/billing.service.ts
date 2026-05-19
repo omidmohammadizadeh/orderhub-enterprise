@@ -7,8 +7,9 @@ import {
 } from "@nestjs/common";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import type { StripeService } from "./stripe.service";
 
-// String-literal enum mirrors for Phase F (until prisma generate runs)
+// String-literal enum mirrors (until prisma generate runs against Phase R migration)
 const SubscriptionStatus = {
   TRIALING: "TRIALING",
   ACTIVE: "ACTIVE",
@@ -16,8 +17,13 @@ const SubscriptionStatus = {
   CANCELLED: "CANCELLED",
   PAUSED: "PAUSED",
   INCOMPLETE: "INCOMPLETE",
+  FREE_PILOT: "FREE_PILOT",
+  UNPAID: "UNPAID",
 } as const;
 type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
+
+// How many days past a failed payment before we move to UNPAID
+const GRACE_PERIOD_DAYS = 7;
 
 const InvoiceStatus = {
   DRAFT: "DRAFT",
@@ -62,11 +68,17 @@ type PrismaAny = any;
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
   private readonly db: PrismaAny;
+  // Optional — may be null if Stripe is not configured (FREE_PILOT phase)
+  public readonly stripeService?: StripeService;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    stripeService?: StripeService,
+  ) {
     // Cast once to avoid repetitive `as any` throughout — Phase F models will be
     // properly typed once `prisma generate` is re-run against schema v4.
     this.db = prisma as any;
+    this.stripeService = stripeService;
   }
 
   // ── Plans ──────────────────────────────────────────────────────────────────
@@ -460,5 +472,214 @@ export class BillingService {
       default:
         return SubscriptionStatus.INCOMPLETE;
     }
+  }
+
+  // ── Phase R: Stripe Checkout & Portal ──────────────────────────────────────
+
+  async createCheckoutSession(
+    tenantId: string,
+    params: { planId: string; successUrl: string; cancelUrl: string; stripeService: any },
+  ) {
+    const plan = await this.getPlanById(params.planId);
+    if (!plan.stripePriceId) {
+      throw new BadRequestException(
+        `Plan '${plan.name}' does not have a Stripe price configured`,
+      );
+    }
+
+    let sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { stripeCustomerId: true },
+    });
+
+    let stripeCustomerId: string | null = sub?.stripeCustomerId ?? null;
+
+    if (!stripeCustomerId && params.stripeService.isConfigured) {
+      const tenant = await this.db.tenant.findUnique({
+        where: { id: tenantId },
+        select: { name: true, users: { where: { role: "TENANT_OWNER" }, select: { email: true }, take: 1 } },
+      });
+      const ownerEmail = tenant?.users?.[0]?.email ?? `${tenantId}@orderhub.io`;
+      stripeCustomerId = await params.stripeService.createCustomer({
+        tenantId,
+        email: ownerEmail,
+        name: tenant?.name ?? tenantId,
+      });
+      if (sub) {
+        await this.db.tenantSubscription.update({
+          where: { tenantId },
+          data: { stripeCustomerId },
+        });
+      }
+    }
+
+    if (!stripeCustomerId) {
+      throw new BadRequestException("Stripe is not configured — cannot create checkout session");
+    }
+
+    return params.stripeService.createCheckoutSession({
+      stripeCustomerId,
+      stripePriceId: plan.stripePriceId,
+      successUrl: params.successUrl,
+      cancelUrl: params.cancelUrl,
+      tenantId,
+      trialDays: plan.trialDays ?? undefined,
+    });
+  }
+
+  async createPortalSession(
+    tenantId: string,
+    params: { returnUrl: string; stripeService: any },
+  ) {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      select: { stripeCustomerId: true },
+    });
+    if (!sub?.stripeCustomerId) {
+      throw new BadRequestException("No Stripe customer associated with this tenant");
+    }
+    return params.stripeService.createBillingPortalSession({
+      stripeCustomerId: sub.stripeCustomerId,
+      returnUrl: params.returnUrl,
+    });
+  }
+
+  // ── Phase R: Grace period and UNPAID transition ────────────────────────────
+
+  async applyGracePeriod(tenantId: string): Promise<void> {
+    const gracePeriodEndsAt = new Date();
+    gracePeriodEndsAt.setDate(gracePeriodEndsAt.getDate() + GRACE_PERIOD_DAYS);
+
+    await this.db.tenantSubscription.update({
+      where: { tenantId },
+      data: {
+        status: SubscriptionStatus.PAST_DUE,
+        gracePeriodEndsAt,
+        lastInvoiceStatus: "OPEN",
+      },
+    });
+    this.logger.warn(
+      `Grace period applied for tenant ${tenantId} — expires ${gracePeriodEndsAt.toISOString()}`,
+    );
+  }
+
+  // Called by a scheduled job to expire overdue grace periods
+  async expireGracePeriods(): Promise<number> {
+    const now = new Date();
+    const result = await this.db.tenantSubscription.updateMany({
+      where: {
+        status: SubscriptionStatus.PAST_DUE,
+        gracePeriodEndsAt: { lt: now },
+      },
+      data: { status: SubscriptionStatus.UNPAID },
+    });
+    if (result.count > 0) {
+      this.logger.warn(`Expired grace periods: ${result.count} tenant(s) moved to UNPAID`);
+    }
+    return result.count as number;
+  }
+
+  // ── Phase R: Admin billing overview ───────────────────────────────────────
+
+  async getAdminBillingOverview(): Promise<any[]> {
+    const subscriptions = await this.db.tenantSubscription.findMany({
+      include: {
+        tenant: { select: { id: true, name: true, slug: true, status: true } },
+        plan: { select: { name: true, displayName: true, pricePerMonth: true } },
+        invoices: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true, amountDue: true, createdAt: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return subscriptions.map((sub: any) => ({
+      tenantId: sub.tenantId,
+      tenantName: sub.tenant.name,
+      tenantSlug: sub.tenant.slug,
+      plan: sub.plan.name,
+      planDisplayName: sub.plan.displayName,
+      status: sub.status,
+      stripeCustomerId: sub.stripeCustomerId ?? null,
+      stripeSubId: sub.stripeSubId ?? null,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      trialEndsAt: sub.trialEndsAt ?? null,
+      gracePeriodEndsAt: sub.gracePeriodEndsAt ?? null,
+      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      billingEmail: sub.billingEmail ?? null,
+      paymentMethodStatus: sub.paymentMethodStatus ?? null,
+      lastInvoiceStatus: sub.invoices[0]?.status ?? null,
+      lastInvoiceAmountDue: sub.invoices[0]?.amountDue ?? null,
+      lastInvoiceDate: sub.invoices[0]?.createdAt ?? null,
+    }));
+  }
+
+  // ── Phase R: Pilot migration helper ───────────────────────────────────────
+
+  async migrateToFreePilot(tenantId: string, trialEndsAt: Date): Promise<void> {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+    });
+
+    if (sub) {
+      await this.db.tenantSubscription.update({
+        where: { tenantId },
+        data: {
+          status: SubscriptionStatus.FREE_PILOT,
+          trialEndsAt,
+          cancelAtPeriodEnd: false,
+          metadata: {
+            ...(sub.metadata as Record<string, unknown>),
+            migratedToFreePilot: new Date().toISOString(),
+            originalStatus: sub.status,
+          },
+        },
+      });
+    }
+
+    this.logger.log(
+      `Tenant ${tenantId} migrated to FREE_PILOT — free until ${trialEndsAt.toISOString()}`,
+    );
+  }
+
+  // ── Phase R: Tenant billing status ────────────────────────────────────────
+
+  async getTenantBillingStatus(tenantId: string) {
+    const sub = await this.db.tenantSubscription.findUnique({
+      where: { tenantId },
+      include: {
+        plan: { select: { name: true, displayName: true, pricePerMonth: true, maxLocations: true } },
+        invoices: {
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          select: {
+            id: true,
+            number: true,
+            status: true,
+            amountDue: true,
+            amountPaid: true,
+            createdAt: true,
+            dueDate: true,
+            pdfUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!sub) throw new NotFoundException("No subscription found for this tenant");
+
+    return {
+      status: sub.status,
+      plan: sub.plan,
+      trialEndsAt: sub.trialEndsAt ?? null,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      gracePeriodEndsAt: sub.gracePeriodEndsAt ?? null,
+      paymentMethodStatus: sub.paymentMethodStatus ?? null,
+      recentInvoices: sub.invoices,
+      // Do NOT expose stripeCustomerId, stripeSubId, or Stripe keys to tenants
+    };
   }
 }

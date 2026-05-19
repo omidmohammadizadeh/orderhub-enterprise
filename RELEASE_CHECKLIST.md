@@ -327,6 +327,29 @@ Before any billing/subscription or mass rollout:
 
 ---
 
+## 10l. Billing Activation (Phase R)
+
+Before activating commercial billing:
+
+- [ ] Run `prisma migrate deploy` — confirms `20260619000000_phase_r` migration applied
+- [ ] `StripeWebhookEvent` table exists in database
+- [ ] `UsageRecord` table exists in database
+- [ ] `gracePeriodEndsAt` column exists on `tenant_subscriptions`
+- [ ] `STRIPE_SECRET_KEY` set in production secrets (live key, not test)
+- [ ] `STRIPE_WEBHOOK_SECRET` set in production secrets
+- [ ] Stripe webhook endpoint configured in Stripe Dashboard (see `STRIPE_SETUP.md`)
+- [ ] Billing plans seeded: `node apps/api/src/scripts/seed-billing-plans.ts`
+- [ ] Pilot shops migrated: dry run then apply `apps/api/src/scripts/migrate-pilot-shops.ts`
+- [ ] Confirm 5 pilot shops have `status = FREE_PILOT` and `trialEndsAt = 2026-09-01`
+- [ ] Test checkout flow in staging (Stripe test card 4242...)
+- [ ] Webhook end-to-end tested: `stripe trigger invoice.payment_failed` → confirm `PAST_DUE` set
+- [ ] `GET /api/v1/billing/plans` returns 3 active plans
+- [ ] `GET /api/v1/billing/admin/overview` (PLATFORM_ADMIN) shows all tenant subscriptions
+- [ ] Written notice prepared for 5 pilot shops (to be sent before 2026-08-01)
+- [ ] Operations manager sign-off for billing activation
+
+---
+
 ## 12. Post Go-Live (First 30 minutes)
 
 - [ ] Monitor /api/v1/health/ready — stays green

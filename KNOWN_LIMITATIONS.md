@@ -82,6 +82,16 @@
 
 ---
 
+## Phase R Limitations
+
+- **BillingGuard not globally applied**: `BillingGuard` is available but must be explicitly added to modules. It is NOT applied globally. Before applying globally, every live-order endpoint (order ingestion, KDS, printer polling) must be decorated with `@BillingExempt()`. Phase S: audit all endpoints and apply guard globally.
+- **Grace period expiry not automated**: `BillingService.expireGracePeriods()` exists but is not wired to a scheduled cron. PAST_DUE tenants will not automatically move to UNPAID until a cron is added. Phase S: add nightly cron.
+- **Usage not reported to Stripe**: `UsageService.aggregateMonthlyUsage()` computes totals but the nightly cron to call it — and to call `StripeService.reportMeteredUsage()` — is not yet wired. Phase S: add cron.
+- **FREE_PILOT conversion not automated**: When `trialEndsAt` passes for a FREE_PILOT tenant, there is no job to start their Stripe trial. Phase S: add conversion job.
+- **Payment method status not synced**: `TenantSubscription.paymentMethodStatus` field exists but is not populated from Stripe. Phase S: sync from `customer.updated` webhook.
+- **Stripe not configured in test/staging**: StripeService throws on Stripe calls if `STRIPE_SECRET_KEY` is absent. Use test keys in staging. See `STRIPE_SETUP.md`.
+- **Pilot shop notice not yet sent**: Written notice must be sent to 5 pilot shops before 2026-08-01 explaining transition from FREE_PILOT to Starter tier on 2026-09-01.
+
 ## Phase Q Limitations
 
 - **Just Eat not production-validated**: The Just Eat webhook adapter exists and is unit-tested but was NOT activated in any Phase Q shop. Shops must NOT set Just Eat Integration.status = ACTIVE until a production-level webhook exchange is validated. Phase R: schedule validation with Just Eat API team before onboarding Just Eat shops.
