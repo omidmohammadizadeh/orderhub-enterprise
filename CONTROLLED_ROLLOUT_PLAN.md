@@ -1,7 +1,8 @@
 # Controlled Rollout Plan — Shops 2–5
 
 > Created: 2026-05-22
-> Status: Ready to begin — Spice Garden (Shop 1) is stable after 3-day pilot
+> Updated: 2026-05-19 (Phase P start)
+> Status: Phase P active — Spice Garden stable; Curry Leaf and Naan & Co scheduled
 
 ---
 
@@ -50,11 +51,11 @@ A shop is eligible for the controlled rollout if it meets ALL of the following:
 
 | Shop # | Name | Type | Notes |
 |---|---|---|---|
-| 1 | Spice Garden — Bethnal Green | Indian | ✓ LIVE (pilot) |
-| 2 | TBD — Arjun referral 1 | TBD | Schedule week of 2026-05-25 |
-| 3 | TBD — Arjun referral 2 | TBD | Schedule week of 2026-06-01 |
-| 4 | TBD — inbound enquiry | TBD | After shops 2+3 stable |
-| 5 | TBD | TBD | After shops 2+3+4 stable (≥ 1 week each) |
+| 1 | Spice Garden — Bethnal Green | Indian | ✅ LIVE (pilot) — 47 orders, 0 lost |
+| 2 | The Curry Leaf — Whitechapel | Indian | 🟡 TESTING — target go-live 2026-05-27 |
+| 3 | Naan & Co — Shoreditch | Indian | 🔵 CONFIGURING — target go-live 2026-06-03 |
+| 4 | Peri Palace — Hackney | Peri-peri | 📋 DRAFT — after shops 2+3 stable |
+| 5 | TBD | TBD | After shops 2+3+4 stable (≥ 5 working days each) |
 
 **Rule:** Do not onboard shop N+1 until shop N has traded for at least 5 working days with 0 P0/P1 issues.
 
@@ -237,10 +238,26 @@ Before marking any shop LIVE, confirm:
 
 ## Phase P Trigger Criteria
 
-Move to Phase P (wider rollout, 6–20 shops) when:
+Move to Phase Q (wider rollout, 6–20 shops) when:
 
 - [ ] At least 3 shops have traded successfully for ≥ 2 weeks with 0 P0/P1 issues
 - [ ] Staff from all pilot shops operating independently
 - [ ] No unresolved systemic issues (outbox reliability, printer, provider rate limits)
 - [ ] Support load is manageable (< 1 support call per shop per week)
 - [ ] Decision confirmed by operations manager
+
+---
+
+## Phase P Lessons Learned (2026-05-19)
+
+### Retry-After must drive actual retry delay, not just be logged
+
+Provider Retry-After was parsed in Phase O but only logged — Bull used its own exponential backoff regardless. Fixed in Phase O correction: `rateLimitAwareBackoff` strategy registered on ORDER_SYNC queue; STATUS_CHANGE jobs now use `rate-limit-aware` backoff type. Lesson: verify end-to-end that the provider's requested delay is actually respected, not just visible in logs.
+
+### Rollout admin monitoring saves manual investigation
+
+`GET /api/v1/admin/rollout/overview` (PLATFORM_ADMIN only) gives a single view of all rollout locations: printer status, provider status, failed jobs, dead outbox events. Use this every 15 minutes on each new shop's go-live day instead of checking each endpoint separately.
+
+### shopCode isolation must be tested before multi-location goes live
+
+Added `printers/tests/shopcode-isolation.spec.ts` in Phase P. The Flutter app's shopCode endpoint was only tested with a single location. Multi-location isolation confirmed: each shopCode resolves to exactly one location, and jobs never cross-contaminate.

@@ -139,4 +139,15 @@ export class AdminController {
   getLocationHealth(@CurrentTenantId() tenantId: string) {
     return this.admin.getLocationHealth(tenantId);
   }
+
+  // ── Rollout Overview ───────────────────────────────────
+
+  @Get("rollout/overview")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Controlled rollout overview — all pilot/live locations with operational status. PLATFORM_ADMIN only. No credentials exposed.",
+  })
+  getRolloutOverview() {
+    return this.admin.getRolloutOverview();
+  }
 }

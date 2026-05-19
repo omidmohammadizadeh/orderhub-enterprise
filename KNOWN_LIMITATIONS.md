@@ -1,6 +1,6 @@
 # Known Limitations
 
-> Phase H — Production Validation
+> Phase P — Controlled Rollout
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
 
 ---
@@ -12,7 +12,7 @@
 - **Order completed webhook**: When Uber marks an order complete on their side, no lifecycle call is expected from the restaurant.
 - **Store availability API**: Requires Uber Eats POS Partner status. Not implemented.
 - **Menu sync to Uber**: Not implemented. Menu changes must be made in Uber Eats directly or via HubRise.
-- **Rate limit (429) Retry-After header not parsed**: ~~Resolved in Phase O — `parseRetryAfterMs()` added to all sync clients. 429 responses are now detected and `Retry-After` is parsed and logged. Bull's exponential backoff remains the actual retry mechanism but the delay is now visible in logs.~~
+- **Rate limit (429) Retry-After header not parsed**: ~~Resolved in Phase O/P correction — `parseRetryAfterMs()` added to all sync clients. `rateLimitAwareBackoff` registered on ORDER_SYNC Bull queue. STATUS_CHANGE jobs use `rate-limit-aware` backoff type. Retry-After header now actually drives retry delay, not just logs it.~~
 
 ### Deliveroo
 - **Store open/close**: Deliveroo's availability API requires POS Partner approval. Endpoint not implemented.
@@ -82,9 +82,17 @@
 
 ---
 
+## Phase P Limitations
+
+- **Just Eat not production-validated**: The Just Eat webhook adapter exists and is unit-tested but has not been used in a live production environment. Do not claim Just Eat as a supported integration until a production-level webhook exchange has been validated with the Just Eat API team. Shops launching on Just Eat must not set Integration.status = ACTIVE until this is confirmed.
+- **Star printer (Shop 3) not yet production-tested**: The Star TSP654II adapter exists (Phase M) and prints correctly in dev, but has not been run in a live production shop yet. Shop 3 (Naan & Co) will be the first production use. Conduct a pre-go-live format verification call.
+- **Rollout overview requires manual refresh**: `GET /v1/admin/rollout/overview` is a point-in-time snapshot. There is no push notification or auto-refresh. During a new shop's go-live, poll every few minutes manually.
+- **paymentMethod not persisted**: The Cashier page payment method selection updates UI state only — it is not stored on the Order model. Post-Phase P work.
+- **Multi-shop analytics cross-contamination**: Cross-location reports aggregate all locations for the tenant regardless of user permissions. Do not show cross-location analytics to STAFF role users until this is scoped correctly.
+
 ## Phase O Limitations
 
-- **Provider rate-limit does not override Bull backoff delay**: `Retry-After` is parsed and logged but Bull's exponential backoff governs actual retry timing. If `Retry-After: 1s` is returned but Bull's minimum backoff is 2s, the retry will be slightly delayed. This is safe and conservative. True `Retry-After`-driven delay scheduling requires BullMQ (Bull v4 does not support `job.moveToDelayed()`).
+- **Provider rate-limit does not override Bull backoff delay**: ~~`Retry-After` is parsed and logged but Bull's exponential backoff governs actual retry timing.~~ *Resolved in Phase O correction* — `rateLimitAwareBackoff` strategy registered on ORDER_SYNC queue. STATUS_CHANGE jobs use `rate-limit-aware` backoff type. Retry-After header now drives the actual retry delay. Exponential backoff is the fallback when no Retry-After is present.
 - **Staff health panel requires explicit locationId query param**: Staff must know their locationId for `GET /v1/health/staff-status?locationId=X`. The dashboard frontend does not yet surface this as a one-click link. Future work: add a status badge to the Orders page header.
 - **Paper jam is not electronically detectable**: When a paper jam occurs the printer goes offline (detectable) but the root cause (jam vs. cable vs. power) cannot be determined remotely. Staff must physically inspect.
 

@@ -317,6 +317,120 @@ export class AdminService {
     }));
   }
 
+  // ── Rollout Overview (PLATFORM_ADMIN only) ─────────────
+
+  // Threshold for stale heartbeat — same as StaffHealthController
+  private static readonly HEARTBEAT_STALE_MS = 90_000;
+
+  async getRolloutOverview() {
+    const where: any = {
+      deletedAt: null,
+      goLiveStatus: { in: ["LIVE", "PAUSED", "READY_FOR_GO_LIVE", "TESTING"] },
+    };
+
+    const locations = await this.prisma.location.findMany({
+      where,
+      include: {
+        brand: { select: { tenantId: true, name: true } },
+        printers: {
+          where: { isActive: true, deletedAt: null } as any,
+          select: { isOnline: true, metadata: true },
+          orderBy: { createdAt: "asc" as const },
+          take: 1,
+        },
+        integrations: {
+          where: { deletedAt: null },
+          // credentials field deliberately excluded — never expose secrets here
+          select: { platform: true, status: true, lastErrorAt: true, lastSyncAt: true },
+        },
+      },
+      orderBy: { createdAt: "asc" as const },
+    });
+
+    const results = await Promise.all(
+      locations.map(async (loc) => {
+        const tenantId = loc.brand.tenantId;
+
+        const [lastOrder, lastPrint, failedPrintJobsLastHour, deadOutboxCount] =
+          await Promise.all([
+            this.prisma.order.findFirst({
+              where: { locationId: loc.id, tenantId },
+              orderBy: { createdAt: "desc" },
+              select: { createdAt: true },
+            }),
+            this.prisma.printJob.findFirst({
+              where: { locationId: loc.id, tenantId, status: "PRINTED" },
+              orderBy: { updatedAt: "desc" },
+              select: { updatedAt: true },
+            }),
+            this.prisma.printJob.count({
+              where: {
+                locationId: loc.id,
+                tenantId,
+                status: "FAILED",
+                createdAt: { gte: new Date(Date.now() - 60 * 60_000) },
+              },
+            }),
+            (this.prisma as any).outboxEvent.count({
+              where: { tenantId, status: "DEAD" },
+            }),
+          ]);
+
+        // Printer + heartbeat
+        const printer = loc.printers[0];
+        let printerStatus: "online" | "offline" | "unknown" = "unknown";
+        let lastHeartbeatAt: string | null = null;
+        if (printer) {
+          printerStatus = printer.isOnline ? "online" : "offline";
+          const meta = (printer.metadata as Record<string, unknown>) ?? {};
+          if (typeof meta.lastHeartbeatAt === "string") {
+            lastHeartbeatAt = meta.lastHeartbeatAt;
+            if (printerStatus === "online") {
+              const ageMs = Date.now() - new Date(lastHeartbeatAt).getTime();
+              if (ageMs > AdminService.HEARTBEAT_STALE_MS) printerStatus = "offline";
+            }
+          }
+        }
+
+        // Provider statuses — connected/disconnected only, no credentials
+        const providerStatuses: Record<string, "connected" | "disconnected" | "error"> = {};
+        for (const integration of loc.integrations) {
+          const hasRecentError =
+            integration.lastErrorAt &&
+            Date.now() - integration.lastErrorAt.getTime() < 60 * 60_000;
+          providerStatuses[integration.platform] =
+            integration.status !== "ACTIVE"
+              ? "disconnected"
+              : hasRecentError
+                ? "error"
+                : "connected";
+        }
+
+        return {
+          locationId: loc.id,
+          locationName: loc.name,
+          tenantId,
+          brandName: loc.brand.name,
+          goLiveStatus: (loc as any).goLiveStatus as string,
+          printerStatus,
+          lastHeartbeatAt,
+          providerStatuses,
+          lastOrderAt: lastOrder?.createdAt?.toISOString() ?? null,
+          lastPrintAt: lastPrint?.updatedAt?.toISOString() ?? null,
+          failedPrintJobsLastHour,
+          deadOutboxEvents: deadOutboxCount,
+          paused: (loc as any).goLiveStatus === "PAUSED",
+        };
+      }),
+    );
+
+    return {
+      generatedAt: new Date().toISOString(),
+      locationCount: results.length,
+      locations: results,
+    };
+  }
+
   // ── Helpers ────────────────────────────────────────────
 
   private resolveQueue(name: string): Queue | undefined {

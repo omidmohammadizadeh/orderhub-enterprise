@@ -291,9 +291,30 @@ For each enabled platform:
 
 ---
 
+## 10j. Controlled Rollout Readiness (Phase P)
+
+For each new shop in the Phase P rollout (shops 2–5):
+
+- [ ] `ROLLOUT_LOCATIONS.md` entry completed for this shop
+- [ ] `ROLLOUT_STAFF_TRAINING.md` row completed and signed off
+- [ ] All previous rollout shops have 0 unresolved P0/P1 issues
+- [ ] shopCode assigned and unique (SHOP01–SHOP05)
+- [ ] `GET /api/v1/admin/rollout/overview` shows this location after go-live
+- [ ] Cross-location isolation verified: staff from this shop cannot see other shops' orders
+- [ ] Printer shopCode maps to this location only (verified in diagnostics)
+- [ ] Staff health panel returns data only for this tenantId/locationId
+- [ ] Provider limitations documented in `ROLLOUT_ISSUES.md` or `KNOWN_LIMITATIONS.md`
+- [ ] Just Eat not marked as ACTIVE unless production-validated
+- [ ] Star printer (if used) print format verified before go-live
+- [ ] `ROLLOUT_ISSUES.md` open and reviewed
+- [ ] Go-live window confirmed: 08:00–10:00 BST, Mon–Thu, not bank holiday
+
+---
+
 ## 12. Post Go-Live (First 30 minutes)
 
 - [ ] Monitor /api/v1/health/ready — stays green
+- [ ] Monitor `GET /api/v1/admin/rollout/overview` — this location shows printerStatus: online
 - [ ] Monitor Bull Board for queue failures
 - [ ] Confirm first real order received and printed
 - [ ] Confirm first real order status synced back to platform
