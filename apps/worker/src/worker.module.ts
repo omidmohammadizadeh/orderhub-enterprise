@@ -18,6 +18,7 @@ import {
   HubRiseSyncClient,
 } from "./sync/platform-sync.factory";
 import { TokenRefreshService } from "./sync/token-refresh.service";
+import { rateLimitAwareBackoff } from "./sync/backoff-strategies";
 import { CredentialEncryptionService } from "./infrastructure/credential-encryption.service";
 
 @Module({
@@ -56,7 +57,16 @@ import { CredentialEncryptionService } from "./infrastructure/credential-encrypt
 
     BullModule.registerQueue(
       { name: QUEUES.ORDER_PROCESSING },
-      { name: QUEUES.ORDER_SYNC },
+      {
+        name: QUEUES.ORDER_SYNC,
+        // Register the rate-limit-aware backoff strategy so provider
+        // Retry-After delays are honoured instead of using exponential alone.
+        settings: {
+          backoffStrategies: {
+            "rate-limit-aware": rateLimitAwareBackoff,
+          },
+        },
+      },
       { name: QUEUES.MENU_SYNC },
       { name: QUEUES.NOTIFICATIONS },
       { name: QUEUES.PRINTING },

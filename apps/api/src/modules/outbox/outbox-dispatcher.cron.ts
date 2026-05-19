@@ -146,7 +146,7 @@ export class OutboxDispatcherCron {
           {
             jobId: `status-${payload["orderId"]}-${payload["toStatus"]}`,
             attempts: 5,
-            backoff: { type: "exponential", delay: 3000 },
+            backoff: { type: "rate-limit-aware", delay: 3000 },
           },
         );
         break;

@@ -83,14 +83,17 @@ export class OrderSyncProcessor {
         `[${orderId}] Status synced to ${syncPlatform}: ${toStatus}`,
       );
     } else if (result.rateLimited) {
-      const retryInfo = result.retryAfterMs != null
-        ? `Retry-After: ${result.retryAfterMs}ms`
-        : "no Retry-After header";
+      const retryAfterMs = result.retryAfterMs ?? 0;
+      const retryInfo = retryAfterMs > 0
+        ? `Retry-After: ${retryAfterMs}ms — scheduling retry in ${retryAfterMs}ms`
+        : "no Retry-After header — using exponential backoff";
       this.logger.warn(
-        `[${orderId}] Rate limited by ${syncPlatform} (${retryInfo}) — Bull will retry with exponential backoff`,
+        `[${orderId}] Rate limited by ${syncPlatform} (${retryInfo})`,
       );
-      // Throw so Bull records the failure and schedules the next retry via its backoff config
-      throw new Error(`RATE_LIMITED by ${syncPlatform}: ${retryInfo}`);
+      // Encode retryAfterMs in the error message so the "rate-limit-aware"
+      // Bull backoff strategy (registered in worker.module.ts) can read it
+      // and delay the retry by exactly the provider-specified duration.
+      throw new Error(`RATE_LIMITED:${retryAfterMs}`);
     } else {
       // Throw to trigger Bull retry
       throw new Error(
