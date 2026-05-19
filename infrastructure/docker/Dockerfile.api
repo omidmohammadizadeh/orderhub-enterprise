@@ -48,6 +48,10 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 
+# Startup script: validates env, runs prisma migrate deploy, starts node
+COPY --chown=nestjs:nodejs scripts/start-api.sh ./scripts/start-api.sh
+RUN chmod +x ./scripts/start-api.sh
+
 USER nestjs
 EXPOSE 4000
 
@@ -55,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:4000/api/v1/health || exit 1
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["node", "dist/main"]
+CMD ["./scripts/start-api.sh"]

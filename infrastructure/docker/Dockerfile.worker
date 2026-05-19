@@ -43,9 +43,13 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/worker/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 
+# Startup script: validates env then starts node
+COPY --chown=nestjs:nodejs scripts/start-worker.sh ./scripts/start-worker.sh
+RUN chmod +x ./scripts/start-worker.sh
+
 USER nestjs
 
 # dumb-init ensures signals (SIGTERM) propagate to the Node process so
 # graceful shutdown hooks fire during rolling deploys.
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["node", "dist/main"]
+CMD ["./scripts/start-worker.sh"]

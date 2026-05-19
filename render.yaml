@@ -37,7 +37,9 @@ services:
         value: 4000
       # ── Required: set these in the Render dashboard or via secrets ──
       - key: DATABASE_URL
-        sync: false      # set manually in dashboard
+        sync: false      # Supabase pooled connection (port 6543, ?pgbouncer=true)
+      - key: DIRECT_URL
+        sync: false      # Supabase direct connection (port 5432) — used by Prisma for migrations
       - key: REDIS_URL
         sync: false
       - key: QUEUE_REDIS_URL
@@ -105,6 +107,8 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: DIRECT_URL
+        sync: false      # Must match the API service DIRECT_URL exactly
       - key: REDIS_URL
         sync: false
       - key: QUEUE_REDIS_URL

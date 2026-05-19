@@ -150,12 +150,14 @@ jobs:
       - name: Apply test schema
         env:
           DATABASE_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
+          DIRECT_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
         run: pnpm --filter @orderhub/database exec prisma db push --force-reset
 
       - name: Run API unit tests
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
+          DIRECT_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
           REDIS_URL: redis://localhost:6379
           QUEUE_REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret-that-is-at-least-32-characters-long
@@ -167,6 +169,7 @@ jobs:
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
+          DIRECT_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
           QUEUE_REDIS_URL: redis://localhost:6379
         run: pnpm --filter @orderhub/worker test --passWithNoTests
 
@@ -246,6 +249,7 @@ jobs:
       - name: Verify schema applies cleanly
         env:
           DATABASE_URL: postgresql://orderhub:secret@localhost:5432/orderhub_migration_check
+          DIRECT_URL: postgresql://orderhub:secret@localhost:5432/orderhub_migration_check
         run: |
           pnpm --filter @orderhub/database db:generate
           pnpm --filter @orderhub/database exec prisma validate

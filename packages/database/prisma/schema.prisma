@@ -31,9 +31,11 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // shadowDatabaseUrl only needed for `prisma migrate dev` (local only).
+  // Set SHADOW_DATABASE_URL in your local .env if running migrate dev.
 }
 
 // ── Tenant (Organisation) ─────────────────────────────────────────────────────

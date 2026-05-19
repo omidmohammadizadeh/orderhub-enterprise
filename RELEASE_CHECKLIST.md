@@ -327,6 +327,30 @@ Before any billing/subscription or mass rollout:
 
 ---
 
+## 10p. Staging Environment Verification Gate (Phase AA)
+
+Before any production deployment:
+
+- [ ] Render Blueprint deployed successfully (all 3 services: api, worker, web)
+- [ ] `DIRECT_URL` set and uses Supabase direct connection (port 5432)
+- [ ] `DATABASE_URL` set and uses Supabase pooled connection (port 6543 + `?pgbouncer=true&connection_limit=1`)
+- [ ] `REDIS_URL` and `QUEUE_REDIS_URL` both use `rediss://` (TLS)
+- [ ] `CREDENTIAL_ENCRYPTION_KEY` matches exactly between API and Worker services
+- [ ] API startup logs show `Migrations complete.` on every deploy
+- [ ] `GET /api/v1/health/ready` → `{ "status": "ok" }` with database + redis both ok
+- [ ] Web dashboard loads and login works
+- [ ] Worker is Running with no queue errors
+- [ ] Full smoke test passed (all checks, exit code 0)
+- [ ] Demo seed loaded (admin@demo.orderhub.io / Demo1234!)
+- [ ] All tables in STAGING_DEPLOYMENT_STATUS.md verified present in Supabase
+- [ ] No `localhost` references in staging web build
+- [ ] No secrets visible in browser network requests
+- [ ] Webhook endpoints return 400 (not 404/502) for test requests
+- [ ] Printer polling endpoint returns 200
+- [ ] STAGING_DEPLOYMENT_STATUS.md URLs section filled in with real URLs
+
+---
+
 ## 10o. Cloud Infrastructure Gate (Phase Z)
 
 Before any production deploy using Render Blueprint:

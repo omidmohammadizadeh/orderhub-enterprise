@@ -5,6 +5,17 @@
 
 ---
 
+## Phase AA Staging Limitations
+
+- **First staging deployment not yet executed**: Phase AA commits the infrastructure fixes and documentation. The actual Render deploy is pending. `STAGING_DEPLOYMENT_STATUS.md` will be updated with live URLs once the deployment completes.
+- **`DIRECT_URL` now required at startup**: The Prisma schema now requires `DIRECT_URL` to be set (direct Postgres connection for migrations). If not set, `start-api.sh` will fail with `ERROR: DIRECT_URL is not set`. For local dev, `DIRECT_URL` should equal `DATABASE_URL`. For Supabase: port 5432 direct URL.
+- **`shadowDatabaseUrl` removed from schema**: `prisma migrate dev` (local migration creation) will no longer use a shadow database unless `SHADOW_DATABASE_URL` is set locally. This is intentional — Supabase managed databases don't support shadow databases. Add `SHADOW_DATABASE_URL` to local `.env` if you need `migrate dev`.
+- **Provider sandbox webhooks not registered**: Uber Eats and Deliveroo sandbox webhook URLs need to be registered in developer portals before sandbox testing works. See `RENDER_SETUP.md` Step 9 (Webhook URLs).
+- **Stripe webhook not registered**: The Stripe webhook endpoint at `/api/v1/webhooks/stripe` exists but the endpoint URL needs to be registered in the Stripe Dashboard for webhook events to arrive.
+- **Worker job deduplication not end-to-end tested on staging**: Bull queue deduplication logic is unit-tested but has not been verified against a live Upstash instance under concurrent load.
+
+---
+
 ## Phase Z Infrastructure Limitations
 
 - **Render starter plan sleeps on free tier**: Render free-tier services sleep after 15 minutes of inactivity. Upgrade to a paid Render account or use an uptime monitor to avoid cold starts. The `starter` plan on a paid account does not sleep.
