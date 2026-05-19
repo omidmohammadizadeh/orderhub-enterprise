@@ -60,7 +60,7 @@ const SLA_THRESHOLD_MIN = 20;
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
   const idx = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, idx)];
+  return sorted[Math.max(0, idx)] ?? 0;
 }
 
 @Injectable()
@@ -467,7 +467,7 @@ export class AnalyticsService {
         _avg: { total: true },
       }),
       this.prisma.location.findMany({
-        where: { tenantId },
+        where: { brand: { tenantId } } as any,
         select: { id: true, name: true },
       }),
     ]);
@@ -591,7 +591,7 @@ export class AnalyticsService {
     >();
 
     for (const row of rows) {
-      const day = row.order.createdAt.toISOString().split("T")[0];
+      const day = row.order.createdAt.toISOString().split("T")[0]!;
       const existing = dayMap.get(day) ?? { totalSold: 0, totalRevenue: 0, cancelledQty: 0 };
       const isCancelled = row.order.status === "CANCELLED" || row.order.status === "REJECTED";
       if (!isCancelled) {
@@ -720,7 +720,7 @@ export class AnalyticsService {
         createdAt: { gte: startDate, lte: endDate },
         acceptedAt: { not: null },
         readyAt: { not: null },
-        status: { in: ["COMPLETED", "READY", "DISPATCHED", "DELIVERED"] },
+        status: { in: ["COMPLETED", "READY", "DISPATCHED"] },
       },
       select: { acceptedAt: true, readyAt: true },
     });
@@ -1056,14 +1056,14 @@ export class AnalyticsService {
   private bucketKey(date: Date, granularity: "day" | "week" | "month"): string {
     const d = new Date(date);
     if (granularity === "day") {
-      return d.toISOString().split("T")[0];
+      return d.toISOString().split("T")[0]!;
     }
     if (granularity === "week") {
       // ISO week start: Monday
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1);
       const monday = new Date(d.setDate(diff));
-      return monday.toISOString().split("T")[0];
+      return monday.toISOString().split("T")[0]!;
     }
     // month
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;

@@ -12,7 +12,7 @@ export class StarBridge implements IPrinterBridge {
 
   async send(rawData: string, config: PrinterBridgeConfig, jobId: string): Promise<PrintResult> {
     const ip = config.ipAddress;
-    if (!ip) return { success: false, error: "No IP address configured" };
+    if (!ip) return { success: false, printerId: "", jobId, error: "No IP address configured" };
 
     const port = config.port ?? this.DEFAULT_PORT;
 
@@ -35,16 +35,16 @@ export class StarBridge implements IPrinterBridge {
         // Raw ESC/POS works for most Star TM/TSP models without additional configuration.
         socket.write(rawData, "binary", (err) => {
           if (err) {
-            finish({ success: false, error: `Write error: ${err.message}` });
+            finish({ success: false, printerId: "", jobId, error: `Write error: ${err.message}` });
           } else {
             // Small drain wait before closing — Star printers can be slow to buffer
-            setTimeout(() => finish({ success: true, jobId }), 300);
+            setTimeout(() => finish({ success: true, printerId: "", jobId }), 300);
           }
         });
       });
 
-      socket.on("error", (err) => finish({ success: false, error: `Socket error: ${err.message}` }));
-      socket.on("timeout", () => finish({ success: false, error: "Connection timed out" }));
+      socket.on("error", (err) => finish({ success: false, printerId: "", jobId, error: `Socket error: ${err.message}` }));
+      socket.on("timeout", () => finish({ success: false, printerId: "", jobId, error: "Connection timed out" }));
     });
   }
 

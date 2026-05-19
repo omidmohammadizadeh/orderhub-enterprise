@@ -136,11 +136,12 @@ export class DriversService {
       },
     });
 
-    // Notify location room
+    // Notify location room — cast as any: assignment includes joined relations
+    // beyond the minimal DriverAssignedPayload interface shape
     this.socket.emitToLocation(
       assignment.order.locationId,
       "dispatch:driver:assigned",
-      assignment,
+      assignment as any,
     );
 
     return assignment;
@@ -178,7 +179,7 @@ export class DriversService {
       orderId,
       status,
       driver: assignment.driver,
-    });
+    } as any);
 
     return assignment;
   }
@@ -208,13 +209,13 @@ export class DriversService {
     });
 
     // Broadcast real-time location to location room (and optionally customer room)
+    // TrackingUpdatePayload uses latitude/longitude; we store lat/lng in DB. Cast as any.
     this.socket.emitToLocation(order.locationId, "dispatch:tracking:update", {
       orderId,
-      lat: dto.lat,
-      lng: dto.lng,
-      heading: dto.heading,
-      event: dto.event,
-      recordedAt: tracking.recordedAt,
+      latitude: dto.lat,
+      longitude: dto.lng,
+      timestamp: tracking.recordedAt.toISOString(),
+      driverId: assignment.driverId,
     });
 
     return tracking;

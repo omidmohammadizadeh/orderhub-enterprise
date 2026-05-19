@@ -130,7 +130,7 @@ async function main(): Promise<void> {
       if (!dryRun) {
         await prisma.integration.update({
           where: { id: integration.id },
-          data: { credentials: reEncrypted },
+          data: { credentials: reEncrypted as any },
         });
       }
 

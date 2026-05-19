@@ -186,14 +186,14 @@ export class HealthController {
           }),
           this.prisma.webhookEvent.findFirst({
             where: { platform, processingError: { not: null } },
-            orderBy: { createdAt: "desc" },
-            select: { createdAt: true, processingError: true },
+            orderBy: { receivedAt: "desc" },
+            select: { receivedAt: true, processingError: true },
           }),
           this.prisma.webhookEvent.count({
             where: {
               platform,
               processingError: { not: null },
-              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60_000) },
+              receivedAt: { gte: new Date(Date.now() - 24 * 60 * 60_000) },
             },
           }),
           this.prisma.webhookEvent.count({
@@ -206,7 +206,7 @@ export class HealthController {
         ]);
         webhookHealth[platform] = {
           lastSuccessAt: lastSuccess?.processedAt?.toISOString() ?? null,
-          lastFailedAt: lastFailed?.createdAt?.toISOString() ?? null,
+          lastFailedAt: lastFailed?.receivedAt?.toISOString() ?? null,
           failedLast24h: failedCount,
           duplicatesIgnored: duplicateCount,
         };

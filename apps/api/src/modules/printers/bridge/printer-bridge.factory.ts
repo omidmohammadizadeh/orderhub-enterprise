@@ -7,7 +7,7 @@ import { StarBridge } from "./star-bridge";
 
 @Injectable()
 export class PrinterBridgeFactory {
-  private readonly bridges: Map<string, IPrinterBridge> = new Map([
+  private readonly bridges: Map<string, IPrinterBridge> = new Map<string, IPrinterBridge>([
     ["LAN", new LanBridge()],
     ["EPSON_EPOS", new EpsonEposBridge()],  // Epson ePOS SDK over HTTP
     ["STAR", new StarBridge()],              // Star Micronics raw TCP

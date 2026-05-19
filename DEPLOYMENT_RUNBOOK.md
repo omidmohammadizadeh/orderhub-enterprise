@@ -139,7 +139,7 @@ All suites must pass before deploying.
 pnpm --filter @orderhub/api test -- --no-coverage
 ```
 
-Expected: 148 tests passing, 12 suites. Do not deploy if any test fails.
+Expected: 327 tests passing, 23 suites. Do not deploy if any test fails.
 
 ---
 

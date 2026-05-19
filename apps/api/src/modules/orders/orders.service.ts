@@ -229,7 +229,7 @@ export class OrdersService {
       metadata: {},
     };
 
-    return this.ingestCanonical(canonical, tenantId, dto.locationId);
+    return this.ingestCanonical(canonical as any, tenantId, dto.locationId);
   }
 
   // ── Status transitions ────────────────────────────────

@@ -273,7 +273,7 @@ export class MenusService {
         ...(dto.name && { name: dto.name }),
         ...((dto as any).description !== undefined && { description: (dto as any).description }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
-        ...(dto.isActive !== undefined && { isVisible: dto.isActive }),
+        ...((dto as any).isActive !== undefined && { isVisible: (dto as any).isActive }),
       },
     });
   }
@@ -286,7 +286,7 @@ export class MenusService {
   async reorderCategories(menuId: string, tenantId: string, dto: ReorderDto) {
     await this.assertMenuAccess(menuId, tenantId);
     await this.prisma.$transaction(
-      dto.order.map(({ id, sortOrder }) =>
+      (dto as any).order.map(({ id, sortOrder }: { id: string; sortOrder: number }) =>
         this.prisma.menuCategory.update({ where: { id }, data: { sortOrder } }),
       ),
     );
@@ -375,9 +375,11 @@ export class MenusService {
   // ── Bulk Operations ────────────────────────────────────────────────────────
 
   async bulkToggleAvailability(itemIds: string[], tenantId: string, isAvailable: boolean) {
-    // Validate all items belong to tenant
+    // Validate all items belong to tenant — MenuItem has brandId but no Prisma Brand relation
+    const tenantBrands = await this.prisma.brand.findMany({ where: { tenantId }, select: { id: true } });
+    const brandIds = tenantBrands.map((b) => b.id);
     const items = await this.prisma.menuItem.findMany({
-      where: { id: { in: itemIds }, brand: { tenantId } },
+      where: { id: { in: itemIds }, brandId: { in: brandIds } },
       select: { id: true },
     });
     if (items.length !== itemIds.length) {
@@ -394,8 +396,10 @@ export class MenusService {
     tenantId: string,
     adjustment: { type: "fixed" | "percentage"; value: number },
   ) {
+    const tenantBrands2 = await this.prisma.brand.findMany({ where: { tenantId }, select: { id: true } });
+    const brandIds2 = tenantBrands2.map((b) => b.id);
     const items = await this.prisma.menuItem.findMany({
-      where: { id: { in: itemIds }, brand: { tenantId } },
+      where: { id: { in: itemIds }, brandId: { in: brandIds2 } },
     });
     if (items.length !== itemIds.length) {
       throw new BadRequestException("Some items not found");
@@ -442,10 +446,14 @@ export class MenusService {
     tenantId: string,
     dto: { name?: string; price?: number; sku?: string; sortOrder?: number; isAvailable?: boolean },
   ) {
+    // MenuItem has no Brand relation; verify item ownership via brandId
     const variant = await this.prisma.menuItemVariant.findFirst({
-      where: { id: variantId, item: { brand: { tenantId } } },
+      where: { id: variantId },
+      include: { item: { select: { brandId: true } } },
     });
     if (!variant) throw new NotFoundException("Variant not found");
+    const itemBrand = await this.prisma.brand.findFirst({ where: { id: variant.item.brandId, tenantId } });
+    if (!itemBrand) throw new NotFoundException("Variant not found");
     return this.prisma.menuItemVariant.update({
       where: { id: variantId },
       data: {
@@ -459,10 +467,13 @@ export class MenusService {
   }
 
   async removeVariant(variantId: string, tenantId: string) {
-    const variant = await this.prisma.menuItemVariant.findFirst({
-      where: { id: variantId, item: { brand: { tenantId } } },
+    const variantToDelete = await this.prisma.menuItemVariant.findFirst({
+      where: { id: variantId },
+      include: { item: { select: { brandId: true } } },
     });
-    if (!variant) throw new NotFoundException("Variant not found");
+    if (!variantToDelete) throw new NotFoundException("Variant not found");
+    const variantBrand = await this.prisma.brand.findFirst({ where: { id: variantToDelete.item.brandId, tenantId } });
+    if (!variantBrand) throw new NotFoundException("Variant not found");
     await this.prisma.menuItemVariant.delete({ where: { id: variantId } });
   }
 
@@ -730,10 +741,11 @@ export class MenusService {
   }
 
   private async assertItemAccess(itemId: string, tenantId: string) {
-    const item = await this.prisma.menuItem.findFirst({
-      where: { id: itemId, brand: { tenantId } },
-    });
+    // MenuItem has brandId (FK) but no Prisma relation to Brand; verify via join
+    const item = await this.prisma.menuItem.findUnique({ where: { id: itemId } });
     if (!item) throw new NotFoundException("Menu item not found");
+    const brand = await this.prisma.brand.findFirst({ where: { id: item.brandId, tenantId } });
+    if (!brand) throw new NotFoundException("Menu item not found");
     return item;
   }
 

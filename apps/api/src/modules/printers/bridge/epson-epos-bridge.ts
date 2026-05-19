@@ -9,7 +9,7 @@ export class EpsonEposBridge implements IPrinterBridge {
 
   async send(rawData: string, config: PrinterBridgeConfig, jobId: string): Promise<PrintResult> {
     const ip = config.ipAddress;
-    if (!ip) return { success: false, error: "No IP address configured" };
+    if (!ip) return { success: false, printerId: "", jobId, error: "No IP address configured" };
 
     const port = config.port ?? 80;
     const url = `http://${ip}:${port}/cgi-bin/epos/service.cgi`;
@@ -29,13 +29,15 @@ export class EpsonEposBridge implements IPrinterBridge {
       // ePOS returns success if HTTP 200 and no fault in response
       const responseText = response.data as string;
       if (responseText.includes("SchemaError") || responseText.includes("DeviceNotFound")) {
-        return { success: false, error: `ePOS error: ${responseText.substring(0, 200)}` };
+        return { success: false, printerId: "", jobId, error: `ePOS error: ${responseText.substring(0, 200)}` };
       }
 
-      return { success: true, jobId };
+      return { success: true, printerId: "", jobId };
     } catch (err: any) {
       return {
         success: false,
+        printerId: "",
+        jobId,
         error: `ePOS send failed: ${err?.message ?? String(err)}`,
       };
     }

@@ -48,7 +48,7 @@ export class KdsService {
   async createScreen(locationId: string, tenantId: string, dto: CreateKdsScreenDto) {
     await this.assertLocationAccess(locationId, tenantId);
     return this.prisma.kdsScreen.create({
-      data: { tenantId, locationId, name: dto.name, station: dto.station, settings: dto.settings ?? {} },
+      data: { tenantId, locationId, name: dto.name, station: dto.station, settings: (dto.settings ?? {}) as any },
     });
   }
 
@@ -56,7 +56,7 @@ export class KdsService {
     await this.assertScreenAccess(screenId, tenantId);
     return this.prisma.kdsScreen.update({
       where: { id: screenId },
-      data: dto,
+      data: dto as any,
     });
   }
 
@@ -87,7 +87,7 @@ export class KdsService {
 
     const screen = await this.prisma.kdsScreen.findUnique({ where: { id: screenId } });
     if (screen) {
-      this.socket.emitToLocation(screen.locationId, "kds:ticket:new", ticket);
+      this.socket.emitToLocation(screen.locationId, "kds:ticket:new", ticket as any);
     }
 
     return ticket;
@@ -106,7 +106,7 @@ export class KdsService {
       this.socket.emitToLocation(screen.locationId, "kds:ticket:bumped", {
         screenId,
         orderId,
-        bumpedAt: ticket.bumpedAt,
+        bumpedAt: ticket.bumpedAt?.toISOString() ?? null,
       });
     }
 
@@ -152,10 +152,10 @@ export class KdsService {
 
     if (screens.length > 0) {
       const ticket = await this.prisma.kdsTicket.findFirst({
-        where: { orderId, kdsScreenId: screens[0].id },
+        where: { orderId, kdsScreenId: screens[0]!.id },
         include: TICKET_INCLUDE,
       });
-      this.socket.emitToLocation(locationId, "kds:order:new", { orderId, ticket });
+      this.socket.emitToLocation(locationId, "kds:order:new", { orderId, ticket: ticket as any });
     }
   }
 

@@ -26,7 +26,8 @@ import { PrismaClient } from "@prisma/client";
 import * as crypto from "crypto";
 import * as http from "http";
 import * as https from "https";
-import { createClient } from "redis";
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const { createClient } = require("redis") as { createClient: (opts?: { url?: string }) => any };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ async function runSmokeTest(): Promise<void> {
   // ── 4. Prisma can query the outbox table (confirms migration applied) ─────
 
   results.push(await check("outbox_table_accessible", async () => {
-    await prisma.outboxEvent.count();
+    await (prisma as any).outboxEvent.count();
   }));
 
   // ── 5. Phase K migration applied (LocationGoLiveStatus column exists) ─────
@@ -140,7 +141,7 @@ async function runSmokeTest(): Promise<void> {
   results.push(await check("phase_k_migration_applied", async () => {
     // Query a location with the goLiveStatus field — will throw if column missing
     await prisma.location.findFirst({
-      select: { id: true, goLiveStatus: true },
+      select: { id: true, goLiveStatus: true } as any,
     });
   }));
 
@@ -161,7 +162,7 @@ async function runSmokeTest(): Promise<void> {
 
   results.push(await check("no_plaintext_credentials", async () => {
     const integrations = await prisma.integration.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null } as any,
       select: { id: true, credentials: true, platform: true },
     });
 
@@ -183,7 +184,7 @@ async function runSmokeTest(): Promise<void> {
   // ── 8. No dead outbox events ──────────────────────────────────────────────
 
   results.push(await check("no_dead_outbox_events", async () => {
-    const dead = await prisma.outboxEvent.count({ where: { status: "DEAD" } });
+    const dead = await (prisma as any).outboxEvent.count({ where: { status: "DEAD" } });
     if (dead > 0) {
       throw new Error(
         `${dead} DEAD outbox event(s) found — investigate and reset before going live`,
@@ -196,7 +197,7 @@ async function runSmokeTest(): Promise<void> {
   results.push(await check("no_stuck_processing_events", async () => {
     const timeoutSec = parseInt(process.env.OUTBOX_PROCESSING_TIMEOUT_SECONDS ?? "300", 10);
     const cutoff = new Date(Date.now() - timeoutSec * 1000);
-    const stuck = await prisma.outboxEvent.count({
+    const stuck = await (prisma as any).outboxEvent.count({
       where: { status: "PROCESSING", updatedAt: { lt: cutoff } },
     });
     if (stuck > 0) {

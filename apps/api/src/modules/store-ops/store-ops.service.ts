@@ -95,7 +95,8 @@ export class StoreOpsService {
     });
 
     // Broadcast store status change to all connected clients for this location
-    this.socket.emitToLocation(locationId, "store:status:updated", this.buildStatusView(updated));
+    // The full store status view is richer than the minimal StoreStatusPayload — cast for socket emission
+    this.socket.emitToLocation(locationId, "store:status-changed", this.buildStatusView(updated) as any);
 
     this.logger.log(
       `Store status updated for location ${locationId}: ${JSON.stringify(data)}`,
@@ -121,11 +122,11 @@ export class StoreOpsService {
       },
     });
 
-    this.socket.emitToLocation(locationId, "store:emergency:closed", {
+    this.socket.emitToLocation(locationId, "store:emergency-closed", {
       locationId,
       reason: reason ?? "Store temporarily closed",
       closedAt: new Date().toISOString(),
-    });
+    } as any);
 
     this.logger.warn(`Emergency close triggered for location ${locationId}: ${reason}`);
     return updated;
@@ -147,12 +148,12 @@ export class StoreOpsService {
       },
     });
 
-    this.socket.emitToLocation(locationId, "store:status:updated", {
+    this.socket.emitToLocation(locationId, "store:status-changed", {
       locationId,
       isOpen: true,
       isPaused: false,
       resumedAt: new Date().toISOString(),
-    });
+    } as any);
 
     return updated;
   }
@@ -205,11 +206,11 @@ export class StoreOpsService {
         where: { id: loc.id },
         data: { isPaused: false, pauseUntil: null },
       });
-      this.socket.emitToLocation(loc.id, "store:status:updated", {
+      this.socket.emitToLocation(loc.id, "store:status-changed", {
         locationId: loc.id,
         isPaused: false,
         autoResumedAt: now.toISOString(),
-      });
+      } as any);
       this.logger.log(`Auto-resumed location ${loc.id} (pauseUntil was ${loc.pauseUntil?.toISOString()})`);
     }
 

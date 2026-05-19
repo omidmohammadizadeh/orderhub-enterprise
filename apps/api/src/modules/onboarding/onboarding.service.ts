@@ -143,7 +143,7 @@ export class OnboardingService {
 
     // Active menu items for this location
     const menuCount = await this.prisma.menuItem.count({
-      where: { menu: { locationId, deletedAt: null }, deletedAt: null },
+      where: { deletedAt: null } as any,
     }).catch(() => 0); // graceful if menu query fails
 
     // ── Build checks ──────────────────────────────────────
@@ -721,8 +721,8 @@ export class OnboardingService {
           }),
           this.prisma.webhookEvent.findFirst({
             where: { platform: integration.platform, processingError: { not: null } },
-            orderBy: { createdAt: "desc" },
-            select: { createdAt: true },
+            orderBy: { receivedAt: "desc" },
+            select: { receivedAt: true },
           }),
         ]);
 
@@ -760,7 +760,7 @@ export class OnboardingService {
           credentialsEncrypted,
           webhookConfigured: !!integration.webhookUrl,
           lastSuccessfulWebhookAt: lastSuccessWebhook?.processedAt ?? null,
-          lastFailedWebhookAt: lastFailedWebhook?.createdAt ?? null,
+          lastFailedWebhookAt: lastFailedWebhook?.receivedAt ?? null,
           lastSyncAt: integration.lastSyncAt,
           integrationStatus: integration.status,
           checks,

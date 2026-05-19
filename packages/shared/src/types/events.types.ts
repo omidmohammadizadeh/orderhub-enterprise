@@ -14,8 +14,12 @@ export interface ServerToClientEvents {
   "kds:bump": (payload: KdsBumpPayload) => void;
   // KDS: new order tickets created
   "kds:order:new": (payload: KdsOrderNewPayload) => void;
+  // KDS: new ticket created on a screen
+  "kds:ticket:new": (payload: KdsTicketPayload) => void;
   // KDS: ticket bumped via worker
   "kds:ticket:bumped": (payload: KdsTicketBumpedPayload) => void;
+  // KDS: ticket recalled (un-bumped)
+  "kds:ticket:recalled": (payload: KdsTicketRecalledPayload) => void;
   // Integration went offline / came back
   "integration:status": (payload: IntegrationStatusPayload) => void;
   // A printer changed online status
@@ -94,15 +98,32 @@ export interface PrintJobEventPayload {
 
 export interface KdsOrderNewPayload {
   orderId: string;
-  screenIds: string[];
-  displayId: string | null;
-  platform: string;
-  fulfillmentType: string;
+  screenIds?: string[];
+  displayId?: string | null;
+  platform?: string;
+  fulfillmentType?: string;
+  ticket?: Record<string, unknown> | null;
 }
 
 export interface KdsTicketBumpedPayload {
   orderId: string;
-  bumpedAt: string;
+  bumpedAt: string | null;
+  screenId?: string;
+}
+
+export interface KdsTicketPayload {
+  id: string;
+  kdsScreenId: string;
+  orderId: string;
+  createdAt: string;
+  bumpedAt: string | null;
+  recalledAt: string | null;
+  [key: string]: unknown;
+}
+
+export interface KdsTicketRecalledPayload {
+  screenId: string;
+  orderId: string;
 }
 
 export interface StoreStatusPayload {

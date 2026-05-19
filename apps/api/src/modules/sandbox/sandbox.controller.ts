@@ -15,7 +15,7 @@ interface AuthRequest extends Request {
 }
 
 @Controller("v1/sandbox")
-@Roles("OWNER", "MANAGER")
+@Roles("TENANT_OWNER", "MANAGER")
 export class SandboxController {
   constructor(private readonly sandbox: SandboxService) {}
 

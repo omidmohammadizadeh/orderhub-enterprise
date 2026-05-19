@@ -1,7 +1,19 @@
 # Known Limitations
 
-> Phase Q — 5-Shop Live Rollout & Commercial Readiness Gate
+> Last updated: Phase Y — Local Run Handoff & Provider Parity Audit (2026-05-19)
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
+
+---
+
+## Phase X / Y Limitations
+
+- **Just Eat not production-validated**: *Carried forward from Phase Q.* `just-eat.adapter.ts` and status sync code exists and is unit-tested but has NEVER been tested against Just Eat's live or sandbox API. Do NOT activate any Just Eat integration (`Integration.status = ACTIVE`) until P0-1 validation is complete (see `PROVIDER_IMPLEMENTATION_PLAN.md`).
+- **HubRise not production-validated**: *Carried forward from Phase Q.* HubRise code exists but no shop has used it in production. First HubRise shop requires sub-pilot treatment. See `PROVIDER_IMPLEMENTATION_PLAN.md` P0-2.
+- **Just Eat dueDate hardcoded**: `PUT /orders/:id/accept` always sends `dueDate = now + 30min`. Should use `location.currentPrepTime`. Fix: P0-3 in `PROVIDER_IMPLEMENTATION_PLAN.md`.
+- **MenuItem.brand relation missing**: `MenuItem` model in Prisma schema has `brandId String` but no `brand Brand @relation(...)`. Phase X fixed the access control queries to use a two-step lookup via `Brand.findFirst`. A future schema migration should add the relation explicitly to simplify queries and enforce FK at the ORM level.
+- **StoreStatusPayload is too narrow**: `StoreStatusPayload` in `events.types.ts` requires `locationName` and `status` fields but `StoreOpsService` emits richer objects. Phase X added `as any` casts. The shared type should be updated to match the actual emitted shape in Phase Z.
+- **Smoke test uses `@prisma/client` directly**: `smoke-test.ts` imports `PrismaClient` from `@prisma/client` (default path) rather than the workspace `@orderhub/database` package. This works at runtime but requires that `prisma generate` has been run in the project root. Phase Y: added `as any` casts for `outboxEvent` to handle stale type resolution.
+- **TypeScript `noUncheckedIndexedAccess` not enabled**: Arrays accessed via `[0]` may return `undefined` at runtime. Phase X applied `!` non-null assertions on known-safe accesses. Consider enabling `noUncheckedIndexedAccess` in tsconfig in Phase Z.
 
 ---
 

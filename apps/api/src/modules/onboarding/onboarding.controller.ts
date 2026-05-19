@@ -100,7 +100,7 @@ export class OnboardingController {
     return this.onboarding.transitionGoLiveStatus(
       locationId,
       tenantId,
-      user.sub,
+      user.userId,
       dto.targetStatus,
       dto.reason,
     );
@@ -120,7 +120,7 @@ export class OnboardingController {
     return this.onboarding.adminOverride(
       locationId,
       tenantId,
-      user.sub,
+      user.userId,
       dto.targetStatus,
       dto.reason,
     );
@@ -139,7 +139,7 @@ export class OnboardingController {
       user.role === "PLATFORM_ADMIN" && tenantIdOverride
         ? tenantIdOverride
         : user.tenantId;
-    return this.onboarding.recordTestOrder(locationId, tenantId, user.sub);
+    return this.onboarding.recordTestOrder(locationId, tenantId, user.userId);
   }
 
   @Post("locations/:locationId/record-test-print")
@@ -155,7 +155,7 @@ export class OnboardingController {
       user.role === "PLATFORM_ADMIN" && tenantIdOverride
         ? tenantIdOverride
         : user.tenantId;
-    return this.onboarding.recordTestPrint(locationId, tenantId, user.sub);
+    return this.onboarding.recordTestPrint(locationId, tenantId, user.userId);
   }
 
   // ── Emergency controls ────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export class OnboardingController {
   ) {
     const tenantId =
       user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
-    return this.onboarding.pauseProvider(locationId, tenantId, integrationId, user.sub, dto.reason);
+    return this.onboarding.pauseProvider(locationId, tenantId, integrationId, user.userId, dto.reason);
   }
 
   @Post("locations/:locationId/providers/:integrationId/resume")
@@ -193,7 +193,7 @@ export class OnboardingController {
   ) {
     const tenantId =
       user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
-    return this.onboarding.resumeProvider(locationId, tenantId, integrationId, user.sub, dto.reason);
+    return this.onboarding.resumeProvider(locationId, tenantId, integrationId, user.userId, dto.reason);
   }
 
   @Post("locations/:locationId/printers/:printerId/pause")
@@ -210,7 +210,7 @@ export class OnboardingController {
   ) {
     const tenantId =
       user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
-    return this.onboarding.pausePrinter(locationId, tenantId, printerId, user.sub, dto.reason);
+    return this.onboarding.pausePrinter(locationId, tenantId, printerId, user.userId, dto.reason);
   }
 
   @Post("locations/:locationId/printers/:printerId/resume")
@@ -227,6 +227,6 @@ export class OnboardingController {
   ) {
     const tenantId =
       user.role === "PLATFORM_ADMIN" && tenantIdOverride ? tenantIdOverride : user.tenantId;
-    return this.onboarding.resumePrinter(locationId, tenantId, printerId, user.sub, dto.reason);
+    return this.onboarding.resumePrinter(locationId, tenantId, printerId, user.userId, dto.reason);
   }
 }
