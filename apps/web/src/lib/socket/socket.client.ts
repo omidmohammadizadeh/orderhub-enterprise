@@ -10,7 +10,9 @@ let socket: TypedSocket | null = null;
 export function getSocket(token = ""): TypedSocket {
   if (socket?.connected) return socket;
 
-  socket = io(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000", {
+  // Use NEXT_PUBLIC_SOCKET_URL (server root) for Socket.IO — NOT NEXT_PUBLIC_API_URL
+  // which includes the /api path prefix used only for REST calls.
+  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:4000", {
     auth: { token },
     transports: ["websocket"],
     reconnection: true,

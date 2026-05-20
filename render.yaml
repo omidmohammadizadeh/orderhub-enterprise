@@ -66,6 +66,12 @@ services:
           type: web
           name: orderhub-web
           property: host
+      # Explicit public CORS origin for browser requests.
+      # fromService.property:host returns the bare internal hostname (no protocol,
+      # no .onrender.com) which doesn't match the browser's Origin header.
+      # This must match the exact URL users see in their browser.
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://orderhub-web.onrender.com
       # ── Stripe (set manually) ──
       - key: STRIPE_SECRET_KEY
         sync: false
@@ -141,12 +147,18 @@ services:
         value: 3000
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      # Render passes all envVars as Docker build args automatically.
-      # NEXT_PUBLIC_* vars must be present during `next build` (baked into the
-      # bundle) — declaring them here satisfies both build-time and runtime.
-      # Browser-side Socket.IO connections use this to reach the API directly
-      # (bypasses the Next.js server rewrite which only works server-side).
+      # NEXT_PUBLIC_* vars are baked into the Next.js bundle at build time.
+      # Render passes all envVars as Docker build args automatically, so these
+      # are available during `next build` via the ARG/ENV lines in Dockerfile.web.
+      #
+      # NEXT_PUBLIC_API_URL: base URL for the Axios REST client.
+      #   Must include the /api global prefix so apiClient.post("/v1/...") resolves
+      #   to https://orderhub-api-0re6.onrender.com/api/v1/... correctly.
       - key: NEXT_PUBLIC_API_URL
+        value: https://orderhub-api-0re6.onrender.com/api
+      # NEXT_PUBLIC_SOCKET_URL: Socket.IO server root (no /api path).
+      #   Socket.IO connects to the server root, not a sub-path.
+      - key: NEXT_PUBLIC_SOCKET_URL
         value: https://orderhub-api-0re6.onrender.com
       # API URL for server-side rewrites (internal Render networking)
       - key: API_URL

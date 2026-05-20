@@ -36,8 +36,26 @@ async function bootstrap() {
   app.use(compression());
 
   // ── CORS ────────────────────────────────────────────────
+  // CORS_ALLOWED_ORIGINS (comma-separated) takes precedence; falls back to APP_URL.
+  // Render's fromService.property:host returns the bare internal hostname (e.g.
+  // "orderhub-web"), not the public URL. Set CORS_ALLOWED_ORIGINS explicitly in
+  // render.yaml to the real public URL (https://orderhub-web.onrender.com).
+  const rawCorsOrigins =
+    process.env.CORS_ALLOWED_ORIGINS ??
+    process.env.APP_URL ??
+    "http://localhost:3000";
+  const allowedOrigins = rawCorsOrigins
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: process.env.APP_URL ?? "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow no-origin requests (same-origin, curl, mobile, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin "${origin}" is not allowed`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id", "x-request-id"],
