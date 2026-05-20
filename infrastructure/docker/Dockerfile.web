@@ -19,8 +19,10 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
-# apps/web/node_modules must be copied explicitly because pnpm does not
-# hoist next (or other web-only packages) to the root node_modules/.bin.
+# pnpm does not hoist workspace-package-local binaries to root node_modules/.bin.
+# Each package whose build script uses a binary (tsc, next) must have its own
+# node_modules copied explicitly from the deps stage.
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
 COPY tsconfig.base.json ./

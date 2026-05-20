@@ -19,9 +19,11 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
-# packages/database/node_modules must be copied explicitly because pnpm does not
-# hoist prisma to the root node_modules/.bin — it installs only under the package.
+# pnpm does not hoist workspace-package-local binaries to root node_modules/.bin.
+# Each package whose build script uses a binary (prisma, tsc) must have its own
+# node_modules copied explicitly from the deps stage.
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/worker/node_modules ./apps/worker/node_modules
 
 COPY tsconfig.base.json ./
