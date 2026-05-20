@@ -162,7 +162,6 @@ async function runSmokeTest(): Promise<void> {
 
   results.push(await check("no_plaintext_credentials", async () => {
     const integrations = await prisma.integration.findMany({
-      where: { deletedAt: null } as any,
       select: { id: true, credentials: true, platform: true },
     });
 
