@@ -21,7 +21,10 @@ export interface HealthStatus {
 }
 
 @ApiTags("Health")
-@SkipThrottle() // Health probes must never be rate-limited — Render's multi-node probers can burst-trigger the "short" throttler and cause 429s that mark the instance failed
+// NestJS Throttler v6: @SkipThrottle() defaults to { default: true } but all our
+// throttlers are *named* (short/medium/webhook/login) — none is called "default",
+// so the bare decorator is a no-op. We must explicitly skip every named throttler.
+@SkipThrottle({ short: true, medium: true, webhook: true, login: true })
 @BillingExempt() // Health checks must always be accessible regardless of billing state
 @Controller({ path: "health", version: "1" })
 export class HealthController {
