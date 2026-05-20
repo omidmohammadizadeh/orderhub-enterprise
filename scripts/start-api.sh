@@ -46,6 +46,18 @@ echo "[startup] Applying database migrations..."
 # Use the project-installed Prisma binary — NOT `npx prisma` which downloads the
 # latest CLI (currently 7.x) and rejects schema features valid in Prisma 5.x
 # (previewFeatures=["metrics"], datasource url= property, etc.).
+
+# If a previous deployment crashed mid-migration, Prisma records the migration as
+# "failed" (P3009) and blocks all future deploys. Resolve any such records first:
+# --rolled-back tells Prisma the migration did not apply (safe because Prisma runs
+# migrations inside a Postgres transaction — a process crash rolls the DDL back).
+# The command is a no-op if the migration is not in a failed state, so it is safe
+# to run on every startup.
+echo "[startup] Resolving any previously-failed migration records..."
+./packages/database/node_modules/.bin/prisma migrate resolve \
+  --rolled-back 20260518120000_phase_e \
+  --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
+
 ./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 echo "[startup] Migrations complete."
 
