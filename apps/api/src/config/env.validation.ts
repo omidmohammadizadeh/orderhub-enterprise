@@ -8,8 +8,21 @@ const envSchema = z.object({
   // Core
   NODE_ENV: z.enum(["local", "development", "staging", "production", "test"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
-  APP_URL: z.string().url().default("http://localhost:3000"),
-  API_URL: z.string().url().default("http://localhost:4000"),
+  // Render's fromService can only provide a bare hostname (no protocol).
+  // Preprocess: if no protocol is present, assume https:// (safe default for cloud).
+  // Local dev values like "http://localhost:3000" are left unchanged.
+  APP_URL: z
+    .preprocess(
+      (v) => (typeof v === "string" && v && !v.includes("://") ? `https://${v}` : v),
+      z.string().url(),
+    )
+    .default("http://localhost:3000"),
+  API_URL: z
+    .preprocess(
+      (v) => (typeof v === "string" && v && !v.includes("://") ? `https://${v}` : v),
+      z.string().url(),
+    )
+    .default("http://localhost:4000"),
   WEB_URL: z.string().url().optional(),
   CORS_ALLOWED_ORIGINS: z.string().optional(),
 
