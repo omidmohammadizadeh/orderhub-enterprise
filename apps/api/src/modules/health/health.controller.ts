@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import { SkipThrottle } from "@nestjs/throttler";
 import { Public } from "../../common/decorators/public.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import { QUEUES } from "@orderhub/shared";
@@ -20,6 +21,7 @@ export interface HealthStatus {
 }
 
 @ApiTags("Health")
+@SkipThrottle() // Health probes must never be rate-limited — Render's multi-node probers can burst-trigger the "short" throttler and cause 429s that mark the instance failed
 @BillingExempt() // Health checks must always be accessible regardless of billing state
 @Controller({ path: "health", version: "1" })
 export class HealthController {
