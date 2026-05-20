@@ -274,6 +274,48 @@ CREATE TABLE "delivery_tracking" (
 CREATE INDEX "delivery_tracking_assignmentId_recordedAt_idx"
     ON "delivery_tracking"("assignmentId", "recordedAt" DESC);
 
+-- ── Print job enums + table ──────────────────────────────────────────────────
+-- PrintJobType and PrintJobStatus were defined in schema.prisma but omitted from
+-- this migration file; print_templates (below) and print_jobs both depend on them.
+CREATE TYPE "PrintJobType" AS ENUM (
+  'RECEIPT', 'KITCHEN_TICKET', 'LABEL', 'DRIVER_RECEIPT',
+  'CANCEL_TICKET', 'REPRINT', 'EOD_REPORT'
+);
+CREATE TYPE "PrintJobStatus" AS ENUM (
+  'QUEUED', 'PRINTING', 'PRINTED', 'FAILED', 'RETRYING'
+);
+
+CREATE TABLE "print_jobs" (
+    "id"            TEXT NOT NULL,
+    "tenantId"      TEXT NOT NULL,
+    "locationId"    TEXT NOT NULL,
+    "printerId"     TEXT,
+    "orderId"       TEXT,
+    "type"          "PrintJobType" NOT NULL,
+    "status"        "PrintJobStatus" NOT NULL DEFAULT 'QUEUED',
+    "payload"       JSONB NOT NULL,
+    "attempts"      INTEGER NOT NULL DEFAULT 0,
+    "maxRetries"    INTEGER NOT NULL DEFAULT 3,
+    "error"         TEXT,
+    "retryMetadata" JSONB NOT NULL DEFAULT '{}',
+    "printedAt"     TIMESTAMP(3),
+    "createdAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "print_jobs_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "print_jobs_tenantId_fkey" FOREIGN KEY ("tenantId")
+        REFERENCES "tenants"("id") ON DELETE RESTRICT,
+    CONSTRAINT "print_jobs_printerId_fkey" FOREIGN KEY ("printerId")
+        REFERENCES "printers"("id") ON DELETE SET NULL,
+    CONSTRAINT "print_jobs_orderId_fkey" FOREIGN KEY ("orderId")
+        REFERENCES "orders"("id") ON DELETE SET NULL
+);
+CREATE INDEX "print_jobs_tenantId_status_idx" ON "print_jobs"("tenantId", "status");
+CREATE INDEX "print_jobs_tenantId_createdAt_idx" ON "print_jobs"("tenantId", "createdAt" DESC);
+CREATE INDEX "print_jobs_locationId_status_idx" ON "print_jobs"("locationId", "status");
+CREATE INDEX "print_jobs_locationId_createdAt_idx" ON "print_jobs"("locationId", "createdAt" DESC);
+CREATE INDEX "print_jobs_printerId_status_idx" ON "print_jobs"("printerId", "status");
+CREATE INDEX "print_jobs_orderId_idx" ON "print_jobs"("orderId");
+
 -- ── Print templates ───────────────────────────────────────────────────────────
 CREATE TABLE "print_templates" (
     "id"         TEXT NOT NULL,
