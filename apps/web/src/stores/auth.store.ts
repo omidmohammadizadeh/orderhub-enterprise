@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { authClient } from "../lib/api/auth.client";
 import { registerAuthCallbacks } from "../lib/api/client";
-import type { AuthState, UserProfile, LoginCredentials } from "../types/auth.types";
+import type { AuthState, LoginCredentials } from "../types/auth.types";
 
 interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -116,21 +116,26 @@ export const useAuthStore = create<AuthStore>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
-      // After hydration from localStorage, register token callbacks on the
-      // Axios client so the interceptor can access the current tokens.
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          registerAuthCallbacks({
-            getAccessToken: () => state.accessToken,
-            getRefreshToken: () => state.refreshToken,
-            setTokens: state.setTokens,
-            clearTokens: state.clearTokens,
-          });
-        }
-      },
     },
   ),
 );
+
+// Register Axios token callbacks using live store state.
+//
+// IMPORTANT: do NOT capture a state snapshot here (e.g. via onRehydrateStorage).
+// Snapshots capture the value at hydration time (null on first visit) and never
+// reflect tokens written to the store after login — causing every post-login API
+// call to go out without an Authorization header and silently failing with 401.
+//
+// Using useAuthStore.getState() ensures the interceptor always reads the current
+// token, whether the user just logged in or the page was reloaded from localStorage.
+registerAuthCallbacks({
+  getAccessToken: () => useAuthStore.getState().accessToken,
+  getRefreshToken: () => useAuthStore.getState().refreshToken,
+  setTokens: (accessToken, refreshToken) =>
+    useAuthStore.getState().setTokens(accessToken, refreshToken),
+  clearTokens: () => useAuthStore.getState().clearTokens(),
+});
 
 // Convenience selector — avoids re-renders when unrelated state changes
 export const selectUser = (s: AuthStore) => s.user;
