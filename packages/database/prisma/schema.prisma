@@ -28,6 +28,10 @@ generator client {
   provider        = "prisma-client-js"
   output          = "../generated/prisma"
   previewFeatures = ["fullTextSearch", "metrics"]
+  # Generate query engine for Alpine+OpenSSL (Render/Docker) alongside the native dev binary.
+  # Without this, Prisma detects "linux-musl-openssl-3.0.x" at runtime but only finds
+  # the "linux-musl" engine that was compiled in the builder stage (no OpenSSL present there).
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
