@@ -31,6 +31,9 @@ COPY packages ./packages
 COPY apps/worker ./apps/worker
 
 RUN pnpm --filter @orderhub/database db:generate
+# Compile packages/database/src/index.ts → dist/ so downstream imports resolve
+# to ../generated/prisma (the freshly generated client), not @prisma/client stub.
+RUN pnpm --filter @orderhub/database build
 RUN pnpm --filter @orderhub/shared build
 RUN pnpm --filter @orderhub/worker build
 

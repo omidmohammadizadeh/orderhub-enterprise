@@ -1,0 +1,49 @@
+# ── Build outputs ─────────────────────────────────────────
+# Exclude all local dist/ directories so Docker always builds
+# packages/database and packages/shared from source. This prevents
+# locally-compiled macOS ARM64 outputs from contaminating linux/amd64 builds.
+**/dist
+**/.next
+**/*.tsbuildinfo
+
+# ── Dependencies ──────────────────────────────────────────
+# Docker deps stage handles its own pnpm install.
+**/node_modules
+
+# ── Prisma artefacts ──────────────────────────────────────
+# The generated client contains a platform-specific query engine binary
+# (darwin-arm64 locally, linux-amd64 in Docker). Exclude it so Docker always
+# gets a freshly generated linux-compatible client from `prisma generate`.
+packages/database/generated
+packages/database/prisma/dev.db
+packages/database/prisma/dev.db-journal
+
+# ── Environment ───────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Version control ───────────────────────────────────────
+.git
+.gitignore
+
+# ── OS / editor ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# ── Test coverage ─────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Docker dev volumes ────────────────────────────────────
+.docker-volumes/
+
+# ── Claude worktree metadata ──────────────────────────────
+.claude/
