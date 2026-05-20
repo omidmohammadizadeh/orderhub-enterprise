@@ -35,6 +35,13 @@ COPY apps/web ./apps/web
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* vars are inlined at build time by Next.js.
+# Pass the public API URL (e.g. https://orderhub-api-0re6.onrender.com) so
+# browser-side code (Socket.IO, direct fetch) can reach the API from outside
+# the Render private network without going through the Next.js server rewrite.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN pnpm --filter @orderhub/shared build
 RUN pnpm --filter @orderhub/web build
 

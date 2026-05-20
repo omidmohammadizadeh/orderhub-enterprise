@@ -134,6 +134,11 @@ services:
     plan: starter
     healthCheckPath: /
     numInstances: 1
+    dockerBuildArgs:
+      # Baked into the Next.js bundle at build time (NEXT_PUBLIC_* vars).
+      # Browser-side code (Socket.IO, direct fetch) uses this to reach the API
+      # from outside the Render internal network.
+      - NEXT_PUBLIC_API_URL=https://orderhub-api-0re6.onrender.com
     envVars:
       - key: NODE_ENV
         value: production

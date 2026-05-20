@@ -20,6 +20,7 @@
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:seed": "turbo run db:seed",
+    "seed:admin": "tsx apps/api/src/scripts/bootstrap-admin.ts",
     "docker:dev": "docker-compose -f docker-compose.yml up -d",
     "docker:down": "docker-compose -f docker-compose.yml down",
     "docker:logs": "docker-compose -f docker-compose.yml logs -f"
