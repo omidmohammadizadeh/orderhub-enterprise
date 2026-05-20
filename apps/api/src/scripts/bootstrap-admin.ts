@@ -25,7 +25,10 @@
  *                    ROTATE THIS after first login in production.
  */
 
-import { PrismaClient } from "@prisma/client";
+// @prisma/client is a stub when a custom generator output is configured.
+// The actual generated client lives in packages/database/generated/prisma/
+// and is re-exported through @orderhub/database (same path used by PrismaService).
+import { PrismaClient } from "@orderhub/database";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();

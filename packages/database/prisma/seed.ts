@@ -1,4 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+// @prisma/client is a stub when a custom generator output is used.
+// The generated client lives at packages/database/generated/prisma/ — import directly.
+import { PrismaClient } from "../generated/prisma";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
