@@ -57,6 +57,9 @@ echo "[startup] Resolving any previously-failed migration records..."
 ./packages/database/node_modules/.bin/prisma migrate resolve \
   --rolled-back 20260518120000_phase_e \
   --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
+./packages/database/node_modules/.bin/prisma migrate resolve \
+  --rolled-back 20260518180000_phase_f \
+  --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
 
 ./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 echo "[startup] Migrations complete."
