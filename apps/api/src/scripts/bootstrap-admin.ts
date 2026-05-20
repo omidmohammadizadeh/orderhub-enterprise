@@ -8,11 +8,13 @@
  * Usage (from repo root):
  *   DATABASE_URL=<url> pnpm seed:admin
  *
- * Or directly:
- *   DATABASE_URL=<url> npx tsx apps/api/src/scripts/bootstrap-admin.ts
+ * Or directly via tsx in the database package:
+ *   DATABASE_URL=<url> pnpm --filter @orderhub/database exec tsx \
+ *     ../../apps/api/src/scripts/bootstrap-admin.ts
  *
  * On Render: open the API service Shell tab and run:
- *   DATABASE_URL=$DATABASE_URL npx tsx apps/api/src/scripts/bootstrap-admin.ts
+ *   npx tsx apps/api/src/scripts/bootstrap-admin.ts
+ *   (DATABASE_URL is already in the shell environment)
  *
  * Environment:
  *   DATABASE_URL   — required, Postgres connection string
