@@ -1,13 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
+// Suspense wrapper required by Next.js 15 because useSearchParams() suspends
+// during static generation unless the consumer is inside a Suspense boundary.
 export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+        <div className="h-6 w-6 rounded-full border-2 border-zinc-200 border-t-orange-500 animate-spin" />
+      </div>
+    }>
+      <AcceptInvitePageInner />
+    </Suspense>
+  );
+}
+
+function AcceptInvitePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");

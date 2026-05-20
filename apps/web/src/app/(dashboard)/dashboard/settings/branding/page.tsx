@@ -160,10 +160,10 @@ export default function BrandingPage() {
             <div key={key}>
               <label className="block text-xs font-medium text-zinc-600 mb-1">{label}</label>
               <div className="flex items-center gap-2 border border-zinc-200 rounded-lg px-3 py-2">
-                <input type="color" value={form[key as keyof typeof form] ?? "#f97316"}
+                <input type="color" value={(form[key as keyof typeof form] as string | undefined) ?? "#f97316"}
                   onChange={(e) => updateForm(key as keyof typeof form, e.target.value)}
                   className="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent" />
-                <input value={form[key as keyof typeof form] ?? ""} onChange={(e) => updateForm(key as keyof typeof form, e.target.value)}
+                <input value={(form[key as keyof typeof form] as string | undefined) ?? ""} onChange={(e) => updateForm(key as keyof typeof form, e.target.value)}
                   className="flex-1 text-sm font-mono focus:outline-none" />
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function BrandingPage() {
         {branding?.customDomains?.length ? (
           <div className="space-y-2">
             {branding.customDomains.map((d) => {
-              const statusInfo = DOMAIN_STATUS[d.status] ?? DOMAIN_STATUS.PENDING;
+              const statusInfo = DOMAIN_STATUS[d.status] ?? DOMAIN_STATUS["PENDING"]!;
               const StatusIcon = statusInfo.icon;
               return (
                 <div key={d.id} className="border border-zinc-200 rounded-xl p-4 space-y-2">

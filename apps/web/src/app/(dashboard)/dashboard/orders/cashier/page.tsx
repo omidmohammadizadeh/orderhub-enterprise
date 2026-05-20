@@ -177,15 +177,15 @@ export default function CashierPage() {
 
   // Auto-select first ready order
   useEffect(() => {
-    if (!selectedId && ready.length > 0) setSelectedId(ready[0].id);
+    if (!selectedId && ready.length > 0) setSelectedId(ready[0]!.id);
   }, [ready.length]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!orders?.length) return;
     const readyIds = ready.map((o) => o.id);
     const idx = selectedId ? readyIds.indexOf(selectedId) : -1;
-    if (e.key === "ArrowDown" && idx < readyIds.length - 1) setSelectedId(readyIds[idx + 1]);
-    if (e.key === "ArrowUp" && idx > 0) setSelectedId(readyIds[idx - 1]);
+    if (e.key === "ArrowDown" && idx < readyIds.length - 1) setSelectedId(readyIds[idx + 1]!);
+    if (e.key === "ArrowUp" && idx > 0) setSelectedId(readyIds[idx - 1]!);
   }, [orders, selectedId, ready]);
 
   useEffect(() => {

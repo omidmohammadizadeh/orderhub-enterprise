@@ -19,6 +19,9 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
+# apps/web/node_modules must be copied explicitly because pnpm does not
+# hoist next (or other web-only packages) to the root node_modules/.bin.
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
 COPY tsconfig.base.json ./
 COPY packages ./packages
@@ -26,6 +29,7 @@ COPY apps/web ./apps/web
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN pnpm --filter @orderhub/shared build
 RUN pnpm --filter @orderhub/web build
 
 # ── Stage 3: Production ───────────────────────────────────

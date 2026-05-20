@@ -40,7 +40,7 @@ function ResultBadge({ result }: { result: SandboxResult | null }) {
       {result.success ? <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" /> : <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />}
       <div>
         <p className="font-medium">{result.message}</p>
-        {result.data && (
+        {result.data != null && (
           <pre className="mt-1 text-xs opacity-80 overflow-x-auto whitespace-pre-wrap">
             {JSON.stringify(result.data, null, 2)}
           </pre>

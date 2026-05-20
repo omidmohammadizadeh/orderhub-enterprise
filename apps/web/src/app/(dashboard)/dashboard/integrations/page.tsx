@@ -154,6 +154,7 @@ export default function IntegrationsPage() {
             .filter((p) => !integratedPlatforms.has(p))
             .map((platform) => {
               const meta = PLATFORM_META[platform];
+              if (!meta) return null;
               return (
                 <ConnectCard
                   key={platform}

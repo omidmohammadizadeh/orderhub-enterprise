@@ -165,6 +165,7 @@ export default function OnboardingPage() {
   };
 
   const step = STEPS[currentStep];
+  if (!step) return null;
   const progress = ((currentStep) / (STEPS.length - 1)) * 100;
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, RotateCcw, Clock, Maximize2, Volume2, VolumeX, Settings } from "lucide-react";
@@ -52,7 +52,21 @@ function formatElapsed(secs: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+// Suspense wrapper required by Next.js 15 because useSearchParams() suspends
+// during static generation unless the consumer is inside a Suspense boundary.
 export default function KdsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-zinc-950">
+        <div className="h-8 w-8 rounded-full border-2 border-zinc-700 border-t-emerald-500 animate-spin" />
+      </div>
+    }>
+      <KdsPageInner />
+    </Suspense>
+  );
+}
+
+function KdsPageInner() {
   const params = useSearchParams();
   const screenId = params.get("screen") ?? "";
   const qc = useQueryClient();
