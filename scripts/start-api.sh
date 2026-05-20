@@ -55,7 +55,7 @@ echo "[startup] Applying database migrations..."
 # to run on every startup.
 echo "[startup] Resolving any previously-failed migration records..."
 ./packages/database/node_modules/.bin/prisma migrate resolve \
-  --rolled-back 20260518120000_phase_e \
+  --rolled-back 20260518130000_phase_e_supplement \
   --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
 ./packages/database/node_modules/.bin/prisma migrate resolve \
   --rolled-back 20260518180000_phase_f \
