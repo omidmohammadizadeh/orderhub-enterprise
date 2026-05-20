@@ -22,7 +22,7 @@
  * Exit code 1 = at least one check failed
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@orderhub/database";
 import * as crypto from "crypto";
 import * as http from "http";
 import * as https from "https";

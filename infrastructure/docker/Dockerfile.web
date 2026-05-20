@@ -25,6 +25,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
+# pnpm-workspace.yaml must be present so Next.js outputFileTracing auto-detection
+# finds the monorepo root and places server.js at apps/web/server.js inside the
+# standalone output — matching the CMD path and local build behaviour.
+COPY package.json pnpm-workspace.yaml ./
 COPY tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/web ./apps/web
