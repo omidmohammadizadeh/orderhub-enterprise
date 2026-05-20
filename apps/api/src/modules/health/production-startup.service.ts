@@ -154,12 +154,33 @@ export class ProductionStartupService implements OnModuleInit {
   }
 
   private async checkRedis(): Promise<string | null> {
+    // Use a 5-second timeout so an ioredis client that is still establishing
+    // its TLS connection to Upstash at module-init time doesn't block startup
+    // forever. Bull retries connections automatically, so a slow initial ping
+    // is not fatal — we log a warning and let the process continue.
+    const TIMEOUT_MS = 5000;
     try {
-      await this.orderQueue.client.ping();
+      await Promise.race([
+        this.orderQueue.client.ping(),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`ping timed out after ${TIMEOUT_MS}ms`)),
+            TIMEOUT_MS,
+          )
+        ),
+      ]);
       this.logger.log("Redis/queue connection: OK");
       return null;
     } catch (err: any) {
-      return `Redis connection failed: ${err?.message ?? String(err)}`;
+      // Non-fatal: log a warning but don't block startup.
+      // Bull's ioredis client retries the connection with exponential back-off;
+      // blocking NestJS module init on the first-connect ping risks a deadlock
+      // if TLS negotiation is slow (e.g. cold Upstash instance on staging).
+      this.logger.warn(
+        `Redis/queue ping check did not succeed: ${err?.message ?? String(err)}` +
+        ` — continuing startup (Bull will reconnect in background)`,
+      );
+      return null; // intentionally non-fatal
     }
   }
 }

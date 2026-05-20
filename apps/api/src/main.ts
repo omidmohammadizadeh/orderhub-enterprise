@@ -15,7 +15,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger,
-    bufferLogs: true,
+    bufferLogs: false, // false = log immediately; true would suppress all output until app.listen()
     rawBody: true, // Required for webhook HMAC signature verification
   });
 
