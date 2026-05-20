@@ -72,11 +72,18 @@ ADMIN_EMAIL=myemail@example.com ADMIN_PASSWORD=MySecurePass123! \
 
 ### Option C — Render Shell
 
-Open the Render dashboard → **orderhub-api** service → **Shell** tab:
+Open the Render dashboard → **orderhub-api** service → **Shell** tab.
+
+The production runtime image contains `node` only (no pnpm, npx, or tsx).
+The bootstrap script is compiled by `nest build` and ships in the image as compiled JS:
 
 ```bash
-# The DATABASE_URL is already available in the shell environment
-npx tsx apps/api/src/scripts/bootstrap-admin.ts
+# DATABASE_URL is already injected by Render — just run:
+node apps/api/dist/scripts/bootstrap-admin.js
+
+# Override credentials if needed:
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=MyPass123! \
+  node apps/api/dist/scripts/bootstrap-admin.js
 ```
 
 ---

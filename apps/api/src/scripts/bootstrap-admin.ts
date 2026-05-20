@@ -5,16 +5,18 @@
  * Creates the system platform tenant and PLATFORM_ADMIN user.
  * Safe to run multiple times — all operations are idempotent (upsert).
  *
- * Usage (from repo root):
+ * Usage
+ * ──────
+ * On Render (Shell tab — runtime image has node but NOT pnpm/npx/tsx):
+ *   node apps/api/dist/scripts/bootstrap-admin.js
+ *   (DATABASE_URL is already injected into the shell environment by Render)
+ *
+ * Locally (from repo root, requires tsx in the database package):
  *   DATABASE_URL=<url> pnpm seed:admin
  *
- * Or directly via tsx in the database package:
- *   DATABASE_URL=<url> pnpm --filter @orderhub/database exec tsx \
- *     ../../apps/api/src/scripts/bootstrap-admin.ts
- *
- * On Render: open the API service Shell tab and run:
- *   npx tsx apps/api/src/scripts/bootstrap-admin.ts
- *   (DATABASE_URL is already in the shell environment)
+ * The script is compiled by `nest build` (tsc, no webpack) alongside the rest
+ * of apps/api/src — the output lands at apps/api/dist/scripts/bootstrap-admin.js
+ * which is copied into the Docker runtime image by Dockerfile.api.
  *
  * Environment:
  *   DATABASE_URL   — required, Postgres connection string
