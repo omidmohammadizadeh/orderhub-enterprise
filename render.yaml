@@ -152,10 +152,12 @@ services:
       # are available during `next build` via the ARG/ENV lines in Dockerfile.web.
       #
       # NEXT_PUBLIC_API_URL: base URL for the Axios REST client.
-      #   Must include the /api global prefix so apiClient.post("/v1/...") resolves
-      #   to https://orderhub-api-0re6.onrender.com/api/v1/... correctly.
+      #   Set to /api (relative) so ALL browser API requests go through the Next.js
+      #   server-side rewrite proxy instead of crossing origins directly.
+      #   This avoids Render's Starter proxy stripping CORS response headers.
+      #   next.config.ts rewrites /api/:path* → NEXT_PUBLIC_SOCKET_URL/api/:path*.
       - key: NEXT_PUBLIC_API_URL
-        value: https://orderhub-api-0re6.onrender.com/api
+        value: /api
       # NEXT_PUBLIC_SOCKET_URL: Socket.IO server root (no /api path).
       #   Socket.IO connects to the server root, not a sub-path.
       - key: NEXT_PUBLIC_SOCKET_URL

@@ -50,12 +50,23 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Rewrites so the frontend proxies /api/* to the NestJS service in dev
+  // Rewrites: proxy /api/* → NestJS API (same-origin from the browser's perspective).
+  //
+  // Why this matters: Render's Starter plan proxy layer strips CORS response headers
+  // before they reach the browser, making cross-origin requests impossible regardless
+  // of NestJS CORS config. By routing all browser API calls through the Next.js server
+  // (NEXT_PUBLIC_API_URL = /api), requests are same-origin and never need CORS.
+  //
+  // NEXT_PUBLIC_SOCKET_URL is the API server root (https://orderhub-api-0re6.onrender.com)
+  // and is available as a Docker build-time ARG, so it is baked into the rewrite at
+  // next build time. NestJS global prefix is "api", so the destination must include it.
   async rewrites() {
+    const apiBase =
+      process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:4000";
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.API_URL ?? "http://localhost:4000"}/:path*`,
+        destination: `${apiBase}/api/:path*`,
       },
     ];
   },
