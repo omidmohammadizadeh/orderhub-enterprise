@@ -22,4 +22,4 @@ fi
 
 echo "[worker-startup] Environment validation passed."
 echo "[worker-startup] Starting OrderHub Worker..."
-exec node dist/main
+exec node apps/worker/dist/main

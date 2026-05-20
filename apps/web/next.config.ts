@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -8,6 +9,12 @@ const nextConfig: NextConfig = {
 
   // Turborepo-friendly transpilation of workspace packages
   transpilePackages: ["@orderhub/shared", "@orderhub/ui"],
+
+  // Explicitly set the monorepo root for standalone output file tracing.
+  // Without this, Next.js auto-detection may fail in Docker (no pnpm-workspace.yaml
+  // lookup works reliably) and server.js ends up at the standalone root instead of
+  // apps/web/server.js — breaking CMD ["node", "apps/web/server.js"].
+  outputFileTracingRoot: path.join(__dirname, "../../"),
 
   experimental: {
     // Server Actions are stable in Next 15 but kept here for visibility

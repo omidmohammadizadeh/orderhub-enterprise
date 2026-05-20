@@ -52,7 +52,11 @@ RUN apk add --no-cache dumb-init && \
     addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs
 
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
+# Preserve apps/api/ path so Node.js module resolution traverses up through
+# apps/api/node_modules/ for pnpm-linked deps (e.g. reflect-metadata) that
+# are symlinked there but not hoisted to root node_modules in a partial install.
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 

@@ -43,9 +43,12 @@ echo "[startup] Environment validation passed."
 # DIRECT_URL is used by Prisma for migrations (bypasses PgBouncer pooler).
 # DATABASE_URL (pooled) is used for all runtime queries.
 echo "[startup] Applying database migrations..."
-npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+# Use the project-installed Prisma binary — NOT `npx prisma` which downloads the
+# latest CLI (currently 7.x) and rejects schema features valid in Prisma 5.x
+# (previewFeatures=["metrics"], datasource url= property, etc.).
+./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 echo "[startup] Migrations complete."
 
 # ── 3. Start the API ─────────────────────────────────────
 echo "[startup] Starting OrderHub API..."
-exec node dist/main
+exec node apps/api/dist/main
