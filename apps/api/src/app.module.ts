@@ -6,7 +6,9 @@ import { BullModule } from "@nestjs/bull";
 import { WinstonModule } from "nest-winston";
 import { CacheModule } from "@nestjs/cache-manager";
 import { ScheduleModule } from "@nestjs/schedule";
-import * as redisStore from "cache-manager-redis-store";
+// cache-manager-redis-store removed — uses in-memory store for staging compatibility.
+// cache-manager v5 requires an async store factory for Redis; the legacy sync API
+// causes a silent hang at startup when connecting to Upstash rediss:// TLS URLs.
 
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
 import { MaintenanceMiddleware } from "./common/middleware/maintenance.middleware";
@@ -98,15 +100,14 @@ import { QUEUES } from "@orderhub/shared";
       ],
     }),
 
-    // ── Redis Cache ──────────────────────────────────────
-    CacheModule.registerAsync({
+    // ── In-Memory Cache ───────────────────────────────────
+    // Using built-in memory store for staging. The legacy cache-manager-redis-store
+    // v3 API hangs at startup when connecting to Upstash (rediss:// TLS).
+    // Upgrade path: replace with cache-manager-ioredis-yet when needed.
+    CacheModule.register({
       isGlobal: true,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        store: redisStore as any,
-        url: config.get<string>("REDIS_URL"),
-        ttl: 300,
-      }),
+      ttl: 300_000, // 5 minutes in ms (cache-manager v5 uses milliseconds)
+      max: 1000,    // max entries in memory
     }),
 
     // ── Bull Queues ──────────────────────────────────────
