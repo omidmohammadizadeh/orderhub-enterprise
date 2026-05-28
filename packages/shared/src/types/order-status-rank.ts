@@ -21,6 +21,7 @@ export const STATUS_RANK: Readonly<Record<OrderStatus, number>> = Object.freeze(
   ACCEPTED: 20,
   PREPARING: 30,
   READY: 40,
+  PENDING_DISPATCH: 45,    // ready, handed to 3rd-party dispatcher, awaiting driver
   ASSIGNED_DRIVER: 50,
   ACCEPTED_BY_DRIVER: 60,
   OUT_FOR_DELIVERY: 70,
@@ -47,6 +48,7 @@ export const CANCELLABLE_STATUSES: readonly OrderStatus[] = Object.freeze([
   "ACCEPTED",
   "PREPARING",
   "READY",
+  "PENDING_DISPATCH",
   "ASSIGNED_DRIVER",
   "ACCEPTED_BY_DRIVER",
   "OUT_FOR_DELIVERY",

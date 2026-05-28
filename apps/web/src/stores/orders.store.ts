@@ -57,23 +57,28 @@ export const useOrdersStore = create<OrdersState>((set) => ({
 
   applyOrderUpdated: (payload) =>
     set((state) => ({
-      liveOrders: state.liveOrders
-        .map((o) =>
-          o.id === payload.orderId ? { ...o, status: payload.status } : o,
-        )
-        // Remove from live board if terminal
-        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(o.status)),
+      // Terminal-state orders stay on the board for 24 hours (the API's
+      // findLiveOrders enforces the same window), so we don't filter
+      // COMPLETED / CANCELLED / REJECTED / FAILED here — the board has
+      // dedicated Delivered / Collected / Cancelled / Denied columns to
+      // surface them. They drop off naturally on the next refetch once
+      // updatedAt is more than 24h old.
+      liveOrders: state.liveOrders.map((o) =>
+        o.id === payload.orderId ? { ...o, status: payload.status } : o,
+      ),
     })),
 
   applyOrderCancelled: (payload) =>
     set((state) => ({
-      liveOrders: state.liveOrders.filter((o) => o.id !== payload.orderId),
+      liveOrders: state.liveOrders.map((o) =>
+        o.id === payload.orderId ? { ...o, status: "CANCELLED" } : o,
+      ),
     })),
 
   optimisticStatusUpdate: (orderId, newStatus) =>
     set((state) => ({
-      liveOrders: state.liveOrders
-        .map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(o.status)),
+      liveOrders: state.liveOrders.map((o) =>
+        o.id === orderId ? { ...o, status: newStatus } : o,
+      ),
     })),
 }));

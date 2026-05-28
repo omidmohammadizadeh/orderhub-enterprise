@@ -38,9 +38,19 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   READY: [
     // Collection: jump straight to COMPLETED on customer pickup.
     "COMPLETED",
-    // Delivery path: hand off to driver flow.
+    // Delivery (in-house): hand off to driver flow.
     "ASSIGNED_DRIVER",
+    // Delivery (3rd-party): pushed to Uber Direct / Stuart / JET — awaiting driver accept.
+    "PENDING_DISPATCH",
     // Legacy direct dispatch (no driver assignment step).
+    "OUT_FOR_DELIVERY",
+    "DISPATCHED",
+    "CANCELLED",
+    "FAILED",
+  ],
+  PENDING_DISPATCH: [
+    "ASSIGNED_DRIVER",
+    "ACCEPTED_BY_DRIVER",
     "OUT_FOR_DELIVERY",
     "DISPATCHED",
     "CANCELLED",

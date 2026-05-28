@@ -16,7 +16,7 @@
 // deferred until prep-time configuration ships in a later phase.
 
 import { useState } from "react";
-import { Check, ChefHat, PackageCheck, Bike, X, Loader2 } from "lucide-react";
+import { Check, ChefHat, PackageCheck, Bike, X, Loader2, Send } from "lucide-react";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 
 interface Props {
@@ -108,6 +108,12 @@ function buttonsForStatus(
               variant: "primary",
             },
             {
+              label: "Send to dispatch",
+              toStatus: "PENDING_DISPATCH",
+              icon: Send,
+              variant: "secondary",
+            },
+            {
               label: "Cancel",
               toStatus: "CANCELLED",
               icon: X,
@@ -115,6 +121,22 @@ function buttonsForStatus(
               promptForReason: true,
             },
           ];
+    case "PENDING_DISPATCH":
+      return [
+        {
+          label: "Driver assigned",
+          toStatus: "ASSIGNED_DRIVER",
+          icon: Bike,
+          variant: "primary",
+        },
+        {
+          label: "Cancel",
+          toStatus: "CANCELLED",
+          icon: X,
+          variant: "danger",
+          promptForReason: true,
+        },
+      ];
     case "ASSIGNED_DRIVER":
     case "ACCEPTED_BY_DRIVER":
       return [

@@ -49,6 +49,7 @@ export const OrderStatusSchema = z.enum([
   "ACCEPTED",
   "PREPARING",
   "READY",
+  "PENDING_DISPATCH", // dispatched to 3rd-party (Uber Direct / Stuart / JET) — no driver accepted yet
   "ASSIGNED_DRIVER",
   "ACCEPTED_BY_DRIVER",
   "OUT_FOR_DELIVERY",

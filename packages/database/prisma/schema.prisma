@@ -1786,6 +1786,7 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   READY
+  PENDING_DISPATCH    // order has been pushed to a third-party dispatcher (Uber Direct, Stuart, JET, etc.) but no driver has accepted yet
   ASSIGNED_DRIVER
   ACCEPTED_BY_DRIVER
   OUT_FOR_DELIVERY

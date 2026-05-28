@@ -486,14 +486,40 @@ export class OrdersService {
   }
 
   async findLiveOrders(tenantId: string, locationId?: string) {
+    // The board shows every active order PLUS terminal orders from the last
+    // 24 hours so operators can see what just completed / was cancelled
+    // without leaving the page. After 24h terminal orders drop off the live
+    // board and live only in /v1/orders (history) — that keeps the live
+    // query bounded as volume grows.
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     return this.prisma.order.findMany({
       where: {
         tenantId,
         ...(locationId && { locationId }),
-        status: { in: ["PENDING", "ACCEPTED", "PREPARING", "READY", "DISPATCHED"] },
+        OR: [
+          {
+            status: {
+              in: [
+                "PENDING",
+                "ACCEPTED",
+                "PREPARING",
+                "READY",
+                "PENDING_DISPATCH",
+                "ASSIGNED_DRIVER",
+                "ACCEPTED_BY_DRIVER",
+                "OUT_FOR_DELIVERY",
+                "DISPATCHED",
+              ],
+            },
+          },
+          {
+            status: { in: ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"] },
+            updatedAt: { gte: since24h },
+          },
+        ],
       },
       include: ORDER_INCLUDE,
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
     });
   }
 }
