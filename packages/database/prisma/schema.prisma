@@ -239,6 +239,11 @@ model Location {
   kdsScreens   KdsScreen[]
 
   shopCode       String? @unique
+  // Bearer token presented by the legacy Flutter printer app as
+  // `X-Print-Token` when polling /v1/printer-jobs. Nullable so existing
+  // locations stay backwards-compatible; once set, the new endpoint
+  // requires a match. Rotated via the locations admin UI.
+  printToken     String? @unique
 
   // Online ordering
   slug           String? @unique
