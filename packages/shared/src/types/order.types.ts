@@ -31,15 +31,32 @@ export type OrderSource = z.infer<typeof OrderSourceSchema>;
 export const IntegrationSourceSchema = z.enum(["DIRECT", "HUBRISE"]);
 export type IntegrationSource = z.infer<typeof IntegrationSourceSchema>;
 
+// ── OrderStatus ──────────────────────────────────────────
+// The status lifecycle. Mirrors the Prisma enum (which is the source of truth).
+//
+// Forward flow:
+//   PENDING → ACCEPTED → PREPARING → READY → ASSIGNED_DRIVER → ACCEPTED_BY_DRIVER
+//          → OUT_FOR_DELIVERY → COMPLETED (delivered/collected)
+//
+// Terminal/exception states (any non-terminal status can transition to one):
+//   CANCELLED, REJECTED, FAILED
+//
+// DISPATCHED is kept as a legacy alias for OUT_FOR_DELIVERY — older code,
+// outbox events, and platform adapters may still emit it. New code should
+// prefer the granular states.
 export const OrderStatusSchema = z.enum([
   "PENDING",
   "ACCEPTED",
   "PREPARING",
   "READY",
-  "DISPATCHED",
+  "ASSIGNED_DRIVER",
+  "ACCEPTED_BY_DRIVER",
+  "OUT_FOR_DELIVERY",
+  "DISPATCHED", // legacy alias for OUT_FOR_DELIVERY
   "COMPLETED",
   "CANCELLED",
   "REJECTED",
+  "FAILED",
 ]);
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 

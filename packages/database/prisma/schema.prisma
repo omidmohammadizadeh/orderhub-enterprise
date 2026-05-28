@@ -207,6 +207,7 @@ model Brand {
   locations      Location[]
   menus          Menu[]
   modifierGroups ModifierGroup[]
+  orders         Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -577,6 +578,12 @@ model Order {
   customerId        String?
   customer          Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
+  // Optional brand reference. A single location can serve multiple virtual
+  // brands (e.g. "Greek Gyros" and "crunchy chikin" run from the same kitchen).
+  // Used to badge orders on the board and scope per-brand reporting.
+  brandId           String?
+  brand             Brand?            @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
   externalId String?
   platform   OrderPlatform
   displayId  String?
@@ -613,6 +620,13 @@ model Order {
   scheduledFor        DateTime?
   estimatedReadyAt    DateTime?
   idempotencyKey      String?   @unique
+
+  // Phase AJ — Base44 parity fields surfaced in UI / printer payload.
+  // Other Base44 fields (courier_*, food_photo_url, stripe_*, hubrise_*, etc.)
+  // continue to live in `metadata` JSONB until they need to be queryable.
+  collectionCode      String?   // shown on customer receipt + driver handoff
+  preparationMinutes  Int?      // overrides default prep time for this order
+  failureReason       String?   // populated when status transitions to FAILED
 
   receivedAt       DateTime  @default(now())
   acceptedAt       DateTime?
@@ -652,6 +666,9 @@ model Order {
   @@index([locationId, status, createdAt(sort: Asc)])
   @@index([scheduledFor])
   @@index([customerId])
+  @@index([brandId])
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
   @@map("orders")
 }
 
@@ -1764,10 +1781,14 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   READY
-  DISPATCHED
+  ASSIGNED_DRIVER
+  ACCEPTED_BY_DRIVER
+  OUT_FOR_DELIVERY
+  DISPATCHED // legacy alias for OUT_FOR_DELIVERY — kept for backward compatibility with older outbox events and integration adapters
   COMPLETED
   CANCELLED
   REJECTED
+  FAILED
 }
 
 enum OrderStatusActorType {

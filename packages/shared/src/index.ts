@@ -1,4 +1,5 @@
 export * from "./types/order.types";
+export * from "./types/order-status-rank";
 export * from "./types/events.types";
 export * from "./constants/queues";
 export * from "./constants/audit-events";
