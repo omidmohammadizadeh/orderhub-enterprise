@@ -77,19 +77,55 @@ export interface OrderFilters {
   limit?: number;
 }
 
+// ── Decimal coercion ────────────────────────────────────────────────────────
+// Prisma serialises Decimal columns as strings in JSON (to preserve precision),
+// but our React components use them as numbers (`.toFixed()`, comparisons).
+// Without normalisation `order.total.toFixed(2)` throws TypeError on the
+// client and crashes the whole orders board with a hydration error.
+// Coerce once at the API boundary so component code can stay arithmetic.
+
+function n(v: unknown): number {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") return Number(v);
+  return 0;
+}
+
+function normaliseOrder(o: Order): Order {
+  return {
+    ...o,
+    subtotal: n(o.subtotal),
+    taxAmount: n(o.taxAmount),
+    deliveryFee: n(o.deliveryFee),
+    discount: n(o.discount),
+    total: n(o.total),
+    items: o.items?.map((i) => ({
+      ...i,
+      unitPrice: n(i.unitPrice),
+      totalPrice: n(i.totalPrice),
+      modifiers: (i.modifiers ?? []).map((m) => ({
+        ...m,
+        price: n(m.price),
+      })),
+    })) ?? [],
+  };
+}
+
 export const ordersClient = {
   list: (filters: OrderFilters = {}) =>
     apiClient
       .get<OrdersPage>("/v1/orders", { params: filters })
-      .then((r) => r.data),
+      .then((r) => ({
+        ...r.data,
+        orders: r.data.orders.map(normaliseOrder),
+      })),
 
   live: (locationId?: string) =>
     apiClient
       .get<Order[]>("/v1/orders/live", { params: locationId ? { locationId } : {} })
-      .then((r) => r.data),
+      .then((r) => r.data.map(normaliseOrder)),
 
   get: (id: string) =>
-    apiClient.get<Order>(`/v1/orders/${id}`).then((r) => r.data),
+    apiClient.get<Order>(`/v1/orders/${id}`).then((r) => normaliseOrder(r.data)),
 
   updateStatus: (
     id: string,
@@ -98,5 +134,5 @@ export const ordersClient = {
   ) =>
     apiClient
       .patch<Order>(`/v1/orders/${id}/status`, { status, ...opts })
-      .then((r) => r.data),
+      .then((r) => normaliseOrder(r.data)),
 };
