@@ -9,7 +9,6 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
   NotFoundException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
@@ -60,7 +59,7 @@ export class PrintersController {
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Update printer configuration" })
   update(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @Body() body: any,
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -73,7 +72,7 @@ export class PrintersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a printer" })
   remove(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.printers.delete(id, user.tenantId);
@@ -83,7 +82,7 @@ export class PrintersController {
   @BillingExempt() // Job history is live ops view — never blocked
   @ApiOperation({ summary: "Get recent print jobs for a printer" })
   getJobs(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.printers.getJobs(id, user.tenantId);
@@ -112,7 +111,7 @@ export class PrintersController {
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Send a test print to a printer" })
   async testPrint(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     const printer = await this.prisma.printer.findFirst({

@@ -8,7 +8,6 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -122,10 +121,14 @@ export class OrdersController {
   }
 
   // ── GET /api/v1/orders/:id ────────────────────────────
+  // NB: Order IDs are CUIDs (e.g. cmpq1e03l008mqany6rqw140h), NOT UUIDs.
+  // Using ParseUUIDPipe here would 400 every request with "uuid is expected"
+  // before the handler ever ran. The tenant scope on the service layer is
+  // what enforces access control.
   @Get(":id")
   @ApiOperation({ summary: "Get single order with full relations" })
   async findOne(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.orders.findOne(id, user.tenantId);
@@ -136,7 +139,7 @@ export class OrdersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Transition order status" })
   async updateStatus(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @Body() dto: UpdateOrderStatusDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
