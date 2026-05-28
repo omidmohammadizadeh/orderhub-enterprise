@@ -47,19 +47,25 @@ echo "[startup] Applying database migrations..."
 # latest CLI (currently 7.x) and rejects schema features valid in Prisma 5.x
 # (previewFeatures=["metrics"], datasource url= property, etc.).
 
-# If a previous deployment crashed mid-migration, Prisma records the migration as
-# "failed" (P3009) and blocks all future deploys. Resolve any such records first:
-# --rolled-back tells Prisma the migration did not apply (safe because Prisma runs
-# migrations inside a Postgres transaction — a process crash rolls the DDL back).
-# The command is a no-op if the migration is not in a failed state, so it is safe
-# to run on every startup.
-echo "[startup] Resolving any previously-failed migration records..."
-./packages/database/node_modules/.bin/prisma migrate resolve \
-  --rolled-back 20260518130000_phase_e_supplement \
-  --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
-./packages/database/node_modules/.bin/prisma migrate resolve \
-  --rolled-back 20260518180000_phase_f \
-  --schema=packages/database/prisma/schema.prisma 2>/dev/null || true
+# HISTORY: this script previously ran
+#   prisma migrate resolve --rolled-back 20260518130000_phase_e_supplement
+#   prisma migrate resolve --rolled-back 20260518180000_phase_f
+# on every startup as a hack to unblock a one-off P3009 failure. The hack
+# caused chronic schema drift — those two migrations contain non-idempotent
+# statements (CREATE TYPE without guards, ALTER TABLE ADD COLUMN without
+# IF NOT EXISTS), so re-applying them aborts on the first conflict and
+# rolls back the entire transaction, leaving the orders table missing
+# columns the schema declares (most visibly: orders.tenantId).
+#
+# The fix is the dedicated 20260520230000_phase_aj_reconcile_orders_schema
+# migration which idempotently re-adds every column / enum / FK the schema
+# expects on `orders`. With that in place we can stop fighting Prisma:
+# leave the migration history alone and let `migrate deploy` apply new
+# work normally.
+#
+# If a future migration legitimately fails mid-deploy, the right answer is
+# an operator running `prisma migrate resolve` manually after diagnosing —
+# not silently retrying on every container restart.
 
 ./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 echo "[startup] Migrations complete."
