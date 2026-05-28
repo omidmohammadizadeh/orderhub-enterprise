@@ -100,13 +100,68 @@ describe("Order State Machine", () => {
       expect(getTimestampField("PREPARING")).toBe("preparingAt");
       expect(getTimestampField("READY")).toBe("readyAt");
       expect(getTimestampField("DISPATCHED")).toBe("outForDeliveryAt");
+      expect(getTimestampField("OUT_FOR_DELIVERY")).toBe("outForDeliveryAt");
       expect(getTimestampField("COMPLETED")).toBe("deliveredAt");
       expect(getTimestampField("CANCELLED")).toBe("cancelledAt");
     });
 
-    it("returns null for statuses without timestamps", () => {
+    it("returns null for statuses without dedicated timestamps", () => {
       expect(getTimestampField("PENDING")).toBeNull();
       expect(getTimestampField("REJECTED")).toBeNull();
+      // Driver-handoff timestamps live on DriverAssignment, not Order.
+      expect(getTimestampField("ASSIGNED_DRIVER")).toBeNull();
+      expect(getTimestampField("ACCEPTED_BY_DRIVER")).toBeNull();
+      expect(getTimestampField("FAILED")).toBeNull();
+    });
+  });
+
+  // ── Phase AJ — driver-handoff states + FAILED ──────────────────────────────
+  describe("Phase AJ — driver-handoff lifecycle", () => {
+    it("allows READY → ASSIGNED_DRIVER → ACCEPTED_BY_DRIVER → OUT_FOR_DELIVERY → COMPLETED", () => {
+      expect(canTransition("READY", "ASSIGNED_DRIVER")).toBe(true);
+      expect(canTransition("ASSIGNED_DRIVER", "ACCEPTED_BY_DRIVER")).toBe(true);
+      expect(canTransition("ACCEPTED_BY_DRIVER", "OUT_FOR_DELIVERY")).toBe(true);
+      expect(canTransition("OUT_FOR_DELIVERY", "COMPLETED")).toBe(true);
+    });
+
+    it("allows shortcuts that skip driver-accept", () => {
+      // Some platforms (Deliveroo) don't surface the driver-accept event.
+      expect(canTransition("ASSIGNED_DRIVER", "OUT_FOR_DELIVERY")).toBe(true);
+      // Legacy direct dispatch path: READY → DISPATCHED → COMPLETED.
+      expect(canTransition("READY", "DISPATCHED")).toBe(true);
+      expect(canTransition("READY", "OUT_FOR_DELIVERY")).toBe(true);
+    });
+
+    it("allows FAILED from any non-terminal state", () => {
+      const nonTerminal = [
+        "PENDING",
+        "ACCEPTED",
+        "PREPARING",
+        "READY",
+        "ASSIGNED_DRIVER",
+        "ACCEPTED_BY_DRIVER",
+        "OUT_FOR_DELIVERY",
+        "DISPATCHED",
+      ] as const;
+      for (const s of nonTerminal) {
+        expect(canTransition(s, "FAILED")).toBe(true);
+      }
+    });
+
+    it("blocks transitions out of FAILED", () => {
+      expect(canTransition("FAILED", "ACCEPTED")).toBe(false);
+      expect(canTransition("FAILED", "COMPLETED")).toBe(false);
+      expect(() => assertTransition("FAILED", "PENDING")).toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("blocks driver-state regression (rank guard)", () => {
+      // OUT_FOR_DELIVERY → ASSIGNED_DRIVER would be a downgrade; the rank
+      // guard in the shared package catches this before the whitelist.
+      expect(() =>
+        assertTransition("OUT_FOR_DELIVERY", "ASSIGNED_DRIVER"),
+      ).toThrow(BadRequestException);
     });
   });
 });

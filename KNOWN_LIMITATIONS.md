@@ -1,7 +1,47 @@
 # Known Limitations
 
-> Last updated: Phase Z — Cloud Deployment & Production Infrastructure (2026-05-19)
+> Last updated: Phase AJ — Order Foundation (2026-05-20)
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
+
+---
+
+## Phase AJ Limitations
+
+- **"Add Time" button is not implemented on order cards.** Base44 lets staff
+  bump prep time by 5/10/15 min from the order card. The status state
+  machine and `preparationMinutes` column are in place; the UI affordance
+  is deferred until the Store-Ops prep-time configuration flow ships.
+- **Top-bar operational tools (Resume Orders / Busy Mode / Prep Time /
+  Cash Up) are not on the Orders tab UI yet.** The underlying `store-ops`
+  module exists; the Orders-tab wiring is a separate phase.
+- **`Order.brandId` defaults to `NULL` on existing orders.** The FK is
+  `NOT VALID`, so existing rows are not retroactively assigned. New
+  orders set it via the canonical ingest when the adapter knows the
+  brand. A backfill script will be needed before per-brand reporting
+  goes live.
+- **Print-token provisioning has no admin UI.** Operators currently set
+  `Location.printToken` via direct DB write. Until a location-admin
+  endpoint ships, the new `/v1/printer-jobs` endpoint runs in **grace
+  mode** for locations with no token — requests are accepted and a
+  warning logged. The old `/printers/jobs` endpoint remains Public and
+  un-tokenised for backwards compatibility.
+- **Driver-handoff UI (ASSIGNED_DRIVER / ACCEPTED_BY_DRIVER) is data-model
+  only.** The statuses are in the enum, state machine, and rank table,
+  but there is no dispatch screen yet. Status moves through driver states
+  via API only.
+- **Base44 order fields `courier_*`, `food_photo_url`, `stripe_*`,
+  `hubrise_*`, `tracking_url`, `pin_code`, `pickup_code`,
+  `customer_access_code`, `applied_offer_id`, `discount_code` continue to
+  live in `Order.metadata` JSONB.** They are accessible but not
+  indexable; promote to columns when they need to be queryable in
+  reports or filters.
+- **Production marketplace adapters (Uber Eats / Deliveroo / Just Eat /
+  HubRise) are NOT reconnected by this phase.** Test orders flow
+  end-to-end via `POST /v1/orders/test` and through the canonical
+  pipeline; live platform ingest is out of scope.
+- **POS / Menu / Menu Manager / KDS / Team Roles / Locations tabs are
+  out of scope.** The Orders tab and Printer-Job compatibility are the
+  only operational surfaces rebuilt in Phase AJ.
 
 ---
 
