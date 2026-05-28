@@ -53,6 +53,7 @@ export class OrdersService {
     canonical: CanonicalOrder,
     tenantId: string,
     locationId: string,
+    options: { isSandbox?: boolean } = {},
   ): Promise<Order> {
     // Order creation and outbox event insertion are atomic. If the process dies
     // between DB commit and queue enqueue, the OutboxDispatcherCron picks up the
@@ -71,6 +72,7 @@ export class OrdersService {
             viaHubrise: canonical.viaHubrise,
             fulfillmentType: canonical.fulfillmentType,
             status: "PENDING",
+            isSandbox: options.isSandbox ?? false,
             customerName: canonical.customerInfo.name ?? null,
             customerPhone: canonical.customerInfo.phone ?? null,
             customerInfo: canonical.customerInfo as Prisma.InputJsonValue,
@@ -230,6 +232,91 @@ export class OrdersService {
     };
 
     return this.ingestCanonical(canonical as any, tenantId, dto.locationId);
+  }
+
+  // ── Manual test order (Phase AJ) ──────────────────────
+  // Creates a single sample order at the given location with isSandbox=true,
+  // routed through the full canonical ingest pipeline. Unlike the bulk
+  // sandbox.generateOrders helper this is intentionally available in
+  // production — operators use it to verify printer/board wiring without
+  // having to ask a delivery platform to send a real test order.
+  //
+  // The order goes in at status=PENDING. Moving it to ACCEPTED via the
+  // normal status endpoint triggers the standard print-job pipeline.
+  async createTest(
+    tenantId: string,
+    locationId: string,
+    userId: string,
+    overrides: { customerName?: string; fulfillmentType?: "PICKUP" | "DELIVERY" } = {},
+  ): Promise<Order> {
+    // Verify the user can touch this location.
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, brandId: true, name: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+
+    // Deterministic-but-unique external id so the @@unique([externalId, platform])
+    // constraint prevents accidental double-clicks from producing dupes.
+    const externalId = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const customerName = overrides.customerName ?? "Test Order";
+    const fulfillmentType = overrides.fulfillmentType ?? "DELIVERY";
+
+    const items = [
+      { name: "Sample Burger", quantity: 1, unitPrice: 9.5, totalPrice: 9.5, modifiers: [] },
+      { name: "Fries", quantity: 1, unitPrice: 3.5, totalPrice: 3.5, modifiers: [] },
+      { name: "Soft Drink", quantity: 1, unitPrice: 2.0, totalPrice: 2.0, modifiers: [] },
+    ];
+    const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
+    const taxAmount = 0;
+    const deliveryFee = fulfillmentType === "DELIVERY" ? 2.5 : 0;
+    const total = subtotal + taxAmount + deliveryFee;
+
+    const canonical = {
+      externalId,
+      platform: "DIRECT" as const,
+      orderSource: "POS" as const,
+      integrationSource: "DIRECT" as const,
+      viaHubrise: false,
+      fulfillmentType,
+      displayId: `TEST-${externalId.slice(-4).toUpperCase()}`,
+      customerInfo: { name: customerName, phone: "+440000000000" },
+      deliveryAddress:
+        fulfillmentType === "DELIVERY"
+          ? {
+              line1: "1 Test Street",
+              city: "Sandbox",
+              postcode: "TE5 7ER",
+              country: "GB",
+            }
+          : undefined,
+      items,
+      subtotal,
+      taxAmount,
+      deliveryFee,
+      discount: 0,
+      total,
+      specialInstructions: "Phase AJ manual test order — safe to discard",
+      metadata: { isTestOrder: true, createdByUserId: userId },
+    };
+
+    const order = await this.ingestCanonical(
+      canonical as any,
+      tenantId,
+      locationId,
+      { isSandbox: true },
+    );
+
+    void this.audit.log({
+      tenantId,
+      userId,
+      event: "order.test.created",
+      resource: "order",
+      resourceId: order.id,
+      meta: { locationId, externalId, fulfillmentType },
+    });
+
+    return order;
   }
 
   // ── Status transitions ────────────────────────────────

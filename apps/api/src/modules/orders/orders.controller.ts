@@ -44,6 +44,30 @@ export class OrdersController {
     return this.orders.create(dto, user.tenantId);
   }
 
+  // ── POST /api/v1/orders/test ──────────────────────────
+  // Phase AJ — creates a single sandbox order at the given location.
+  // Available to MANAGER+ so operators can verify printer/board wiring
+  // without involving a live delivery platform. Marked isSandbox=true so
+  // it can be cleared via the sandbox endpoint and excluded from reports.
+  @Post("test")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Create a sandbox test order (Phase AJ)" })
+  @ApiResponse({ status: 201 })
+  async createTest(
+    @Body()
+    body: {
+      locationId: string;
+      customerName?: string;
+      fulfillmentType?: "PICKUP" | "DELIVERY";
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.createTest(user.tenantId, body.locationId, user.userId, {
+      customerName: body.customerName,
+      fulfillmentType: body.fulfillmentType,
+    });
+  }
+
   // ── GET /api/v1/orders ────────────────────────────────
   @Get()
   @ApiOperation({ summary: "List orders with filters" })
