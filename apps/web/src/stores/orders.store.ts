@@ -62,7 +62,7 @@ export const useOrdersStore = create<OrdersState>((set) => ({
           o.id === payload.orderId ? { ...o, status: payload.status } : o,
         )
         // Remove from live board if terminal
-        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED"].includes(o.status)),
+        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(o.status)),
     })),
 
   applyOrderCancelled: (payload) =>
@@ -74,6 +74,6 @@ export const useOrdersStore = create<OrdersState>((set) => ({
     set((state) => ({
       liveOrders: state.liveOrders
         .map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED"].includes(o.status)),
+        .filter((o) => !["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(o.status)),
     })),
 }));

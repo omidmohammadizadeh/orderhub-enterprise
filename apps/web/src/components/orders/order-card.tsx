@@ -3,6 +3,7 @@
 import { Clock, User, MapPin, Calendar } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
+import { OrderActions } from "./order-actions";
 import type { Order } from "../../lib/api/orders.client";
 
 interface OrderCardProps {
@@ -74,6 +75,13 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         {order.viaHubrise && (
           <div className="text-[10px] text-violet-500 font-medium">via HubRise</div>
         )}
+
+        {/* Per-status action buttons (Phase AJ) */}
+        <OrderActions
+          orderId={order.id}
+          status={order.status}
+          fulfillmentType={order.fulfillmentType}
+        />
       </CardContent>
     </Card>
   );
