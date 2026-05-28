@@ -7,34 +7,51 @@ import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 
-const COLUMNS = [
+// Each column maps to ONE or MORE OrderStatus values. Phase AJ split
+// the legacy DISPATCHED state into ASSIGNED_DRIVER / ACCEPTED_BY_DRIVER /
+// OUT_FOR_DELIVERY — the board folds the driver-handoff states under a
+// single "Out for delivery" column so the staff view stays compact, and
+// keeps DISPATCHED in the same column for backward-compatibility with
+// integrations that still emit it.
+const COLUMNS: Array<{
+  key: string;
+  title: string;
+  matches: string[];
+  color: string;
+  icon: React.ReactNode;
+}> = [
   {
-    status: "PENDING",
+    key: "NEW",
     title: "New",
+    matches: ["PENDING"],
     color: "bg-blue-500",
     icon: <Clock className="h-4 w-4" />,
   },
   {
-    status: "ACCEPTED",
+    key: "ACCEPTED",
     title: "Accepted",
+    matches: ["ACCEPTED"],
     color: "bg-sky-500",
     icon: <CheckCircle2 className="h-4 w-4" />,
   },
   {
-    status: "PREPARING",
+    key: "PREPARING",
     title: "Preparing",
+    matches: ["PREPARING"],
     color: "bg-amber-500",
     icon: <ChefHat className="h-4 w-4" />,
   },
   {
-    status: "READY",
+    key: "READY",
     title: "Ready",
+    matches: ["READY"],
     color: "bg-emerald-500",
     icon: <CheckCircle2 className="h-4 w-4" />,
   },
   {
-    status: "DISPATCHED",
-    title: "Dispatched",
+    key: "OUT",
+    title: "Out for delivery",
+    matches: ["OUT_FOR_DELIVERY", "DISPATCHED", "ASSIGNED_DRIVER", "ACCEPTED_BY_DRIVER"],
     color: "bg-violet-500",
     icon: <Bike className="h-4 w-4" />,
   },
@@ -67,7 +84,7 @@ export function OrderBoard({ locationId }: Props) {
       COLUMNS.reduce(
         (acc, col) => ({
           ...acc,
-          [col.status]: filteredOrders.filter((o) => o.status === col.status),
+          [col.key]: filteredOrders.filter((o) => col.matches.includes(o.status)),
         }),
         {} as Record<string, Order[]>,
       ),
@@ -117,10 +134,10 @@ export function OrderBoard({ locationId }: Props) {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {COLUMNS.map((col) => (
           <StatusColumn
-            key={col.status}
+            key={col.key}
             title={col.title}
-            status={col.status}
-            orders={byStatus[col.status] ?? []}
+            status={col.key}
+            orders={byStatus[col.key] ?? []}
             color={col.color}
             icon={col.icon}
             onOrderClick={setSelectedOrder}

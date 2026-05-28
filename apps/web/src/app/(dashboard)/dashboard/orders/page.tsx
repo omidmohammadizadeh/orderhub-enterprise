@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Beaker, Loader2 } from "lucide-react";
+import { Beaker, Bike, ShoppingBag, Loader2 } from "lucide-react";
 import { OrderBoard } from "@/components/orders/order-board";
 import { LocationSelector } from "@/components/dashboard/location-selector";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -11,6 +11,12 @@ import { apiClient } from "@/lib/api/client";
 // Phase AJ — the live orders board with location filter and a "Create test
 // order" affordance for go-live verification. This page itself is a thin
 // client wrapper; the actual board/columns/cards live in components/orders.
+//
+// We expose two test buttons (delivery + collection) so operators can
+// verify both branches of the lifecycle — collection orders go
+// READY → COMPLETED (with a "Mark collected" button), delivery orders go
+// READY → OUT_FOR_DELIVERY → COMPLETED (with "Out for delivery" then
+// "Mark delivered" buttons).
 
 export default function OrdersPage() {
   const selectedLocationId = useSelectedLocationStore(
@@ -20,17 +26,20 @@ export default function OrdersPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const testOrder = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (fulfillmentType: "DELIVERY" | "PICKUP") => {
       if (!selectedLocationId) {
         throw new Error("Select a specific location first");
       }
       const res = await apiClient.post("/v1/orders/test", {
         locationId: selectedLocationId,
+        fulfillmentType,
       });
       return res.data;
     },
-    onSuccess: () => {
-      setFeedback("Test order created — it should appear on the board.");
+    onSuccess: (_data, fulfillmentType) => {
+      setFeedback(
+        `Test ${fulfillmentType === "PICKUP" ? "collection" : "delivery"} order created — should appear on the board.`,
+      );
       queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
       window.setTimeout(() => setFeedback(null), 4000);
     },
@@ -39,6 +48,11 @@ export default function OrdersPage() {
       window.setTimeout(() => setFeedback(null), 5000);
     },
   });
+
+  const disabled = testOrder.isPending || !selectedLocationId;
+  const tooltip = selectedLocationId
+    ? "Create a sandbox order at the selected location"
+    : "Select a specific location to create a test order";
 
   return (
     <div>
@@ -49,25 +63,35 @@ export default function OrdersPage() {
             Real-time order board — updates automatically via WebSocket.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <LocationSelector allowAll />
           <button
             type="button"
-            onClick={() => testOrder.mutate()}
-            disabled={testOrder.isPending || !selectedLocationId}
+            onClick={() => testOrder.mutate("DELIVERY")}
+            disabled={disabled}
+            title={tooltip}
             className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            title={
-              selectedLocationId
-                ? "Create a sandbox order at the selected location"
-                : "Select a specific location to create a test order"
-            }
           >
-            {testOrder.isPending ? (
+            {testOrder.isPending && testOrder.variables === "DELIVERY" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Beaker className="h-4 w-4" />
+              <Bike className="h-4 w-4" />
             )}
-            Create test order
+            Test delivery
+          </button>
+          <button
+            type="button"
+            onClick={() => testOrder.mutate("PICKUP")}
+            disabled={disabled}
+            title={tooltip}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {testOrder.isPending && testOrder.variables === "PICKUP" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ShoppingBag className="h-4 w-4" />
+            )}
+            Test collection
           </button>
         </div>
       </div>
