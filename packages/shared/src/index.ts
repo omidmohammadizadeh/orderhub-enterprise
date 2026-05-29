@@ -6,3 +6,4 @@ export * from "./constants/audit-events";
 export * from "./constants/permissions";
 export * from "./constants/branding";
 export * from "./events/worker-events";
+export * from "./lib/menu-pricing";
