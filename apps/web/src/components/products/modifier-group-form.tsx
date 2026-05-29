@@ -17,7 +17,10 @@ interface Props {
   brandId: string;
   groupId?: string;
   onCancel: () => void;
-  onSaved: () => void;
+  // saved arg is optional so existing call sites that ignore it stay
+  // type-safe. The product form uses it to grab the new group's id
+  // and auto-attach it to the product without leaving the page.
+  onSaved: (saved?: CatalogModifierGroup) => void;
 }
 
 const genPlu = () =>
@@ -128,12 +131,12 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
       }
       return saved;
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       qc.invalidateQueries({ queryKey: ["catalog", "modifier-groups", brandId] });
       qc.invalidateQueries({
         queryKey: ["catalog", "modifier-groups-with-options", brandId],
       });
-      onSaved();
+      onSaved(saved);
     },
   });
 

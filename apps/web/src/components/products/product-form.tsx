@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "./image-uploader";
 import { AttachModal } from "./attach-modal";
+import { ModifierGroupForm } from "./modifier-group-form";
 
 interface Props {
   brandId: string;
@@ -73,6 +74,11 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
   // pill-grid picker; operator now sees only the attached items and
   // opens the modal by clicking "Add Existing".
   const [showAddGroupModal, setShowAddGroupModal] = useState(false);
+  // "Create New" modifier group inline modal. Renders the full
+  // ModifierGroupForm in an overlay so the operator never leaves
+  // the product page. On save, the new group's id is appended to
+  // attachedGroupIds so it auto-attaches to this product.
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
     Array<{
@@ -372,17 +378,7 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
                   <Button
                     type="button"
                     size="sm"
-                    onClick={() => {
-                      // Open the standalone Modifier Groups tab so the
-                      // operator can create the group there and come
-                      // back. We could embed an inline form, but the
-                      // standalone tab carries the full editor (PLU,
-                      // selection type, modifiers) that's too dense to
-                      // squeeze into a product form.
-                      const url = new URL(window.location.href);
-                      url.searchParams.set("tab", "modifier-groups");
-                      window.open(url, "_blank");
-                    }}
+                    onClick={() => setShowCreateGroupModal(true)}
                     className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
                   >
                     <Plus className="h-3.5 w-3.5 mr-1" />
@@ -566,6 +562,52 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
             <Trash2 className="h-3.5 w-3.5" />
             Delete product
           </button>
+        </div>
+      )}
+
+      {/* Create New Modifier Group — inline modal. Embeds the full
+          ModifierGroupForm so the operator gets the same editor used
+          in the standalone tab (name, PLU, selection type, modifiers
+          attach/inline-create) without losing the product form's
+          unsaved state. On save the new group's id is appended to
+          attachedGroupIds. Closes on Cancel or the backdrop. */}
+      {showCreateGroupModal && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          onClick={(e) => {
+            // Backdrop click closes; click inside the panel doesn't.
+            if (e.target === e.currentTarget) {
+              setShowCreateGroupModal(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mt-8 p-5">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Create a new modifier group
+              </h2>
+              <button
+                onClick={() => setShowCreateGroupModal(false)}
+                className="text-zinc-400 hover:text-zinc-700 text-2xl leading-none"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <ModifierGroupForm
+              brandId={brandId}
+              onCancel={() => setShowCreateGroupModal(false)}
+              onSaved={(saved) => {
+                if (saved?.id) {
+                  // Auto-attach to this product.
+                  setAttachedGroupIds((prev) =>
+                    prev.includes(saved.id) ? prev : [...prev, saved.id],
+                  );
+                }
+                setShowCreateGroupModal(false);
+              }}
+            />
+          </div>
         </div>
       )}
     </div>
