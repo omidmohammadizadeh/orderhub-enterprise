@@ -176,6 +176,18 @@ export const modifiersClient = {
     apiClient.patch<CatalogModifier>(`/v1/modifier-options/${id}`, data).then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/modifier-options/${id}`).then((r) => r.data),
+
+  // Phase AL — attach/detach an existing modifier to/from a group.
+  // Uses ModifierOption.modifierGroupIds[] under the hood; the
+  // primary FK group is preserved.
+  attachToGroup: (groupId: string, modifierId: string) =>
+    apiClient
+      .post(`/v1/modifier-groups/${groupId}/modifiers/${modifierId}`)
+      .then((r) => r.data),
+  detachFromGroup: (groupId: string, modifierId: string) =>
+    apiClient
+      .delete(`/v1/modifier-groups/${groupId}/modifiers/${modifierId}`)
+      .then((r) => r.data),
 };
 
 // ── Variants ──────────────────────────────────────────────────────────────

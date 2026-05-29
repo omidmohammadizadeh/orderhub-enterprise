@@ -60,6 +60,11 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
   const [newModName, setNewModName] = useState("");
   const [newModPrice, setNewModPrice] = useState("");
 
+  // Attached existing modifier IDs (Phase AL many-to-many). Initialised
+  // from the existing group's options on hydrate, diffed against the
+  // server set on save.
+  const [attachedModifierIds, setAttachedModifierIds] = useState<string[]>([]);
+
   useEffect(() => {
     if (!existing) return;
     setName(existing.name);
@@ -70,6 +75,7 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
     setMaxSelections(String(existing.maxSelections ?? 1));
     setAllowDuplicate(existing.allowDuplicateSelections);
     setVisibleToCustomers(existing.visibleToCustomers);
+    setAttachedModifierIds((existing.options ?? []).map((o) => o.id));
   }, [existing]);
 
   const saveMutation = useMutation({
@@ -89,13 +95,33 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
         ? await modifierGroupsClient.update(groupId, payload)
         : await modifierGroupsClient.create(brandId, payload);
 
-      // Create any pending modifiers under the saved group.
+      // Create any pending NEW modifiers under the saved group.
       for (const m of pendingModifiers) {
         await modifiersClient.create(saved.id, {
           name: m.name,
           plu: m.plu,
           priceAdjustment: m.priceAdjustment,
         });
+      }
+
+      // Diff attached existing-modifier IDs and call the many-to-many
+      // attach/detach endpoints. Mirrors the product → modifier-group
+      // pattern. We skip the modifiers whose primary FK already lives
+      // in this group (those are "owned" by the group; detach would
+      // 400 anyway).
+      const currentIds = (existing?.options ?? []).map((o) => o.id);
+      const ownedIds = (existing?.options ?? [])
+        .filter((o) => o.groupId === saved.id)
+        .map((o) => o.id);
+      const toAttach = attachedModifierIds.filter((id) => !currentIds.includes(id));
+      const toDetach = currentIds
+        .filter((id) => !attachedModifierIds.includes(id))
+        .filter((id) => !ownedIds.includes(id));
+      for (const id of toAttach) {
+        await modifiersClient.attachToGroup(saved.id, id);
+      }
+      for (const id of toDetach) {
+        await modifiersClient.detachFromGroup(saved.id, id);
       }
       return saved;
     },
@@ -286,91 +312,76 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-zinc-900 mb-1">Modifiers</h3>
           <p className="text-[11px] text-zinc-500 mb-3">
-            Pick existing modifiers from your catalog, or add new ones
-            inline. Inline ones are created under this group when you save.
+            Attach existing modifiers from your catalog, or add new ones
+            inline. Mirrors how products attach modifier groups.
           </p>
 
-          {/* Existing-modifier picker — lists modifiers from OTHER groups
-              in this brand and lets the operator attach them to this
-              group. Uses the modifierGroupIds[] many-to-many array on
-              ModifierOption (Phase AL). */}
-          {(() => {
-            // We re-use the modifier-groups query already cached on this
-            // page to find the brand's full modifier list. Each option in
-            // every other group is a candidate.
-            const allOther = otherGroups
-              .filter((g) => g.id !== groupId)
-              .flatMap((g) =>
+          {/* Attached modifiers list. Click × on a row to queue a detach
+              that applies on save. Owned modifiers (this group is their
+              primary FK) can't be detached here — operator must delete
+              the modifier or change its primary group instead. */}
+          <div className="space-y-1.5 mb-3">
+            {(() => {
+              const allOptions = otherGroups.flatMap((g) =>
                 (g.options ?? []).map((o) => ({
                   ...o,
                   groupName: g.name,
+                  primaryGroupId: g.id === o.groupId ? g.id : o.groupId,
                 })),
               );
-            // Hide ones the operator has already attached to this group.
-            const alreadyHere = new Set(
-              (existing?.options ?? []).map((o) => o.id),
-            );
-            const candidates = allOther.filter((m) => !alreadyHere.has(m.id));
-
-            if (candidates.length === 0) return null;
-
-            return (
-              <div className="mb-3 pb-3 border-b border-zinc-100">
-                <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1.5">
-                  Attach existing
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {candidates.slice(0, 12).map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={async () => {
-                        if (!groupId) return;
-                        await modifiersClient.update(m.id, {
-                          modifierGroupIds: Array.from(
-                            new Set([
-                              ...((m as any).modifierGroupIds ?? []),
-                              groupId,
-                            ]),
-                          ),
-                        } as any);
-                        qc.invalidateQueries({
-                          queryKey: [
-                            "catalog",
-                            "modifier-groups-with-options",
-                            brandId,
-                          ],
-                        });
-                      }}
-                      className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
-                      title={`From "${m.groupName}"`}
-                    >
-                      <Plus className="h-2.5 w-2.5" />
-                      {m.name}
-                    </button>
-                  ))}
-                  {candidates.length > 12 && (
-                    <span className="text-[10px] text-zinc-400 self-center">
-                      + {candidates.length - 12} more (search coming next)
+              const byId = new Map(allOptions.map((o) => [o.id, o]));
+              const attached = attachedModifierIds
+                .map((id) => byId.get(id))
+                .filter(Boolean) as Array<
+                (typeof allOptions)[number]
+              >;
+              if (attached.length === 0) {
+                return (
+                  <p className="text-xs text-zinc-400 italic">
+                    No modifiers attached yet.
+                  </p>
+                );
+              }
+              return attached.map((m) => {
+                const owned = m.primaryGroupId === groupId;
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between rounded border border-zinc-200 px-2.5 py-1.5 text-xs"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="text-zinc-700 truncate">{m.name}</span>
+                      <span className="text-[10px] text-zinc-400 ml-1">
+                        {owned ? "(owned)" : `(from ${m.groupName})`}
+                      </span>
                     </span>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-
-          <div className="space-y-1.5 mb-3">
-            {existing?.options?.map((o) => (
-              <div
-                key={o.id}
-                className="flex items-center justify-between rounded border border-zinc-200 px-2.5 py-1.5 text-xs"
-              >
-                <span className="text-zinc-700 truncate">{o.name}</span>
-                <span className="text-zinc-400 tabular-nums">
-                  £{Number(o.priceAdjustment).toFixed(2)}
-                </span>
-              </div>
-            ))}
+                    <span className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-zinc-400 tabular-nums">
+                        £{Number(m.priceAdjustment).toFixed(2)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachedModifierIds(
+                            attachedModifierIds.filter((id) => id !== m.id),
+                          )
+                        }
+                        disabled={owned}
+                        title={
+                          owned
+                            ? "This modifier's primary group is this one — delete the modifier to remove."
+                            : "Detach"
+                        }
+                        className="text-zinc-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  </div>
+                );
+              });
+            })()}
+            {/* Inline-pending new modifiers (created on save). */}
             {pendingModifiers.map((m, i) => (
               <div
                 key={i}
@@ -396,7 +407,56 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
             ))}
           </div>
 
+          {/* Available-to-attach picker (Phase AL many-to-many). Lists
+              every modifier in the brand not yet attached to this group,
+              as pill buttons. Mirrors the product → modifier-group pill
+              picker exactly. */}
+          {(() => {
+            const all = otherGroups.flatMap((g) =>
+              (g.options ?? []).map((o) => ({
+                ...o,
+                groupName: g.name,
+              })),
+            );
+            // De-dupe by id (a modifier can appear under multiple groups
+            // via modifierGroupIds[]) and exclude already-attached ones.
+            const seen = new Set<string>(attachedModifierIds);
+            const available: typeof all = [];
+            for (const o of all) {
+              if (seen.has(o.id)) continue;
+              seen.add(o.id);
+              available.push(o);
+            }
+            if (available.length === 0) return null;
+            return (
+              <div className="pt-3 border-t border-zinc-100">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-2">
+                  Available to attach
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto">
+                  {available.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() =>
+                        setAttachedModifierIds([...attachedModifierIds, m.id])
+                      }
+                      title={`From "${m.groupName}" — £${Number(m.priceAdjustment).toFixed(2)}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
+                    >
+                      <Plus className="h-3 w-3" />
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="pt-3 border-t border-zinc-100 space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">
+              Or add a new modifier
+            </p>
             <div className="flex gap-1.5">
               <Input
                 placeholder="Modifier name"

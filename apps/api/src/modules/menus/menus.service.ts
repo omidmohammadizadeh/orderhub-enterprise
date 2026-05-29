@@ -520,10 +520,53 @@ export class MenusService {
 
   async findModifierGroupsByBrand(brandId: string, tenantId: string) {
     await this.assertBrandAccess(brandId, tenantId);
-    return this.prisma.modifierGroup.findMany({
+    const groups = await this.prisma.modifierGroup.findMany({
       where: { brandId },
-      include: { options: { orderBy: { sortOrder: "asc" } }, _count: { select: { itemLinks: true } } },
+      include: {
+        options: { orderBy: { sortOrder: "asc" } },
+        _count: { select: { itemLinks: true } },
+      },
       orderBy: { name: "asc" },
+    });
+
+    // Phase AL: also surface modifiers that are attached to a group via
+    // the modifierGroupIds[] many-to-many array (not their FK primary
+    // group). A modifier attached to group G via the array shows up in
+    // G.options here alongside FK-matched ones, ordered by sortOrder.
+    if (groups.length === 0) return groups;
+    const groupIds = groups.map((g) => g.id);
+    const arrayMatched = await this.prisma.modifierOption.findMany({
+      where: {
+        group: { brandId },
+        modifierGroupIds: { hasSome: groupIds },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    if (arrayMatched.length === 0) return groups;
+
+    // Bucket by every groupId in modifierGroupIds[] so a modifier
+    // attached to two groups shows under both.
+    const extras = new Map<string, typeof arrayMatched>();
+    for (const opt of arrayMatched) {
+      for (const gId of opt.modifierGroupIds ?? []) {
+        if (!groupIds.includes(gId)) continue;
+        if (!extras.has(gId)) extras.set(gId, []);
+        extras.get(gId)!.push(opt);
+      }
+    }
+
+    return groups.map((g) => {
+      const extra = extras.get(g.id) ?? [];
+      if (extra.length === 0) return g;
+      // De-dupe in case a modifier is both FK-primary AND array-listed
+      // under the same group.
+      const seen = new Set(g.options.map((o) => o.id));
+      const merged = [
+        ...g.options,
+        ...extra.filter((o) => !seen.has(o.id)),
+      ];
+      return { ...g, options: merged };
     });
   }
 
@@ -605,6 +648,60 @@ export class MenusService {
   async removeModifierGroup(groupId: string, tenantId: string) {
     await this.assertModifierGroupAccess(groupId, tenantId);
     await this.prisma.modifierGroup.delete({ where: { id: groupId } });
+  }
+
+  // ── Many-to-many: ModifierOption ↔ ModifierGroup ─────────────────────────
+  //
+  // Phase AL: same modifier (e.g. "Extra cheese") can belong to many
+  // groups. Schema keeps `groupId` as a single FK for the "primary"
+  // group (legacy + sort order) and a `modifierGroupIds[]` array for
+  // additional memberships. Attach/detach operates on the array; the
+  // primary FK never changes here.
+  async attachModifierToGroup(
+    groupId: string,
+    optionId: string,
+    tenantId: string,
+  ) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    const option = await this.prisma.modifierOption.findFirst({
+      where: { id: optionId, group: { brand: { tenantId } } },
+    });
+    if (!option) throw new NotFoundException("Modifier not found");
+    const next = Array.from(
+      new Set([...(option.modifierGroupIds ?? []), groupId]),
+    );
+    return this.prisma.modifierOption.update({
+      where: { id: optionId },
+      data: { modifierGroupIds: next },
+    });
+  }
+
+  async detachModifierFromGroup(
+    groupId: string,
+    optionId: string,
+    tenantId: string,
+  ) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    const option = await this.prisma.modifierOption.findFirst({
+      where: { id: optionId, group: { brand: { tenantId } } },
+    });
+    if (!option) throw new NotFoundException("Modifier not found");
+    // If this is the modifier's primary group, refuse to detach via
+    // this path — the operator must move it to a different group first
+    // (or delete it). Detaching only operates on the auxiliary array.
+    if (option.groupId === groupId) {
+      throw new BadRequestException(
+        "This is the modifier's primary group. Move or delete the modifier instead.",
+      );
+    }
+    return this.prisma.modifierOption.update({
+      where: { id: optionId },
+      data: {
+        modifierGroupIds: (option.modifierGroupIds ?? []).filter(
+          (id) => id !== groupId,
+        ),
+      },
+    });
   }
 
   async addModifierOption(
