@@ -73,6 +73,11 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
   // pill-grid picker; operator now sees only the attached items and
   // opens the modal by clicking "Add Existing".
   const [showAddGroupModal, setShowAddGroupModal] = useState(false);
+  // Add Existing modal for the new direct-modifiers section on flat
+  // products. Picking a modifier here attaches its parent group to
+  // the product (the data model links products to groups, not to raw
+  // options) — UI explains this clearly.
+  const [showAddModifierModal, setShowAddModifierModal] = useState(false);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
     Array<{
@@ -446,6 +451,166 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
                 }}
                 onCancel={() => setShowAddGroupModal(false)}
               />
+            </Card>
+          )}
+
+          {/* ── Direct Modifiers (flat product only) ──────────────────
+              Lets the operator search the catalog by individual
+              modifier name (e.g. "Extra Cheese") instead of having to
+              know the parent group. Clicking Done attaches the
+              modifier's parent group(s) to the product (the data
+              model links products to groups, not raw options).
+              Surfaced only on flat products — for multi-SKU products
+              modifier groups are picked per-SKU in the variants
+              editor. */}
+          {!hasMultipleSkus && (
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  Modifiers
+                </h3>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowAddModifierModal(true)}
+                    className="h-8 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Add Existing
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("tab", "modifiers");
+                      window.open(url, "_blank");
+                    }}
+                    className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create New
+                  </Button>
+                </div>
+              </div>
+              <p className="text-[11px] text-zinc-500 mb-3">
+                Picking a modifier auto-attaches its parent group, since
+                the customer modal renders groups (not loose options).
+              </p>
+
+              {(() => {
+                // Build a brand-wide modifier list, deduped by id.
+                const allOptions = allGroups.flatMap((g) =>
+                  (g.options ?? []).map((o) => ({
+                    ...o,
+                    groupName: g.name,
+                  })),
+                );
+                const byId = new Map<string, (typeof allOptions)[number]>();
+                for (const o of allOptions) if (!byId.has(o.id)) byId.set(o.id, o);
+                const unique = Array.from(byId.values());
+
+                // The "attached" view for this section = every modifier
+                // whose parent group is already attached to the product.
+                const attachedMods = unique.filter((o) =>
+                  attachedGroupIds.includes(o.groupId),
+                );
+
+                return (
+                  <>
+                    <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-1.5 space-y-1.5">
+                      {attachedMods.length === 0 ? (
+                        <p className="px-3 py-6 text-center text-sm text-zinc-400 italic">
+                          No modifiers attached yet. Click
+                          &quot;Add Existing&quot; to attach modifiers from
+                          the catalog by name.
+                        </p>
+                      ) : (
+                        attachedMods.map((m) => (
+                          <div
+                            key={m.id}
+                            className="flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-zinc-900 truncate">
+                                {m.name}
+                                <span className="text-[10px] font-normal text-zinc-500 ml-1">
+                                  via {m.groupName}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="text-xs text-zinc-500 tabular-nums">
+                                £{Number(m.priceAdjustment).toFixed(2)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  // Detach the parent group, which also
+                                  // detaches every other modifier under it.
+                                  // Documented behaviour — operator manages
+                                  // grouping at the group level.
+                                  setAttachedGroupIds(
+                                    attachedGroupIds.filter(
+                                      (id) => id !== m.groupId,
+                                    ),
+                                  )
+                                }
+                                title="Detach this modifier's parent group"
+                                className="text-zinc-300 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <AttachModal
+                      open={showAddModifierModal}
+                      title="Add Modifiers"
+                      rows={unique.map((m) => ({
+                        id: m.id,
+                        name: m.name,
+                        subtitle: m.plu ?? "",
+                        meta: `£${Number(m.priceAdjustment).toFixed(2)} · group: ${m.groupName}`,
+                      }))}
+                      initiallyAttachedIds={attachedMods.map((m) => m.id)}
+                      onConfirm={(selectedModifierIds) => {
+                        // Project the selected modifiers up to their
+                        // parent groups, merged with the operator's
+                        // already-attached groups. De-duped.
+                        const newGroupIds = new Set(attachedGroupIds);
+                        for (const id of selectedModifierIds) {
+                          const m = byId.get(id);
+                          if (m) newGroupIds.add(m.groupId);
+                        }
+                        // For groups the operator removed via this modal
+                        // (had attached mods, none now selected), strip
+                        // the parent group too — but only if NO surviving
+                        // selection still references that group.
+                        const surviving = new Set(
+                          selectedModifierIds
+                            .map((id) => byId.get(id)?.groupId)
+                            .filter(Boolean) as string[],
+                        );
+                        const currentlyAttachedViaModal = new Set(
+                          attachedMods.map((m) => m.groupId),
+                        );
+                        for (const gId of currentlyAttachedViaModal) {
+                          if (!surviving.has(gId)) newGroupIds.delete(gId);
+                        }
+                        setAttachedGroupIds(Array.from(newGroupIds));
+                        setShowAddModifierModal(false);
+                      }}
+                      onCancel={() => setShowAddModifierModal(false)}
+                    />
+                  </>
+                );
+              })()}
             </Card>
           )}
         </div>
