@@ -365,11 +365,31 @@ export class MenusService {
         ...(dto.calories !== undefined && { calories: dto.calories }),
         ...(dto.allergens !== undefined && { allergens: dto.allergens }),
         ...(dto.isAvailable !== undefined && { isAvailable: dto.isAvailable }),
-        ...((dto as any).dietaryTags !== undefined && { dietaryTags: (dto as any).dietaryTags }),
+        // Phase AL — Base44 catalog fields. All optional; whitelisted on
+        // the DTO so the global ValidationPipe lets them through.
+        ...(dto.plu !== undefined && { plu: dto.plu }),
+        ...(dto.outOfStock !== undefined && { outOfStock: dto.outOfStock }),
+        ...(dto.visibleToCustomers !== undefined && {
+          visibleToCustomers: dto.visibleToCustomers,
+        }),
+        ...(dto.hasMultipleSkus !== undefined && {
+          hasMultipleSkus: dto.hasMultipleSkus,
+        }),
+        ...(dto.productSkus !== undefined && {
+          productSkus: dto.productSkus as any,
+        }),
+        ...(dto.deliveryTax !== undefined && { deliveryTax: dto.deliveryTax }),
+        ...(dto.takeawayTax !== undefined && { takeawayTax: dto.takeawayTax }),
+        ...(dto.eatInTax !== undefined && { eatInTax: dto.eatInTax }),
+        ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
+        ...(dto.brandIds !== undefined && { brandIds: dto.brandIds }),
+        ...(dto.dietaryTags !== undefined && { dietaryTags: dto.dietaryTags }),
         ...((dto as any).prepTime !== undefined && { prepTime: (dto as any).prepTime }),
         ...((dto as any).isInventoryTracked !== undefined && { isInventoryTracked: (dto as any).isInventoryTracked }),
         ...((dto as any).inventoryCount !== undefined && { inventoryCount: (dto as any).inventoryCount }),
-        ...((dto as any).platformPricingOverrides !== undefined && { platformPricingOverrides: (dto as any).platformPricingOverrides }),
+        ...(dto.platformPricingOverrides !== undefined && {
+          platformPricingOverrides: dto.platformPricingOverrides,
+        }),
       },
       include: {
         variants: true,
@@ -551,6 +571,11 @@ export class MenusService {
       minSelections?: number;
       maxSelections?: number | null;
       isRequired?: boolean;
+      selectionType?: "VARIANT" | "ADDON";
+      allowDuplicateSelections?: boolean;
+      plu?: string;
+      visibleToCustomers?: boolean;
+      menuIds?: string[];
     },
   ) {
     await this.assertModifierGroupAccess(groupId, tenantId);
@@ -562,6 +587,16 @@ export class MenusService {
         ...(dto.minSelections !== undefined && { minSelections: dto.minSelections }),
         ...(dto.maxSelections !== undefined && { maxSelections: dto.maxSelections }),
         ...(dto.isRequired !== undefined && { isRequired: dto.isRequired }),
+        // Phase AL fields.
+        ...(dto.selectionType !== undefined && { selectionType: dto.selectionType }),
+        ...(dto.allowDuplicateSelections !== undefined && {
+          allowDuplicateSelections: dto.allowDuplicateSelections,
+        }),
+        ...(dto.plu !== undefined && { plu: dto.plu }),
+        ...(dto.visibleToCustomers !== undefined && {
+          visibleToCustomers: dto.visibleToCustomers,
+        }),
+        ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
       },
       include: { options: true },
     });
@@ -625,6 +660,15 @@ export class MenusService {
       allergens?: string[];
       nestedGroupId?: string | null;
       sortOrder?: number;
+      // Phase AL fields.
+      plu?: string;
+      pricesBySize?: Record<string, number>;
+      skuPlus?: Record<string, string>;
+      visibleToCustomers?: boolean;
+      deliveryTax?: number;
+      takeawayTax?: number;
+      eatInTax?: number;
+      menuIds?: string[];
     },
   ) {
     const option = await this.prisma.modifierOption.findFirst({
@@ -642,6 +686,19 @@ export class MenusService {
         ...(dto.allergens !== undefined && { allergens: dto.allergens }),
         ...(dto.nestedGroupId !== undefined && { nestedGroupId: dto.nestedGroupId }),
         ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        // Phase AL fields.
+        ...(dto.plu !== undefined && { plu: dto.plu }),
+        ...(dto.pricesBySize !== undefined && {
+          pricesBySize: dto.pricesBySize as any,
+        }),
+        ...(dto.skuPlus !== undefined && { skuPlus: dto.skuPlus as any }),
+        ...(dto.visibleToCustomers !== undefined && {
+          visibleToCustomers: dto.visibleToCustomers,
+        }),
+        ...(dto.deliveryTax !== undefined && { deliveryTax: dto.deliveryTax }),
+        ...(dto.takeawayTax !== undefined && { takeawayTax: dto.takeawayTax }),
+        ...(dto.eatInTax !== undefined && { eatInTax: dto.eatInTax }),
+        ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
       },
     });
   }

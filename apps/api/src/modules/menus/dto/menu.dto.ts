@@ -66,14 +66,35 @@ export class UpdateCategoryDto {
 }
 
 // ── Create menu item ──────────────────────────────────────────────────────────
+//
+// Phase AL note: the master-catalog Products form sends Base44-style
+// fields (plu, hasMultipleSkus, productSkus JSON, per-channel taxes,
+// out-of-stock + visibleToCustomers toggles, etc.). They're all optional
+// here so older clients keep working, but they MUST be on the DTO
+// because main.ts ships `forbidNonWhitelisted: true` — any unknown field
+// triggers a 400 before the service ever runs.
 export class CreateMenuItemDto {
   @ApiProperty() @IsString() @MaxLength(200) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;
   @ApiProperty() @IsNumber() @Min(0) basePrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
+  // sku is the legacy column; plu is the Phase AK authoritative field.
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) sku?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) plu?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) calories?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) allergens?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) dietaryTags?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
+  @ApiPropertyOptional() @IsOptional() productSkus?: unknown[];
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) takeawayTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) eatInTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) menuIds?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) brandIds?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsObject() platformPricingOverrides?: Record<string, number>;
 
   @ApiPropertyOptional({ type: [ModifierGroupDto] })
   @IsOptional()
@@ -90,9 +111,21 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) basePrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) sku?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) plu?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) calories?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) allergens?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) dietaryTags?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
+  @ApiPropertyOptional() @IsOptional() productSkus?: unknown[];
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) takeawayTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) eatInTax?: number;
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) menuIds?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) brandIds?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsObject() platformPricingOverrides?: Record<string, number>;
 
   @ApiPropertyOptional({ type: [ModifierGroupDto] })
   @IsOptional()
