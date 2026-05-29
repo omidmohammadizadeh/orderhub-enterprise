@@ -208,6 +208,8 @@ model Brand {
   menus          Menu[]
   modifierGroups ModifierGroup[]
   orders         Order[]
+  mealDeals      MealDeal[]
+  upsellGroups   UpsellGroup[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -688,6 +690,94 @@ model MenuItemVariant {
 
   @@index([itemId])
   @@map("menu_item_variants")
+}
+
+// ── Phase AL — Meal Deals (master catalog) ────────────────────────────────────
+// A meal deal is a curated bundle (e.g. "Burger + Fries + Drink for £8.99").
+// Sections describe each pick step ("Choose 1 burger", "Choose 1 side").
+// Stored as JSON to match the variable structure platforms expect and to
+// keep iteration cheap while we figure out the editor UX.
+model MealDeal {
+  id          String   @id @default(cuid())
+  brandId     String
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // Locations this meal deal is available at. Empty array = all locations
+  // of the brand. Stored as a Postgres text array — matches Base44's
+  // membership pattern.
+  locationIds String[] @default([])
+  name        String
+  description String?
+  imageUrl    String?
+  // PLU/ref used by integrations.
+  plu         String?
+  // Total bundle price. When null, the deal is computed from
+  // sum(selected product prices) at order time.
+  price       Decimal? @db.Decimal(10, 2)
+  // sections[] = each pick step in the deal. Shape:
+  //   [{
+  //     name: "Choose your burger",
+  //     minChoices: 1, maxChoices: 1,
+  //     options: [{ menuItemId, priceOverride?, defaultModifierGroupIds[] }]
+  //   }, ...]
+  sections    Json     @default("[]")
+  // Per-channel tax — same format as MenuItem (percentage points).
+  deliveryTax Decimal  @db.Decimal(5, 2) @default(0)
+  takeawayTax Decimal  @db.Decimal(5, 2) @default(0)
+  eatInTax    Decimal  @db.Decimal(5, 2) @default(0)
+  // Platform price overrides — { POS: 8.99, UBER_EATS: 9.49, ... }
+  platformPricingOverrides Json @default("{}")
+  isAvailable Boolean  @default(true)
+  visibleToCustomers Boolean @default(true)
+  sortOrder   Int      @default(0)
+
+  // Import / sync — same pattern as MenuItem.
+  platformSource   String?
+  externalId       String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  syncHash         String?
+
+  metadata Json @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([brandId, isAvailable])
+  @@index([plu])
+  @@map("meal_deals")
+}
+
+// ── Phase AL — Upsell Groups (master catalog) ────────────────────────────────
+// "Customers who added X also liked Y" — surfaced on the cart screen or in
+// the customer storefront. Trigger products are what makes the upsell fire;
+// suggested products are what gets shown.
+model UpsellGroup {
+  id   String @id @default(cuid())
+  brandId String
+  brand   Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name String
+  description String?
+  // When ANY of these products / categories are in the cart, the upsell
+  // surfaces the `suggestedProductIds`. IDs are MenuItem.id or
+  // MenuCategory.id depending on which array they appear in.
+  triggerProductIds  String[] @default([])
+  triggerCategoryIds String[] @default([])
+  // What to show. Storefront shows them as a "you might also like" row.
+  suggestedProductIds String[] @default([])
+  // Sort order between competing upsells (e.g. show dessert before drinks).
+  sortOrder Int @default(0)
+  // Platforms that should surface this upsell. Empty = all platforms.
+  // Values are OrderSource enum strings: ONLINE, POS, UBER_EATS, ...
+  platformVisibility String[] @default([])
+  isActive Boolean @default(true)
+
+  metadata Json @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([brandId, isActive])
+  @@map("upsell_groups")
 }
 
 model MenuVersion {

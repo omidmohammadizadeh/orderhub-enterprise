@@ -26,6 +26,7 @@ import {
   Zap,
   ChefHat,
   FlaskConical,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,10 @@ interface NavItem {
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0" },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag },
+  // Master catalog (Phase AL). The Menu entry below is the per-location
+  // builder that attaches items from this catalog — it does not create
+  // duplicate products.
+  { href: "/dashboard/products", label: "Products", icon: Layers },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed },
   { href: "/dashboard/store-ops", label: "Store Ops", icon: Store },
   { href: "/dashboard/customers", label: "Customers", icon: Users },

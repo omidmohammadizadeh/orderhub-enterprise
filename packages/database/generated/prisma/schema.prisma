@@ -28,6 +28,10 @@ generator client {
   provider        = "prisma-client-js"
   output          = "../generated/prisma"
   previewFeatures = ["fullTextSearch", "metrics"]
+  // Generate query engine for Alpine+OpenSSL (Render/Docker) alongside the native dev binary.
+  // Without this, Prisma detects "linux-musl-openssl-3.0.x" at runtime but only finds
+  // the "linux-musl" engine built in the builder stage (no OpenSSL present there).
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -187,7 +191,7 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ── Brand ─────────────────────────────────────────────────────────────────────
+// ── Brand ───────────────────────────────────────────��─────────────────────────
 model Brand {
   id        String    @id @default(cuid())
   tenantId  String
@@ -203,6 +207,9 @@ model Brand {
   locations      Location[]
   menus          Menu[]
   modifierGroups ModifierGroup[]
+  orders         Order[]
+  mealDeals      MealDeal[]
+  upsellGroups   UpsellGroup[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -233,7 +240,12 @@ model Location {
   printers     Printer[]
   kdsScreens   KdsScreen[]
 
-  shopCode String? @unique
+  shopCode   String? @unique
+  // Bearer token presented by the legacy Flutter printer app as
+  // `X-Print-Token` when polling /v1/printer-jobs. Nullable so existing
+  // locations stay backwards-compatible; once set, the new endpoint
+  // requires a match. Rotated via the locations admin UI.
+  printToken String? @unique
 
   // Online ordering
   slug           String? @unique
@@ -296,32 +308,114 @@ model Menu {
   id          String     @id @default(cuid())
   brandId     String
   brand       Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // Phase AK — Base44 menus are location-scoped. Existing Menu rows were
+  // brand-scoped (one menu shared across all locations of the brand). The
+  // new column is nullable so existing rows keep working; new menus
+  // created via the Menu Manager always have locationId set.
+  locationId  String?
   name        String
   description String?
+  // Base44 menu_type: DELIVERY | DELIVERY_AND_PICKUP. Affects visibility
+  // on the customer-facing storefront.
+  menuType    MenuType   @default(DELIVERY_AND_PICKUP)
+  // Hero images shown on the storefront. All optional URLs hosted on
+  // wherever the operator uploads (R2 / Cloudinary later).
+  bannerImage String?
+  heroImage   String?
+  logoImage   String?
   status      MenuStatus @default(DRAFT)
   isActive    Boolean    @default(true)
   deletedAt   DateTime?
 
+  // ── Import / sync ──────────────────────────────────────────────────────
+  // Per-platform import state. importLock prevents two concurrent imports
+  // from racing on the same menu. importStatus surfaces the result to the
+  // Menu Manager UI. Reset in finally{} blocks even when the import throws.
+  importStatus               MenuImportStatus @default(IDLE)
+  importLock                 Boolean          @default(false)
+  importedAt                 DateTime?
+  // Incremented on every successful import so the UI can show "version 3"
+  // and downstream caches know to bust.
+  syncVersion                Int              @default(0)
+  // The raw response we got back from the platform. Stored for debugging
+  // failed imports and for replay during a backfill.
+  rawImportPayload           Json             @default("{}")
+  // Whatever menu-level metadata the platform sent (e.g. menu name, type).
+  menuData                   Json             @default("{}")
+  // Two link tables flattened to JSON so import + render stays cheap.
+  // productModifierGroupLinks: [{product_id, modifier_group_id, ...}]
+  // modifierGroupModifierLinks: [{modifier_group_id, modifier_id, ...}]
+  productModifierGroupLinks  Json             @default("[]")
+  modifierGroupModifierLinks Json             @default("[]")
+
+  // ── External platform refs ─────────────────────────────────────────────
+  // Source / dedup keys used by import. platformSource = uber / deliveroo /
+  // hubrise. externalId is the platform's own menu id; externalParentId is
+  // the platform's parent (e.g. brand id for Deliveroo).
+  platformSource   String?
+  externalId       String?
+  externalParentId String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  // Base64(JSON(rawImportPayload)).slice(0,120) — used for fast diff so a
+  // re-import of an unchanged menu can short-circuit.
+  syncHash         String?
+
+  // ── Publish targets ────────────────────────────────────────────────────
+  // Slugs of platforms this menu has been pushed to (e.g. ["ubereats_uk",
+  // "deliveroo_uk"]). Distinct from importStatus — these are outbound.
+  publishedTo     String[]  @default([])
+  lastPublishedAt DateTime?
+
+  // ── Auto-schedule ──────────────────────────────────────────────────────
+  // When true, a scheduled worker activates / deactivates the menu based
+  // on autoSchedule { active_from, active_until, active_days, brand_id,
+  // platform_ids, include_online_ordering }.
+  autoScheduleEnabled Boolean @default(false)
+  autoSchedule        Json    @default("{}")
+
   categories MenuCategory[]
   versions   MenuVersion[]
 
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([brandId])
   @@index([brandId, status])
+  @@index([locationId])
+  @@index([locationId, isActive])
+  @@index([platformSource, externalId])
   @@map("menus")
 }
 
 model MenuCategory {
-  id          String  @id @default(cuid())
-  menuId      String
-  menu        Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  imageUrl    String?
-  sortOrder   Int     @default(0)
-  isVisible   Boolean @default(true)
+  id                 String   @id @default(cuid())
+  menuId             String
+  menu               Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  imageUrl           String?
+  sortOrder          Int      @default(0)
+  isVisible          Boolean  @default(true)
+  // Phase AK: many-to-many across menus. menuIds[] mirrors Base44's
+  // pattern of letting a single category appear in multiple menus
+  // without duplicating it. menuId above stays as the "primary" menu
+  // (matches the existing service layer); menuIds is the authoritative
+  // membership list used by Menu Manager filters and POS lookups.
+  menuIds            String[] @default([])
+  // available = staff toggle (hide everywhere). visibleToCustomers =
+  // visibility on the customer storefront only; POS still sees it.
+  available          Boolean  @default(true)
+  visibleToCustomers Boolean  @default(true)
+
+  // Import / sync (same pattern as Menu).
+  platformSource   String?
+  externalId       String?
+  externalParentId String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  syncHash         String?
 
   items MenuItemOnCategory[]
 
@@ -329,23 +423,81 @@ model MenuCategory {
   updatedAt DateTime @updatedAt
 
   @@index([menuId])
+  @@index([platformSource, externalId])
   @@map("menu_categories")
 }
 
 model MenuItem {
-  id          String   @id @default(cuid())
-  brandId     String
-  name        String
-  description String?
-  basePrice   Decimal  @db.Decimal(10, 2)
-  imageUrl    String?
-  sku         String?
-  isAvailable Boolean  @default(true)
-  allergens   String[]
-  dietaryTags String[]
-  calories    Int?
-  prepTime    Int?
-  metadata    Json     @default("{}")
+  id                 String    @id @default(cuid())
+  brandId            String
+  name               String
+  description        String?
+  basePrice          Decimal   @db.Decimal(10, 2)
+  imageUrl           String?
+  // Pre-Phase-AK had `sku` as a generic product code. Base44 calls this
+  // the PLU and uses it across all integration imports (Deliveroo
+  // pos_item_id, HubRise ref, Uber external_data). We keep `sku` for
+  // backward compatibility but `plu` is the authoritative field going
+  // forward. Both default to null; PLU service backfills via the
+  // "Generate missing PLUs" action in Menu Manager.
+  sku                String?
+  plu                String?
+  isAvailable        Boolean   @default(true)
+  // Hide from customer storefront only. POS still sees it. Separate
+  // from isAvailable (which hides everywhere) and outOfStock (which
+  // shows POS staff a "tap to restore" overlay).
+  visibleToCustomers Boolean   @default(true)
+  outOfStock         Boolean   @default(false)
+  // When set, the autoProgressOrders cron flips outOfStock back to false
+  // at this time. Used for "out for an hour" scheduling.
+  availableRestoreAt DateTime?
+  allergens          String[]
+  dietaryTags        String[]
+  // Base44 had a separate `dietary` JSON field with platform-specific
+  // dietary metadata (e.g. is_vegetarian, is_vegan as separate keys).
+  // dietaryTags above stays for storefront filtering; this JSON carries
+  // anything platform-flavoured we don't want to flatten.
+  dietary            Json      @default("[]")
+  calories           Int?
+  prepTime           Int?
+  metadata           Json      @default("{}")
+
+  // ── Multi-SKU pricing ──────────────────────────────────────────────────
+  // Base44's signature feature: a single product with multiple sizes,
+  // each carrying its own price, PLU, AND its own modifier group list.
+  // We store the whole SKU array as JSON to match Base44 1:1 (the
+  // existing MenuItemVariant table stays for compatibility but is no
+  // longer the source of truth for new code).
+  //
+  // Shape (when hasMultipleSkus = true):
+  //   productSkus: [
+  //     { name: "10 inch", plu: "PIZZA-10", price: 9.99,
+  //       modifierGroups: ["grp_crusts", "grp_toppings_10"] },
+  //     { name: "12 inch", plu: "PIZZA-12", price: 12.99,
+  //       modifierGroups: ["grp_crusts", "grp_toppings_12"] }
+  //   ]
+  //
+  // Size key extracted from name via /(\d+)\s*(?:inch|"|in)?/i — see
+  // packages/shared/src/lib/menu-pricing.ts.
+  hasMultipleSkus Boolean @default(false)
+  productSkus     Json    @default("[]")
+
+  // Per-channel tax. Stored as percentage points (20.00 = 20%).
+  deliveryTax Decimal @default(0) @db.Decimal(5, 2)
+  takeawayTax Decimal @default(0) @db.Decimal(5, 2)
+  eatInTax    Decimal @default(0) @db.Decimal(5, 2)
+
+  // Membership in many menus. Base44 stores menu IDs as a plain array
+  // because a single product can appear in the Lunch menu AND the
+  // Dinner menu AND a Deliveroo-only menu.
+  menuIds   String[] @default([])
+  // Same idea for brands — supports dark-kitchen scenarios where one
+  // product is sold under multiple virtual brands.
+  brandIds  String[] @default([])
+  // sortOrder is preserved at the Category↔Item link level
+  // (MenuItemOnCategory.sortOrder). This top-level sortOrder is the
+  // default ordering when the item isn't in a category.
+  sortOrder Int      @default(0)
 
   // Inventory tracking
   isInventoryTracked Boolean @default(false)
@@ -353,6 +505,17 @@ model MenuItem {
 
   // Platform-specific pricing overrides
   platformPricingOverrides Json @default("{}")
+
+  // ── Import / sync ──────────────────────────────────────────────────────
+  platformSource      String?
+  externalId          String?
+  externalParentId    String?
+  lastSyncedAt        DateTime?
+  syncStatus          String?
+  syncHash            String?
+  // Raw modifier-group IDs from the source platform. Kept as JSON so the
+  // importer can re-link after creating local ModifierGroup rows.
+  rawModifierGroupIds Json      @default("[]")
 
   categories         MenuItemOnCategory[]
   modifierGroupLinks ModifierGroupOnItem[]
@@ -364,6 +527,8 @@ model MenuItem {
 
   @@index([brandId])
   @@index([brandId, isAvailable])
+  @@index([plu])
+  @@index([platformSource, externalId])
   @@map("menu_items")
 }
 
@@ -382,47 +547,119 @@ model MenuItemOnCategory {
 
 // ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
-  id            String  @id @default(cuid())
-  brandId       String
-  brand         Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  name          String
-  description   String?
-  minSelections Int     @default(0)
-  maxSelections Int?
-  isRequired    Boolean @default(false)
-  sortOrder     Int     @default(0)
+  id                       String        @id @default(cuid())
+  brandId                  String
+  brand                    Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name                     String
+  description              String?
+  plu                      String?
+  minSelections            Int           @default(0)
+  maxSelections            Int?
+  isRequired               Boolean       @default(false)
+  sortOrder                Int           @default(0)
+  // VARIANT = pick-one (radio); ADDON = pick-many (checkbox).
+  // Mapped from Uber's quantity_info.max_permitted (1 = variant, >1 = addon)
+  // and from Deliveroo's min/max_selection fields.
+  selectionType            SelectionType @default(VARIANT)
+  // ADDON groups only — does the same modifier option count twice when
+  // ticked twice (e.g. "extra cheese x2" = +£1.00 instead of +£0.50).
+  allowDuplicateSelections Boolean       @default(false)
+  visibleToCustomers       Boolean       @default(true)
+
+  // Many-to-many membership in menus, mirroring Base44.
+  menuIds String[] @default([])
+
+  // ── Import / sync ──────────────────────────────────────────────────────
+  platformSource   String?
+  externalId       String?
+  externalParentId String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  syncHash         String?
+  // Raw modifier (option) IDs from the source platform — re-linked after
+  // ModifierOption rows are created.
+  rawModifierIds   Json      @default("[]")
 
   options            ModifierOption[]
   itemLinks          ModifierGroupOnItem[]
   nestedUnderOptions ModifierOption[]      @relation("NestedModifier")
 
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([brandId])
+  @@index([plu])
+  @@index([platformSource, externalId])
   @@map("modifier_groups")
 }
 
 model ModifierOption {
-  id              String        @id @default(cuid())
-  groupId         String
-  group           ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  name            String
-  description     String?
-  priceAdjustment Decimal       @default(0) @db.Decimal(10, 2)
-  imageUrl        String?
-  allergens       String[]
-  isDefault       Boolean       @default(false)
-  isAvailable     Boolean       @default(true)
-  sortOrder       Int           @default(0)
+  id                 String        @id @default(cuid())
+  groupId            String
+  group              ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  // Phase AK — Base44 lets the same modifier (e.g. "Extra cheese")
+  // belong to multiple groups. We keep groupId above as the "primary"
+  // group (so existing service code keeps working) and add a parallel
+  // array of additional group memberships. Imports populate both;
+  // POS lookups can match either.
+  modifierGroupIds   String[]      @default([])
+  name               String
+  description        String?
+  // Base price for this modifier when no size key matches. Already
+  // existed; renamed conceptually to "default price". pricesBySize
+  // below is the authoritative per-size table.
+  priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
+  // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
+  plu                String?
+  // ── Per-size pricing + PLU ─────────────────────────────────────────
+  // Used when the parent product is a multi-SKU pizza-style item. Keys
+  // are size strings (e.g. "10", "12", "14") extracted from the size
+  // modifier's name. Values are the per-size price / PLU.
+  //   pricesBySize: { "10": 0.50, "12": 0.75, "14": 1.00 }
+  //   skuPlus:      { "10": "TOP-CHEESE-10", "12": "TOP-CHEESE-12" }
+  //
+  // Visibility rule (enforced in the POS modifier modal):
+  //   - if pricesBySize has keys AND the selected size key is NOT a
+  //     key here, the option is HIDDEN (not just disabled).
+  //   - if pricesBySize is empty, the option is always visible at
+  //     priceAdjustment.
+  pricesBySize       Json          @default("{}")
+  skuPlus            Json          @default("{}")
+  imageUrl           String?
+  allergens          String[]
+  isDefault          Boolean       @default(false)
+  isAvailable        Boolean       @default(true)
+  visibleToCustomers Boolean       @default(true)
+  // Scheduled restore — same pattern as MenuItem.availableRestoreAt.
+  availableRestoreAt DateTime?
+  sortOrder          Int           @default(0)
+  // Membership in many menus. Same rationale as MenuCategory.menuIds.
+  menuIds            String[]      @default([])
+
+  // Per-channel tax — % points, matches MenuItem.
+  deliveryTax Decimal @default(0) @db.Decimal(5, 2)
+  takeawayTax Decimal @default(0) @db.Decimal(5, 2)
+  eatInTax    Decimal @default(0) @db.Decimal(5, 2)
+
+  // ── Import / sync ──────────────────────────────────────────────────
+  platformSource   String?
+  externalId       String?
+  externalParentId String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  syncHash         String?
 
   nestedGroupId String?
   nestedGroup   ModifierGroup? @relation("NestedModifier", fields: [nestedGroupId], references: [id], onDelete: SetNull)
 
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([groupId])
+  @@index([plu])
+  @@index([platformSource, externalId])
   @@map("modifier_options")
 }
 
@@ -453,6 +690,94 @@ model MenuItemVariant {
 
   @@index([itemId])
   @@map("menu_item_variants")
+}
+
+// ── Phase AL — Meal Deals (master catalog) ────────────────────────────────────
+// A meal deal is a curated bundle (e.g. "Burger + Fries + Drink for £8.99").
+// Sections describe each pick step ("Choose 1 burger", "Choose 1 side").
+// Stored as JSON to match the variable structure platforms expect and to
+// keep iteration cheap while we figure out the editor UX.
+model MealDeal {
+  id                       String   @id @default(cuid())
+  brandId                  String
+  brand                    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // Locations this meal deal is available at. Empty array = all locations
+  // of the brand. Stored as a Postgres text array — matches Base44's
+  // membership pattern.
+  locationIds              String[] @default([])
+  name                     String
+  description              String?
+  imageUrl                 String?
+  // PLU/ref used by integrations.
+  plu                      String?
+  // Total bundle price. When null, the deal is computed from
+  // sum(selected product prices) at order time.
+  price                    Decimal? @db.Decimal(10, 2)
+  // sections[] = each pick step in the deal. Shape:
+  //   [{
+  //     name: "Choose your burger",
+  //     minChoices: 1, maxChoices: 1,
+  //     options: [{ menuItemId, priceOverride?, defaultModifierGroupIds[] }]
+  //   }, ...]
+  sections                 Json     @default("[]")
+  // Per-channel tax — same format as MenuItem (percentage points).
+  deliveryTax              Decimal  @default(0) @db.Decimal(5, 2)
+  takeawayTax              Decimal  @default(0) @db.Decimal(5, 2)
+  eatInTax                 Decimal  @default(0) @db.Decimal(5, 2)
+  // Platform price overrides — { POS: 8.99, UBER_EATS: 9.49, ... }
+  platformPricingOverrides Json     @default("{}")
+  isAvailable              Boolean  @default(true)
+  visibleToCustomers       Boolean  @default(true)
+  sortOrder                Int      @default(0)
+
+  // Import / sync — same pattern as MenuItem.
+  platformSource String?
+  externalId     String?
+  lastSyncedAt   DateTime?
+  syncStatus     String?
+  syncHash       String?
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([brandId, isAvailable])
+  @@index([plu])
+  @@map("meal_deals")
+}
+
+// ── Phase AL — Upsell Groups (master catalog) ────────────────────────────────
+// "Customers who added X also liked Y" — surfaced on the cart screen or in
+// the customer storefront. Trigger products are what makes the upsell fire;
+// suggested products are what gets shown.
+model UpsellGroup {
+  id                  String   @id @default(cuid())
+  brandId             String
+  brand               Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  // When ANY of these products / categories are in the cart, the upsell
+  // surfaces the `suggestedProductIds`. IDs are MenuItem.id or
+  // MenuCategory.id depending on which array they appear in.
+  triggerProductIds   String[] @default([])
+  triggerCategoryIds  String[] @default([])
+  // What to show. Storefront shows them as a "you might also like" row.
+  suggestedProductIds String[] @default([])
+  // Sort order between competing upsells (e.g. show dessert before drinks).
+  sortOrder           Int      @default(0)
+  // Platforms that should surface this upsell. Empty = all platforms.
+  // Values are OrderSource enum strings: ONLINE, POS, UBER_EATS, ...
+  platformVisibility  String[] @default([])
+  isActive            Boolean  @default(true)
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([brandId, isActive])
+  @@map("upsell_groups")
 }
 
 model MenuVersion {
@@ -573,6 +898,12 @@ model Order {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
+  // Optional brand reference. A single location can serve multiple virtual
+  // brands (e.g. "Greek Gyros" and "crunchy chikin" run from the same kitchen).
+  // Used to badge orders on the board and scope per-brand reporting.
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
   externalId String?
   platform   OrderPlatform
   displayId  String?
@@ -609,6 +940,13 @@ model Order {
   scheduledFor        DateTime?
   estimatedReadyAt    DateTime?
   idempotencyKey      String?   @unique
+
+  // Phase AJ — Base44 parity fields surfaced in UI / printer payload.
+  // Other Base44 fields (courier_*, food_photo_url, stripe_*, hubrise_*, etc.)
+  // continue to live in `metadata` JSONB until they need to be queryable.
+  collectionCode     String? // shown on customer receipt + driver handoff
+  preparationMinutes Int? // overrides default prep time for this order
+  failureReason      String? // populated when status transitions to FAILED
 
   receivedAt       DateTime  @default(now())
   acceptedAt       DateTime?
@@ -648,6 +986,9 @@ model Order {
   @@index([locationId, status, createdAt(sort: Asc)])
   @@index([scheduledFor])
   @@index([customerId])
+  @@index([brandId])
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
   @@map("orders")
 }
 
@@ -1760,10 +2101,15 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   READY
-  DISPATCHED
+  PENDING_DISPATCH // order has been pushed to a third-party dispatcher (Uber Direct, Stuart, JET, etc.) but no driver has accepted yet
+  ASSIGNED_DRIVER
+  ACCEPTED_BY_DRIVER
+  OUT_FOR_DELIVERY
+  DISPATCHED // legacy alias for OUT_FOR_DELIVERY — kept for backward compatibility with older outbox events and integration adapters
   COMPLETED
   CANCELLED
   REJECTED
+  FAILED
 }
 
 enum OrderStatusActorType {
@@ -1947,6 +2293,36 @@ enum MenuStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+// Phase AK — Base44 menu type. Distinguishes a delivery-only menu (e.g.
+// a sandwich shop's lunch menu) from a menu that serves both delivery
+// and pickup customers. The customer storefront uses this to decide
+// which menu to show on a given fulfillment selection.
+enum MenuType {
+  DELIVERY
+  DELIVERY_AND_PICKUP
+}
+
+// Phase AK — modifier group selection semantics. Used by the POS modal
+// to choose between RadioGroup (variant) and Checkbox (addon).
+enum SelectionType {
+  VARIANT
+  ADDON
+}
+
+// Phase AK — Base44 menu import lifecycle. importLock + importStatus
+// together prevent two concurrent imports racing on the same menu.
+// status surfaces to the Menu Manager UI:
+//   IDLE       — no import in flight, nothing to show
+//   IMPORTING  — UI shows a spinner; reject new import requests
+//   SUCCESS    — completed without errors; show "synced X minutes ago"
+//   FAILED     — completed with an error; show error + retry button
+enum MenuImportStatus {
+  IDLE
+  IMPORTING
+  SUCCESS
+  FAILED
 }
 
 enum PromoCodeType {

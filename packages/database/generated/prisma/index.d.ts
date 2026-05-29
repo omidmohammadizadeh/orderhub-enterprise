@@ -99,6 +99,16 @@ export type ModifierGroupOnItem = $Result.DefaultSelection<Prisma.$ModifierGroup
  */
 export type MenuItemVariant = $Result.DefaultSelection<Prisma.$MenuItemVariantPayload>
 /**
+ * Model MealDeal
+ * 
+ */
+export type MealDeal = $Result.DefaultSelection<Prisma.$MealDealPayload>
+/**
+ * Model UpsellGroup
+ * 
+ */
+export type UpsellGroup = $Result.DefaultSelection<Prisma.$UpsellGroupPayload>
+/**
  * Model MenuVersion
  * 
  */
@@ -439,6 +449,14 @@ export const IntegrationStatus: {
 export type IntegrationStatus = (typeof IntegrationStatus)[keyof typeof IntegrationStatus]
 
 
+export const MenuType: {
+  DELIVERY: 'DELIVERY',
+  DELIVERY_AND_PICKUP: 'DELIVERY_AND_PICKUP'
+};
+
+export type MenuType = (typeof MenuType)[keyof typeof MenuType]
+
+
 export const MenuStatus: {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
@@ -446,6 +464,24 @@ export const MenuStatus: {
 };
 
 export type MenuStatus = (typeof MenuStatus)[keyof typeof MenuStatus]
+
+
+export const MenuImportStatus: {
+  IDLE: 'IDLE',
+  IMPORTING: 'IMPORTING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+};
+
+export type MenuImportStatus = (typeof MenuImportStatus)[keyof typeof MenuImportStatus]
+
+
+export const SelectionType: {
+  VARIANT: 'VARIANT',
+  ADDON: 'ADDON'
+};
+
+export type SelectionType = (typeof SelectionType)[keyof typeof SelectionType]
 
 
 export const PromoCodeType: {
@@ -504,10 +540,15 @@ export const OrderStatus: {
   ACCEPTED: 'ACCEPTED',
   PREPARING: 'PREPARING',
   READY: 'READY',
+  PENDING_DISPATCH: 'PENDING_DISPATCH',
+  ASSIGNED_DRIVER: 'ASSIGNED_DRIVER',
+  ACCEPTED_BY_DRIVER: 'ACCEPTED_BY_DRIVER',
+  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DISPATCHED: 'DISPATCHED',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  FAILED: 'FAILED'
 };
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
@@ -825,9 +866,21 @@ export type IntegrationStatus = $Enums.IntegrationStatus
 
 export const IntegrationStatus: typeof $Enums.IntegrationStatus
 
+export type MenuType = $Enums.MenuType
+
+export const MenuType: typeof $Enums.MenuType
+
 export type MenuStatus = $Enums.MenuStatus
 
 export const MenuStatus: typeof $Enums.MenuStatus
+
+export type MenuImportStatus = $Enums.MenuImportStatus
+
+export const MenuImportStatus: typeof $Enums.MenuImportStatus
+
+export type SelectionType = $Enums.SelectionType
+
+export const SelectionType: typeof $Enums.SelectionType
 
 export type PromoCodeType = $Enums.PromoCodeType
 
@@ -1248,6 +1301,26 @@ export class PrismaClient<
     * ```
     */
   get menuItemVariant(): Prisma.MenuItemVariantDelegate<ExtArgs>;
+
+  /**
+   * `prisma.mealDeal`: Exposes CRUD operations for the **MealDeal** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MealDeals
+    * const mealDeals = await prisma.mealDeal.findMany()
+    * ```
+    */
+  get mealDeal(): Prisma.MealDealDelegate<ExtArgs>;
+
+  /**
+   * `prisma.upsellGroup`: Exposes CRUD operations for the **UpsellGroup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UpsellGroups
+    * const upsellGroups = await prisma.upsellGroup.findMany()
+    * ```
+    */
+  get upsellGroup(): Prisma.UpsellGroupDelegate<ExtArgs>;
 
   /**
    * `prisma.menuVersion`: Exposes CRUD operations for the **MenuVersion** model.
@@ -2216,6 +2289,8 @@ export namespace Prisma {
     ModifierOption: 'ModifierOption',
     ModifierGroupOnItem: 'ModifierGroupOnItem',
     MenuItemVariant: 'MenuItemVariant',
+    MealDeal: 'MealDeal',
+    UpsellGroup: 'UpsellGroup',
     MenuVersion: 'MenuVersion',
     Customer: 'Customer',
     CustomerAddress: 'CustomerAddress',
@@ -2282,7 +2357,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "order" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
+      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "order" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3473,6 +3548,146 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuItemVariantCountArgs<ExtArgs>
             result: $Utils.Optional<MenuItemVariantCountAggregateOutputType> | number
+          }
+        }
+      }
+      MealDeal: {
+        payload: Prisma.$MealDealPayload<ExtArgs>
+        fields: Prisma.MealDealFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MealDealFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MealDealFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          findFirst: {
+            args: Prisma.MealDealFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MealDealFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          findMany: {
+            args: Prisma.MealDealFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>[]
+          }
+          create: {
+            args: Prisma.MealDealCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          createMany: {
+            args: Prisma.MealDealCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MealDealCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>[]
+          }
+          delete: {
+            args: Prisma.MealDealDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          update: {
+            args: Prisma.MealDealUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          deleteMany: {
+            args: Prisma.MealDealDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MealDealUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MealDealUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MealDealPayload>
+          }
+          aggregate: {
+            args: Prisma.MealDealAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMealDeal>
+          }
+          groupBy: {
+            args: Prisma.MealDealGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MealDealGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MealDealCountArgs<ExtArgs>
+            result: $Utils.Optional<MealDealCountAggregateOutputType> | number
+          }
+        }
+      }
+      UpsellGroup: {
+        payload: Prisma.$UpsellGroupPayload<ExtArgs>
+        fields: Prisma.UpsellGroupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UpsellGroupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UpsellGroupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          findFirst: {
+            args: Prisma.UpsellGroupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UpsellGroupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          findMany: {
+            args: Prisma.UpsellGroupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>[]
+          }
+          create: {
+            args: Prisma.UpsellGroupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          createMany: {
+            args: Prisma.UpsellGroupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UpsellGroupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>[]
+          }
+          delete: {
+            args: Prisma.UpsellGroupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          update: {
+            args: Prisma.UpsellGroupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          deleteMany: {
+            args: Prisma.UpsellGroupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UpsellGroupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.UpsellGroupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UpsellGroupPayload>
+          }
+          aggregate: {
+            args: Prisma.UpsellGroupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUpsellGroup>
+          }
+          groupBy: {
+            args: Prisma.UpsellGroupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UpsellGroupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UpsellGroupCountArgs<ExtArgs>
+            result: $Utils.Optional<UpsellGroupCountAggregateOutputType> | number
           }
         }
       }
@@ -7398,12 +7613,18 @@ export namespace Prisma {
     locations: number
     menus: number
     modifierGroups: number
+    orders: number
+    mealDeals: number
+    upsellGroups: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     locations?: boolean | BrandCountOutputTypeCountLocationsArgs
     menus?: boolean | BrandCountOutputTypeCountMenusArgs
     modifierGroups?: boolean | BrandCountOutputTypeCountModifierGroupsArgs
+    orders?: boolean | BrandCountOutputTypeCountOrdersArgs
+    mealDeals?: boolean | BrandCountOutputTypeCountMealDealsArgs
+    upsellGroups?: boolean | BrandCountOutputTypeCountUpsellGroupsArgs
   }
 
   // Custom InputTypes
@@ -7436,6 +7657,27 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountModifierGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ModifierGroupWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrderWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountMealDealsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MealDealWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountUpsellGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UpsellGroupWhereInput
   }
 
 
@@ -14993,6 +15235,9 @@ export namespace Prisma {
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
+    orders?: boolean | Brand$ordersArgs<ExtArgs>
+    mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
+    upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
 
@@ -15030,6 +15275,9 @@ export namespace Prisma {
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
+    orders?: boolean | Brand$ordersArgs<ExtArgs>
+    mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
+    upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15043,6 +15291,9 @@ export namespace Prisma {
       locations: Prisma.$LocationPayload<ExtArgs>[]
       menus: Prisma.$MenuPayload<ExtArgs>[]
       modifierGroups: Prisma.$ModifierGroupPayload<ExtArgs>[]
+      orders: Prisma.$OrderPayload<ExtArgs>[]
+      mealDeals: Prisma.$MealDealPayload<ExtArgs>[]
+      upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -15424,6 +15675,9 @@ export namespace Prisma {
     locations<T extends Brand$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
     menus<T extends Brand$menusArgs<ExtArgs> = {}>(args?: Subset<T, Brand$menusArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findMany"> | Null>
     modifierGroups<T extends Brand$modifierGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$modifierGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findMany"> | Null>
+    orders<T extends Brand$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Brand$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
+    mealDeals<T extends Brand$mealDealsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$mealDealsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findMany"> | Null>
+    upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15842,6 +16096,66 @@ export namespace Prisma {
   }
 
   /**
+   * Brand.orders
+   */
+  export type Brand$ordersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Order
+     */
+    select?: OrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderInclude<ExtArgs> | null
+    where?: OrderWhereInput
+    orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
+    cursor?: OrderWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.mealDeals
+   */
+  export type Brand$mealDealsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    where?: MealDealWhereInput
+    orderBy?: MealDealOrderByWithRelationInput | MealDealOrderByWithRelationInput[]
+    cursor?: MealDealWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MealDealScalarFieldEnum | MealDealScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.upsellGroups
+   */
+  export type Brand$upsellGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    where?: UpsellGroupWhereInput
+    orderBy?: UpsellGroupOrderByWithRelationInput | UpsellGroupOrderByWithRelationInput[]
+    cursor?: UpsellGroupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UpsellGroupScalarFieldEnum | UpsellGroupScalarFieldEnum[]
+  }
+
+  /**
    * Brand without action
    */
   export type BrandDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15890,6 +16204,7 @@ export namespace Prisma {
     isActive: boolean | null
     deletedAt: Date | null
     shopCode: string | null
+    printToken: string | null
     slug: string | null
     onboardingStep: number | null
     goLiveStatus: $Enums.LocationGoLiveStatus | null
@@ -15916,6 +16231,7 @@ export namespace Prisma {
     isActive: boolean | null
     deletedAt: Date | null
     shopCode: string | null
+    printToken: string | null
     slug: string | null
     onboardingStep: number | null
     goLiveStatus: $Enums.LocationGoLiveStatus | null
@@ -15945,6 +16261,7 @@ export namespace Prisma {
     metadata: number
     deletedAt: number
     shopCode: number
+    printToken: number
     slug: number
     openingHours: number
     deliveryConfig: number
@@ -15987,6 +16304,7 @@ export namespace Prisma {
     isActive?: true
     deletedAt?: true
     shopCode?: true
+    printToken?: true
     slug?: true
     onboardingStep?: true
     goLiveStatus?: true
@@ -16013,6 +16331,7 @@ export namespace Prisma {
     isActive?: true
     deletedAt?: true
     shopCode?: true
+    printToken?: true
     slug?: true
     onboardingStep?: true
     goLiveStatus?: true
@@ -16042,6 +16361,7 @@ export namespace Prisma {
     metadata?: true
     deletedAt?: true
     shopCode?: true
+    printToken?: true
     slug?: true
     openingHours?: true
     deliveryConfig?: true
@@ -16160,6 +16480,7 @@ export namespace Prisma {
     metadata: JsonValue
     deletedAt: Date | null
     shopCode: string | null
+    printToken: string | null
     slug: string | null
     openingHours: JsonValue
     deliveryConfig: JsonValue
@@ -16210,6 +16531,7 @@ export namespace Prisma {
     metadata?: boolean
     deletedAt?: boolean
     shopCode?: boolean
+    printToken?: boolean
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
@@ -16247,6 +16569,7 @@ export namespace Prisma {
     metadata?: boolean
     deletedAt?: boolean
     shopCode?: boolean
+    printToken?: boolean
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
@@ -16279,6 +16602,7 @@ export namespace Prisma {
     metadata?: boolean
     deletedAt?: boolean
     shopCode?: boolean
+    printToken?: boolean
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
@@ -16331,6 +16655,7 @@ export namespace Prisma {
       metadata: Prisma.JsonValue
       deletedAt: Date | null
       shopCode: string | null
+      printToken: string | null
       slug: string | null
       openingHours: Prisma.JsonValue
       deliveryConfig: Prisma.JsonValue
@@ -16757,6 +17082,7 @@ export namespace Prisma {
     readonly metadata: FieldRef<"Location", 'Json'>
     readonly deletedAt: FieldRef<"Location", 'DateTime'>
     readonly shopCode: FieldRef<"Location", 'String'>
+    readonly printToken: FieldRef<"Location", 'String'>
     readonly slug: FieldRef<"Location", 'String'>
     readonly openingHours: FieldRef<"Location", 'Json'>
     readonly deliveryConfig: FieldRef<"Location", 'Json'>
@@ -18232,18 +18558,45 @@ export namespace Prisma {
 
   export type AggregateMenu = {
     _count: MenuCountAggregateOutputType | null
+    _avg: MenuAvgAggregateOutputType | null
+    _sum: MenuSumAggregateOutputType | null
     _min: MenuMinAggregateOutputType | null
     _max: MenuMaxAggregateOutputType | null
+  }
+
+  export type MenuAvgAggregateOutputType = {
+    syncVersion: number | null
+  }
+
+  export type MenuSumAggregateOutputType = {
+    syncVersion: number | null
   }
 
   export type MenuMinAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
+    menuType: $Enums.MenuType | null
+    bannerImage: string | null
+    heroImage: string | null
+    logoImage: string | null
     status: $Enums.MenuStatus | null
     isActive: boolean | null
     deletedAt: Date | null
+    importStatus: $Enums.MenuImportStatus | null
+    importLock: boolean | null
+    importedAt: Date | null
+    syncVersion: number | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    lastPublishedAt: Date | null
+    autoScheduleEnabled: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -18251,11 +18604,28 @@ export namespace Prisma {
   export type MenuMaxAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
+    menuType: $Enums.MenuType | null
+    bannerImage: string | null
+    heroImage: string | null
+    logoImage: string | null
     status: $Enums.MenuStatus | null
     isActive: boolean | null
     deletedAt: Date | null
+    importStatus: $Enums.MenuImportStatus | null
+    importLock: boolean | null
+    importedAt: Date | null
+    syncVersion: number | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    lastPublishedAt: Date | null
+    autoScheduleEnabled: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -18263,25 +18633,74 @@ export namespace Prisma {
   export type MenuCountAggregateOutputType = {
     id: number
     brandId: number
+    locationId: number
     name: number
     description: number
+    menuType: number
+    bannerImage: number
+    heroImage: number
+    logoImage: number
     status: number
     isActive: number
     deletedAt: number
+    importStatus: number
+    importLock: number
+    importedAt: number
+    syncVersion: number
+    rawImportPayload: number
+    menuData: number
+    productModifierGroupLinks: number
+    modifierGroupModifierLinks: number
+    platformSource: number
+    externalId: number
+    externalParentId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
+    publishedTo: number
+    lastPublishedAt: number
+    autoScheduleEnabled: number
+    autoSchedule: number
+    metadata: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
 
+  export type MenuAvgAggregateInputType = {
+    syncVersion?: true
+  }
+
+  export type MenuSumAggregateInputType = {
+    syncVersion?: true
+  }
+
   export type MenuMinAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
+    menuType?: true
+    bannerImage?: true
+    heroImage?: true
+    logoImage?: true
     status?: true
     isActive?: true
     deletedAt?: true
+    importStatus?: true
+    importLock?: true
+    importedAt?: true
+    syncVersion?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    lastPublishedAt?: true
+    autoScheduleEnabled?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -18289,11 +18708,28 @@ export namespace Prisma {
   export type MenuMaxAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
+    menuType?: true
+    bannerImage?: true
+    heroImage?: true
+    logoImage?: true
     status?: true
     isActive?: true
     deletedAt?: true
+    importStatus?: true
+    importLock?: true
+    importedAt?: true
+    syncVersion?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    lastPublishedAt?: true
+    autoScheduleEnabled?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -18301,11 +18737,35 @@ export namespace Prisma {
   export type MenuCountAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
+    menuType?: true
+    bannerImage?: true
+    heroImage?: true
+    logoImage?: true
     status?: true
     isActive?: true
     deletedAt?: true
+    importStatus?: true
+    importLock?: true
+    importedAt?: true
+    syncVersion?: true
+    rawImportPayload?: true
+    menuData?: true
+    productModifierGroupLinks?: true
+    modifierGroupModifierLinks?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    publishedTo?: true
+    lastPublishedAt?: true
+    autoScheduleEnabled?: true
+    autoSchedule?: true
+    metadata?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -18349,6 +18809,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: MenuAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MenuSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: MenuMinAggregateInputType
@@ -18379,6 +18851,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: MenuCountAggregateInputType | true
+    _avg?: MenuAvgAggregateInputType
+    _sum?: MenuSumAggregateInputType
     _min?: MenuMinAggregateInputType
     _max?: MenuMaxAggregateInputType
   }
@@ -18386,14 +18860,40 @@ export namespace Prisma {
   export type MenuGroupByOutputType = {
     id: string
     brandId: string
+    locationId: string | null
     name: string
     description: string | null
+    menuType: $Enums.MenuType
+    bannerImage: string | null
+    heroImage: string | null
+    logoImage: string | null
     status: $Enums.MenuStatus
     isActive: boolean
     deletedAt: Date | null
+    importStatus: $Enums.MenuImportStatus
+    importLock: boolean
+    importedAt: Date | null
+    syncVersion: number
+    rawImportPayload: JsonValue
+    menuData: JsonValue
+    productModifierGroupLinks: JsonValue
+    modifierGroupModifierLinks: JsonValue
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    publishedTo: string[]
+    lastPublishedAt: Date | null
+    autoScheduleEnabled: boolean
+    autoSchedule: JsonValue
+    metadata: JsonValue
     createdAt: Date
     updatedAt: Date
     _count: MenuCountAggregateOutputType | null
+    _avg: MenuAvgAggregateOutputType | null
+    _sum: MenuSumAggregateOutputType | null
     _min: MenuMinAggregateOutputType | null
     _max: MenuMaxAggregateOutputType | null
   }
@@ -18415,11 +18915,35 @@ export namespace Prisma {
   export type MenuSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
+    menuType?: boolean
+    bannerImage?: boolean
+    heroImage?: boolean
+    logoImage?: boolean
     status?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    importStatus?: boolean
+    importLock?: boolean
+    importedAt?: boolean
+    syncVersion?: boolean
+    rawImportPayload?: boolean
+    menuData?: boolean
+    productModifierGroupLinks?: boolean
+    modifierGroupModifierLinks?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    publishedTo?: boolean
+    lastPublishedAt?: boolean
+    autoScheduleEnabled?: boolean
+    autoSchedule?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -18431,11 +18955,35 @@ export namespace Prisma {
   export type MenuSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
+    menuType?: boolean
+    bannerImage?: boolean
+    heroImage?: boolean
+    logoImage?: boolean
     status?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    importStatus?: boolean
+    importLock?: boolean
+    importedAt?: boolean
+    syncVersion?: boolean
+    rawImportPayload?: boolean
+    menuData?: boolean
+    productModifierGroupLinks?: boolean
+    modifierGroupModifierLinks?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    publishedTo?: boolean
+    lastPublishedAt?: boolean
+    autoScheduleEnabled?: boolean
+    autoSchedule?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -18444,11 +18992,35 @@ export namespace Prisma {
   export type MenuSelectScalar = {
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
+    menuType?: boolean
+    bannerImage?: boolean
+    heroImage?: boolean
+    logoImage?: boolean
     status?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    importStatus?: boolean
+    importLock?: boolean
+    importedAt?: boolean
+    syncVersion?: boolean
+    rawImportPayload?: boolean
+    menuData?: boolean
+    productModifierGroupLinks?: boolean
+    modifierGroupModifierLinks?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    publishedTo?: boolean
+    lastPublishedAt?: boolean
+    autoScheduleEnabled?: boolean
+    autoSchedule?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -18473,11 +19045,35 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       brandId: string
+      locationId: string | null
       name: string
       description: string | null
+      menuType: $Enums.MenuType
+      bannerImage: string | null
+      heroImage: string | null
+      logoImage: string | null
       status: $Enums.MenuStatus
       isActive: boolean
       deletedAt: Date | null
+      importStatus: $Enums.MenuImportStatus
+      importLock: boolean
+      importedAt: Date | null
+      syncVersion: number
+      rawImportPayload: Prisma.JsonValue
+      menuData: Prisma.JsonValue
+      productModifierGroupLinks: Prisma.JsonValue
+      modifierGroupModifierLinks: Prisma.JsonValue
+      platformSource: string | null
+      externalId: string | null
+      externalParentId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
+      publishedTo: string[]
+      lastPublishedAt: Date | null
+      autoScheduleEnabled: boolean
+      autoSchedule: Prisma.JsonValue
+      metadata: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["menu"]>
@@ -18878,11 +19474,35 @@ export namespace Prisma {
   interface MenuFieldRefs {
     readonly id: FieldRef<"Menu", 'String'>
     readonly brandId: FieldRef<"Menu", 'String'>
+    readonly locationId: FieldRef<"Menu", 'String'>
     readonly name: FieldRef<"Menu", 'String'>
     readonly description: FieldRef<"Menu", 'String'>
+    readonly menuType: FieldRef<"Menu", 'MenuType'>
+    readonly bannerImage: FieldRef<"Menu", 'String'>
+    readonly heroImage: FieldRef<"Menu", 'String'>
+    readonly logoImage: FieldRef<"Menu", 'String'>
     readonly status: FieldRef<"Menu", 'MenuStatus'>
     readonly isActive: FieldRef<"Menu", 'Boolean'>
     readonly deletedAt: FieldRef<"Menu", 'DateTime'>
+    readonly importStatus: FieldRef<"Menu", 'MenuImportStatus'>
+    readonly importLock: FieldRef<"Menu", 'Boolean'>
+    readonly importedAt: FieldRef<"Menu", 'DateTime'>
+    readonly syncVersion: FieldRef<"Menu", 'Int'>
+    readonly rawImportPayload: FieldRef<"Menu", 'Json'>
+    readonly menuData: FieldRef<"Menu", 'Json'>
+    readonly productModifierGroupLinks: FieldRef<"Menu", 'Json'>
+    readonly modifierGroupModifierLinks: FieldRef<"Menu", 'Json'>
+    readonly platformSource: FieldRef<"Menu", 'String'>
+    readonly externalId: FieldRef<"Menu", 'String'>
+    readonly externalParentId: FieldRef<"Menu", 'String'>
+    readonly lastSyncedAt: FieldRef<"Menu", 'DateTime'>
+    readonly syncStatus: FieldRef<"Menu", 'String'>
+    readonly syncHash: FieldRef<"Menu", 'String'>
+    readonly publishedTo: FieldRef<"Menu", 'String[]'>
+    readonly lastPublishedAt: FieldRef<"Menu", 'DateTime'>
+    readonly autoScheduleEnabled: FieldRef<"Menu", 'Boolean'>
+    readonly autoSchedule: FieldRef<"Menu", 'Json'>
+    readonly metadata: FieldRef<"Menu", 'Json'>
     readonly createdAt: FieldRef<"Menu", 'DateTime'>
     readonly updatedAt: FieldRef<"Menu", 'DateTime'>
   }
@@ -19285,6 +19905,14 @@ export namespace Prisma {
     imageUrl: string | null
     sortOrder: number | null
     isVisible: boolean | null
+    available: boolean | null
+    visibleToCustomers: boolean | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -19297,6 +19925,14 @@ export namespace Prisma {
     imageUrl: string | null
     sortOrder: number | null
     isVisible: boolean | null
+    available: boolean | null
+    visibleToCustomers: boolean | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -19309,6 +19945,15 @@ export namespace Prisma {
     imageUrl: number
     sortOrder: number
     isVisible: number
+    menuIds: number
+    available: number
+    visibleToCustomers: number
+    platformSource: number
+    externalId: number
+    externalParentId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -19331,6 +19976,14 @@ export namespace Prisma {
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
+    available?: true
+    visibleToCustomers?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -19343,6 +19996,14 @@ export namespace Prisma {
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
+    available?: true
+    visibleToCustomers?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -19355,6 +20016,15 @@ export namespace Prisma {
     imageUrl?: true
     sortOrder?: true
     isVisible?: true
+    menuIds?: true
+    available?: true
+    visibleToCustomers?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -19454,6 +20124,15 @@ export namespace Prisma {
     imageUrl: string | null
     sortOrder: number
     isVisible: boolean
+    menuIds: string[]
+    available: boolean
+    visibleToCustomers: boolean
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date
     updatedAt: Date
     _count: MenuCategoryCountAggregateOutputType | null
@@ -19485,6 +20164,15 @@ export namespace Prisma {
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
+    menuIds?: boolean
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
@@ -19500,6 +20188,15 @@ export namespace Prisma {
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
+    menuIds?: boolean
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
@@ -19513,6 +20210,15 @@ export namespace Prisma {
     imageUrl?: boolean
     sortOrder?: boolean
     isVisible?: boolean
+    menuIds?: boolean
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -19540,6 +20246,15 @@ export namespace Prisma {
       imageUrl: string | null
       sortOrder: number
       isVisible: boolean
+      menuIds: string[]
+      available: boolean
+      visibleToCustomers: boolean
+      platformSource: string | null
+      externalId: string | null
+      externalParentId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["menuCategory"]>
@@ -19944,6 +20659,15 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"MenuCategory", 'String'>
     readonly sortOrder: FieldRef<"MenuCategory", 'Int'>
     readonly isVisible: FieldRef<"MenuCategory", 'Boolean'>
+    readonly menuIds: FieldRef<"MenuCategory", 'String[]'>
+    readonly available: FieldRef<"MenuCategory", 'Boolean'>
+    readonly visibleToCustomers: FieldRef<"MenuCategory", 'Boolean'>
+    readonly platformSource: FieldRef<"MenuCategory", 'String'>
+    readonly externalId: FieldRef<"MenuCategory", 'String'>
+    readonly externalParentId: FieldRef<"MenuCategory", 'String'>
+    readonly lastSyncedAt: FieldRef<"MenuCategory", 'DateTime'>
+    readonly syncStatus: FieldRef<"MenuCategory", 'String'>
+    readonly syncHash: FieldRef<"MenuCategory", 'String'>
     readonly createdAt: FieldRef<"MenuCategory", 'DateTime'>
     readonly updatedAt: FieldRef<"MenuCategory", 'DateTime'>
   }
@@ -20314,6 +21038,10 @@ export namespace Prisma {
     basePrice: Decimal | null
     calories: number | null
     prepTime: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
     inventoryCount: number | null
   }
 
@@ -20321,6 +21049,10 @@ export namespace Prisma {
     basePrice: Decimal | null
     calories: number | null
     prepTime: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
     inventoryCount: number | null
   }
 
@@ -20332,11 +21064,26 @@ export namespace Prisma {
     basePrice: Decimal | null
     imageUrl: string | null
     sku: string | null
+    plu: string | null
     isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    outOfStock: boolean | null
+    availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
+    hasMultipleSkus: boolean | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
     isInventoryTracked: boolean | null
     inventoryCount: number | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -20349,11 +21096,26 @@ export namespace Prisma {
     basePrice: Decimal | null
     imageUrl: string | null
     sku: string | null
+    plu: string | null
     isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    outOfStock: boolean | null
+    availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
+    hasMultipleSkus: boolean | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
     isInventoryTracked: boolean | null
     inventoryCount: number | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -20366,15 +21128,35 @@ export namespace Prisma {
     basePrice: number
     imageUrl: number
     sku: number
+    plu: number
     isAvailable: number
+    visibleToCustomers: number
+    outOfStock: number
+    availableRestoreAt: number
     allergens: number
     dietaryTags: number
+    dietary: number
     calories: number
     prepTime: number
     metadata: number
+    hasMultipleSkus: number
+    productSkus: number
+    deliveryTax: number
+    takeawayTax: number
+    eatInTax: number
+    menuIds: number
+    brandIds: number
+    sortOrder: number
     isInventoryTracked: number
     inventoryCount: number
     platformPricingOverrides: number
+    platformSource: number
+    externalId: number
+    externalParentId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
+    rawModifierGroupIds: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -20385,6 +21167,10 @@ export namespace Prisma {
     basePrice?: true
     calories?: true
     prepTime?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
     inventoryCount?: true
   }
 
@@ -20392,6 +21178,10 @@ export namespace Prisma {
     basePrice?: true
     calories?: true
     prepTime?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
     inventoryCount?: true
   }
 
@@ -20403,11 +21193,26 @@ export namespace Prisma {
     basePrice?: true
     imageUrl?: true
     sku?: true
+    plu?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    outOfStock?: true
+    availableRestoreAt?: true
     calories?: true
     prepTime?: true
+    hasMultipleSkus?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
     isInventoryTracked?: true
     inventoryCount?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -20420,11 +21225,26 @@ export namespace Prisma {
     basePrice?: true
     imageUrl?: true
     sku?: true
+    plu?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    outOfStock?: true
+    availableRestoreAt?: true
     calories?: true
     prepTime?: true
+    hasMultipleSkus?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
     isInventoryTracked?: true
     inventoryCount?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -20437,15 +21257,35 @@ export namespace Prisma {
     basePrice?: true
     imageUrl?: true
     sku?: true
+    plu?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    outOfStock?: true
+    availableRestoreAt?: true
     allergens?: true
     dietaryTags?: true
+    dietary?: true
     calories?: true
     prepTime?: true
     metadata?: true
+    hasMultipleSkus?: true
+    productSkus?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    menuIds?: true
+    brandIds?: true
+    sortOrder?: true
     isInventoryTracked?: true
     inventoryCount?: true
     platformPricingOverrides?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    rawModifierGroupIds?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -20545,15 +21385,35 @@ export namespace Prisma {
     basePrice: Decimal
     imageUrl: string | null
     sku: string | null
+    plu: string | null
     isAvailable: boolean
+    visibleToCustomers: boolean
+    outOfStock: boolean
+    availableRestoreAt: Date | null
     allergens: string[]
     dietaryTags: string[]
+    dietary: JsonValue
     calories: number | null
     prepTime: number | null
     metadata: JsonValue
+    hasMultipleSkus: boolean
+    productSkus: JsonValue
+    deliveryTax: Decimal
+    takeawayTax: Decimal
+    eatInTax: Decimal
+    menuIds: string[]
+    brandIds: string[]
+    sortOrder: number
     isInventoryTracked: boolean
     inventoryCount: number | null
     platformPricingOverrides: JsonValue
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    rawModifierGroupIds: JsonValue
     createdAt: Date
     updatedAt: Date
     _count: MenuItemCountAggregateOutputType | null
@@ -20585,15 +21445,35 @@ export namespace Prisma {
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
+    plu?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
+    dietary?: boolean
     calories?: boolean
     prepTime?: boolean
     metadata?: boolean
+    hasMultipleSkus?: boolean
+    productSkus?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    menuIds?: boolean
+    brandIds?: boolean
+    sortOrder?: boolean
     isInventoryTracked?: boolean
     inventoryCount?: boolean
     platformPricingOverrides?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierGroupIds?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     categories?: boolean | MenuItem$categoriesArgs<ExtArgs>
@@ -20611,15 +21491,35 @@ export namespace Prisma {
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
+    plu?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
+    dietary?: boolean
     calories?: boolean
     prepTime?: boolean
     metadata?: boolean
+    hasMultipleSkus?: boolean
+    productSkus?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    menuIds?: boolean
+    brandIds?: boolean
+    sortOrder?: boolean
     isInventoryTracked?: boolean
     inventoryCount?: boolean
     platformPricingOverrides?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierGroupIds?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["menuItem"]>
@@ -20632,15 +21532,35 @@ export namespace Prisma {
     basePrice?: boolean
     imageUrl?: boolean
     sku?: boolean
+    plu?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: boolean
     allergens?: boolean
     dietaryTags?: boolean
+    dietary?: boolean
     calories?: boolean
     prepTime?: boolean
     metadata?: boolean
+    hasMultipleSkus?: boolean
+    productSkus?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    menuIds?: boolean
+    brandIds?: boolean
+    sortOrder?: boolean
     isInventoryTracked?: boolean
     inventoryCount?: boolean
     platformPricingOverrides?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierGroupIds?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -20670,15 +21590,35 @@ export namespace Prisma {
       basePrice: Prisma.Decimal
       imageUrl: string | null
       sku: string | null
+      plu: string | null
       isAvailable: boolean
+      visibleToCustomers: boolean
+      outOfStock: boolean
+      availableRestoreAt: Date | null
       allergens: string[]
       dietaryTags: string[]
+      dietary: Prisma.JsonValue
       calories: number | null
       prepTime: number | null
       metadata: Prisma.JsonValue
+      hasMultipleSkus: boolean
+      productSkus: Prisma.JsonValue
+      deliveryTax: Prisma.Decimal
+      takeawayTax: Prisma.Decimal
+      eatInTax: Prisma.Decimal
+      menuIds: string[]
+      brandIds: string[]
+      sortOrder: number
       isInventoryTracked: boolean
       inventoryCount: number | null
       platformPricingOverrides: Prisma.JsonValue
+      platformSource: string | null
+      externalId: string | null
+      externalParentId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
+      rawModifierGroupIds: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["menuItem"]>
@@ -21085,15 +22025,35 @@ export namespace Prisma {
     readonly basePrice: FieldRef<"MenuItem", 'Decimal'>
     readonly imageUrl: FieldRef<"MenuItem", 'String'>
     readonly sku: FieldRef<"MenuItem", 'String'>
+    readonly plu: FieldRef<"MenuItem", 'String'>
     readonly isAvailable: FieldRef<"MenuItem", 'Boolean'>
+    readonly visibleToCustomers: FieldRef<"MenuItem", 'Boolean'>
+    readonly outOfStock: FieldRef<"MenuItem", 'Boolean'>
+    readonly availableRestoreAt: FieldRef<"MenuItem", 'DateTime'>
     readonly allergens: FieldRef<"MenuItem", 'String[]'>
     readonly dietaryTags: FieldRef<"MenuItem", 'String[]'>
+    readonly dietary: FieldRef<"MenuItem", 'Json'>
     readonly calories: FieldRef<"MenuItem", 'Int'>
     readonly prepTime: FieldRef<"MenuItem", 'Int'>
     readonly metadata: FieldRef<"MenuItem", 'Json'>
+    readonly hasMultipleSkus: FieldRef<"MenuItem", 'Boolean'>
+    readonly productSkus: FieldRef<"MenuItem", 'Json'>
+    readonly deliveryTax: FieldRef<"MenuItem", 'Decimal'>
+    readonly takeawayTax: FieldRef<"MenuItem", 'Decimal'>
+    readonly eatInTax: FieldRef<"MenuItem", 'Decimal'>
+    readonly menuIds: FieldRef<"MenuItem", 'String[]'>
+    readonly brandIds: FieldRef<"MenuItem", 'String[]'>
+    readonly sortOrder: FieldRef<"MenuItem", 'Int'>
     readonly isInventoryTracked: FieldRef<"MenuItem", 'Boolean'>
     readonly inventoryCount: FieldRef<"MenuItem", 'Int'>
     readonly platformPricingOverrides: FieldRef<"MenuItem", 'Json'>
+    readonly platformSource: FieldRef<"MenuItem", 'String'>
+    readonly externalId: FieldRef<"MenuItem", 'String'>
+    readonly externalParentId: FieldRef<"MenuItem", 'String'>
+    readonly lastSyncedAt: FieldRef<"MenuItem", 'DateTime'>
+    readonly syncStatus: FieldRef<"MenuItem", 'String'>
+    readonly syncHash: FieldRef<"MenuItem", 'String'>
+    readonly rawModifierGroupIds: FieldRef<"MenuItem", 'Json'>
     readonly createdAt: FieldRef<"MenuItem", 'DateTime'>
     readonly updatedAt: FieldRef<"MenuItem", 'DateTime'>
   }
@@ -22505,10 +23465,20 @@ export namespace Prisma {
     brandId: string | null
     name: string | null
     description: string | null
+    plu: string | null
     minSelections: number | null
     maxSelections: number | null
     isRequired: boolean | null
     sortOrder: number | null
+    selectionType: $Enums.SelectionType | null
+    allowDuplicateSelections: boolean | null
+    visibleToCustomers: boolean | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -22518,10 +23488,20 @@ export namespace Prisma {
     brandId: string | null
     name: string | null
     description: string | null
+    plu: string | null
     minSelections: number | null
     maxSelections: number | null
     isRequired: boolean | null
     sortOrder: number | null
+    selectionType: $Enums.SelectionType | null
+    allowDuplicateSelections: boolean | null
+    visibleToCustomers: boolean | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -22531,10 +23511,23 @@ export namespace Prisma {
     brandId: number
     name: number
     description: number
+    plu: number
     minSelections: number
     maxSelections: number
     isRequired: number
     sortOrder: number
+    selectionType: number
+    allowDuplicateSelections: number
+    visibleToCustomers: number
+    menuIds: number
+    platformSource: number
+    externalId: number
+    externalParentId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
+    rawModifierIds: number
+    metadata: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -22558,10 +23551,20 @@ export namespace Prisma {
     brandId?: true
     name?: true
     description?: true
+    plu?: true
     minSelections?: true
     maxSelections?: true
     isRequired?: true
     sortOrder?: true
+    selectionType?: true
+    allowDuplicateSelections?: true
+    visibleToCustomers?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -22571,10 +23574,20 @@ export namespace Prisma {
     brandId?: true
     name?: true
     description?: true
+    plu?: true
     minSelections?: true
     maxSelections?: true
     isRequired?: true
     sortOrder?: true
+    selectionType?: true
+    allowDuplicateSelections?: true
+    visibleToCustomers?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -22584,10 +23597,23 @@ export namespace Prisma {
     brandId?: true
     name?: true
     description?: true
+    plu?: true
     minSelections?: true
     maxSelections?: true
     isRequired?: true
     sortOrder?: true
+    selectionType?: true
+    allowDuplicateSelections?: true
+    visibleToCustomers?: true
+    menuIds?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    rawModifierIds?: true
+    metadata?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -22684,10 +23710,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description: string | null
+    plu: string | null
     minSelections: number
     maxSelections: number | null
     isRequired: boolean
     sortOrder: number
+    selectionType: $Enums.SelectionType
+    allowDuplicateSelections: boolean
+    visibleToCustomers: boolean
+    menuIds: string[]
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    rawModifierIds: JsonValue
+    metadata: JsonValue
     createdAt: Date
     updatedAt: Date
     _count: ModifierGroupCountAggregateOutputType | null
@@ -22716,10 +23755,23 @@ export namespace Prisma {
     brandId?: boolean
     name?: boolean
     description?: boolean
+    plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
     isRequired?: boolean
     sortOrder?: boolean
+    selectionType?: boolean
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierIds?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -22734,10 +23786,23 @@ export namespace Prisma {
     brandId?: boolean
     name?: boolean
     description?: boolean
+    plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
     isRequired?: boolean
     sortOrder?: boolean
+    selectionType?: boolean
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierIds?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -22748,10 +23813,23 @@ export namespace Prisma {
     brandId?: boolean
     name?: boolean
     description?: boolean
+    plu?: boolean
     minSelections?: boolean
     maxSelections?: boolean
     isRequired?: boolean
     sortOrder?: boolean
+    selectionType?: boolean
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    rawModifierIds?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -22780,10 +23858,23 @@ export namespace Prisma {
       brandId: string
       name: string
       description: string | null
+      plu: string | null
       minSelections: number
       maxSelections: number | null
       isRequired: boolean
       sortOrder: number
+      selectionType: $Enums.SelectionType
+      allowDuplicateSelections: boolean
+      visibleToCustomers: boolean
+      menuIds: string[]
+      platformSource: string | null
+      externalId: string | null
+      externalParentId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
+      rawModifierIds: Prisma.JsonValue
+      metadata: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["modifierGroup"]>
@@ -23187,10 +24278,23 @@ export namespace Prisma {
     readonly brandId: FieldRef<"ModifierGroup", 'String'>
     readonly name: FieldRef<"ModifierGroup", 'String'>
     readonly description: FieldRef<"ModifierGroup", 'String'>
+    readonly plu: FieldRef<"ModifierGroup", 'String'>
     readonly minSelections: FieldRef<"ModifierGroup", 'Int'>
     readonly maxSelections: FieldRef<"ModifierGroup", 'Int'>
     readonly isRequired: FieldRef<"ModifierGroup", 'Boolean'>
     readonly sortOrder: FieldRef<"ModifierGroup", 'Int'>
+    readonly selectionType: FieldRef<"ModifierGroup", 'SelectionType'>
+    readonly allowDuplicateSelections: FieldRef<"ModifierGroup", 'Boolean'>
+    readonly visibleToCustomers: FieldRef<"ModifierGroup", 'Boolean'>
+    readonly menuIds: FieldRef<"ModifierGroup", 'String[]'>
+    readonly platformSource: FieldRef<"ModifierGroup", 'String'>
+    readonly externalId: FieldRef<"ModifierGroup", 'String'>
+    readonly externalParentId: FieldRef<"ModifierGroup", 'String'>
+    readonly lastSyncedAt: FieldRef<"ModifierGroup", 'DateTime'>
+    readonly syncStatus: FieldRef<"ModifierGroup", 'String'>
+    readonly syncHash: FieldRef<"ModifierGroup", 'String'>
+    readonly rawModifierIds: FieldRef<"ModifierGroup", 'Json'>
+    readonly metadata: FieldRef<"ModifierGroup", 'Json'>
     readonly createdAt: FieldRef<"ModifierGroup", 'DateTime'>
     readonly updatedAt: FieldRef<"ModifierGroup", 'DateTime'>
   }
@@ -23600,11 +24704,17 @@ export namespace Prisma {
   export type ModifierOptionAvgAggregateOutputType = {
     priceAdjustment: Decimal | null
     sortOrder: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
   }
 
   export type ModifierOptionSumAggregateOutputType = {
     priceAdjustment: Decimal | null
     sortOrder: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
   }
 
   export type ModifierOptionMinAggregateOutputType = {
@@ -23613,10 +24723,22 @@ export namespace Prisma {
     name: string | null
     description: string | null
     priceAdjustment: Decimal | null
+    plu: string | null
     imageUrl: string | null
     isDefault: boolean | null
     isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    availableRestoreAt: Date | null
     sortOrder: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     nestedGroupId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -23628,10 +24750,22 @@ export namespace Prisma {
     name: string | null
     description: string | null
     priceAdjustment: Decimal | null
+    plu: string | null
     imageUrl: string | null
     isDefault: boolean | null
     isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    availableRestoreAt: Date | null
     sortOrder: number | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     nestedGroupId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -23640,15 +24774,32 @@ export namespace Prisma {
   export type ModifierOptionCountAggregateOutputType = {
     id: number
     groupId: number
+    modifierGroupIds: number
     name: number
     description: number
     priceAdjustment: number
+    plu: number
+    pricesBySize: number
+    skuPlus: number
     imageUrl: number
     allergens: number
     isDefault: number
     isAvailable: number
+    visibleToCustomers: number
+    availableRestoreAt: number
     sortOrder: number
+    menuIds: number
+    deliveryTax: number
+    takeawayTax: number
+    eatInTax: number
+    platformSource: number
+    externalId: number
+    externalParentId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
     nestedGroupId: number
+    metadata: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -23658,11 +24809,17 @@ export namespace Prisma {
   export type ModifierOptionAvgAggregateInputType = {
     priceAdjustment?: true
     sortOrder?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
   }
 
   export type ModifierOptionSumAggregateInputType = {
     priceAdjustment?: true
     sortOrder?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
   }
 
   export type ModifierOptionMinAggregateInputType = {
@@ -23671,10 +24828,22 @@ export namespace Prisma {
     name?: true
     description?: true
     priceAdjustment?: true
+    plu?: true
     imageUrl?: true
     isDefault?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    availableRestoreAt?: true
     sortOrder?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     nestedGroupId?: true
     createdAt?: true
     updatedAt?: true
@@ -23686,10 +24855,22 @@ export namespace Prisma {
     name?: true
     description?: true
     priceAdjustment?: true
+    plu?: true
     imageUrl?: true
     isDefault?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    availableRestoreAt?: true
     sortOrder?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     nestedGroupId?: true
     createdAt?: true
     updatedAt?: true
@@ -23698,15 +24879,32 @@ export namespace Prisma {
   export type ModifierOptionCountAggregateInputType = {
     id?: true
     groupId?: true
+    modifierGroupIds?: true
     name?: true
     description?: true
     priceAdjustment?: true
+    plu?: true
+    pricesBySize?: true
+    skuPlus?: true
     imageUrl?: true
     allergens?: true
     isDefault?: true
     isAvailable?: true
+    visibleToCustomers?: true
+    availableRestoreAt?: true
     sortOrder?: true
+    menuIds?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    platformSource?: true
+    externalId?: true
+    externalParentId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
     nestedGroupId?: true
+    metadata?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -23801,15 +24999,32 @@ export namespace Prisma {
   export type ModifierOptionGroupByOutputType = {
     id: string
     groupId: string
+    modifierGroupIds: string[]
     name: string
     description: string | null
     priceAdjustment: Decimal
+    plu: string | null
+    pricesBySize: JsonValue
+    skuPlus: JsonValue
     imageUrl: string | null
     allergens: string[]
     isDefault: boolean
     isAvailable: boolean
+    visibleToCustomers: boolean
+    availableRestoreAt: Date | null
     sortOrder: number
+    menuIds: string[]
+    deliveryTax: Decimal
+    takeawayTax: Decimal
+    eatInTax: Decimal
+    platformSource: string | null
+    externalId: string | null
+    externalParentId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
     nestedGroupId: string | null
+    metadata: JsonValue
     createdAt: Date
     updatedAt: Date
     _count: ModifierOptionCountAggregateOutputType | null
@@ -23836,15 +25051,32 @@ export namespace Prisma {
   export type ModifierOptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     groupId?: boolean
+    modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
     priceAdjustment?: boolean
+    plu?: boolean
+    pricesBySize?: boolean
+    skuPlus?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: boolean
     sortOrder?: boolean
+    menuIds?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     nestedGroupId?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
@@ -23854,15 +25086,32 @@ export namespace Prisma {
   export type ModifierOptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     groupId?: boolean
+    modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
     priceAdjustment?: boolean
+    plu?: boolean
+    pricesBySize?: boolean
+    skuPlus?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: boolean
     sortOrder?: boolean
+    menuIds?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     nestedGroupId?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     group?: boolean | ModifierGroupDefaultArgs<ExtArgs>
@@ -23872,15 +25121,32 @@ export namespace Prisma {
   export type ModifierOptionSelectScalar = {
     id?: boolean
     groupId?: boolean
+    modifierGroupIds?: boolean
     name?: boolean
     description?: boolean
     priceAdjustment?: boolean
+    plu?: boolean
+    pricesBySize?: boolean
+    skuPlus?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: boolean
     sortOrder?: boolean
+    menuIds?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    externalParentId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
     nestedGroupId?: boolean
+    metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -23903,15 +25169,32 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       groupId: string
+      modifierGroupIds: string[]
       name: string
       description: string | null
       priceAdjustment: Prisma.Decimal
+      plu: string | null
+      pricesBySize: Prisma.JsonValue
+      skuPlus: Prisma.JsonValue
       imageUrl: string | null
       allergens: string[]
       isDefault: boolean
       isAvailable: boolean
+      visibleToCustomers: boolean
+      availableRestoreAt: Date | null
       sortOrder: number
+      menuIds: string[]
+      deliveryTax: Prisma.Decimal
+      takeawayTax: Prisma.Decimal
+      eatInTax: Prisma.Decimal
+      platformSource: string | null
+      externalId: string | null
+      externalParentId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
       nestedGroupId: string | null
+      metadata: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["modifierOption"]>
@@ -24311,15 +25594,32 @@ export namespace Prisma {
   interface ModifierOptionFieldRefs {
     readonly id: FieldRef<"ModifierOption", 'String'>
     readonly groupId: FieldRef<"ModifierOption", 'String'>
+    readonly modifierGroupIds: FieldRef<"ModifierOption", 'String[]'>
     readonly name: FieldRef<"ModifierOption", 'String'>
     readonly description: FieldRef<"ModifierOption", 'String'>
     readonly priceAdjustment: FieldRef<"ModifierOption", 'Decimal'>
+    readonly plu: FieldRef<"ModifierOption", 'String'>
+    readonly pricesBySize: FieldRef<"ModifierOption", 'Json'>
+    readonly skuPlus: FieldRef<"ModifierOption", 'Json'>
     readonly imageUrl: FieldRef<"ModifierOption", 'String'>
     readonly allergens: FieldRef<"ModifierOption", 'String[]'>
     readonly isDefault: FieldRef<"ModifierOption", 'Boolean'>
     readonly isAvailable: FieldRef<"ModifierOption", 'Boolean'>
+    readonly visibleToCustomers: FieldRef<"ModifierOption", 'Boolean'>
+    readonly availableRestoreAt: FieldRef<"ModifierOption", 'DateTime'>
     readonly sortOrder: FieldRef<"ModifierOption", 'Int'>
+    readonly menuIds: FieldRef<"ModifierOption", 'String[]'>
+    readonly deliveryTax: FieldRef<"ModifierOption", 'Decimal'>
+    readonly takeawayTax: FieldRef<"ModifierOption", 'Decimal'>
+    readonly eatInTax: FieldRef<"ModifierOption", 'Decimal'>
+    readonly platformSource: FieldRef<"ModifierOption", 'String'>
+    readonly externalId: FieldRef<"ModifierOption", 'String'>
+    readonly externalParentId: FieldRef<"ModifierOption", 'String'>
+    readonly lastSyncedAt: FieldRef<"ModifierOption", 'DateTime'>
+    readonly syncStatus: FieldRef<"ModifierOption", 'String'>
+    readonly syncHash: FieldRef<"ModifierOption", 'String'>
     readonly nestedGroupId: FieldRef<"ModifierOption", 'String'>
+    readonly metadata: FieldRef<"ModifierOption", 'Json'>
     readonly createdAt: FieldRef<"ModifierOption", 'DateTime'>
     readonly updatedAt: FieldRef<"ModifierOption", 'DateTime'>
   }
@@ -26634,6 +27934,2244 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MenuItemVariantInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MealDeal
+   */
+
+  export type AggregateMealDeal = {
+    _count: MealDealCountAggregateOutputType | null
+    _avg: MealDealAvgAggregateOutputType | null
+    _sum: MealDealSumAggregateOutputType | null
+    _min: MealDealMinAggregateOutputType | null
+    _max: MealDealMaxAggregateOutputType | null
+  }
+
+  export type MealDealAvgAggregateOutputType = {
+    price: Decimal | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type MealDealSumAggregateOutputType = {
+    price: Decimal | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type MealDealMinAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    imageUrl: string | null
+    plu: string | null
+    price: Decimal | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    sortOrder: number | null
+    platformSource: string | null
+    externalId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MealDealMaxAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    imageUrl: string | null
+    plu: string | null
+    price: Decimal | null
+    deliveryTax: Decimal | null
+    takeawayTax: Decimal | null
+    eatInTax: Decimal | null
+    isAvailable: boolean | null
+    visibleToCustomers: boolean | null
+    sortOrder: number | null
+    platformSource: string | null
+    externalId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MealDealCountAggregateOutputType = {
+    id: number
+    brandId: number
+    locationIds: number
+    name: number
+    description: number
+    imageUrl: number
+    plu: number
+    price: number
+    sections: number
+    deliveryTax: number
+    takeawayTax: number
+    eatInTax: number
+    platformPricingOverrides: number
+    isAvailable: number
+    visibleToCustomers: number
+    sortOrder: number
+    platformSource: number
+    externalId: number
+    lastSyncedAt: number
+    syncStatus: number
+    syncHash: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MealDealAvgAggregateInputType = {
+    price?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
+  }
+
+  export type MealDealSumAggregateInputType = {
+    price?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    sortOrder?: true
+  }
+
+  export type MealDealMinAggregateInputType = {
+    id?: true
+    brandId?: true
+    name?: true
+    description?: true
+    imageUrl?: true
+    plu?: true
+    price?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    isAvailable?: true
+    visibleToCustomers?: true
+    sortOrder?: true
+    platformSource?: true
+    externalId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MealDealMaxAggregateInputType = {
+    id?: true
+    brandId?: true
+    name?: true
+    description?: true
+    imageUrl?: true
+    plu?: true
+    price?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    isAvailable?: true
+    visibleToCustomers?: true
+    sortOrder?: true
+    platformSource?: true
+    externalId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MealDealCountAggregateInputType = {
+    id?: true
+    brandId?: true
+    locationIds?: true
+    name?: true
+    description?: true
+    imageUrl?: true
+    plu?: true
+    price?: true
+    sections?: true
+    deliveryTax?: true
+    takeawayTax?: true
+    eatInTax?: true
+    platformPricingOverrides?: true
+    isAvailable?: true
+    visibleToCustomers?: true
+    sortOrder?: true
+    platformSource?: true
+    externalId?: true
+    lastSyncedAt?: true
+    syncStatus?: true
+    syncHash?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MealDealAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MealDeal to aggregate.
+     */
+    where?: MealDealWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MealDeals to fetch.
+     */
+    orderBy?: MealDealOrderByWithRelationInput | MealDealOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MealDealWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MealDeals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MealDeals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MealDeals
+    **/
+    _count?: true | MealDealCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MealDealAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MealDealSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MealDealMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MealDealMaxAggregateInputType
+  }
+
+  export type GetMealDealAggregateType<T extends MealDealAggregateArgs> = {
+        [P in keyof T & keyof AggregateMealDeal]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMealDeal[P]>
+      : GetScalarType<T[P], AggregateMealDeal[P]>
+  }
+
+
+
+
+  export type MealDealGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MealDealWhereInput
+    orderBy?: MealDealOrderByWithAggregationInput | MealDealOrderByWithAggregationInput[]
+    by: MealDealScalarFieldEnum[] | MealDealScalarFieldEnum
+    having?: MealDealScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MealDealCountAggregateInputType | true
+    _avg?: MealDealAvgAggregateInputType
+    _sum?: MealDealSumAggregateInputType
+    _min?: MealDealMinAggregateInputType
+    _max?: MealDealMaxAggregateInputType
+  }
+
+  export type MealDealGroupByOutputType = {
+    id: string
+    brandId: string
+    locationIds: string[]
+    name: string
+    description: string | null
+    imageUrl: string | null
+    plu: string | null
+    price: Decimal | null
+    sections: JsonValue
+    deliveryTax: Decimal
+    takeawayTax: Decimal
+    eatInTax: Decimal
+    platformPricingOverrides: JsonValue
+    isAvailable: boolean
+    visibleToCustomers: boolean
+    sortOrder: number
+    platformSource: string | null
+    externalId: string | null
+    lastSyncedAt: Date | null
+    syncStatus: string | null
+    syncHash: string | null
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: MealDealCountAggregateOutputType | null
+    _avg: MealDealAvgAggregateOutputType | null
+    _sum: MealDealSumAggregateOutputType | null
+    _min: MealDealMinAggregateOutputType | null
+    _max: MealDealMaxAggregateOutputType | null
+  }
+
+  type GetMealDealGroupByPayload<T extends MealDealGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MealDealGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MealDealGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MealDealGroupByOutputType[P]>
+            : GetScalarType<T[P], MealDealGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MealDealSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    locationIds?: boolean
+    name?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    plu?: boolean
+    price?: boolean
+    sections?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformPricingOverrides?: boolean
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mealDeal"]>
+
+  export type MealDealSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    locationIds?: boolean
+    name?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    plu?: boolean
+    price?: boolean
+    sections?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformPricingOverrides?: boolean
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mealDeal"]>
+
+  export type MealDealSelectScalar = {
+    id?: boolean
+    brandId?: boolean
+    locationIds?: boolean
+    name?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    plu?: boolean
+    price?: boolean
+    sections?: boolean
+    deliveryTax?: boolean
+    takeawayTax?: boolean
+    eatInTax?: boolean
+    platformPricingOverrides?: boolean
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: boolean
+    platformSource?: boolean
+    externalId?: boolean
+    lastSyncedAt?: boolean
+    syncStatus?: boolean
+    syncHash?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MealDealInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+  export type MealDealIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $MealDealPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MealDeal"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      brandId: string
+      locationIds: string[]
+      name: string
+      description: string | null
+      imageUrl: string | null
+      plu: string | null
+      price: Prisma.Decimal | null
+      sections: Prisma.JsonValue
+      deliveryTax: Prisma.Decimal
+      takeawayTax: Prisma.Decimal
+      eatInTax: Prisma.Decimal
+      platformPricingOverrides: Prisma.JsonValue
+      isAvailable: boolean
+      visibleToCustomers: boolean
+      sortOrder: number
+      platformSource: string | null
+      externalId: string | null
+      lastSyncedAt: Date | null
+      syncStatus: string | null
+      syncHash: string | null
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mealDeal"]>
+    composites: {}
+  }
+
+  type MealDealGetPayload<S extends boolean | null | undefined | MealDealDefaultArgs> = $Result.GetResult<Prisma.$MealDealPayload, S>
+
+  type MealDealCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MealDealFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MealDealCountAggregateInputType | true
+    }
+
+  export interface MealDealDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MealDeal'], meta: { name: 'MealDeal' } }
+    /**
+     * Find zero or one MealDeal that matches the filter.
+     * @param {MealDealFindUniqueArgs} args - Arguments to find a MealDeal
+     * @example
+     * // Get one MealDeal
+     * const mealDeal = await prisma.mealDeal.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MealDealFindUniqueArgs>(args: SelectSubset<T, MealDealFindUniqueArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MealDeal that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MealDealFindUniqueOrThrowArgs} args - Arguments to find a MealDeal
+     * @example
+     * // Get one MealDeal
+     * const mealDeal = await prisma.mealDeal.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MealDealFindUniqueOrThrowArgs>(args: SelectSubset<T, MealDealFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MealDeal that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealFindFirstArgs} args - Arguments to find a MealDeal
+     * @example
+     * // Get one MealDeal
+     * const mealDeal = await prisma.mealDeal.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MealDealFindFirstArgs>(args?: SelectSubset<T, MealDealFindFirstArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MealDeal that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealFindFirstOrThrowArgs} args - Arguments to find a MealDeal
+     * @example
+     * // Get one MealDeal
+     * const mealDeal = await prisma.mealDeal.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MealDealFindFirstOrThrowArgs>(args?: SelectSubset<T, MealDealFindFirstOrThrowArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MealDeals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MealDeals
+     * const mealDeals = await prisma.mealDeal.findMany()
+     * 
+     * // Get first 10 MealDeals
+     * const mealDeals = await prisma.mealDeal.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mealDealWithIdOnly = await prisma.mealDeal.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MealDealFindManyArgs>(args?: SelectSubset<T, MealDealFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MealDeal.
+     * @param {MealDealCreateArgs} args - Arguments to create a MealDeal.
+     * @example
+     * // Create one MealDeal
+     * const MealDeal = await prisma.mealDeal.create({
+     *   data: {
+     *     // ... data to create a MealDeal
+     *   }
+     * })
+     * 
+     */
+    create<T extends MealDealCreateArgs>(args: SelectSubset<T, MealDealCreateArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MealDeals.
+     * @param {MealDealCreateManyArgs} args - Arguments to create many MealDeals.
+     * @example
+     * // Create many MealDeals
+     * const mealDeal = await prisma.mealDeal.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MealDealCreateManyArgs>(args?: SelectSubset<T, MealDealCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MealDeals and returns the data saved in the database.
+     * @param {MealDealCreateManyAndReturnArgs} args - Arguments to create many MealDeals.
+     * @example
+     * // Create many MealDeals
+     * const mealDeal = await prisma.mealDeal.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MealDeals and only return the `id`
+     * const mealDealWithIdOnly = await prisma.mealDeal.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MealDealCreateManyAndReturnArgs>(args?: SelectSubset<T, MealDealCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MealDeal.
+     * @param {MealDealDeleteArgs} args - Arguments to delete one MealDeal.
+     * @example
+     * // Delete one MealDeal
+     * const MealDeal = await prisma.mealDeal.delete({
+     *   where: {
+     *     // ... filter to delete one MealDeal
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MealDealDeleteArgs>(args: SelectSubset<T, MealDealDeleteArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MealDeal.
+     * @param {MealDealUpdateArgs} args - Arguments to update one MealDeal.
+     * @example
+     * // Update one MealDeal
+     * const mealDeal = await prisma.mealDeal.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MealDealUpdateArgs>(args: SelectSubset<T, MealDealUpdateArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MealDeals.
+     * @param {MealDealDeleteManyArgs} args - Arguments to filter MealDeals to delete.
+     * @example
+     * // Delete a few MealDeals
+     * const { count } = await prisma.mealDeal.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MealDealDeleteManyArgs>(args?: SelectSubset<T, MealDealDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MealDeals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MealDeals
+     * const mealDeal = await prisma.mealDeal.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MealDealUpdateManyArgs>(args: SelectSubset<T, MealDealUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MealDeal.
+     * @param {MealDealUpsertArgs} args - Arguments to update or create a MealDeal.
+     * @example
+     * // Update or create a MealDeal
+     * const mealDeal = await prisma.mealDeal.upsert({
+     *   create: {
+     *     // ... data to create a MealDeal
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MealDeal we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MealDealUpsertArgs>(args: SelectSubset<T, MealDealUpsertArgs<ExtArgs>>): Prisma__MealDealClient<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MealDeals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealCountArgs} args - Arguments to filter MealDeals to count.
+     * @example
+     * // Count the number of MealDeals
+     * const count = await prisma.mealDeal.count({
+     *   where: {
+     *     // ... the filter for the MealDeals we want to count
+     *   }
+     * })
+    **/
+    count<T extends MealDealCountArgs>(
+      args?: Subset<T, MealDealCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MealDealCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MealDeal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MealDealAggregateArgs>(args: Subset<T, MealDealAggregateArgs>): Prisma.PrismaPromise<GetMealDealAggregateType<T>>
+
+    /**
+     * Group by MealDeal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MealDealGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MealDealGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MealDealGroupByArgs['orderBy'] }
+        : { orderBy?: MealDealGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MealDealGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMealDealGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MealDeal model
+   */
+  readonly fields: MealDealFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MealDeal.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MealDealClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MealDeal model
+   */ 
+  interface MealDealFieldRefs {
+    readonly id: FieldRef<"MealDeal", 'String'>
+    readonly brandId: FieldRef<"MealDeal", 'String'>
+    readonly locationIds: FieldRef<"MealDeal", 'String[]'>
+    readonly name: FieldRef<"MealDeal", 'String'>
+    readonly description: FieldRef<"MealDeal", 'String'>
+    readonly imageUrl: FieldRef<"MealDeal", 'String'>
+    readonly plu: FieldRef<"MealDeal", 'String'>
+    readonly price: FieldRef<"MealDeal", 'Decimal'>
+    readonly sections: FieldRef<"MealDeal", 'Json'>
+    readonly deliveryTax: FieldRef<"MealDeal", 'Decimal'>
+    readonly takeawayTax: FieldRef<"MealDeal", 'Decimal'>
+    readonly eatInTax: FieldRef<"MealDeal", 'Decimal'>
+    readonly platformPricingOverrides: FieldRef<"MealDeal", 'Json'>
+    readonly isAvailable: FieldRef<"MealDeal", 'Boolean'>
+    readonly visibleToCustomers: FieldRef<"MealDeal", 'Boolean'>
+    readonly sortOrder: FieldRef<"MealDeal", 'Int'>
+    readonly platformSource: FieldRef<"MealDeal", 'String'>
+    readonly externalId: FieldRef<"MealDeal", 'String'>
+    readonly lastSyncedAt: FieldRef<"MealDeal", 'DateTime'>
+    readonly syncStatus: FieldRef<"MealDeal", 'String'>
+    readonly syncHash: FieldRef<"MealDeal", 'String'>
+    readonly metadata: FieldRef<"MealDeal", 'Json'>
+    readonly createdAt: FieldRef<"MealDeal", 'DateTime'>
+    readonly updatedAt: FieldRef<"MealDeal", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MealDeal findUnique
+   */
+  export type MealDealFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter, which MealDeal to fetch.
+     */
+    where: MealDealWhereUniqueInput
+  }
+
+  /**
+   * MealDeal findUniqueOrThrow
+   */
+  export type MealDealFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter, which MealDeal to fetch.
+     */
+    where: MealDealWhereUniqueInput
+  }
+
+  /**
+   * MealDeal findFirst
+   */
+  export type MealDealFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter, which MealDeal to fetch.
+     */
+    where?: MealDealWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MealDeals to fetch.
+     */
+    orderBy?: MealDealOrderByWithRelationInput | MealDealOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MealDeals.
+     */
+    cursor?: MealDealWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MealDeals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MealDeals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MealDeals.
+     */
+    distinct?: MealDealScalarFieldEnum | MealDealScalarFieldEnum[]
+  }
+
+  /**
+   * MealDeal findFirstOrThrow
+   */
+  export type MealDealFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter, which MealDeal to fetch.
+     */
+    where?: MealDealWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MealDeals to fetch.
+     */
+    orderBy?: MealDealOrderByWithRelationInput | MealDealOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MealDeals.
+     */
+    cursor?: MealDealWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MealDeals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MealDeals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MealDeals.
+     */
+    distinct?: MealDealScalarFieldEnum | MealDealScalarFieldEnum[]
+  }
+
+  /**
+   * MealDeal findMany
+   */
+  export type MealDealFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter, which MealDeals to fetch.
+     */
+    where?: MealDealWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MealDeals to fetch.
+     */
+    orderBy?: MealDealOrderByWithRelationInput | MealDealOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MealDeals.
+     */
+    cursor?: MealDealWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MealDeals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MealDeals.
+     */
+    skip?: number
+    distinct?: MealDealScalarFieldEnum | MealDealScalarFieldEnum[]
+  }
+
+  /**
+   * MealDeal create
+   */
+  export type MealDealCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MealDeal.
+     */
+    data: XOR<MealDealCreateInput, MealDealUncheckedCreateInput>
+  }
+
+  /**
+   * MealDeal createMany
+   */
+  export type MealDealCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MealDeals.
+     */
+    data: MealDealCreateManyInput | MealDealCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MealDeal createManyAndReturn
+   */
+  export type MealDealCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MealDeals.
+     */
+    data: MealDealCreateManyInput | MealDealCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MealDeal update
+   */
+  export type MealDealUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MealDeal.
+     */
+    data: XOR<MealDealUpdateInput, MealDealUncheckedUpdateInput>
+    /**
+     * Choose, which MealDeal to update.
+     */
+    where: MealDealWhereUniqueInput
+  }
+
+  /**
+   * MealDeal updateMany
+   */
+  export type MealDealUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MealDeals.
+     */
+    data: XOR<MealDealUpdateManyMutationInput, MealDealUncheckedUpdateManyInput>
+    /**
+     * Filter which MealDeals to update
+     */
+    where?: MealDealWhereInput
+  }
+
+  /**
+   * MealDeal upsert
+   */
+  export type MealDealUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MealDeal to update in case it exists.
+     */
+    where: MealDealWhereUniqueInput
+    /**
+     * In case the MealDeal found by the `where` argument doesn't exist, create a new MealDeal with this data.
+     */
+    create: XOR<MealDealCreateInput, MealDealUncheckedCreateInput>
+    /**
+     * In case the MealDeal was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MealDealUpdateInput, MealDealUncheckedUpdateInput>
+  }
+
+  /**
+   * MealDeal delete
+   */
+  export type MealDealDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+    /**
+     * Filter which MealDeal to delete.
+     */
+    where: MealDealWhereUniqueInput
+  }
+
+  /**
+   * MealDeal deleteMany
+   */
+  export type MealDealDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MealDeals to delete
+     */
+    where?: MealDealWhereInput
+  }
+
+  /**
+   * MealDeal without action
+   */
+  export type MealDealDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MealDeal
+     */
+    select?: MealDealSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MealDealInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UpsellGroup
+   */
+
+  export type AggregateUpsellGroup = {
+    _count: UpsellGroupCountAggregateOutputType | null
+    _avg: UpsellGroupAvgAggregateOutputType | null
+    _sum: UpsellGroupSumAggregateOutputType | null
+    _min: UpsellGroupMinAggregateOutputType | null
+    _max: UpsellGroupMaxAggregateOutputType | null
+  }
+
+  export type UpsellGroupAvgAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type UpsellGroupSumAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type UpsellGroupMinAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    sortOrder: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UpsellGroupMaxAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    sortOrder: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UpsellGroupCountAggregateOutputType = {
+    id: number
+    brandId: number
+    name: number
+    description: number
+    triggerProductIds: number
+    triggerCategoryIds: number
+    suggestedProductIds: number
+    sortOrder: number
+    platformVisibility: number
+    isActive: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UpsellGroupAvgAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type UpsellGroupSumAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type UpsellGroupMinAggregateInputType = {
+    id?: true
+    brandId?: true
+    name?: true
+    description?: true
+    sortOrder?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UpsellGroupMaxAggregateInputType = {
+    id?: true
+    brandId?: true
+    name?: true
+    description?: true
+    sortOrder?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UpsellGroupCountAggregateInputType = {
+    id?: true
+    brandId?: true
+    name?: true
+    description?: true
+    triggerProductIds?: true
+    triggerCategoryIds?: true
+    suggestedProductIds?: true
+    sortOrder?: true
+    platformVisibility?: true
+    isActive?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UpsellGroupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UpsellGroup to aggregate.
+     */
+    where?: UpsellGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UpsellGroups to fetch.
+     */
+    orderBy?: UpsellGroupOrderByWithRelationInput | UpsellGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UpsellGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UpsellGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UpsellGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UpsellGroups
+    **/
+    _count?: true | UpsellGroupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UpsellGroupAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UpsellGroupSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UpsellGroupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UpsellGroupMaxAggregateInputType
+  }
+
+  export type GetUpsellGroupAggregateType<T extends UpsellGroupAggregateArgs> = {
+        [P in keyof T & keyof AggregateUpsellGroup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUpsellGroup[P]>
+      : GetScalarType<T[P], AggregateUpsellGroup[P]>
+  }
+
+
+
+
+  export type UpsellGroupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UpsellGroupWhereInput
+    orderBy?: UpsellGroupOrderByWithAggregationInput | UpsellGroupOrderByWithAggregationInput[]
+    by: UpsellGroupScalarFieldEnum[] | UpsellGroupScalarFieldEnum
+    having?: UpsellGroupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UpsellGroupCountAggregateInputType | true
+    _avg?: UpsellGroupAvgAggregateInputType
+    _sum?: UpsellGroupSumAggregateInputType
+    _min?: UpsellGroupMinAggregateInputType
+    _max?: UpsellGroupMaxAggregateInputType
+  }
+
+  export type UpsellGroupGroupByOutputType = {
+    id: string
+    brandId: string
+    name: string
+    description: string | null
+    triggerProductIds: string[]
+    triggerCategoryIds: string[]
+    suggestedProductIds: string[]
+    sortOrder: number
+    platformVisibility: string[]
+    isActive: boolean
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: UpsellGroupCountAggregateOutputType | null
+    _avg: UpsellGroupAvgAggregateOutputType | null
+    _sum: UpsellGroupSumAggregateOutputType | null
+    _min: UpsellGroupMinAggregateOutputType | null
+    _max: UpsellGroupMaxAggregateOutputType | null
+  }
+
+  type GetUpsellGroupGroupByPayload<T extends UpsellGroupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UpsellGroupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UpsellGroupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UpsellGroupGroupByOutputType[P]>
+            : GetScalarType<T[P], UpsellGroupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UpsellGroupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    triggerProductIds?: boolean
+    triggerCategoryIds?: boolean
+    suggestedProductIds?: boolean
+    sortOrder?: boolean
+    platformVisibility?: boolean
+    isActive?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["upsellGroup"]>
+
+  export type UpsellGroupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    triggerProductIds?: boolean
+    triggerCategoryIds?: boolean
+    suggestedProductIds?: boolean
+    sortOrder?: boolean
+    platformVisibility?: boolean
+    isActive?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["upsellGroup"]>
+
+  export type UpsellGroupSelectScalar = {
+    id?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    triggerProductIds?: boolean
+    triggerCategoryIds?: boolean
+    suggestedProductIds?: boolean
+    sortOrder?: boolean
+    platformVisibility?: boolean
+    isActive?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UpsellGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+  export type UpsellGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $UpsellGroupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UpsellGroup"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      brandId: string
+      name: string
+      description: string | null
+      triggerProductIds: string[]
+      triggerCategoryIds: string[]
+      suggestedProductIds: string[]
+      sortOrder: number
+      platformVisibility: string[]
+      isActive: boolean
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["upsellGroup"]>
+    composites: {}
+  }
+
+  type UpsellGroupGetPayload<S extends boolean | null | undefined | UpsellGroupDefaultArgs> = $Result.GetResult<Prisma.$UpsellGroupPayload, S>
+
+  type UpsellGroupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<UpsellGroupFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: UpsellGroupCountAggregateInputType | true
+    }
+
+  export interface UpsellGroupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UpsellGroup'], meta: { name: 'UpsellGroup' } }
+    /**
+     * Find zero or one UpsellGroup that matches the filter.
+     * @param {UpsellGroupFindUniqueArgs} args - Arguments to find a UpsellGroup
+     * @example
+     * // Get one UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UpsellGroupFindUniqueArgs>(args: SelectSubset<T, UpsellGroupFindUniqueArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one UpsellGroup that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {UpsellGroupFindUniqueOrThrowArgs} args - Arguments to find a UpsellGroup
+     * @example
+     * // Get one UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UpsellGroupFindUniqueOrThrowArgs>(args: SelectSubset<T, UpsellGroupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first UpsellGroup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupFindFirstArgs} args - Arguments to find a UpsellGroup
+     * @example
+     * // Get one UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UpsellGroupFindFirstArgs>(args?: SelectSubset<T, UpsellGroupFindFirstArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first UpsellGroup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupFindFirstOrThrowArgs} args - Arguments to find a UpsellGroup
+     * @example
+     * // Get one UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UpsellGroupFindFirstOrThrowArgs>(args?: SelectSubset<T, UpsellGroupFindFirstOrThrowArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more UpsellGroups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UpsellGroups
+     * const upsellGroups = await prisma.upsellGroup.findMany()
+     * 
+     * // Get first 10 UpsellGroups
+     * const upsellGroups = await prisma.upsellGroup.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const upsellGroupWithIdOnly = await prisma.upsellGroup.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UpsellGroupFindManyArgs>(args?: SelectSubset<T, UpsellGroupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a UpsellGroup.
+     * @param {UpsellGroupCreateArgs} args - Arguments to create a UpsellGroup.
+     * @example
+     * // Create one UpsellGroup
+     * const UpsellGroup = await prisma.upsellGroup.create({
+     *   data: {
+     *     // ... data to create a UpsellGroup
+     *   }
+     * })
+     * 
+     */
+    create<T extends UpsellGroupCreateArgs>(args: SelectSubset<T, UpsellGroupCreateArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many UpsellGroups.
+     * @param {UpsellGroupCreateManyArgs} args - Arguments to create many UpsellGroups.
+     * @example
+     * // Create many UpsellGroups
+     * const upsellGroup = await prisma.upsellGroup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UpsellGroupCreateManyArgs>(args?: SelectSubset<T, UpsellGroupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UpsellGroups and returns the data saved in the database.
+     * @param {UpsellGroupCreateManyAndReturnArgs} args - Arguments to create many UpsellGroups.
+     * @example
+     * // Create many UpsellGroups
+     * const upsellGroup = await prisma.upsellGroup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UpsellGroups and only return the `id`
+     * const upsellGroupWithIdOnly = await prisma.upsellGroup.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UpsellGroupCreateManyAndReturnArgs>(args?: SelectSubset<T, UpsellGroupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a UpsellGroup.
+     * @param {UpsellGroupDeleteArgs} args - Arguments to delete one UpsellGroup.
+     * @example
+     * // Delete one UpsellGroup
+     * const UpsellGroup = await prisma.upsellGroup.delete({
+     *   where: {
+     *     // ... filter to delete one UpsellGroup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UpsellGroupDeleteArgs>(args: SelectSubset<T, UpsellGroupDeleteArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one UpsellGroup.
+     * @param {UpsellGroupUpdateArgs} args - Arguments to update one UpsellGroup.
+     * @example
+     * // Update one UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UpsellGroupUpdateArgs>(args: SelectSubset<T, UpsellGroupUpdateArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more UpsellGroups.
+     * @param {UpsellGroupDeleteManyArgs} args - Arguments to filter UpsellGroups to delete.
+     * @example
+     * // Delete a few UpsellGroups
+     * const { count } = await prisma.upsellGroup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UpsellGroupDeleteManyArgs>(args?: SelectSubset<T, UpsellGroupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UpsellGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UpsellGroups
+     * const upsellGroup = await prisma.upsellGroup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UpsellGroupUpdateManyArgs>(args: SelectSubset<T, UpsellGroupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one UpsellGroup.
+     * @param {UpsellGroupUpsertArgs} args - Arguments to update or create a UpsellGroup.
+     * @example
+     * // Update or create a UpsellGroup
+     * const upsellGroup = await prisma.upsellGroup.upsert({
+     *   create: {
+     *     // ... data to create a UpsellGroup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UpsellGroup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UpsellGroupUpsertArgs>(args: SelectSubset<T, UpsellGroupUpsertArgs<ExtArgs>>): Prisma__UpsellGroupClient<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of UpsellGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupCountArgs} args - Arguments to filter UpsellGroups to count.
+     * @example
+     * // Count the number of UpsellGroups
+     * const count = await prisma.upsellGroup.count({
+     *   where: {
+     *     // ... the filter for the UpsellGroups we want to count
+     *   }
+     * })
+    **/
+    count<T extends UpsellGroupCountArgs>(
+      args?: Subset<T, UpsellGroupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UpsellGroupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UpsellGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UpsellGroupAggregateArgs>(args: Subset<T, UpsellGroupAggregateArgs>): Prisma.PrismaPromise<GetUpsellGroupAggregateType<T>>
+
+    /**
+     * Group by UpsellGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UpsellGroupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UpsellGroupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UpsellGroupGroupByArgs['orderBy'] }
+        : { orderBy?: UpsellGroupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UpsellGroupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUpsellGroupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UpsellGroup model
+   */
+  readonly fields: UpsellGroupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UpsellGroup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UpsellGroupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UpsellGroup model
+   */ 
+  interface UpsellGroupFieldRefs {
+    readonly id: FieldRef<"UpsellGroup", 'String'>
+    readonly brandId: FieldRef<"UpsellGroup", 'String'>
+    readonly name: FieldRef<"UpsellGroup", 'String'>
+    readonly description: FieldRef<"UpsellGroup", 'String'>
+    readonly triggerProductIds: FieldRef<"UpsellGroup", 'String[]'>
+    readonly triggerCategoryIds: FieldRef<"UpsellGroup", 'String[]'>
+    readonly suggestedProductIds: FieldRef<"UpsellGroup", 'String[]'>
+    readonly sortOrder: FieldRef<"UpsellGroup", 'Int'>
+    readonly platformVisibility: FieldRef<"UpsellGroup", 'String[]'>
+    readonly isActive: FieldRef<"UpsellGroup", 'Boolean'>
+    readonly metadata: FieldRef<"UpsellGroup", 'Json'>
+    readonly createdAt: FieldRef<"UpsellGroup", 'DateTime'>
+    readonly updatedAt: FieldRef<"UpsellGroup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UpsellGroup findUnique
+   */
+  export type UpsellGroupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which UpsellGroup to fetch.
+     */
+    where: UpsellGroupWhereUniqueInput
+  }
+
+  /**
+   * UpsellGroup findUniqueOrThrow
+   */
+  export type UpsellGroupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which UpsellGroup to fetch.
+     */
+    where: UpsellGroupWhereUniqueInput
+  }
+
+  /**
+   * UpsellGroup findFirst
+   */
+  export type UpsellGroupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which UpsellGroup to fetch.
+     */
+    where?: UpsellGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UpsellGroups to fetch.
+     */
+    orderBy?: UpsellGroupOrderByWithRelationInput | UpsellGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UpsellGroups.
+     */
+    cursor?: UpsellGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UpsellGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UpsellGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UpsellGroups.
+     */
+    distinct?: UpsellGroupScalarFieldEnum | UpsellGroupScalarFieldEnum[]
+  }
+
+  /**
+   * UpsellGroup findFirstOrThrow
+   */
+  export type UpsellGroupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which UpsellGroup to fetch.
+     */
+    where?: UpsellGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UpsellGroups to fetch.
+     */
+    orderBy?: UpsellGroupOrderByWithRelationInput | UpsellGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UpsellGroups.
+     */
+    cursor?: UpsellGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UpsellGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UpsellGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UpsellGroups.
+     */
+    distinct?: UpsellGroupScalarFieldEnum | UpsellGroupScalarFieldEnum[]
+  }
+
+  /**
+   * UpsellGroup findMany
+   */
+  export type UpsellGroupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which UpsellGroups to fetch.
+     */
+    where?: UpsellGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UpsellGroups to fetch.
+     */
+    orderBy?: UpsellGroupOrderByWithRelationInput | UpsellGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UpsellGroups.
+     */
+    cursor?: UpsellGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UpsellGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UpsellGroups.
+     */
+    skip?: number
+    distinct?: UpsellGroupScalarFieldEnum | UpsellGroupScalarFieldEnum[]
+  }
+
+  /**
+   * UpsellGroup create
+   */
+  export type UpsellGroupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UpsellGroup.
+     */
+    data: XOR<UpsellGroupCreateInput, UpsellGroupUncheckedCreateInput>
+  }
+
+  /**
+   * UpsellGroup createMany
+   */
+  export type UpsellGroupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UpsellGroups.
+     */
+    data: UpsellGroupCreateManyInput | UpsellGroupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UpsellGroup createManyAndReturn
+   */
+  export type UpsellGroupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many UpsellGroups.
+     */
+    data: UpsellGroupCreateManyInput | UpsellGroupCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UpsellGroup update
+   */
+  export type UpsellGroupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UpsellGroup.
+     */
+    data: XOR<UpsellGroupUpdateInput, UpsellGroupUncheckedUpdateInput>
+    /**
+     * Choose, which UpsellGroup to update.
+     */
+    where: UpsellGroupWhereUniqueInput
+  }
+
+  /**
+   * UpsellGroup updateMany
+   */
+  export type UpsellGroupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UpsellGroups.
+     */
+    data: XOR<UpsellGroupUpdateManyMutationInput, UpsellGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which UpsellGroups to update
+     */
+    where?: UpsellGroupWhereInput
+  }
+
+  /**
+   * UpsellGroup upsert
+   */
+  export type UpsellGroupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UpsellGroup to update in case it exists.
+     */
+    where: UpsellGroupWhereUniqueInput
+    /**
+     * In case the UpsellGroup found by the `where` argument doesn't exist, create a new UpsellGroup with this data.
+     */
+    create: XOR<UpsellGroupCreateInput, UpsellGroupUncheckedCreateInput>
+    /**
+     * In case the UpsellGroup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UpsellGroupUpdateInput, UpsellGroupUncheckedUpdateInput>
+  }
+
+  /**
+   * UpsellGroup delete
+   */
+  export type UpsellGroupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
+    /**
+     * Filter which UpsellGroup to delete.
+     */
+    where: UpsellGroupWhereUniqueInput
+  }
+
+  /**
+   * UpsellGroup deleteMany
+   */
+  export type UpsellGroupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UpsellGroups to delete
+     */
+    where?: UpsellGroupWhereInput
+  }
+
+  /**
+   * UpsellGroup without action
+   */
+  export type UpsellGroupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UpsellGroup
+     */
+    select?: UpsellGroupSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UpsellGroupInclude<ExtArgs> | null
   }
 
 
@@ -31873,6 +35411,7 @@ export namespace Prisma {
     discount: Decimal | null
     total: Decimal | null
     promoDiscount: Decimal | null
+    preparationMinutes: number | null
   }
 
   export type OrderSumAggregateOutputType = {
@@ -31883,6 +35422,7 @@ export namespace Prisma {
     discount: Decimal | null
     total: Decimal | null
     promoDiscount: Decimal | null
+    preparationMinutes: number | null
   }
 
   export type OrderMinAggregateOutputType = {
@@ -31890,6 +35430,7 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     customerId: string | null
+    brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform | null
     displayId: string | null
@@ -31915,6 +35456,9 @@ export namespace Prisma {
     scheduledFor: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
+    collectionCode: string | null
+    preparationMinutes: number | null
+    failureReason: string | null
     receivedAt: Date | null
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -31932,6 +35476,7 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     customerId: string | null
+    brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform | null
     displayId: string | null
@@ -31957,6 +35502,9 @@ export namespace Prisma {
     scheduledFor: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
+    collectionCode: string | null
+    preparationMinutes: number | null
+    failureReason: string | null
     receivedAt: Date | null
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -31974,6 +35522,7 @@ export namespace Prisma {
     tenantId: number
     locationId: number
     customerId: number
+    brandId: number
     externalId: number
     platform: number
     displayId: number
@@ -32001,6 +35550,9 @@ export namespace Prisma {
     scheduledFor: number
     estimatedReadyAt: number
     idempotencyKey: number
+    collectionCode: number
+    preparationMinutes: number
+    failureReason: number
     receivedAt: number
     acceptedAt: number
     preparingAt: number
@@ -32025,6 +35577,7 @@ export namespace Prisma {
     discount?: true
     total?: true
     promoDiscount?: true
+    preparationMinutes?: true
   }
 
   export type OrderSumAggregateInputType = {
@@ -32035,6 +35588,7 @@ export namespace Prisma {
     discount?: true
     total?: true
     promoDiscount?: true
+    preparationMinutes?: true
   }
 
   export type OrderMinAggregateInputType = {
@@ -32042,6 +35596,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    brandId?: true
     externalId?: true
     platform?: true
     displayId?: true
@@ -32067,6 +35622,9 @@ export namespace Prisma {
     scheduledFor?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
+    collectionCode?: true
+    preparationMinutes?: true
+    failureReason?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -32084,6 +35642,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    brandId?: true
     externalId?: true
     platform?: true
     displayId?: true
@@ -32109,6 +35668,9 @@ export namespace Prisma {
     scheduledFor?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
+    collectionCode?: true
+    preparationMinutes?: true
+    failureReason?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -32126,6 +35688,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    brandId?: true
     externalId?: true
     platform?: true
     displayId?: true
@@ -32153,6 +35716,9 @@ export namespace Prisma {
     scheduledFor?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
+    collectionCode?: true
+    preparationMinutes?: true
+    failureReason?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -32259,6 +35825,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId: string | null
+    brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform
     displayId: string | null
@@ -32286,6 +35853,9 @@ export namespace Prisma {
     scheduledFor: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
+    collectionCode: string | null
+    preparationMinutes: number | null
+    failureReason: string | null
     receivedAt: Date
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -32324,6 +35894,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    brandId?: boolean
     externalId?: boolean
     platform?: boolean
     displayId?: boolean
@@ -32351,6 +35922,9 @@ export namespace Prisma {
     scheduledFor?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
+    collectionCode?: boolean
+    preparationMinutes?: boolean
+    failureReason?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -32366,6 +35940,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    brand?: boolean | Order$brandArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     statusHistory?: boolean | Order$statusHistoryArgs<ExtArgs>
     kdsTickets?: boolean | Order$kdsTicketsArgs<ExtArgs>
@@ -32380,6 +35955,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    brandId?: boolean
     externalId?: boolean
     platform?: boolean
     displayId?: boolean
@@ -32407,6 +35983,9 @@ export namespace Prisma {
     scheduledFor?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
+    collectionCode?: boolean
+    preparationMinutes?: boolean
+    failureReason?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -32422,6 +36001,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    brand?: boolean | Order$brandArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectScalar = {
@@ -32429,6 +36009,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    brandId?: boolean
     externalId?: boolean
     platform?: boolean
     displayId?: boolean
@@ -32456,6 +36037,9 @@ export namespace Prisma {
     scheduledFor?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
+    collectionCode?: boolean
+    preparationMinutes?: boolean
+    failureReason?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -32474,6 +36058,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    brand?: boolean | Order$brandArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     statusHistory?: boolean | Order$statusHistoryArgs<ExtArgs>
     kdsTickets?: boolean | Order$kdsTicketsArgs<ExtArgs>
@@ -32486,6 +36071,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    brand?: boolean | Order$brandArgs<ExtArgs>
   }
 
   export type $OrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -32494,6 +36080,7 @@ export namespace Prisma {
       tenant: Prisma.$TenantPayload<ExtArgs>
       location: Prisma.$LocationPayload<ExtArgs>
       customer: Prisma.$CustomerPayload<ExtArgs> | null
+      brand: Prisma.$BrandPayload<ExtArgs> | null
       items: Prisma.$OrderItemPayload<ExtArgs>[]
       statusHistory: Prisma.$OrderStatusHistoryPayload<ExtArgs>[]
       kdsTickets: Prisma.$KdsTicketPayload<ExtArgs>[]
@@ -32506,6 +36093,7 @@ export namespace Prisma {
       tenantId: string
       locationId: string
       customerId: string | null
+      brandId: string | null
       externalId: string | null
       platform: $Enums.OrderPlatform
       displayId: string | null
@@ -32533,6 +36121,9 @@ export namespace Prisma {
       scheduledFor: Date | null
       estimatedReadyAt: Date | null
       idempotencyKey: string | null
+      collectionCode: string | null
+      preparationMinutes: number | null
+      failureReason: string | null
       receivedAt: Date
       acceptedAt: Date | null
       preparingAt: Date | null
@@ -32912,6 +36503,7 @@ export namespace Prisma {
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     customer<T extends Order$customerArgs<ExtArgs> = {}>(args?: Subset<T, Order$customerArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    brand<T extends Order$brandArgs<ExtArgs> = {}>(args?: Subset<T, Order$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     items<T extends Order$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany"> | Null>
     statusHistory<T extends Order$statusHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Order$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderStatusHistoryPayload<ExtArgs>, T, "findMany"> | Null>
     kdsTickets<T extends Order$kdsTicketsArgs<ExtArgs> = {}>(args?: Subset<T, Order$kdsTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsTicketPayload<ExtArgs>, T, "findMany"> | Null>
@@ -32951,6 +36543,7 @@ export namespace Prisma {
     readonly tenantId: FieldRef<"Order", 'String'>
     readonly locationId: FieldRef<"Order", 'String'>
     readonly customerId: FieldRef<"Order", 'String'>
+    readonly brandId: FieldRef<"Order", 'String'>
     readonly externalId: FieldRef<"Order", 'String'>
     readonly platform: FieldRef<"Order", 'OrderPlatform'>
     readonly displayId: FieldRef<"Order", 'String'>
@@ -32978,6 +36571,9 @@ export namespace Prisma {
     readonly scheduledFor: FieldRef<"Order", 'DateTime'>
     readonly estimatedReadyAt: FieldRef<"Order", 'DateTime'>
     readonly idempotencyKey: FieldRef<"Order", 'String'>
+    readonly collectionCode: FieldRef<"Order", 'String'>
+    readonly preparationMinutes: FieldRef<"Order", 'Int'>
+    readonly failureReason: FieldRef<"Order", 'String'>
     readonly receivedAt: FieldRef<"Order", 'DateTime'>
     readonly acceptedAt: FieldRef<"Order", 'DateTime'>
     readonly preparingAt: FieldRef<"Order", 'DateTime'>
@@ -33320,6 +36916,21 @@ export namespace Prisma {
      */
     include?: CustomerInclude<ExtArgs> | null
     where?: CustomerWhereInput
+  }
+
+  /**
+   * Order.brand
+   */
+  export type Order$brandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Brand
+     */
+    select?: BrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandInclude<ExtArgs> | null
+    where?: BrandWhereInput
   }
 
   /**
@@ -79728,6 +83339,7 @@ export namespace Prisma {
     metadata: 'metadata',
     deletedAt: 'deletedAt',
     shopCode: 'shopCode',
+    printToken: 'printToken',
     slug: 'slug',
     openingHours: 'openingHours',
     deliveryConfig: 'deliveryConfig',
@@ -79773,11 +83385,35 @@ export namespace Prisma {
   export const MenuScalarFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
     description: 'description',
+    menuType: 'menuType',
+    bannerImage: 'bannerImage',
+    heroImage: 'heroImage',
+    logoImage: 'logoImage',
     status: 'status',
     isActive: 'isActive',
     deletedAt: 'deletedAt',
+    importStatus: 'importStatus',
+    importLock: 'importLock',
+    importedAt: 'importedAt',
+    syncVersion: 'syncVersion',
+    rawImportPayload: 'rawImportPayload',
+    menuData: 'menuData',
+    productModifierGroupLinks: 'productModifierGroupLinks',
+    modifierGroupModifierLinks: 'modifierGroupModifierLinks',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
+    publishedTo: 'publishedTo',
+    lastPublishedAt: 'lastPublishedAt',
+    autoScheduleEnabled: 'autoScheduleEnabled',
+    autoSchedule: 'autoSchedule',
+    metadata: 'metadata',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -79793,6 +83429,15 @@ export namespace Prisma {
     imageUrl: 'imageUrl',
     sortOrder: 'sortOrder',
     isVisible: 'isVisible',
+    menuIds: 'menuIds',
+    available: 'available',
+    visibleToCustomers: 'visibleToCustomers',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -79808,15 +83453,35 @@ export namespace Prisma {
     basePrice: 'basePrice',
     imageUrl: 'imageUrl',
     sku: 'sku',
+    plu: 'plu',
     isAvailable: 'isAvailable',
+    visibleToCustomers: 'visibleToCustomers',
+    outOfStock: 'outOfStock',
+    availableRestoreAt: 'availableRestoreAt',
     allergens: 'allergens',
     dietaryTags: 'dietaryTags',
+    dietary: 'dietary',
     calories: 'calories',
     prepTime: 'prepTime',
     metadata: 'metadata',
+    hasMultipleSkus: 'hasMultipleSkus',
+    productSkus: 'productSkus',
+    deliveryTax: 'deliveryTax',
+    takeawayTax: 'takeawayTax',
+    eatInTax: 'eatInTax',
+    menuIds: 'menuIds',
+    brandIds: 'brandIds',
+    sortOrder: 'sortOrder',
     isInventoryTracked: 'isInventoryTracked',
     inventoryCount: 'inventoryCount',
     platformPricingOverrides: 'platformPricingOverrides',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
+    rawModifierGroupIds: 'rawModifierGroupIds',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -79840,10 +83505,23 @@ export namespace Prisma {
     brandId: 'brandId',
     name: 'name',
     description: 'description',
+    plu: 'plu',
     minSelections: 'minSelections',
     maxSelections: 'maxSelections',
     isRequired: 'isRequired',
     sortOrder: 'sortOrder',
+    selectionType: 'selectionType',
+    allowDuplicateSelections: 'allowDuplicateSelections',
+    visibleToCustomers: 'visibleToCustomers',
+    menuIds: 'menuIds',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
+    rawModifierIds: 'rawModifierIds',
+    metadata: 'metadata',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -79854,15 +83532,32 @@ export namespace Prisma {
   export const ModifierOptionScalarFieldEnum: {
     id: 'id',
     groupId: 'groupId',
+    modifierGroupIds: 'modifierGroupIds',
     name: 'name',
     description: 'description',
     priceAdjustment: 'priceAdjustment',
+    plu: 'plu',
+    pricesBySize: 'pricesBySize',
+    skuPlus: 'skuPlus',
     imageUrl: 'imageUrl',
     allergens: 'allergens',
     isDefault: 'isDefault',
     isAvailable: 'isAvailable',
+    visibleToCustomers: 'visibleToCustomers',
+    availableRestoreAt: 'availableRestoreAt',
     sortOrder: 'sortOrder',
+    menuIds: 'menuIds',
+    deliveryTax: 'deliveryTax',
+    takeawayTax: 'takeawayTax',
+    eatInTax: 'eatInTax',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
     nestedGroupId: 'nestedGroupId',
+    metadata: 'metadata',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -79892,6 +83587,55 @@ export namespace Prisma {
   };
 
   export type MenuItemVariantScalarFieldEnum = (typeof MenuItemVariantScalarFieldEnum)[keyof typeof MenuItemVariantScalarFieldEnum]
+
+
+  export const MealDealScalarFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    locationIds: 'locationIds',
+    name: 'name',
+    description: 'description',
+    imageUrl: 'imageUrl',
+    plu: 'plu',
+    price: 'price',
+    sections: 'sections',
+    deliveryTax: 'deliveryTax',
+    takeawayTax: 'takeawayTax',
+    eatInTax: 'eatInTax',
+    platformPricingOverrides: 'platformPricingOverrides',
+    isAvailable: 'isAvailable',
+    visibleToCustomers: 'visibleToCustomers',
+    sortOrder: 'sortOrder',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    lastSyncedAt: 'lastSyncedAt',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MealDealScalarFieldEnum = (typeof MealDealScalarFieldEnum)[keyof typeof MealDealScalarFieldEnum]
+
+
+  export const UpsellGroupScalarFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    name: 'name',
+    description: 'description',
+    triggerProductIds: 'triggerProductIds',
+    triggerCategoryIds: 'triggerCategoryIds',
+    suggestedProductIds: 'suggestedProductIds',
+    sortOrder: 'sortOrder',
+    platformVisibility: 'platformVisibility',
+    isActive: 'isActive',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UpsellGroupScalarFieldEnum = (typeof UpsellGroupScalarFieldEnum)[keyof typeof UpsellGroupScalarFieldEnum]
 
 
   export const MenuVersionScalarFieldEnum: {
@@ -79984,6 +83728,7 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     customerId: 'customerId',
+    brandId: 'brandId',
     externalId: 'externalId',
     platform: 'platform',
     displayId: 'displayId',
@@ -80011,6 +83756,9 @@ export namespace Prisma {
     scheduledFor: 'scheduledFor',
     estimatedReadyAt: 'estimatedReadyAt',
     idempotencyKey: 'idempotencyKey',
+    collectionCode: 'collectionCode',
+    preparationMinutes: 'preparationMinutes',
+    failureReason: 'failureReason',
     receivedAt: 'receivedAt',
     acceptedAt: 'acceptedAt',
     preparingAt: 'preparingAt',
@@ -80931,6 +84679,7 @@ export namespace Prisma {
     phone: 'phone',
     timezone: 'timezone',
     shopCode: 'shopCode',
+    printToken: 'printToken',
     slug: 'slug',
     storeStatusNote: 'storeStatusNote'
   };
@@ -80952,8 +84701,18 @@ export namespace Prisma {
   export const MenuOrderByRelevanceFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
-    description: 'description'
+    description: 'description',
+    bannerImage: 'bannerImage',
+    heroImage: 'heroImage',
+    logoImage: 'logoImage',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
+    publishedTo: 'publishedTo'
   };
 
   export type MenuOrderByRelevanceFieldEnum = (typeof MenuOrderByRelevanceFieldEnum)[keyof typeof MenuOrderByRelevanceFieldEnum]
@@ -80964,7 +84723,13 @@ export namespace Prisma {
     menuId: 'menuId',
     name: 'name',
     description: 'description',
-    imageUrl: 'imageUrl'
+    imageUrl: 'imageUrl',
+    menuIds: 'menuIds',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash'
   };
 
   export type MenuCategoryOrderByRelevanceFieldEnum = (typeof MenuCategoryOrderByRelevanceFieldEnum)[keyof typeof MenuCategoryOrderByRelevanceFieldEnum]
@@ -80977,8 +84742,16 @@ export namespace Prisma {
     description: 'description',
     imageUrl: 'imageUrl',
     sku: 'sku',
+    plu: 'plu',
     allergens: 'allergens',
-    dietaryTags: 'dietaryTags'
+    dietaryTags: 'dietaryTags',
+    menuIds: 'menuIds',
+    brandIds: 'brandIds',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash'
   };
 
   export type MenuItemOrderByRelevanceFieldEnum = (typeof MenuItemOrderByRelevanceFieldEnum)[keyof typeof MenuItemOrderByRelevanceFieldEnum]
@@ -80996,7 +84769,14 @@ export namespace Prisma {
     id: 'id',
     brandId: 'brandId',
     name: 'name',
-    description: 'description'
+    description: 'description',
+    plu: 'plu',
+    menuIds: 'menuIds',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash'
   };
 
   export type ModifierGroupOrderByRelevanceFieldEnum = (typeof ModifierGroupOrderByRelevanceFieldEnum)[keyof typeof ModifierGroupOrderByRelevanceFieldEnum]
@@ -81005,10 +84785,18 @@ export namespace Prisma {
   export const ModifierOptionOrderByRelevanceFieldEnum: {
     id: 'id',
     groupId: 'groupId',
+    modifierGroupIds: 'modifierGroupIds',
     name: 'name',
     description: 'description',
+    plu: 'plu',
     imageUrl: 'imageUrl',
     allergens: 'allergens',
+    menuIds: 'menuIds',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    externalParentId: 'externalParentId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash',
     nestedGroupId: 'nestedGroupId'
   };
 
@@ -81031,6 +84819,37 @@ export namespace Prisma {
   };
 
   export type MenuItemVariantOrderByRelevanceFieldEnum = (typeof MenuItemVariantOrderByRelevanceFieldEnum)[keyof typeof MenuItemVariantOrderByRelevanceFieldEnum]
+
+
+  export const MealDealOrderByRelevanceFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    locationIds: 'locationIds',
+    name: 'name',
+    description: 'description',
+    imageUrl: 'imageUrl',
+    plu: 'plu',
+    platformSource: 'platformSource',
+    externalId: 'externalId',
+    syncStatus: 'syncStatus',
+    syncHash: 'syncHash'
+  };
+
+  export type MealDealOrderByRelevanceFieldEnum = (typeof MealDealOrderByRelevanceFieldEnum)[keyof typeof MealDealOrderByRelevanceFieldEnum]
+
+
+  export const UpsellGroupOrderByRelevanceFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    name: 'name',
+    description: 'description',
+    triggerProductIds: 'triggerProductIds',
+    triggerCategoryIds: 'triggerCategoryIds',
+    suggestedProductIds: 'suggestedProductIds',
+    platformVisibility: 'platformVisibility'
+  };
+
+  export type UpsellGroupOrderByRelevanceFieldEnum = (typeof UpsellGroupOrderByRelevanceFieldEnum)[keyof typeof UpsellGroupOrderByRelevanceFieldEnum]
 
 
   export const MenuVersionOrderByRelevanceFieldEnum: {
@@ -81096,6 +84915,7 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     customerId: 'customerId',
+    brandId: 'brandId',
     externalId: 'externalId',
     displayId: 'displayId',
     customerName: 'customerName',
@@ -81104,6 +84924,8 @@ export namespace Prisma {
     promoCode: 'promoCode',
     specialInstructions: 'specialInstructions',
     idempotencyKey: 'idempotencyKey',
+    collectionCode: 'collectionCode',
+    failureReason: 'failureReason',
     cancelReason: 'cancelReason'
   };
 
@@ -81793,6 +85615,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'MenuType'
+   */
+  export type EnumMenuTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuType'>
+    
+
+
+  /**
+   * Reference to a field of type 'MenuType[]'
+   */
+  export type ListEnumMenuTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuType[]'>
+    
+
+
+  /**
    * Reference to a field of type 'MenuStatus'
    */
   export type EnumMenuStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuStatus'>
@@ -81807,6 +85643,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'MenuImportStatus'
+   */
+  export type EnumMenuImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuImportStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MenuImportStatus[]'
+   */
+  export type ListEnumMenuImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuImportStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Decimal'
    */
   export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -81817,6 +85667,20 @@ export namespace Prisma {
    * Reference to a field of type 'Decimal[]'
    */
   export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'SelectionType'
+   */
+  export type EnumSelectionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SelectionType'>
+    
+
+
+  /**
+   * Reference to a field of type 'SelectionType[]'
+   */
+  export type ListEnumSelectionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SelectionType[]'>
     
 
 
@@ -82843,6 +86707,9 @@ export namespace Prisma {
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
+    orders?: OrderListRelationFilter
+    mealDeals?: MealDealListRelationFilter
+    upsellGroups?: UpsellGroupListRelationFilter
   }
 
   export type BrandOrderByWithRelationInput = {
@@ -82861,6 +86728,9 @@ export namespace Prisma {
     locations?: LocationOrderByRelationAggregateInput
     menus?: MenuOrderByRelationAggregateInput
     modifierGroups?: ModifierGroupOrderByRelationAggregateInput
+    orders?: OrderOrderByRelationAggregateInput
+    mealDeals?: MealDealOrderByRelationAggregateInput
+    upsellGroups?: UpsellGroupOrderByRelationAggregateInput
     _relevance?: BrandOrderByRelevanceInput
   }
 
@@ -82884,6 +86754,9 @@ export namespace Prisma {
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
+    orders?: OrderListRelationFilter
+    mealDeals?: MealDealListRelationFilter
+    upsellGroups?: UpsellGroupListRelationFilter
   }, "id" | "tenantId_slug">
 
   export type BrandOrderByWithAggregationInput = {
@@ -82936,6 +86809,7 @@ export namespace Prisma {
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     shopCode?: StringNullableFilter<"Location"> | string | null
+    printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
@@ -82972,6 +86846,7 @@ export namespace Prisma {
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     shopCode?: SortOrderInput | SortOrder
+    printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
@@ -82999,6 +86874,7 @@ export namespace Prisma {
   export type LocationWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     shopCode?: string
+    printToken?: string
     slug?: string
     AND?: LocationWhereInput | LocationWhereInput[]
     OR?: LocationWhereInput[]
@@ -83033,7 +86909,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     printers?: PrinterListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
-  }, "id" | "shopCode" | "slug">
+  }, "id" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -83048,6 +86924,7 @@ export namespace Prisma {
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     shopCode?: SortOrderInput | SortOrder
+    printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
@@ -83087,6 +86964,7 @@ export namespace Prisma {
     metadata?: JsonWithAggregatesFilter<"Location">
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
     shopCode?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    printToken?: StringNullableWithAggregatesFilter<"Location"> | string | null
     slug?: StringNullableWithAggregatesFilter<"Location"> | string | null
     openingHours?: JsonWithAggregatesFilter<"Location">
     deliveryConfig?: JsonWithAggregatesFilter<"Location">
@@ -83218,11 +87096,35 @@ export namespace Prisma {
     NOT?: MenuWhereInput | MenuWhereInput[]
     id?: StringFilter<"Menu"> | string
     brandId?: StringFilter<"Menu"> | string
+    locationId?: StringNullableFilter<"Menu"> | string | null
     name?: StringFilter<"Menu"> | string
     description?: StringNullableFilter<"Menu"> | string | null
+    menuType?: EnumMenuTypeFilter<"Menu"> | $Enums.MenuType
+    bannerImage?: StringNullableFilter<"Menu"> | string | null
+    heroImage?: StringNullableFilter<"Menu"> | string | null
+    logoImage?: StringNullableFilter<"Menu"> | string | null
     status?: EnumMenuStatusFilter<"Menu"> | $Enums.MenuStatus
     isActive?: BoolFilter<"Menu"> | boolean
     deletedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    importStatus?: EnumMenuImportStatusFilter<"Menu"> | $Enums.MenuImportStatus
+    importLock?: BoolFilter<"Menu"> | boolean
+    importedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncVersion?: IntFilter<"Menu"> | number
+    rawImportPayload?: JsonFilter<"Menu">
+    menuData?: JsonFilter<"Menu">
+    productModifierGroupLinks?: JsonFilter<"Menu">
+    modifierGroupModifierLinks?: JsonFilter<"Menu">
+    platformSource?: StringNullableFilter<"Menu"> | string | null
+    externalId?: StringNullableFilter<"Menu"> | string | null
+    externalParentId?: StringNullableFilter<"Menu"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncStatus?: StringNullableFilter<"Menu"> | string | null
+    syncHash?: StringNullableFilter<"Menu"> | string | null
+    publishedTo?: StringNullableListFilter<"Menu">
+    lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
+    autoSchedule?: JsonFilter<"Menu">
+    metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -83233,11 +87135,35 @@ export namespace Prisma {
   export type MenuOrderByWithRelationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    menuType?: SortOrder
+    bannerImage?: SortOrderInput | SortOrder
+    heroImage?: SortOrderInput | SortOrder
+    logoImage?: SortOrderInput | SortOrder
     status?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    importStatus?: SortOrder
+    importLock?: SortOrder
+    importedAt?: SortOrderInput | SortOrder
+    syncVersion?: SortOrder
+    rawImportPayload?: SortOrder
+    menuData?: SortOrder
+    productModifierGroupLinks?: SortOrder
+    modifierGroupModifierLinks?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    publishedTo?: SortOrder
+    lastPublishedAt?: SortOrderInput | SortOrder
+    autoScheduleEnabled?: SortOrder
+    autoSchedule?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     brand?: BrandOrderByWithRelationInput
@@ -83252,11 +87178,35 @@ export namespace Prisma {
     OR?: MenuWhereInput[]
     NOT?: MenuWhereInput | MenuWhereInput[]
     brandId?: StringFilter<"Menu"> | string
+    locationId?: StringNullableFilter<"Menu"> | string | null
     name?: StringFilter<"Menu"> | string
     description?: StringNullableFilter<"Menu"> | string | null
+    menuType?: EnumMenuTypeFilter<"Menu"> | $Enums.MenuType
+    bannerImage?: StringNullableFilter<"Menu"> | string | null
+    heroImage?: StringNullableFilter<"Menu"> | string | null
+    logoImage?: StringNullableFilter<"Menu"> | string | null
     status?: EnumMenuStatusFilter<"Menu"> | $Enums.MenuStatus
     isActive?: BoolFilter<"Menu"> | boolean
     deletedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    importStatus?: EnumMenuImportStatusFilter<"Menu"> | $Enums.MenuImportStatus
+    importLock?: BoolFilter<"Menu"> | boolean
+    importedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncVersion?: IntFilter<"Menu"> | number
+    rawImportPayload?: JsonFilter<"Menu">
+    menuData?: JsonFilter<"Menu">
+    productModifierGroupLinks?: JsonFilter<"Menu">
+    modifierGroupModifierLinks?: JsonFilter<"Menu">
+    platformSource?: StringNullableFilter<"Menu"> | string | null
+    externalId?: StringNullableFilter<"Menu"> | string | null
+    externalParentId?: StringNullableFilter<"Menu"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncStatus?: StringNullableFilter<"Menu"> | string | null
+    syncHash?: StringNullableFilter<"Menu"> | string | null
+    publishedTo?: StringNullableListFilter<"Menu">
+    lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
+    autoSchedule?: JsonFilter<"Menu">
+    metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -83267,16 +87217,42 @@ export namespace Prisma {
   export type MenuOrderByWithAggregationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    menuType?: SortOrder
+    bannerImage?: SortOrderInput | SortOrder
+    heroImage?: SortOrderInput | SortOrder
+    logoImage?: SortOrderInput | SortOrder
     status?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    importStatus?: SortOrder
+    importLock?: SortOrder
+    importedAt?: SortOrderInput | SortOrder
+    syncVersion?: SortOrder
+    rawImportPayload?: SortOrder
+    menuData?: SortOrder
+    productModifierGroupLinks?: SortOrder
+    modifierGroupModifierLinks?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    publishedTo?: SortOrder
+    lastPublishedAt?: SortOrderInput | SortOrder
+    autoScheduleEnabled?: SortOrder
+    autoSchedule?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MenuCountOrderByAggregateInput
+    _avg?: MenuAvgOrderByAggregateInput
     _max?: MenuMaxOrderByAggregateInput
     _min?: MenuMinOrderByAggregateInput
+    _sum?: MenuSumOrderByAggregateInput
   }
 
   export type MenuScalarWhereWithAggregatesInput = {
@@ -83285,11 +87261,35 @@ export namespace Prisma {
     NOT?: MenuScalarWhereWithAggregatesInput | MenuScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Menu"> | string
     brandId?: StringWithAggregatesFilter<"Menu"> | string
+    locationId?: StringNullableWithAggregatesFilter<"Menu"> | string | null
     name?: StringWithAggregatesFilter<"Menu"> | string
     description?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    menuType?: EnumMenuTypeWithAggregatesFilter<"Menu"> | $Enums.MenuType
+    bannerImage?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    heroImage?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    logoImage?: StringNullableWithAggregatesFilter<"Menu"> | string | null
     status?: EnumMenuStatusWithAggregatesFilter<"Menu"> | $Enums.MenuStatus
     isActive?: BoolWithAggregatesFilter<"Menu"> | boolean
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Menu"> | Date | string | null
+    importStatus?: EnumMenuImportStatusWithAggregatesFilter<"Menu"> | $Enums.MenuImportStatus
+    importLock?: BoolWithAggregatesFilter<"Menu"> | boolean
+    importedAt?: DateTimeNullableWithAggregatesFilter<"Menu"> | Date | string | null
+    syncVersion?: IntWithAggregatesFilter<"Menu"> | number
+    rawImportPayload?: JsonWithAggregatesFilter<"Menu">
+    menuData?: JsonWithAggregatesFilter<"Menu">
+    productModifierGroupLinks?: JsonWithAggregatesFilter<"Menu">
+    modifierGroupModifierLinks?: JsonWithAggregatesFilter<"Menu">
+    platformSource?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    externalParentId?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"Menu"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"Menu"> | string | null
+    publishedTo?: StringNullableListFilter<"Menu">
+    lastPublishedAt?: DateTimeNullableWithAggregatesFilter<"Menu"> | Date | string | null
+    autoScheduleEnabled?: BoolWithAggregatesFilter<"Menu"> | boolean
+    autoSchedule?: JsonWithAggregatesFilter<"Menu">
+    metadata?: JsonWithAggregatesFilter<"Menu">
     createdAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
   }
@@ -83305,6 +87305,15 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
+    menuIds?: StringNullableListFilter<"MenuCategory">
+    available?: BoolFilter<"MenuCategory"> | boolean
+    visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    platformSource?: StringNullableFilter<"MenuCategory"> | string | null
+    externalId?: StringNullableFilter<"MenuCategory"> | string | null
+    externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MenuCategory"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MenuCategory"> | string | null
+    syncHash?: StringNullableFilter<"MenuCategory"> | string | null
     createdAt?: DateTimeFilter<"MenuCategory"> | Date | string
     updatedAt?: DateTimeFilter<"MenuCategory"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
@@ -83319,6 +87328,15 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
+    menuIds?: SortOrder
+    available?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     menu?: MenuOrderByWithRelationInput
@@ -83337,6 +87355,15 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
+    menuIds?: StringNullableListFilter<"MenuCategory">
+    available?: BoolFilter<"MenuCategory"> | boolean
+    visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    platformSource?: StringNullableFilter<"MenuCategory"> | string | null
+    externalId?: StringNullableFilter<"MenuCategory"> | string | null
+    externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MenuCategory"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MenuCategory"> | string | null
+    syncHash?: StringNullableFilter<"MenuCategory"> | string | null
     createdAt?: DateTimeFilter<"MenuCategory"> | Date | string
     updatedAt?: DateTimeFilter<"MenuCategory"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
@@ -83351,6 +87378,15 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
+    menuIds?: SortOrder
+    available?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MenuCategoryCountOrderByAggregateInput
@@ -83371,6 +87407,15 @@ export namespace Prisma {
     imageUrl?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     sortOrder?: IntWithAggregatesFilter<"MenuCategory"> | number
     isVisible?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    menuIds?: StringNullableListFilter<"MenuCategory">
+    available?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    visibleToCustomers?: BoolWithAggregatesFilter<"MenuCategory"> | boolean
+    platformSource?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
+    externalParentId?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"MenuCategory"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"MenuCategory"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MenuCategory"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuCategory"> | Date | string
   }
@@ -83386,15 +87431,35 @@ export namespace Prisma {
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableFilter<"MenuItem"> | string | null
     sku?: StringNullableFilter<"MenuItem"> | string | null
+    plu?: StringNullableFilter<"MenuItem"> | string | null
     isAvailable?: BoolFilter<"MenuItem"> | boolean
+    visibleToCustomers?: BoolFilter<"MenuItem"> | boolean
+    outOfStock?: BoolFilter<"MenuItem"> | boolean
+    availableRestoreAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
+    dietary?: JsonFilter<"MenuItem">
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
     metadata?: JsonFilter<"MenuItem">
+    hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
+    productSkus?: JsonFilter<"MenuItem">
+    deliveryTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    menuIds?: StringNullableListFilter<"MenuItem">
+    brandIds?: StringNullableListFilter<"MenuItem">
+    sortOrder?: IntFilter<"MenuItem"> | number
     isInventoryTracked?: BoolFilter<"MenuItem"> | boolean
     inventoryCount?: IntNullableFilter<"MenuItem"> | number | null
     platformPricingOverrides?: JsonFilter<"MenuItem">
+    platformSource?: StringNullableFilter<"MenuItem"> | string | null
+    externalId?: StringNullableFilter<"MenuItem"> | string | null
+    externalParentId?: StringNullableFilter<"MenuItem"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MenuItem"> | string | null
+    syncHash?: StringNullableFilter<"MenuItem"> | string | null
+    rawModifierGroupIds?: JsonFilter<"MenuItem">
     createdAt?: DateTimeFilter<"MenuItem"> | Date | string
     updatedAt?: DateTimeFilter<"MenuItem"> | Date | string
     categories?: MenuItemOnCategoryListRelationFilter
@@ -83411,15 +87476,35 @@ export namespace Prisma {
     basePrice?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sku?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    outOfStock?: SortOrder
+    availableRestoreAt?: SortOrderInput | SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
+    dietary?: SortOrder
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
     metadata?: SortOrder
+    hasMultipleSkus?: SortOrder
+    productSkus?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    menuIds?: SortOrder
+    brandIds?: SortOrder
+    sortOrder?: SortOrder
     isInventoryTracked?: SortOrder
     inventoryCount?: SortOrderInput | SortOrder
     platformPricingOverrides?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    rawModifierGroupIds?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     categories?: MenuItemOnCategoryOrderByRelationAggregateInput
@@ -83440,15 +87525,35 @@ export namespace Prisma {
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableFilter<"MenuItem"> | string | null
     sku?: StringNullableFilter<"MenuItem"> | string | null
+    plu?: StringNullableFilter<"MenuItem"> | string | null
     isAvailable?: BoolFilter<"MenuItem"> | boolean
+    visibleToCustomers?: BoolFilter<"MenuItem"> | boolean
+    outOfStock?: BoolFilter<"MenuItem"> | boolean
+    availableRestoreAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
+    dietary?: JsonFilter<"MenuItem">
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
     metadata?: JsonFilter<"MenuItem">
+    hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
+    productSkus?: JsonFilter<"MenuItem">
+    deliveryTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    menuIds?: StringNullableListFilter<"MenuItem">
+    brandIds?: StringNullableListFilter<"MenuItem">
+    sortOrder?: IntFilter<"MenuItem"> | number
     isInventoryTracked?: BoolFilter<"MenuItem"> | boolean
     inventoryCount?: IntNullableFilter<"MenuItem"> | number | null
     platformPricingOverrides?: JsonFilter<"MenuItem">
+    platformSource?: StringNullableFilter<"MenuItem"> | string | null
+    externalId?: StringNullableFilter<"MenuItem"> | string | null
+    externalParentId?: StringNullableFilter<"MenuItem"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MenuItem"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MenuItem"> | string | null
+    syncHash?: StringNullableFilter<"MenuItem"> | string | null
+    rawModifierGroupIds?: JsonFilter<"MenuItem">
     createdAt?: DateTimeFilter<"MenuItem"> | Date | string
     updatedAt?: DateTimeFilter<"MenuItem"> | Date | string
     categories?: MenuItemOnCategoryListRelationFilter
@@ -83465,15 +87570,35 @@ export namespace Prisma {
     basePrice?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     sku?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    outOfStock?: SortOrder
+    availableRestoreAt?: SortOrderInput | SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
+    dietary?: SortOrder
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
     metadata?: SortOrder
+    hasMultipleSkus?: SortOrder
+    productSkus?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    menuIds?: SortOrder
+    brandIds?: SortOrder
+    sortOrder?: SortOrder
     isInventoryTracked?: SortOrder
     inventoryCount?: SortOrderInput | SortOrder
     platformPricingOverrides?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    rawModifierGroupIds?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MenuItemCountOrderByAggregateInput
@@ -83494,15 +87619,35 @@ export namespace Prisma {
     basePrice?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
     imageUrl?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     sku?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    plu?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     isAvailable?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    visibleToCustomers?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    outOfStock?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    availableRestoreAt?: DateTimeNullableWithAggregatesFilter<"MenuItem"> | Date | string | null
     allergens?: StringNullableListFilter<"MenuItem">
     dietaryTags?: StringNullableListFilter<"MenuItem">
+    dietary?: JsonWithAggregatesFilter<"MenuItem">
     calories?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     prepTime?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     metadata?: JsonWithAggregatesFilter<"MenuItem">
+    hasMultipleSkus?: BoolWithAggregatesFilter<"MenuItem"> | boolean
+    productSkus?: JsonWithAggregatesFilter<"MenuItem">
+    deliveryTax?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
+    menuIds?: StringNullableListFilter<"MenuItem">
+    brandIds?: StringNullableListFilter<"MenuItem">
+    sortOrder?: IntWithAggregatesFilter<"MenuItem"> | number
     isInventoryTracked?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     inventoryCount?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     platformPricingOverrides?: JsonWithAggregatesFilter<"MenuItem">
+    platformSource?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    externalParentId?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"MenuItem"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    rawModifierGroupIds?: JsonWithAggregatesFilter<"MenuItem">
     createdAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
   }
@@ -83577,10 +87722,23 @@ export namespace Prisma {
     brandId?: StringFilter<"ModifierGroup"> | string
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
     isRequired?: BoolFilter<"ModifierGroup"> | boolean
     sortOrder?: IntFilter<"ModifierGroup"> | number
+    selectionType?: EnumSelectionTypeFilter<"ModifierGroup"> | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFilter<"ModifierGroup"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierGroup"> | boolean
+    menuIds?: StringNullableListFilter<"ModifierGroup">
+    platformSource?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalId?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierGroup"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierGroup"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierGroup"> | string | null
+    syncHash?: StringNullableFilter<"ModifierGroup"> | string | null
+    rawModifierIds?: JsonFilter<"ModifierGroup">
+    metadata?: JsonFilter<"ModifierGroup">
     createdAt?: DateTimeFilter<"ModifierGroup"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierGroup"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -83594,10 +87752,23 @@ export namespace Prisma {
     brandId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
     isRequired?: SortOrder
     sortOrder?: SortOrder
+    selectionType?: SortOrder
+    allowDuplicateSelections?: SortOrder
+    visibleToCustomers?: SortOrder
+    menuIds?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    rawModifierIds?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     brand?: BrandOrderByWithRelationInput
@@ -83615,10 +87786,23 @@ export namespace Prisma {
     brandId?: StringFilter<"ModifierGroup"> | string
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
     isRequired?: BoolFilter<"ModifierGroup"> | boolean
     sortOrder?: IntFilter<"ModifierGroup"> | number
+    selectionType?: EnumSelectionTypeFilter<"ModifierGroup"> | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFilter<"ModifierGroup"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierGroup"> | boolean
+    menuIds?: StringNullableListFilter<"ModifierGroup">
+    platformSource?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalId?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierGroup"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierGroup"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierGroup"> | string | null
+    syncHash?: StringNullableFilter<"ModifierGroup"> | string | null
+    rawModifierIds?: JsonFilter<"ModifierGroup">
+    metadata?: JsonFilter<"ModifierGroup">
     createdAt?: DateTimeFilter<"ModifierGroup"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierGroup"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -83632,10 +87816,23 @@ export namespace Prisma {
     brandId?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrderInput | SortOrder
     isRequired?: SortOrder
     sortOrder?: SortOrder
+    selectionType?: SortOrder
+    allowDuplicateSelections?: SortOrder
+    visibleToCustomers?: SortOrder
+    menuIds?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    rawModifierIds?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ModifierGroupCountOrderByAggregateInput
@@ -83653,10 +87850,23 @@ export namespace Prisma {
     brandId?: StringWithAggregatesFilter<"ModifierGroup"> | string
     name?: StringWithAggregatesFilter<"ModifierGroup"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    plu?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     minSelections?: IntWithAggregatesFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableWithAggregatesFilter<"ModifierGroup"> | number | null
     isRequired?: BoolWithAggregatesFilter<"ModifierGroup"> | boolean
     sortOrder?: IntWithAggregatesFilter<"ModifierGroup"> | number
+    selectionType?: EnumSelectionTypeWithAggregatesFilter<"ModifierGroup"> | $Enums.SelectionType
+    allowDuplicateSelections?: BoolWithAggregatesFilter<"ModifierGroup"> | boolean
+    visibleToCustomers?: BoolWithAggregatesFilter<"ModifierGroup"> | boolean
+    menuIds?: StringNullableListFilter<"ModifierGroup">
+    platformSource?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    externalParentId?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"ModifierGroup"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
+    rawModifierIds?: JsonWithAggregatesFilter<"ModifierGroup">
+    metadata?: JsonWithAggregatesFilter<"ModifierGroup">
     createdAt?: DateTimeWithAggregatesFilter<"ModifierGroup"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ModifierGroup"> | Date | string
   }
@@ -83667,15 +87877,32 @@ export namespace Prisma {
     NOT?: ModifierOptionWhereInput | ModifierOptionWhereInput[]
     id?: StringFilter<"ModifierOption"> | string
     groupId?: StringFilter<"ModifierOption"> | string
+    modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    plu?: StringNullableFilter<"ModifierOption"> | string | null
+    pricesBySize?: JsonFilter<"ModifierOption">
+    skuPlus?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
     isAvailable?: BoolFilter<"ModifierOption"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierOption"> | boolean
+    availableRestoreAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
     sortOrder?: IntFilter<"ModifierOption"> | number
+    menuIds?: StringNullableListFilter<"ModifierOption">
+    deliveryTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    platformSource?: StringNullableFilter<"ModifierOption"> | string | null
+    externalId?: StringNullableFilter<"ModifierOption"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierOption"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierOption"> | string | null
+    syncHash?: StringNullableFilter<"ModifierOption"> | string | null
     nestedGroupId?: StringNullableFilter<"ModifierOption"> | string | null
+    metadata?: JsonFilter<"ModifierOption">
     createdAt?: DateTimeFilter<"ModifierOption"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierOption"> | Date | string
     group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
@@ -83685,15 +87912,32 @@ export namespace Prisma {
   export type ModifierOptionOrderByWithRelationInput = {
     id?: SortOrder
     groupId?: SortOrder
+    modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     priceAdjustment?: SortOrder
+    plu?: SortOrderInput | SortOrder
+    pricesBySize?: SortOrder
+    skuPlus?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    availableRestoreAt?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
+    menuIds?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
     nestedGroupId?: SortOrderInput | SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     group?: ModifierGroupOrderByWithRelationInput
@@ -83707,15 +87951,32 @@ export namespace Prisma {
     OR?: ModifierOptionWhereInput[]
     NOT?: ModifierOptionWhereInput | ModifierOptionWhereInput[]
     groupId?: StringFilter<"ModifierOption"> | string
+    modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    plu?: StringNullableFilter<"ModifierOption"> | string | null
+    pricesBySize?: JsonFilter<"ModifierOption">
+    skuPlus?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
     isAvailable?: BoolFilter<"ModifierOption"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierOption"> | boolean
+    availableRestoreAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
     sortOrder?: IntFilter<"ModifierOption"> | number
+    menuIds?: StringNullableListFilter<"ModifierOption">
+    deliveryTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    platformSource?: StringNullableFilter<"ModifierOption"> | string | null
+    externalId?: StringNullableFilter<"ModifierOption"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierOption"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierOption"> | string | null
+    syncHash?: StringNullableFilter<"ModifierOption"> | string | null
     nestedGroupId?: StringNullableFilter<"ModifierOption"> | string | null
+    metadata?: JsonFilter<"ModifierOption">
     createdAt?: DateTimeFilter<"ModifierOption"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierOption"> | Date | string
     group?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
@@ -83725,15 +87986,32 @@ export namespace Prisma {
   export type ModifierOptionOrderByWithAggregationInput = {
     id?: SortOrder
     groupId?: SortOrder
+    modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     priceAdjustment?: SortOrder
+    plu?: SortOrderInput | SortOrder
+    pricesBySize?: SortOrder
+    skuPlus?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    availableRestoreAt?: SortOrderInput | SortOrder
     sortOrder?: SortOrder
+    menuIds?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    externalParentId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
     nestedGroupId?: SortOrderInput | SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ModifierOptionCountOrderByAggregateInput
@@ -83749,15 +88027,32 @@ export namespace Prisma {
     NOT?: ModifierOptionScalarWhereWithAggregatesInput | ModifierOptionScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"ModifierOption"> | string
     groupId?: StringWithAggregatesFilter<"ModifierOption"> | string
+    modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringWithAggregatesFilter<"ModifierOption"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalWithAggregatesFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    plu?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    pricesBySize?: JsonWithAggregatesFilter<"ModifierOption">
+    skuPlus?: JsonWithAggregatesFilter<"ModifierOption">
     imageUrl?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolWithAggregatesFilter<"ModifierOption"> | boolean
     isAvailable?: BoolWithAggregatesFilter<"ModifierOption"> | boolean
+    visibleToCustomers?: BoolWithAggregatesFilter<"ModifierOption"> | boolean
+    availableRestoreAt?: DateTimeNullableWithAggregatesFilter<"ModifierOption"> | Date | string | null
     sortOrder?: IntWithAggregatesFilter<"ModifierOption"> | number
+    menuIds?: StringNullableListFilter<"ModifierOption">
+    deliveryTax?: DecimalWithAggregatesFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalWithAggregatesFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalWithAggregatesFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    platformSource?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    externalParentId?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"ModifierOption"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     nestedGroupId?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
+    metadata?: JsonWithAggregatesFilter<"ModifierOption">
     createdAt?: DateTimeWithAggregatesFilter<"ModifierOption"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ModifierOption"> | Date | string
   }
@@ -83890,6 +88185,257 @@ export namespace Prisma {
     isAvailable?: BoolWithAggregatesFilter<"MenuItemVariant"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"MenuItemVariant"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuItemVariant"> | Date | string
+  }
+
+  export type MealDealWhereInput = {
+    AND?: MealDealWhereInput | MealDealWhereInput[]
+    OR?: MealDealWhereInput[]
+    NOT?: MealDealWhereInput | MealDealWhereInput[]
+    id?: StringFilter<"MealDeal"> | string
+    brandId?: StringFilter<"MealDeal"> | string
+    locationIds?: StringNullableListFilter<"MealDeal">
+    name?: StringFilter<"MealDeal"> | string
+    description?: StringNullableFilter<"MealDeal"> | string | null
+    imageUrl?: StringNullableFilter<"MealDeal"> | string | null
+    plu?: StringNullableFilter<"MealDeal"> | string | null
+    price?: DecimalNullableFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonFilter<"MealDeal">
+    deliveryTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonFilter<"MealDeal">
+    isAvailable?: BoolFilter<"MealDeal"> | boolean
+    visibleToCustomers?: BoolFilter<"MealDeal"> | boolean
+    sortOrder?: IntFilter<"MealDeal"> | number
+    platformSource?: StringNullableFilter<"MealDeal"> | string | null
+    externalId?: StringNullableFilter<"MealDeal"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MealDeal"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MealDeal"> | string | null
+    syncHash?: StringNullableFilter<"MealDeal"> | string | null
+    metadata?: JsonFilter<"MealDeal">
+    createdAt?: DateTimeFilter<"MealDeal"> | Date | string
+    updatedAt?: DateTimeFilter<"MealDeal"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }
+
+  export type MealDealOrderByWithRelationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    locationIds?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    sections?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformPricingOverrides?: SortOrder
+    isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    sortOrder?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: MealDealOrderByRelevanceInput
+  }
+
+  export type MealDealWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MealDealWhereInput | MealDealWhereInput[]
+    OR?: MealDealWhereInput[]
+    NOT?: MealDealWhereInput | MealDealWhereInput[]
+    brandId?: StringFilter<"MealDeal"> | string
+    locationIds?: StringNullableListFilter<"MealDeal">
+    name?: StringFilter<"MealDeal"> | string
+    description?: StringNullableFilter<"MealDeal"> | string | null
+    imageUrl?: StringNullableFilter<"MealDeal"> | string | null
+    plu?: StringNullableFilter<"MealDeal"> | string | null
+    price?: DecimalNullableFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonFilter<"MealDeal">
+    deliveryTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonFilter<"MealDeal">
+    isAvailable?: BoolFilter<"MealDeal"> | boolean
+    visibleToCustomers?: BoolFilter<"MealDeal"> | boolean
+    sortOrder?: IntFilter<"MealDeal"> | number
+    platformSource?: StringNullableFilter<"MealDeal"> | string | null
+    externalId?: StringNullableFilter<"MealDeal"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MealDeal"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MealDeal"> | string | null
+    syncHash?: StringNullableFilter<"MealDeal"> | string | null
+    metadata?: JsonFilter<"MealDeal">
+    createdAt?: DateTimeFilter<"MealDeal"> | Date | string
+    updatedAt?: DateTimeFilter<"MealDeal"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }, "id">
+
+  export type MealDealOrderByWithAggregationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    locationIds?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    plu?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    sections?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformPricingOverrides?: SortOrder
+    isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    sortOrder?: SortOrder
+    platformSource?: SortOrderInput | SortOrder
+    externalId?: SortOrderInput | SortOrder
+    lastSyncedAt?: SortOrderInput | SortOrder
+    syncStatus?: SortOrderInput | SortOrder
+    syncHash?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MealDealCountOrderByAggregateInput
+    _avg?: MealDealAvgOrderByAggregateInput
+    _max?: MealDealMaxOrderByAggregateInput
+    _min?: MealDealMinOrderByAggregateInput
+    _sum?: MealDealSumOrderByAggregateInput
+  }
+
+  export type MealDealScalarWhereWithAggregatesInput = {
+    AND?: MealDealScalarWhereWithAggregatesInput | MealDealScalarWhereWithAggregatesInput[]
+    OR?: MealDealScalarWhereWithAggregatesInput[]
+    NOT?: MealDealScalarWhereWithAggregatesInput | MealDealScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MealDeal"> | string
+    brandId?: StringWithAggregatesFilter<"MealDeal"> | string
+    locationIds?: StringNullableListFilter<"MealDeal">
+    name?: StringWithAggregatesFilter<"MealDeal"> | string
+    description?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    imageUrl?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    plu?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    price?: DecimalNullableWithAggregatesFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonWithAggregatesFilter<"MealDeal">
+    deliveryTax?: DecimalWithAggregatesFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalWithAggregatesFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalWithAggregatesFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonWithAggregatesFilter<"MealDeal">
+    isAvailable?: BoolWithAggregatesFilter<"MealDeal"> | boolean
+    visibleToCustomers?: BoolWithAggregatesFilter<"MealDeal"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"MealDeal"> | number
+    platformSource?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    externalId?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    lastSyncedAt?: DateTimeNullableWithAggregatesFilter<"MealDeal"> | Date | string | null
+    syncStatus?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    syncHash?: StringNullableWithAggregatesFilter<"MealDeal"> | string | null
+    metadata?: JsonWithAggregatesFilter<"MealDeal">
+    createdAt?: DateTimeWithAggregatesFilter<"MealDeal"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MealDeal"> | Date | string
+  }
+
+  export type UpsellGroupWhereInput = {
+    AND?: UpsellGroupWhereInput | UpsellGroupWhereInput[]
+    OR?: UpsellGroupWhereInput[]
+    NOT?: UpsellGroupWhereInput | UpsellGroupWhereInput[]
+    id?: StringFilter<"UpsellGroup"> | string
+    brandId?: StringFilter<"UpsellGroup"> | string
+    name?: StringFilter<"UpsellGroup"> | string
+    description?: StringNullableFilter<"UpsellGroup"> | string | null
+    triggerProductIds?: StringNullableListFilter<"UpsellGroup">
+    triggerCategoryIds?: StringNullableListFilter<"UpsellGroup">
+    suggestedProductIds?: StringNullableListFilter<"UpsellGroup">
+    sortOrder?: IntFilter<"UpsellGroup"> | number
+    platformVisibility?: StringNullableListFilter<"UpsellGroup">
+    isActive?: BoolFilter<"UpsellGroup"> | boolean
+    metadata?: JsonFilter<"UpsellGroup">
+    createdAt?: DateTimeFilter<"UpsellGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"UpsellGroup"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }
+
+  export type UpsellGroupOrderByWithRelationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    triggerProductIds?: SortOrder
+    triggerCategoryIds?: SortOrder
+    suggestedProductIds?: SortOrder
+    sortOrder?: SortOrder
+    platformVisibility?: SortOrder
+    isActive?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: UpsellGroupOrderByRelevanceInput
+  }
+
+  export type UpsellGroupWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: UpsellGroupWhereInput | UpsellGroupWhereInput[]
+    OR?: UpsellGroupWhereInput[]
+    NOT?: UpsellGroupWhereInput | UpsellGroupWhereInput[]
+    brandId?: StringFilter<"UpsellGroup"> | string
+    name?: StringFilter<"UpsellGroup"> | string
+    description?: StringNullableFilter<"UpsellGroup"> | string | null
+    triggerProductIds?: StringNullableListFilter<"UpsellGroup">
+    triggerCategoryIds?: StringNullableListFilter<"UpsellGroup">
+    suggestedProductIds?: StringNullableListFilter<"UpsellGroup">
+    sortOrder?: IntFilter<"UpsellGroup"> | number
+    platformVisibility?: StringNullableListFilter<"UpsellGroup">
+    isActive?: BoolFilter<"UpsellGroup"> | boolean
+    metadata?: JsonFilter<"UpsellGroup">
+    createdAt?: DateTimeFilter<"UpsellGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"UpsellGroup"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }, "id">
+
+  export type UpsellGroupOrderByWithAggregationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    triggerProductIds?: SortOrder
+    triggerCategoryIds?: SortOrder
+    suggestedProductIds?: SortOrder
+    sortOrder?: SortOrder
+    platformVisibility?: SortOrder
+    isActive?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UpsellGroupCountOrderByAggregateInput
+    _avg?: UpsellGroupAvgOrderByAggregateInput
+    _max?: UpsellGroupMaxOrderByAggregateInput
+    _min?: UpsellGroupMinOrderByAggregateInput
+    _sum?: UpsellGroupSumOrderByAggregateInput
+  }
+
+  export type UpsellGroupScalarWhereWithAggregatesInput = {
+    AND?: UpsellGroupScalarWhereWithAggregatesInput | UpsellGroupScalarWhereWithAggregatesInput[]
+    OR?: UpsellGroupScalarWhereWithAggregatesInput[]
+    NOT?: UpsellGroupScalarWhereWithAggregatesInput | UpsellGroupScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UpsellGroup"> | string
+    brandId?: StringWithAggregatesFilter<"UpsellGroup"> | string
+    name?: StringWithAggregatesFilter<"UpsellGroup"> | string
+    description?: StringNullableWithAggregatesFilter<"UpsellGroup"> | string | null
+    triggerProductIds?: StringNullableListFilter<"UpsellGroup">
+    triggerCategoryIds?: StringNullableListFilter<"UpsellGroup">
+    suggestedProductIds?: StringNullableListFilter<"UpsellGroup">
+    sortOrder?: IntWithAggregatesFilter<"UpsellGroup"> | number
+    platformVisibility?: StringNullableListFilter<"UpsellGroup">
+    isActive?: BoolWithAggregatesFilter<"UpsellGroup"> | boolean
+    metadata?: JsonWithAggregatesFilter<"UpsellGroup">
+    createdAt?: DateTimeWithAggregatesFilter<"UpsellGroup"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UpsellGroup"> | Date | string
   }
 
   export type MenuVersionWhereInput = {
@@ -84352,6 +88898,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
@@ -84379,6 +88926,9 @@ export namespace Prisma {
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableFilter<"Order"> | string | null
+    collectionCode?: StringNullableFilter<"Order"> | string | null
+    preparationMinutes?: IntNullableFilter<"Order"> | number | null
+    failureReason?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -84394,6 +88944,7 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
     items?: OrderItemListRelationFilter
     statusHistory?: OrderStatusHistoryListRelationFilter
     kdsTickets?: KdsTicketListRelationFilter
@@ -84407,6 +88958,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     platform?: SortOrder
     displayId?: SortOrderInput | SortOrder
@@ -84434,6 +88986,9 @@ export namespace Prisma {
     scheduledFor?: SortOrderInput | SortOrder
     estimatedReadyAt?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    collectionCode?: SortOrderInput | SortOrder
+    preparationMinutes?: SortOrderInput | SortOrder
+    failureReason?: SortOrderInput | SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     preparingAt?: SortOrderInput | SortOrder
@@ -84449,6 +89004,7 @@ export namespace Prisma {
     tenant?: TenantOrderByWithRelationInput
     location?: LocationOrderByWithRelationInput
     customer?: CustomerOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
     items?: OrderItemOrderByRelationAggregateInput
     statusHistory?: OrderStatusHistoryOrderByRelationAggregateInput
     kdsTickets?: KdsTicketOrderByRelationAggregateInput
@@ -84468,6 +89024,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
@@ -84494,6 +89051,9 @@ export namespace Prisma {
     specialInstructions?: StringNullableFilter<"Order"> | string | null
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    collectionCode?: StringNullableFilter<"Order"> | string | null
+    preparationMinutes?: IntNullableFilter<"Order"> | number | null
+    failureReason?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -84509,6 +89069,7 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
     items?: OrderItemListRelationFilter
     statusHistory?: OrderStatusHistoryListRelationFilter
     kdsTickets?: KdsTicketListRelationFilter
@@ -84522,6 +89083,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     platform?: SortOrder
     displayId?: SortOrderInput | SortOrder
@@ -84549,6 +89111,9 @@ export namespace Prisma {
     scheduledFor?: SortOrderInput | SortOrder
     estimatedReadyAt?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    collectionCode?: SortOrderInput | SortOrder
+    preparationMinutes?: SortOrderInput | SortOrder
+    failureReason?: SortOrderInput | SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     preparingAt?: SortOrderInput | SortOrder
@@ -84576,6 +89141,7 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"Order"> | string
     locationId?: StringWithAggregatesFilter<"Order"> | string
     customerId?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     externalId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     platform?: EnumOrderPlatformWithAggregatesFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -84603,6 +89169,9 @@ export namespace Prisma {
     scheduledFor?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    collectionCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    preparationMinutes?: IntNullableWithAggregatesFilter<"Order"> | number | null
+    failureReason?: StringNullableWithAggregatesFilter<"Order"> | string | null
     receivedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
@@ -89270,6 +93839,9 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateInput = {
@@ -89287,6 +93859,9 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -89304,6 +93879,9 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateInput = {
@@ -89321,6 +93899,9 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -89376,6 +93957,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89412,6 +93994,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89446,6 +94029,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89482,6 +94066,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89517,6 +94102,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89547,6 +94133,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89578,6 +94165,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -89723,11 +94311,35 @@ export namespace Prisma {
 
   export type MenuCreateInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutMenusInput
@@ -89738,11 +94350,35 @@ export namespace Prisma {
   export type MenuUncheckedCreateInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
@@ -89751,11 +94387,35 @@ export namespace Prisma {
 
   export type MenuUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
@@ -89766,11 +94426,35 @@ export namespace Prisma {
   export type MenuUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
@@ -89780,22 +94464,70 @@ export namespace Prisma {
   export type MenuCreateManyInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type MenuUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -89803,11 +94535,35 @@ export namespace Prisma {
   export type MenuUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -89819,6 +94575,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutCategoriesInput
@@ -89833,6 +94598,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput
@@ -89845,6 +94619,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutCategoriesNestedInput
@@ -89859,6 +94642,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput
@@ -89872,6 +94664,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -89883,6 +94684,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -89895,6 +94705,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -89907,15 +94726,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
@@ -89932,15 +94771,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
@@ -89957,15 +94816,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
@@ -89982,15 +94861,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
@@ -90007,15 +94906,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -90028,15 +94947,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90049,15 +94988,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90120,10 +95079,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
@@ -90137,10 +95109,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
@@ -90152,10 +95137,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
@@ -90169,10 +95167,23 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
@@ -90185,10 +95196,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -90197,10 +95221,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90210,24 +95247,54 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ModifierOptionCreateInput = {
     id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     group: ModifierGroupCreateNestedOneWithoutOptionsInput
@@ -90237,29 +95304,63 @@ export namespace Prisma {
   export type ModifierOptionUncheckedCreateInput = {
     id?: string
     groupId: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     nestedGroupId?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type ModifierOptionUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     group?: ModifierGroupUpdateOneRequiredWithoutOptionsNestedInput
@@ -90269,15 +95370,32 @@ export namespace Prisma {
   export type ModifierOptionUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     groupId?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     nestedGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90285,29 +95403,63 @@ export namespace Prisma {
   export type ModifierOptionCreateManyInput = {
     id?: string
     groupId: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     nestedGroupId?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type ModifierOptionUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90315,15 +95467,32 @@ export namespace Prisma {
   export type ModifierOptionUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     groupId?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     nestedGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90447,6 +95616,305 @@ export namespace Prisma {
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     sortOrder?: IntFieldUpdateOperationsInput | number
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealCreateInput = {
+    id?: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutMealDealsInput
+  }
+
+  export type MealDealUncheckedCreateInput = {
+    id?: string
+    brandId: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MealDealUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutMealDealsNestedInput
+  }
+
+  export type MealDealUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealCreateManyInput = {
+    id?: string
+    brandId: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MealDealUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutUpsellGroupsInput
+  }
+
+  export type UpsellGroupUncheckedCreateInput = {
+    id?: string
+    brandId: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UpsellGroupUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutUpsellGroupsNestedInput
+  }
+
+  export type UpsellGroupUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupCreateManyInput = {
+    id?: string
+    brandId: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UpsellGroupUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -90981,6 +96449,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -90996,6 +96467,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -91009,6 +96481,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -91036,6 +96509,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -91085,6 +96561,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -91100,6 +96579,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -91113,6 +96593,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -91140,6 +96621,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -91165,6 +96649,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -91192,6 +96677,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -91235,6 +96723,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -91254,6 +96745,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -91281,6 +96773,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -96522,6 +102017,18 @@ export namespace Prisma {
     none?: ModifierGroupWhereInput
   }
 
+  export type MealDealListRelationFilter = {
+    every?: MealDealWhereInput
+    some?: MealDealWhereInput
+    none?: MealDealWhereInput
+  }
+
+  export type UpsellGroupListRelationFilter = {
+    every?: UpsellGroupWhereInput
+    some?: UpsellGroupWhereInput
+    none?: UpsellGroupWhereInput
+  }
+
   export type LocationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -96531,6 +102038,14 @@ export namespace Prisma {
   }
 
   export type ModifierGroupOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MealDealOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UpsellGroupOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -96666,6 +102181,7 @@ export namespace Prisma {
     metadata?: SortOrder
     deletedAt?: SortOrder
     shopCode?: SortOrder
+    printToken?: SortOrder
     slug?: SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
@@ -96700,6 +102216,7 @@ export namespace Prisma {
     isActive?: SortOrder
     deletedAt?: SortOrder
     shopCode?: SortOrder
+    printToken?: SortOrder
     slug?: SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
@@ -96726,6 +102243,7 @@ export namespace Prisma {
     isActive?: SortOrder
     deletedAt?: SortOrder
     shopCode?: SortOrder
+    printToken?: SortOrder
     slug?: SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
@@ -96888,11 +102406,25 @@ export namespace Prisma {
     _max?: NestedEnumIntegrationStatusFilter<$PrismaModel>
   }
 
+  export type EnumMenuTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuType | EnumMenuTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuTypeFilter<$PrismaModel> | $Enums.MenuType
+  }
+
   export type EnumMenuStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.MenuStatus | EnumMenuStatusFieldRefInput<$PrismaModel>
     in?: $Enums.MenuStatus[] | ListEnumMenuStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.MenuStatus[] | ListEnumMenuStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumMenuStatusFilter<$PrismaModel> | $Enums.MenuStatus
+  }
+
+  export type EnumMenuImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuImportStatus | EnumMenuImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuImportStatusFilter<$PrismaModel> | $Enums.MenuImportStatus
   }
 
   export type MenuCategoryListRelationFilter = {
@@ -96924,23 +102456,68 @@ export namespace Prisma {
   export type MenuCountOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    menuType?: SortOrder
+    bannerImage?: SortOrder
+    heroImage?: SortOrder
+    logoImage?: SortOrder
     status?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    importStatus?: SortOrder
+    importLock?: SortOrder
+    importedAt?: SortOrder
+    syncVersion?: SortOrder
+    rawImportPayload?: SortOrder
+    menuData?: SortOrder
+    productModifierGroupLinks?: SortOrder
+    modifierGroupModifierLinks?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    publishedTo?: SortOrder
+    lastPublishedAt?: SortOrder
+    autoScheduleEnabled?: SortOrder
+    autoSchedule?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type MenuAvgOrderByAggregateInput = {
+    syncVersion?: SortOrder
   }
 
   export type MenuMaxOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    menuType?: SortOrder
+    bannerImage?: SortOrder
+    heroImage?: SortOrder
+    logoImage?: SortOrder
     status?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    importStatus?: SortOrder
+    importLock?: SortOrder
+    importedAt?: SortOrder
+    syncVersion?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    lastPublishedAt?: SortOrder
+    autoScheduleEnabled?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -96948,13 +102525,44 @@ export namespace Prisma {
   export type MenuMinOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    menuType?: SortOrder
+    bannerImage?: SortOrder
+    heroImage?: SortOrder
+    logoImage?: SortOrder
     status?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    importStatus?: SortOrder
+    importLock?: SortOrder
+    importedAt?: SortOrder
+    syncVersion?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    lastPublishedAt?: SortOrder
+    autoScheduleEnabled?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type MenuSumOrderByAggregateInput = {
+    syncVersion?: SortOrder
+  }
+
+  export type EnumMenuTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuType | EnumMenuTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuTypeWithAggregatesFilter<$PrismaModel> | $Enums.MenuType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMenuTypeFilter<$PrismaModel>
+    _max?: NestedEnumMenuTypeFilter<$PrismaModel>
   }
 
   export type EnumMenuStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -96965,6 +102573,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMenuStatusFilter<$PrismaModel>
     _max?: NestedEnumMenuStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMenuImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuImportStatus | EnumMenuImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.MenuImportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMenuImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumMenuImportStatusFilter<$PrismaModel>
   }
 
   export type MenuRelationFilter = {
@@ -96996,6 +102614,15 @@ export namespace Prisma {
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
+    menuIds?: SortOrder
+    available?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97012,6 +102639,14 @@ export namespace Prisma {
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
+    available?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97024,6 +102659,14 @@ export namespace Prisma {
     imageUrl?: SortOrder
     sortOrder?: SortOrder
     isVisible?: SortOrder
+    available?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97082,15 +102725,35 @@ export namespace Prisma {
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
+    plu?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    outOfStock?: SortOrder
+    availableRestoreAt?: SortOrder
     allergens?: SortOrder
     dietaryTags?: SortOrder
+    dietary?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
     metadata?: SortOrder
+    hasMultipleSkus?: SortOrder
+    productSkus?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    menuIds?: SortOrder
+    brandIds?: SortOrder
+    sortOrder?: SortOrder
     isInventoryTracked?: SortOrder
     inventoryCount?: SortOrder
     platformPricingOverrides?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    rawModifierGroupIds?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97099,6 +102762,10 @@ export namespace Prisma {
     basePrice?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
     inventoryCount?: SortOrder
   }
 
@@ -97110,11 +102777,26 @@ export namespace Prisma {
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
+    plu?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    outOfStock?: SortOrder
+    availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    hasMultipleSkus?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
     isInventoryTracked?: SortOrder
     inventoryCount?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97127,11 +102809,26 @@ export namespace Prisma {
     basePrice?: SortOrder
     imageUrl?: SortOrder
     sku?: SortOrder
+    plu?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    outOfStock?: SortOrder
+    availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    hasMultipleSkus?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
     isInventoryTracked?: SortOrder
     inventoryCount?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97140,6 +102837,10 @@ export namespace Prisma {
     basePrice?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
     inventoryCount?: SortOrder
   }
 
@@ -97241,6 +102942,13 @@ export namespace Prisma {
     _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
+  export type EnumSelectionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SelectionType | EnumSelectionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSelectionTypeFilter<$PrismaModel> | $Enums.SelectionType
+  }
+
   export type ModifierOptionListRelationFilter = {
     every?: ModifierOptionWhereInput
     some?: ModifierOptionWhereInput
@@ -97262,10 +102970,23 @@ export namespace Prisma {
     brandId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
     isRequired?: SortOrder
     sortOrder?: SortOrder
+    selectionType?: SortOrder
+    allowDuplicateSelections?: SortOrder
+    visibleToCustomers?: SortOrder
+    menuIds?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    rawModifierIds?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97281,10 +103002,20 @@ export namespace Prisma {
     brandId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
     isRequired?: SortOrder
     sortOrder?: SortOrder
+    selectionType?: SortOrder
+    allowDuplicateSelections?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97294,10 +103025,20 @@ export namespace Prisma {
     brandId?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    plu?: SortOrder
     minSelections?: SortOrder
     maxSelections?: SortOrder
     isRequired?: SortOrder
     sortOrder?: SortOrder
+    selectionType?: SortOrder
+    allowDuplicateSelections?: SortOrder
+    visibleToCustomers?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97306,6 +103047,16 @@ export namespace Prisma {
     minSelections?: SortOrder
     maxSelections?: SortOrder
     sortOrder?: SortOrder
+  }
+
+  export type EnumSelectionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SelectionType | EnumSelectionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSelectionTypeWithAggregatesFilter<$PrismaModel> | $Enums.SelectionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSelectionTypeFilter<$PrismaModel>
+    _max?: NestedEnumSelectionTypeFilter<$PrismaModel>
   }
 
   export type ModifierGroupRelationFilter = {
@@ -97327,15 +103078,32 @@ export namespace Prisma {
   export type ModifierOptionCountOrderByAggregateInput = {
     id?: SortOrder
     groupId?: SortOrder
+    modifierGroupIds?: SortOrder
     name?: SortOrder
     description?: SortOrder
     priceAdjustment?: SortOrder
+    plu?: SortOrder
+    pricesBySize?: SortOrder
+    skuPlus?: SortOrder
     imageUrl?: SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    availableRestoreAt?: SortOrder
     sortOrder?: SortOrder
+    menuIds?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     nestedGroupId?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -97343,6 +103111,9 @@ export namespace Prisma {
   export type ModifierOptionAvgOrderByAggregateInput = {
     priceAdjustment?: SortOrder
     sortOrder?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
   }
 
   export type ModifierOptionMaxOrderByAggregateInput = {
@@ -97351,10 +103122,22 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     priceAdjustment?: SortOrder
+    plu?: SortOrder
     imageUrl?: SortOrder
     isDefault?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    availableRestoreAt?: SortOrder
     sortOrder?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     nestedGroupId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -97366,10 +103149,22 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     priceAdjustment?: SortOrder
+    plu?: SortOrder
     imageUrl?: SortOrder
     isDefault?: SortOrder
     isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    availableRestoreAt?: SortOrder
     sortOrder?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    externalParentId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
     nestedGroupId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -97378,6 +103173,9 @@ export namespace Prisma {
   export type ModifierOptionSumOrderByAggregateInput = {
     priceAdjustment?: SortOrder
     sortOrder?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
   }
 
   export type ModifierGroupOnItemOrderByRelevanceInput = {
@@ -97466,6 +103264,153 @@ export namespace Prisma {
 
   export type MenuItemVariantSumOrderByAggregateInput = {
     price?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type MealDealOrderByRelevanceInput = {
+    fields: MealDealOrderByRelevanceFieldEnum | MealDealOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MealDealCountOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    locationIds?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    plu?: SortOrder
+    price?: SortOrder
+    sections?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    platformPricingOverrides?: SortOrder
+    isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    sortOrder?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MealDealAvgOrderByAggregateInput = {
+    price?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type MealDealMaxOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    plu?: SortOrder
+    price?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    sortOrder?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MealDealMinOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    plu?: SortOrder
+    price?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    isAvailable?: SortOrder
+    visibleToCustomers?: SortOrder
+    sortOrder?: SortOrder
+    platformSource?: SortOrder
+    externalId?: SortOrder
+    lastSyncedAt?: SortOrder
+    syncStatus?: SortOrder
+    syncHash?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MealDealSumOrderByAggregateInput = {
+    price?: SortOrder
+    deliveryTax?: SortOrder
+    takeawayTax?: SortOrder
+    eatInTax?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type UpsellGroupOrderByRelevanceInput = {
+    fields: UpsellGroupOrderByRelevanceFieldEnum | UpsellGroupOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type UpsellGroupCountOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    triggerProductIds?: SortOrder
+    triggerCategoryIds?: SortOrder
+    suggestedProductIds?: SortOrder
+    sortOrder?: SortOrder
+    platformVisibility?: SortOrder
+    isActive?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UpsellGroupAvgOrderByAggregateInput = {
+    sortOrder?: SortOrder
+  }
+
+  export type UpsellGroupMaxOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UpsellGroupMinOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    sortOrder?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UpsellGroupSumOrderByAggregateInput = {
     sortOrder?: SortOrder
   }
 
@@ -97845,6 +103790,11 @@ export namespace Prisma {
     isNot?: CustomerWhereInput | null
   }
 
+  export type BrandNullableRelationFilter = {
+    is?: BrandWhereInput | null
+    isNot?: BrandWhereInput | null
+  }
+
   export type OrderItemListRelationFilter = {
     every?: OrderItemWhereInput
     some?: OrderItemWhereInput
@@ -97906,6 +103856,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
     displayId?: SortOrder
@@ -97933,6 +103884,9 @@ export namespace Prisma {
     scheduledFor?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
+    collectionCode?: SortOrder
+    preparationMinutes?: SortOrder
+    failureReason?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -97955,6 +103909,7 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     promoDiscount?: SortOrder
+    preparationMinutes?: SortOrder
   }
 
   export type OrderMaxOrderByAggregateInput = {
@@ -97962,6 +103917,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
     displayId?: SortOrder
@@ -97987,6 +103943,9 @@ export namespace Prisma {
     scheduledFor?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
+    collectionCode?: SortOrder
+    preparationMinutes?: SortOrder
+    failureReason?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -98004,6 +103963,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
     displayId?: SortOrder
@@ -98029,6 +103989,9 @@ export namespace Prisma {
     scheduledFor?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
+    collectionCode?: SortOrder
+    preparationMinutes?: SortOrder
+    failureReason?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -98049,6 +104012,7 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     promoDiscount?: SortOrder
+    preparationMinutes?: SortOrder
   }
 
   export type EnumOrderPlatformWithAggregatesFilter<$PrismaModel = never> = {
@@ -102126,6 +108090,27 @@ export namespace Prisma {
     connect?: ModifierGroupWhereUniqueInput | ModifierGroupWhereUniqueInput[]
   }
 
+  export type OrderCreateNestedManyWithoutBrandInput = {
+    create?: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput> | OrderCreateWithoutBrandInput[] | OrderUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutBrandInput | OrderCreateOrConnectWithoutBrandInput[]
+    createMany?: OrderCreateManyBrandInputEnvelope
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type MealDealCreateNestedManyWithoutBrandInput = {
+    create?: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput> | MealDealCreateWithoutBrandInput[] | MealDealUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MealDealCreateOrConnectWithoutBrandInput | MealDealCreateOrConnectWithoutBrandInput[]
+    createMany?: MealDealCreateManyBrandInputEnvelope
+    connect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+  }
+
+  export type UpsellGroupCreateNestedManyWithoutBrandInput = {
+    create?: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput> | UpsellGroupCreateWithoutBrandInput[] | UpsellGroupUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UpsellGroupCreateOrConnectWithoutBrandInput | UpsellGroupCreateOrConnectWithoutBrandInput[]
+    createMany?: UpsellGroupCreateManyBrandInputEnvelope
+    connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+  }
+
   export type LocationUncheckedCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -102145,6 +108130,27 @@ export namespace Prisma {
     connectOrCreate?: ModifierGroupCreateOrConnectWithoutBrandInput | ModifierGroupCreateOrConnectWithoutBrandInput[]
     createMany?: ModifierGroupCreateManyBrandInputEnvelope
     connect?: ModifierGroupWhereUniqueInput | ModifierGroupWhereUniqueInput[]
+  }
+
+  export type OrderUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput> | OrderCreateWithoutBrandInput[] | OrderUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutBrandInput | OrderCreateOrConnectWithoutBrandInput[]
+    createMany?: OrderCreateManyBrandInputEnvelope
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type MealDealUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput> | MealDealCreateWithoutBrandInput[] | MealDealUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MealDealCreateOrConnectWithoutBrandInput | MealDealCreateOrConnectWithoutBrandInput[]
+    createMany?: MealDealCreateManyBrandInputEnvelope
+    connect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+  }
+
+  export type UpsellGroupUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput> | UpsellGroupCreateWithoutBrandInput[] | UpsellGroupUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UpsellGroupCreateOrConnectWithoutBrandInput | UpsellGroupCreateOrConnectWithoutBrandInput[]
+    createMany?: UpsellGroupCreateManyBrandInputEnvelope
+    connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
   }
 
   export type TenantUpdateOneRequiredWithoutBrandsNestedInput = {
@@ -102197,6 +108203,48 @@ export namespace Prisma {
     deleteMany?: ModifierGroupScalarWhereInput | ModifierGroupScalarWhereInput[]
   }
 
+  export type OrderUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput> | OrderCreateWithoutBrandInput[] | OrderUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutBrandInput | OrderCreateOrConnectWithoutBrandInput[]
+    upsert?: OrderUpsertWithWhereUniqueWithoutBrandInput | OrderUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: OrderCreateManyBrandInputEnvelope
+    set?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    disconnect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    delete?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    update?: OrderUpdateWithWhereUniqueWithoutBrandInput | OrderUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: OrderUpdateManyWithWhereWithoutBrandInput | OrderUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
+  export type MealDealUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput> | MealDealCreateWithoutBrandInput[] | MealDealUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MealDealCreateOrConnectWithoutBrandInput | MealDealCreateOrConnectWithoutBrandInput[]
+    upsert?: MealDealUpsertWithWhereUniqueWithoutBrandInput | MealDealUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: MealDealCreateManyBrandInputEnvelope
+    set?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    disconnect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    delete?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    connect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    update?: MealDealUpdateWithWhereUniqueWithoutBrandInput | MealDealUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: MealDealUpdateManyWithWhereWithoutBrandInput | MealDealUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: MealDealScalarWhereInput | MealDealScalarWhereInput[]
+  }
+
+  export type UpsellGroupUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput> | UpsellGroupCreateWithoutBrandInput[] | UpsellGroupUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UpsellGroupCreateOrConnectWithoutBrandInput | UpsellGroupCreateOrConnectWithoutBrandInput[]
+    upsert?: UpsellGroupUpsertWithWhereUniqueWithoutBrandInput | UpsellGroupUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: UpsellGroupCreateManyBrandInputEnvelope
+    set?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    disconnect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    delete?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    update?: UpsellGroupUpdateWithWhereUniqueWithoutBrandInput | UpsellGroupUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: UpsellGroupUpdateManyWithWhereWithoutBrandInput | UpsellGroupUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
+  }
+
   export type LocationUncheckedUpdateManyWithoutBrandNestedInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -102237,6 +108285,48 @@ export namespace Prisma {
     update?: ModifierGroupUpdateWithWhereUniqueWithoutBrandInput | ModifierGroupUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: ModifierGroupUpdateManyWithWhereWithoutBrandInput | ModifierGroupUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: ModifierGroupScalarWhereInput | ModifierGroupScalarWhereInput[]
+  }
+
+  export type OrderUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput> | OrderCreateWithoutBrandInput[] | OrderUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutBrandInput | OrderCreateOrConnectWithoutBrandInput[]
+    upsert?: OrderUpsertWithWhereUniqueWithoutBrandInput | OrderUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: OrderCreateManyBrandInputEnvelope
+    set?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    disconnect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    delete?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    update?: OrderUpdateWithWhereUniqueWithoutBrandInput | OrderUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: OrderUpdateManyWithWhereWithoutBrandInput | OrderUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
+  export type MealDealUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput> | MealDealCreateWithoutBrandInput[] | MealDealUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MealDealCreateOrConnectWithoutBrandInput | MealDealCreateOrConnectWithoutBrandInput[]
+    upsert?: MealDealUpsertWithWhereUniqueWithoutBrandInput | MealDealUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: MealDealCreateManyBrandInputEnvelope
+    set?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    disconnect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    delete?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    connect?: MealDealWhereUniqueInput | MealDealWhereUniqueInput[]
+    update?: MealDealUpdateWithWhereUniqueWithoutBrandInput | MealDealUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: MealDealUpdateManyWithWhereWithoutBrandInput | MealDealUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: MealDealScalarWhereInput | MealDealScalarWhereInput[]
+  }
+
+  export type UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput> | UpsellGroupCreateWithoutBrandInput[] | UpsellGroupUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UpsellGroupCreateOrConnectWithoutBrandInput | UpsellGroupCreateOrConnectWithoutBrandInput[]
+    upsert?: UpsellGroupUpsertWithWhereUniqueWithoutBrandInput | UpsellGroupUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: UpsellGroupCreateManyBrandInputEnvelope
+    set?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    disconnect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    delete?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+    update?: UpsellGroupUpdateWithWhereUniqueWithoutBrandInput | UpsellGroupUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: UpsellGroupUpdateManyWithWhereWithoutBrandInput | UpsellGroupUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutLocationsInput = {
@@ -102463,6 +108553,10 @@ export namespace Prisma {
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutIntegrationsInput, LocationUpdateWithoutIntegrationsInput>, LocationUncheckedUpdateWithoutIntegrationsInput>
   }
 
+  export type MenuCreatepublishedToInput = {
+    set: string[]
+  }
+
   export type BrandCreateNestedOneWithoutMenusInput = {
     create?: XOR<BrandCreateWithoutMenusInput, BrandUncheckedCreateWithoutMenusInput>
     connectOrCreate?: BrandCreateOrConnectWithoutMenusInput
@@ -102497,8 +108591,21 @@ export namespace Prisma {
     connect?: MenuVersionWhereUniqueInput | MenuVersionWhereUniqueInput[]
   }
 
+  export type EnumMenuTypeFieldUpdateOperationsInput = {
+    set?: $Enums.MenuType
+  }
+
   export type EnumMenuStatusFieldUpdateOperationsInput = {
     set?: $Enums.MenuStatus
+  }
+
+  export type EnumMenuImportStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MenuImportStatus
+  }
+
+  export type MenuUpdatepublishedToInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type BrandUpdateOneRequiredWithoutMenusNestedInput = {
@@ -102565,6 +108672,10 @@ export namespace Prisma {
     deleteMany?: MenuVersionScalarWhereInput | MenuVersionScalarWhereInput[]
   }
 
+  export type MenuCategoryCreatemenuIdsInput = {
+    set: string[]
+  }
+
   export type MenuCreateNestedOneWithoutCategoriesInput = {
     create?: XOR<MenuCreateWithoutCategoriesInput, MenuUncheckedCreateWithoutCategoriesInput>
     connectOrCreate?: MenuCreateOrConnectWithoutCategoriesInput
@@ -102583,6 +108694,11 @@ export namespace Prisma {
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutCategoryInput | MenuItemOnCategoryCreateOrConnectWithoutCategoryInput[]
     createMany?: MenuItemOnCategoryCreateManyCategoryInputEnvelope
     connect?: MenuItemOnCategoryWhereUniqueInput | MenuItemOnCategoryWhereUniqueInput[]
+  }
+
+  export type MenuCategoryUpdatemenuIdsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type MenuUpdateOneRequiredWithoutCategoriesNestedInput = {
@@ -102626,6 +108742,14 @@ export namespace Prisma {
   }
 
   export type MenuItemCreatedietaryTagsInput = {
+    set: string[]
+  }
+
+  export type MenuItemCreatemenuIdsInput = {
+    set: string[]
+  }
+
+  export type MenuItemCreatebrandIdsInput = {
     set: string[]
   }
 
@@ -102697,6 +108821,16 @@ export namespace Prisma {
   }
 
   export type MenuItemUpdatedietaryTagsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MenuItemUpdatemenuIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MenuItemUpdatebrandIdsInput = {
     set?: string[]
     push?: string | string[]
   }
@@ -102841,6 +108975,10 @@ export namespace Prisma {
     update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutCategoriesInput, MenuItemUpdateWithoutCategoriesInput>, MenuItemUncheckedUpdateWithoutCategoriesInput>
   }
 
+  export type ModifierGroupCreatemenuIdsInput = {
+    set: string[]
+  }
+
   export type BrandCreateNestedOneWithoutModifierGroupsInput = {
     create?: XOR<BrandCreateWithoutModifierGroupsInput, BrandUncheckedCreateWithoutModifierGroupsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutModifierGroupsInput
@@ -102887,6 +109025,15 @@ export namespace Prisma {
     connectOrCreate?: ModifierOptionCreateOrConnectWithoutNestedGroupInput | ModifierOptionCreateOrConnectWithoutNestedGroupInput[]
     createMany?: ModifierOptionCreateManyNestedGroupInputEnvelope
     connect?: ModifierOptionWhereUniqueInput | ModifierOptionWhereUniqueInput[]
+  }
+
+  export type EnumSelectionTypeFieldUpdateOperationsInput = {
+    set?: $Enums.SelectionType
+  }
+
+  export type ModifierGroupUpdatemenuIdsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type BrandUpdateOneRequiredWithoutModifierGroupsNestedInput = {
@@ -102981,7 +109128,15 @@ export namespace Prisma {
     deleteMany?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
   }
 
+  export type ModifierOptionCreatemodifierGroupIdsInput = {
+    set: string[]
+  }
+
   export type ModifierOptionCreateallergensInput = {
+    set: string[]
+  }
+
+  export type ModifierOptionCreatemenuIdsInput = {
     set: string[]
   }
 
@@ -102997,7 +109152,17 @@ export namespace Prisma {
     connect?: ModifierGroupWhereUniqueInput
   }
 
+  export type ModifierOptionUpdatemodifierGroupIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
   export type ModifierOptionUpdateallergensInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type ModifierOptionUpdatemenuIdsInput = {
     set?: string[]
     push?: string | string[]
   }
@@ -103060,6 +109225,79 @@ export namespace Prisma {
     upsert?: MenuItemUpsertWithoutVariantsInput
     connect?: MenuItemWhereUniqueInput
     update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutVariantsInput, MenuItemUpdateWithoutVariantsInput>, MenuItemUncheckedUpdateWithoutVariantsInput>
+  }
+
+  export type MealDealCreatelocationIdsInput = {
+    set: string[]
+  }
+
+  export type BrandCreateNestedOneWithoutMealDealsInput = {
+    create?: XOR<BrandCreateWithoutMealDealsInput, BrandUncheckedCreateWithoutMealDealsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutMealDealsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type MealDealUpdatelocationIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type BrandUpdateOneRequiredWithoutMealDealsNestedInput = {
+    create?: XOR<BrandCreateWithoutMealDealsInput, BrandUncheckedCreateWithoutMealDealsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutMealDealsInput
+    upsert?: BrandUpsertWithoutMealDealsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutMealDealsInput, BrandUpdateWithoutMealDealsInput>, BrandUncheckedUpdateWithoutMealDealsInput>
+  }
+
+  export type UpsellGroupCreatetriggerProductIdsInput = {
+    set: string[]
+  }
+
+  export type UpsellGroupCreatetriggerCategoryIdsInput = {
+    set: string[]
+  }
+
+  export type UpsellGroupCreatesuggestedProductIdsInput = {
+    set: string[]
+  }
+
+  export type UpsellGroupCreateplatformVisibilityInput = {
+    set: string[]
+  }
+
+  export type BrandCreateNestedOneWithoutUpsellGroupsInput = {
+    create?: XOR<BrandCreateWithoutUpsellGroupsInput, BrandUncheckedCreateWithoutUpsellGroupsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutUpsellGroupsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type UpsellGroupUpdatetriggerProductIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type UpsellGroupUpdatetriggerCategoryIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type UpsellGroupUpdatesuggestedProductIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type UpsellGroupUpdateplatformVisibilityInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type BrandUpdateOneRequiredWithoutUpsellGroupsNestedInput = {
+    create?: XOR<BrandCreateWithoutUpsellGroupsInput, BrandUncheckedCreateWithoutUpsellGroupsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutUpsellGroupsInput
+    upsert?: BrandUpsertWithoutUpsellGroupsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutUpsellGroupsInput, BrandUpdateWithoutUpsellGroupsInput>, BrandUncheckedUpdateWithoutUpsellGroupsInput>
   }
 
   export type MenuCreateNestedOneWithoutVersionsInput = {
@@ -103330,6 +109568,12 @@ export namespace Prisma {
     connect?: CustomerWhereUniqueInput
   }
 
+  export type BrandCreateNestedOneWithoutOrdersInput = {
+    create?: XOR<BrandCreateWithoutOrdersInput, BrandUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutOrdersInput
+    connect?: BrandWhereUniqueInput
+  }
+
   export type OrderItemCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -103460,6 +109704,16 @@ export namespace Prisma {
     delete?: CustomerWhereInput | boolean
     connect?: CustomerWhereUniqueInput
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutOrdersInput, CustomerUpdateWithoutOrdersInput>, CustomerUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type BrandUpdateOneWithoutOrdersNestedInput = {
+    create?: XOR<BrandCreateWithoutOrdersInput, BrandUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutOrdersInput
+    upsert?: BrandUpsertWithoutOrdersInput
+    disconnect?: BrandWhereInput | boolean
+    delete?: BrandWhereInput | boolean
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutOrdersInput, BrandUpdateWithoutOrdersInput>, BrandUncheckedUpdateWithoutOrdersInput>
   }
 
   export type OrderItemUpdateManyWithoutOrderNestedInput = {
@@ -105624,11 +111878,35 @@ export namespace Prisma {
     _max?: NestedEnumIntegrationStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumMenuTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuType | EnumMenuTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuTypeFilter<$PrismaModel> | $Enums.MenuType
+  }
+
   export type NestedEnumMenuStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.MenuStatus | EnumMenuStatusFieldRefInput<$PrismaModel>
     in?: $Enums.MenuStatus[] | ListEnumMenuStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.MenuStatus[] | ListEnumMenuStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumMenuStatusFilter<$PrismaModel> | $Enums.MenuStatus
+  }
+
+  export type NestedEnumMenuImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuImportStatus | EnumMenuImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuImportStatusFilter<$PrismaModel> | $Enums.MenuImportStatus
+  }
+
+  export type NestedEnumMenuTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuType | EnumMenuTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuType[] | ListEnumMenuTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuTypeWithAggregatesFilter<$PrismaModel> | $Enums.MenuType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMenuTypeFilter<$PrismaModel>
+    _max?: NestedEnumMenuTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumMenuStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -105639,6 +111917,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMenuStatusFilter<$PrismaModel>
     _max?: NestedEnumMenuStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMenuImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MenuImportStatus | EnumMenuImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MenuImportStatus[] | ListEnumMenuImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMenuImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.MenuImportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMenuImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumMenuImportStatusFilter<$PrismaModel>
   }
 
   export type NestedDecimalFilter<$PrismaModel = never> = {
@@ -105693,6 +111981,23 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumSelectionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.SelectionType | EnumSelectionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSelectionTypeFilter<$PrismaModel> | $Enums.SelectionType
+  }
+
+  export type NestedEnumSelectionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SelectionType | EnumSelectionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SelectionType[] | ListEnumSelectionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumSelectionTypeWithAggregatesFilter<$PrismaModel> | $Enums.SelectionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSelectionTypeFilter<$PrismaModel>
+    _max?: NestedEnumSelectionTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumPromoCodeTypeFilter<$PrismaModel = never> = {
@@ -106251,6 +112556,9 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutTenantInput = {
@@ -106267,6 +112575,9 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -106398,6 +112709,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -106412,6 +112726,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -106424,6 +112739,7 @@ export namespace Prisma {
     id?: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -106451,6 +112767,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -106987,6 +113306,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
@@ -107014,6 +113334,9 @@ export namespace Prisma {
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableFilter<"Order"> | string | null
+    collectionCode?: StringNullableFilter<"Order"> | string | null
+    preparationMinutes?: IntNullableFilter<"Order"> | number | null
+    failureReason?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -108379,6 +114702,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -108413,6 +114737,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -108447,11 +114772,35 @@ export namespace Prisma {
 
   export type MenuCreateWithoutBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
@@ -108460,11 +114809,35 @@ export namespace Prisma {
 
   export type MenuUncheckedCreateWithoutBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
@@ -108485,10 +114858,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
@@ -108500,10 +114886,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
@@ -108518,6 +114917,228 @@ export namespace Prisma {
 
   export type ModifierGroupCreateManyBrandInputEnvelope = {
     data: ModifierGroupCreateManyBrandInput | ModifierGroupCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OrderCreateWithoutBrandInput = {
+    id?: string
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutOrdersInput
+    location: LocationCreateNestedOneWithoutOrdersInput
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
+    payments?: PaymentCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryUncheckedCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutBrandInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput>
+  }
+
+  export type OrderCreateManyBrandInputEnvelope = {
+    data: OrderCreateManyBrandInput | OrderCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MealDealCreateWithoutBrandInput = {
+    id?: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MealDealUncheckedCreateWithoutBrandInput = {
+    id?: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MealDealCreateOrConnectWithoutBrandInput = {
+    where: MealDealWhereUniqueInput
+    create: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput>
+  }
+
+  export type MealDealCreateManyBrandInputEnvelope = {
+    data: MealDealCreateManyBrandInput | MealDealCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UpsellGroupCreateWithoutBrandInput = {
+    id?: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UpsellGroupUncheckedCreateWithoutBrandInput = {
+    id?: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UpsellGroupCreateOrConnectWithoutBrandInput = {
+    where: UpsellGroupWhereUniqueInput
+    create: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput>
+  }
+
+  export type UpsellGroupCreateManyBrandInputEnvelope = {
+    data: UpsellGroupCreateManyBrandInput | UpsellGroupCreateManyBrandInput[]
     skipDuplicates?: boolean
   }
 
@@ -108612,6 +115233,7 @@ export namespace Prisma {
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     shopCode?: StringNullableFilter<"Location"> | string | null
+    printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
@@ -108652,11 +115274,35 @@ export namespace Prisma {
     NOT?: MenuScalarWhereInput | MenuScalarWhereInput[]
     id?: StringFilter<"Menu"> | string
     brandId?: StringFilter<"Menu"> | string
+    locationId?: StringNullableFilter<"Menu"> | string | null
     name?: StringFilter<"Menu"> | string
     description?: StringNullableFilter<"Menu"> | string | null
+    menuType?: EnumMenuTypeFilter<"Menu"> | $Enums.MenuType
+    bannerImage?: StringNullableFilter<"Menu"> | string | null
+    heroImage?: StringNullableFilter<"Menu"> | string | null
+    logoImage?: StringNullableFilter<"Menu"> | string | null
     status?: EnumMenuStatusFilter<"Menu"> | $Enums.MenuStatus
     isActive?: BoolFilter<"Menu"> | boolean
     deletedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    importStatus?: EnumMenuImportStatusFilter<"Menu"> | $Enums.MenuImportStatus
+    importLock?: BoolFilter<"Menu"> | boolean
+    importedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncVersion?: IntFilter<"Menu"> | number
+    rawImportPayload?: JsonFilter<"Menu">
+    menuData?: JsonFilter<"Menu">
+    productModifierGroupLinks?: JsonFilter<"Menu">
+    modifierGroupModifierLinks?: JsonFilter<"Menu">
+    platformSource?: StringNullableFilter<"Menu"> | string | null
+    externalId?: StringNullableFilter<"Menu"> | string | null
+    externalParentId?: StringNullableFilter<"Menu"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    syncStatus?: StringNullableFilter<"Menu"> | string | null
+    syncHash?: StringNullableFilter<"Menu"> | string | null
+    publishedTo?: StringNullableListFilter<"Menu">
+    lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
+    autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
+    autoSchedule?: JsonFilter<"Menu">
+    metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
   }
@@ -108685,12 +115331,122 @@ export namespace Prisma {
     brandId?: StringFilter<"ModifierGroup"> | string
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
+    plu?: StringNullableFilter<"ModifierGroup"> | string | null
     minSelections?: IntFilter<"ModifierGroup"> | number
     maxSelections?: IntNullableFilter<"ModifierGroup"> | number | null
     isRequired?: BoolFilter<"ModifierGroup"> | boolean
     sortOrder?: IntFilter<"ModifierGroup"> | number
+    selectionType?: EnumSelectionTypeFilter<"ModifierGroup"> | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFilter<"ModifierGroup"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierGroup"> | boolean
+    menuIds?: StringNullableListFilter<"ModifierGroup">
+    platformSource?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalId?: StringNullableFilter<"ModifierGroup"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierGroup"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierGroup"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierGroup"> | string | null
+    syncHash?: StringNullableFilter<"ModifierGroup"> | string | null
+    rawModifierIds?: JsonFilter<"ModifierGroup">
+    metadata?: JsonFilter<"ModifierGroup">
     createdAt?: DateTimeFilter<"ModifierGroup"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierGroup"> | Date | string
+  }
+
+  export type OrderUpsertWithWhereUniqueWithoutBrandInput = {
+    where: OrderWhereUniqueInput
+    update: XOR<OrderUpdateWithoutBrandInput, OrderUncheckedUpdateWithoutBrandInput>
+    create: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput>
+  }
+
+  export type OrderUpdateWithWhereUniqueWithoutBrandInput = {
+    where: OrderWhereUniqueInput
+    data: XOR<OrderUpdateWithoutBrandInput, OrderUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type OrderUpdateManyWithWhereWithoutBrandInput = {
+    where: OrderScalarWhereInput
+    data: XOR<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type MealDealUpsertWithWhereUniqueWithoutBrandInput = {
+    where: MealDealWhereUniqueInput
+    update: XOR<MealDealUpdateWithoutBrandInput, MealDealUncheckedUpdateWithoutBrandInput>
+    create: XOR<MealDealCreateWithoutBrandInput, MealDealUncheckedCreateWithoutBrandInput>
+  }
+
+  export type MealDealUpdateWithWhereUniqueWithoutBrandInput = {
+    where: MealDealWhereUniqueInput
+    data: XOR<MealDealUpdateWithoutBrandInput, MealDealUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type MealDealUpdateManyWithWhereWithoutBrandInput = {
+    where: MealDealScalarWhereInput
+    data: XOR<MealDealUpdateManyMutationInput, MealDealUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type MealDealScalarWhereInput = {
+    AND?: MealDealScalarWhereInput | MealDealScalarWhereInput[]
+    OR?: MealDealScalarWhereInput[]
+    NOT?: MealDealScalarWhereInput | MealDealScalarWhereInput[]
+    id?: StringFilter<"MealDeal"> | string
+    brandId?: StringFilter<"MealDeal"> | string
+    locationIds?: StringNullableListFilter<"MealDeal">
+    name?: StringFilter<"MealDeal"> | string
+    description?: StringNullableFilter<"MealDeal"> | string | null
+    imageUrl?: StringNullableFilter<"MealDeal"> | string | null
+    plu?: StringNullableFilter<"MealDeal"> | string | null
+    price?: DecimalNullableFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonFilter<"MealDeal">
+    deliveryTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"MealDeal"> | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonFilter<"MealDeal">
+    isAvailable?: BoolFilter<"MealDeal"> | boolean
+    visibleToCustomers?: BoolFilter<"MealDeal"> | boolean
+    sortOrder?: IntFilter<"MealDeal"> | number
+    platformSource?: StringNullableFilter<"MealDeal"> | string | null
+    externalId?: StringNullableFilter<"MealDeal"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MealDeal"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MealDeal"> | string | null
+    syncHash?: StringNullableFilter<"MealDeal"> | string | null
+    metadata?: JsonFilter<"MealDeal">
+    createdAt?: DateTimeFilter<"MealDeal"> | Date | string
+    updatedAt?: DateTimeFilter<"MealDeal"> | Date | string
+  }
+
+  export type UpsellGroupUpsertWithWhereUniqueWithoutBrandInput = {
+    where: UpsellGroupWhereUniqueInput
+    update: XOR<UpsellGroupUpdateWithoutBrandInput, UpsellGroupUncheckedUpdateWithoutBrandInput>
+    create: XOR<UpsellGroupCreateWithoutBrandInput, UpsellGroupUncheckedCreateWithoutBrandInput>
+  }
+
+  export type UpsellGroupUpdateWithWhereUniqueWithoutBrandInput = {
+    where: UpsellGroupWhereUniqueInput
+    data: XOR<UpsellGroupUpdateWithoutBrandInput, UpsellGroupUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type UpsellGroupUpdateManyWithWhereWithoutBrandInput = {
+    where: UpsellGroupScalarWhereInput
+    data: XOR<UpsellGroupUpdateManyMutationInput, UpsellGroupUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type UpsellGroupScalarWhereInput = {
+    AND?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
+    OR?: UpsellGroupScalarWhereInput[]
+    NOT?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
+    id?: StringFilter<"UpsellGroup"> | string
+    brandId?: StringFilter<"UpsellGroup"> | string
+    name?: StringFilter<"UpsellGroup"> | string
+    description?: StringNullableFilter<"UpsellGroup"> | string | null
+    triggerProductIds?: StringNullableListFilter<"UpsellGroup">
+    triggerCategoryIds?: StringNullableListFilter<"UpsellGroup">
+    suggestedProductIds?: StringNullableListFilter<"UpsellGroup">
+    sortOrder?: IntFilter<"UpsellGroup"> | number
+    platformVisibility?: StringNullableListFilter<"UpsellGroup">
+    isActive?: BoolFilter<"UpsellGroup"> | boolean
+    metadata?: JsonFilter<"UpsellGroup">
+    createdAt?: DateTimeFilter<"UpsellGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"UpsellGroup"> | Date | string
   }
 
   export type BrandCreateWithoutLocationsInput = {
@@ -108707,6 +115463,9 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBrandsInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutLocationsInput = {
@@ -108723,6 +115482,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -108803,6 +115565,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -108817,6 +115582,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -108829,6 +115595,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -108856,6 +115623,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -109007,6 +115777,9 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutLocationsInput = {
@@ -109023,6 +115796,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -109166,6 +115942,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -109201,6 +115978,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -109250,6 +116028,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -109285,6 +116064,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -109320,6 +116100,9 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBrandsInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutMenusInput = {
@@ -109336,6 +116119,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -109350,6 +116136,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryCreateNestedManyWithoutCategoryInput
@@ -109362,6 +116157,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput
@@ -109430,6 +116234,9 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMenusInput = {
@@ -109446,6 +116253,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -109475,6 +116285,15 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"MenuCategory"> | string | null
     sortOrder?: IntFilter<"MenuCategory"> | number
     isVisible?: BoolFilter<"MenuCategory"> | boolean
+    menuIds?: StringNullableListFilter<"MenuCategory">
+    available?: BoolFilter<"MenuCategory"> | boolean
+    visibleToCustomers?: BoolFilter<"MenuCategory"> | boolean
+    platformSource?: StringNullableFilter<"MenuCategory"> | string | null
+    externalId?: StringNullableFilter<"MenuCategory"> | string | null
+    externalParentId?: StringNullableFilter<"MenuCategory"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"MenuCategory"> | Date | string | null
+    syncStatus?: StringNullableFilter<"MenuCategory"> | string | null
+    syncHash?: StringNullableFilter<"MenuCategory"> | string | null
     createdAt?: DateTimeFilter<"MenuCategory"> | Date | string
     updatedAt?: DateTimeFilter<"MenuCategory"> | Date | string
   }
@@ -109510,11 +116329,35 @@ export namespace Prisma {
 
   export type MenuCreateWithoutCategoriesInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutMenusInput
@@ -109524,11 +116367,35 @@ export namespace Prisma {
   export type MenuUncheckedCreateWithoutCategoriesInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
@@ -109576,11 +116443,35 @@ export namespace Prisma {
 
   export type MenuUpdateWithoutCategoriesInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
@@ -109590,11 +116481,35 @@ export namespace Prisma {
   export type MenuUncheckedUpdateWithoutCategoriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
@@ -109834,6 +116749,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutCategoriesInput
@@ -109847,6 +116771,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -109864,15 +116797,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
@@ -109888,15 +116841,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
@@ -109927,6 +116900,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutCategoriesNestedInput
@@ -109940,6 +116922,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -109963,15 +116954,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
@@ -109987,15 +116998,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
@@ -110017,6 +117048,9 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutBrandsInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutModifierGroupsInput = {
@@ -110033,6 +117067,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -110042,14 +117079,31 @@ export namespace Prisma {
 
   export type ModifierOptionCreateWithoutGroupInput = {
     id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     nestedGroup?: ModifierGroupCreateNestedOneWithoutNestedUnderOptionsInput
@@ -110057,15 +117111,32 @@ export namespace Prisma {
 
   export type ModifierOptionUncheckedCreateWithoutGroupInput = {
     id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     nestedGroupId?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -110102,14 +117173,31 @@ export namespace Prisma {
 
   export type ModifierOptionCreateWithoutNestedGroupInput = {
     id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     group: ModifierGroupCreateNestedOneWithoutOptionsInput
@@ -110118,14 +117206,31 @@ export namespace Prisma {
   export type ModifierOptionUncheckedCreateWithoutNestedGroupInput = {
     id?: string
     groupId: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -110165,6 +117270,9 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutModifierGroupsInput = {
@@ -110181,6 +117289,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -110205,15 +117316,32 @@ export namespace Prisma {
     NOT?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
     id?: StringFilter<"ModifierOption"> | string
     groupId?: StringFilter<"ModifierOption"> | string
+    modifierGroupIds?: StringNullableListFilter<"ModifierOption">
     name?: StringFilter<"ModifierOption"> | string
     description?: StringNullableFilter<"ModifierOption"> | string | null
     priceAdjustment?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    plu?: StringNullableFilter<"ModifierOption"> | string | null
+    pricesBySize?: JsonFilter<"ModifierOption">
+    skuPlus?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
     isAvailable?: BoolFilter<"ModifierOption"> | boolean
+    visibleToCustomers?: BoolFilter<"ModifierOption"> | boolean
+    availableRestoreAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
     sortOrder?: IntFilter<"ModifierOption"> | number
+    menuIds?: StringNullableListFilter<"ModifierOption">
+    deliveryTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFilter<"ModifierOption"> | Decimal | DecimalJsLike | number | string
+    platformSource?: StringNullableFilter<"ModifierOption"> | string | null
+    externalId?: StringNullableFilter<"ModifierOption"> | string | null
+    externalParentId?: StringNullableFilter<"ModifierOption"> | string | null
+    lastSyncedAt?: DateTimeNullableFilter<"ModifierOption"> | Date | string | null
+    syncStatus?: StringNullableFilter<"ModifierOption"> | string | null
+    syncHash?: StringNullableFilter<"ModifierOption"> | string | null
     nestedGroupId?: StringNullableFilter<"ModifierOption"> | string | null
+    metadata?: JsonFilter<"ModifierOption">
     createdAt?: DateTimeFilter<"ModifierOption"> | Date | string
     updatedAt?: DateTimeFilter<"ModifierOption"> | Date | string
   }
@@ -110254,10 +117382,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
@@ -110270,10 +117411,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
@@ -110289,10 +117443,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
@@ -110305,10 +117472,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
@@ -110335,10 +117515,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
@@ -110351,10 +117544,23 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
@@ -110376,10 +117582,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
@@ -110392,10 +117611,23 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
@@ -110410,15 +117642,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
@@ -110434,15 +117686,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
@@ -110459,10 +117731,23 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
@@ -110475,10 +117760,23 @@ export namespace Prisma {
     brandId: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
@@ -110509,15 +117807,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
@@ -110533,15 +117851,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
@@ -110564,10 +117902,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
@@ -110580,10 +117931,23 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
@@ -110598,15 +117962,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
@@ -110622,15 +118006,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
@@ -110662,15 +118066,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
@@ -110686,15 +118110,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
@@ -110702,13 +118146,221 @@ export namespace Prisma {
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
   }
 
-  export type MenuCreateWithoutVersionsInput = {
+  export type BrandCreateWithoutMealDealsInput = {
     id?: string
     name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutMealDealsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutMealDealsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutMealDealsInput, BrandUncheckedCreateWithoutMealDealsInput>
+  }
+
+  export type BrandUpsertWithoutMealDealsInput = {
+    update: XOR<BrandUpdateWithoutMealDealsInput, BrandUncheckedUpdateWithoutMealDealsInput>
+    create: XOR<BrandCreateWithoutMealDealsInput, BrandUncheckedCreateWithoutMealDealsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutMealDealsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutMealDealsInput, BrandUncheckedUpdateWithoutMealDealsInput>
+  }
+
+  export type BrandUpdateWithoutMealDealsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutMealDealsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandCreateWithoutUpsellGroupsInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutUpsellGroupsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutUpsellGroupsInput, BrandUncheckedCreateWithoutUpsellGroupsInput>
+  }
+
+  export type BrandUpsertWithoutUpsellGroupsInput = {
+    update: XOR<BrandUpdateWithoutUpsellGroupsInput, BrandUncheckedUpdateWithoutUpsellGroupsInput>
+    create: XOR<BrandCreateWithoutUpsellGroupsInput, BrandUncheckedCreateWithoutUpsellGroupsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutUpsellGroupsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutUpsellGroupsInput, BrandUncheckedUpdateWithoutUpsellGroupsInput>
+  }
+
+  export type BrandUpdateWithoutUpsellGroupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutUpsellGroupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type MenuCreateWithoutVersionsInput = {
+    id?: string
+    locationId?: string | null
+    name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutMenusInput
@@ -110718,11 +118370,35 @@ export namespace Prisma {
   export type MenuUncheckedCreateWithoutVersionsInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
@@ -110746,11 +118422,35 @@ export namespace Prisma {
 
   export type MenuUpdateWithoutVersionsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
@@ -110760,11 +118460,35 @@ export namespace Prisma {
   export type MenuUncheckedUpdateWithoutVersionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
@@ -110888,6 +118612,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -110902,6 +118629,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -110914,6 +118642,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId: string
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -110941,6 +118670,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -111562,6 +119294,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -111597,6 +119330,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -111662,6 +119396,49 @@ export namespace Prisma {
   export type CustomerCreateOrConnectWithoutOrdersInput = {
     where: CustomerWhereUniqueInput
     create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+  }
+
+  export type BrandCreateWithoutOrdersInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutOrdersInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutOrdersInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutOrdersInput, BrandUncheckedCreateWithoutOrdersInput>
   }
 
   export type OrderItemCreateWithoutOrderInput = {
@@ -111963,6 +119740,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -111998,6 +119776,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -112064,6 +119843,55 @@ export namespace Prisma {
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
     loyalty?: LoyaltyAccountUncheckedUpdateOneWithoutCustomerNestedInput
     paymentMethods?: PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type BrandUpsertWithoutOrdersInput = {
+    update: XOR<BrandUpdateWithoutOrdersInput, BrandUncheckedUpdateWithoutOrdersInput>
+    create: XOR<BrandCreateWithoutOrdersInput, BrandUncheckedCreateWithoutOrdersInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutOrdersInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutOrdersInput, BrandUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type BrandUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -112275,6 +120103,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112290,6 +120121,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
@@ -112302,6 +120134,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -112329,6 +120162,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112393,6 +120229,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -112408,6 +120247,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
@@ -112420,6 +120260,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -112447,6 +120288,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -112495,6 +120339,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112510,6 +120357,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
@@ -112522,6 +120370,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -112549,6 +120398,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112613,6 +120465,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -112628,6 +120483,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
@@ -112640,6 +120496,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -112667,6 +120524,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -112698,6 +120558,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -112733,6 +120594,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -112808,6 +120670,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -112843,6 +120706,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -112938,6 +120802,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112953,6 +120820,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
@@ -112965,6 +120833,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -112992,6 +120861,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -113091,6 +120963,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -113106,6 +120981,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
@@ -113118,6 +120994,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -113145,6 +121022,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -113176,6 +121056,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -113211,6 +121092,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -113304,6 +121186,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -113339,6 +121222,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -113515,6 +121399,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -113530,6 +121417,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -113542,6 +121430,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -113569,6 +121458,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -113755,6 +121647,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -113770,6 +121665,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -113782,6 +121678,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -113809,6 +121706,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -114031,6 +121931,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -114046,6 +121949,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -114058,6 +121962,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -114085,6 +121990,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -114216,6 +122124,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -114231,6 +122142,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -114243,6 +122155,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -114270,6 +122183,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -114697,6 +122613,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -114712,6 +122631,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -114724,6 +122644,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -114751,6 +122672,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -114928,6 +122852,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -114943,6 +122870,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -114955,6 +122883,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -114982,6 +122911,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -116262,15 +124194,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
@@ -116286,15 +124238,35 @@ export namespace Prisma {
     basePrice: Decimal | DecimalJsLike | number | string
     imageUrl?: string | null
     sku?: string | null
+    plu?: string | null
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
     allergens?: MenuItemCreateallergensInput | string[]
     dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
     isInventoryTracked?: boolean
     inventoryCount?: number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
@@ -116348,15 +124320,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
@@ -116372,15 +124364,35 @@ export namespace Prisma {
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     allergens?: MenuItemUpdateallergensInput | string[]
     dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
     isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
     inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
     platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
@@ -118440,6 +126452,7 @@ export namespace Prisma {
     id?: string
     locationId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -118467,6 +126480,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -118592,6 +126608,9 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutTenantInput = {
@@ -118608,6 +126627,9 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -118751,6 +126773,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -118765,6 +126790,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -118777,6 +126803,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -118804,6 +126831,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -118828,6 +126858,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -118855,6 +126886,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -119458,6 +127492,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
     shopCode?: string | null
+    printToken?: string | null
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -119478,11 +127513,35 @@ export namespace Prisma {
 
   export type MenuCreateManyBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
     status?: $Enums.MenuStatus
     isActive?: boolean
     deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -119491,10 +127550,113 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    plu?: string | null
     minSelections?: number
     maxSelections?: number | null
     isRequired?: boolean
     sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OrderCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MealDealCreateManyBrandInput = {
+    id?: string
+    locationIds?: MealDealCreatelocationIdsInput | string[]
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    plu?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    sortOrder?: number
+    platformSource?: string | null
+    externalId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UpsellGroupCreateManyBrandInput = {
+    id?: string
+    name: string
+    description?: string | null
+    triggerProductIds?: UpsellGroupCreatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupCreatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupCreatesuggestedProductIdsInput | string[]
+    sortOrder?: number
+    platformVisibility?: UpsellGroupCreateplatformVisibilityInput | string[]
+    isActive?: boolean
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -119511,6 +127673,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -119545,6 +127708,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -119579,6 +127743,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
@@ -119599,11 +127764,35 @@ export namespace Prisma {
 
   export type MenuUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
@@ -119612,11 +127801,35 @@ export namespace Prisma {
 
   export type MenuUncheckedUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
@@ -119625,11 +127838,35 @@ export namespace Prisma {
 
   export type MenuUncheckedUpdateManyWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -119638,10 +127875,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
@@ -119653,10 +127903,23 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
@@ -119668,10 +127931,305 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
     minSelections?: IntFieldUpdateOperationsInput | number
     maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
     isRequired?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
+    location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUncheckedUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MealDealUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationIds?: MealDealUpdatelocationIdsInput | string[]
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    sections?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UpsellGroupUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    triggerProductIds?: UpsellGroupUpdatetriggerProductIdsInput | string[]
+    triggerCategoryIds?: UpsellGroupUpdatetriggerCategoryIdsInput | string[]
+    suggestedProductIds?: UpsellGroupUpdatesuggestedProductIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    platformVisibility?: UpsellGroupUpdateplatformVisibilityInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -119697,6 +128255,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     customerId?: string | null
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -119724,6 +128283,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -119854,6 +128416,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -119868,6 +128433,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -119880,6 +128446,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -119907,6 +128474,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -119931,6 +128501,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -119958,6 +128529,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120091,6 +128665,15 @@ export namespace Prisma {
     imageUrl?: string | null
     sortOrder?: number
     isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -120111,6 +128694,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUpdateManyWithoutCategoryNestedInput
@@ -120123,6 +128715,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput
@@ -120135,6 +128736,15 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120288,15 +128898,32 @@ export namespace Prisma {
 
   export type ModifierOptionCreateManyGroupInput = {
     id?: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
     nestedGroupId?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -120309,28 +128936,62 @@ export namespace Prisma {
   export type ModifierOptionCreateManyNestedGroupInput = {
     id?: string
     groupId: string
+    modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
     name: string
     description?: string | null
     priceAdjustment?: Decimal | DecimalJsLike | number | string
+    plu?: string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
     isAvailable?: boolean
+    visibleToCustomers?: boolean
+    availableRestoreAt?: Date | string | null
     sortOrder?: number
+    menuIds?: ModifierOptionCreatemenuIdsInput | string[]
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type ModifierOptionUpdateWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     nestedGroup?: ModifierGroupUpdateOneWithoutNestedUnderOptionsNestedInput
@@ -120338,30 +128999,64 @@ export namespace Prisma {
 
   export type ModifierOptionUncheckedUpdateWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     nestedGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ModifierOptionUncheckedUpdateManyWithoutGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     nestedGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120383,14 +129078,31 @@ export namespace Prisma {
 
   export type ModifierOptionUpdateWithoutNestedGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     group?: ModifierGroupUpdateOneRequiredWithoutOptionsNestedInput
@@ -120399,14 +129111,31 @@ export namespace Prisma {
   export type ModifierOptionUncheckedUpdateWithoutNestedGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     groupId?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120414,14 +129143,31 @@ export namespace Prisma {
   export type ModifierOptionUncheckedUpdateManyWithoutNestedGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     groupId?: StringFieldUpdateOperationsInput | string
+    modifierGroupIds?: ModifierOptionUpdatemodifierGroupIdsInput | string[]
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     priceAdjustment?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    pricesBySize?: JsonNullValueInput | InputJsonValue
+    skuPlus?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sortOrder?: IntFieldUpdateOperationsInput | number
+    menuIds?: ModifierOptionUpdatemenuIdsInput | string[]
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120443,6 +129189,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId: string
+    brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -120470,6 +129217,9 @@ export namespace Prisma {
     scheduledFor?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120564,6 +129314,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120578,6 +129331,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -120590,6 +129344,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120617,6 +129372,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120641,6 +129399,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120668,6 +129427,9 @@ export namespace Prisma {
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -122251,6 +131013,14 @@ export namespace Prisma {
      * @deprecated Use MenuItemVariantDefaultArgs instead
      */
     export type MenuItemVariantArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuItemVariantDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MealDealDefaultArgs instead
+     */
+    export type MealDealArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MealDealDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use UpsellGroupDefaultArgs instead
+     */
+    export type UpsellGroupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UpsellGroupDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuVersionDefaultArgs instead
      */

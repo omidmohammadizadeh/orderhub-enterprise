@@ -235,6 +235,7 @@ exports.Prisma.LocationScalarFieldEnum = {
   metadata: 'metadata',
   deletedAt: 'deletedAt',
   shopCode: 'shopCode',
+  printToken: 'printToken',
   slug: 'slug',
   openingHours: 'openingHours',
   deliveryConfig: 'deliveryConfig',
@@ -274,11 +275,35 @@ exports.Prisma.IntegrationScalarFieldEnum = {
 exports.Prisma.MenuScalarFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
   description: 'description',
+  menuType: 'menuType',
+  bannerImage: 'bannerImage',
+  heroImage: 'heroImage',
+  logoImage: 'logoImage',
   status: 'status',
   isActive: 'isActive',
   deletedAt: 'deletedAt',
+  importStatus: 'importStatus',
+  importLock: 'importLock',
+  importedAt: 'importedAt',
+  syncVersion: 'syncVersion',
+  rawImportPayload: 'rawImportPayload',
+  menuData: 'menuData',
+  productModifierGroupLinks: 'productModifierGroupLinks',
+  modifierGroupModifierLinks: 'modifierGroupModifierLinks',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
+  publishedTo: 'publishedTo',
+  lastPublishedAt: 'lastPublishedAt',
+  autoScheduleEnabled: 'autoScheduleEnabled',
+  autoSchedule: 'autoSchedule',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -291,6 +316,15 @@ exports.Prisma.MenuCategoryScalarFieldEnum = {
   imageUrl: 'imageUrl',
   sortOrder: 'sortOrder',
   isVisible: 'isVisible',
+  menuIds: 'menuIds',
+  available: 'available',
+  visibleToCustomers: 'visibleToCustomers',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -303,15 +337,35 @@ exports.Prisma.MenuItemScalarFieldEnum = {
   basePrice: 'basePrice',
   imageUrl: 'imageUrl',
   sku: 'sku',
+  plu: 'plu',
   isAvailable: 'isAvailable',
+  visibleToCustomers: 'visibleToCustomers',
+  outOfStock: 'outOfStock',
+  availableRestoreAt: 'availableRestoreAt',
   allergens: 'allergens',
   dietaryTags: 'dietaryTags',
+  dietary: 'dietary',
   calories: 'calories',
   prepTime: 'prepTime',
   metadata: 'metadata',
+  hasMultipleSkus: 'hasMultipleSkus',
+  productSkus: 'productSkus',
+  deliveryTax: 'deliveryTax',
+  takeawayTax: 'takeawayTax',
+  eatInTax: 'eatInTax',
+  menuIds: 'menuIds',
+  brandIds: 'brandIds',
+  sortOrder: 'sortOrder',
   isInventoryTracked: 'isInventoryTracked',
   inventoryCount: 'inventoryCount',
   platformPricingOverrides: 'platformPricingOverrides',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
+  rawModifierGroupIds: 'rawModifierGroupIds',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -329,10 +383,23 @@ exports.Prisma.ModifierGroupScalarFieldEnum = {
   brandId: 'brandId',
   name: 'name',
   description: 'description',
+  plu: 'plu',
   minSelections: 'minSelections',
   maxSelections: 'maxSelections',
   isRequired: 'isRequired',
   sortOrder: 'sortOrder',
+  selectionType: 'selectionType',
+  allowDuplicateSelections: 'allowDuplicateSelections',
+  visibleToCustomers: 'visibleToCustomers',
+  menuIds: 'menuIds',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
+  rawModifierIds: 'rawModifierIds',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -340,15 +407,32 @@ exports.Prisma.ModifierGroupScalarFieldEnum = {
 exports.Prisma.ModifierOptionScalarFieldEnum = {
   id: 'id',
   groupId: 'groupId',
+  modifierGroupIds: 'modifierGroupIds',
   name: 'name',
   description: 'description',
   priceAdjustment: 'priceAdjustment',
+  plu: 'plu',
+  pricesBySize: 'pricesBySize',
+  skuPlus: 'skuPlus',
   imageUrl: 'imageUrl',
   allergens: 'allergens',
   isDefault: 'isDefault',
   isAvailable: 'isAvailable',
+  visibleToCustomers: 'visibleToCustomers',
+  availableRestoreAt: 'availableRestoreAt',
   sortOrder: 'sortOrder',
+  menuIds: 'menuIds',
+  deliveryTax: 'deliveryTax',
+  takeawayTax: 'takeawayTax',
+  eatInTax: 'eatInTax',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
   nestedGroupId: 'nestedGroupId',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -367,6 +451,49 @@ exports.Prisma.MenuItemVariantScalarFieldEnum = {
   price: 'price',
   sortOrder: 'sortOrder',
   isAvailable: 'isAvailable',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MealDealScalarFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  locationIds: 'locationIds',
+  name: 'name',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  plu: 'plu',
+  price: 'price',
+  sections: 'sections',
+  deliveryTax: 'deliveryTax',
+  takeawayTax: 'takeawayTax',
+  eatInTax: 'eatInTax',
+  platformPricingOverrides: 'platformPricingOverrides',
+  isAvailable: 'isAvailable',
+  visibleToCustomers: 'visibleToCustomers',
+  sortOrder: 'sortOrder',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  lastSyncedAt: 'lastSyncedAt',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UpsellGroupScalarFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  name: 'name',
+  description: 'description',
+  triggerProductIds: 'triggerProductIds',
+  triggerCategoryIds: 'triggerCategoryIds',
+  suggestedProductIds: 'suggestedProductIds',
+  sortOrder: 'sortOrder',
+  platformVisibility: 'platformVisibility',
+  isActive: 'isActive',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -446,6 +573,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   customerId: 'customerId',
+  brandId: 'brandId',
   externalId: 'externalId',
   platform: 'platform',
   displayId: 'displayId',
@@ -473,6 +601,9 @@ exports.Prisma.OrderScalarFieldEnum = {
   scheduledFor: 'scheduledFor',
   estimatedReadyAt: 'estimatedReadyAt',
   idempotencyKey: 'idempotencyKey',
+  collectionCode: 'collectionCode',
+  preparationMinutes: 'preparationMinutes',
+  failureReason: 'failureReason',
   receivedAt: 'receivedAt',
   acceptedAt: 'acceptedAt',
   preparingAt: 'preparingAt',
@@ -1216,6 +1347,7 @@ exports.Prisma.LocationOrderByRelevanceFieldEnum = {
   phone: 'phone',
   timezone: 'timezone',
   shopCode: 'shopCode',
+  printToken: 'printToken',
   slug: 'slug',
   storeStatusNote: 'storeStatusNote'
 };
@@ -1231,8 +1363,18 @@ exports.Prisma.IntegrationOrderByRelevanceFieldEnum = {
 exports.Prisma.MenuOrderByRelevanceFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
-  description: 'description'
+  description: 'description',
+  bannerImage: 'bannerImage',
+  heroImage: 'heroImage',
+  logoImage: 'logoImage',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
+  publishedTo: 'publishedTo'
 };
 
 exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
@@ -1240,7 +1382,13 @@ exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
   menuId: 'menuId',
   name: 'name',
   description: 'description',
-  imageUrl: 'imageUrl'
+  imageUrl: 'imageUrl',
+  menuIds: 'menuIds',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash'
 };
 
 exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
@@ -1250,8 +1398,16 @@ exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
   description: 'description',
   imageUrl: 'imageUrl',
   sku: 'sku',
+  plu: 'plu',
   allergens: 'allergens',
-  dietaryTags: 'dietaryTags'
+  dietaryTags: 'dietaryTags',
+  menuIds: 'menuIds',
+  brandIds: 'brandIds',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash'
 };
 
 exports.Prisma.MenuItemOnCategoryOrderByRelevanceFieldEnum = {
@@ -1263,16 +1419,31 @@ exports.Prisma.ModifierGroupOrderByRelevanceFieldEnum = {
   id: 'id',
   brandId: 'brandId',
   name: 'name',
-  description: 'description'
+  description: 'description',
+  plu: 'plu',
+  menuIds: 'menuIds',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash'
 };
 
 exports.Prisma.ModifierOptionOrderByRelevanceFieldEnum = {
   id: 'id',
   groupId: 'groupId',
+  modifierGroupIds: 'modifierGroupIds',
   name: 'name',
   description: 'description',
+  plu: 'plu',
   imageUrl: 'imageUrl',
   allergens: 'allergens',
+  menuIds: 'menuIds',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  externalParentId: 'externalParentId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash',
   nestedGroupId: 'nestedGroupId'
 };
 
@@ -1286,6 +1457,31 @@ exports.Prisma.MenuItemVariantOrderByRelevanceFieldEnum = {
   itemId: 'itemId',
   name: 'name',
   sku: 'sku'
+};
+
+exports.Prisma.MealDealOrderByRelevanceFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  locationIds: 'locationIds',
+  name: 'name',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  plu: 'plu',
+  platformSource: 'platformSource',
+  externalId: 'externalId',
+  syncStatus: 'syncStatus',
+  syncHash: 'syncHash'
+};
+
+exports.Prisma.UpsellGroupOrderByRelevanceFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  name: 'name',
+  description: 'description',
+  triggerProductIds: 'triggerProductIds',
+  triggerCategoryIds: 'triggerCategoryIds',
+  suggestedProductIds: 'suggestedProductIds',
+  platformVisibility: 'platformVisibility'
 };
 
 exports.Prisma.MenuVersionOrderByRelevanceFieldEnum = {
@@ -1336,6 +1532,7 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   customerId: 'customerId',
+  brandId: 'brandId',
   externalId: 'externalId',
   displayId: 'displayId',
   customerName: 'customerName',
@@ -1344,6 +1541,8 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   promoCode: 'promoCode',
   specialInstructions: 'specialInstructions',
   idempotencyKey: 'idempotencyKey',
+  collectionCode: 'collectionCode',
+  failureReason: 'failureReason',
   cancelReason: 'cancelReason'
 };
 
@@ -1794,10 +1993,27 @@ exports.IntegrationStatus = exports.$Enums.IntegrationStatus = {
   PENDING_SETUP: 'PENDING_SETUP'
 };
 
+exports.MenuType = exports.$Enums.MenuType = {
+  DELIVERY: 'DELIVERY',
+  DELIVERY_AND_PICKUP: 'DELIVERY_AND_PICKUP'
+};
+
 exports.MenuStatus = exports.$Enums.MenuStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
   ARCHIVED: 'ARCHIVED'
+};
+
+exports.MenuImportStatus = exports.$Enums.MenuImportStatus = {
+  IDLE: 'IDLE',
+  IMPORTING: 'IMPORTING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+};
+
+exports.SelectionType = exports.$Enums.SelectionType = {
+  VARIANT: 'VARIANT',
+  ADDON: 'ADDON'
 };
 
 exports.PromoCodeType = exports.$Enums.PromoCodeType = {
@@ -1844,10 +2060,15 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   ACCEPTED: 'ACCEPTED',
   PREPARING: 'PREPARING',
   READY: 'READY',
+  PENDING_DISPATCH: 'PENDING_DISPATCH',
+  ASSIGNED_DRIVER: 'ASSIGNED_DRIVER',
+  ACCEPTED_BY_DRIVER: 'ACCEPTED_BY_DRIVER',
+  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DISPATCHED: 'DISPATCHED',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  FAILED: 'FAILED'
 };
 
 exports.FulfillmentType = exports.$Enums.FulfillmentType = {
@@ -2079,6 +2300,8 @@ exports.Prisma.ModelName = {
   ModifierOption: 'ModifierOption',
   ModifierGroupOnItem: 'ModifierGroupOnItem',
   MenuItemVariant: 'MenuItemVariant',
+  MealDeal: 'MealDeal',
+  UpsellGroup: 'UpsellGroup',
   MenuVersion: 'MenuVersion',
   Customer: 'Customer',
   CustomerAddress: 'CustomerAddress',
