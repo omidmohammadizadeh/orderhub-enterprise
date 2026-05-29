@@ -168,8 +168,23 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
       }
       return saved;
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
+      // Two caches need to bust here. The list query
+      // (["catalog", "products", brandId]) drives the table view in
+      // ProductsTab, so invalidating it refreshes prices, names, etc.
+      // BUT the single-product query (["catalog", "product", productId])
+      // is what THIS form re-hydrates from on the next mount — if we
+      // don't invalidate it, the operator clicks "Edit" again and sees
+      // the pre-save snapshot, which manifests as "I attached modifier
+      // groups to my SKUs and saved, but when I come back they're all
+      // detached again". The data IS on the server (verified via curl)
+      // — it's just the stale cache lying to the form.
       qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
+      qc.invalidateQueries({ queryKey: ["catalog", "product", saved.id] });
+      // Also seed the single-product cache with the just-saved object so
+      // a fast re-edit before the refetch completes still shows the
+      // correct state instead of a flash of the stale snapshot.
+      qc.setQueryData(["catalog", "product", saved.id], saved);
       onSaved();
     },
   });
