@@ -9,6 +9,7 @@ import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { PluService } from "./plu.service";
 import { QUEUES, MENU_JOBS } from "@orderhub/shared";
 import type {
   CreateMenuDto,
@@ -50,6 +51,7 @@ export class MenusService {
   constructor(
     private readonly prisma: PrismaService,
     @InjectQueue(QUEUES.MENU_SYNC) private readonly menuSyncQueue: Queue,
+    private readonly plu: PluService,
   ) {}
 
   // ── Menu CRUD ─────────────────────────────────────────────────────────────
@@ -310,6 +312,12 @@ export class MenusService {
 
   async createItem(brandId: string, tenantId: string, dto: CreateMenuItemDto) {
     await this.assertBrandAccess(brandId, tenantId);
+    // Phase AK: auto-generate PLU if the caller didn't supply one. This
+    // mirrors Base44's `prod_${Date.now()}` default but uses our
+    // collision-safe generator. Operator can override via dto.plu.
+    const explicitPlu = ((dto as any).plu as string | undefined)?.trim();
+    const plu = explicitPlu || (await this.plu.generateUnique("product", tenantId));
+
     return this.prisma.menuItem.create({
       data: {
         brandId,
@@ -318,6 +326,7 @@ export class MenusService {
         basePrice: dto.basePrice,
         imageUrl: dto.imageUrl,
         sku: dto.sku,
+        plu,
         calories: dto.calories,
         allergens: dto.allergens ?? [],
         dietaryTags: (dto as any).dietaryTags ?? [],
@@ -325,6 +334,16 @@ export class MenusService {
         isInventoryTracked: (dto as any).isInventoryTracked ?? false,
         inventoryCount: (dto as any).inventoryCount ?? null,
         platformPricingOverrides: (dto as any).platformPricingOverrides ?? {},
+        // Phase AK fields — all optional, sensible defaults from schema:
+        visibleToCustomers: (dto as any).visibleToCustomers ?? true,
+        outOfStock: (dto as any).outOfStock ?? false,
+        hasMultipleSkus: (dto as any).hasMultipleSkus ?? false,
+        productSkus: ((dto as any).productSkus ?? []) as any,
+        deliveryTax: (dto as any).deliveryTax ?? 0,
+        takeawayTax: (dto as any).takeawayTax ?? 0,
+        eatInTax: (dto as any).eatInTax ?? 0,
+        dietary: ((dto as any).dietary ?? []) as any,
+        menuIds: ((dto as any).menuIds ?? []) as any,
       },
       include: {
         variants: true,
@@ -497,17 +516,27 @@ export class MenusService {
       minSelections?: number;
       maxSelections?: number;
       isRequired?: boolean;
+      selectionType?: "VARIANT" | "ADDON";
+      allowDuplicateSelections?: boolean;
+      plu?: string;
+      menuIds?: string[];
     },
   ) {
     await this.assertBrandAccess(brandId, tenantId);
+    const explicitPlu = dto.plu?.trim();
+    const plu = explicitPlu || (await this.plu.generateUnique("modifierGroup", tenantId));
     return this.prisma.modifierGroup.create({
       data: {
         brandId,
         name: dto.name,
         description: dto.description ?? null,
+        plu,
         minSelections: dto.minSelections ?? 0,
         maxSelections: dto.maxSelections ?? null,
         isRequired: dto.isRequired ?? false,
+        selectionType: dto.selectionType ?? "VARIANT",
+        allowDuplicateSelections: dto.allowDuplicateSelections ?? false,
+        menuIds: dto.menuIds ?? [],
       },
       include: { options: true },
     });
@@ -553,6 +582,10 @@ export class MenusService {
       imageUrl?: string;
       allergens?: string[];
       nestedGroupId?: string;
+      plu?: string;
+      pricesBySize?: Record<string, number>;
+      skuPlus?: Record<string, string>;
+      menuIds?: string[];
     },
   ) {
     await this.assertModifierGroupAccess(groupId, tenantId);
@@ -560,16 +593,22 @@ export class MenusService {
       where: { groupId },
       _max: { sortOrder: true },
     });
+    const explicitPlu = dto.plu?.trim();
+    const plu = explicitPlu || (await this.plu.generateUnique("modifier", tenantId));
     return this.prisma.modifierOption.create({
       data: {
         groupId,
         name: dto.name,
+        plu,
         priceAdjustment: dto.priceAdjustment ?? 0,
+        pricesBySize: (dto.pricesBySize ?? {}) as any,
+        skuPlus: (dto.skuPlus ?? {}) as any,
         isDefault: dto.isDefault ?? false,
         imageUrl: dto.imageUrl ?? null,
         allergens: dto.allergens ?? [],
         nestedGroupId: dto.nestedGroupId ?? null,
         sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
+        menuIds: dto.menuIds ?? [],
       },
     });
   }
@@ -672,6 +711,41 @@ export class MenusService {
         }),
       ),
     );
+  }
+
+  // ── Location-scoped active menu (POS + storefront) ────────────────────────
+  //
+  // Phase AK: Base44 menus belong to a location. Find the active menu for
+  // the given location by checking the locationId column first; fall back
+  // to the brand's active menu if the location-scoped query is empty
+  // (covers brand-scoped pre-Phase-AK menus).
+  //
+  // Returns a "full menu" structure shaped for POS consumption: every
+  // category, every visible item, modifier groups + options, productSkus.
+  async findActiveMenuForLocation(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, brandId: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+
+    // Prefer location-scoped active menu (Phase AK shape).
+    let menu = await this.prisma.menu.findFirst({
+      where: { locationId, isActive: true, deletedAt: null },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
+    });
+    // Fall back to brand-scoped active menu.
+    if (!menu) {
+      menu = await this.prisma.menu.findFirst({
+        where: { brandId: location.brandId, isActive: true, deletedAt: null },
+        orderBy: { updatedAt: "desc" },
+        select: { id: true },
+      });
+    }
+    if (!menu) return null;
+
+    return this.findOne(menu.id, tenantId);
   }
 
   // ── Public menu (for online ordering) ────────────────────────────────────

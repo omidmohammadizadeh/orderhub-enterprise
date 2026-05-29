@@ -13,6 +13,9 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { MenusService } from "./menus.service";
+import { PluService } from "./plu.service";
+import { UberMenuImporter } from "./importers/uber-menu.importer";
+import { DeliverooMenuImporter } from "./importers/deliveroo-menu.importer";
 import {
   CreateMenuDto,
   UpdateMenuDto,
@@ -31,7 +34,76 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 @ApiBearerAuth()
 @Controller({ version: "1" })
 export class MenusController {
-  constructor(private readonly menus: MenusService) {}
+  constructor(
+    private readonly menus: MenusService,
+    private readonly plu: PluService,
+    private readonly uberImporter: UberMenuImporter,
+    private readonly deliverooImporter: DeliverooMenuImporter,
+  ) {}
+
+  // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
+
+  @Post("menus/generate-missing-plus")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Generate PLUs for any product/group/option that's missing one",
+  })
+  generateMissingPlus(@CurrentUser() user: AuthenticatedUser) {
+    return this.plu.generateMissingForTenant(user.tenantId);
+  }
+
+  @Post("menus/:menuId/import/uber")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Import Uber Eats menu into the selected menu" })
+  importUber(
+    @Param("menuId") menuId: string,
+    @Body() body: { payload?: any; storeId?: string; accessToken?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.uberImporter.import({
+      menuId,
+      tenantId: user.tenantId,
+      payload: body.payload,
+      storeId: body.storeId,
+      accessToken: body.accessToken,
+    });
+  }
+
+  @Post("menus/:menuId/import/deliveroo")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Import Deliveroo menu into the selected menu" })
+  importDeliveroo(
+    @Param("menuId") menuId: string,
+    @Body()
+    body: {
+      payload?: any;
+      storeId?: string;
+      deliverooBrandId?: string;
+      accessToken?: string;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.deliverooImporter.import({
+      menuId,
+      tenantId: user.tenantId,
+      payload: body.payload,
+      storeId: body.storeId,
+      deliverooBrandId: body.deliverooBrandId,
+      accessToken: body.accessToken,
+    });
+  }
+
+  // ── Location-scoped menu lookup (for POS) ─────────────────────────────────
+  @Get("locations/:locationId/active-menu")
+  @ApiOperation({
+    summary: "Find the active menu for a location (used by the POS data load)",
+  })
+  findActiveMenuForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findActiveMenuForLocation(locationId, user.tenantId);
+  }
 
   // ── Menus ─────────────────────────────────────────────────────────────────
 
