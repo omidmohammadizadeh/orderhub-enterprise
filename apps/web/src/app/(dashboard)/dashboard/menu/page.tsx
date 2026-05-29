@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { menusClient, type Menu } from "@/lib/api/menus.client";
+import { menusClient, brandsClient, type Menu, type Brand } from "@/lib/api/menus.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 
@@ -30,16 +30,45 @@ const STATUS_CONFIG = {
 export default function MenuPage() {
   const user = useAuthStore((s) => s.user);
   const qc = useQueryClient();
-  const brandId = user?.brandId ?? "";
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [creatingBrand, setCreatingBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+
+  // Phase AK — Platform admins / managers without an assigned brand still
+  // need to manage menus. Pull the tenant's brand list; auto-select the
+  // first one or fall back to user.brandId when assigned. If the tenant
+  // has zero brands, surface a "create brand" CTA inline (no separate
+  // onboarding round-trip required).
+  const { data: brands = [], isLoading: brandsLoading } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => brandsClient.list(),
+  });
+
+  const brandId =
+    selectedBrandId ?? user?.brandId ?? brands[0]?.id ?? "";
 
   const { data: menus = [], isLoading } = useQuery({
     queryKey: ["menus", brandId],
     queryFn: () => menusClient.listMenus(brandId),
     enabled: !!brandId,
+  });
+
+  const createBrandMutation = useMutation({
+    mutationFn: (name: string) =>
+      brandsClient.create({
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      }),
+    onSuccess: (b) => {
+      qc.invalidateQueries({ queryKey: ["brands"] });
+      setSelectedBrandId(b.id);
+      setCreatingBrand(false);
+      setNewBrandName("");
+    },
   });
 
   const createMutation = useMutation({
@@ -76,12 +105,79 @@ export default function MenuPage() {
     if (newName.trim()) createMutation.mutate(newName.trim());
   };
 
-  if (!brandId) {
+  if (brandsLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-20 rounded-xl bg-zinc-100 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!brandId && brands.length === 0) {
+    // No brands for this tenant yet — let the operator create one inline.
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <UtensilsCrossed className="h-10 w-10 text-zinc-300 mb-4" />
-        <p className="font-medium text-zinc-600">No brand configured</p>
-        <p className="text-sm text-zinc-400 mt-1">Complete onboarding to set up your brand.</p>
+        <p className="font-medium text-zinc-600">No brand set up yet</p>
+        <p className="text-sm text-zinc-400 mt-1 mb-5">
+          Create your first brand to start building menus.
+        </p>
+        {creatingBrand ? (
+          <Card className="p-4 border-orange-200 bg-orange-50 w-full max-w-md">
+            <p className="text-sm font-medium text-zinc-800 mb-3 text-left">
+              New brand name
+            </p>
+            <div className="flex gap-2">
+              <Input
+                autoFocus
+                placeholder="e.g. Greek Gyros, Pizza Express"
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newBrandName.trim()) {
+                    createBrandMutation.mutate(newBrandName.trim());
+                  }
+                  if (e.key === "Escape") {
+                    setCreatingBrand(false);
+                    setNewBrandName("");
+                  }
+                }}
+                className="flex-1 h-9 text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => createBrandMutation.mutate(newBrandName.trim())}
+                disabled={
+                  !newBrandName.trim() || createBrandMutation.isPending
+                }
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Create
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setCreatingBrand(false);
+                  setNewBrandName("");
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <Button
+            size="sm"
+            onClick={() => setCreatingBrand(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            Create brand
+          </Button>
+        )}
       </div>
     );
   }
@@ -124,6 +220,28 @@ export default function MenuPage() {
           </Button>
         </div>
       </div>
+
+      {brands.length > 1 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+            Brand
+          </span>
+          {brands.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setSelectedBrandId(b.id)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                brandId === b.id
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300",
+              )}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {creating && (
         <Card className="p-4 border-orange-200 bg-orange-50">

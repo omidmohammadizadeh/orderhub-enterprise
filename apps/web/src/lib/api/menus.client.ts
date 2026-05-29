@@ -1,6 +1,21 @@
 "use client";
 import { apiClient } from "./client";
 
+export interface Brand {
+  id: string;
+  tenantId: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+  isActive: boolean;
+}
+
+export const brandsClient = {
+  list: () => apiClient.get<Brand[]>(`/v1/brands`).then((r) => r.data),
+  create: (data: { name: string; slug: string }) =>
+    apiClient.post<Brand>(`/v1/brands`, data).then((r) => r.data),
+};
+
 export interface Menu {
   id: string;
   brandId: string;
