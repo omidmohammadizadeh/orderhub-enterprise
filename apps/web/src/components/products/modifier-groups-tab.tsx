@@ -1,11 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ListTree } from "lucide-react";
-import {
-  modifierGroupsClient,
-  modifiersClient,
-} from "@/lib/api/catalog.client";
+import { Plus, ListTree, Trash2 } from "lucide-react";
+import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { Button } from "@/components/ui/button";
 import { CatalogEmptyState } from "./empty-state";
 import { ModifierGroupForm } from "./modifier-group-form";
@@ -24,6 +21,18 @@ export function ModifierGroupsTab({ brandId, search }: Props) {
     queryKey: ["catalog", "modifier-groups", brandId],
     queryFn: () => modifierGroupsClient.list(brandId),
     enabled: !!brandId,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => modifierGroupsClient.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["catalog", "modifier-groups", brandId] });
+      qc.invalidateQueries({
+        queryKey: ["catalog", "modifier-groups-with-options", brandId],
+      });
+      // Products that referenced this group lose the link — bust their cache too.
+      qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
+    },
   });
 
   const filtered = useMemo(() => {
@@ -121,14 +130,39 @@ export function ModifierGroupsTab({ brandId, search }: Props) {
                   {g._count?.itemLinks ?? 0} products
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingId(g.id)}
-                    className="h-7 px-2 text-xs"
-                  >
-                    Edit
-                  </Button>
+                  <div className="inline-flex items-center gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingId(g.id)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const usedBy = g._count?.itemLinks ?? 0;
+                        const warning =
+                          usedBy > 0
+                            ? `\n\nThis group is attached to ${usedBy} product${usedBy === 1 ? "" : "s"} — they will lose it.`
+                            : "";
+                        if (
+                          confirm(
+                            `Delete "${g.name}"?${warning}`,
+                          )
+                        ) {
+                          deleteMutation.mutate(g.id);
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                      className="h-7 px-2 text-zinc-400 hover:text-red-600"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

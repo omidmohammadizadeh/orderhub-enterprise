@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Sliders, ImageIcon } from "lucide-react";
+import { Plus, Sliders, ImageIcon, Trash2 } from "lucide-react";
 import {
   modifierGroupsClient,
   modifiersClient,
@@ -147,14 +147,34 @@ export function ModifiersTab({ brandId, search }: Props) {
                   £{Number(m.priceAdjustment).toFixed(2)}
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingId(m.id)}
-                    className="h-7 px-2 text-xs"
-                  >
-                    Edit
-                  </Button>
+                  <div className="inline-flex items-center gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingId(m.id)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `Delete modifier "${m.name}"? Every group it's attached to will lose it.`,
+                          )
+                        ) {
+                          deleteMutation.mutate(m.id);
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
+                      className="h-7 px-2 text-zinc-400 hover:text-red-600"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
