@@ -101,6 +101,23 @@ export default function MenuPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menus", brandId] }),
   });
 
+  // Phase AK — bulk PLU backfill. MUST stay above the early-return branches
+  // below: React requires every hook to be called in the same order on
+  // every render. When `brandsLoading` flips to false and we proceed past
+  // the empty-brand early return, this useMutation only "appears" on that
+  // second render, which mismatches the hook list from the first render
+  // and trips "Rendered more hooks than during the previous render" —
+  // crashing the page with the generic "Application error" boundary.
+  const generatePlusMutation = useMutation({
+    mutationFn: () => menusClient.generateMissingPlus(),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["menus", brandId] });
+      alert(
+        `Generated PLUs: ${r.products} products, ${r.modifierGroups} groups, ${r.modifiers} modifiers.`,
+      );
+    },
+  });
+
   const handleCreate = () => {
     if (newName.trim()) createMutation.mutate(newName.trim());
   };
@@ -181,17 +198,6 @@ export default function MenuPage() {
       </div>
     );
   }
-
-  // Phase AK — bulk PLU backfill.
-  const generatePlusMutation = useMutation({
-    mutationFn: () => menusClient.generateMissingPlus(),
-    onSuccess: (r) => {
-      qc.invalidateQueries({ queryKey: ["menus", brandId] });
-      alert(
-        `Generated PLUs: ${r.products} products, ${r.modifierGroups} groups, ${r.modifiers} modifiers.`,
-      );
-    },
-  });
 
   return (
     <div className="space-y-6">
