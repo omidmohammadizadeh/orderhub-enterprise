@@ -47,6 +47,14 @@ export interface ModifierGroup {
   options: ModifierOption[];
 }
 
+// Phase AK — Base44-style SKU + per-size pricing types.
+export interface ProductSku {
+  name: string;
+  plu: string;
+  price: number;
+  modifierGroups: string[];
+}
+
 export interface MenuItem {
   id: string;
   brandId: string;
@@ -55,10 +63,44 @@ export interface MenuItem {
   basePrice: number;
   imageUrl?: string | null;
   sku?: string | null;
+  plu?: string | null;
   isAvailable: boolean;
   modifierGroups: ModifierGroup[];
   allergens: string[];
   calories?: number | null;
+  // Phase AK fields
+  visibleToCustomers?: boolean;
+  outOfStock?: boolean;
+  hasMultipleSkus?: boolean;
+  productSkus?: ProductSku[];
+  deliveryTax?: number;
+  takeawayTax?: number;
+  eatInTax?: number;
+  dietary?: unknown[];
+  menuIds?: string[];
+  modifierGroupLinks?: Array<{
+    itemId: string;
+    groupId: string;
+    sortOrder: number;
+    group: {
+      id: string;
+      name: string;
+      selectionType?: "VARIANT" | "ADDON";
+      minSelections?: number;
+      maxSelections?: number | null;
+      allowDuplicateSelections?: boolean;
+      options: Array<{
+        id: string;
+        name: string;
+        priceAdjustment: number | string;
+        plu?: string | null;
+        pricesBySize?: Record<string, number> | null;
+        skuPlus?: Record<string, string> | null;
+        isAvailable?: boolean;
+        visibleToCustomers?: boolean;
+      }>;
+    };
+  }>;
 }
 
 export interface MenuWithCategories extends Menu {
@@ -119,4 +161,52 @@ export const menusClient = {
 
   removeItemFromCategory: (categoryId: string, itemId: string) =>
     apiClient.delete(`/v1/categories/${categoryId}/items/${itemId}`).then((r) => r.data),
+
+  // ── Phase AK: Imports + PLU + POS-friendly lookup ──────────────────────────
+
+  generateMissingPlus: () =>
+    apiClient
+      .post<{ products: number; modifierGroups: number; modifiers: number }>(
+        `/v1/menus/generate-missing-plus`,
+        {},
+      )
+      .then((r) => r.data),
+
+  importUber: (
+    menuId: string,
+    body: { payload?: unknown; storeId?: string; accessToken?: string },
+  ) =>
+    apiClient
+      .post<{
+        createdCount: number;
+        updatedCount: number;
+        warnings: string[];
+        unchanged?: boolean;
+      }>(`/v1/menus/${menuId}/import/uber`, body)
+      .then((r) => r.data),
+
+  importDeliveroo: (
+    menuId: string,
+    body: {
+      payload?: unknown;
+      storeId?: string;
+      deliverooBrandId?: string;
+      accessToken?: string;
+    },
+  ) =>
+    apiClient
+      .post<{
+        createdCount: number;
+        updatedCount: number;
+        warnings: string[];
+        unchanged?: boolean;
+      }>(`/v1/menus/${menuId}/import/deliveroo`, body)
+      .then((r) => r.data),
+
+  getActiveMenuForLocation: (locationId: string) =>
+    apiClient
+      .get<MenuWithCategories | null>(
+        `/v1/locations/${locationId}/active-menu`,
+      )
+      .then((r) => r.data),
 };

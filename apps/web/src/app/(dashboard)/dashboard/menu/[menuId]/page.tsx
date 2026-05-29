@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { menusClient, type MenuWithCategories, type MenuCategory, type MenuItem } from "@/lib/api/menus.client";
+import { ImportMenuDialog } from "@/components/menu/import-menu-dialog";
+import { Download } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,7 @@ export default function MenuEditorPage() {
   const [addingItemToCat, setAddingItemToCat] = useState<string | null>(null);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Partial<MenuItem> | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: menu, isLoading } = useQuery({
     queryKey: ["menu", menuId],
@@ -149,6 +152,15 @@ export default function MenuEditorPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+            className="gap-1.5"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Import from Uber / Deliveroo
+          </Button>
           {menu.status !== "PUBLISHED" && (
             <Button
               size="sm"
@@ -167,6 +179,12 @@ export default function MenuEditorPage() {
           )}
         </div>
       </div>
+
+      <ImportMenuDialog
+        menuId={menuId}
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+      />
 
       {/* Category list */}
       <div className="space-y-3">

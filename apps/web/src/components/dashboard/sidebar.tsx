@@ -42,6 +42,7 @@ interface NavItem {
 
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0" },
+  { href: "/dashboard/pos", label: "POS", icon: ShoppingBag },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed },
   { href: "/dashboard/store-ops", label: "Store Ops", icon: Store },
   { href: "/dashboard/customers", label: "Customers", icon: Users },

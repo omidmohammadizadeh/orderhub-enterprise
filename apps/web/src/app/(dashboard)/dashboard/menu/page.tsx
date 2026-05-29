@@ -86,6 +86,17 @@ export default function MenuPage() {
     );
   }
 
+  // Phase AK — bulk PLU backfill.
+  const generatePlusMutation = useMutation({
+    mutationFn: () => menusClient.generateMissingPlus(),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["menus", brandId] });
+      alert(
+        `Generated PLUs: ${r.products} products, ${r.modifierGroups} groups, ${r.modifiers} modifiers.`,
+      );
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -93,14 +104,25 @@ export default function MenuPage() {
           <h1 className="text-lg font-semibold text-zinc-900">Menu Management</h1>
           <p className="text-sm text-zinc-500">Manage menus, categories, and items across all platforms.</p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => setCreating(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white"
-        >
-          <Plus className="h-4 w-4 mr-1.5" />
-          New menu
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => generatePlusMutation.mutate()}
+            disabled={generatePlusMutation.isPending}
+            title="Backfill PLUs on any product, modifier group, or modifier missing one. Existing PLUs are left untouched."
+          >
+            Generate missing PLUs
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setCreating(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            New menu
+          </Button>
+        </div>
       </div>
 
       {creating && (
