@@ -65,6 +65,25 @@ export class UpdateCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) sortOrder?: number;
 }
 
+// ── Product SKU row ──────────────────────────────────────────────────────────
+// Phase AL — one row in MenuItem.productSkus[] (multi-SKU pizza-style
+// products). Needs to be a real class with class-validator metadata so
+// the global ValidationPipe (whitelist: true + transform: true) doesn't
+// silently strip every field on the way through. Without this DTO the
+// payload [{name, plu, price, modifierGroups}, ...] becomes [[], ...]
+// in the database — the symptom the operator surfaced as "SKU names
+// disappear after saving and re-opening".
+export class ProductSkuDto {
+  @ApiProperty() @IsString() @MaxLength(120) name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) plu?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) price?: number;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  modifierGroups?: string[];
+}
+
 // ── Create menu item ──────────────────────────────────────────────────────────
 //
 // Phase AL note: the master-catalog Products form sends Base44-style
@@ -88,7 +107,13 @@ export class CreateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
-  @ApiPropertyOptional() @IsOptional() productSkus?: unknown[];
+  @ApiPropertyOptional({ type: [ProductSkuDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductSkuDto)
+  @ArrayMaxSize(20)
+  productSkus?: ProductSkuDto[];
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryTax?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) takeawayTax?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) eatInTax?: number;
@@ -119,7 +144,13 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() hasMultipleSkus?: boolean;
-  @ApiPropertyOptional() @IsOptional() productSkus?: unknown[];
+  @ApiPropertyOptional({ type: [ProductSkuDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductSkuDto)
+  @ArrayMaxSize(20)
+  productSkus?: ProductSkuDto[];
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryTax?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) takeawayTax?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) eatInTax?: number;
