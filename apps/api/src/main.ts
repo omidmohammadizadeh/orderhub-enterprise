@@ -35,6 +35,16 @@ async function bootstrap() {
   );
   app.use(compression());
 
+  // ── Body parser limit ────────────────────────────────────
+  // Phase AL: product create/update payloads include a base64-encoded
+  // image (Supabase Storage upload lands in the follow-up). Express's
+  // default 100 KB limit rejects every product image as 413 "Payload
+  // Too Large". Lift to 10 MB to comfortably hold a resized 1064×768
+  // JPEG (~150 KB) plus the rest of the form. Once real Supabase URLs
+  // replace the data URLs, this can drop back to 1 MB.
+  app.useBodyParser("json", { limit: "10mb" });
+  app.useBodyParser("urlencoded", { limit: "10mb", extended: true });
+
   // ── CORS ────────────────────────────────────────────────
   // CORS_ALLOWED_ORIGINS (comma-separated) takes precedence; falls back to APP_URL.
   // Render's fromService.property:host returns the bare internal hostname (e.g.

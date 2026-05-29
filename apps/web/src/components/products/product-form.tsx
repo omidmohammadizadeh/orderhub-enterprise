@@ -25,6 +25,13 @@ const genPlu = () =>
   "PROD-" +
   Math.random().toString(36).slice(2, 8).toUpperCase();
 
+// SKU PLU = parent PLU + index (Base44 convention). Falls back to a
+// freshly generated PROD-XXXXXX-N when the parent PLU is empty.
+const genSkuPlu = (parentPlu: string, index: number) => {
+  const base = parentPlu.trim() || "PROD-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `${base}-${index + 1}`;
+};
+
 export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
   const qc = useQueryClient();
   const isEdit = !!productId;
@@ -156,7 +163,9 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
     },
   });
 
-  const canSave = name.trim().length > 0 && !!imageUrl;
+  // Image used to be required at the form level; operator wants the option
+  // to save without one (placeholder shown in the catalog list instead).
+  const canSave = name.trim().length > 0;
   const attachedGroups = useMemo(
     () => allGroups.filter((g) => attachedGroupIds.includes(g.id)),
     [allGroups, attachedGroupIds],
@@ -255,9 +264,16 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
                   setHasMultipleSkus(e.target.checked);
                   // Seed one empty SKU row so the editor is usable
                   // immediately; user can add more or remove the seed.
+                  // PLU is auto-generated using the parent product PLU
+                  // + index (matches Base44's PIZZA-MARG-1 / -2 / -3).
                   if (e.target.checked && skus.length === 0) {
                     setSkus([
-                      { name: "", plu: "", price: "0.00", modifierGroupIds: [] },
+                      {
+                        name: "",
+                        plu: genSkuPlu(plu, 0),
+                        price: "0.00",
+                        modifierGroupIds: [],
+                      },
                     ]);
                   }
                 }}
@@ -294,7 +310,12 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
                   onClick={() =>
                     setSkus([
                       ...skus,
-                      { name: "", plu: "", price: "0.00", modifierGroupIds: [] },
+                      {
+                        name: "",
+                        plu: genSkuPlu(plu, skus.length),
+                        price: "0.00",
+                        modifierGroupIds: [],
+                      },
                     ])
                   }
                   className="h-8 text-xs"
@@ -404,13 +425,12 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
         <div className="space-y-5">
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-zinc-900 mb-3">
-              Image <span className="text-red-500">*</span>
+              Image{" "}
+              <span className="text-xs font-normal text-zinc-400">
+                (recommended)
+              </span>
             </h3>
-            <ImageUploader
-              value={imageUrl}
-              onChange={setImageUrl}
-              required
-            />
+            <ImageUploader value={imageUrl} onChange={setImageUrl} />
           </Card>
 
           <Card className="p-5">
