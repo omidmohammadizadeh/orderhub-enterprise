@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { AttachModal } from "./attach-modal";
 
 interface Props {
   brandId: string;
@@ -64,6 +65,8 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
   // from the existing group's options on hydrate, diffed against the
   // server set on save.
   const [attachedModifierIds, setAttachedModifierIds] = useState<string[]>([]);
+  const [showAddModifierModal, setShowAddModifierModal] = useState(false);
+  const [showInlineCreate, setShowInlineCreate] = useState(false);
 
   useEffect(() => {
     if (!existing) return;
@@ -310,176 +313,183 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
         </Card>
 
         <Card className="p-5">
-          <h3 className="text-sm font-semibold text-zinc-900 mb-1">Modifiers</h3>
-          <p className="text-[11px] text-zinc-500 mb-3">
-            Attach existing modifiers from your catalog, or add new ones
-            inline. Mirrors how products attach modifier groups.
-          </p>
-
-          {/* Attached modifiers list. Click × on a row to queue a detach
-              that applies on save. Owned modifiers (this group is their
-              primary FK) can't be detached here — operator must delete
-              the modifier or change its primary group instead. */}
-          <div className="space-y-1.5 mb-3">
-            {(() => {
-              const allOptions = otherGroups.flatMap((g) =>
-                (g.options ?? []).map((o) => ({
-                  ...o,
-                  groupName: g.name,
-                  primaryGroupId: g.id === o.groupId ? g.id : o.groupId,
-                })),
-              );
-              const byId = new Map(allOptions.map((o) => [o.id, o]));
-              const attached = attachedModifierIds
-                .map((id) => byId.get(id))
-                .filter(Boolean) as Array<
-                (typeof allOptions)[number]
-              >;
-              if (attached.length === 0) {
-                return (
-                  <p className="text-xs text-zinc-400 italic">
-                    No modifiers attached yet.
-                  </p>
-                );
-              }
-              return attached.map((m) => {
-                const owned = m.primaryGroupId === groupId;
-                return (
-                  <div
-                    key={m.id}
-                    className="flex items-center justify-between rounded border border-zinc-200 px-2.5 py-1.5 text-xs"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="text-zinc-700 truncate">{m.name}</span>
-                      <span className="text-[10px] text-zinc-400 ml-1">
-                        {owned ? "(owned)" : `(from ${m.groupName})`}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-zinc-400 tabular-nums">
-                        £{Number(m.priceAdjustment).toFixed(2)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setAttachedModifierIds(
-                            attachedModifierIds.filter((id) => id !== m.id),
-                          )
-                        }
-                        disabled={owned}
-                        title={
-                          owned
-                            ? "This modifier's primary group is this one — delete the modifier to remove."
-                            : "Detach"
-                        }
-                        className="text-zinc-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  </div>
-                );
-              });
-            })()}
-            {/* Inline-pending new modifiers (created on save). */}
-            {pendingModifiers.map((m, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between rounded border border-dashed border-orange-300 bg-orange-50 px-2.5 py-1.5 text-xs"
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-zinc-900">Modifiers</h3>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddModifierModal(true)}
+                className="h-8 text-xs"
               >
-                <span className="text-zinc-700 truncate">
-                  {m.name}{" "}
-                  <span className="text-[10px] text-orange-600 ml-1">new</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-zinc-400 tabular-nums">
-                    £{m.priceAdjustment.toFixed(2)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removePending(i)}
-                    className="text-zinc-400 hover:text-red-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              </div>
-            ))}
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Add Existing
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setShowInlineCreate((v) => !v)}
+                className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Create New
+              </Button>
+            </div>
           </div>
 
-          {/* Available-to-attach picker (Phase AL many-to-many). Lists
-              every modifier in the brand not yet attached to this group,
-              as pill buttons. Mirrors the product → modifier-group pill
-              picker exactly. */}
+          {/* Build the brand-wide modifier list once and re-use it for
+              both the attached display and the AttachModal. */}
           {(() => {
-            const all = otherGroups.flatMap((g) =>
+            const allOptions = otherGroups.flatMap((g) =>
               (g.options ?? []).map((o) => ({
                 ...o,
                 groupName: g.name,
+                primaryGroupId: o.groupId,
               })),
             );
-            // De-dupe by id (a modifier can appear under multiple groups
-            // via modifierGroupIds[]) and exclude already-attached ones.
-            const seen = new Set<string>(attachedModifierIds);
-            const available: typeof all = [];
-            for (const o of all) {
-              if (seen.has(o.id)) continue;
-              seen.add(o.id);
-              available.push(o);
-            }
-            if (available.length === 0) return null;
+            // De-dupe (a modifier attached to several groups appears once).
+            const byId = new Map<string, (typeof allOptions)[number]>();
+            for (const o of allOptions) if (!byId.has(o.id)) byId.set(o.id, o);
+            const unique = Array.from(byId.values());
+
+            const attached = attachedModifierIds
+              .map((id) => byId.get(id))
+              .filter(Boolean) as typeof unique;
+
             return (
-              <div className="pt-3 border-t border-zinc-100">
-                <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-2">
-                  Available to attach
-                </p>
-                <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto">
-                  {available.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() =>
-                        setAttachedModifierIds([...attachedModifierIds, m.id])
-                      }
-                      title={`From "${m.groupName}" — £${Number(m.priceAdjustment).toFixed(2)}`}
-                      className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
-                    >
-                      <Plus className="h-3 w-3" />
-                      {m.name}
-                    </button>
-                  ))}
+              <>
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-1.5 space-y-1.5">
+                  {attached.length === 0 && pendingModifiers.length === 0 ? (
+                    <p className="px-3 py-6 text-center text-sm text-zinc-400 italic">
+                      No modifiers attached. Click &quot;Add Existing&quot; to
+                      pick from the catalog or &quot;Create New&quot; to make
+                      one.
+                    </p>
+                  ) : (
+                    <>
+                      {attached.map((m) => {
+                        const owned = m.primaryGroupId === groupId;
+                        return (
+                          <div
+                            key={m.id}
+                            className="flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-zinc-900 truncate">
+                                {m.name}{" "}
+                                <span className="text-[10px] font-normal text-zinc-500 ml-1">
+                                  {owned
+                                    ? "(owned)"
+                                    : `(shared from ${m.groupName})`}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="text-xs text-zinc-500 tabular-nums">
+                                £{Number(m.priceAdjustment).toFixed(2)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setAttachedModifierIds(
+                                    attachedModifierIds.filter(
+                                      (id) => id !== m.id,
+                                    ),
+                                  )
+                                }
+                                disabled={owned}
+                                title={
+                                  owned
+                                    ? "Owned by this group — delete the modifier instead."
+                                    : "Remove"
+                                }
+                                className="text-zinc-300 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {pendingModifiers.map((m, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded border border-dashed border-orange-300 bg-orange-50 px-3 py-2 text-sm"
+                        >
+                          <span className="font-medium text-zinc-900 truncate">
+                            {m.name}{" "}
+                            <span className="text-[10px] text-orange-600 ml-1">
+                              new
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-3">
+                            <span className="text-xs text-zinc-500 tabular-nums">
+                              £{m.priceAdjustment.toFixed(2)}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removePending(i)}
+                              className="text-zinc-300 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
-              </div>
+
+                <AttachModal
+                  open={showAddModifierModal}
+                  title="Add Modifiers"
+                  rows={unique.map((m) => ({
+                    id: m.id,
+                    name: m.name,
+                    subtitle: m.plu ?? "",
+                    meta: `£${Number(m.priceAdjustment).toFixed(2)} · from ${m.groupName}`,
+                  }))}
+                  initiallyAttachedIds={attachedModifierIds}
+                  onConfirm={(ids) => {
+                    setAttachedModifierIds(ids);
+                    setShowAddModifierModal(false);
+                  }}
+                  onCancel={() => setShowAddModifierModal(false)}
+                />
+              </>
             );
           })()}
 
-          <div className="pt-3 border-t border-zinc-100 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">
-              Or add a new modifier
-            </p>
-            <div className="flex gap-1.5">
-              <Input
-                placeholder="Modifier name"
-                value={newModName}
-                onChange={(e) => setNewModName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addPending();
-                  }
-                }}
-                className="flex-1 h-8 text-xs"
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="£0.00"
-                value={newModPrice}
-                onChange={(e) => setNewModPrice(e.target.value)}
-                className="w-20 h-8 text-xs tabular-nums"
-              />
-              <Button
-                type="button"
+          {showInlineCreate && (
+            <div className="mt-3 pt-3 border-t border-zinc-100 space-y-2">
+              <p className="text-[10px] uppercase tracking-wider text-zinc-400">
+                New modifier
+              </p>
+              <div className="flex gap-1.5">
+                <Input
+                  autoFocus
+                  placeholder="Modifier name"
+                  value={newModName}
+                  onChange={(e) => setNewModName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addPending();
+                    }
+                  }}
+                  className="flex-1 h-8 text-xs"
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="£0.00"
+                  value={newModPrice}
+                  onChange={(e) => setNewModPrice(e.target.value)}
+                  className="w-20 h-8 text-xs tabular-nums"
+                />
+                <Button
+                  type="button"
                 size="sm"
                 variant="outline"
                 onClick={addPending}
@@ -489,6 +499,7 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
               </Button>
             </div>
           </div>
+          )}
         </Card>
       </div>
 

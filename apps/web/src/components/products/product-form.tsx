@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "./image-uploader";
+import { AttachModal } from "./attach-modal";
 
 interface Props {
   brandId: string;
@@ -68,6 +69,10 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
   // its own name, PLU, price and attached modifier groups so a pizza
   // can carry 10"/12"/14" sizes each with size-specific toppings + crust
   // groups. Mirrors the Base44 productSkus[] shape.
+  // Phase AL — explicit Add Existing modal state. Replaces the always-on
+  // pill-grid picker; operator now sees only the attached items and
+  // opens the modal by clicking "Add Existing".
+  const [showAddGroupModal, setShowAddGroupModal] = useState(false);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
     Array<{
@@ -349,74 +354,98 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
           ) : (
             // ── Flat product modifier groups ───────────────────────
             <Card className="p-5">
-              <h3 className="text-sm font-semibold text-zinc-900 mb-1">
-                Modifier groups
-              </h3>
-              <p className="text-xs text-zinc-500 mb-4">
-                Attach existing modifier groups (sizes, toppings, sauces, etc.).
-                Customers see them in this order on the modifier modal.
-              </p>
-              <div className="space-y-2">
-                {attachedGroups.length === 0 && (
-                  <p className="text-sm text-zinc-400 italic">No groups attached.</p>
-                )}
-                {attachedGroups.map((g) => (
-                  <div
-                    key={g.id}
-                    className="flex items-center justify-between rounded-md border border-zinc-200 px-3 py-2"
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  Modifier Groups
+                </h3>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowAddGroupModal(true)}
+                    className="h-8 text-xs"
                   >
-                    <div>
-                      <p className="text-sm font-medium text-zinc-900">{g.name}</p>
-                      <p className="text-[11px] text-zinc-500">
-                        {g.selectionType === "VARIANT" ? "Pick one" : "Pick many"}
-                        {g.minSelections > 0 && " · required"}
-                        {" · "}
-                        {g.options?.length ?? 0} options
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setAttachedGroupIds(
-                          attachedGroupIds.filter((id) => id !== g.id),
-                        )
-                      }
-                      className="text-zinc-400 hover:text-red-600"
-                      title="Detach"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-                {availableGroups.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-[11px] uppercase tracking-wider text-zinc-400 mb-2">
-                      Available groups
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {availableGroups.map((g) => (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() =>
-                            setAttachedGroupIds([...attachedGroupIds, g.id])
-                          }
-                          className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
-                        >
-                          <Plus className="h-3 w-3" />
-                          {g.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {allGroups.length === 0 && (
-                  <p className="text-xs text-zinc-400 mt-1">
-                    No modifier groups yet — create some in the Modifier Groups
-                    tab first.
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Add Existing
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      // Open the standalone Modifier Groups tab so the
+                      // operator can create the group there and come
+                      // back. We could embed an inline form, but the
+                      // standalone tab carries the full editor (PLU,
+                      // selection type, modifiers) that's too dense to
+                      // squeeze into a product form.
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("tab", "modifier-groups");
+                      window.open(url, "_blank");
+                    }}
+                    className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create New
+                  </Button>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-1.5 space-y-1.5">
+                {attachedGroups.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-sm text-zinc-400 italic">
+                    No modifier groups attached. Click &quot;Add Existing&quot;
+                    to pick from the catalog or &quot;Create New&quot; to
+                    make one.
                   </p>
+                ) : (
+                  attachedGroups.map((g) => (
+                    <div
+                      key={g.id}
+                      className="group flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-zinc-900">
+                          {g.name}{" "}
+                          <span className="text-[11px] font-normal text-zinc-500">
+                            ({g.options?.length ?? 0} modifier
+                            {g.options?.length === 1 ? "" : "s"})
+                          </span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachedGroupIds(
+                            attachedGroupIds.filter((id) => id !== g.id),
+                          )
+                        }
+                        className="text-zinc-300 hover:text-red-600 transition-colors"
+                        title="Remove from this product"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
                 )}
               </div>
+
+              <AttachModal
+                open={showAddGroupModal}
+                title="Add Modifier Groups"
+                rows={allGroups.map((g) => ({
+                  id: g.id,
+                  name: g.name,
+                  subtitle: g.plu ?? "",
+                  meta: `${g.options?.length ?? 0} modifier${g.options?.length === 1 ? "" : "s"}`,
+                }))}
+                initiallyAttachedIds={attachedGroupIds}
+                onConfirm={(ids) => {
+                  setAttachedGroupIds(ids);
+                  setShowAddGroupModal(false);
+                }}
+                onCancel={() => setShowAddGroupModal(false)}
+              />
             </Card>
           )}
         </div>
