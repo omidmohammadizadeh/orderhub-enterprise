@@ -33,6 +33,14 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
     enabled: !!groupId,
   });
 
+  // All groups in the brand (with options) — used by the "Attach existing"
+  // picker to surface modifiers already created in OTHER groups.
+  const { data: otherGroups = [] } = useQuery({
+    queryKey: ["catalog", "modifier-groups", brandId],
+    queryFn: () => modifierGroupsClient.list(brandId),
+    enabled: !!brandId,
+  });
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [plu, setPlu] = useState(genPlu());
@@ -173,27 +181,61 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
           </label>
 
           <div className="pt-3 border-t border-zinc-100 space-y-3">
-            <label className="block">
+            <div>
               <span className="text-xs font-medium text-zinc-700">
-                Selection type
+                Select modifier group type
               </span>
-              <div className="mt-1 inline-flex rounded-md border border-zinc-200 bg-white p-0.5">
-                {(["VARIANT", "ADDON"] as const).map((t) => (
+              <div className="mt-2 space-y-2">
+                {/* Card-style radio matching the Deliverect reference the
+                    operator provided: stacked cards with title + hint and
+                    a leading radio dot. */}
+                {(
+                  [
+                    {
+                      value: "VARIANT" as const,
+                      title: "Variant",
+                      hint: "Only one modifier can be selected with the item (Eg: Size of pizza)",
+                    },
+                    {
+                      value: "ADDON" as const,
+                      title: "Add-On",
+                      hint: "More than one modifiers can be selected with the item (Eg: Pizza Toppings)",
+                    },
+                  ]
+                ).map((opt) => (
                   <button
-                    key={t}
+                    key={opt.value}
                     type="button"
-                    onClick={() => setSelectionType(t)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded ${
-                      selectionType === t
-                        ? "bg-zinc-900 text-white"
-                        : "text-zinc-600 hover:text-zinc-900"
+                    onClick={() => setSelectionType(opt.value)}
+                    className={`w-full text-left flex items-start gap-3 rounded-md border px-4 py-3 transition-colors ${
+                      selectionType === opt.value
+                        ? "border-orange-400 bg-orange-50/40"
+                        : "border-zinc-200 hover:border-zinc-300"
                     }`}
                   >
-                    {t === "VARIANT" ? "Pick one (radio)" : "Pick many (checkbox)"}
+                    <span
+                      className={`mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 grid place-items-center ${
+                        selectionType === opt.value
+                          ? "border-orange-500"
+                          : "border-zinc-300"
+                      }`}
+                    >
+                      {selectionType === opt.value && (
+                        <span className="h-2 w-2 rounded-full bg-orange-500" />
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-zinc-900">
+                        {opt.title}
+                      </span>
+                      <span className="block text-xs text-zinc-500 mt-0.5">
+                        {opt.hint}
+                      </span>
+                    </span>
                   </button>
                 ))}
               </div>
-            </label>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="text-xs font-medium text-zinc-700">
@@ -244,9 +286,78 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-zinc-900 mb-1">Modifiers</h3>
           <p className="text-[11px] text-zinc-500 mb-3">
-            Add modifiers inline. They&apos;ll be created under this group when
-            you save.
+            Pick existing modifiers from your catalog, or add new ones
+            inline. Inline ones are created under this group when you save.
           </p>
+
+          {/* Existing-modifier picker — lists modifiers from OTHER groups
+              in this brand and lets the operator attach them to this
+              group. Uses the modifierGroupIds[] many-to-many array on
+              ModifierOption (Phase AL). */}
+          {(() => {
+            // We re-use the modifier-groups query already cached on this
+            // page to find the brand's full modifier list. Each option in
+            // every other group is a candidate.
+            const allOther = otherGroups
+              .filter((g) => g.id !== groupId)
+              .flatMap((g) =>
+                (g.options ?? []).map((o) => ({
+                  ...o,
+                  groupName: g.name,
+                })),
+              );
+            // Hide ones the operator has already attached to this group.
+            const alreadyHere = new Set(
+              (existing?.options ?? []).map((o) => o.id),
+            );
+            const candidates = allOther.filter((m) => !alreadyHere.has(m.id));
+
+            if (candidates.length === 0) return null;
+
+            return (
+              <div className="mb-3 pb-3 border-b border-zinc-100">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  Attach existing
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {candidates.slice(0, 12).map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={async () => {
+                        if (!groupId) return;
+                        await modifiersClient.update(m.id, {
+                          modifierGroupIds: Array.from(
+                            new Set([
+                              ...((m as any).modifierGroupIds ?? []),
+                              groupId,
+                            ]),
+                          ),
+                        } as any);
+                        qc.invalidateQueries({
+                          queryKey: [
+                            "catalog",
+                            "modifier-groups-with-options",
+                            brandId,
+                          ],
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
+                      title={`From "${m.groupName}"`}
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      {m.name}
+                    </button>
+                  ))}
+                  {candidates.length > 12 && (
+                    <span className="text-[10px] text-zinc-400 self-center">
+                      + {candidates.length - 12} more (search coming next)
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="space-y-1.5 mb-3">
             {existing?.options?.map((o) => (
