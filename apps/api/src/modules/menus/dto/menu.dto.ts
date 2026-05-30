@@ -61,6 +61,11 @@ export class CreateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() logoImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() heroImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  publishedTo?: string[];
 }
 
 export class UpdateMenuDto {
@@ -76,6 +81,13 @@ export class UpdateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() logoImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() heroImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
+  // Phase AM — publish target picker. The service stamps lastPublishedAt
+  // whenever this comes in non-empty.
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  publishedTo?: string[];
 }
 
 // ── Create category ───────────────────────────────────────────────────────────

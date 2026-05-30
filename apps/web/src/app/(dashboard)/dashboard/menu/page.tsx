@@ -25,7 +25,8 @@ import { AddMenuModal } from "@/components/menu/add-menu-modal";
 import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
-import { Send } from "lucide-react";
+import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
+import { Send, CheckCircle2 } from "lucide-react";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -51,6 +52,12 @@ export default function MenuPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
   const [publishingMenu, setPublishingMenu] = useState<Menu | null>(null);
+  // Phase AM — transient success toast after a publish, dismissed
+  // after 4s or on next user interaction.
+  const [publishToast, setPublishToast] = useState<{
+    menuName: string;
+    targets: string[];
+  } | null>(null);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const [creatingBrand, setCreatingBrand] = useState(false);
   const [newBrandName, setNewBrandName] = useState("");
@@ -341,12 +348,60 @@ export default function MenuPage() {
         initiallyPublishedTo={
           ((publishingMenu as any)?.publishedTo ?? []) as string[]
         }
-        onConfirmed={() => {
+        onConfirmed={(targets) => {
           qc.invalidateQueries({ queryKey: ["menus", brandId] });
+          // Show the success toast even when the operator unchecks
+          // every target — distinguish in the copy.
+          if (publishingMenu) {
+            setPublishToast({
+              menuName: publishingMenu.name,
+              targets,
+            });
+            window.setTimeout(() => setPublishToast(null), 4500);
+          }
           setPublishingMenu(null);
         }}
         onCancel={() => setPublishingMenu(null)}
       />
+
+      {/* Publish success toast */}
+      {publishToast && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-md rounded-xl border border-emerald-200 bg-white shadow-lg px-4 py-3">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-zinc-900">
+                {publishToast.targets.length > 0
+                  ? `${publishToast.menuName} published`
+                  : `${publishToast.menuName} unpublished`}
+              </p>
+              {publishToast.targets.length > 0 ? (
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {publishToast.targets.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1 text-[11px] text-zinc-600"
+                    >
+                      <PlatformLogo platform={t} size={16} />
+                      {platformLabel(t)}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  No active publish targets.
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setPublishToast(null)}
+              className="text-zinc-400 hover:text-zinc-700 -mt-1"
+            >
+              <span className="sr-only">Dismiss</span>×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -362,7 +417,22 @@ interface MenuCardProps {
 }
 
 function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete }: MenuCardProps) {
-  const cfg = STATUS_CONFIG[menu.status];
+  // Phase AM — show the Live badge only when the menu is actually
+  // published to at least one target. status=PUBLISHED alone isn't
+  // enough; an operator might toggle every target off and that needs
+  // to read as Draft, not "Live" with no destinations.
+  const publishedTo: string[] =
+    (menu as any).publishedTo && Array.isArray((menu as any).publishedTo)
+      ? (menu as any).publishedTo
+      : [];
+  const isLive = publishedTo.length > 0 && menu.status === "PUBLISHED";
+  const lastPublishedAt: string | null =
+    (menu as any).lastPublishedAt ?? null;
+  const cfg = isLive
+    ? STATUS_CONFIG.PUBLISHED
+    : menu.status === "ARCHIVED"
+      ? STATUS_CONFIG.ARCHIVED
+      : STATUS_CONFIG.DRAFT;
   return (
     <div className="group relative flex items-center gap-4 rounded-xl border border-zinc-200 bg-white px-5 py-4 hover:border-zinc-300 transition-colors">
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100">
@@ -375,7 +445,30 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
             {cfg.label}
           </span>
         </div>
-        <p className="text-xs text-zinc-400 mt-0.5">{menu._count?.categories ?? 0} categories</p>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
+          <span>{menu._count?.categories ?? 0} categories</span>
+          {publishedTo.length > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <span className="text-zinc-300">·</span>
+              <span className="text-zinc-500">Live on</span>
+              <span className="inline-flex items-center gap-1">
+                {publishedTo.map((t) => (
+                  <PlatformLogo
+                    key={t}
+                    platform={t}
+                    size={14}
+                  />
+                ))}
+              </span>
+            </span>
+          )}
+          {lastPublishedAt && (
+            <span className="text-zinc-400">
+              <span className="text-zinc-300 mr-1">·</span>
+              Last published {formatRelative(lastPublishedAt)}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Button
@@ -412,6 +505,24 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
       </div>
     </div>
   );
+}
+
+// Compact relative-time formatter for the menu card's "last published"
+// stamp. ISO date in, "5m ago" / "3 days ago" out. Falls back to the
+// raw date string for anything over 30 days so operators still see
+// something meaningful.
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diff = Date.now() - then;
+  const m = Math.floor(diff / 60_000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d} day${d === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 function DropItem({ icon: Icon, label, onClick, danger }: { icon: React.ElementType; label: string; onClick: () => void; danger?: boolean }) {

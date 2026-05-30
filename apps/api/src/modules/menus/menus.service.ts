@@ -111,6 +111,16 @@ export class MenusService {
         ...(dto.logoImage !== undefined && { logoImage: dto.logoImage }),
         ...(dto.heroImage !== undefined && { heroImage: dto.heroImage }),
         ...(dto.locationId !== undefined && { locationId: dto.locationId }),
+        // Phase AM — publish target picker writes its selection here.
+        // Stamping lastPublishedAt only when at least one target is on
+        // means an "unpublish-all" leaves the previous stamp intact for
+        // audit trail purposes.
+        ...(dto.publishedTo !== undefined && {
+          publishedTo: dto.publishedTo,
+          ...(dto.publishedTo.length > 0 && {
+            lastPublishedAt: new Date(),
+          }),
+        }),
       },
     });
   }
