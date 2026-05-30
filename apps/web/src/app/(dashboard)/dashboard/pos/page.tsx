@@ -8,6 +8,7 @@ import { LocationSelector } from "@/components/dashboard/location-selector";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
+import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { apiClient } from "@/lib/api/client";
 
 // ── POS page ────────────────────────────────────────────────────────────────
@@ -68,6 +69,22 @@ export default function PosPage() {
     queryKey: ["pos-menu", selectedLocationId],
     queryFn: () => menusClient.getActiveMenuForLocation(selectedLocationId!),
     enabled: !!selectedLocationId,
+    staleTime: 60_000,
+  });
+
+  // Phase AM — multi-SKU products store their per-SKU modifier groups
+  // as plain ID arrays inside productSkus[].modifierGroups. Those IDs
+  // are NOT FK-linked through ModifierGroupOnItem, so they don't ride
+  // along with item.modifierGroupLinks. To render them in the POS
+  // modal we fetch the brand's full modifier-group catalog (groups +
+  // options) and pass it in. The modal then resolves SKU group IDs
+  // against this list for multi-SKU items, and falls back to the
+  // item's own modifierGroupLinks for flat products.
+  const brandId = (menuQuery.data as any)?.brandId as string | undefined;
+  const allGroupsQuery = useQuery({
+    queryKey: ["pos-all-modifier-groups", brandId],
+    queryFn: () => modifierGroupsClient.list(brandId!),
+    enabled: !!brandId,
     staleTime: 60_000,
   });
 
@@ -160,6 +177,9 @@ export default function PosPage() {
   });
 
   const onProductClick = (item: MenuItem) => {
+    // Multi-SKU products always need the modal (size picker + SKU-
+    // attached groups). Flat products need it only if they carry FK-
+    // linked modifier groups.
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
@@ -375,6 +395,7 @@ export default function PosPage() {
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
+          allModifierGroups={allGroupsQuery.data ?? []}
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => addToCart(line)}

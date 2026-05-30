@@ -13,6 +13,7 @@ import {
   type SelectedModifier,
 } from "@orderhub/shared";
 import type { MenuItem } from "@/lib/api/menus.client";
+import type { CatalogModifierGroup } from "@/lib/api/catalog.client";
 
 // ── POS ModifierSelectionModal ──────────────────────────────────────────────
 //
@@ -38,6 +39,15 @@ import type { MenuItem } from "@/lib/api/menus.client";
 
 interface Props {
   item: MenuItem;
+  /**
+   * Brand-wide modifier group catalog. Required for multi-SKU products
+   * because their per-SKU modifier groups are stored as plain ID
+   * arrays in productSkus[].modifierGroups (not FK-linked through
+   * ModifierGroupOnItem like flat-product groups), so the modal
+   * needs to look them up against the brand catalog.
+   * For flat products this prop is unused and can be empty.
+   */
+  allModifierGroups?: CatalogModifierGroup[];
   open: boolean;
   onClose: () => void;
   onAdd: (line: {
@@ -52,7 +62,13 @@ interface Props {
   }) => void;
 }
 
-export function ModifierSelectionModal({ item, open, onClose, onAdd }: Props) {
+export function ModifierSelectionModal({
+  item,
+  allModifierGroups = [],
+  open,
+  onClose,
+  onAdd,
+}: Props) {
   const isMultiSku = !!item.hasMultipleSkus && (item.productSkus?.length ?? 0) > 0;
 
   const [selectedSku, setSelectedSku] = useState<ProductSku | null>(
@@ -68,13 +84,36 @@ export function ModifierSelectionModal({ item, open, onClose, onAdd }: Props) {
     [selectedSku],
   );
 
-  // Active modifier groups: SKU-owned when multi-SKU, otherwise item-owned.
+  // Active modifier groups, normalised to the modifierGroupLinks shape
+  // the modal consumes ({ group: {…options[]} }):
+  //
+  //   - Flat product:   pulled from item.modifierGroupLinks (the
+  //                     ModifierGroupOnItem FK join, already
+  //                     populated by the API include).
+  //   - Multi-SKU:      pulled from allModifierGroups (the brand
+  //                     catalog) by SKU.modifierGroups[] id, because
+  //                     SKU groups are NOT FK-attached — they live
+  //                     in JSON. Without this lookup the modal saw
+  //                     an empty group list for every pizza-style
+  //                     product and skipped straight to "add to
+  //                     cart" with no modifier picks.
   const activeGroups = useMemo(() => {
-    const groups = item.modifierGroupLinks ?? [];
-    if (!isMultiSku || !selectedSku) return groups;
-    const skuGroupIds = new Set(selectedSku.modifierGroups);
-    return groups.filter((g) => skuGroupIds.has(g.group.id));
-  }, [item.modifierGroupLinks, isMultiSku, selectedSku]);
+    if (isMultiSku && selectedSku) {
+      const wanted = new Set(selectedSku.modifierGroups ?? []);
+      return allModifierGroups
+        .filter((g) => wanted.has(g.id))
+        // Match the shape of MenuItem.modifierGroupLinks: { group }.
+        // CatalogModifierGroup is structurally compatible with the
+        // group field (id, name, selectionType, options[]).
+        .map((g) => ({ group: g as any }));
+    }
+    return item.modifierGroupLinks ?? [];
+  }, [
+    item.modifierGroupLinks,
+    isMultiSku,
+    selectedSku,
+    allModifierGroups,
+  ]);
 
   // Flattened "selected modifiers with their group" view for pricing.
   const selectedModifiers = useMemo<SelectedModifier[]>(() => {
@@ -82,7 +121,7 @@ export function ModifierSelectionModal({ item, open, onClose, onAdd }: Props) {
     for (const link of activeGroups) {
       const picked = selections[link.group.id] ?? [];
       for (const optId of picked) {
-        const opt = link.group.options.find((o) => o.id === optId);
+        const opt = link.group.options.find((o: any) => o.id === optId);
         if (!opt) continue;
         const priceableModifier = {
           ...opt,
@@ -225,14 +264,14 @@ export function ModifierSelectionModal({ item, open, onClose, onAdd }: Props) {
               >
                 <div className="grid grid-cols-1 gap-2">
                   {group.options
-                    .filter((opt) => {
+                    .filter((opt: any) => {
                       const m = {
                         ...opt,
                         priceAdjustment: opt.priceAdjustment,
                       };
                       return isModifierAvailable(m as any, sizeKey, { audience: "pos" });
                     })
-                    .map((opt) => {
+                    .map((opt: any) => {
                       const m = { ...opt, priceAdjustment: opt.priceAdjustment };
                       const price = getModifierPrice(m as any, sizeKey);
                       const checked = (selections[group.id] ?? []).includes(opt.id);
