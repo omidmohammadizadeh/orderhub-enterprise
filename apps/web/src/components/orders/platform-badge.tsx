@@ -1,14 +1,10 @@
 "use client";
 
-const PLATFORM_CONFIG: Record<string, { label: string; color: string }> = {
-  UBER_EATS: { label: "Uber Eats", color: "bg-black text-white" },
-  DELIVEROO: { label: "Deliveroo", color: "bg-teal-600 text-white" },
-  JUST_EAT: { label: "Just Eat", color: "bg-orange-500 text-white" },
-  HUBRISE: { label: "HubRise", color: "bg-violet-600 text-white" },
-  DIRECT: { label: "Direct", color: "bg-zinc-700 text-white" },
-  ONLINE: { label: "Online", color: "bg-blue-600 text-white" },
-  POS: { label: "POS", color: "bg-zinc-600 text-white" },
-};
+// Phase AM — Platform badge upgraded to use the shared PlatformLogo
+// tile so order cards, menu publish targets, and integration rows all
+// share one consistent visual identity.
+
+import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 
 const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
   PICKUP: { label: "Pickup", color: "bg-sky-100 text-sky-700" },
@@ -18,11 +14,13 @@ const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
   PLATFORM_COURIER: { label: "Courier", color: "bg-rose-100 text-rose-700" },
 };
 
+// Pill-style badge with the brand logo tile on the left and the
+// platform name on the right. Compact enough for order card headers.
 export function PlatformBadge({ platform }: { platform: string }) {
-  const cfg = PLATFORM_CONFIG[platform] ?? { label: platform, color: "bg-zinc-500 text-white" };
   return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.color}`}>
-      {cfg.label}
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-white border border-zinc-200 pr-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-700">
+      <PlatformLogo platform={platform} size={18} title={false} />
+      {platformLabel(platform)}
     </span>
   );
 }

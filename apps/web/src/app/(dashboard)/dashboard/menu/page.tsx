@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 import { AddMenuModal } from "@/components/menu/add-menu-modal";
 import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
+import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
+import { Send } from "lucide-react";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -47,6 +49,8 @@ export default function MenuPage() {
     null | "chooser" | "create" | "import-channel" | "import-pos"
   >(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  // Phase AM — publish target picker per menu card.
+  const [publishingMenu, setPublishingMenu] = useState<Menu | null>(null);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const [creatingBrand, setCreatingBrand] = useState(false);
   const [newBrandName, setNewBrandName] = useState("");
@@ -315,7 +319,13 @@ export default function MenuPage() {
               menu={menu}
               isDropdownOpen={openMenuId === menu.id}
               onToggleDropdown={() => setOpenMenuId(openMenuId === menu.id ? null : menu.id)}
-              onPublish={() => { publishMutation.mutate(menu.id); setOpenMenuId(null); }}
+              onPublish={() => {
+                // Phase AM — Publish opens a target picker (online / POS /
+                // marketplace channels) rather than firing the legacy
+                // single-shot publishMutation.
+                setPublishingMenu(menu);
+                setOpenMenuId(null);
+              }}
               onArchive={() => { archiveMutation.mutate(menu.id); setOpenMenuId(null); }}
               onClone={() => { cloneMutation.mutate({ menuId: menu.id, name: `${menu.name} (copy)` }); setOpenMenuId(null); }}
               onDelete={() => { deleteMutation.mutate(menu.id); setOpenMenuId(null); }}
@@ -323,6 +333,20 @@ export default function MenuPage() {
           ))}
         </div>
       )}
+
+      <PublishMenuModal
+        open={!!publishingMenu}
+        menuId={publishingMenu?.id ?? ""}
+        menuName={publishingMenu?.name ?? ""}
+        initiallyPublishedTo={
+          ((publishingMenu as any)?.publishedTo ?? []) as string[]
+        }
+        onConfirmed={() => {
+          qc.invalidateQueries({ queryKey: ["menus", brandId] });
+          setPublishingMenu(null);
+        }}
+        onCancel={() => setPublishingMenu(null)}
+      />
     </div>
   );
 }
@@ -354,6 +378,14 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
         <p className="text-xs text-zinc-400 mt-0.5">{menu._count?.categories ?? 0} categories</p>
       </div>
       <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          onClick={onPublish}
+          className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+        >
+          <Send className="h-3 w-3" />
+          Publish
+        </Button>
         <Link href={`/dashboard/menu/${menu.id}`}>
           <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
             Edit <ChevronRight className="h-3 w-3" />
