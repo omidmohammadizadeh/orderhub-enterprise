@@ -17,6 +17,7 @@ import {
   promoCodesClient,
   addressLookupClient,
   type AddressSuggestion,
+  type AddressProvider,
   type PromoValidateResult,
 } from "@/lib/api/pos.client";
 import { useOnlineStatus } from "@/lib/pos/use-online-status";
@@ -140,7 +141,13 @@ export function PosCartPanel(props: CartPanelProps) {
   const [addrQuery, setAddrQuery] = useState("");
   const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
   const [addrSearching, setAddrSearching] = useState(false);
-  const [addrProvider, setAddrProvider] = useState<"mapbox" | "google" | "manual">("manual");
+  const [addrProvider, setAddrProvider] = useState<AddressProvider>("manual");
+  const [postcodeProvider, setPostcodeProvider] = useState<AddressProvider>("manual");
+
+  // Postcode lookup (UK-style: enter postcode → pick from list of houses)
+  const [pcLookupResults, setPcLookupResults] = useState<AddressSuggestion[]>([]);
+  const [pcLookupLoading, setPcLookupLoading] = useState(false);
+  const [pcLookupNote, setPcLookupNote] = useState<string | null>(null);
 
   // Delivery fee lookup
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
@@ -233,9 +240,11 @@ export function PosCartPanel(props: CartPanelProps) {
   useEffect(() => {
     let cancelled = false;
     addressLookupClient
-      .provider()
+      .status()
       .then((r) => {
-        if (!cancelled) setAddrProvider(r.provider);
+        if (cancelled) return;
+        setAddrProvider(r.searchProvider);
+        setPostcodeProvider(r.postcodeProvider);
       })
       .catch(() => undefined);
     return () => {
@@ -406,10 +415,53 @@ export function PosCartPanel(props: CartPanelProps) {
   const pickAddressSuggestion = (s: AddressSuggestion) => {
     setAddrLine1(s.line1);
     if (s.line2) setAddrLine2(s.line2);
+    else setAddrLine2("");
     if (s.city) setCity(s.city);
     if (s.postcode) setPostcode(s.postcode);
     setAddrQuery("");
     setAddrSuggestions([]);
+    setPcLookupResults([]);
+    setPcLookupNote(null);
+  };
+
+  /**
+   * UK postcode → list of houses at that postcode (getaddress.io). The
+   * operator types or pastes the postcode then hits "Find" — we render the
+   * results as a clickable list. Picking one fills line1/line2/city/postcode
+   * so the operator only has to add a flat number or buzzer code.
+   */
+  const runPostcodeLookup = async () => {
+    const pc = postcode.trim();
+    if (pc.length < 5) {
+      setPcLookupNote("Enter a full postcode first");
+      setPcLookupResults([]);
+      return;
+    }
+    setPcLookupLoading(true);
+    setPcLookupNote(null);
+    try {
+      const res = await addressLookupClient.postcode(pc);
+      if (res.suggestions.length === 0) {
+        setPcLookupResults([]);
+        setPcLookupNote(
+          res.provider === "manual"
+            ? "Postcode lookup unavailable (no provider configured). Enter address manually."
+            : "No addresses found for this postcode.",
+        );
+      } else {
+        setPcLookupResults(res.suggestions);
+        setPcLookupNote(
+          `${res.suggestions.length} address${res.suggestions.length === 1 ? "" : "es"} — tap one to use`,
+        );
+      }
+    } catch (err: any) {
+      setPcLookupResults([]);
+      setPcLookupNote(
+        err?.response?.data?.message ?? "Postcode lookup failed",
+      );
+    } finally {
+      setPcLookupLoading(false);
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -609,8 +661,55 @@ export function PosCartPanel(props: CartPanelProps) {
               <Input value={addrLine2} onChange={setAddrLine2} placeholder="Address line 2 (optional)" />
               <div className="grid grid-cols-2 gap-2">
                 <Input value={city} onChange={setCity} placeholder="City" />
-                <Input value={postcode} onChange={(v) => setPostcode(v.toUpperCase())} placeholder="Postcode" />
+                <div className="flex gap-1">
+                  <input
+                    type="text"
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                    placeholder="Postcode"
+                    className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={runPostcodeLookup}
+                    disabled={pcLookupLoading || postcode.trim().length < 5}
+                    title={
+                      postcodeProvider === "manual"
+                        ? "Postcode lookup unavailable (set GETADDRESS_API_KEY)"
+                        : "Find addresses at this postcode"
+                    }
+                    className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    {pcLookupLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Search className="h-3 w-3" />
+                    )}
+                    Find
+                  </button>
+                </div>
               </div>
+
+              {/* Postcode lookup results */}
+              {pcLookupNote && (
+                <p className="text-[10px] text-zinc-500">{pcLookupNote}</p>
+              )}
+              {pcLookupResults.length > 0 && (
+                <ul className="max-h-44 overflow-y-auto rounded-md border border-zinc-200 bg-white">
+                  {pcLookupResults.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        onClick={() => pickAddressSuggestion(s)}
+                        className="w-full px-2 py-1.5 text-left text-[11px] leading-snug hover:bg-zinc-50"
+                      >
+                        {s.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               {deliveryLookupNote && (
                 <p className="text-[10px] text-zinc-500">{deliveryLookupNote}</p>
               )}

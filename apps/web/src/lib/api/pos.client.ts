@@ -78,6 +78,8 @@ export const promoCodesClient = {
   remove: (id: string) => apiClient.delete(`/v1/promo-codes/${id}`),
 };
 
+export type AddressProvider = "mapbox" | "google" | "getaddress" | "manual";
+
 export interface AddressSuggestion {
   id: string;
   label: string;
@@ -88,19 +90,31 @@ export interface AddressSuggestion {
   country?: string;
   latitude?: number;
   longitude?: number;
-  provider: "mapbox" | "google" | "manual";
+  provider: AddressProvider;
+}
+
+export interface AddressProviderStatus {
+  searchProvider: AddressProvider;
+  postcodeProvider: AddressProvider;
 }
 
 export const addressLookupClient = {
-  provider: () =>
+  status: () =>
     apiClient
-      .get<{ provider: "mapbox" | "google" | "manual" }>("/v1/address-lookup/provider")
+      .get<AddressProviderStatus>("/v1/address-lookup/status")
       .then((r) => r.data),
   search: (q: string, country: string = "gb", limit: number = 5) =>
     apiClient
       .get<{
-        provider: "mapbox" | "google" | "manual";
+        provider: AddressProvider;
         suggestions: AddressSuggestion[];
       }>("/v1/address-lookup/search", { params: { q, country, limit } })
+      .then((r) => r.data),
+  postcode: (postcode: string) =>
+    apiClient
+      .get<{
+        provider: AddressProvider;
+        suggestions: AddressSuggestion[];
+      }>("/v1/address-lookup/postcode", { params: { postcode } })
       .then((r) => r.data),
 };

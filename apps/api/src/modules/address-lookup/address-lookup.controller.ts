@@ -11,9 +11,24 @@ export class AddressLookupController {
   constructor(private readonly service: AddressLookupService) {}
 
   @Get("provider")
-  @ApiOperation({ summary: "Which provider is active (mapbox/google/manual)" })
+  @ApiOperation({ summary: "Which provider is active for autocomplete (legacy)" })
   provider() {
     return { provider: this.service.describeActiveProvider() };
+  }
+
+  @Get("status")
+  @ApiOperation({ summary: "Active providers for both autocomplete + postcode lookup" })
+  status() {
+    return this.service.status();
+  }
+
+  @Get("postcode")
+  @ApiOperation({
+    summary: "List all addresses at a UK postcode (getaddress.io / Royal Mail PAF)",
+  })
+  @ApiQuery({ name: "postcode", required: true })
+  postcode(@Query("postcode") postcode: string) {
+    return this.service.searchByPostcode(postcode);
   }
 
   @Get("search")

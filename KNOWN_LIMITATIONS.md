@@ -12,9 +12,13 @@
   manager-facing zones editor lands next phase.
 - **No admin UI for promo codes yet.** Create / update / delete is API-only.
   The POS validates + redeems correctly today.
-- **Address autocomplete requires `MAPBOX_ACCESS_TOKEN`.** Without it the
-  POS falls back to manual entry — no provider fails closed. Google Places
-  is a placeholder.
+- **Address lookup needs an API key, otherwise manual-only.** Two
+  independent providers, both optional:
+    * Free-text autocomplete via Mapbox (`MAPBOX_ACCESS_TOKEN`).
+    * UK postcode → addresses via getaddress.io / Royal Mail PAF
+      (`GETADDRESS_API_KEY`).
+  Without either, the POS still works with pure manual entry — no provider
+  fails closed. Google Places is a placeholder for the autocomplete slot.
 - **Caller-ID integration is a free-text field.** Hardware/CTI bridge is
   not yet wired; the field structure + persistence are ready.
 - **Payment providers Dojo / Adyen / Worldpay are placeholders.** The

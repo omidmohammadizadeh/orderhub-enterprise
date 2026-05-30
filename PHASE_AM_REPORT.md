@@ -32,7 +32,7 @@ Migration `20260530000000_phase_am_pos_operational` (idempotent):
 |---|---|
 | `DeliveryZones` | `GET /v1/delivery-zones?locationId`, `GET /v1/delivery-zones/lookup?locationId&postcode`, `POST /v1/delivery-zones`, `PATCH /v1/delivery-zones/:id`, `DELETE /v1/delivery-zones/:id` |
 | `PromoCodes` | `GET /v1/promo-codes`, `POST /v1/promo-codes`, `PATCH /v1/promo-codes/:id`, `DELETE /v1/promo-codes/:id`, `POST /v1/promo-codes/validate` |
-| `AddressLookup` | `GET /v1/address-lookup/provider`, `GET /v1/address-lookup/search?q&country&limit` |
+| `AddressLookup` | `GET /v1/address-lookup/status`, `GET /v1/address-lookup/search?q&country&limit` (typeahead via Mapbox), `GET /v1/address-lookup/postcode?postcode` (UK Royal Mail PAF via getaddress.io — list every address at a postcode) |
 
 ### Orders module extensions
 
