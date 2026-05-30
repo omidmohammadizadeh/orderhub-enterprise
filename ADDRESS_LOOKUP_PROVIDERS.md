@@ -22,7 +22,8 @@ Different vendors cover different capabilities. The system composes a chain at b
 | Provider | Env var | Cost | Notes |
 |---|---|---|---|
 | **getaddress.io** | `GETADDRESS_API_KEY` | Free tier ~20/day, then £0.005/lookup | Royal Mail PAF. Full per-house list. Recommended for production. |
-| **postcodes.io** | — | Free, no key | Town + postcode only — operator types the house number. Always-available fallback so the postcode button works out of the box. |
+| **Nominatim (OSM)** | — | Free, no key (1 req/sec policy) | Street names + town + postcode. Operator types the house number. Disable with `ADDRESS_LOOKUP_DISABLE_NOMINATIM=true`. |
+| **postcodes.io** | — | Free, no key | Town + postcode only. Last-resort fallback when Nominatim is down or rate-limited. |
 | Manual | — | Free | Always available. |
 
 ## Stubbed (drop-in ready for next phase)
@@ -42,7 +43,7 @@ Configured in `address-lookup.module.ts`:
 
 ```
 SEARCH_PROVIDERS:    [Google, Mapbox]
-POSTCODE_PROVIDERS:  [GetAddress, IdealPostcodes, Loqate, Postcoder, RoyalMail, PostcodesIo]
+POSTCODE_PROVIDERS:  [GetAddress, IdealPostcodes, Loqate, Postcoder, RoyalMail, Nominatim, PostcodesIo]
 ```
 
 The service iterates each chain top-to-bottom and dispatches to the **first provider whose `isConfigured()` returns true**.

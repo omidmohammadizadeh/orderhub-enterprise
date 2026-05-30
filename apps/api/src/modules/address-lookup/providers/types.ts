@@ -28,6 +28,7 @@ export type AddressProviderId =
   | "mapbox"
   | "google"
   | "getaddress"
+  | "nominatim"
   | "postcodes_io"
   | "ideal_postcodes"
   | "loqate"

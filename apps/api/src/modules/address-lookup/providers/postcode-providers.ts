@@ -71,6 +71,120 @@ export class GetAddressProvider implements PostcodeProvider {
   }
 }
 
+// ── Nominatim / OpenStreetMap (free, no key, returns street names) ─────────
+//
+// Bridges the gap between postcodes.io (city only) and a paid PAF provider
+// (every door). Returns the streets known at a postcode, with town/county/
+// postcode pre-filled. The operator still adds the house number, but at
+// least sees the right road in the dropdown.
+//
+// OSM usage policy:
+//   • Absolute max 1 request/second per IP
+//   • Identify yourself via a real User-Agent including a contact address
+//   • No bulk harvesting
+//
+// We enforce the 1 req/sec rate at the process level via an in-memory
+// timestamp; for a typical POS firing a postcode lookup every few seconds
+// this is invisible. Heavy use → swap to a paid provider.
+export class NominatimProvider implements PostcodeProvider {
+  readonly id = "nominatim" as const;
+  private readonly logger = new Logger(NominatimProvider.name);
+  private lastCallAt = 0;
+
+  isConfigured(): boolean {
+    // Always available — no key required. Disable explicitly with
+    // ADDRESS_LOOKUP_DISABLE_NOMINATIM=true if a tenant doesn't want
+    // to depend on OSM.
+    return process.env.ADDRESS_LOOKUP_DISABLE_NOMINATIM !== "true";
+  }
+
+  private async throttle(): Promise<void> {
+    const minGapMs = 1100; // 1.1s — safely under OSM's 1 req/sec limit
+    const wait = this.lastCallAt + minGapMs - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    this.lastCallAt = Date.now();
+  }
+
+  private userAgent(): string {
+    return (
+      process.env.ADDRESS_LOOKUP_USER_AGENT ??
+      "OrderHub-POS/1.0 (+https://orderhub.io; admin@orderhub.io)"
+    );
+  }
+
+  async searchByPostcode(postcode: string): Promise<AddressSuggestion[]> {
+    await this.throttle();
+
+    // Re-pretty the postcode for the search query — Nominatim is fussier
+    // about whitespace than getaddress.io.
+    const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
+    const url =
+      `https://nominatim.openstreetmap.org/search` +
+      `?postalcode=${encodeURIComponent(pretty)}` +
+      `&country=gb` +
+      `&format=jsonv2` +
+      `&addressdetails=1` +
+      `&limit=20`;
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": this.userAgent() },
+    });
+    if (!res.ok) {
+      throw new Error(`Nominatim ${res.status} ${res.statusText}`);
+    }
+    const features = (await res.json()) as Array<{
+      display_name: string;
+      lat?: string;
+      lon?: string;
+      address?: {
+        road?: string;
+        pedestrian?: string;
+        residential?: string;
+        neighbourhood?: string;
+        suburb?: string;
+        village?: string;
+        town?: string;
+        city?: string;
+        municipality?: string;
+        county?: string;
+        postcode?: string;
+        country_code?: string;
+      };
+    }>;
+
+    // Dedupe by street name — Nominatim often returns the same road
+    // multiple times tagged as different node types.
+    const seen = new Set<string>();
+    const suggestions: AddressSuggestion[] = [];
+    for (const f of features) {
+      const a = f.address ?? {};
+      const street =
+        a.road ?? a.pedestrian ?? a.residential ?? a.neighbourhood ?? "";
+      if (!street) continue;
+      const town = a.city ?? a.town ?? a.village ?? a.municipality ?? a.suburb ?? "";
+      const postcodeOut = a.postcode ?? pretty;
+      const key = `${street}|${town}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      suggestions.push({
+        id: `nominatim:${postcode}:${suggestions.length}`,
+        // Hint to the operator that they still need to add a house number.
+        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
+        line1: street,
+        city: town || undefined,
+        postcode: postcodeOut,
+        country: a.country_code ? a.country_code.toUpperCase() : "GB",
+        latitude: f.lat ? Number(f.lat) : undefined,
+        longitude: f.lon ? Number(f.lon) : undefined,
+        provider: "nominatim" as const,
+      });
+    }
+
+    return suggestions;
+  }
+}
+
 // ── postcodes.io (free, no key, town-only) ─────────────────────────────────
 //
 // Doesn't enumerate per-house addresses — those are paywalled PAF data.

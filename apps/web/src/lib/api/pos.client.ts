@@ -82,7 +82,12 @@ export type AddressProvider =
   | "mapbox"
   | "google"
   | "getaddress"
+  | "nominatim"
   | "postcodes_io"
+  | "ideal_postcodes"
+  | "loqate"
+  | "postcoder"
+  | "royal_mail"
   | "manual";
 
 export interface AddressSuggestion {

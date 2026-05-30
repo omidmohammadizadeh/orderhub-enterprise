@@ -481,10 +481,15 @@ export function PosCartPanel(props: CartPanelProps) {
         setPcLookupResults(res.suggestions);
         if (res.provider === "postcodes_io") {
           // The free postcodes.io fallback can only give us the town +
-          // postcode — not house-level addresses. Surface that honestly so
-          // the operator knows they still need to type the house number.
+          // postcode — not house-level addresses.
           setPcLookupNote(
-            "Free lookup (town + postcode only). For full house lists, set GETADDRESS_API_KEY on the API.",
+            "Free lookup (town + postcode only). For street names, allow Nominatim or set GETADDRESS_API_KEY.",
+          );
+        } else if (res.provider === "nominatim") {
+          // Nominatim gives street + town but not house numbers — the
+          // operator still has to type the door number.
+          setPcLookupNote(
+            `${res.suggestions.length} street${res.suggestions.length === 1 ? "" : "s"} — pick one, then add the house/flat number.`,
           );
         } else {
           setPcLookupNote(

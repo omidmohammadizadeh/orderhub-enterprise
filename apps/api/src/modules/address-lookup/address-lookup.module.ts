@@ -12,6 +12,7 @@ import {
 import {
   GetAddressProvider,
   PostcodesIoProvider,
+  NominatimProvider,
   IdealPostcodesProvider,
   LoqateProvider,
   PostcoderProvider,
@@ -43,6 +44,7 @@ import {
     LoqateProvider,
     PostcoderProvider,
     RoyalMailProvider,
+    NominatimProvider,
     PostcodesIoProvider,
     // ── Ordered chains the service depends on ──
     {
@@ -58,14 +60,16 @@ import {
         lq: LoqateProvider,
         pc: PostcoderProvider,
         rm: RoyalMailProvider,
+        nom: NominatimProvider,
         pio: PostcodesIoProvider,
-      ) => [ga, ip, lq, pc, rm, pio],
+      ) => [ga, ip, lq, pc, rm, nom, pio],
       inject: [
         GetAddressProvider,
         IdealPostcodesProvider,
         LoqateProvider,
         PostcoderProvider,
         RoyalMailProvider,
+        NominatimProvider,
         PostcodesIoProvider,
       ],
     },
