@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,9 @@ import { Input } from "@/components/ui/input";
 import { menusClient, brandsClient, type Menu, type Brand } from "@/lib/api/menus.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
+import { AddMenuModal } from "@/components/menu/add-menu-modal";
+import { CreateMenuModal } from "@/components/menu/create-menu-modal";
+import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -30,9 +34,18 @@ const STATUS_CONFIG = {
 export default function MenuPage() {
   const user = useAuthStore((s) => s.user);
   const qc = useQueryClient();
+  const router = useRouter();
 
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
+  // Phase AM — three-step Deliverect-style "Add a menu" flow:
+  //   addStep "chooser"          → AddMenuModal with 3 cards
+  //   addStep "create"           → CreateMenuModal (name, description, type,
+  //                                banner 1920×1080, logo 1:1)
+  //   addStep "import-channel"   → ImportMenuModal sourced from channel
+  //   addStep "import-pos"       → ImportMenuModal sourced from POS
+  //   addStep null               → no modal showing
+  const [addStep, setAddStep] = useState<
+    null | "chooser" | "create" | "import-channel" | "import-pos"
+  >(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const [creatingBrand, setCreatingBrand] = useState(false);
@@ -71,14 +84,9 @@ export default function MenuPage() {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: (name: string) => menusClient.createMenu(brandId, { name }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["menus", brandId] });
-      setCreating(false);
-      setNewName("");
-    },
-  });
+  // Kept for backward-compat with the empty-state "Create menu" button
+  // further down (refactored to use the modal too).
+  void null;
 
   const publishMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.publishMenu(menuId),
@@ -118,9 +126,8 @@ export default function MenuPage() {
     },
   });
 
-  const handleCreate = () => {
-    if (newName.trim()) createMutation.mutate(newName.trim());
-  };
+  // Phase AM — opens the Deliverect-style 3-card chooser.
+  const openAddMenu = () => setAddStep("chooser");
 
   if (brandsLoading) {
     return (
@@ -218,14 +225,45 @@ export default function MenuPage() {
           </Button>
           <Button
             size="sm"
-            onClick={() => setCreating(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
+            onClick={openAddMenu}
+            className="bg-zinc-900 hover:bg-zinc-800 text-white"
           >
             <Plus className="h-4 w-4 mr-1.5" />
-            New menu
+            Create menu
           </Button>
         </div>
       </div>
+
+      {/* Phase AM — modal chain */}
+      <AddMenuModal
+        open={addStep === "chooser"}
+        onPick={(kind) => {
+          if (kind === "create") setAddStep("create");
+          else if (kind === "import-channel") setAddStep("import-channel");
+          else if (kind === "import-pos") setAddStep("import-pos");
+        }}
+        onCancel={() => setAddStep(null)}
+      />
+      <CreateMenuModal
+        open={addStep === "create"}
+        brandId={brandId}
+        onCreated={(menu) => {
+          qc.invalidateQueries({ queryKey: ["menus", brandId] });
+          setAddStep(null);
+          router.push(`/dashboard/menu/${menu.id}`);
+        }}
+        onCancel={() => setAddStep(null)}
+      />
+      <ImportMenuModal
+        open={addStep === "import-channel"}
+        source="channel"
+        onCancel={() => setAddStep(null)}
+      />
+      <ImportMenuModal
+        open={addStep === "import-pos"}
+        source="pos"
+        onCancel={() => setAddStep(null)}
+      />
 
       {brands.length > 1 && (
         <div className="flex flex-wrap items-center gap-1.5">
@@ -249,36 +287,6 @@ export default function MenuPage() {
         </div>
       )}
 
-      {creating && (
-        <Card className="p-4 border-orange-200 bg-orange-50">
-          <p className="text-sm font-medium text-zinc-800 mb-3">New menu name</p>
-          <div className="flex gap-2">
-            <Input
-              autoFocus
-              placeholder="e.g. Main menu, Lunch special, Delivery menu"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreate();
-                if (e.key === "Escape") { setCreating(false); setNewName(""); }
-              }}
-              className="flex-1 h-9 text-sm"
-            />
-            <Button
-              size="sm"
-              onClick={handleCreate}
-              disabled={!newName.trim() || createMutation.isPending}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              Create
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => { setCreating(false); setNewName(""); }}>
-              Cancel
-            </Button>
-          </div>
-        </Card>
-      )}
-
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
@@ -292,7 +300,7 @@ export default function MenuPage() {
           <p className="text-sm text-zinc-400 mt-1 mb-5">Create your first menu to get started</p>
           <Button
             size="sm"
-            onClick={() => setCreating(true)}
+            onClick={openAddMenu}
             className="bg-orange-500 hover:bg-orange-600 text-white"
           >
             <Plus className="h-4 w-4 mr-1.5" />
