@@ -134,17 +134,21 @@ export const productsClient = {
     apiClient.patch<CatalogProduct>(`/v1/items/${id}`, data).then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/items/${id}`).then((r) => r.data),
+  // The menus controller exposes /v1/items/:itemId/... — these three
+  // endpoints were lagging on the old /v1/menu-items/ prefix, which
+  // 404'd every save that attached a modifier group. The attach
+  // endpoint also expects the groupId in the URL, not the body.
   toggleAvailability: (id: string) =>
     apiClient
-      .patch<CatalogProduct>(`/v1/menu-items/${id}/toggle-availability`)
+      .post<CatalogProduct>(`/v1/items/${id}/toggle-availability`)
       .then((r) => r.data),
   attachModifierGroup: (itemId: string, groupId: string) =>
     apiClient
-      .post(`/v1/menu-items/${itemId}/modifier-groups`, { groupId })
+      .post(`/v1/items/${itemId}/modifier-groups/${groupId}`)
       .then((r) => r.data),
   detachModifierGroup: (itemId: string, groupId: string) =>
     apiClient
-      .delete(`/v1/menu-items/${itemId}/modifier-groups/${groupId}`)
+      .delete(`/v1/items/${itemId}/modifier-groups/${groupId}`)
       .then((r) => r.data),
 };
 
