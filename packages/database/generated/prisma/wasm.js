@@ -602,6 +602,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   externalId: 'externalId',
   platform: 'platform',
   displayId: 'displayId',
+  orderNumber: 'orderNumber',
   orderSource: 'orderSource',
   integrationSource: 'integrationSource',
   viaHubrise: 'viaHubrise',
@@ -648,6 +649,12 @@ exports.Prisma.OrderScalarFieldEnum = {
   metadata: 'metadata',
   sourceMetadata: 'sourceMetadata',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderNumberSequenceScalarFieldEnum = {
+  tenantId: 'tenantId',
+  nextValue: 'nextValue',
   updatedAt: 'updatedAt'
 };
 
@@ -1600,6 +1607,10 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   cancelReason: 'cancelReason'
 };
 
+exports.Prisma.OrderNumberSequenceOrderByRelevanceFieldEnum = {
+  tenantId: 'tenantId'
+};
+
 exports.Prisma.OrderItemOrderByRelevanceFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -2364,6 +2375,7 @@ exports.Prisma.ModelName = {
   DeliveryZone: 'DeliveryZone',
   LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',
+  OrderNumberSequence: 'OrderNumberSequence',
   OrderItem: 'OrderItem',
   OrderStatusHistory: 'OrderStatusHistory',
   WebhookEvent: 'WebhookEvent',

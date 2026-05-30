@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -29,8 +30,12 @@ export class PromoCodesController {
   constructor(private readonly service: PromoCodesService) {}
 
   @Get()
-  list(@CurrentUser() user: AuthenticatedUser) {
-    return this.service.list(user.tenantId);
+  @ApiOperation({ summary: "List promo codes (optionally scoped to a location)" })
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.service.list(user.tenantId, locationId);
   }
 
   @Post()

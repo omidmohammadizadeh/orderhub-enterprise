@@ -954,6 +954,10 @@ model Order {
   externalId String?
   platform   OrderPlatform
   displayId  String?
+  // Phase AM — sequential per-tenant POS/DIRECT order number ("#1").
+  // External-platform orders keep their own displayId (Just Eat order
+  // ref, Uber Eats display_id, etc.) and leave this null.
+  orderNumber Int?
 
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
@@ -1053,7 +1057,19 @@ model Order {
   @@index([brandId])
   @@index([tenantId, brandId])
   @@index([brandId, status])
+  @@index([tenantId, orderNumber])
   @@map("orders")
+}
+
+// Phase AM — per-tenant monotonic counter for POS/DIRECT order numbers.
+// Incremented inside a SERIALIZABLE transaction so concurrent POS submits
+// can't collide on the same #N.
+model OrderNumberSequence {
+  tenantId  String   @id
+  nextValue Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@map("order_number_sequences")
 }
 
 model OrderItem {

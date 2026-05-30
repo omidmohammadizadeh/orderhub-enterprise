@@ -65,16 +65,47 @@ export interface PromoValidateResult {
   freeDelivery?: boolean;
 }
 
+export interface PromoCode {
+  id: string;
+  tenantId: string;
+  code: string;
+  description?: string | null;
+  type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
+  value: string | number;
+  minOrderValue: string | number | null;
+  maxUses: number | null;
+  usedCount: number;
+  startAt: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  locationIds: string[];
+}
+
 export const promoCodesClient = {
   validate: (body: { code: string; locationId: string; subtotal: number }) =>
     apiClient
       .post<PromoValidateResult>("/v1/promo-codes/validate", body)
       .then((r) => r.data),
-  list: () => apiClient.get("/v1/promo-codes").then((r) => r.data),
-  create: (body: any) =>
-    apiClient.post("/v1/promo-codes", body).then((r) => r.data),
+  list: (locationId?: string) =>
+    apiClient
+      .get<PromoCode[]>("/v1/promo-codes", {
+        params: locationId ? { locationId } : undefined,
+      })
+      .then((r) => r.data),
+  create: (body: {
+    code: string;
+    type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
+    value: number;
+    description?: string;
+    minOrderValue?: number;
+    maxUses?: number;
+    startAt?: string;
+    expiresAt?: string;
+    isActive?: boolean;
+    locationIds?: string[];
+  }) => apiClient.post<PromoCode>("/v1/promo-codes", body).then((r) => r.data),
   update: (id: string, body: any) =>
-    apiClient.patch(`/v1/promo-codes/${id}`, body).then((r) => r.data),
+    apiClient.patch<PromoCode>(`/v1/promo-codes/${id}`, body).then((r) => r.data),
   remove: (id: string) => apiClient.delete(`/v1/promo-codes/${id}`),
 };
 

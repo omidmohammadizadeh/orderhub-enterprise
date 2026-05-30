@@ -31,7 +31,12 @@ export interface Order {
   viaHubrise: boolean;
   fulfillmentType: string;
   displayId: string | null;
+  /** Phase AM — sequential per-tenant POS/DIRECT order number ("#1"). */
+  orderNumber?: number | null;
   status: string;
+  /** Phase AM payment fields. */
+  paymentMethod?: string | null;
+  paymentStatus?: string | null;
   customerInfo: { name: string; phone?: string; email?: string };
   deliveryAddress?: {
     line1: string;

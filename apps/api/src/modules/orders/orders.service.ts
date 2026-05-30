@@ -57,6 +57,29 @@ export class OrdersService {
   ) {}
 
   /**
+   * Phase AM — claim the next sequential order number for a tenant.
+   * Uses upsert + atomic increment so concurrent POS submits never
+   * collide. The first call for a tenant seeds nextValue=1, returns 1,
+   * and bumps nextValue to 2.
+   */
+  private async allocateOrderNumber(tenantId: string): Promise<number> {
+    // Upsert ensures the row exists, then update with increment claims
+    // the value. Two-step rather than a single upsert with increment
+    // because Prisma doesn't allow combining increment with create.
+    await this.prisma.orderNumberSequence.upsert({
+      where: { tenantId },
+      create: { tenantId, nextValue: 1 },
+      update: {},
+    });
+    const seq = await this.prisma.orderNumberSequence.update({
+      where: { tenantId },
+      data: { nextValue: { increment: 1 } },
+    });
+    // We just incremented to N+1; the value we want is N (the pre-increment one).
+    return seq.nextValue - 1;
+  }
+
+  /**
    * True if the order should NOT trigger an immediate print at creation time.
    * The cut-off is 10 minutes — anything inside that window is treated as
    * "for now" because the kitchen lead time absorbs it.
@@ -298,6 +321,17 @@ export class OrdersService {
     }
     if (dto.paymentStatus !== undefined) {
       posUpdate.paymentStatus = dto.paymentStatus as any;
+    }
+
+    // Phase AM — allocate sequential per-tenant order number for
+    // POS/DIRECT orders. Marketplace orders keep their own displayId from
+    // the platform (Uber Eats display_id, Deliveroo orderNumber, etc.).
+    const isInternal =
+      (canonical.orderSource as string) === "POS" ||
+      (canonical.orderSource as string) === "DIRECT";
+    if (isInternal) {
+      const orderNumber = await this.allocateOrderNumber(tenantId);
+      posUpdate.orderNumber = orderNumber;
     }
 
     if (Object.keys(posUpdate).length > 0) {

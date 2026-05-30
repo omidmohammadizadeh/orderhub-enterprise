@@ -10,6 +10,7 @@
 // we hand the parent a fully-shaped Order payload via onPlaceOrder.
 
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff } from "lucide-react";
 import { round2 } from "@orderhub/shared";
 import {
@@ -18,6 +19,7 @@ import {
   addressLookupClient,
   type AddressSuggestion,
   type AddressProvider,
+  type PromoCode,
   type PromoValidateResult,
 } from "@/lib/api/pos.client";
 import { useOnlineStatus } from "@/lib/pos/use-online-status";
@@ -36,12 +38,7 @@ export interface CartLine {
 
 export type FulfillmentType = "PICKUP" | "DELIVERY";
 export type PaymentMethod = "CASH" | "CARD_TERMINAL" | "ONLINE_CARD" | "EXTERNAL";
-export type DiscountType =
-  | null
-  | "PERCENT_10"
-  | "PERCENT_20"
-  | "FREE_DELIVERY"
-  | "PROMO_CODE";
+export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
 // What the panel hands the parent when "Place order" is clicked.
 export interface PlaceOrderPayload {
@@ -179,6 +176,23 @@ export function PosCartPanel(props: CartPanelProps) {
   // Discounts + promo
   const [discountType, setDiscountType] = useState<DiscountType>(
     initialDraft?.discountType ?? null,
+  );
+  // Phase AM — when a configured quick-promo is applied it remembers
+  // which one so the cart can display its label + recompute its discount.
+  const [activeQuickPromo, setActiveQuickPromo] = useState<PromoCode | null>(null);
+
+  // Phase AM — load the configured promos for this location. The cart's
+  // Discounts section renders these as quick-tap buttons. When the list
+  // is empty the section shows nothing at all.
+  const promosQuery = useQuery<PromoCode[]>({
+    queryKey: ["pos-cart-promos", locationId],
+    queryFn: () => promoCodesClient.list(locationId),
+    staleTime: 60_000,
+    enabled: !!locationId,
+  });
+  const activePromos = useMemo(
+    () => (promosQuery.data ?? []).filter((p) => p.isActive),
+    [promosQuery.data],
   );
   const [promoCodeInput, setPromoCodeInput] = useState<string>(
     initialDraft?.promoCode ?? "",
@@ -330,23 +344,35 @@ export function PosCartPanel(props: CartPanelProps) {
     [cart],
   );
 
+  const freeDeliveryActive =
+    discountType === "FREE_DELIVERY" ||
+    activeQuickPromo?.type === "FREE_DELIVERY" ||
+    promoApplied?.freeDelivery === true;
+
   const effectiveDeliveryFee = useMemo(() => {
     if (fulfillmentType !== "DELIVERY") return 0;
-    if (discountType === "FREE_DELIVERY") return 0;
-    if (promoApplied?.freeDelivery) return 0;
+    if (freeDeliveryActive) return 0;
     if (deliveryFeeOverride != null) return round2(deliveryFeeOverride);
     return round2(deliveryFee);
-  }, [fulfillmentType, discountType, promoApplied, deliveryFeeOverride, deliveryFee]);
+  }, [fulfillmentType, freeDeliveryActive, deliveryFeeOverride, deliveryFee]);
 
   const discountAmount = useMemo(() => {
     let amount = 0;
-    if (discountType === "PERCENT_10") amount = subtotal * 0.1;
-    if (discountType === "PERCENT_20") amount = subtotal * 0.2;
+    // Configured quick-promo (Phase AM dynamic list)
+    if (activeQuickPromo) {
+      if (activeQuickPromo.type === "PERCENTAGE") {
+        amount = subtotal * (Number(activeQuickPromo.value) / 100);
+      } else if (activeQuickPromo.type === "FIXED_AMOUNT") {
+        amount = Math.min(Number(activeQuickPromo.value), subtotal);
+      }
+      // FREE_DELIVERY contributes via effectiveDeliveryFee instead
+    }
+    // Manual promo-code entry (server-validated)
     if (discountType === "PROMO_CODE" && promoApplied?.valid) {
       amount = promoApplied.discountAmount ?? 0;
     }
     return round2(amount);
-  }, [discountType, subtotal, promoApplied]);
+  }, [activeQuickPromo, discountType, subtotal, promoApplied]);
 
   const total = useMemo(
     () => round2(Math.max(0, subtotal - discountAmount + effectiveDeliveryFee)),
@@ -530,10 +556,18 @@ export function PosCartPanel(props: CartPanelProps) {
       preparationMinutes: prepMinutes,
       scheduledFor,
       isScheduled,
-      discountType,
+      // For server-side bookkeeping: tag the type even when the operator
+      // used a quick-button promo (not a free-text code entry). The promo
+      // code itself is sent so usedCount can increment.
+      discountType: activeQuickPromo
+        ? "PROMO_CODE"
+        : discountType === "PROMO_CODE"
+          ? "PROMO_CODE"
+          : discountType,
       discountAmount,
-      promoCode:
-        discountType === "PROMO_CODE" && promoApplied?.valid
+      promoCode: activeQuickPromo
+        ? activeQuickPromo.code
+        : discountType === "PROMO_CODE" && promoApplied?.valid
           ? promoApplied.code
           : undefined,
       paymentMethod,
@@ -852,38 +886,37 @@ export function PosCartPanel(props: CartPanelProps) {
           )}
         </Section>
 
-        {/* Discounts */}
-        <Section title="Discounts">
-          <div className="grid grid-cols-3 gap-1.5">
-            <DiscountButton
-              active={discountType === "PERCENT_10"}
-              onClick={() =>
-                setDiscountType((c) => (c === "PERCENT_10" ? null : "PERCENT_10"))
-              }
-            >
-              10% off
-            </DiscountButton>
-            <DiscountButton
-              active={discountType === "PERCENT_20"}
-              onClick={() =>
-                setDiscountType((c) => (c === "PERCENT_20" ? null : "PERCENT_20"))
-              }
-            >
-              20% off
-            </DiscountButton>
-            <DiscountButton
-              active={discountType === "FREE_DELIVERY"}
-              onClick={() =>
-                setDiscountType((c) =>
-                  c === "FREE_DELIVERY" ? null : "FREE_DELIVERY",
-                )
-              }
-              disabled={fulfillmentType !== "DELIVERY"}
-            >
-              Free deliv.
-            </DiscountButton>
-          </div>
-        </Section>
+        {/* Discounts — only render the section when promos are configured
+            for this location. Quiet locations have zero buttons. */}
+        {activePromos.length > 0 && (
+          <Section title="Discounts">
+            <div className="grid grid-cols-2 gap-1.5">
+              {activePromos.map((p) => {
+                const isActive = activeQuickPromo?.id === p.id;
+                const disabled =
+                  p.type === "FREE_DELIVERY" && fulfillmentType !== "DELIVERY";
+                return (
+                  <DiscountButton
+                    key={p.id}
+                    active={isActive}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (isActive) {
+                        setActiveQuickPromo(null);
+                        setDiscountType(null);
+                      } else {
+                        setActiveQuickPromo(p);
+                        setDiscountType(p.type);
+                      }
+                    }}
+                  >
+                    {promoButtonLabel(p)}
+                  </DiscountButton>
+                );
+              })}
+            </div>
+          </Section>
+        )}
 
         {/* Promo code */}
         <Section title="Promo code">
@@ -1006,6 +1039,12 @@ export function PosCartPanel(props: CartPanelProps) {
 }
 
 // ── Local atoms ──────────────────────────────────────────────────────────────
+
+function promoButtonLabel(p: PromoCode): string {
+  if (p.type === "FREE_DELIVERY") return `${p.code} · Free delivery`;
+  if (p.type === "PERCENTAGE") return `${p.code} · ${Number(p.value)}% off`;
+  return `${p.code} · £${Number(p.value).toFixed(2)} off`;
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

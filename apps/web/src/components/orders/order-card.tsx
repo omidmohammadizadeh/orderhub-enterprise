@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, User, MapPin, Calendar } from "lucide-react";
+import { Clock, User, MapPin, Calendar, Banknote, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
@@ -38,13 +38,27 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           </span>
         </div>
 
-        {/* Display ID + customer */}
+        {/* Order number + customer + payment badge.
+            POS/DIRECT orders show our sequential #N (Phase AM); external
+            platforms keep their own displayId. */}
         <div>
-          <div className="flex items-center gap-2">
-            {order.displayId && (
-              <span className="text-sm font-bold text-zinc-900">#{order.displayId}</span>
-            )}
-            <span className="text-sm font-medium text-zinc-700">{order.customerInfo.name}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {order.orderNumber != null ? (
+              <span className="text-sm font-bold text-zinc-900">
+                #{order.orderNumber}
+              </span>
+            ) : order.displayId ? (
+              <span className="text-sm font-bold text-zinc-900">
+                #{order.displayId}
+              </span>
+            ) : null}
+            <span className="text-sm font-medium text-zinc-700">
+              {order.customerInfo.name}
+            </span>
+            <PaymentBadge
+              method={order.paymentMethod}
+              status={order.paymentStatus}
+            />
           </div>
           <p className="mt-0.5 text-xs text-zinc-500">
             {itemCount} item{itemCount !== 1 ? "s" : ""} · £{order.total.toFixed(2)}
@@ -84,5 +98,64 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         />
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Phase AM — payment chip shown alongside the customer name.
+ *   • Cash + unpaid → amber "Cash" (money still owed at handover)
+ *   • Cash + paid   → green "Cash" with check (kept the cash already)
+ *   • Card terminal / online / external + PAID → green "Paid"
+ *   • Anything else → no badge
+ *
+ * Marketplace orders (Uber/Deliveroo/Just Eat) come in pre-paid, so they
+ * also render the green "Paid" chip — no manual checkbox needed.
+ */
+function PaymentBadge({
+  method,
+  status,
+}: {
+  method?: string | null;
+  status?: string | null;
+}) {
+  const paid = status === "PAID";
+  if (method === "CASH") {
+    return paid ? (
+      <Chip tone="success">
+        <CheckCircle2 className="h-3 w-3" /> Cash
+      </Chip>
+    ) : (
+      <Chip tone="amber">
+        <Banknote className="h-3 w-3" /> Cash
+      </Chip>
+    );
+  }
+  if (paid) {
+    return (
+      <Chip tone="success">
+        <CheckCircle2 className="h-3 w-3" /> Paid
+      </Chip>
+    );
+  }
+  return null;
+}
+
+function Chip({
+  tone,
+  children,
+}: {
+  tone: "success" | "amber";
+  children: React.ReactNode;
+}) {
+  const cls =
+    tone === "success"
+      ? "bg-emerald-50 text-emerald-700"
+      : "bg-amber-50 text-amber-700";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${cls}`}
+    >
+      {children}
+    </span>
   );
 }

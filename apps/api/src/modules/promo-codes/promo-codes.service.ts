@@ -56,9 +56,22 @@ export interface ValidateInput {
 export class PromoCodesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(tenantId: string) {
+  async list(tenantId: string, locationId?: string) {
     return this.prisma.promoCode.findMany({
-      where: { tenantId },
+      where: {
+        tenantId,
+        // When a locationId is given, return promos that are EITHER
+        // unscoped (locationIds is empty = tenant-wide) OR include
+        // this location explicitly. The Prisma `has` filter on a
+        // String[] column does the explicit-include check; we OR it
+        // with `isEmpty: true` to pick up tenant-wide promos.
+        ...(locationId && {
+          OR: [
+            { locationIds: { isEmpty: true } },
+            { locationIds: { has: locationId } },
+          ],
+        }),
+      },
       orderBy: [{ isActive: "desc" }, { code: "asc" }],
     });
   }

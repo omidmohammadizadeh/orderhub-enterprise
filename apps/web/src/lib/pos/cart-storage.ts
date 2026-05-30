@@ -11,7 +11,11 @@
 // will move to IndexedDB in Phase AN when full offline mode lands.
 
 const KEY_PREFIX = "orderhub:pos:cart:";
-const VERSION = 1;
+// v2 — Phase AM dynamic-promo refactor changed the DiscountType union
+// shape. Bumping the version invalidates old persisted drafts so a stale
+// "PERCENT_10" value from yesterday's session is dropped silently
+// instead of breaking the cart.
+const VERSION = 2;
 
 interface Persisted<T> {
   v: number;
