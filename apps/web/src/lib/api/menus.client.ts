@@ -177,6 +177,26 @@ export const menusClient = {
   removeItemFromCategory: (categoryId: string, itemId: string) =>
     apiClient.delete(`/v1/categories/${categoryId}/items/${itemId}`).then((r) => r.data),
 
+  // Phase AM — drag-drop reorder targets for the menu editor.
+  // categories/reorder takes { items: [{id, sortOrder}] } per the
+  // existing ReorderDto on the API; items-in-category reorder takes
+  // { order: [{itemId, sortOrder}] } via the patch endpoint.
+  reorderCategories: (
+    menuId: string,
+    body: { items: { id: string; sortOrder: number }[] },
+  ) =>
+    apiClient
+      .post(`/v1/menus/${menuId}/categories/reorder`, body)
+      .then((r) => r.data),
+
+  reorderItemsInCategory: (
+    categoryId: string,
+    order: { itemId: string; sortOrder: number }[],
+  ) =>
+    apiClient
+      .patch(`/v1/categories/${categoryId}/items/reorder`, { order })
+      .then((r) => r.data),
+
   // ── Phase AK: Imports + PLU + POS-friendly lookup ──────────────────────────
 
   generateMissingPlus: () =>
