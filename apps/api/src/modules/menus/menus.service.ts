@@ -305,9 +305,20 @@ export class MenusService {
 
   async reorderCategories(menuId: string, tenantId: string, dto: ReorderDto) {
     await this.assertMenuAccess(menuId, tenantId);
+    // ReorderDto carries `items: [{id, sortOrder}]` — earlier code read
+    // `dto.order` which doesn't exist on the DTO, so every drag-drop
+    // request silently no-op'd. The categories list looked like it had
+    // shuffled in the UI but the next page-load reset to the old order.
+    const items =
+      (dto as any).items ?? (dto as any).order ?? [];
+    if (items.length === 0) return;
     await this.prisma.$transaction(
-      (dto as any).order.map(({ id, sortOrder }: { id: string; sortOrder: number }) =>
-        this.prisma.menuCategory.update({ where: { id }, data: { sortOrder } }),
+      items.map(
+        ({ id, sortOrder }: { id: string; sortOrder: number }) =>
+          this.prisma.menuCategory.update({
+            where: { id },
+            data: { sortOrder },
+          }),
       ),
     );
   }

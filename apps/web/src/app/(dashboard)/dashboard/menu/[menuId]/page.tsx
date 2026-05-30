@@ -108,7 +108,28 @@ export default function MenuEditorPage() {
   const reorderCatMutation = useMutation({
     mutationFn: (order: { items: { id: string; sortOrder: number }[] }) =>
       menusClient.reorderCategories(menuId, order),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menu", menuId] }),
+    // Optimistic update — apply the new order to the local cache
+    // immediately so the sidebar reflects the drop without waiting for
+    // the API + refetch round-trip. Roll back on error.
+    onMutate: async (order) => {
+      await qc.cancelQueries({ queryKey: ["menu", menuId] });
+      const prev = qc.getQueryData<any>(["menu", menuId]);
+      qc.setQueryData<any>(["menu", menuId], (old: any) => {
+        if (!old) return old;
+        const byId = new Map(order.items.map((i) => [i.id, i.sortOrder]));
+        const sorted = [...old.categories].sort(
+          (a, b) =>
+            (byId.get(a.id) ?? a.sortOrder) -
+            (byId.get(b.id) ?? b.sortOrder),
+        );
+        return { ...old, categories: sorted };
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["menu", menuId], ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["menu", menuId] }),
   });
 
   const attachItemMutation = useMutation({
@@ -128,7 +149,29 @@ export default function MenuEditorPage() {
       catId: string;
       order: { itemId: string; sortOrder: number }[];
     }) => menusClient.reorderItemsInCategory(catId, order),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menu", menuId] }),
+    onMutate: async ({ catId, order }) => {
+      await qc.cancelQueries({ queryKey: ["menu", menuId] });
+      const prev = qc.getQueryData<any>(["menu", menuId]);
+      qc.setQueryData<any>(["menu", menuId], (old: any) => {
+        if (!old) return old;
+        const byId = new Map(order.map((i) => [i.itemId, i.sortOrder]));
+        const cats = old.categories.map((c: any) => {
+          if (c.id !== catId) return c;
+          const sorted = [...c.items].sort(
+            (a, b) =>
+              (byId.get(a.itemId) ?? a.sortOrder) -
+              (byId.get(b.itemId) ?? b.sortOrder),
+          );
+          return { ...c, items: sorted };
+        });
+        return { ...old, categories: cats };
+      });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["menu", menuId], ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["menu", menuId] }),
   });
 
   const publishMutation = useMutation({
