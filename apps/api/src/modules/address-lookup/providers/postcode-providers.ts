@@ -71,38 +71,35 @@ export class GetAddressProvider implements PostcodeProvider {
   }
 }
 
-// ── Nominatim / OpenStreetMap (free, no key, returns street names) ─────────
+// ── OSM Streets (free, no key, returns street names per postcode) ──────────
 //
-// Bridges the gap between postcodes.io (city only) and a paid PAF provider
-// (every door). Returns the streets known at a postcode, with town/county/
-// postcode pre-filled. The operator still adds the house number, but at
-// least sees the right road in the dropdown.
+// Two-step OSM chain — Nominatim's /search?postalcode endpoint only returns
+// the postcode CENTROID for most UK postcodes, not the streets in it. So
+// we instead:
 //
-// OSM usage policy:
-//   • Absolute max 1 request/second per IP
-//   • Identify yourself via a real User-Agent including a contact address
-//   • No bulk harvesting
+//   1. Ask postcodes.io for the postcode's lat/lng + admin district
+//      (free, fast, no key, no rate limit to speak of).
+//   2. Ask Overpass API for every named highway within 250m of those
+//      coords. Overpass is the OSM data-query engine — purpose-built for
+//      "list ways with these tags in this area".
 //
-// We enforce the 1 req/sec rate at the process level via an in-memory
-// timestamp; for a typical POS firing a postcode lookup every few seconds
-// this is invisible. Heavy use → swap to a paid provider.
-export class NominatimProvider implements PostcodeProvider {
-  readonly id = "nominatim" as const;
-  private readonly logger = new Logger(NominatimProvider.name);
-  private lastCallAt = 0;
+// Result: dozens of actual road names for the postcode area, dedupe'd by
+// name, sorted alphabetically. The operator picks one and types the
+// house number on top. Full per-house data still needs PAF
+// (GETADDRESS_API_KEY).
+//
+// Overpass usage policy: be reasonable. Public servers absorb ~2 req/sec
+// per IP comfortably. We add a small in-process gap.
+//
+// Disable entirely with ADDRESS_LOOKUP_DISABLE_OSM=true if a tenant doesn't
+// want to depend on OSM endpoints.
+export class OsmStreetsProvider implements PostcodeProvider {
+  readonly id = "osm" as const;
+  private readonly logger = new Logger(OsmStreetsProvider.name);
+  private lastOverpassCallAt = 0;
 
   isConfigured(): boolean {
-    // Always available — no key required. Disable explicitly with
-    // ADDRESS_LOOKUP_DISABLE_NOMINATIM=true if a tenant doesn't want
-    // to depend on OSM.
-    return process.env.ADDRESS_LOOKUP_DISABLE_NOMINATIM !== "true";
-  }
-
-  private async throttle(): Promise<void> {
-    const minGapMs = 1100; // 1.1s — safely under OSM's 1 req/sec limit
-    const wait = this.lastCallAt + minGapMs - Date.now();
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-    this.lastCallAt = Date.now();
+    return process.env.ADDRESS_LOOKUP_DISABLE_OSM !== "true";
   }
 
   private userAgent(): string {
@@ -112,78 +109,105 @@ export class NominatimProvider implements PostcodeProvider {
     );
   }
 
+  private async throttleOverpass(): Promise<void> {
+    const minGapMs = 500;
+    const wait = this.lastOverpassCallAt + minGapMs - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    this.lastOverpassCallAt = Date.now();
+  }
+
   async searchByPostcode(postcode: string): Promise<AddressSuggestion[]> {
-    await this.throttle();
-
-    // Re-pretty the postcode for the search query — Nominatim is fussier
-    // about whitespace than getaddress.io.
+    // Re-pretty the postcode (postcodes.io is tolerant either way).
     const pretty = `${postcode.slice(0, -3)} ${postcode.slice(-3)}`;
-    const url =
-      `https://nominatim.openstreetmap.org/search` +
-      `?postalcode=${encodeURIComponent(pretty)}` +
-      `&country=gb` +
-      `&format=jsonv2` +
-      `&addressdetails=1` +
-      `&limit=20`;
 
-    const res = await fetch(url, {
+    // Step 1 — postcodes.io for coords + admin district.
+    const pioRes = await fetch(
+      `https://api.postcodes.io/postcodes/${encodeURIComponent(pretty)}`,
+    );
+    if (pioRes.status === 404) return [];
+    if (!pioRes.ok) {
+      throw new Error(`postcodes.io ${pioRes.status} ${pioRes.statusText}`);
+    }
+    const pio = (await pioRes.json()) as {
+      result?: {
+        latitude?: number;
+        longitude?: number;
+        postcode: string;
+        admin_district?: string;
+        admin_ward?: string;
+        parish?: string;
+        country?: string;
+      };
+    };
+    if (!pio.result?.latitude || !pio.result?.longitude) return [];
+
+    const { latitude, longitude } = pio.result;
+    const town =
+      pio.result.admin_district ??
+      pio.result.admin_ward ??
+      pio.result.parish ??
+      "";
+    const postcodeOut = pio.result.postcode;
+
+    // Step 2 — Overpass for every named highway within 250m of those coords.
+    await this.throttleOverpass();
+    const query =
+      `[out:json][timeout:25];` +
+      `way["highway"]["name"](around:250,${latitude},${longitude});` +
+      `out tags;`;
+    const overpassUrl =
+      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const opRes = await fetch(overpassUrl, {
       headers: { "User-Agent": this.userAgent() },
     });
-    if (!res.ok) {
-      throw new Error(`Nominatim ${res.status} ${res.statusText}`);
+    if (!opRes.ok) {
+      throw new Error(`Overpass ${opRes.status} ${opRes.statusText}`);
     }
-    const features = (await res.json()) as Array<{
-      display_name: string;
-      lat?: string;
-      lon?: string;
-      address?: {
-        road?: string;
-        pedestrian?: string;
-        residential?: string;
-        neighbourhood?: string;
-        suburb?: string;
-        village?: string;
-        town?: string;
-        city?: string;
-        municipality?: string;
-        county?: string;
-        postcode?: string;
-        country_code?: string;
-      };
-    }>;
+    const data = (await opRes.json()) as {
+      elements?: Array<{ tags?: { name?: string; highway?: string } }>;
+    };
 
-    // Dedupe by street name — Nominatim often returns the same road
-    // multiple times tagged as different node types.
+    // Dedupe by street name — OSM stores each segment of a road as its
+    // own way, so we get one element per kerb-line. Also skip motorways
+    // / trunk roads which an operator would never use as a delivery line.
     const seen = new Set<string>();
-    const suggestions: AddressSuggestion[] = [];
-    for (const f of features) {
-      const a = f.address ?? {};
-      const street =
-        a.road ?? a.pedestrian ?? a.residential ?? a.neighbourhood ?? "";
-      if (!street) continue;
-      const town = a.city ?? a.town ?? a.village ?? a.municipality ?? a.suburb ?? "";
-      const postcodeOut = a.postcode ?? pretty;
-      const key = `${street}|${town}`.toLowerCase();
+    const streets: string[] = [];
+    for (const el of data.elements ?? []) {
+      const name = el.tags?.name?.trim();
+      const highway = el.tags?.highway;
+      if (!name) continue;
+      if (highway === "motorway" || highway === "trunk") continue;
+      const key = name.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-
-      suggestions.push({
-        id: `nominatim:${postcode}:${suggestions.length}`,
-        // Hint to the operator that they still need to add a house number.
-        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
-        line1: street,
-        city: town || undefined,
-        postcode: postcodeOut,
-        country: a.country_code ? a.country_code.toUpperCase() : "GB",
-        latitude: f.lat ? Number(f.lat) : undefined,
-        longitude: f.lon ? Number(f.lon) : undefined,
-        provider: "nominatim" as const,
-      });
+      streets.push(name);
     }
 
-    return suggestions;
+    streets.sort((a, b) => a.localeCompare(b, "en-GB"));
+
+    return streets.map((street, idx) => ({
+      id: `osm:${postcode}:${idx}`,
+      // Hint to the operator that they still need to add a house number.
+      label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
+      line1: street,
+      city: town || undefined,
+      postcode: postcodeOut,
+      country: pio.result?.country?.startsWith("E") ? "GB" : "GB",
+      latitude,
+      longitude,
+      provider: "osm" as const,
+    }));
   }
 }
+
+/**
+ * Backwards-compat export — kept so the module wiring doesn't break if
+ * NominatimProvider is still referenced anywhere. Will be removed in
+ * Phase AN.
+ * @deprecated use OsmStreetsProvider instead
+ */
+export const NominatimProvider = OsmStreetsProvider;
+export type NominatimProvider = OsmStreetsProvider;
 
 // ── postcodes.io (free, no key, town-only) ─────────────────────────────────
 //

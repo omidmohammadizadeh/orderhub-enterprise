@@ -22,7 +22,7 @@ Different vendors cover different capabilities. The system composes a chain at b
 | Provider | Env var | Cost | Notes |
 |---|---|---|---|
 | **getaddress.io** | `GETADDRESS_API_KEY` | Free tier ~20/day, then £0.005/lookup | Royal Mail PAF. Full per-house list. Recommended for production. |
-| **Nominatim (OSM)** | — | Free, no key (1 req/sec policy) | Street names + town + postcode. Operator types the house number. Disable with `ADDRESS_LOOKUP_DISABLE_NOMINATIM=true`. |
+| **OSM Streets** | — | Free, no key | Two-hop chain: postcodes.io for coords, then Overpass API for every named road within 250m. Returns real UK street names. Operator types the house number. Disable with `ADDRESS_LOOKUP_DISABLE_OSM=true`. |
 | **postcodes.io** | — | Free, no key | Town + postcode only. Last-resort fallback when Nominatim is down or rate-limited. |
 | Manual | — | Free | Always available. |
 

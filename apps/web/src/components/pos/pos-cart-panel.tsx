@@ -485,11 +485,11 @@ export function PosCartPanel(props: CartPanelProps) {
           setPcLookupNote(
             "Free lookup (town + postcode only). For street names, allow Nominatim or set GETADDRESS_API_KEY.",
           );
-        } else if (res.provider === "nominatim") {
-          // Nominatim gives street + town but not house numbers — the
-          // operator still has to type the door number.
+        } else if (res.provider === "osm") {
+          // OSM gives street + town but not house numbers — the operator
+          // still has to type the door number.
           setPcLookupNote(
-            `${res.suggestions.length} street${res.suggestions.length === 1 ? "" : "s"} — pick one, then add the house/flat number.`,
+            `${res.suggestions.length} street${res.suggestions.length === 1 ? "" : "s"} found nearby — pick one, then add the house/flat number.`,
           );
         } else {
           setPcLookupNote(

@@ -28,7 +28,7 @@ export type AddressProviderId =
   | "mapbox"
   | "google"
   | "getaddress"
-  | "nominatim"
+  | "osm" // postcodes.io coords + Overpass street enumeration
   | "postcodes_io"
   | "ideal_postcodes"
   | "loqate"

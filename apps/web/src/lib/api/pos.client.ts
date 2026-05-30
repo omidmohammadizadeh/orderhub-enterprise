@@ -82,7 +82,7 @@ export type AddressProvider =
   | "mapbox"
   | "google"
   | "getaddress"
-  | "nominatim"
+  | "osm"
   | "postcodes_io"
   | "ideal_postcodes"
   | "loqate"
