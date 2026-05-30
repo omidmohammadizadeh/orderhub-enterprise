@@ -68,10 +68,12 @@ export class AddressLookupService {
     return process.env.GETADDRESS_API_KEY;
   }
 
-  /** Which provider would handle free-text autocomplete right now? */
+  /** Which provider would handle free-text autocomplete right now?
+   *  Google is preferred over Mapbox when both are set — its $200/month
+   *  free credit covers normal POS volumes, and UK addresses are richer. */
   describeActiveProvider(): AddressProvider {
-    if (this.mapboxToken) return "mapbox";
     if (this.googleKey) return "google";
+    if (this.mapboxToken) return "mapbox";
     return "manual";
   }
 
@@ -99,6 +101,16 @@ export class AddressLookupService {
       return { provider: this.describeActiveProvider(), suggestions: [] };
     }
 
+    // Google preferred — its $200/month free credit covers normal POS
+    // volumes and its UK address coverage is richer than Mapbox.
+    if (this.googleKey) {
+      try {
+        return await this.searchGoogle(trimmed, country, limit);
+      } catch (err: any) {
+        this.logger.warn(`Google lookup failed: ${err.message} — falling back`);
+      }
+    }
+
     if (this.mapboxToken) {
       try {
         return await this.searchMapbox(trimmed, country, limit);
@@ -109,6 +121,104 @@ export class AddressLookupService {
 
     // Manual fallback: no remote suggestions, the UI shows a plain form.
     return { provider: "manual", suggestions: [] };
+  }
+
+  /**
+   * Google Places Autocomplete (legacy endpoint, simpler than the New
+   * Places API). Returns lightweight predictions — the operator picks one,
+   * then the frontend calls /v1/address-lookup/details?id=<place_id> to
+   * resolve the full address. This two-step flow matches Google's billing
+   * model (autocomplete sessions are cheap; details are the expensive bit
+   * but only fire once per finished address).
+   */
+  private async searchGoogle(
+    query: string,
+    country: string,
+    limit: number,
+  ): Promise<AddressLookupResult> {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json` +
+      `?input=${encodeURIComponent(query)}` +
+      `&key=${this.googleKey}` +
+      `&components=country:${country}` +
+      `&types=address`;
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Google autocomplete ${res.status} ${res.statusText}`);
+    }
+    const data = (await res.json()) as {
+      status: string;
+      predictions?: Array<{
+        place_id: string;
+        description: string;
+        structured_formatting?: {
+          main_text?: string;
+          secondary_text?: string;
+        };
+      }>;
+      error_message?: string;
+    };
+    if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+      throw new Error(
+        `Google autocomplete: ${data.status}` +
+          (data.error_message ? ` — ${data.error_message}` : ""),
+      );
+    }
+
+    const suggestions: AddressSuggestion[] = (data.predictions ?? [])
+      .slice(0, limit)
+      .map((p) => ({
+        // The id IS the place_id — the frontend hands this back to
+        // /address-lookup/details to resolve the full address.
+        id: p.place_id,
+        label: p.description,
+        // Best-effort split of the autocomplete label until details resolve:
+        line1: p.structured_formatting?.main_text ?? p.description,
+        provider: "google",
+      }));
+
+    return { provider: "google", suggestions };
+  }
+
+  /**
+   * Resolve a Google place_id to a full structured address. Called from
+   * the frontend when the operator picks an autocomplete suggestion.
+   * Returns null when the id is unknown / Google returns no result.
+   */
+  async getPlaceDetails(placeId: string): Promise<AddressSuggestion | null> {
+    if (!this.googleKey) return null;
+    if (!placeId) return null;
+
+    const url =
+      `https://maps.googleapis.com/maps/api/place/details/json` +
+      `?place_id=${encodeURIComponent(placeId)}` +
+      `&key=${this.googleKey}` +
+      // Only the bits the cart panel needs — keeps the bill down.
+      `&fields=address_component,formatted_address,geometry`;
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Google details ${res.status} ${res.statusText}`);
+    }
+    const data = (await res.json()) as {
+      status: string;
+      result?: {
+        formatted_address?: string;
+        address_components?: Array<{
+          long_name: string;
+          short_name: string;
+          types: string[];
+        }>;
+        geometry?: { location?: { lat: number; lng: number } };
+      };
+      error_message?: string;
+    };
+    if (data.status !== "OK" || !data.result) {
+      return null;
+    }
+
+    return mapGooglePlaceDetails(placeId, data.result);
   }
 
   private async searchMapbox(
@@ -328,4 +438,53 @@ export class AddressLookupService {
 
     return { provider: "getaddress", suggestions };
   }
+}
+
+/**
+ * Translate a Google Places Details result into our AddressSuggestion shape.
+ * Google returns address parts as a tagged components array — we pluck the
+ * tags we care about and assemble line1 from street_number + route.
+ */
+function mapGooglePlaceDetails(
+  placeId: string,
+  result: {
+    formatted_address?: string;
+    address_components?: Array<{
+      long_name: string;
+      short_name: string;
+      types: string[];
+    }>;
+    geometry?: { location?: { lat: number; lng: number } };
+  },
+): AddressSuggestion {
+  const components = result.address_components ?? [];
+  const pick = (type: string): string | undefined =>
+    components.find((c) => c.types.includes(type))?.long_name;
+  const pickShort = (type: string): string | undefined =>
+    components.find((c) => c.types.includes(type))?.short_name;
+
+  const streetNumber = pick("street_number");
+  const route = pick("route");
+  const subpremise = pick("subpremise"); // flat / unit number when Google has it
+  const line1Parts = [streetNumber, route].filter(Boolean);
+  const line1 = line1Parts.join(" ");
+  const line2 = subpremise ? `Flat ${subpremise}` : undefined;
+
+  const city =
+    pick("postal_town") ?? pick("locality") ?? pick("administrative_area_level_2");
+  const postcode = pick("postal_code");
+  const country = pickShort("country");
+
+  return {
+    id: placeId,
+    label: result.formatted_address ?? [line1, city, postcode].filter(Boolean).join(", "),
+    line1: line1 || (result.formatted_address ?? ""),
+    line2,
+    city,
+    postcode,
+    country,
+    latitude: result.geometry?.location?.lat,
+    longitude: result.geometry?.location?.lng,
+    provider: "google",
+  };
 }

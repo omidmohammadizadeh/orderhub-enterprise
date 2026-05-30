@@ -31,6 +31,16 @@ export class AddressLookupController {
     return this.service.searchByPostcode(postcode);
   }
 
+  @Get("details")
+  @ApiOperation({
+    summary: "Resolve a Google Places id to a full structured address",
+  })
+  @ApiQuery({ name: "id", required: true })
+  async details(@Query("id") id: string) {
+    const result = await this.service.getPlaceDetails(id);
+    return { suggestion: result };
+  }
+
   @Get("search")
   @ApiOperation({ summary: "Autocomplete address search" })
   @ApiQuery({ name: "q", required: true })

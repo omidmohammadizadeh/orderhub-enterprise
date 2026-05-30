@@ -122,4 +122,13 @@ export const addressLookupClient = {
         suggestions: AddressSuggestion[];
       }>("/v1/address-lookup/postcode", { params: { postcode } })
       .then((r) => r.data),
+  // Resolve a Google Places id (returned in AddressSuggestion.id when
+  // provider === "google") to a fully-structured address.
+  details: (id: string) =>
+    apiClient
+      .get<{ suggestion: AddressSuggestion | null }>(
+        "/v1/address-lookup/details",
+        { params: { id } },
+      )
+      .then((r) => r.data),
 };

@@ -20,7 +20,7 @@ The POS tab is at **Dashboard → POS**. Pick a location with the location selec
 There are **three ways** to fill in a delivery address:
 
 1. **Postcode lookup (UK Royal Mail PAF)** — type the postcode and tap **Find**. A list of every address at that postcode appears below — tap one to fill line 1 / line 2 / city / postcode in one go. The operator just adds a flat number or buzzer code on top. Requires `GETADDRESS_API_KEY` on the API.
-2. **Free-text autocomplete** — the search box at the top of the address block suggests as you type (Mapbox). Requires `MAPBOX_ACCESS_TOKEN`.
+2. **Free-text autocomplete** — the search box at the top of the address block suggests as you type. Backed by Google Places when `GOOGLE_MAPS_API_KEY` is set (recommended — $200/month free credit covers normal volumes), falls back to Mapbox if `MAPBOX_ACCESS_TOKEN` is set instead. Picking a Google suggestion auto-fills line 1, line 2, city, postcode in one click.
 3. **Manual entry** — always available. Type line 1, line 2, city, postcode directly.
 
 The first two are wholly optional — if no API keys are configured the POS still works with manual entry, no errors surfaced.

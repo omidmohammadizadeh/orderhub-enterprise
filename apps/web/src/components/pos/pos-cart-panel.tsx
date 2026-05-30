@@ -412,7 +412,7 @@ export function PosCartPanel(props: CartPanelProps) {
     if (discountType === "PROMO_CODE") setDiscountType(null);
   };
 
-  const pickAddressSuggestion = (s: AddressSuggestion) => {
+  const applySuggestion = (s: AddressSuggestion) => {
     // Only overwrite line1 if the suggestion provides one. The postcodes.io
     // fallback returns an empty line1 (it can only resolve town + postcode),
     // and we don't want clicking that to wipe a building name the operator
@@ -426,6 +426,29 @@ export function PosCartPanel(props: CartPanelProps) {
     setAddrSuggestions([]);
     setPcLookupResults([]);
     setPcLookupNote(null);
+  };
+
+  /**
+   * Google autocomplete only returns lightweight predictions — line1/city/
+   * postcode are blank until we resolve the place_id with /details. Other
+   * providers (Mapbox, getaddress.io, postcodes.io) return fully-structured
+   * suggestions in one hop, so the resolver short-circuits for them.
+   */
+  const pickAddressSuggestion = async (s: AddressSuggestion) => {
+    if (s.provider !== "google") {
+      applySuggestion(s);
+      return;
+    }
+    // Optimistically fill what we have so the UI doesn't go blank during
+    // the details fetch.
+    applySuggestion(s);
+    try {
+      const res = await addressLookupClient.details(s.id);
+      if (res.suggestion) applySuggestion(res.suggestion);
+    } catch {
+      // Details failed — leave the operator with the optimistic fill, they
+      // can edit the fields by hand.
+    }
   };
 
   /**
