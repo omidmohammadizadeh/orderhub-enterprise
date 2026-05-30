@@ -413,9 +413,13 @@ export function PosCartPanel(props: CartPanelProps) {
   };
 
   const pickAddressSuggestion = (s: AddressSuggestion) => {
-    setAddrLine1(s.line1);
+    // Only overwrite line1 if the suggestion provides one. The postcodes.io
+    // fallback returns an empty line1 (it can only resolve town + postcode),
+    // and we don't want clicking that to wipe a building name the operator
+    // already typed.
+    if (s.line1) setAddrLine1(s.line1);
     if (s.line2) setAddrLine2(s.line2);
-    else setAddrLine2("");
+    else if (s.line1) setAddrLine2("");
     if (s.city) setCity(s.city);
     if (s.postcode) setPostcode(s.postcode);
     setAddrQuery("");
@@ -445,14 +449,25 @@ export function PosCartPanel(props: CartPanelProps) {
         setPcLookupResults([]);
         setPcLookupNote(
           res.provider === "manual"
-            ? "Postcode lookup unavailable (no provider configured). Enter address manually."
-            : "No addresses found for this postcode.",
+            ? "Postcode lookup unavailable. Enter address manually."
+            : res.provider === "postcodes_io"
+              ? "Postcode not recognised. Enter address manually."
+              : "No addresses found for this postcode.",
         );
       } else {
         setPcLookupResults(res.suggestions);
-        setPcLookupNote(
-          `${res.suggestions.length} address${res.suggestions.length === 1 ? "" : "es"} — tap one to use`,
-        );
+        if (res.provider === "postcodes_io") {
+          // The free postcodes.io fallback can only give us the town +
+          // postcode — not house-level addresses. Surface that honestly so
+          // the operator knows they still need to type the house number.
+          setPcLookupNote(
+            "Free lookup (town + postcode only). For full house lists, set GETADDRESS_API_KEY on the API.",
+          );
+        } else {
+          setPcLookupNote(
+            `${res.suggestions.length} address${res.suggestions.length === 1 ? "" : "es"} — tap one to use`,
+          );
+        }
       }
     } catch (err: any) {
       setPcLookupResults([]);
@@ -666,6 +681,14 @@ export function PosCartPanel(props: CartPanelProps) {
                     type="text"
                     value={postcode}
                     onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      // Pressing Enter inside the postcode field should
+                      // fire the lookup, like a search bar would.
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        runPostcodeLookup();
+                      }
+                    }}
                     placeholder="Postcode"
                     className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
                   />

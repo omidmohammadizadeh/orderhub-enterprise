@@ -78,7 +78,12 @@ export const promoCodesClient = {
   remove: (id: string) => apiClient.delete(`/v1/promo-codes/${id}`),
 };
 
-export type AddressProvider = "mapbox" | "google" | "getaddress" | "manual";
+export type AddressProvider =
+  | "mapbox"
+  | "google"
+  | "getaddress"
+  | "postcodes_io"
+  | "manual";
 
 export interface AddressSuggestion {
   id: string;

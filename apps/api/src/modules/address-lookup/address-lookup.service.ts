@@ -20,7 +20,12 @@ import { Injectable, Logger } from "@nestjs/common";
 // must keep working with manual entry so a missing API key never breaks
 // the order flow.
 
-export type AddressProvider = "mapbox" | "google" | "getaddress" | "manual";
+export type AddressProvider =
+  | "mapbox"
+  | "google"
+  | "getaddress"
+  | "postcodes_io" // free, no-key UK postcode lookup — returns town/county only
+  | "manual";
 
 export interface AddressSuggestion {
   id: string;
@@ -77,7 +82,10 @@ export class AddressLookupService {
   status(): ProviderStatus {
     return {
       searchProvider: this.describeActiveProvider(),
-      postcodeProvider: this.getAddressKey ? "getaddress" : "manual",
+      // getaddress.io (PAF) is the full per-house lookup; postcodes.io is a
+      // free no-key fallback that at least pre-fills town + county so the
+      // operator can finish the address by hand.
+      postcodeProvider: this.getAddressKey ? "getaddress" : "postcodes_io",
     };
   }
 
@@ -178,9 +186,74 @@ export class AddressLookupService {
       }
     }
 
-    // No provider configured (or remote failed) — let the UI fall back to
-    // manual entry.
+    // No paid provider — fall back to postcodes.io (free, no API key
+    // required). It can't enumerate individual houses but it WILL validate
+    // the postcode and return the town/county/region, which the operator
+    // can then complete with the house number.
+    try {
+      return await this.searchPostcodesIo(postcode);
+    } catch (err: any) {
+      this.logger.warn(`postcodes.io lookup failed: ${err.message}`);
+    }
+
     return { provider: "manual", suggestions: [] };
+  }
+
+  /**
+   * Free no-key fallback via postcodes.io. Returns a single stub address
+   * with line1 empty (for the operator to type the house number) and
+   * city/county/postcode pre-filled so the cart panel still saves the
+   * operator most of the typing.
+   */
+  private async searchPostcodesIo(postcode: string): Promise<AddressLookupResult> {
+    const res = await fetch(
+      `https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`,
+    );
+    if (res.status === 404) {
+      // Not a valid UK postcode.
+      return { provider: "postcodes_io", suggestions: [] };
+    }
+    if (!res.ok) {
+      throw new Error(`postcodes.io ${res.status} ${res.statusText}`);
+    }
+    const data = (await res.json()) as {
+      result?: {
+        postcode: string;
+        admin_district?: string;
+        admin_ward?: string;
+        parish?: string;
+        admin_county?: string;
+        region?: string;
+        country?: string;
+        latitude?: number;
+        longitude?: number;
+      };
+    };
+    if (!data.result) {
+      return { provider: "postcodes_io", suggestions: [] };
+    }
+
+    const r = data.result;
+    const city = r.admin_district ?? r.admin_ward ?? r.parish ?? "";
+    const label = [city, r.postcode].filter(Boolean).join(", ");
+
+    return {
+      provider: "postcodes_io",
+      suggestions: [
+        {
+          id: `postcodes_io:${r.postcode}`,
+          // Make it obvious the operator still has to type the building.
+          label: `${label} — add house/flat number`,
+          line1: "",
+          city,
+          postcode: r.postcode,
+          country: r.country ?? "GB",
+          latitude: r.latitude,
+          longitude: r.longitude,
+          provider: "postcodes_io",
+        },
+      ],
+    };
   }
 
   private async searchGetAddress(postcode: string): Promise<AddressLookupResult> {
