@@ -47,6 +47,7 @@ import { productsClient } from "@/lib/api/catalog.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import { AttachModal } from "@/components/products/attach-modal";
+import { ProductEditorModal } from "@/components/products/product-editor-modal";
 
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
@@ -77,6 +78,12 @@ export default function MenuEditorPage() {
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+  // Phase AM — in-place product editor. `null` = closed. `"new"` opens
+  // a blank form (Create New flow). Any other string opens edit mode
+  // for that product id.
+  const [productEditorTarget, setProductEditorTarget] = useState<
+    null | "new" | string
+  >(null);
 
   // Drag-drop bookkeeping. We keep the index of the row being dragged
   // and call the reorder API in onDragEnd. No library needed.
@@ -401,12 +408,21 @@ export default function MenuEditorPage() {
                   />
                 </div>
                 <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowAddProductModal(true)}
+                  className="h-9"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Add Existing
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setProductEditorTarget("new")}
                   className="h-9 bg-zinc-900 hover:bg-zinc-800 text-white"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
-                  Add product
+                  Create New
                 </Button>
               </div>
 
@@ -463,13 +479,9 @@ export default function MenuEditorPage() {
                       >
                         <div className="absolute top-3 right-3 flex items-center gap-1">
                           <button
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/products?tab=products&edit=${p.id}`,
-                              )
-                            }
+                            onClick={() => setProductEditorTarget(p.id)}
                             className="p-1 text-zinc-300 hover:text-zinc-900"
-                            title="Edit product (opens Products tab)"
+                            title="Edit product"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
@@ -530,6 +542,48 @@ export default function MenuEditorPage() {
           )}
         </main>
       </div>
+
+      {/* In-place product editor — wraps the same ProductForm the
+          Products tab uses. When "new" we also auto-attach the
+          freshly-saved product to the active category. */}
+      <ProductEditorModal
+        open={productEditorTarget !== null}
+        brandId={brandId}
+        productId={
+          productEditorTarget && productEditorTarget !== "new"
+            ? productEditorTarget
+            : undefined
+        }
+        onCancel={() => setProductEditorTarget(null)}
+        onSaved={async () => {
+          // The form already invalidated ["catalog", "products"]. Pull
+          // the fresh list, find the most recently created product (by
+          // createdAt desc) and attach it to the active category if we
+          // were in create mode. For edit mode we just close.
+          if (productEditorTarget === "new" && activeCat) {
+            const all = await productsClient.list(brandId);
+            const newest = [...all].sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+            const currentIds = ((activeCat.items ?? []) as any[]).map(
+              (l) => l.itemId,
+            );
+            if (newest && !currentIds.includes(newest.id)) {
+              await attachItemMutation.mutateAsync({
+                catId: activeCat.id,
+                itemId: newest.id,
+              });
+            }
+          }
+          qc.invalidateQueries({ queryKey: ["menu", menuId] });
+          qc.invalidateQueries({
+            queryKey: ["catalog", "products", brandId],
+          });
+          setProductEditorTarget(null);
+        }}
+      />
 
       {/* Add product modal — same AttachModal the Products tab uses */}
       <AttachModal
