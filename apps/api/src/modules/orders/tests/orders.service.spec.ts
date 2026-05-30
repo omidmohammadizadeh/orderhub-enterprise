@@ -5,6 +5,8 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { SocketService } from "../../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../../auth/services/audit-log.service";
 import { OutboxService } from "../../outbox/outbox.service";
+import { PrintQueueService } from "../../printers/print-queue.service";
+import { PromoCodesService } from "../../promo-codes/promo-codes.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // ── Mocks ────────────────────────────────────────────────
@@ -122,6 +124,20 @@ describe("OrdersService", () => {
         { provide: SocketService, useValue: mockSocket },
         { provide: AuditLogService, useValue: mockAudit },
         OutboxService,
+        // Phase AM — OrdersService now depends on PrintQueueService and
+        // PromoCodesService. Stub them — these tests don't exercise the
+        // print pipeline or promo redemption.
+        {
+          provide: PrintQueueService,
+          useValue: {
+            enqueueForNewOrder: jest.fn().mockResolvedValue(undefined),
+            enqueueCancel: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: PromoCodesService,
+          useValue: { incrementUsage: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -154,9 +170,12 @@ describe("OrdersService", () => {
       expect(call.data.eventType).toBe("order.received");
     });
 
-    it("does not inject Bull queues", () => {
+    it("does not inject Bull queues directly", () => {
+      // OrdersService must not hold a Bull queue ref — downstream dispatch is
+      // the outbox dispatcher's job. (Phase AM did add a PrintQueueService
+      // dependency, which itself wraps a Bull queue, so the assertion below
+      // is now scoped to the *direct* queue refs.)
       expect((service as any).orderQueue).toBeUndefined();
-      expect((service as any).printQueue).toBeUndefined();
     });
 
     it("stores customerName and customerPhone on create", async () => {

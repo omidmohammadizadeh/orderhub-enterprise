@@ -134,6 +134,16 @@ export type LoyaltyAccount = $Result.DefaultSelection<Prisma.$LoyaltyAccountPayl
  */
 export type PromoCode = $Result.DefaultSelection<Prisma.$PromoCodePayload>
 /**
+ * Model DeliveryZone
+ * 
+ */
+export type DeliveryZone = $Result.DefaultSelection<Prisma.$DeliveryZonePayload>
+/**
+ * Model LocationPaymentConfig
+ * 
+ */
+export type LocationPaymentConfig = $Result.DefaultSelection<Prisma.$LocationPaymentConfigPayload>
+/**
  * Model Order
  * 
  */
@@ -1373,6 +1383,26 @@ export class PrismaClient<
   get promoCode(): Prisma.PromoCodeDelegate<ExtArgs>;
 
   /**
+   * `prisma.deliveryZone`: Exposes CRUD operations for the **DeliveryZone** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DeliveryZones
+    * const deliveryZones = await prisma.deliveryZone.findMany()
+    * ```
+    */
+  get deliveryZone(): Prisma.DeliveryZoneDelegate<ExtArgs>;
+
+  /**
+   * `prisma.locationPaymentConfig`: Exposes CRUD operations for the **LocationPaymentConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LocationPaymentConfigs
+    * const locationPaymentConfigs = await prisma.locationPaymentConfig.findMany()
+    * ```
+    */
+  get locationPaymentConfig(): Prisma.LocationPaymentConfigDelegate<ExtArgs>;
+
+  /**
    * `prisma.order`: Exposes CRUD operations for the **Order** model.
     * Example usage:
     * ```ts
@@ -2296,6 +2326,8 @@ export namespace Prisma {
     CustomerAddress: 'CustomerAddress',
     LoyaltyAccount: 'LoyaltyAccount',
     PromoCode: 'PromoCode',
+    DeliveryZone: 'DeliveryZone',
+    LocationPaymentConfig: 'LocationPaymentConfig',
     Order: 'Order',
     OrderItem: 'OrderItem',
     OrderStatusHistory: 'OrderStatusHistory',
@@ -2357,7 +2389,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "order" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
+      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4038,6 +4070,146 @@ export namespace Prisma {
           count: {
             args: Prisma.PromoCodeCountArgs<ExtArgs>
             result: $Utils.Optional<PromoCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      DeliveryZone: {
+        payload: Prisma.$DeliveryZonePayload<ExtArgs>
+        fields: Prisma.DeliveryZoneFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DeliveryZoneFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DeliveryZoneFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          findFirst: {
+            args: Prisma.DeliveryZoneFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DeliveryZoneFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          findMany: {
+            args: Prisma.DeliveryZoneFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>[]
+          }
+          create: {
+            args: Prisma.DeliveryZoneCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          createMany: {
+            args: Prisma.DeliveryZoneCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DeliveryZoneCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>[]
+          }
+          delete: {
+            args: Prisma.DeliveryZoneDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          update: {
+            args: Prisma.DeliveryZoneUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          deleteMany: {
+            args: Prisma.DeliveryZoneDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DeliveryZoneUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DeliveryZoneUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DeliveryZonePayload>
+          }
+          aggregate: {
+            args: Prisma.DeliveryZoneAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDeliveryZone>
+          }
+          groupBy: {
+            args: Prisma.DeliveryZoneGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DeliveryZoneGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DeliveryZoneCountArgs<ExtArgs>
+            result: $Utils.Optional<DeliveryZoneCountAggregateOutputType> | number
+          }
+        }
+      }
+      LocationPaymentConfig: {
+        payload: Prisma.$LocationPaymentConfigPayload<ExtArgs>
+        fields: Prisma.LocationPaymentConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LocationPaymentConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LocationPaymentConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.LocationPaymentConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LocationPaymentConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          findMany: {
+            args: Prisma.LocationPaymentConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>[]
+          }
+          create: {
+            args: Prisma.LocationPaymentConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          createMany: {
+            args: Prisma.LocationPaymentConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LocationPaymentConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.LocationPaymentConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          update: {
+            args: Prisma.LocationPaymentConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.LocationPaymentConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LocationPaymentConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.LocationPaymentConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocationPaymentConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.LocationPaymentConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLocationPaymentConfig>
+          }
+          groupBy: {
+            args: Prisma.LocationPaymentConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LocationPaymentConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LocationPaymentConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<LocationPaymentConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -7690,6 +7862,7 @@ export namespace Prisma {
     orders: number
     printers: number
     kdsScreens: number
+    deliveryZones: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7697,6 +7870,7 @@ export namespace Prisma {
     orders?: boolean | LocationCountOutputTypeCountOrdersArgs
     printers?: boolean | LocationCountOutputTypeCountPrintersArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
+    deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
   }
 
   // Custom InputTypes
@@ -7736,6 +7910,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountKdsScreensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: KdsScreenWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountDeliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DeliveryZoneWhereInput
   }
 
 
@@ -16553,6 +16734,8 @@ export namespace Prisma {
     orders?: boolean | Location$ordersArgs<ExtArgs>
     printers?: boolean | Location$printersArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
+    deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
+    paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -16627,6 +16810,8 @@ export namespace Prisma {
     orders?: boolean | Location$ordersArgs<ExtArgs>
     printers?: boolean | Location$printersArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
+    deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
+    paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16641,6 +16826,8 @@ export namespace Prisma {
       orders: Prisma.$OrderPayload<ExtArgs>[]
       printers: Prisma.$PrinterPayload<ExtArgs>[]
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
+      deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
+      paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17041,6 +17228,8 @@ export namespace Prisma {
     orders<T extends Location$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Location$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     printers<T extends Location$printersArgs<ExtArgs> = {}>(args?: Subset<T, Location$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
+    deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
+    paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17494,6 +17683,41 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: KdsScreenScalarFieldEnum | KdsScreenScalarFieldEnum[]
+  }
+
+  /**
+   * Location.deliveryZones
+   */
+  export type Location$deliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    where?: DeliveryZoneWhereInput
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    cursor?: DeliveryZoneWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
+  }
+
+  /**
+   * Location.paymentConfig
+   */
+  export type Location$paymentConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    where?: LocationPaymentConfigWhereInput
   }
 
   /**
@@ -35392,6 +35616,2014 @@ export namespace Prisma {
 
 
   /**
+   * Model DeliveryZone
+   */
+
+  export type AggregateDeliveryZone = {
+    _count: DeliveryZoneCountAggregateOutputType | null
+    _avg: DeliveryZoneAvgAggregateOutputType | null
+    _sum: DeliveryZoneSumAggregateOutputType | null
+    _min: DeliveryZoneMinAggregateOutputType | null
+    _max: DeliveryZoneMaxAggregateOutputType | null
+  }
+
+  export type DeliveryZoneAvgAggregateOutputType = {
+    fee: Decimal | null
+    minOrderValue: Decimal | null
+  }
+
+  export type DeliveryZoneSumAggregateOutputType = {
+    fee: Decimal | null
+    minOrderValue: Decimal | null
+  }
+
+  export type DeliveryZoneMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    postcodePrefix: string | null
+    fee: Decimal | null
+    minOrderValue: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DeliveryZoneMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    postcodePrefix: string | null
+    fee: Decimal | null
+    minOrderValue: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DeliveryZoneCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    postcodePrefix: number
+    fee: number
+    minOrderValue: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DeliveryZoneAvgAggregateInputType = {
+    fee?: true
+    minOrderValue?: true
+  }
+
+  export type DeliveryZoneSumAggregateInputType = {
+    fee?: true
+    minOrderValue?: true
+  }
+
+  export type DeliveryZoneMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    postcodePrefix?: true
+    fee?: true
+    minOrderValue?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DeliveryZoneMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    postcodePrefix?: true
+    fee?: true
+    minOrderValue?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DeliveryZoneCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    postcodePrefix?: true
+    fee?: true
+    minOrderValue?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DeliveryZoneAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DeliveryZone to aggregate.
+     */
+    where?: DeliveryZoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DeliveryZones to fetch.
+     */
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DeliveryZoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DeliveryZones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DeliveryZones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DeliveryZones
+    **/
+    _count?: true | DeliveryZoneCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DeliveryZoneAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DeliveryZoneSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DeliveryZoneMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DeliveryZoneMaxAggregateInputType
+  }
+
+  export type GetDeliveryZoneAggregateType<T extends DeliveryZoneAggregateArgs> = {
+        [P in keyof T & keyof AggregateDeliveryZone]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDeliveryZone[P]>
+      : GetScalarType<T[P], AggregateDeliveryZone[P]>
+  }
+
+
+
+
+  export type DeliveryZoneGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DeliveryZoneWhereInput
+    orderBy?: DeliveryZoneOrderByWithAggregationInput | DeliveryZoneOrderByWithAggregationInput[]
+    by: DeliveryZoneScalarFieldEnum[] | DeliveryZoneScalarFieldEnum
+    having?: DeliveryZoneScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DeliveryZoneCountAggregateInputType | true
+    _avg?: DeliveryZoneAvgAggregateInputType
+    _sum?: DeliveryZoneSumAggregateInputType
+    _min?: DeliveryZoneMinAggregateInputType
+    _max?: DeliveryZoneMaxAggregateInputType
+  }
+
+  export type DeliveryZoneGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    postcodePrefix: string
+    fee: Decimal
+    minOrderValue: Decimal | null
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: DeliveryZoneCountAggregateOutputType | null
+    _avg: DeliveryZoneAvgAggregateOutputType | null
+    _sum: DeliveryZoneSumAggregateOutputType | null
+    _min: DeliveryZoneMinAggregateOutputType | null
+    _max: DeliveryZoneMaxAggregateOutputType | null
+  }
+
+  type GetDeliveryZoneGroupByPayload<T extends DeliveryZoneGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DeliveryZoneGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DeliveryZoneGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DeliveryZoneGroupByOutputType[P]>
+            : GetScalarType<T[P], DeliveryZoneGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DeliveryZoneSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    postcodePrefix?: boolean
+    fee?: boolean
+    minOrderValue?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["deliveryZone"]>
+
+  export type DeliveryZoneSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    postcodePrefix?: boolean
+    fee?: boolean
+    minOrderValue?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["deliveryZone"]>
+
+  export type DeliveryZoneSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    postcodePrefix?: boolean
+    fee?: boolean
+    minOrderValue?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DeliveryZoneInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type DeliveryZoneIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $DeliveryZonePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DeliveryZone"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      postcodePrefix: string
+      fee: Prisma.Decimal
+      minOrderValue: Prisma.Decimal | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["deliveryZone"]>
+    composites: {}
+  }
+
+  type DeliveryZoneGetPayload<S extends boolean | null | undefined | DeliveryZoneDefaultArgs> = $Result.GetResult<Prisma.$DeliveryZonePayload, S>
+
+  type DeliveryZoneCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DeliveryZoneFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DeliveryZoneCountAggregateInputType | true
+    }
+
+  export interface DeliveryZoneDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DeliveryZone'], meta: { name: 'DeliveryZone' } }
+    /**
+     * Find zero or one DeliveryZone that matches the filter.
+     * @param {DeliveryZoneFindUniqueArgs} args - Arguments to find a DeliveryZone
+     * @example
+     * // Get one DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DeliveryZoneFindUniqueArgs>(args: SelectSubset<T, DeliveryZoneFindUniqueArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DeliveryZone that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DeliveryZoneFindUniqueOrThrowArgs} args - Arguments to find a DeliveryZone
+     * @example
+     * // Get one DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DeliveryZoneFindUniqueOrThrowArgs>(args: SelectSubset<T, DeliveryZoneFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DeliveryZone that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneFindFirstArgs} args - Arguments to find a DeliveryZone
+     * @example
+     * // Get one DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DeliveryZoneFindFirstArgs>(args?: SelectSubset<T, DeliveryZoneFindFirstArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DeliveryZone that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneFindFirstOrThrowArgs} args - Arguments to find a DeliveryZone
+     * @example
+     * // Get one DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DeliveryZoneFindFirstOrThrowArgs>(args?: SelectSubset<T, DeliveryZoneFindFirstOrThrowArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DeliveryZones that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DeliveryZones
+     * const deliveryZones = await prisma.deliveryZone.findMany()
+     * 
+     * // Get first 10 DeliveryZones
+     * const deliveryZones = await prisma.deliveryZone.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const deliveryZoneWithIdOnly = await prisma.deliveryZone.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DeliveryZoneFindManyArgs>(args?: SelectSubset<T, DeliveryZoneFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DeliveryZone.
+     * @param {DeliveryZoneCreateArgs} args - Arguments to create a DeliveryZone.
+     * @example
+     * // Create one DeliveryZone
+     * const DeliveryZone = await prisma.deliveryZone.create({
+     *   data: {
+     *     // ... data to create a DeliveryZone
+     *   }
+     * })
+     * 
+     */
+    create<T extends DeliveryZoneCreateArgs>(args: SelectSubset<T, DeliveryZoneCreateArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DeliveryZones.
+     * @param {DeliveryZoneCreateManyArgs} args - Arguments to create many DeliveryZones.
+     * @example
+     * // Create many DeliveryZones
+     * const deliveryZone = await prisma.deliveryZone.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DeliveryZoneCreateManyArgs>(args?: SelectSubset<T, DeliveryZoneCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DeliveryZones and returns the data saved in the database.
+     * @param {DeliveryZoneCreateManyAndReturnArgs} args - Arguments to create many DeliveryZones.
+     * @example
+     * // Create many DeliveryZones
+     * const deliveryZone = await prisma.deliveryZone.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DeliveryZones and only return the `id`
+     * const deliveryZoneWithIdOnly = await prisma.deliveryZone.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DeliveryZoneCreateManyAndReturnArgs>(args?: SelectSubset<T, DeliveryZoneCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DeliveryZone.
+     * @param {DeliveryZoneDeleteArgs} args - Arguments to delete one DeliveryZone.
+     * @example
+     * // Delete one DeliveryZone
+     * const DeliveryZone = await prisma.deliveryZone.delete({
+     *   where: {
+     *     // ... filter to delete one DeliveryZone
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DeliveryZoneDeleteArgs>(args: SelectSubset<T, DeliveryZoneDeleteArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DeliveryZone.
+     * @param {DeliveryZoneUpdateArgs} args - Arguments to update one DeliveryZone.
+     * @example
+     * // Update one DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DeliveryZoneUpdateArgs>(args: SelectSubset<T, DeliveryZoneUpdateArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DeliveryZones.
+     * @param {DeliveryZoneDeleteManyArgs} args - Arguments to filter DeliveryZones to delete.
+     * @example
+     * // Delete a few DeliveryZones
+     * const { count } = await prisma.deliveryZone.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DeliveryZoneDeleteManyArgs>(args?: SelectSubset<T, DeliveryZoneDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DeliveryZones.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DeliveryZones
+     * const deliveryZone = await prisma.deliveryZone.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DeliveryZoneUpdateManyArgs>(args: SelectSubset<T, DeliveryZoneUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DeliveryZone.
+     * @param {DeliveryZoneUpsertArgs} args - Arguments to update or create a DeliveryZone.
+     * @example
+     * // Update or create a DeliveryZone
+     * const deliveryZone = await prisma.deliveryZone.upsert({
+     *   create: {
+     *     // ... data to create a DeliveryZone
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DeliveryZone we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DeliveryZoneUpsertArgs>(args: SelectSubset<T, DeliveryZoneUpsertArgs<ExtArgs>>): Prisma__DeliveryZoneClient<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DeliveryZones.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneCountArgs} args - Arguments to filter DeliveryZones to count.
+     * @example
+     * // Count the number of DeliveryZones
+     * const count = await prisma.deliveryZone.count({
+     *   where: {
+     *     // ... the filter for the DeliveryZones we want to count
+     *   }
+     * })
+    **/
+    count<T extends DeliveryZoneCountArgs>(
+      args?: Subset<T, DeliveryZoneCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DeliveryZoneCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DeliveryZone.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DeliveryZoneAggregateArgs>(args: Subset<T, DeliveryZoneAggregateArgs>): Prisma.PrismaPromise<GetDeliveryZoneAggregateType<T>>
+
+    /**
+     * Group by DeliveryZone.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DeliveryZoneGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DeliveryZoneGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DeliveryZoneGroupByArgs['orderBy'] }
+        : { orderBy?: DeliveryZoneGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DeliveryZoneGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDeliveryZoneGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DeliveryZone model
+   */
+  readonly fields: DeliveryZoneFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DeliveryZone.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DeliveryZoneClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DeliveryZone model
+   */ 
+  interface DeliveryZoneFieldRefs {
+    readonly id: FieldRef<"DeliveryZone", 'String'>
+    readonly tenantId: FieldRef<"DeliveryZone", 'String'>
+    readonly locationId: FieldRef<"DeliveryZone", 'String'>
+    readonly postcodePrefix: FieldRef<"DeliveryZone", 'String'>
+    readonly fee: FieldRef<"DeliveryZone", 'Decimal'>
+    readonly minOrderValue: FieldRef<"DeliveryZone", 'Decimal'>
+    readonly isActive: FieldRef<"DeliveryZone", 'Boolean'>
+    readonly createdAt: FieldRef<"DeliveryZone", 'DateTime'>
+    readonly updatedAt: FieldRef<"DeliveryZone", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DeliveryZone findUnique
+   */
+  export type DeliveryZoneFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter, which DeliveryZone to fetch.
+     */
+    where: DeliveryZoneWhereUniqueInput
+  }
+
+  /**
+   * DeliveryZone findUniqueOrThrow
+   */
+  export type DeliveryZoneFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter, which DeliveryZone to fetch.
+     */
+    where: DeliveryZoneWhereUniqueInput
+  }
+
+  /**
+   * DeliveryZone findFirst
+   */
+  export type DeliveryZoneFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter, which DeliveryZone to fetch.
+     */
+    where?: DeliveryZoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DeliveryZones to fetch.
+     */
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DeliveryZones.
+     */
+    cursor?: DeliveryZoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DeliveryZones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DeliveryZones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DeliveryZones.
+     */
+    distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
+  }
+
+  /**
+   * DeliveryZone findFirstOrThrow
+   */
+  export type DeliveryZoneFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter, which DeliveryZone to fetch.
+     */
+    where?: DeliveryZoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DeliveryZones to fetch.
+     */
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DeliveryZones.
+     */
+    cursor?: DeliveryZoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DeliveryZones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DeliveryZones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DeliveryZones.
+     */
+    distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
+  }
+
+  /**
+   * DeliveryZone findMany
+   */
+  export type DeliveryZoneFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter, which DeliveryZones to fetch.
+     */
+    where?: DeliveryZoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DeliveryZones to fetch.
+     */
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DeliveryZones.
+     */
+    cursor?: DeliveryZoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DeliveryZones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DeliveryZones.
+     */
+    skip?: number
+    distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
+  }
+
+  /**
+   * DeliveryZone create
+   */
+  export type DeliveryZoneCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DeliveryZone.
+     */
+    data: XOR<DeliveryZoneCreateInput, DeliveryZoneUncheckedCreateInput>
+  }
+
+  /**
+   * DeliveryZone createMany
+   */
+  export type DeliveryZoneCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DeliveryZones.
+     */
+    data: DeliveryZoneCreateManyInput | DeliveryZoneCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DeliveryZone createManyAndReturn
+   */
+  export type DeliveryZoneCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DeliveryZones.
+     */
+    data: DeliveryZoneCreateManyInput | DeliveryZoneCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DeliveryZone update
+   */
+  export type DeliveryZoneUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DeliveryZone.
+     */
+    data: XOR<DeliveryZoneUpdateInput, DeliveryZoneUncheckedUpdateInput>
+    /**
+     * Choose, which DeliveryZone to update.
+     */
+    where: DeliveryZoneWhereUniqueInput
+  }
+
+  /**
+   * DeliveryZone updateMany
+   */
+  export type DeliveryZoneUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DeliveryZones.
+     */
+    data: XOR<DeliveryZoneUpdateManyMutationInput, DeliveryZoneUncheckedUpdateManyInput>
+    /**
+     * Filter which DeliveryZones to update
+     */
+    where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * DeliveryZone upsert
+   */
+  export type DeliveryZoneUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DeliveryZone to update in case it exists.
+     */
+    where: DeliveryZoneWhereUniqueInput
+    /**
+     * In case the DeliveryZone found by the `where` argument doesn't exist, create a new DeliveryZone with this data.
+     */
+    create: XOR<DeliveryZoneCreateInput, DeliveryZoneUncheckedCreateInput>
+    /**
+     * In case the DeliveryZone was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DeliveryZoneUpdateInput, DeliveryZoneUncheckedUpdateInput>
+  }
+
+  /**
+   * DeliveryZone delete
+   */
+  export type DeliveryZoneDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    /**
+     * Filter which DeliveryZone to delete.
+     */
+    where: DeliveryZoneWhereUniqueInput
+  }
+
+  /**
+   * DeliveryZone deleteMany
+   */
+  export type DeliveryZoneDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DeliveryZones to delete
+     */
+    where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * DeliveryZone without action
+   */
+  export type DeliveryZoneDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LocationPaymentConfig
+   */
+
+  export type AggregateLocationPaymentConfig = {
+    _count: LocationPaymentConfigCountAggregateOutputType | null
+    _min: LocationPaymentConfigMinAggregateOutputType | null
+    _max: LocationPaymentConfigMaxAggregateOutputType | null
+  }
+
+  export type LocationPaymentConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    provider: string | null
+    cashEnabled: boolean | null
+    cardTerminalEnabled: boolean | null
+    onlinePaymentEnabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LocationPaymentConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    provider: string | null
+    cashEnabled: boolean | null
+    cardTerminalEnabled: boolean | null
+    onlinePaymentEnabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LocationPaymentConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    provider: number
+    cashEnabled: number
+    cardTerminalEnabled: number
+    onlinePaymentEnabled: number
+    config: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type LocationPaymentConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    provider?: true
+    cashEnabled?: true
+    cardTerminalEnabled?: true
+    onlinePaymentEnabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LocationPaymentConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    provider?: true
+    cashEnabled?: true
+    cardTerminalEnabled?: true
+    onlinePaymentEnabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LocationPaymentConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    provider?: true
+    cashEnabled?: true
+    cardTerminalEnabled?: true
+    onlinePaymentEnabled?: true
+    config?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type LocationPaymentConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LocationPaymentConfig to aggregate.
+     */
+    where?: LocationPaymentConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocationPaymentConfigs to fetch.
+     */
+    orderBy?: LocationPaymentConfigOrderByWithRelationInput | LocationPaymentConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LocationPaymentConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocationPaymentConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocationPaymentConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LocationPaymentConfigs
+    **/
+    _count?: true | LocationPaymentConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LocationPaymentConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LocationPaymentConfigMaxAggregateInputType
+  }
+
+  export type GetLocationPaymentConfigAggregateType<T extends LocationPaymentConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateLocationPaymentConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLocationPaymentConfig[P]>
+      : GetScalarType<T[P], AggregateLocationPaymentConfig[P]>
+  }
+
+
+
+
+  export type LocationPaymentConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LocationPaymentConfigWhereInput
+    orderBy?: LocationPaymentConfigOrderByWithAggregationInput | LocationPaymentConfigOrderByWithAggregationInput[]
+    by: LocationPaymentConfigScalarFieldEnum[] | LocationPaymentConfigScalarFieldEnum
+    having?: LocationPaymentConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LocationPaymentConfigCountAggregateInputType | true
+    _min?: LocationPaymentConfigMinAggregateInputType
+    _max?: LocationPaymentConfigMaxAggregateInputType
+  }
+
+  export type LocationPaymentConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    provider: string
+    cashEnabled: boolean
+    cardTerminalEnabled: boolean
+    onlinePaymentEnabled: boolean
+    config: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: LocationPaymentConfigCountAggregateOutputType | null
+    _min: LocationPaymentConfigMinAggregateOutputType | null
+    _max: LocationPaymentConfigMaxAggregateOutputType | null
+  }
+
+  type GetLocationPaymentConfigGroupByPayload<T extends LocationPaymentConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LocationPaymentConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LocationPaymentConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LocationPaymentConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], LocationPaymentConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LocationPaymentConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    provider?: boolean
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["locationPaymentConfig"]>
+
+  export type LocationPaymentConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    provider?: boolean
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["locationPaymentConfig"]>
+
+  export type LocationPaymentConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    provider?: boolean
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type LocationPaymentConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type LocationPaymentConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $LocationPaymentConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LocationPaymentConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      provider: string
+      cashEnabled: boolean
+      cardTerminalEnabled: boolean
+      onlinePaymentEnabled: boolean
+      config: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["locationPaymentConfig"]>
+    composites: {}
+  }
+
+  type LocationPaymentConfigGetPayload<S extends boolean | null | undefined | LocationPaymentConfigDefaultArgs> = $Result.GetResult<Prisma.$LocationPaymentConfigPayload, S>
+
+  type LocationPaymentConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<LocationPaymentConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: LocationPaymentConfigCountAggregateInputType | true
+    }
+
+  export interface LocationPaymentConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LocationPaymentConfig'], meta: { name: 'LocationPaymentConfig' } }
+    /**
+     * Find zero or one LocationPaymentConfig that matches the filter.
+     * @param {LocationPaymentConfigFindUniqueArgs} args - Arguments to find a LocationPaymentConfig
+     * @example
+     * // Get one LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LocationPaymentConfigFindUniqueArgs>(args: SelectSubset<T, LocationPaymentConfigFindUniqueArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one LocationPaymentConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {LocationPaymentConfigFindUniqueOrThrowArgs} args - Arguments to find a LocationPaymentConfig
+     * @example
+     * // Get one LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LocationPaymentConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, LocationPaymentConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first LocationPaymentConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigFindFirstArgs} args - Arguments to find a LocationPaymentConfig
+     * @example
+     * // Get one LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LocationPaymentConfigFindFirstArgs>(args?: SelectSubset<T, LocationPaymentConfigFindFirstArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first LocationPaymentConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigFindFirstOrThrowArgs} args - Arguments to find a LocationPaymentConfig
+     * @example
+     * // Get one LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LocationPaymentConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, LocationPaymentConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more LocationPaymentConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LocationPaymentConfigs
+     * const locationPaymentConfigs = await prisma.locationPaymentConfig.findMany()
+     * 
+     * // Get first 10 LocationPaymentConfigs
+     * const locationPaymentConfigs = await prisma.locationPaymentConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const locationPaymentConfigWithIdOnly = await prisma.locationPaymentConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LocationPaymentConfigFindManyArgs>(args?: SelectSubset<T, LocationPaymentConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a LocationPaymentConfig.
+     * @param {LocationPaymentConfigCreateArgs} args - Arguments to create a LocationPaymentConfig.
+     * @example
+     * // Create one LocationPaymentConfig
+     * const LocationPaymentConfig = await prisma.locationPaymentConfig.create({
+     *   data: {
+     *     // ... data to create a LocationPaymentConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends LocationPaymentConfigCreateArgs>(args: SelectSubset<T, LocationPaymentConfigCreateArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many LocationPaymentConfigs.
+     * @param {LocationPaymentConfigCreateManyArgs} args - Arguments to create many LocationPaymentConfigs.
+     * @example
+     * // Create many LocationPaymentConfigs
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LocationPaymentConfigCreateManyArgs>(args?: SelectSubset<T, LocationPaymentConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LocationPaymentConfigs and returns the data saved in the database.
+     * @param {LocationPaymentConfigCreateManyAndReturnArgs} args - Arguments to create many LocationPaymentConfigs.
+     * @example
+     * // Create many LocationPaymentConfigs
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LocationPaymentConfigs and only return the `id`
+     * const locationPaymentConfigWithIdOnly = await prisma.locationPaymentConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LocationPaymentConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, LocationPaymentConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a LocationPaymentConfig.
+     * @param {LocationPaymentConfigDeleteArgs} args - Arguments to delete one LocationPaymentConfig.
+     * @example
+     * // Delete one LocationPaymentConfig
+     * const LocationPaymentConfig = await prisma.locationPaymentConfig.delete({
+     *   where: {
+     *     // ... filter to delete one LocationPaymentConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LocationPaymentConfigDeleteArgs>(args: SelectSubset<T, LocationPaymentConfigDeleteArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one LocationPaymentConfig.
+     * @param {LocationPaymentConfigUpdateArgs} args - Arguments to update one LocationPaymentConfig.
+     * @example
+     * // Update one LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LocationPaymentConfigUpdateArgs>(args: SelectSubset<T, LocationPaymentConfigUpdateArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more LocationPaymentConfigs.
+     * @param {LocationPaymentConfigDeleteManyArgs} args - Arguments to filter LocationPaymentConfigs to delete.
+     * @example
+     * // Delete a few LocationPaymentConfigs
+     * const { count } = await prisma.locationPaymentConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LocationPaymentConfigDeleteManyArgs>(args?: SelectSubset<T, LocationPaymentConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LocationPaymentConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LocationPaymentConfigs
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LocationPaymentConfigUpdateManyArgs>(args: SelectSubset<T, LocationPaymentConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one LocationPaymentConfig.
+     * @param {LocationPaymentConfigUpsertArgs} args - Arguments to update or create a LocationPaymentConfig.
+     * @example
+     * // Update or create a LocationPaymentConfig
+     * const locationPaymentConfig = await prisma.locationPaymentConfig.upsert({
+     *   create: {
+     *     // ... data to create a LocationPaymentConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LocationPaymentConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LocationPaymentConfigUpsertArgs>(args: SelectSubset<T, LocationPaymentConfigUpsertArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of LocationPaymentConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigCountArgs} args - Arguments to filter LocationPaymentConfigs to count.
+     * @example
+     * // Count the number of LocationPaymentConfigs
+     * const count = await prisma.locationPaymentConfig.count({
+     *   where: {
+     *     // ... the filter for the LocationPaymentConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends LocationPaymentConfigCountArgs>(
+      args?: Subset<T, LocationPaymentConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LocationPaymentConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LocationPaymentConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LocationPaymentConfigAggregateArgs>(args: Subset<T, LocationPaymentConfigAggregateArgs>): Prisma.PrismaPromise<GetLocationPaymentConfigAggregateType<T>>
+
+    /**
+     * Group by LocationPaymentConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocationPaymentConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LocationPaymentConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LocationPaymentConfigGroupByArgs['orderBy'] }
+        : { orderBy?: LocationPaymentConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LocationPaymentConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLocationPaymentConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LocationPaymentConfig model
+   */
+  readonly fields: LocationPaymentConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LocationPaymentConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LocationPaymentConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LocationPaymentConfig model
+   */ 
+  interface LocationPaymentConfigFieldRefs {
+    readonly id: FieldRef<"LocationPaymentConfig", 'String'>
+    readonly tenantId: FieldRef<"LocationPaymentConfig", 'String'>
+    readonly locationId: FieldRef<"LocationPaymentConfig", 'String'>
+    readonly provider: FieldRef<"LocationPaymentConfig", 'String'>
+    readonly cashEnabled: FieldRef<"LocationPaymentConfig", 'Boolean'>
+    readonly cardTerminalEnabled: FieldRef<"LocationPaymentConfig", 'Boolean'>
+    readonly onlinePaymentEnabled: FieldRef<"LocationPaymentConfig", 'Boolean'>
+    readonly config: FieldRef<"LocationPaymentConfig", 'Json'>
+    readonly createdAt: FieldRef<"LocationPaymentConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"LocationPaymentConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LocationPaymentConfig findUnique
+   */
+  export type LocationPaymentConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which LocationPaymentConfig to fetch.
+     */
+    where: LocationPaymentConfigWhereUniqueInput
+  }
+
+  /**
+   * LocationPaymentConfig findUniqueOrThrow
+   */
+  export type LocationPaymentConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which LocationPaymentConfig to fetch.
+     */
+    where: LocationPaymentConfigWhereUniqueInput
+  }
+
+  /**
+   * LocationPaymentConfig findFirst
+   */
+  export type LocationPaymentConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which LocationPaymentConfig to fetch.
+     */
+    where?: LocationPaymentConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocationPaymentConfigs to fetch.
+     */
+    orderBy?: LocationPaymentConfigOrderByWithRelationInput | LocationPaymentConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LocationPaymentConfigs.
+     */
+    cursor?: LocationPaymentConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocationPaymentConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocationPaymentConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LocationPaymentConfigs.
+     */
+    distinct?: LocationPaymentConfigScalarFieldEnum | LocationPaymentConfigScalarFieldEnum[]
+  }
+
+  /**
+   * LocationPaymentConfig findFirstOrThrow
+   */
+  export type LocationPaymentConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which LocationPaymentConfig to fetch.
+     */
+    where?: LocationPaymentConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocationPaymentConfigs to fetch.
+     */
+    orderBy?: LocationPaymentConfigOrderByWithRelationInput | LocationPaymentConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LocationPaymentConfigs.
+     */
+    cursor?: LocationPaymentConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocationPaymentConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocationPaymentConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LocationPaymentConfigs.
+     */
+    distinct?: LocationPaymentConfigScalarFieldEnum | LocationPaymentConfigScalarFieldEnum[]
+  }
+
+  /**
+   * LocationPaymentConfig findMany
+   */
+  export type LocationPaymentConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which LocationPaymentConfigs to fetch.
+     */
+    where?: LocationPaymentConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocationPaymentConfigs to fetch.
+     */
+    orderBy?: LocationPaymentConfigOrderByWithRelationInput | LocationPaymentConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LocationPaymentConfigs.
+     */
+    cursor?: LocationPaymentConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocationPaymentConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocationPaymentConfigs.
+     */
+    skip?: number
+    distinct?: LocationPaymentConfigScalarFieldEnum | LocationPaymentConfigScalarFieldEnum[]
+  }
+
+  /**
+   * LocationPaymentConfig create
+   */
+  export type LocationPaymentConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LocationPaymentConfig.
+     */
+    data: XOR<LocationPaymentConfigCreateInput, LocationPaymentConfigUncheckedCreateInput>
+  }
+
+  /**
+   * LocationPaymentConfig createMany
+   */
+  export type LocationPaymentConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LocationPaymentConfigs.
+     */
+    data: LocationPaymentConfigCreateManyInput | LocationPaymentConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LocationPaymentConfig createManyAndReturn
+   */
+  export type LocationPaymentConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many LocationPaymentConfigs.
+     */
+    data: LocationPaymentConfigCreateManyInput | LocationPaymentConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LocationPaymentConfig update
+   */
+  export type LocationPaymentConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LocationPaymentConfig.
+     */
+    data: XOR<LocationPaymentConfigUpdateInput, LocationPaymentConfigUncheckedUpdateInput>
+    /**
+     * Choose, which LocationPaymentConfig to update.
+     */
+    where: LocationPaymentConfigWhereUniqueInput
+  }
+
+  /**
+   * LocationPaymentConfig updateMany
+   */
+  export type LocationPaymentConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LocationPaymentConfigs.
+     */
+    data: XOR<LocationPaymentConfigUpdateManyMutationInput, LocationPaymentConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which LocationPaymentConfigs to update
+     */
+    where?: LocationPaymentConfigWhereInput
+  }
+
+  /**
+   * LocationPaymentConfig upsert
+   */
+  export type LocationPaymentConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LocationPaymentConfig to update in case it exists.
+     */
+    where: LocationPaymentConfigWhereUniqueInput
+    /**
+     * In case the LocationPaymentConfig found by the `where` argument doesn't exist, create a new LocationPaymentConfig with this data.
+     */
+    create: XOR<LocationPaymentConfigCreateInput, LocationPaymentConfigUncheckedCreateInput>
+    /**
+     * In case the LocationPaymentConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LocationPaymentConfigUpdateInput, LocationPaymentConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * LocationPaymentConfig delete
+   */
+  export type LocationPaymentConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+    /**
+     * Filter which LocationPaymentConfig to delete.
+     */
+    where: LocationPaymentConfigWhereUniqueInput
+  }
+
+  /**
+   * LocationPaymentConfig deleteMany
+   */
+  export type LocationPaymentConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LocationPaymentConfigs to delete
+     */
+    where?: LocationPaymentConfigWhereInput
+  }
+
+  /**
+   * LocationPaymentConfig without action
+   */
+  export type LocationPaymentConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocationPaymentConfig
+     */
+    select?: LocationPaymentConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationPaymentConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Order
    */
 
@@ -35454,11 +37686,19 @@ export namespace Prisma {
     promoDiscount: Decimal | null
     specialInstructions: string | null
     scheduledFor: Date | null
+    scheduledAt: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
     collectionCode: string | null
     preparationMinutes: number | null
     failureReason: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    callerId: string | null
+    discountType: string | null
+    paymentProvider: string | null
     receivedAt: Date | null
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -35500,11 +37740,19 @@ export namespace Prisma {
     promoDiscount: Decimal | null
     specialInstructions: string | null
     scheduledFor: Date | null
+    scheduledAt: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
     collectionCode: string | null
     preparationMinutes: number | null
     failureReason: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    callerId: string | null
+    discountType: string | null
+    paymentProvider: string | null
     receivedAt: Date | null
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -35548,11 +37796,19 @@ export namespace Prisma {
     promoDiscount: number
     specialInstructions: number
     scheduledFor: number
+    scheduledAt: number
     estimatedReadyAt: number
     idempotencyKey: number
     collectionCode: number
     preparationMinutes: number
     failureReason: number
+    addressLine1: number
+    addressLine2: number
+    city: number
+    postcode: number
+    callerId: number
+    discountType: number
+    paymentProvider: number
     receivedAt: number
     acceptedAt: number
     preparingAt: number
@@ -35620,11 +37876,19 @@ export namespace Prisma {
     promoDiscount?: true
     specialInstructions?: true
     scheduledFor?: true
+    scheduledAt?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
     collectionCode?: true
     preparationMinutes?: true
     failureReason?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    callerId?: true
+    discountType?: true
+    paymentProvider?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -35666,11 +37930,19 @@ export namespace Prisma {
     promoDiscount?: true
     specialInstructions?: true
     scheduledFor?: true
+    scheduledAt?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
     collectionCode?: true
     preparationMinutes?: true
     failureReason?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    callerId?: true
+    discountType?: true
+    paymentProvider?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -35714,11 +37986,19 @@ export namespace Prisma {
     promoDiscount?: true
     specialInstructions?: true
     scheduledFor?: true
+    scheduledAt?: true
     estimatedReadyAt?: true
     idempotencyKey?: true
     collectionCode?: true
     preparationMinutes?: true
     failureReason?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    callerId?: true
+    discountType?: true
+    paymentProvider?: true
     receivedAt?: true
     acceptedAt?: true
     preparingAt?: true
@@ -35851,11 +38131,19 @@ export namespace Prisma {
     promoDiscount: Decimal | null
     specialInstructions: string | null
     scheduledFor: Date | null
+    scheduledAt: Date | null
     estimatedReadyAt: Date | null
     idempotencyKey: string | null
     collectionCode: string | null
     preparationMinutes: number | null
     failureReason: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    callerId: string | null
+    discountType: string | null
+    paymentProvider: string | null
     receivedAt: Date
     acceptedAt: Date | null
     preparingAt: Date | null
@@ -35920,11 +38208,19 @@ export namespace Prisma {
     promoDiscount?: boolean
     specialInstructions?: boolean
     scheduledFor?: boolean
+    scheduledAt?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
     collectionCode?: boolean
     preparationMinutes?: boolean
     failureReason?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    callerId?: boolean
+    discountType?: boolean
+    paymentProvider?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -35981,11 +38277,19 @@ export namespace Prisma {
     promoDiscount?: boolean
     specialInstructions?: boolean
     scheduledFor?: boolean
+    scheduledAt?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
     collectionCode?: boolean
     preparationMinutes?: boolean
     failureReason?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    callerId?: boolean
+    discountType?: boolean
+    paymentProvider?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -36035,11 +38339,19 @@ export namespace Prisma {
     promoDiscount?: boolean
     specialInstructions?: boolean
     scheduledFor?: boolean
+    scheduledAt?: boolean
     estimatedReadyAt?: boolean
     idempotencyKey?: boolean
     collectionCode?: boolean
     preparationMinutes?: boolean
     failureReason?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    callerId?: boolean
+    discountType?: boolean
+    paymentProvider?: boolean
     receivedAt?: boolean
     acceptedAt?: boolean
     preparingAt?: boolean
@@ -36119,11 +38431,19 @@ export namespace Prisma {
       promoDiscount: Prisma.Decimal | null
       specialInstructions: string | null
       scheduledFor: Date | null
+      scheduledAt: Date | null
       estimatedReadyAt: Date | null
       idempotencyKey: string | null
       collectionCode: string | null
       preparationMinutes: number | null
       failureReason: string | null
+      addressLine1: string | null
+      addressLine2: string | null
+      city: string | null
+      postcode: string | null
+      callerId: string | null
+      discountType: string | null
+      paymentProvider: string | null
       receivedAt: Date
       acceptedAt: Date | null
       preparingAt: Date | null
@@ -36569,11 +38889,19 @@ export namespace Prisma {
     readonly promoDiscount: FieldRef<"Order", 'Decimal'>
     readonly specialInstructions: FieldRef<"Order", 'String'>
     readonly scheduledFor: FieldRef<"Order", 'DateTime'>
+    readonly scheduledAt: FieldRef<"Order", 'DateTime'>
     readonly estimatedReadyAt: FieldRef<"Order", 'DateTime'>
     readonly idempotencyKey: FieldRef<"Order", 'String'>
     readonly collectionCode: FieldRef<"Order", 'String'>
     readonly preparationMinutes: FieldRef<"Order", 'Int'>
     readonly failureReason: FieldRef<"Order", 'String'>
+    readonly addressLine1: FieldRef<"Order", 'String'>
+    readonly addressLine2: FieldRef<"Order", 'String'>
+    readonly city: FieldRef<"Order", 'String'>
+    readonly postcode: FieldRef<"Order", 'String'>
+    readonly callerId: FieldRef<"Order", 'String'>
+    readonly discountType: FieldRef<"Order", 'String'>
+    readonly paymentProvider: FieldRef<"Order", 'String'>
     readonly receivedAt: FieldRef<"Order", 'DateTime'>
     readonly acceptedAt: FieldRef<"Order", 'DateTime'>
     readonly preparingAt: FieldRef<"Order", 'DateTime'>
@@ -83723,6 +86051,37 @@ export namespace Prisma {
   export type PromoCodeScalarFieldEnum = (typeof PromoCodeScalarFieldEnum)[keyof typeof PromoCodeScalarFieldEnum]
 
 
+  export const DeliveryZoneScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    postcodePrefix: 'postcodePrefix',
+    fee: 'fee',
+    minOrderValue: 'minOrderValue',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DeliveryZoneScalarFieldEnum = (typeof DeliveryZoneScalarFieldEnum)[keyof typeof DeliveryZoneScalarFieldEnum]
+
+
+  export const LocationPaymentConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    provider: 'provider',
+    cashEnabled: 'cashEnabled',
+    cardTerminalEnabled: 'cardTerminalEnabled',
+    onlinePaymentEnabled: 'onlinePaymentEnabled',
+    config: 'config',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type LocationPaymentConfigScalarFieldEnum = (typeof LocationPaymentConfigScalarFieldEnum)[keyof typeof LocationPaymentConfigScalarFieldEnum]
+
+
   export const OrderScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -83754,11 +86113,19 @@ export namespace Prisma {
     promoDiscount: 'promoDiscount',
     specialInstructions: 'specialInstructions',
     scheduledFor: 'scheduledFor',
+    scheduledAt: 'scheduledAt',
     estimatedReadyAt: 'estimatedReadyAt',
     idempotencyKey: 'idempotencyKey',
     collectionCode: 'collectionCode',
     preparationMinutes: 'preparationMinutes',
     failureReason: 'failureReason',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    callerId: 'callerId',
+    discountType: 'discountType',
+    paymentProvider: 'paymentProvider',
     receivedAt: 'receivedAt',
     acceptedAt: 'acceptedAt',
     preparingAt: 'preparingAt',
@@ -84910,6 +87277,26 @@ export namespace Prisma {
   export type PromoCodeOrderByRelevanceFieldEnum = (typeof PromoCodeOrderByRelevanceFieldEnum)[keyof typeof PromoCodeOrderByRelevanceFieldEnum]
 
 
+  export const DeliveryZoneOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    postcodePrefix: 'postcodePrefix'
+  };
+
+  export type DeliveryZoneOrderByRelevanceFieldEnum = (typeof DeliveryZoneOrderByRelevanceFieldEnum)[keyof typeof DeliveryZoneOrderByRelevanceFieldEnum]
+
+
+  export const LocationPaymentConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    provider: 'provider'
+  };
+
+  export type LocationPaymentConfigOrderByRelevanceFieldEnum = (typeof LocationPaymentConfigOrderByRelevanceFieldEnum)[keyof typeof LocationPaymentConfigOrderByRelevanceFieldEnum]
+
+
   export const OrderOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -84926,6 +87313,13 @@ export namespace Prisma {
     idempotencyKey: 'idempotencyKey',
     collectionCode: 'collectionCode',
     failureReason: 'failureReason',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    callerId: 'callerId',
+    discountType: 'discountType',
+    paymentProvider: 'paymentProvider',
     cancelReason: 'cancelReason'
   };
 
@@ -86831,6 +89225,8 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     printers?: PrinterListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
+    deliveryZones?: DeliveryZoneListRelationFilter
+    paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -86868,6 +89264,8 @@ export namespace Prisma {
     orders?: OrderOrderByRelationAggregateInput
     printers?: PrinterOrderByRelationAggregateInput
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
+    deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
+    paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -86909,6 +89307,8 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     printers?: PrinterListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
+    deliveryZones?: DeliveryZoneListRelationFilter
+    paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
   }, "id" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -88890,6 +91290,166 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"PromoCode"> | Date | string
   }
 
+  export type DeliveryZoneWhereInput = {
+    AND?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
+    OR?: DeliveryZoneWhereInput[]
+    NOT?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
+    id?: StringFilter<"DeliveryZone"> | string
+    tenantId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
+    minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"DeliveryZone"> | boolean
+    createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type DeliveryZoneOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    postcodePrefix?: SortOrder
+    fee?: SortOrder
+    minOrderValue?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: DeliveryZoneOrderByRelevanceInput
+  }
+
+  export type DeliveryZoneWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId_postcodePrefix?: DeliveryZoneLocationIdPostcodePrefixCompoundUniqueInput
+    AND?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
+    OR?: DeliveryZoneWhereInput[]
+    NOT?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
+    tenantId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
+    minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"DeliveryZone"> | boolean
+    createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId_postcodePrefix">
+
+  export type DeliveryZoneOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    postcodePrefix?: SortOrder
+    fee?: SortOrder
+    minOrderValue?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DeliveryZoneCountOrderByAggregateInput
+    _avg?: DeliveryZoneAvgOrderByAggregateInput
+    _max?: DeliveryZoneMaxOrderByAggregateInput
+    _min?: DeliveryZoneMinOrderByAggregateInput
+    _sum?: DeliveryZoneSumOrderByAggregateInput
+  }
+
+  export type DeliveryZoneScalarWhereWithAggregatesInput = {
+    AND?: DeliveryZoneScalarWhereWithAggregatesInput | DeliveryZoneScalarWhereWithAggregatesInput[]
+    OR?: DeliveryZoneScalarWhereWithAggregatesInput[]
+    NOT?: DeliveryZoneScalarWhereWithAggregatesInput | DeliveryZoneScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    tenantId?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    locationId?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    fee?: DecimalWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
+    minOrderValue?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolWithAggregatesFilter<"DeliveryZone"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"DeliveryZone"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DeliveryZone"> | Date | string
+  }
+
+  export type LocationPaymentConfigWhereInput = {
+    AND?: LocationPaymentConfigWhereInput | LocationPaymentConfigWhereInput[]
+    OR?: LocationPaymentConfigWhereInput[]
+    NOT?: LocationPaymentConfigWhereInput | LocationPaymentConfigWhereInput[]
+    id?: StringFilter<"LocationPaymentConfig"> | string
+    tenantId?: StringFilter<"LocationPaymentConfig"> | string
+    locationId?: StringFilter<"LocationPaymentConfig"> | string
+    provider?: StringFilter<"LocationPaymentConfig"> | string
+    cashEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    cardTerminalEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    onlinePaymentEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    config?: JsonFilter<"LocationPaymentConfig">
+    createdAt?: DateTimeFilter<"LocationPaymentConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"LocationPaymentConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type LocationPaymentConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    provider?: SortOrder
+    cashEnabled?: SortOrder
+    cardTerminalEnabled?: SortOrder
+    onlinePaymentEnabled?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: LocationPaymentConfigOrderByRelevanceInput
+  }
+
+  export type LocationPaymentConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: LocationPaymentConfigWhereInput | LocationPaymentConfigWhereInput[]
+    OR?: LocationPaymentConfigWhereInput[]
+    NOT?: LocationPaymentConfigWhereInput | LocationPaymentConfigWhereInput[]
+    tenantId?: StringFilter<"LocationPaymentConfig"> | string
+    provider?: StringFilter<"LocationPaymentConfig"> | string
+    cashEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    cardTerminalEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    onlinePaymentEnabled?: BoolFilter<"LocationPaymentConfig"> | boolean
+    config?: JsonFilter<"LocationPaymentConfig">
+    createdAt?: DateTimeFilter<"LocationPaymentConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"LocationPaymentConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type LocationPaymentConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    provider?: SortOrder
+    cashEnabled?: SortOrder
+    cardTerminalEnabled?: SortOrder
+    onlinePaymentEnabled?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: LocationPaymentConfigCountOrderByAggregateInput
+    _max?: LocationPaymentConfigMaxOrderByAggregateInput
+    _min?: LocationPaymentConfigMinOrderByAggregateInput
+  }
+
+  export type LocationPaymentConfigScalarWhereWithAggregatesInput = {
+    AND?: LocationPaymentConfigScalarWhereWithAggregatesInput | LocationPaymentConfigScalarWhereWithAggregatesInput[]
+    OR?: LocationPaymentConfigScalarWhereWithAggregatesInput[]
+    NOT?: LocationPaymentConfigScalarWhereWithAggregatesInput | LocationPaymentConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LocationPaymentConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"LocationPaymentConfig"> | string
+    locationId?: StringWithAggregatesFilter<"LocationPaymentConfig"> | string
+    provider?: StringWithAggregatesFilter<"LocationPaymentConfig"> | string
+    cashEnabled?: BoolWithAggregatesFilter<"LocationPaymentConfig"> | boolean
+    cardTerminalEnabled?: BoolWithAggregatesFilter<"LocationPaymentConfig"> | boolean
+    onlinePaymentEnabled?: BoolWithAggregatesFilter<"LocationPaymentConfig"> | boolean
+    config?: JsonWithAggregatesFilter<"LocationPaymentConfig">
+    createdAt?: DateTimeWithAggregatesFilter<"LocationPaymentConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LocationPaymentConfig"> | Date | string
+  }
+
   export type OrderWhereInput = {
     AND?: OrderWhereInput | OrderWhereInput[]
     OR?: OrderWhereInput[]
@@ -88924,11 +91484,19 @@ export namespace Prisma {
     promoDiscount?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: StringNullableFilter<"Order"> | string | null
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
+    scheduledAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableFilter<"Order"> | string | null
     collectionCode?: StringNullableFilter<"Order"> | string | null
     preparationMinutes?: IntNullableFilter<"Order"> | number | null
     failureReason?: StringNullableFilter<"Order"> | string | null
+    addressLine1?: StringNullableFilter<"Order"> | string | null
+    addressLine2?: StringNullableFilter<"Order"> | string | null
+    city?: StringNullableFilter<"Order"> | string | null
+    postcode?: StringNullableFilter<"Order"> | string | null
+    callerId?: StringNullableFilter<"Order"> | string | null
+    discountType?: StringNullableFilter<"Order"> | string | null
+    paymentProvider?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -88984,11 +91552,19 @@ export namespace Prisma {
     promoDiscount?: SortOrderInput | SortOrder
     specialInstructions?: SortOrderInput | SortOrder
     scheduledFor?: SortOrderInput | SortOrder
+    scheduledAt?: SortOrderInput | SortOrder
     estimatedReadyAt?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     collectionCode?: SortOrderInput | SortOrder
     preparationMinutes?: SortOrderInput | SortOrder
     failureReason?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    callerId?: SortOrderInput | SortOrder
+    discountType?: SortOrderInput | SortOrder
+    paymentProvider?: SortOrderInput | SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     preparingAt?: SortOrderInput | SortOrder
@@ -89050,10 +91626,18 @@ export namespace Prisma {
     promoDiscount?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: StringNullableFilter<"Order"> | string | null
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
+    scheduledAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     collectionCode?: StringNullableFilter<"Order"> | string | null
     preparationMinutes?: IntNullableFilter<"Order"> | number | null
     failureReason?: StringNullableFilter<"Order"> | string | null
+    addressLine1?: StringNullableFilter<"Order"> | string | null
+    addressLine2?: StringNullableFilter<"Order"> | string | null
+    city?: StringNullableFilter<"Order"> | string | null
+    postcode?: StringNullableFilter<"Order"> | string | null
+    callerId?: StringNullableFilter<"Order"> | string | null
+    discountType?: StringNullableFilter<"Order"> | string | null
+    paymentProvider?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -89109,11 +91693,19 @@ export namespace Prisma {
     promoDiscount?: SortOrderInput | SortOrder
     specialInstructions?: SortOrderInput | SortOrder
     scheduledFor?: SortOrderInput | SortOrder
+    scheduledAt?: SortOrderInput | SortOrder
     estimatedReadyAt?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     collectionCode?: SortOrderInput | SortOrder
     preparationMinutes?: SortOrderInput | SortOrder
     failureReason?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    callerId?: SortOrderInput | SortOrder
+    discountType?: SortOrderInput | SortOrder
+    paymentProvider?: SortOrderInput | SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     preparingAt?: SortOrderInput | SortOrder
@@ -89167,11 +91759,19 @@ export namespace Prisma {
     promoDiscount?: DecimalNullableWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: StringNullableWithAggregatesFilter<"Order"> | string | null
     scheduledFor?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    scheduledAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"Order"> | string | null
     collectionCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
     preparationMinutes?: IntNullableWithAggregatesFilter<"Order"> | number | null
     failureReason?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    addressLine1?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    addressLine2?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    city?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    postcode?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    callerId?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    discountType?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    paymentProvider?: StringNullableWithAggregatesFilter<"Order"> | string | null
     receivedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
@@ -93979,6 +96579,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -94015,6 +96617,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -94051,6 +96655,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -94087,6 +96693,8 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -96420,6 +99028,179 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DeliveryZoneCreateInput = {
+    id?: string
+    tenantId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutDeliveryZonesInput
+  }
+
+  export type DeliveryZoneUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutDeliveryZonesNestedInput
+  }
+
+  export type DeliveryZoneUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationPaymentConfigCreateInput = {
+    id?: string
+    tenantId: string
+    provider?: string
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPaymentConfigInput
+  }
+
+  export type LocationPaymentConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    provider?: string
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationPaymentConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPaymentConfigNestedInput
+  }
+
+  export type LocationPaymentConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationPaymentConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    provider?: string
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationPaymentConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationPaymentConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderCreateInput = {
     id?: string
     externalId?: string | null
@@ -96447,11 +99228,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -96507,11 +99296,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -96559,11 +99356,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -96619,11 +99424,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -96675,11 +99488,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -96721,11 +99542,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -96771,11 +99600,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -102150,6 +104987,17 @@ export namespace Prisma {
     none?: KdsScreenWhereInput
   }
 
+  export type DeliveryZoneListRelationFilter = {
+    every?: DeliveryZoneWhereInput
+    some?: DeliveryZoneWhereInput
+    none?: DeliveryZoneWhereInput
+  }
+
+  export type LocationPaymentConfigNullableRelationFilter = {
+    is?: LocationPaymentConfigWhereInput | null
+    isNot?: LocationPaymentConfigWhereInput | null
+  }
+
   export type IntegrationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -102159,6 +105007,10 @@ export namespace Prisma {
   }
 
   export type KdsScreenOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DeliveryZoneOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -103743,6 +106595,106 @@ export namespace Prisma {
     _max?: NestedEnumPromoCodeTypeFilter<$PrismaModel>
   }
 
+  export type DeliveryZoneOrderByRelevanceInput = {
+    fields: DeliveryZoneOrderByRelevanceFieldEnum | DeliveryZoneOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type DeliveryZoneLocationIdPostcodePrefixCompoundUniqueInput = {
+    locationId: string
+    postcodePrefix: string
+  }
+
+  export type DeliveryZoneCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    postcodePrefix?: SortOrder
+    fee?: SortOrder
+    minOrderValue?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DeliveryZoneAvgOrderByAggregateInput = {
+    fee?: SortOrder
+    minOrderValue?: SortOrder
+  }
+
+  export type DeliveryZoneMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    postcodePrefix?: SortOrder
+    fee?: SortOrder
+    minOrderValue?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DeliveryZoneMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    postcodePrefix?: SortOrder
+    fee?: SortOrder
+    minOrderValue?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DeliveryZoneSumOrderByAggregateInput = {
+    fee?: SortOrder
+    minOrderValue?: SortOrder
+  }
+
+  export type LocationPaymentConfigOrderByRelevanceInput = {
+    fields: LocationPaymentConfigOrderByRelevanceFieldEnum | LocationPaymentConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type LocationPaymentConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    provider?: SortOrder
+    cashEnabled?: SortOrder
+    cardTerminalEnabled?: SortOrder
+    onlinePaymentEnabled?: SortOrder
+    config?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocationPaymentConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    provider?: SortOrder
+    cashEnabled?: SortOrder
+    cardTerminalEnabled?: SortOrder
+    onlinePaymentEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocationPaymentConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    provider?: SortOrder
+    cashEnabled?: SortOrder
+    cardTerminalEnabled?: SortOrder
+    onlinePaymentEnabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type EnumOrderPlatformFilter<$PrismaModel = never> = {
     equals?: $Enums.OrderPlatform | EnumOrderPlatformFieldRefInput<$PrismaModel>
     in?: $Enums.OrderPlatform[] | ListEnumOrderPlatformFieldRefInput<$PrismaModel>
@@ -103882,11 +106834,19 @@ export namespace Prisma {
     promoDiscount?: SortOrder
     specialInstructions?: SortOrder
     scheduledFor?: SortOrder
+    scheduledAt?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
     collectionCode?: SortOrder
     preparationMinutes?: SortOrder
     failureReason?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    callerId?: SortOrder
+    discountType?: SortOrder
+    paymentProvider?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -103941,11 +106901,19 @@ export namespace Prisma {
     promoDiscount?: SortOrder
     specialInstructions?: SortOrder
     scheduledFor?: SortOrder
+    scheduledAt?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
     collectionCode?: SortOrder
     preparationMinutes?: SortOrder
     failureReason?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    callerId?: SortOrder
+    discountType?: SortOrder
+    paymentProvider?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -103987,11 +106955,19 @@ export namespace Prisma {
     promoDiscount?: SortOrder
     specialInstructions?: SortOrder
     scheduledFor?: SortOrder
+    scheduledAt?: SortOrder
     estimatedReadyAt?: SortOrder
     idempotencyKey?: SortOrder
     collectionCode?: SortOrder
     preparationMinutes?: SortOrder
     failureReason?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    callerId?: SortOrder
+    discountType?: SortOrder
+    paymentProvider?: SortOrder
     receivedAt?: SortOrder
     acceptedAt?: SortOrder
     preparingAt?: SortOrder
@@ -108363,6 +111339,19 @@ export namespace Prisma {
     connect?: KdsScreenWhereUniqueInput | KdsScreenWhereUniqueInput[]
   }
 
+  export type DeliveryZoneCreateNestedManyWithoutLocationInput = {
+    create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
+    createMany?: DeliveryZoneCreateManyLocationInputEnvelope
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+  }
+
+  export type LocationPaymentConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
+    connect?: LocationPaymentConfigWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -108389,6 +111378,19 @@ export namespace Prisma {
     connectOrCreate?: KdsScreenCreateOrConnectWithoutLocationInput | KdsScreenCreateOrConnectWithoutLocationInput[]
     createMany?: KdsScreenCreateManyLocationInputEnvelope
     connect?: KdsScreenWhereUniqueInput | KdsScreenWhereUniqueInput[]
+  }
+
+  export type DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
+    createMany?: DeliveryZoneCreateManyLocationInputEnvelope
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+  }
+
+  export type LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
+    connect?: LocationPaymentConfigWhereUniqueInput
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -108475,6 +111477,30 @@ export namespace Prisma {
     deleteMany?: KdsScreenScalarWhereInput | KdsScreenScalarWhereInput[]
   }
 
+  export type DeliveryZoneUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
+    upsert?: DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput | DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: DeliveryZoneCreateManyLocationInputEnvelope
+    set?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    disconnect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    delete?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    update?: DeliveryZoneUpdateWithWhereUniqueWithoutLocationInput | DeliveryZoneUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: DeliveryZoneUpdateManyWithWhereWithoutLocationInput | DeliveryZoneUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+  }
+
+  export type LocationPaymentConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
+    upsert?: LocationPaymentConfigUpsertWithoutLocationInput
+    disconnect?: LocationPaymentConfigWhereInput | boolean
+    delete?: LocationPaymentConfigWhereInput | boolean
+    connect?: LocationPaymentConfigWhereUniqueInput
+    update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -108529,6 +111555,30 @@ export namespace Prisma {
     update?: KdsScreenUpdateWithWhereUniqueWithoutLocationInput | KdsScreenUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: KdsScreenUpdateManyWithWhereWithoutLocationInput | KdsScreenUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: KdsScreenScalarWhereInput | KdsScreenScalarWhereInput[]
+  }
+
+  export type DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput> | DeliveryZoneCreateWithoutLocationInput[] | DeliveryZoneUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutLocationInput | DeliveryZoneCreateOrConnectWithoutLocationInput[]
+    upsert?: DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput | DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: DeliveryZoneCreateManyLocationInputEnvelope
+    set?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    disconnect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    delete?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    update?: DeliveryZoneUpdateWithWhereUniqueWithoutLocationInput | DeliveryZoneUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: DeliveryZoneUpdateManyWithWhereWithoutLocationInput | DeliveryZoneUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+  }
+
+  export type LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
+    upsert?: LocationPaymentConfigUpsertWithoutLocationInput
+    disconnect?: LocationPaymentConfigWhereInput | boolean
+    delete?: LocationPaymentConfigWhereInput | boolean
+    connect?: LocationPaymentConfigWhereUniqueInput
+    update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type LocationCreateNestedOneWithoutIntegrationsInput = {
@@ -109548,6 +112598,34 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutPromoCodesInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPromoCodesInput, TenantUpdateWithoutPromoCodesInput>, TenantUncheckedUpdateWithoutPromoCodesInput>
+  }
+
+  export type LocationCreateNestedOneWithoutDeliveryZonesInput = {
+    create?: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDeliveryZonesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutDeliveryZonesNestedInput = {
+    create?: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDeliveryZonesInput
+    upsert?: LocationUpsertWithoutDeliveryZonesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDeliveryZonesInput, LocationUpdateWithoutDeliveryZonesInput>, LocationUncheckedUpdateWithoutDeliveryZonesInput>
+  }
+
+  export type LocationCreateNestedOneWithoutPaymentConfigInput = {
+    create?: XOR<LocationCreateWithoutPaymentConfigInput, LocationUncheckedCreateWithoutPaymentConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPaymentConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutPaymentConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutPaymentConfigInput, LocationUncheckedCreateWithoutPaymentConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPaymentConfigInput
+    upsert?: LocationUpsertWithoutPaymentConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPaymentConfigInput, LocationUpdateWithoutPaymentConfigInput>, LocationUncheckedUpdateWithoutPaymentConfigInput>
   }
 
   export type TenantCreateNestedOneWithoutOrdersInput = {
@@ -112707,11 +115785,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -112765,11 +115851,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -113332,11 +116426,19 @@ export namespace Prisma {
     promoDiscount?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: StringNullableFilter<"Order"> | string | null
     scheduledFor?: DateTimeNullableFilter<"Order"> | Date | string | null
+    scheduledAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     estimatedReadyAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     idempotencyKey?: StringNullableFilter<"Order"> | string | null
     collectionCode?: StringNullableFilter<"Order"> | string | null
     preparationMinutes?: IntNullableFilter<"Order"> | number | null
     failureReason?: StringNullableFilter<"Order"> | string | null
+    addressLine1?: StringNullableFilter<"Order"> | string | null
+    addressLine2?: StringNullableFilter<"Order"> | string | null
+    city?: StringNullableFilter<"Order"> | string | null
+    postcode?: StringNullableFilter<"Order"> | string | null
+    callerId?: StringNullableFilter<"Order"> | string | null
+    discountType?: StringNullableFilter<"Order"> | string | null
+    paymentProvider?: StringNullableFilter<"Order"> | string | null
     receivedAt?: DateTimeFilter<"Order"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     preparingAt?: DateTimeNullableFilter<"Order"> | Date | string | null
@@ -114723,6 +117825,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -114758,6 +117862,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -114947,11 +118053,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -115005,11 +118119,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -115563,11 +118685,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -115621,11 +118751,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -115750,6 +118888,67 @@ export namespace Prisma {
   export type KdsScreenCreateManyLocationInputEnvelope = {
     data: KdsScreenCreateManyLocationInput | KdsScreenCreateManyLocationInput[]
     skipDuplicates?: boolean
+  }
+
+  export type DeliveryZoneCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneCreateOrConnectWithoutLocationInput = {
+    where: DeliveryZoneWhereUniqueInput
+    create: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput>
+  }
+
+  export type DeliveryZoneCreateManyLocationInputEnvelope = {
+    data: DeliveryZoneCreateManyLocationInput | DeliveryZoneCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationPaymentConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    provider?: string
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationPaymentConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    provider?: string
+    cashEnabled?: boolean
+    cardTerminalEnabled?: boolean
+    onlinePaymentEnabled?: boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationPaymentConfigCreateOrConnectWithoutLocationInput = {
+    where: LocationPaymentConfigWhereUniqueInput
+    create: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
   }
 
   export type BrandUpsertWithoutLocationsInput = {
@@ -115930,6 +119129,72 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"KdsScreen"> | Date | string
   }
 
+  export type DeliveryZoneUpsertWithWhereUniqueWithoutLocationInput = {
+    where: DeliveryZoneWhereUniqueInput
+    update: XOR<DeliveryZoneUpdateWithoutLocationInput, DeliveryZoneUncheckedUpdateWithoutLocationInput>
+    create: XOR<DeliveryZoneCreateWithoutLocationInput, DeliveryZoneUncheckedCreateWithoutLocationInput>
+  }
+
+  export type DeliveryZoneUpdateWithWhereUniqueWithoutLocationInput = {
+    where: DeliveryZoneWhereUniqueInput
+    data: XOR<DeliveryZoneUpdateWithoutLocationInput, DeliveryZoneUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type DeliveryZoneUpdateManyWithWhereWithoutLocationInput = {
+    where: DeliveryZoneScalarWhereInput
+    data: XOR<DeliveryZoneUpdateManyMutationInput, DeliveryZoneUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type DeliveryZoneScalarWhereInput = {
+    AND?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+    OR?: DeliveryZoneScalarWhereInput[]
+    NOT?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+    id?: StringFilter<"DeliveryZone"> | string
+    tenantId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringFilter<"DeliveryZone"> | string
+    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
+    minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"DeliveryZone"> | boolean
+    createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+  }
+
+  export type LocationPaymentConfigUpsertWithoutLocationInput = {
+    update: XOR<LocationPaymentConfigUpdateWithoutLocationInput, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
+    where?: LocationPaymentConfigWhereInput
+  }
+
+  export type LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: LocationPaymentConfigWhereInput
+    data: XOR<LocationPaymentConfigUpdateWithoutLocationInput, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type LocationPaymentConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationPaymentConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    cashEnabled?: BoolFieldUpdateOperationsInput | boolean
+    cardTerminalEnabled?: BoolFieldUpdateOperationsInput | boolean
+    onlinePaymentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LocationCreateWithoutIntegrationsInput = {
     id?: string
     name: string
@@ -115963,6 +119228,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -115998,6 +119265,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -116049,6 +119318,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -116084,6 +119355,8 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -118610,11 +121883,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -118668,11 +121949,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -119229,6 +122518,334 @@ export namespace Prisma {
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
   }
 
+  export type LocationCreateWithoutDeliveryZonesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
+  }
+
+  export type LocationUpsertWithoutDeliveryZonesInput = {
+    update: XOR<LocationUpdateWithoutDeliveryZonesInput, LocationUncheckedUpdateWithoutDeliveryZonesInput>
+    create: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutDeliveryZonesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutDeliveryZonesInput, LocationUncheckedUpdateWithoutDeliveryZonesInput>
+  }
+
+  export type LocationUpdateWithoutDeliveryZonesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutPaymentConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutPaymentConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutPaymentConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutPaymentConfigInput, LocationUncheckedCreateWithoutPaymentConfigInput>
+  }
+
+  export type LocationUpsertWithoutPaymentConfigInput = {
+    update: XOR<LocationUpdateWithoutPaymentConfigInput, LocationUncheckedUpdateWithoutPaymentConfigInput>
+    create: XOR<LocationCreateWithoutPaymentConfigInput, LocationUncheckedCreateWithoutPaymentConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutPaymentConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutPaymentConfigInput, LocationUncheckedUpdateWithoutPaymentConfigInput>
+  }
+
+  export type LocationUpdateWithoutPaymentConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
   export type TenantCreateWithoutOrdersInput = {
     id?: string
     name: string
@@ -119315,6 +122932,8 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -119350,6 +122969,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -119761,6 +123382,8 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -119796,6 +123419,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -120101,11 +123726,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120160,11 +123793,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120227,11 +123868,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120286,11 +123935,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120337,11 +123994,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120396,11 +124061,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120463,11 +124136,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120522,11 +124203,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120579,6 +124268,8 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -120614,6 +124305,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -120691,6 +124384,8 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -120726,6 +124421,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -120800,11 +124497,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120859,11 +124564,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -120961,11 +124674,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -121020,11 +124741,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -121077,6 +124806,8 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -121112,6 +124843,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -121207,6 +124940,8 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -121242,6 +124977,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintJobUpsertWithWhereUniqueWithoutPrinterInput = {
@@ -121397,11 +125134,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -121456,11 +125201,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -121645,11 +125398,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -121704,11 +125465,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -121929,11 +125698,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -121988,11 +125765,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -122122,11 +125907,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -122181,11 +125974,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -122611,11 +126412,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -122670,11 +126479,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -122850,11 +126667,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -122909,11 +126734,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126478,11 +130311,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -126771,11 +130612,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126829,11 +130678,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126884,11 +130741,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -127601,11 +131466,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -127694,6 +131567,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -127729,6 +131604,8 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -127979,11 +131856,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128037,11 +131922,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128092,11 +131985,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128281,11 +132182,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -128332,6 +132241,17 @@ export namespace Prisma {
     station: string
     isActive?: boolean
     settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -128414,11 +132334,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128472,11 +132400,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128527,11 +132463,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128654,6 +132598,39 @@ export namespace Prisma {
     station?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     settings?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -129215,11 +133192,19 @@ export namespace Prisma {
     promoDiscount?: Decimal | DecimalJsLike | number | string | null
     specialInstructions?: string | null
     scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
     estimatedReadyAt?: Date | string | null
     idempotencyKey?: string | null
     collectionCode?: string | null
     preparationMinutes?: number | null
     failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
     receivedAt?: Date | string
     acceptedAt?: Date | string | null
     preparingAt?: Date | string | null
@@ -129312,11 +133297,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -129370,11 +133363,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -129425,11 +133426,19 @@ export namespace Prisma {
     promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
     preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -131041,6 +135050,14 @@ export namespace Prisma {
      * @deprecated Use PromoCodeDefaultArgs instead
      */
     export type PromoCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PromoCodeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DeliveryZoneDefaultArgs instead
+     */
+    export type DeliveryZoneArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DeliveryZoneDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LocationPaymentConfigDefaultArgs instead
+     */
+    export type LocationPaymentConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LocationPaymentConfigDefaultArgs<ExtArgs>
     /**
      * @deprecated Use OrderDefaultArgs instead
      */

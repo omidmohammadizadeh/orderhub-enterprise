@@ -12,10 +12,17 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
+import { PrintQueueService } from "../printers/print-queue.service";
+import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import type { CanonicalOrder } from "@orderhub/shared";
+
+// Phase AM — if the operator scheduled this order more than this many seconds
+// into the future, we suppress the immediate PrinterJob and surface a
+// "Start preparing now" action on the Orders board instead.
+const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
 
 const ORDER_INCLUDE = {
   items: true,
@@ -45,7 +52,20 @@ export class OrdersService {
     private readonly socket: SocketService,
     private readonly audit: AuditLogService,
     private readonly outbox: OutboxService,
+    private readonly printQueue: PrintQueueService, // Phase AM
+    private readonly promoCodes: PromoCodesService, // Phase AM
   ) {}
+
+  /**
+   * True if the order should NOT trigger an immediate print at creation time.
+   * The cut-off is 10 minutes — anything inside that window is treated as
+   * "for now" because the kitchen lead time absorbs it.
+   */
+  private isFutureScheduled(scheduledFor?: Date | null): boolean {
+    if (!scheduledFor) return false;
+    const secondsAhead = (scheduledFor.getTime() - Date.now()) / 1000;
+    return secondsAhead > SCHEDULED_FUTURE_THRESHOLD_SECONDS;
+  }
 
   // ── Ingest from adapter (webhook / public ordering) ───
 
@@ -195,6 +215,9 @@ export class OrdersService {
     });
     if (!location) throw new NotFoundException("Location not found");
 
+    const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
+    const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
+
     const canonical = {
       externalId: `direct-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       platform: "DIRECT" as const,
@@ -226,12 +249,71 @@ export class OrdersService {
       discount: dto.discount ?? 0,
       total: dto.total,
       specialInstructions: dto.specialInstructions,
-      scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
+      scheduledFor,
       idempotencyKey: dto.idempotencyKey,
-      metadata: {},
+      metadata: {
+        callerId: dto.callerId,
+        discountType: dto.discountType,
+        promoCode: dto.promoCode,
+        paymentMethod: dto.paymentMethod,
+        paymentProvider: dto.paymentProvider,
+        paymentStatus: dto.paymentStatus,
+        preparationMinutes: dto.preparationMinutes,
+        isScheduled,
+      },
     };
 
-    return this.ingestCanonical(canonical as any, tenantId, dto.locationId);
+    const order = await this.ingestCanonical(canonical as any, tenantId, dto.locationId);
+
+    // Persist the POS-specific structured columns + payment fields. We do
+    // this in a follow-up update rather than threading every field through
+    // CanonicalOrder so the webhook adapters stay unchanged.
+    const posUpdate: Prisma.OrderUpdateInput = {};
+    if (dto.deliveryAddress) {
+      posUpdate.addressLine1 = dto.deliveryAddress.line1;
+      posUpdate.addressLine2 = dto.deliveryAddress.line2 ?? null;
+      posUpdate.city = dto.deliveryAddress.city;
+      posUpdate.postcode = dto.deliveryAddress.postcode;
+    }
+    if (dto.customerInfo?.name) posUpdate.customerName = dto.customerInfo.name;
+    if (dto.customerInfo?.phone) posUpdate.customerPhone = dto.customerInfo.phone;
+    if (dto.callerId !== undefined) posUpdate.callerId = dto.callerId;
+    if (dto.preparationMinutes !== undefined) {
+      posUpdate.preparationMinutes = dto.preparationMinutes;
+      if (dto.preparationMinutes > 0 && !isScheduled) {
+        posUpdate.estimatedReadyAt = new Date(
+          Date.now() + dto.preparationMinutes * 60_000,
+        );
+      }
+    }
+    if (scheduledFor) posUpdate.scheduledAt = scheduledFor;
+    if (dto.discountType !== undefined) posUpdate.discountType = dto.discountType;
+    if (dto.promoCode !== undefined) posUpdate.promoCode = dto.promoCode;
+    if (dto.discount !== undefined && dto.discount > 0) {
+      posUpdate.promoDiscount = dto.discount;
+    }
+    if (dto.paymentMethod !== undefined) posUpdate.paymentMethod = dto.paymentMethod;
+    if (dto.paymentProvider !== undefined) {
+      posUpdate.paymentProvider = dto.paymentProvider;
+    }
+    if (dto.paymentStatus !== undefined) {
+      posUpdate.paymentStatus = dto.paymentStatus as any;
+    }
+
+    if (Object.keys(posUpdate).length > 0) {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: posUpdate,
+      });
+    }
+
+    // Promo code: bump usage AFTER persistence so we don't burn a use on a
+    // failed write.
+    if (dto.promoCode) {
+      void this.promoCodes.incrementUsage(tenantId, dto.promoCode);
+    }
+
+    return order;
   }
 
   // ── Manual test order (Phase AJ) ──────────────────────
@@ -401,6 +483,28 @@ export class OrdersService {
       },
     });
 
+    // Phase AM — wire the print pipeline. Triggers on:
+    //   • PENDING → ACCEPTED (the POS auto-accept path and the manager-tap
+    //     accept path both go through here).
+    //   • Scheduled future orders bypass the trigger at create-time and arrive
+    //     here when the operator clicks "Start preparing now".
+    // CANCELLED also fires a cancel ticket so the kitchen knows to bin the bag.
+    if (newStatus === "ACCEPTED") {
+      // Best-effort — failures inside the print pipeline must NOT roll back
+      // the status change; staff can always reprint manually.
+      this.printQueue.enqueueForNewOrder(orderId).catch((err: any) => {
+        this.logger.warn(
+          `enqueueForNewOrder failed for ${orderId}: ${err.message}`,
+        );
+      });
+    } else if (newStatus === "CANCELLED") {
+      this.printQueue.enqueueCancel(orderId).catch((err: any) => {
+        this.logger.warn(
+          `enqueueCancel failed for ${orderId}: ${err.message}`,
+        );
+      });
+    }
+
     // Broadcast update — best-effort, immediate
     if (newStatus === "CANCELLED") {
       this.socket.emitToLocation(order.locationId, "order:cancelled", {
@@ -485,6 +589,63 @@ export class OrdersService {
     return order;
   }
 
+  /**
+   * Phase AM — list orders that the POS marked as "scheduled for later".
+   * These are still PENDING (no printer fired, kitchen doesn't see them yet)
+   * with a non-null scheduledAt in the future. Used by the Orders board to
+   * render a dedicated Scheduled section.
+   */
+  async findScheduledOrders(tenantId: string, locationId?: string) {
+    return this.prisma.order.findMany({
+      where: {
+        tenantId,
+        ...(locationId && { locationId }),
+        status: { in: ["PENDING"] },
+        scheduledAt: { not: null, gte: new Date(Date.now() - 60 * 60 * 1000) },
+      },
+      include: ORDER_INCLUDE,
+      orderBy: { scheduledAt: "asc" },
+    });
+  }
+
+  /**
+   * Phase AM — "Start preparing now" action for scheduled orders.
+   * Transitions PENDING → ACCEPTED via the normal status path so the print
+   * pipeline (and status history, outbox, websocket emit) fire identically
+   * to a regular accept. Also nulls scheduledAt so the order leaves the
+   * Scheduled section on the board.
+   */
+  async startPreparingScheduled(
+    orderId: string,
+    tenantId: string,
+    changedBy: string,
+  ): Promise<Order> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.status !== "PENDING") {
+      throw new ConflictException(
+        `Order is in status ${order.status} — cannot start preparing`,
+      );
+    }
+
+    // Clear scheduledAt so the order disappears from the Scheduled board.
+    // We KEEP scheduledFor for audit (so we can compare promised vs actual).
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { scheduledAt: null },
+    });
+
+    return this.updateStatus(
+      orderId,
+      tenantId,
+      { status: "ACCEPTED", note: "Started early via POS" },
+      changedBy,
+      "STAFF",
+    );
+  }
+
   async findLiveOrders(tenantId: string, locationId?: string) {
     // The board shows every active order PLUS terminal orders from the last
     // 24 hours so operators can see what just completed / was cancelled
@@ -511,6 +672,13 @@ export class OrdersService {
                 "DISPATCHED",
               ],
             },
+            // Phase AM — scheduled-for-later orders live in their own
+            // section of the Orders board; exclude them here so they don't
+            // clutter the "happening now" columns.
+            OR: [
+              { scheduledAt: null },
+              { scheduledAt: { lt: new Date() } },
+            ],
           },
           {
             status: { in: ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"] },

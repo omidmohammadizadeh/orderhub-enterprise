@@ -66,6 +66,12 @@
 - [ ] Location name, address, timezone set
 - [ ] `shopCode` set on location (used by Flutter printer app)
 - [ ] Location visible in dashboard location switcher
+- [ ] **Delivery zones configured** (Phase AM) — at least one `DeliveryZone` row
+      per location accepting delivery. Postcode prefix + fee + optional
+      `minOrderValue`. Verify via `GET /v1/delivery-zones?locationId=...` then
+      run a sample `lookup`.
+- [ ] **`LocationPaymentConfig` reviewed** — provider selection + which methods
+      (cash/card terminal/online) are enabled per location.
 
 ---
 
@@ -443,3 +449,28 @@ Before activating commercial billing:
 - [ ] Confirm first real order status synced back to platform
 - [ ] No errors in structured logs
 - [ ] On-call engineer available
+
+---
+
+## 13. POS Operational Smoke Test (Phase AM)
+
+Run after the manager has set up at least one delivery zone:
+
+- [ ] POS opens at `/dashboard/pos`, location switcher works
+- [ ] Search and category tabs filter the product grid
+- [ ] Modifier modal opens for items with modifiers / multi-SKU
+- [ ] Add a delivery order, type a postcode that matches a zone → fee
+      shows in the cart, totals update
+- [ ] Apply 10% discount → subtotal discount line shows; total decreases
+- [ ] Apply a promo code → "−£X off (CODE)" appears in green
+- [ ] Schedule for later → tick the box, pick date/time → button label
+      changes to "Save scheduled order"
+- [ ] Submit a scheduled order → confirmation toast; order appears in the
+      Orders board **Scheduled** strip; **no PrinterJob fires yet**
+- [ ] Click "Start now" on the scheduled card → order moves to ACCEPTED in
+      the live board, PrinterJob created (verify in `print_jobs` table)
+- [ ] Submit an immediate order → confirmation toast; order ACCEPTED
+      immediately; PrinterJob created
+- [ ] Refresh the POS browser → in-progress cart restored from localStorage
+- [ ] Toggle browser to offline (devtools network) → banner appears,
+      Online Card payment disabled

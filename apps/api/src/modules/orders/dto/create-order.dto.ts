@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsNumber,
+  IsBoolean,
   IsArray,
   IsEnum,
   IsObject,
@@ -87,4 +88,31 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) deliveryFee?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
   @ApiProperty() @IsNumber() @Min(0) total!: number;
+
+  // ── Phase AM — POS operational fields ─────────────────────
+  // The global ValidationPipe runs `forbidNonWhitelisted: true`, so every new
+  // field the POS sends must be declared here or the request 400s before the
+  // handler ever runs.
+  @ApiPropertyOptional() @IsOptional() @IsString() callerId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) preparationMinutes?: number;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["PERCENT_10", "PERCENT_20", "FREE_DELIVERY", "PROMO_CODE", "MANUAL"])
+  discountType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() promoCode?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["CASH", "CARD_TERMINAL", "ONLINE_CARD", "EXTERNAL"])
+  paymentMethod?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["MANUAL", "STRIPE", "DOJO", "ADYEN", "WORLDPAY"])
+  paymentProvider?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["PENDING", "PAID", "FAILED", "REFUNDED"])
+  paymentStatus?: string;
+  /** Whether the operator marked this order as scheduled-for-the-future. When
+   *  true, no PrinterJob is created at order-creation time. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isScheduled?: boolean;
 }

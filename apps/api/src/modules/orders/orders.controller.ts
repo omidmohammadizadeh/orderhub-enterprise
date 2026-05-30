@@ -120,6 +120,33 @@ export class OrdersController {
     return this.orders.findLiveOrders(user.tenantId, locationId);
   }
 
+  // ── GET /api/v1/orders/scheduled ──────────────────────
+  // Phase AM — orders placed via POS with a future scheduledAt that haven't
+  // been started yet. Rendered in their own Scheduled section on the board.
+  @Get("scheduled")
+  @ApiOperation({ summary: "List POS scheduled-for-later orders" })
+  @ApiQuery({ name: "locationId", required: false })
+  async findScheduled(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.orders.findScheduledOrders(user.tenantId, locationId);
+  }
+
+  // ── POST /api/v1/orders/:id/start-preparing ───────────
+  // Phase AM — operator clicks "Start preparing now" on a scheduled order.
+  // Transitions PENDING → ACCEPTED (triggering the print pipeline).
+  @Post(":id/start-preparing")
+  @HttpCode(HttpStatus.OK)
+  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Start preparing a scheduled order now" })
+  async startPreparing(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.startPreparingScheduled(id, user.tenantId, user.userId);
+  }
+
   // ── GET /api/v1/orders/:id ────────────────────────────
   // NB: Order IDs are CUIDs (e.g. cmpq1e03l008mqany6rqw140h), NOT UUIDs.
   // Using ParseUUIDPipe here would 400 every request with "uuid is expected"

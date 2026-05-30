@@ -235,10 +235,12 @@ model Location {
   metadata    Json      @default("{}")
   deletedAt   DateTime?
 
-  integrations Integration[]
-  orders       Order[]
-  printers     Printer[]
-  kdsScreens   KdsScreen[]
+  integrations  Integration[]
+  orders        Order[]
+  printers      Printer[]
+  kdsScreens    KdsScreen[]
+  deliveryZones DeliveryZone[]
+  paymentConfig LocationPaymentConfig?
 
   shopCode   String? @unique
   // Bearer token presented by the legacy Flutter printer app as
@@ -888,6 +890,51 @@ model PromoCode {
   @@map("promo_codes")
 }
 
+// ── DeliveryZone (Phase AM) ──────────────────────────────────────────────────
+// One row per (location, postcodePrefix) so the POS can look up a fee by the
+// first letters of a postcode. Free delivery is modelled as fee=0.
+// minOrderValue is enforced at order-creation time when set.
+model DeliveryZone {
+  id             String   @id @default(cuid())
+  tenantId       String
+  locationId     String
+  location       Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  postcodePrefix String
+  fee            Decimal  @db.Decimal(10, 2)
+  minOrderValue  Decimal? @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locationId, postcodePrefix])
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("delivery_zones")
+}
+
+// ── LocationPaymentConfig (Phase AM) ─────────────────────────────────────────
+// One row per location holding the merchant's payment provider preference.
+// Secrets/credentials stay in the existing `integrations` row — this only
+// tracks selection + which methods (cash/card terminal/online) are enabled.
+model LocationPaymentConfig {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  locationId           String   @unique
+  location             Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  provider             String   @default("MANUAL") // MANUAL | STRIPE | DOJO | ADYEN | WORLDPAY
+  cashEnabled          Boolean  @default(true)
+  cardTerminalEnabled  Boolean  @default(true)
+  onlinePaymentEnabled Boolean  @default(false)
+  config               Json     @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("location_payment_configs")
+}
+
 // ── Order ─────────────────────────────────────────────────────────────────────
 model Order {
   id         String    @id @default(cuid())
@@ -938,6 +985,7 @@ model Order {
 
   specialInstructions String?
   scheduledFor        DateTime?
+  scheduledAt         DateTime? // Phase AM — POS-side mirror of scheduledFor for the operator UI
   estimatedReadyAt    DateTime?
   idempotencyKey      String?   @unique
 
@@ -947,6 +995,22 @@ model Order {
   collectionCode     String? // shown on customer receipt + driver handoff
   preparationMinutes Int? // overrides default prep time for this order
   failureReason      String? // populated when status transitions to FAILED
+
+  // Phase AM — POS operational fields. addressLine1/2/city/postcode are the
+  // structured mirror of deliveryAddress JSON (we keep both for backwards-
+  // compat with webhook adapters that still consume the JSON shape).
+  // callerId is set when an incoming-call lookup pre-fills the cart.
+  // discountType records WHICH quick-button was applied (PERCENT_10 /
+  // PERCENT_20 / FREE_DELIVERY / PROMO_CODE) — the actual amount lives in
+  // `discount`. paymentProvider records which provider handled the charge
+  // (e.g. STRIPE / DOJO / ADYEN / CASH) when one was wired up.
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  postcode        String?
+  callerId        String?
+  discountType    String?
+  paymentProvider String?
 
   receivedAt       DateTime  @default(now())
   acceptedAt       DateTime?

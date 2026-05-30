@@ -1,50 +1,45 @@
 "use client";
 
-import { useMemo, useState } from "react";
+// Phase AM — POS page: 2-column layout.
+// Left: category tabs + product grid + search.
+// Right: PosCartPanel (customer, address, timing, discounts, promo, payment).
+//
+// The page itself owns:
+//   • cart line state (with localStorage persistence per location)
+//   • menu fetch + active category
+//   • the product → ModifierSelectionModal handoff
+//   • order-submit mutation that hands the panel's PlaceOrderPayload off
+//     to the API
+//
+// The cart panel owns everything else (customer/address/timing/discount/
+// promo/payment) so the page stays a thin orchestration layer.
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Trash2, Loader2, ShoppingBag, Search } from "lucide-react";
+import { Search, ShoppingBag } from "lucide-react";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
 import { LocationSelector } from "@/components/dashboard/location-selector";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
+import {
+  PosCartPanel,
+  type CartLine,
+  type PlaceOrderPayload,
+  type PartialDraft,
+} from "@/components/pos/pos-cart-panel";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
 import { apiClient } from "@/lib/api/client";
+import {
+  saveCartDraft,
+  loadCartDraft,
+  clearCartDraft,
+} from "@/lib/pos/cart-storage";
 
-// ── POS page ────────────────────────────────────────────────────────────────
-//
-// Single-page POS that mirrors Base44's flow with our new menu shape.
-// Layout:
-//
-//   ┌─────────────────┬──────────────────┐
-//   │  Category tabs  │                  │
-//   ├─────────────────┤      Cart        │
-//   │                 │                  │
-//   │  Product grid   │      Customer    │
-//   │                 │                  │
-//   │                 │      Submit      │
-//   └─────────────────┴──────────────────┘
-//
-// Tapping a product opens ModifierSelectionModal (handles multi-SKU,
-// pricesBySize, addons-with-min/max). Submit sends the cart to
-// POST /v1/orders with status=ACCEPTED so the existing PrinterJob
-// pipeline picks it up and emits the websocket event the Orders board
-// is listening for.
-
-interface CartLine {
-  id: string; // client-only random id, lets us delete duplicates
-  menuItemId: string;
-  displayName: string;
-  unitPrice: number;
-  quantity: number;
-  plu?: string | null;
-  modifiers: SelectedModifier[];
-  selectedSku?: ProductSku | null;
-  notes?: string;
+interface PersistedCart {
+  cart: CartLine[];
+  draft: PartialDraft;
 }
-
-const FAR_FUTURE = (mins: number) =>
-  new Date(Date.now() + mins * 60_000).toISOString();
 
 export default function PosPage() {
   const selectedLocationId = useSelectedLocationStore(
@@ -54,17 +49,30 @@ export default function PosPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [fulfillmentType, setFulfillmentType] = useState<"DELIVERY" | "PICKUP">(
-    "PICKUP",
-  );
-  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD_TERMINAL">(
-    "CASH",
-  );
+  const [draft, setDraft] = useState<PartialDraft>({});
   const [search, setSearch] = useState("");
   const [submitFeedback, setSubmitFeedback] = useState<string | null>(null);
 
+  // ── Cart draft persistence ────────────────────────────────────────────────
+  // Hydrate on mount (per location). Persist on every cart/draft change.
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    const persisted = loadCartDraft<PersistedCart>(selectedLocationId);
+    if (persisted) {
+      setCart(persisted.cart ?? []);
+      setDraft(persisted.draft ?? {});
+    } else {
+      setCart([]);
+      setDraft({});
+    }
+  }, [selectedLocationId]);
+
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    saveCartDraft<PersistedCart>(selectedLocationId, { cart, draft });
+  }, [selectedLocationId, cart, draft]);
+
+  // ── Menu fetch ────────────────────────────────────────────────────────────
   const menuQuery = useQuery({
     queryKey: ["pos-menu", selectedLocationId],
     queryFn: () => menusClient.getActiveMenuForLocation(selectedLocationId!),
@@ -72,14 +80,6 @@ export default function PosPage() {
     staleTime: 60_000,
   });
 
-  // Phase AM — multi-SKU products store their per-SKU modifier groups
-  // as plain ID arrays inside productSkus[].modifierGroups. Those IDs
-  // are NOT FK-linked through ModifierGroupOnItem, so they don't ride
-  // along with item.modifierGroupLinks. To render them in the POS
-  // modal we fetch the brand's full modifier-group catalog (groups +
-  // options) and pass it in. The modal then resolves SKU group IDs
-  // against this list for multi-SKU items, and falls back to the
-  // item's own modifierGroupLinks for flat products.
   const brandId = (menuQuery.data as any)?.brandId as string | undefined;
   const allGroupsQuery = useQuery({
     queryKey: ["pos-all-modifier-groups", brandId],
@@ -108,25 +108,20 @@ export default function PosPage() {
     );
   }, [activeCategory, search]);
 
-  const subtotal = useMemo(
-    () => round2(cart.reduce((s, l) => s + l.unitPrice * l.quantity, 0)),
-    [cart],
-  );
-
+  // ── Submit ────────────────────────────────────────────────────────────────
   const submitMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (payload: PlaceOrderPayload) => {
       if (!selectedLocationId) throw new Error("Select a location first");
-      if (cart.length === 0) throw new Error("Cart is empty");
 
-      // Step 1: create the order (lands at PENDING by default).
       const body = {
         locationId: selectedLocationId,
         orderSource: "POS" as const,
-        fulfillmentType,
+        fulfillmentType: payload.fulfillmentType,
         customerInfo: {
-          name: customerName || "Walk-in",
-          phone: customerPhone || undefined,
+          name: payload.customerName,
+          phone: payload.customerPhone || undefined,
         },
+        deliveryAddress: payload.address,
         items: cart.map((line) => ({
           name: line.displayName,
           quantity: line.quantity,
@@ -140,52 +135,67 @@ export default function PosPage() {
             quantity: 1,
           })),
         })),
-        subtotal,
+        subtotal: payload.subtotal,
         taxAmount: 0,
-        deliveryFee: 0,
-        discount: 0,
-        total: subtotal,
-        specialInstructions: undefined,
-        scheduledFor: FAR_FUTURE(20),
+        deliveryFee: payload.deliveryFee,
+        discount: payload.discountAmount,
+        total: payload.total,
+        specialInstructions: payload.notes,
+        scheduledFor: payload.scheduledFor,
+        // ── Phase AM new fields ──
+        callerId: payload.callerId,
+        preparationMinutes: payload.preparationMinutes || undefined,
+        discountType: payload.discountType ?? undefined,
+        promoCode: payload.promoCode,
+        paymentMethod: payload.paymentMethod,
+        paymentStatus: payload.paymentStatus,
+        isScheduled: payload.isScheduled,
       };
+
       const created = (await apiClient.post("/v1/orders", body)).data as {
         id: string;
       };
 
-      // Step 2: immediately accept so PrinterJob + WS fire. Mirrors the
-      // Base44 POS where staff-created orders skip the New column.
-      await apiClient.patch(`/v1/orders/${created.id}/status`, {
-        status: "ACCEPTED",
-        note: "POS auto-accept",
-      });
+      // Scheduled orders stay at PENDING — they show up in the Scheduled
+      // section of the Orders board and only transition to ACCEPTED (which
+      // fires the print pipeline) when the operator clicks "Start preparing
+      // now". For immediate orders we auto-accept here so the kitchen sees
+      // the ticket straight away.
+      if (!payload.isScheduled) {
+        await apiClient.patch(`/v1/orders/${created.id}/status`, {
+          status: "ACCEPTED",
+          note: "POS auto-accept",
+        });
+      }
 
-      return created;
+      return { id: created.id, scheduled: payload.isScheduled };
     },
-    onSuccess: (order) => {
-      setSubmitFeedback(`Order placed (${order.id.slice(-6)}). Print job queued.`);
+    onSuccess: ({ id, scheduled }) => {
+      setSubmitFeedback(
+        scheduled
+          ? `Scheduled order saved (${id.slice(-6)}). It will appear in Scheduled.`
+          : `Order placed (${id.slice(-6)}). Print job queued.`,
+      );
       setCart([]);
-      setCustomerName("");
-      setCustomerPhone("");
+      setDraft({});
+      if (selectedLocationId) clearCartDraft(selectedLocationId);
       window.setTimeout(() => setSubmitFeedback(null), 5000);
     },
     onError: (err: any) => {
       setSubmitFeedback(
         err?.response?.data?.message ?? err?.message ?? "Failed to submit order",
       );
-      window.setTimeout(() => setSubmitFeedback(null), 5000);
+      window.setTimeout(() => setSubmitFeedback(null), 6000);
     },
   });
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
-    // Multi-SKU products always need the modal (size picker + SKU-
-    // attached groups). Flat products need it only if they carry FK-
-    // linked modifier groups.
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
       return;
     }
-    // Simple add — no modifiers, no SKU.
     addToCart({
       menuItemId: item.id,
       displayName: item.name,
@@ -197,12 +207,42 @@ export default function PosPage() {
     });
   };
 
-  const addToCart = (line: Omit<CartLine, "id">) => {
+  const addToCart = (line: {
+    menuItemId: string;
+    displayName: string;
+    unitPrice: number;
+    quantity: number;
+    plu?: string | null;
+    modifiers: SelectedModifier[];
+    selectedSku?: ProductSku | null;
+    notes?: string;
+  }) => {
     setCart((prev) => [
       ...prev,
-      { ...line, id: Math.random().toString(36).slice(2) },
+      {
+        id: Math.random().toString(36).slice(2),
+        menuItemId: line.menuItemId,
+        displayName: line.displayName,
+        unitPrice: line.unitPrice,
+        quantity: line.quantity,
+        plu: line.plu ?? null,
+        modifiers: line.modifiers.map((m) => ({ name: m.name, price: m.price })),
+        notes: line.notes,
+      },
     ]);
   };
+
+  const removeLine = useCallback((id: string) => {
+    setCart((prev) => prev.filter((l) => l.id !== id));
+  }, []);
+
+  const changeQty = useCallback((id: string, qty: number) => {
+    setCart((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, quantity: qty } : l)),
+    );
+  }, []);
+
+  const clearCart = useCallback(() => setCart([]), []);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col gap-3">
@@ -211,7 +251,7 @@ export default function PosPage() {
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">POS</h1>
           <p className="text-sm text-zinc-500">
-            Walk-in &amp; phone orders — auto-accepted &amp; printed
+            Walk-in, phone &amp; scheduled orders
           </p>
         </div>
         <LocationSelector />
@@ -222,13 +262,11 @@ export default function PosPage() {
       ) : menuQuery.isLoading ? (
         <EmptyState text="Loading menu…" />
       ) : !menuQuery.data ? (
-        <EmptyState
-          text="No active menu found for this location. Create one in Menu Manager."
-        />
+        <EmptyState text="No active menu found for this location. Create one in Menu Manager." />
       ) : (
         <div className="grid flex-1 grid-cols-12 gap-3 overflow-hidden">
           {/* Left — menu */}
-          <div className="col-span-8 flex flex-col gap-3 overflow-hidden">
+          <div className="col-span-7 flex flex-col gap-3 overflow-hidden lg:col-span-8">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
@@ -245,6 +283,7 @@ export default function PosPage() {
               {categories.map((cat) => (
                 <button
                   key={cat.id}
+                  type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
                   className={`flex-shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${
                     activeCategory?.id === cat.id
@@ -259,11 +298,12 @@ export default function PosPage() {
 
             <div className="flex-1 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-3">
               {products.length === 0 ? (
-                <p className="py-12 text-center text-sm text-zinc-400">
-                  No items in this category.
-                </p>
+                <div className="py-12 text-center">
+                  <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                  <p className="text-sm text-zinc-400">No items in this category.</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -276,118 +316,22 @@ export default function PosPage() {
             </div>
           </div>
 
-          {/* Right — cart */}
-          <div className="col-span-4 flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
-            <div className="border-b border-zinc-200 px-4 py-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-zinc-900">
-                  Current order
-                </h2>
-                <span className="text-xs text-zinc-400">
-                  {cart.length} item{cart.length !== 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-3 py-2">
-              {cart.length === 0 ? (
-                <div className="py-12 text-center">
-                  <ShoppingBag className="mx-auto mb-2 h-8 w-8 text-zinc-300" />
-                  <p className="text-sm text-zinc-400">Cart is empty</p>
-                </div>
-              ) : (
-                <ul className="space-y-1.5">
-                  {cart.map((line) => (
-                    <li
-                      key={line.id}
-                      className="flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-zinc-50"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-zinc-900 leading-snug">
-                          {line.displayName}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-zinc-500">
-                          {line.quantity} × £{line.unitPrice.toFixed(2)} = £
-                          {(line.quantity * line.unitPrice).toFixed(2)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() =>
-                          setCart((prev) => prev.filter((l) => l.id !== line.id))
-                        }
-                        className="rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="border-t border-zinc-200 px-4 py-3 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Customer name"
-                  className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                />
-                <input
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="Phone"
-                  className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <Toggle
-                  options={[
-                    { value: "PICKUP", label: "Collection" },
-                    { value: "DELIVERY", label: "Delivery" },
-                  ]}
-                  value={fulfillmentType}
-                  onChange={(v) =>
-                    setFulfillmentType(v as "PICKUP" | "DELIVERY")
-                  }
-                />
-                <Toggle
-                  options={[
-                    { value: "CASH", label: "Cash" },
-                    { value: "CARD_TERMINAL", label: "Card" },
-                  ]}
-                  value={paymentMethod}
-                  onChange={(v) =>
-                    setPaymentMethod(v as "CASH" | "CARD_TERMINAL")
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between border-t border-zinc-100 pt-2 text-sm">
-                <span className="text-zinc-500">Total</span>
-                <span className="font-semibold text-zinc-900">
-                  £{subtotal.toFixed(2)}
-                </span>
-              </div>
-
-              <button
-                onClick={() => submitMutation.mutate()}
-                disabled={cart.length === 0 || submitMutation.isPending}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
-              >
-                {submitMutation.isPending && (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                )}
-                Place order
-              </button>
-
-              {submitFeedback && (
-                <p className="text-center text-xs text-zinc-600">
-                  {submitFeedback}
-                </p>
-              )}
-            </div>
+          {/* Right — cart panel */}
+          <div className="col-span-5 lg:col-span-4 flex flex-col overflow-hidden">
+            <PosCartPanel
+              locationId={selectedLocationId}
+              cart={cart}
+              onRemoveLine={removeLine}
+              onChangeQty={changeQty}
+              onClearCart={clearCart}
+              onPlaceOrder={async (p) => {
+                await submitMutation.mutateAsync(p);
+              }}
+              submitting={submitMutation.isPending}
+              feedback={submitFeedback}
+              initialDraft={draft}
+              onDraftChange={setDraft}
+            />
           </div>
         </div>
       )}
@@ -414,6 +358,7 @@ function ProductCard({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className="flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white p-3 text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50"
       disabled={product.outOfStock}
@@ -432,34 +377,6 @@ function ProductCard({
         £{Number(product.basePrice).toFixed(2)}
       </span>
     </button>
-  );
-}
-
-function Toggle<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: Array<{ value: T; label: string }>;
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex rounded-md border border-zinc-200 p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-sm px-1 py-1 ${
-            value === o.value
-              ? "bg-zinc-900 text-white"
-              : "text-zinc-600 hover:bg-zinc-50"
-          }`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
   );
 }
 

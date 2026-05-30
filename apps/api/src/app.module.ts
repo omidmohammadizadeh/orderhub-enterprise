@@ -57,6 +57,9 @@ import { InventoryModule } from "./modules/inventory/inventory.module";
 import { SandboxModule } from "./modules/sandbox/sandbox.module";
 import { OutboxModule } from "./modules/outbox/outbox.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
+import { DeliveryZonesModule } from "./modules/delivery-zones/delivery-zones.module";
+import { PromoCodesModule } from "./modules/promo-codes/promo-codes.module";
+import { AddressLookupModule } from "./modules/address-lookup/address-lookup.module";
 import { QUEUES } from "@orderhub/shared";
 
 @Module({
@@ -175,6 +178,9 @@ import { QUEUES } from "@orderhub/shared";
     SandboxModule,
     OutboxModule,
     OnboardingModule,
+    DeliveryZonesModule,
+    PromoCodesModule,
+    AddressLookupModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

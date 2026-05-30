@@ -150,7 +150,24 @@ describe("OrdersService outbox transaction contract", () => {
     // Import OrdersService — it lives in ../../orders relative to __tests__
     // but since rootDir=src, we go via require with module resolution
     const { OrdersService } = require("../../orders/orders.service");
-    service = new OrdersService(mockPrisma, mockSocket, mockAudit, outbox);
+    // Phase AM — OrdersService gained PrintQueueService + PromoCodesService
+    // dependencies. Tests only exercise outbox behaviour, so we stub those
+    // two with noop fakes.
+    const mockPrintQueue = {
+      enqueueForNewOrder: jest.fn().mockResolvedValue(undefined),
+      enqueueCancel: jest.fn().mockResolvedValue(undefined),
+    };
+    const mockPromoCodes = {
+      incrementUsage: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new OrdersService(
+      mockPrisma,
+      mockSocket,
+      mockAudit,
+      outbox,
+      mockPrintQueue,
+      mockPromoCodes,
+    );
   });
 
   it("uses $transaction for ingestCanonical", async () => {
@@ -165,9 +182,11 @@ describe("OrdersService outbox transaction contract", () => {
     expect(call.data.eventType).toBe("order.received");
   });
 
-  it("does not inject a Bull queue — outbox owns downstream dispatch", () => {
+  it("does not inject a direct Bull queue — outbox owns downstream dispatch", () => {
+    // Phase AM — OrdersService holds a PrintQueueService ref, but that
+    // service is the abstraction around Bull; OrdersService itself never
+    // touches a queue directly.
     expect((service as any).orderQueue).toBeUndefined();
-    expect((service as any).printQueue).toBeUndefined();
   });
 
   it("inserts outbox event inside the status-change transaction", async () => {

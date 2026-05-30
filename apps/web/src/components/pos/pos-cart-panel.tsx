@@ -1,0 +1,970 @@
+"use client";
+
+// Phase AM — POS cart panel. The big right-hand sidebar that runs the
+// operational checkout flow: customer, fulfilment, address+postcode fee
+// lookup, expected time, schedule, discounts, promo, payment.
+//
+// This component is intentionally self-contained — the parent POS page
+// owns the cart line state, but every other piece of order metadata
+// (customer, address, schedule, discounts, etc.) is local here. On submit
+// we hand the parent a fully-shaped Order payload via onPlaceOrder.
+
+import { useEffect, useMemo, useState } from "react";
+import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff } from "lucide-react";
+import { round2 } from "@orderhub/shared";
+import {
+  deliveryZonesClient,
+  promoCodesClient,
+  addressLookupClient,
+  type AddressSuggestion,
+  type PromoValidateResult,
+} from "@/lib/api/pos.client";
+import { useOnlineStatus } from "@/lib/pos/use-online-status";
+
+// ── Types the parent feeds in ────────────────────────────────────────────────
+export interface CartLine {
+  id: string;
+  menuItemId: string;
+  displayName: string;
+  unitPrice: number;
+  quantity: number;
+  plu?: string | null;
+  modifiers: Array<{ name: string; price: number }>;
+  notes?: string;
+}
+
+export type FulfillmentType = "PICKUP" | "DELIVERY";
+export type PaymentMethod = "CASH" | "CARD_TERMINAL" | "ONLINE_CARD" | "EXTERNAL";
+export type DiscountType =
+  | null
+  | "PERCENT_10"
+  | "PERCENT_20"
+  | "FREE_DELIVERY"
+  | "PROMO_CODE";
+
+// What the panel hands the parent when "Place order" is clicked.
+export interface PlaceOrderPayload {
+  customerName: string;
+  customerPhone: string;
+  callerId?: string;
+  fulfillmentType: FulfillmentType;
+  notes?: string;
+  address?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    postcode: string;
+  };
+  preparationMinutes: number;
+  scheduledFor?: string; // ISO
+  isScheduled: boolean;
+  discountType: DiscountType;
+  discountAmount: number;
+  promoCode?: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: "PENDING" | "PAID";
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+}
+
+export interface CartPanelProps {
+  locationId: string;
+  cart: CartLine[];
+  onRemoveLine: (id: string) => void;
+  onChangeQty: (id: string, qty: number) => void;
+  onClearCart: () => void;
+  onPlaceOrder: (payload: PlaceOrderPayload) => Promise<void> | void;
+  submitting: boolean;
+  feedback?: string | null;
+  // Persistence callbacks — the parent owns the draft store key (per
+  // location) so it can purge on successful submit.
+  initialDraft?: PartialDraft;
+  onDraftChange?: (draft: PartialDraft) => void;
+}
+
+export interface PartialDraft {
+  customerName?: string;
+  customerPhone?: string;
+  callerId?: string;
+  fulfillmentType?: FulfillmentType;
+  notes?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  postcode?: string;
+  preparationMinutes?: number;
+  scheduledFor?: string;
+  isScheduled?: boolean;
+  discountType?: DiscountType;
+  promoCode?: string;
+  paymentMethod?: PaymentMethod;
+}
+
+const PREP_PRESETS: Array<{ label: string; mins: number }> = [
+  { label: "ASAP", mins: 0 },
+  { label: "15", mins: 15 },
+  { label: "30", mins: 30 },
+  { label: "45", mins: 45 },
+  { label: "60", mins: 60 },
+];
+
+export function PosCartPanel(props: CartPanelProps) {
+  const {
+    locationId,
+    cart,
+    onRemoveLine,
+    onChangeQty,
+    onClearCart,
+    onPlaceOrder,
+    submitting,
+    feedback,
+    initialDraft,
+    onDraftChange,
+  } = props;
+
+  // ── Cart-adjacent state ────────────────────────────────────────────────────
+  const [customerName, setCustomerName] = useState(initialDraft?.customerName ?? "");
+  const [customerPhone, setCustomerPhone] = useState(initialDraft?.customerPhone ?? "");
+  const [callerId, setCallerId] = useState(initialDraft?.callerId ?? "");
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>(
+    initialDraft?.fulfillmentType ?? "PICKUP",
+  );
+  const [notes, setNotes] = useState(initialDraft?.notes ?? "");
+
+  // Address
+  const [addrLine1, setAddrLine1] = useState(initialDraft?.addressLine1 ?? "");
+  const [addrLine2, setAddrLine2] = useState(initialDraft?.addressLine2 ?? "");
+  const [city, setCity] = useState(initialDraft?.city ?? "");
+  const [postcode, setPostcode] = useState(initialDraft?.postcode ?? "");
+  const [addrQuery, setAddrQuery] = useState("");
+  const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addrSearching, setAddrSearching] = useState(false);
+  const [addrProvider, setAddrProvider] = useState<"mapbox" | "google" | "manual">("manual");
+
+  // Delivery fee lookup
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [deliveryFeeOverride, setDeliveryFeeOverride] = useState<number | null>(null);
+  const [deliveryLookupNote, setDeliveryLookupNote] = useState<string | null>(null);
+  const [deliveryMinSpend, setDeliveryMinSpend] = useState<number | null>(null);
+
+  // Timing
+  const [prepMinutes, setPrepMinutes] = useState<number>(
+    initialDraft?.preparationMinutes ?? 0,
+  );
+  const [customPrep, setCustomPrep] = useState<string>("");
+  const [isScheduled, setIsScheduled] = useState<boolean>(
+    initialDraft?.isScheduled ?? false,
+  );
+  const [scheduledDate, setScheduledDate] = useState<string>(() => {
+    if (initialDraft?.scheduledFor) {
+      return initialDraft.scheduledFor.slice(0, 10);
+    }
+    return new Date().toISOString().slice(0, 10);
+  });
+  const [scheduledTime, setScheduledTime] = useState<string>(() => {
+    if (initialDraft?.scheduledFor) {
+      return initialDraft.scheduledFor.slice(11, 16);
+    }
+    return "19:00";
+  });
+
+  // Discounts + promo
+  const [discountType, setDiscountType] = useState<DiscountType>(
+    initialDraft?.discountType ?? null,
+  );
+  const [promoCodeInput, setPromoCodeInput] = useState<string>(
+    initialDraft?.promoCode ?? "",
+  );
+  const [promoApplied, setPromoApplied] = useState<PromoValidateResult | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoChecking, setPromoChecking] = useState(false);
+
+  // Payment
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    initialDraft?.paymentMethod ?? "CASH",
+  );
+
+  // Network state
+  const online = useOnlineStatus();
+
+  // ── Draft autosave ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    onDraftChange?.({
+      customerName,
+      customerPhone,
+      callerId,
+      fulfillmentType,
+      notes,
+      addressLine1: addrLine1,
+      addressLine2: addrLine2,
+      city,
+      postcode,
+      preparationMinutes: prepMinutes,
+      scheduledFor: isScheduled
+        ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
+        : undefined,
+      isScheduled,
+      discountType,
+      promoCode: promoCodeInput,
+      paymentMethod,
+    });
+  }, [
+    customerName,
+    customerPhone,
+    callerId,
+    fulfillmentType,
+    notes,
+    addrLine1,
+    addrLine2,
+    city,
+    postcode,
+    prepMinutes,
+    isScheduled,
+    scheduledDate,
+    scheduledTime,
+    discountType,
+    promoCodeInput,
+    paymentMethod,
+    onDraftChange,
+  ]);
+
+  // ── Address provider detect (once) ────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    addressLookupClient
+      .provider()
+      .then((r) => {
+        if (!cancelled) setAddrProvider(r.provider);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ── Address autocomplete (debounced) ──────────────────────────────────────
+  useEffect(() => {
+    if (fulfillmentType !== "DELIVERY") return;
+    if (addrQuery.trim().length < 3) {
+      setAddrSuggestions([]);
+      return;
+    }
+    if (addrProvider === "manual") return; // no remote, skip
+    let cancelled = false;
+    const handle = window.setTimeout(async () => {
+      setAddrSearching(true);
+      try {
+        const res = await addressLookupClient.search(addrQuery, "gb", 5);
+        if (!cancelled) setAddrSuggestions(res.suggestions);
+      } catch {
+        if (!cancelled) setAddrSuggestions([]);
+      } finally {
+        if (!cancelled) setAddrSearching(false);
+      }
+    }, 300);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [addrQuery, fulfillmentType, addrProvider]);
+
+  // ── Postcode → delivery fee lookup ────────────────────────────────────────
+  useEffect(() => {
+    if (fulfillmentType !== "DELIVERY") {
+      setDeliveryFee(0);
+      setDeliveryFeeOverride(null);
+      setDeliveryLookupNote(null);
+      setDeliveryMinSpend(null);
+      return;
+    }
+    if (!postcode.trim() || postcode.trim().length < 2) {
+      setDeliveryLookupNote(null);
+      return;
+    }
+    let cancelled = false;
+    const handle = window.setTimeout(async () => {
+      try {
+        const lookup = await deliveryZonesClient.lookup(locationId, postcode);
+        if (cancelled) return;
+        if (lookup.matched) {
+          setDeliveryFee(lookup.fee);
+          setDeliveryMinSpend(
+            lookup.minOrderValue != null ? Number(lookup.minOrderValue) : null,
+          );
+          setDeliveryLookupNote(
+            `Zone ${lookup.postcodePrefix} — £${lookup.fee.toFixed(2)}` +
+              (lookup.minOrderValue
+                ? ` (min order £${Number(lookup.minOrderValue).toFixed(2)})`
+                : ""),
+          );
+        } else {
+          setDeliveryFee(0);
+          setDeliveryMinSpend(null);
+          setDeliveryLookupNote(
+            `No delivery zone matches "${postcode}". Set a manual fee or add a zone.`,
+          );
+        }
+      } catch {
+        if (!cancelled) setDeliveryLookupNote("Delivery fee lookup failed");
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [postcode, fulfillmentType, locationId]);
+
+  // ── Totals ────────────────────────────────────────────────────────────────
+  const subtotal = useMemo(
+    () => round2(cart.reduce((s, l) => s + l.unitPrice * l.quantity, 0)),
+    [cart],
+  );
+
+  const effectiveDeliveryFee = useMemo(() => {
+    if (fulfillmentType !== "DELIVERY") return 0;
+    if (discountType === "FREE_DELIVERY") return 0;
+    if (promoApplied?.freeDelivery) return 0;
+    if (deliveryFeeOverride != null) return round2(deliveryFeeOverride);
+    return round2(deliveryFee);
+  }, [fulfillmentType, discountType, promoApplied, deliveryFeeOverride, deliveryFee]);
+
+  const discountAmount = useMemo(() => {
+    let amount = 0;
+    if (discountType === "PERCENT_10") amount = subtotal * 0.1;
+    if (discountType === "PERCENT_20") amount = subtotal * 0.2;
+    if (discountType === "PROMO_CODE" && promoApplied?.valid) {
+      amount = promoApplied.discountAmount ?? 0;
+    }
+    return round2(amount);
+  }, [discountType, subtotal, promoApplied]);
+
+  const total = useMemo(
+    () => round2(Math.max(0, subtotal - discountAmount + effectiveDeliveryFee)),
+    [subtotal, discountAmount, effectiveDeliveryFee],
+  );
+
+  // ── Validation gates ──────────────────────────────────────────────────────
+  const minSpendShortfall =
+    deliveryMinSpend && subtotal < deliveryMinSpend
+      ? deliveryMinSpend - subtotal
+      : 0;
+
+  const errors: string[] = [];
+  if (cart.length === 0) errors.push("Cart is empty");
+  if (fulfillmentType === "DELIVERY") {
+    if (!addrLine1.trim()) errors.push("Delivery address required");
+    if (!postcode.trim()) errors.push("Postcode required");
+    if (minSpendShortfall > 0) {
+      errors.push(`Min order £${deliveryMinSpend!.toFixed(2)} (need £${minSpendShortfall.toFixed(2)} more)`);
+    }
+  }
+  if (paymentMethod === "ONLINE_CARD" && !online) {
+    errors.push("Online card payment unavailable offline");
+  }
+
+  const canSubmit = errors.length === 0 && !submitting;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  const applyPromo = async () => {
+    setPromoError(null);
+    const code = promoCodeInput.trim();
+    if (!code) {
+      setPromoError("Enter a code first");
+      return;
+    }
+    setPromoChecking(true);
+    try {
+      const res = await promoCodesClient.validate({
+        code,
+        locationId,
+        subtotal,
+      });
+      if (!res.valid) {
+        setPromoApplied(null);
+        setPromoError(res.reason ?? "Promo code invalid");
+        setDiscountType(null);
+      } else {
+        setPromoApplied(res);
+        setDiscountType("PROMO_CODE");
+        setPromoError(null);
+      }
+    } catch (err: any) {
+      setPromoError(err?.response?.data?.message ?? "Lookup failed");
+    } finally {
+      setPromoChecking(false);
+    }
+  };
+
+  const clearPromo = () => {
+    setPromoApplied(null);
+    setPromoCodeInput("");
+    setPromoError(null);
+    if (discountType === "PROMO_CODE") setDiscountType(null);
+  };
+
+  const pickAddressSuggestion = (s: AddressSuggestion) => {
+    setAddrLine1(s.line1);
+    if (s.line2) setAddrLine2(s.line2);
+    if (s.city) setCity(s.city);
+    if (s.postcode) setPostcode(s.postcode);
+    setAddrQuery("");
+    setAddrSuggestions([]);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!canSubmit) return;
+    const scheduledFor = isScheduled
+      ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
+      : undefined;
+    await onPlaceOrder({
+      customerName: customerName.trim() || "Walk-in",
+      customerPhone: customerPhone.trim(),
+      callerId: callerId.trim() || undefined,
+      fulfillmentType,
+      notes: notes.trim() || undefined,
+      address:
+        fulfillmentType === "DELIVERY"
+          ? {
+              line1: addrLine1.trim(),
+              line2: addrLine2.trim() || undefined,
+              city: city.trim() || "Unknown",
+              postcode: postcode.trim(),
+            }
+          : undefined,
+      preparationMinutes: prepMinutes,
+      scheduledFor,
+      isScheduled,
+      discountType,
+      discountAmount,
+      promoCode:
+        discountType === "PROMO_CODE" && promoApplied?.valid
+          ? promoApplied.code
+          : undefined,
+      paymentMethod,
+      paymentStatus: paymentMethod === "CARD_TERMINAL" ? "PAID" : "PENDING",
+      subtotal,
+      deliveryFee: effectiveDeliveryFee,
+      total,
+    });
+  };
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
+      {!online && (
+        <div className="flex items-center gap-2 bg-amber-100 px-3 py-1.5 text-[11px] font-medium text-amber-900">
+          <WifiOff className="h-3 w-3" />
+          Offline mode — cart saved locally, card-online disabled
+        </div>
+      )}
+      <div className="border-b border-zinc-200 px-3 py-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-zinc-900">Current order</h2>
+        <button
+          type="button"
+          onClick={onClearCart}
+          disabled={cart.length === 0}
+          className="text-xs text-zinc-400 hover:text-red-600 disabled:opacity-30"
+        >
+          Clear
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Cart lines */}
+        <div className="px-3 py-2">
+          {cart.length === 0 ? (
+            <div className="py-8 text-center">
+              <ShoppingBag className="mx-auto mb-1 h-7 w-7 text-zinc-300" />
+              <p className="text-xs text-zinc-400">Tap items on the left</p>
+            </div>
+          ) : (
+            <ul className="space-y-1">
+              {cart.map((line) => (
+                <li
+                  key={line.id}
+                  className="flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-zinc-50"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-zinc-900 leading-snug">
+                      {line.displayName}
+                    </p>
+                    {line.modifiers.length > 0 && (
+                      <p className="mt-0.5 text-[10px] text-zinc-500 leading-snug">
+                        {line.modifiers.map((m) => m.name).join(", ")}
+                      </p>
+                    )}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => onChangeQty(line.id, Math.max(1, line.quantity - 1))}
+                        className="h-5 w-5 rounded border border-zinc-200 text-xs hover:bg-zinc-100"
+                      >
+                        −
+                      </button>
+                      <span className="min-w-[1.5rem] text-center text-[11px]">
+                        {line.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onChangeQty(line.id, line.quantity + 1)}
+                        className="h-5 w-5 rounded border border-zinc-200 text-xs hover:bg-zinc-100"
+                      >
+                        +
+                      </button>
+                      <span className="ml-auto text-[11px] text-zinc-600">
+                        £{(line.unitPrice * line.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveLine(line.id)}
+                    className="rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Customer */}
+        <Section title="Customer">
+          <div className="grid grid-cols-2 gap-2">
+            <Input value={customerName} onChange={setCustomerName} placeholder="Name" />
+            <Input
+              value={customerPhone}
+              onChange={setCustomerPhone}
+              placeholder="Phone"
+              type="tel"
+            />
+          </div>
+          <div className="mt-2 flex items-center gap-1.5">
+            <Phone className="h-3 w-3 text-zinc-400" />
+            <Input
+              value={callerId}
+              onChange={setCallerId}
+              placeholder="Caller ID (auto-populated by CTI integration)"
+            />
+          </div>
+          <div className="mt-2">
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Order notes (e.g. allergies, instructions)"
+              rows={2}
+              className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+            />
+          </div>
+        </Section>
+
+        {/* Order type */}
+        <Section title="Order type">
+          <Toggle
+            value={fulfillmentType}
+            onChange={(v) => setFulfillmentType(v as FulfillmentType)}
+            options={[
+              { value: "PICKUP", label: "Collection" },
+              { value: "DELIVERY", label: "Delivery" },
+            ]}
+          />
+        </Section>
+
+        {/* Delivery address */}
+        {fulfillmentType === "DELIVERY" && (
+          <Section title="Delivery address">
+            {addrProvider !== "manual" && (
+              <div className="relative mb-2">
+                <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-400" />
+                <input
+                  value={addrQuery}
+                  onChange={(e) => setAddrQuery(e.target.value)}
+                  placeholder={`Search address (${addrProvider})`}
+                  className="w-full rounded-md border border-zinc-200 px-7 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+                />
+                {addrSearching && (
+                  <Loader2 className="absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin text-zinc-400" />
+                )}
+                {addrSuggestions.length > 0 && (
+                  <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg">
+                    {addrSuggestions.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          onClick={() => pickAddressSuggestion(s)}
+                          className="w-full px-2 py-1.5 text-left text-[11px] hover:bg-zinc-50"
+                        >
+                          {s.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Input value={addrLine1} onChange={setAddrLine1} placeholder="Address line 1" />
+              <Input value={addrLine2} onChange={setAddrLine2} placeholder="Address line 2 (optional)" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input value={city} onChange={setCity} placeholder="City" />
+                <Input value={postcode} onChange={(v) => setPostcode(v.toUpperCase())} placeholder="Postcode" />
+              </div>
+              {deliveryLookupNote && (
+                <p className="text-[10px] text-zinc-500">{deliveryLookupNote}</p>
+              )}
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] text-zinc-500">
+                  Manual fee override (£):
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={deliveryFeeOverride ?? ""}
+                  onChange={(e) =>
+                    setDeliveryFeeOverride(
+                      e.target.value === "" ? null : Number(e.target.value),
+                    )
+                  }
+                  className="w-20 rounded-md border border-zinc-200 px-1.5 py-0.5 text-[11px]"
+                  placeholder="auto"
+                />
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {/* Expected time / schedule */}
+        <Section title="Timing">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3 w-3 text-zinc-400" />
+            <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+              Expected time
+            </span>
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {PREP_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  setPrepMinutes(p.mins);
+                  setCustomPrep("");
+                }}
+                className={`rounded-md border px-2 py-1 text-[11px] ${
+                  prepMinutes === p.mins && !customPrep
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
+                }`}
+              >
+                {p.label === "ASAP" ? "ASAP" : `${p.label} min`}
+              </button>
+            ))}
+            <input
+              type="number"
+              min="0"
+              value={customPrep}
+              onChange={(e) => {
+                setCustomPrep(e.target.value);
+                setPrepMinutes(Number(e.target.value) || 0);
+              }}
+              placeholder="custom"
+              className="w-16 rounded-md border border-zinc-200 px-1.5 py-1 text-[11px]"
+            />
+          </div>
+          <label className="mt-2 flex cursor-pointer items-center gap-1.5 text-[11px] text-zinc-700">
+            <input
+              type="checkbox"
+              checked={isScheduled}
+              onChange={(e) => setIsScheduled(e.target.checked)}
+              className="h-3 w-3"
+            />
+            <Calendar className="h-3 w-3" />
+            Schedule for later
+          </label>
+          {isScheduled && (
+            <div className="mt-1.5 grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="rounded-md border border-zinc-200 px-2 py-1 text-[11px]"
+              />
+              <input
+                type="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className="rounded-md border border-zinc-200 px-2 py-1 text-[11px]"
+              />
+            </div>
+          )}
+        </Section>
+
+        {/* Discounts */}
+        <Section title="Discounts">
+          <div className="grid grid-cols-3 gap-1.5">
+            <DiscountButton
+              active={discountType === "PERCENT_10"}
+              onClick={() =>
+                setDiscountType((c) => (c === "PERCENT_10" ? null : "PERCENT_10"))
+              }
+            >
+              10% off
+            </DiscountButton>
+            <DiscountButton
+              active={discountType === "PERCENT_20"}
+              onClick={() =>
+                setDiscountType((c) => (c === "PERCENT_20" ? null : "PERCENT_20"))
+              }
+            >
+              20% off
+            </DiscountButton>
+            <DiscountButton
+              active={discountType === "FREE_DELIVERY"}
+              onClick={() =>
+                setDiscountType((c) =>
+                  c === "FREE_DELIVERY" ? null : "FREE_DELIVERY",
+                )
+              }
+              disabled={fulfillmentType !== "DELIVERY"}
+            >
+              Free deliv.
+            </DiscountButton>
+          </div>
+        </Section>
+
+        {/* Promo code */}
+        <Section title="Promo code">
+          <div className="flex gap-1.5">
+            <div className="relative flex-1">
+              <Tag className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-400" />
+              <input
+                value={promoCodeInput}
+                onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                placeholder="ENTER CODE"
+                className="w-full rounded-md border border-zinc-200 px-7 py-1 text-[11px] uppercase focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+            {promoApplied?.valid ? (
+              <button
+                type="button"
+                onClick={clearPromo}
+                className="rounded-md border border-red-200 bg-red-50 px-2 text-[11px] text-red-700 hover:bg-red-100"
+              >
+                <XCircle className="inline h-3 w-3" /> Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={applyPromo}
+                disabled={promoChecking || !promoCodeInput.trim()}
+                className="rounded-md border border-zinc-300 bg-white px-2 text-[11px] hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {promoChecking ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  "Apply"
+                )}
+              </button>
+            )}
+          </div>
+          {promoApplied?.valid && (
+            <p className="mt-1 flex items-center gap-1 text-[10px] text-emerald-700">
+              <CheckCircle2 className="h-3 w-3" />
+              {promoApplied.freeDelivery
+                ? "Free delivery applied"
+                : `−£${(promoApplied.discountAmount ?? 0).toFixed(2)} off (${promoApplied.code})`}
+            </p>
+          )}
+          {promoError && (
+            <p className="mt-1 text-[10px] text-red-600">{promoError}</p>
+          )}
+        </Section>
+
+        {/* Payment */}
+        <Section title="Payment">
+          <div className="grid grid-cols-2 gap-1.5">
+            {(
+              [
+                { value: "CASH", label: "Cash" },
+                { value: "CARD_TERMINAL", label: "Card terminal" },
+                { value: "ONLINE_CARD", label: "Online card" },
+                { value: "EXTERNAL", label: "External" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setPaymentMethod(opt.value)}
+                disabled={opt.value === "ONLINE_CARD" && !online}
+                className={`rounded-md border px-2 py-1.5 text-[11px] ${
+                  paymentMethod === opt.value
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
+                } disabled:opacity-40`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-[10px] text-zinc-500">
+            Online card requires a payment provider. Cash and card terminal
+            are always available.
+          </p>
+        </Section>
+      </div>
+
+      {/* Footer totals + submit */}
+      <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 space-y-1.5">
+        <Row label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+        {discountAmount > 0 && (
+          <Row label="Discount" value={`−£${discountAmount.toFixed(2)}`} accent="text-emerald-700" />
+        )}
+        {fulfillmentType === "DELIVERY" && (
+          <Row
+            label={`Delivery${(discountType === "FREE_DELIVERY" || promoApplied?.freeDelivery) ? " (free)" : ""}`}
+            value={`£${effectiveDeliveryFee.toFixed(2)}`}
+          />
+        )}
+        <Row label="Total" value={`£${total.toFixed(2)}`} bold />
+        {errors.length > 0 && (
+          <ul className="mt-1 space-y-0.5">
+            {errors.map((e) => (
+              <li key={e} className="text-[10px] text-red-600">
+                • {e}
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          type="button"
+          onClick={handlePlaceOrder}
+          disabled={!canSubmit}
+          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {isScheduled ? "Save scheduled order" : "Place order"}
+        </button>
+        {feedback && (
+          <p className="text-center text-[11px] text-zinc-600">{feedback}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Local atoms ──────────────────────────────────────────────────────────────
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border-t border-zinc-100 px-3 py-2">
+      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function Input({
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+    />
+  );
+}
+
+function Toggle<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: Array<{ value: T; label: string }>;
+}) {
+  return (
+    <div className="flex rounded-md border border-zinc-200 p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`flex-1 rounded-sm px-2 py-1 text-xs ${
+            value === o.value
+              ? "bg-zinc-900 text-white"
+              : "text-zinc-600 hover:bg-zinc-50"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DiscountButton({
+  active,
+  onClick,
+  disabled,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-md border px-2 py-1.5 text-[11px] ${
+        active
+          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+          : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
+      } disabled:opacity-40`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Row({
+  label,
+  value,
+  bold,
+  accent,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+  accent?: string;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between text-xs ${
+        bold ? "font-semibold text-zinc-900" : "text-zinc-600"
+      } ${accent ?? ""}`}
+    >
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}

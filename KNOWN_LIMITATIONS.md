@@ -1,7 +1,30 @@
 # Known Limitations
 
-> Last updated: Phase AJ — Order Foundation (2026-05-20)
+> Last updated: Phase AM — POS Operational Upgrade (2026-05-30)
 > This file documents provider limitations, unsupported actions, pending approvals, and areas needing future work.
+
+---
+
+## Phase AM Limitations (POS operational upgrade)
+
+- **No admin UI for delivery zones yet.** Zones are configured through
+  `POST /v1/delivery-zones`. The POS lookup + override are wired; the
+  manager-facing zones editor lands next phase.
+- **No admin UI for promo codes yet.** Create / update / delete is API-only.
+  The POS validates + redeems correctly today.
+- **Address autocomplete requires `MAPBOX_ACCESS_TOKEN`.** Without it the
+  POS falls back to manual entry — no provider fails closed. Google Places
+  is a placeholder.
+- **Caller-ID integration is a free-text field.** Hardware/CTI bridge is
+  not yet wired; the field structure + persistence are ready.
+- **Payment providers Dojo / Adyen / Worldpay are placeholders.** The
+  selector + storage + status enum are in place; only Stripe is wired
+  end-to-end. See `PAYMENT_PROVIDERS_PLAN.md`.
+- **Full offline order placement is deferred to Phase AN.** Cart draft
+  persistence + offline banner ship in AM; queued submissions + IndexedDB
+  menu cache + sync worker do not. See `OFFLINE_POS_PLAN.md`.
+- **No manager UI for `LocationPaymentConfig`.** Created automatically with
+  defaults on first order; no in-app editor yet.
 
 ---
 

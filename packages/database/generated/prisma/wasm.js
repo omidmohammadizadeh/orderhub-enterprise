@@ -568,6 +568,31 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DeliveryZoneScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  postcodePrefix: 'postcodePrefix',
+  fee: 'fee',
+  minOrderValue: 'minOrderValue',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LocationPaymentConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  provider: 'provider',
+  cashEnabled: 'cashEnabled',
+  cardTerminalEnabled: 'cardTerminalEnabled',
+  onlinePaymentEnabled: 'onlinePaymentEnabled',
+  config: 'config',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -599,11 +624,19 @@ exports.Prisma.OrderScalarFieldEnum = {
   promoDiscount: 'promoDiscount',
   specialInstructions: 'specialInstructions',
   scheduledFor: 'scheduledFor',
+  scheduledAt: 'scheduledAt',
   estimatedReadyAt: 'estimatedReadyAt',
   idempotencyKey: 'idempotencyKey',
   collectionCode: 'collectionCode',
   preparationMinutes: 'preparationMinutes',
   failureReason: 'failureReason',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  postcode: 'postcode',
+  callerId: 'callerId',
+  discountType: 'discountType',
+  paymentProvider: 'paymentProvider',
   receivedAt: 'receivedAt',
   acceptedAt: 'acceptedAt',
   preparingAt: 'preparingAt',
@@ -1527,6 +1560,20 @@ exports.Prisma.PromoCodeOrderByRelevanceFieldEnum = {
   locationIds: 'locationIds'
 };
 
+exports.Prisma.DeliveryZoneOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  postcodePrefix: 'postcodePrefix'
+};
+
+exports.Prisma.LocationPaymentConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  provider: 'provider'
+};
+
 exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -1543,6 +1590,13 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   idempotencyKey: 'idempotencyKey',
   collectionCode: 'collectionCode',
   failureReason: 'failureReason',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  postcode: 'postcode',
+  callerId: 'callerId',
+  discountType: 'discountType',
+  paymentProvider: 'paymentProvider',
   cancelReason: 'cancelReason'
 };
 
@@ -2307,6 +2361,8 @@ exports.Prisma.ModelName = {
   CustomerAddress: 'CustomerAddress',
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',
+  DeliveryZone: 'DeliveryZone',
+  LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',
   OrderItem: 'OrderItem',
   OrderStatusHistory: 'OrderStatusHistory',

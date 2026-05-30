@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Beaker, Bike, ShoppingBag, Loader2 } from "lucide-react";
 import { OrderBoard } from "@/components/orders/order-board";
+import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
 import { LocationSelector } from "@/components/dashboard/location-selector";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { apiClient } from "@/lib/api/client";
@@ -100,6 +101,7 @@ export default function OrdersPage() {
           {feedback}
         </div>
       )}
+      <ScheduledOrdersStrip locationId={selectedLocationId ?? undefined} />
       <OrderBoard locationId={selectedLocationId ?? undefined} />
     </div>
   );
