@@ -42,9 +42,25 @@ export class ModifierGroupDto {
 }
 
 // ── Create menu ───────────────────────────────────────────────────────────────
+// Phase AM — Deliverect-style create form sends menuType + banner/logo
+// image URLs alongside the basics. All optional so older clients still
+// work; whitelisted so the global ValidationPipe lets them through
+// instead of 400'ing with "property X should not exist".
 export class CreateMenuDto {
   @ApiProperty() @IsString() @MaxLength(120) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["DELIVERY", "DELIVERY_AND_PICKUP"])
+  menuType?: string;
+  // Banner is the 1920×1080 hero shown on the customer storefront; logo
+  // is the 1:1 brand badge. Both ship as data: URLs today via the
+  // canvas-side resize; the same field will hold a Supabase Storage URL
+  // once that upload lands.
+  @ApiPropertyOptional() @IsOptional() @IsString() bannerImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() logoImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() heroImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
 }
 
 export class UpdateMenuDto {
@@ -52,6 +68,14 @@ export class UpdateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsEnum(["DRAFT", "PUBLISHED", "ARCHIVED"]) status?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(["DELIVERY", "DELIVERY_AND_PICKUP"])
+  menuType?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() bannerImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() logoImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() heroImage?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
 }
 
 // ── Create category ───────────────────────────────────────────────────────────

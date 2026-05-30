@@ -80,7 +80,20 @@ export class MenusService {
   async create(brandId: string, tenantId: string, dto: CreateMenuDto) {
     await this.assertBrandAccess(brandId, tenantId);
     return this.prisma.menu.create({
-      data: { brandId, name: dto.name, description: dto.description, status: "DRAFT" },
+      data: {
+        brandId,
+        name: dto.name,
+        description: dto.description,
+        status: "DRAFT",
+        // Phase AM — Deliverect-style create form ships these. All
+        // optional on the schema; only sent when the operator filled
+        // them in.
+        ...(dto.menuType && { menuType: dto.menuType as any }),
+        ...(dto.bannerImage !== undefined && { bannerImage: dto.bannerImage }),
+        ...(dto.logoImage !== undefined && { logoImage: dto.logoImage }),
+        ...(dto.heroImage !== undefined && { heroImage: dto.heroImage }),
+        ...(dto.locationId && { locationId: dto.locationId }),
+      },
     });
   }
 
@@ -93,6 +106,11 @@ export class MenusService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.status && { status: dto.status as any }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.menuType && { menuType: dto.menuType as any }),
+        ...(dto.bannerImage !== undefined && { bannerImage: dto.bannerImage }),
+        ...(dto.logoImage !== undefined && { logoImage: dto.logoImage }),
+        ...(dto.heroImage !== undefined && { heroImage: dto.heroImage }),
+        ...(dto.locationId !== undefined && { locationId: dto.locationId }),
       },
     });
   }
