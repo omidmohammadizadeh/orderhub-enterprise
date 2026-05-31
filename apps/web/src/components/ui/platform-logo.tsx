@@ -242,6 +242,8 @@ const LABELS: Record<string, string> = {
   DIRECT: "Direct",
   ONLINE: "Online ordering",
   HUBRISE: "HubRise",
+  STUART: "Stuart",
+  UBER_DIRECT: "Uber Direct",
 };
 
 interface Props {

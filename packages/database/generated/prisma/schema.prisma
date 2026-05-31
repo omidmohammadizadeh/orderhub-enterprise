@@ -204,12 +204,22 @@ model Brand {
   isActive  Boolean   @default(true)
   deletedAt DateTime?
 
-  locations      Location[]
-  menus          Menu[]
-  modifierGroups ModifierGroup[]
-  orders         Order[]
-  mealDeals      MealDeal[]
-  upsellGroups   UpsellGroup[]
+  // Phase AN — descriptive fields + "virtual brand" scoping. When
+  // primaryLocationId is set, this brand lives at exactly that location
+  // (ghost-kitchen model). When null the brand is a franchise parent
+  // and Location.brandId is the inverse relation.
+  description       String?
+  cuisine           String?
+  isSuspended       Boolean @default(false)
+  primaryLocationId String?
+
+  locations           Location[]
+  menus               Menu[]
+  modifierGroups      ModifierGroup[]
+  orders              Order[]
+  mealDeals           MealDeal[]
+  upsellGroups        UpsellGroup[]
+  platformConnections BrandPlatformConnection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -217,6 +227,7 @@ model Brand {
   @@unique([tenantId, slug])
   @@index([tenantId])
   @@index([tenantId, deletedAt])
+  @@index([primaryLocationId])
   @@map("brands")
 }
 
@@ -235,12 +246,42 @@ model Location {
   metadata    Json      @default("{}")
   deletedAt   DateTime?
 
-  integrations  Integration[]
-  orders        Order[]
-  printers      Printer[]
-  kdsScreens    KdsScreen[]
-  deliveryZones DeliveryZone[]
-  paymentConfig LocationPaymentConfig?
+  integrations        Integration[]
+  orders              Order[]
+  printers            Printer[]
+  kdsScreens          KdsScreen[]
+  deliveryZones       DeliveryZone[]
+  paymentConfig       LocationPaymentConfig?
+  platformConnections BrandPlatformConnection[]
+
+  // Phase AN — structured address columns (mirror of the address JSON
+  // for query/index). Country defaults to GB.
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  postcode     String?
+  country      String  @default("GB")
+  about        String?
+  logoUrl      String?
+
+  // Phase AN — online ordering presentation
+  customDomain       String?
+  customDomainStatus String  @default("not_configured") // not_configured | pending | verified | failed
+  onlineOrderingSlug String? @unique
+
+  // Phase AN — Stripe Connect + application fee config
+  stripeConnectedAccountId  String?
+  applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
+  applicationFeePercentage  Decimal? @db.Decimal(5, 2)
+  applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
+
+  // Phase AN — operational status string (active | suspended | closed)
+  // kept alongside isActive/isPaused for finer-grained UI presentation.
+  status String @default("active")
+
+  // Phase AN — structured busy-mode metadata. The boolean below stays
+  // (used by AM); this carries reason + until + affected platforms.
+  busyModeJson Json @default("{}")
 
   shopCode   String? @unique
   // Bearer token presented by the legacy Flutter printer app as
@@ -275,6 +316,37 @@ model Location {
   @@index([brandId])
   @@index([brandId, deletedAt])
   @@map("locations")
+}
+
+// ── BrandPlatformConnection (Phase AN) ────────────────────────────────────────
+// Per (brand, location, platform) connection record. Today the columns
+// are placeholders the UI renders against — the actual OAuth / API
+// connection flow per platform (Just Eat, Uber Eats, Deliveroo,
+// HubRise, Stuart, Uber Direct) ships in a later phase.
+model BrandPlatformConnection {
+  id              String    @id @default(cuid())
+  tenantId        String
+  brandId         String
+  brand           Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  locationId      String
+  location        Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  platform        String // JUST_EAT | UBER_EATS | DELIVEROO | HUBRISE | STUART | UBER_DIRECT
+  status          String    @default("not_connected") // not_connected | pending | connected | suspended | error
+  externalStoreId String?
+  externalBrandId String?
+  integrationId   String?
+  lastSyncAt      DateTime?
+  lastWebhookAt   DateTime?
+  lastError       String?
+  metadata        Json      @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, locationId, platform])
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("brand_platform_connections")
 }
 
 // ── Integration ───────────────────────────────────────────────────────────────
@@ -2065,7 +2137,7 @@ model OutboxEvent {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Enums
-// ════════════════════════════════��═════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 enum LocationGoLiveStatus {
   DRAFT // not yet started

@@ -54,6 +54,11 @@ export type Brand = $Result.DefaultSelection<Prisma.$BrandPayload>
  */
 export type Location = $Result.DefaultSelection<Prisma.$LocationPayload>
 /**
+ * Model BrandPlatformConnection
+ * 
+ */
+export type BrandPlatformConnection = $Result.DefaultSelection<Prisma.$BrandPlatformConnectionPayload>
+/**
  * Model Integration
  * 
  */
@@ -1228,6 +1233,16 @@ export class PrismaClient<
   get location(): Prisma.LocationDelegate<ExtArgs>;
 
   /**
+   * `prisma.brandPlatformConnection`: Exposes CRUD operations for the **BrandPlatformConnection** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BrandPlatformConnections
+    * const brandPlatformConnections = await prisma.brandPlatformConnection.findMany()
+    * ```
+    */
+  get brandPlatformConnection(): Prisma.BrandPlatformConnectionDelegate<ExtArgs>;
+
+  /**
    * `prisma.integration`: Exposes CRUD operations for the **Integration** model.
     * Example usage:
     * ```ts
@@ -2325,6 +2340,7 @@ export namespace Prisma {
     AuditLog: 'AuditLog',
     Brand: 'Brand',
     Location: 'Location',
+    BrandPlatformConnection: 'BrandPlatformConnection',
     Integration: 'Integration',
     Menu: 'Menu',
     MenuCategory: 'MenuCategory',
@@ -2405,7 +2421,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
+      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2966,6 +2982,76 @@ export namespace Prisma {
           count: {
             args: Prisma.LocationCountArgs<ExtArgs>
             result: $Utils.Optional<LocationCountAggregateOutputType> | number
+          }
+        }
+      }
+      BrandPlatformConnection: {
+        payload: Prisma.$BrandPlatformConnectionPayload<ExtArgs>
+        fields: Prisma.BrandPlatformConnectionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BrandPlatformConnectionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BrandPlatformConnectionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          findFirst: {
+            args: Prisma.BrandPlatformConnectionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BrandPlatformConnectionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          findMany: {
+            args: Prisma.BrandPlatformConnectionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>[]
+          }
+          create: {
+            args: Prisma.BrandPlatformConnectionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          createMany: {
+            args: Prisma.BrandPlatformConnectionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BrandPlatformConnectionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>[]
+          }
+          delete: {
+            args: Prisma.BrandPlatformConnectionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          update: {
+            args: Prisma.BrandPlatformConnectionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          deleteMany: {
+            args: Prisma.BrandPlatformConnectionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BrandPlatformConnectionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BrandPlatformConnectionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandPlatformConnectionPayload>
+          }
+          aggregate: {
+            args: Prisma.BrandPlatformConnectionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBrandPlatformConnection>
+          }
+          groupBy: {
+            args: Prisma.BrandPlatformConnectionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BrandPlatformConnectionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BrandPlatformConnectionCountArgs<ExtArgs>
+            result: $Utils.Optional<BrandPlatformConnectionCountAggregateOutputType> | number
           }
         }
       }
@@ -7874,6 +7960,7 @@ export namespace Prisma {
     orders: number
     mealDeals: number
     upsellGroups: number
+    platformConnections: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7883,6 +7970,7 @@ export namespace Prisma {
     orders?: boolean | BrandCountOutputTypeCountOrdersArgs
     mealDeals?: boolean | BrandCountOutputTypeCountMealDealsArgs
     upsellGroups?: boolean | BrandCountOutputTypeCountUpsellGroupsArgs
+    platformConnections?: boolean | BrandCountOutputTypeCountPlatformConnectionsArgs
   }
 
   // Custom InputTypes
@@ -7938,6 +8026,13 @@ export namespace Prisma {
     where?: UpsellGroupWhereInput
   }
 
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountPlatformConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandPlatformConnectionWhereInput
+  }
+
 
   /**
    * Count Type LocationCountOutputType
@@ -7949,6 +8044,7 @@ export namespace Prisma {
     printers: number
     kdsScreens: number
     deliveryZones: number
+    platformConnections: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7957,6 +8053,7 @@ export namespace Prisma {
     printers?: boolean | LocationCountOutputTypeCountPrintersArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
+    platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
   }
 
   // Custom InputTypes
@@ -8003,6 +8100,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountDeliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountPlatformConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandPlatformConnectionWhereInput
   }
 
 
@@ -15312,6 +15416,10 @@ export namespace Prisma {
     logoUrl: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    description: string | null
+    cuisine: string | null
+    isSuspended: boolean | null
+    primaryLocationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -15324,6 +15432,10 @@ export namespace Prisma {
     logoUrl: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    description: string | null
+    cuisine: string | null
+    isSuspended: boolean | null
+    primaryLocationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -15338,6 +15450,10 @@ export namespace Prisma {
     metadata: number
     isActive: number
     deletedAt: number
+    description: number
+    cuisine: number
+    isSuspended: number
+    primaryLocationId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -15352,6 +15468,10 @@ export namespace Prisma {
     logoUrl?: true
     isActive?: true
     deletedAt?: true
+    description?: true
+    cuisine?: true
+    isSuspended?: true
+    primaryLocationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -15364,6 +15484,10 @@ export namespace Prisma {
     logoUrl?: true
     isActive?: true
     deletedAt?: true
+    description?: true
+    cuisine?: true
+    isSuspended?: true
+    primaryLocationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -15378,6 +15502,10 @@ export namespace Prisma {
     metadata?: true
     isActive?: true
     deletedAt?: true
+    description?: true
+    cuisine?: true
+    isSuspended?: true
+    primaryLocationId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -15465,6 +15593,10 @@ export namespace Prisma {
     metadata: JsonValue
     isActive: boolean
     deletedAt: Date | null
+    description: string | null
+    cuisine: string | null
+    isSuspended: boolean
+    primaryLocationId: string | null
     createdAt: Date
     updatedAt: Date
     _count: BrandCountAggregateOutputType | null
@@ -15496,6 +15628,10 @@ export namespace Prisma {
     metadata?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    description?: boolean
+    cuisine?: boolean
+    isSuspended?: boolean
+    primaryLocationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -15505,6 +15641,7 @@ export namespace Prisma {
     orders?: boolean | Brand$ordersArgs<ExtArgs>
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
+    platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
 
@@ -15518,6 +15655,10 @@ export namespace Prisma {
     metadata?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    description?: boolean
+    cuisine?: boolean
+    isSuspended?: boolean
+    primaryLocationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -15533,6 +15674,10 @@ export namespace Prisma {
     metadata?: boolean
     isActive?: boolean
     deletedAt?: boolean
+    description?: boolean
+    cuisine?: boolean
+    isSuspended?: boolean
+    primaryLocationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -15545,6 +15690,7 @@ export namespace Prisma {
     orders?: boolean | Brand$ordersArgs<ExtArgs>
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
+    platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15561,6 +15707,7 @@ export namespace Prisma {
       orders: Prisma.$OrderPayload<ExtArgs>[]
       mealDeals: Prisma.$MealDealPayload<ExtArgs>[]
       upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
+      platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -15572,6 +15719,10 @@ export namespace Prisma {
       metadata: Prisma.JsonValue
       isActive: boolean
       deletedAt: Date | null
+      description: string | null
+      cuisine: string | null
+      isSuspended: boolean
+      primaryLocationId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["brand"]>
@@ -15945,6 +16096,7 @@ export namespace Prisma {
     orders<T extends Brand$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Brand$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     mealDeals<T extends Brand$mealDealsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$mealDealsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findMany"> | Null>
     upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
+    platformConnections<T extends Brand$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15983,6 +16135,10 @@ export namespace Prisma {
     readonly metadata: FieldRef<"Brand", 'Json'>
     readonly isActive: FieldRef<"Brand", 'Boolean'>
     readonly deletedAt: FieldRef<"Brand", 'DateTime'>
+    readonly description: FieldRef<"Brand", 'String'>
+    readonly cuisine: FieldRef<"Brand", 'String'>
+    readonly isSuspended: FieldRef<"Brand", 'Boolean'>
+    readonly primaryLocationId: FieldRef<"Brand", 'String'>
     readonly createdAt: FieldRef<"Brand", 'DateTime'>
     readonly updatedAt: FieldRef<"Brand", 'DateTime'>
   }
@@ -16423,6 +16579,26 @@ export namespace Prisma {
   }
 
   /**
+   * Brand.platformConnections
+   */
+  export type Brand$platformConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    where?: BrandPlatformConnectionWhereInput
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
    * Brand without action
    */
   export type BrandDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16450,12 +16626,16 @@ export namespace Prisma {
   }
 
   export type LocationAvgAggregateOutputType = {
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
   }
 
   export type LocationSumAggregateOutputType = {
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
@@ -16470,6 +16650,21 @@ export namespace Prisma {
     timezone: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string | null
+    about: string | null
+    logoUrl: string | null
+    customDomain: string | null
+    customDomainStatus: string | null
+    onlineOrderingSlug: string | null
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string | null
+    status: string | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -16497,6 +16692,21 @@ export namespace Prisma {
     timezone: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string | null
+    about: string | null
+    logoUrl: string | null
+    customDomain: string | null
+    customDomainStatus: string | null
+    onlineOrderingSlug: string | null
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string | null
+    status: string | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -16527,6 +16737,22 @@ export namespace Prisma {
     settings: number
     metadata: number
     deletedAt: number
+    addressLine1: number
+    addressLine2: number
+    city: number
+    postcode: number
+    country: number
+    about: number
+    logoUrl: number
+    customDomain: number
+    customDomainStatus: number
+    onlineOrderingSlug: number
+    stripeConnectedAccountId: number
+    applicationFeeFixedAmount: number
+    applicationFeePercentage: number
+    applicationFeeMode: number
+    status: number
+    busyModeJson: number
     shopCode: number
     printToken: number
     slug: number
@@ -16550,12 +16776,16 @@ export namespace Prisma {
 
 
   export type LocationAvgAggregateInputType = {
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
   }
 
   export type LocationSumAggregateInputType = {
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
@@ -16570,6 +16800,21 @@ export namespace Prisma {
     timezone?: true
     isActive?: true
     deletedAt?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    about?: true
+    logoUrl?: true
+    customDomain?: true
+    customDomainStatus?: true
+    onlineOrderingSlug?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
+    status?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -16597,6 +16842,21 @@ export namespace Prisma {
     timezone?: true
     isActive?: true
     deletedAt?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    about?: true
+    logoUrl?: true
+    customDomain?: true
+    customDomainStatus?: true
+    onlineOrderingSlug?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
+    status?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -16627,6 +16887,22 @@ export namespace Prisma {
     settings?: true
     metadata?: true
     deletedAt?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    about?: true
+    logoUrl?: true
+    customDomain?: true
+    customDomainStatus?: true
+    onlineOrderingSlug?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
+    status?: true
+    busyModeJson?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -16746,6 +17022,22 @@ export namespace Prisma {
     settings: JsonValue
     metadata: JsonValue
     deletedAt: Date | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string
+    about: string | null
+    logoUrl: string | null
+    customDomain: string | null
+    customDomainStatus: string
+    onlineOrderingSlug: string | null
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string
+    status: string
+    busyModeJson: JsonValue
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -16797,6 +17089,22 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    about?: boolean
+    logoUrl?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    onlineOrderingSlug?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
+    status?: boolean
+    busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -16822,6 +17130,7 @@ export namespace Prisma {
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
+    platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -16837,6 +17146,22 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    about?: boolean
+    logoUrl?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    onlineOrderingSlug?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
+    status?: boolean
+    busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -16870,6 +17195,22 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    about?: boolean
+    logoUrl?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    onlineOrderingSlug?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
+    status?: boolean
+    busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -16898,6 +17239,7 @@ export namespace Prisma {
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
+    platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16914,6 +17256,7 @@ export namespace Prisma {
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
+      platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -16927,6 +17270,22 @@ export namespace Prisma {
       settings: Prisma.JsonValue
       metadata: Prisma.JsonValue
       deletedAt: Date | null
+      addressLine1: string | null
+      addressLine2: string | null
+      city: string | null
+      postcode: string | null
+      country: string
+      about: string | null
+      logoUrl: string | null
+      customDomain: string | null
+      customDomainStatus: string
+      onlineOrderingSlug: string | null
+      stripeConnectedAccountId: string | null
+      applicationFeeFixedAmount: Prisma.Decimal | null
+      applicationFeePercentage: Prisma.Decimal | null
+      applicationFeeMode: string
+      status: string
+      busyModeJson: Prisma.JsonValue
       shopCode: string | null
       printToken: string | null
       slug: string | null
@@ -17316,6 +17675,7 @@ export namespace Prisma {
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17356,6 +17716,22 @@ export namespace Prisma {
     readonly settings: FieldRef<"Location", 'Json'>
     readonly metadata: FieldRef<"Location", 'Json'>
     readonly deletedAt: FieldRef<"Location", 'DateTime'>
+    readonly addressLine1: FieldRef<"Location", 'String'>
+    readonly addressLine2: FieldRef<"Location", 'String'>
+    readonly city: FieldRef<"Location", 'String'>
+    readonly postcode: FieldRef<"Location", 'String'>
+    readonly country: FieldRef<"Location", 'String'>
+    readonly about: FieldRef<"Location", 'String'>
+    readonly logoUrl: FieldRef<"Location", 'String'>
+    readonly customDomain: FieldRef<"Location", 'String'>
+    readonly customDomainStatus: FieldRef<"Location", 'String'>
+    readonly onlineOrderingSlug: FieldRef<"Location", 'String'>
+    readonly stripeConnectedAccountId: FieldRef<"Location", 'String'>
+    readonly applicationFeeFixedAmount: FieldRef<"Location", 'Decimal'>
+    readonly applicationFeePercentage: FieldRef<"Location", 'Decimal'>
+    readonly applicationFeeMode: FieldRef<"Location", 'String'>
+    readonly status: FieldRef<"Location", 'String'>
+    readonly busyModeJson: FieldRef<"Location", 'Json'>
     readonly shopCode: FieldRef<"Location", 'String'>
     readonly printToken: FieldRef<"Location", 'String'>
     readonly slug: FieldRef<"Location", 'String'>
@@ -17807,6 +18183,26 @@ export namespace Prisma {
   }
 
   /**
+   * Location.platformConnections
+   */
+  export type Location$platformConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    where?: BrandPlatformConnectionWhereInput
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
    * Location without action
    */
   export type LocationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17818,6 +18214,1061 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: LocationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BrandPlatformConnection
+   */
+
+  export type AggregateBrandPlatformConnection = {
+    _count: BrandPlatformConnectionCountAggregateOutputType | null
+    _min: BrandPlatformConnectionMinAggregateOutputType | null
+    _max: BrandPlatformConnectionMaxAggregateOutputType | null
+  }
+
+  export type BrandPlatformConnectionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    locationId: string | null
+    platform: string | null
+    status: string | null
+    externalStoreId: string | null
+    externalBrandId: string | null
+    integrationId: string | null
+    lastSyncAt: Date | null
+    lastWebhookAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BrandPlatformConnectionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    locationId: string | null
+    platform: string | null
+    status: string | null
+    externalStoreId: string | null
+    externalBrandId: string | null
+    integrationId: string | null
+    lastSyncAt: Date | null
+    lastWebhookAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BrandPlatformConnectionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    locationId: number
+    platform: number
+    status: number
+    externalStoreId: number
+    externalBrandId: number
+    integrationId: number
+    lastSyncAt: number
+    lastWebhookAt: number
+    lastError: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BrandPlatformConnectionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    locationId?: true
+    platform?: true
+    status?: true
+    externalStoreId?: true
+    externalBrandId?: true
+    integrationId?: true
+    lastSyncAt?: true
+    lastWebhookAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BrandPlatformConnectionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    locationId?: true
+    platform?: true
+    status?: true
+    externalStoreId?: true
+    externalBrandId?: true
+    integrationId?: true
+    lastSyncAt?: true
+    lastWebhookAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BrandPlatformConnectionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    locationId?: true
+    platform?: true
+    status?: true
+    externalStoreId?: true
+    externalBrandId?: true
+    integrationId?: true
+    lastSyncAt?: true
+    lastWebhookAt?: true
+    lastError?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BrandPlatformConnectionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BrandPlatformConnection to aggregate.
+     */
+    where?: BrandPlatformConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandPlatformConnections to fetch.
+     */
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandPlatformConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandPlatformConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BrandPlatformConnections
+    **/
+    _count?: true | BrandPlatformConnectionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BrandPlatformConnectionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BrandPlatformConnectionMaxAggregateInputType
+  }
+
+  export type GetBrandPlatformConnectionAggregateType<T extends BrandPlatformConnectionAggregateArgs> = {
+        [P in keyof T & keyof AggregateBrandPlatformConnection]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBrandPlatformConnection[P]>
+      : GetScalarType<T[P], AggregateBrandPlatformConnection[P]>
+  }
+
+
+
+
+  export type BrandPlatformConnectionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandPlatformConnectionWhereInput
+    orderBy?: BrandPlatformConnectionOrderByWithAggregationInput | BrandPlatformConnectionOrderByWithAggregationInput[]
+    by: BrandPlatformConnectionScalarFieldEnum[] | BrandPlatformConnectionScalarFieldEnum
+    having?: BrandPlatformConnectionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BrandPlatformConnectionCountAggregateInputType | true
+    _min?: BrandPlatformConnectionMinAggregateInputType
+    _max?: BrandPlatformConnectionMaxAggregateInputType
+  }
+
+  export type BrandPlatformConnectionGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    locationId: string
+    platform: string
+    status: string
+    externalStoreId: string | null
+    externalBrandId: string | null
+    integrationId: string | null
+    lastSyncAt: Date | null
+    lastWebhookAt: Date | null
+    lastError: string | null
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: BrandPlatformConnectionCountAggregateOutputType | null
+    _min: BrandPlatformConnectionMinAggregateOutputType | null
+    _max: BrandPlatformConnectionMaxAggregateOutputType | null
+  }
+
+  type GetBrandPlatformConnectionGroupByPayload<T extends BrandPlatformConnectionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BrandPlatformConnectionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BrandPlatformConnectionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BrandPlatformConnectionGroupByOutputType[P]>
+            : GetScalarType<T[P], BrandPlatformConnectionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BrandPlatformConnectionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    locationId?: boolean
+    platform?: boolean
+    status?: boolean
+    externalStoreId?: boolean
+    externalBrandId?: boolean
+    integrationId?: boolean
+    lastSyncAt?: boolean
+    lastWebhookAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["brandPlatformConnection"]>
+
+  export type BrandPlatformConnectionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    locationId?: boolean
+    platform?: boolean
+    status?: boolean
+    externalStoreId?: boolean
+    externalBrandId?: boolean
+    integrationId?: boolean
+    lastSyncAt?: boolean
+    lastWebhookAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["brandPlatformConnection"]>
+
+  export type BrandPlatformConnectionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    locationId?: boolean
+    platform?: boolean
+    status?: boolean
+    externalStoreId?: boolean
+    externalBrandId?: boolean
+    integrationId?: boolean
+    lastSyncAt?: boolean
+    lastWebhookAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BrandPlatformConnectionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type BrandPlatformConnectionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $BrandPlatformConnectionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BrandPlatformConnection"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      locationId: string
+      platform: string
+      status: string
+      externalStoreId: string | null
+      externalBrandId: string | null
+      integrationId: string | null
+      lastSyncAt: Date | null
+      lastWebhookAt: Date | null
+      lastError: string | null
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["brandPlatformConnection"]>
+    composites: {}
+  }
+
+  type BrandPlatformConnectionGetPayload<S extends boolean | null | undefined | BrandPlatformConnectionDefaultArgs> = $Result.GetResult<Prisma.$BrandPlatformConnectionPayload, S>
+
+  type BrandPlatformConnectionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BrandPlatformConnectionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BrandPlatformConnectionCountAggregateInputType | true
+    }
+
+  export interface BrandPlatformConnectionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BrandPlatformConnection'], meta: { name: 'BrandPlatformConnection' } }
+    /**
+     * Find zero or one BrandPlatformConnection that matches the filter.
+     * @param {BrandPlatformConnectionFindUniqueArgs} args - Arguments to find a BrandPlatformConnection
+     * @example
+     * // Get one BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BrandPlatformConnectionFindUniqueArgs>(args: SelectSubset<T, BrandPlatformConnectionFindUniqueArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BrandPlatformConnection that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BrandPlatformConnectionFindUniqueOrThrowArgs} args - Arguments to find a BrandPlatformConnection
+     * @example
+     * // Get one BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BrandPlatformConnectionFindUniqueOrThrowArgs>(args: SelectSubset<T, BrandPlatformConnectionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BrandPlatformConnection that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionFindFirstArgs} args - Arguments to find a BrandPlatformConnection
+     * @example
+     * // Get one BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BrandPlatformConnectionFindFirstArgs>(args?: SelectSubset<T, BrandPlatformConnectionFindFirstArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BrandPlatformConnection that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionFindFirstOrThrowArgs} args - Arguments to find a BrandPlatformConnection
+     * @example
+     * // Get one BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BrandPlatformConnectionFindFirstOrThrowArgs>(args?: SelectSubset<T, BrandPlatformConnectionFindFirstOrThrowArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BrandPlatformConnections that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BrandPlatformConnections
+     * const brandPlatformConnections = await prisma.brandPlatformConnection.findMany()
+     * 
+     * // Get first 10 BrandPlatformConnections
+     * const brandPlatformConnections = await prisma.brandPlatformConnection.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const brandPlatformConnectionWithIdOnly = await prisma.brandPlatformConnection.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BrandPlatformConnectionFindManyArgs>(args?: SelectSubset<T, BrandPlatformConnectionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BrandPlatformConnection.
+     * @param {BrandPlatformConnectionCreateArgs} args - Arguments to create a BrandPlatformConnection.
+     * @example
+     * // Create one BrandPlatformConnection
+     * const BrandPlatformConnection = await prisma.brandPlatformConnection.create({
+     *   data: {
+     *     // ... data to create a BrandPlatformConnection
+     *   }
+     * })
+     * 
+     */
+    create<T extends BrandPlatformConnectionCreateArgs>(args: SelectSubset<T, BrandPlatformConnectionCreateArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BrandPlatformConnections.
+     * @param {BrandPlatformConnectionCreateManyArgs} args - Arguments to create many BrandPlatformConnections.
+     * @example
+     * // Create many BrandPlatformConnections
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BrandPlatformConnectionCreateManyArgs>(args?: SelectSubset<T, BrandPlatformConnectionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BrandPlatformConnections and returns the data saved in the database.
+     * @param {BrandPlatformConnectionCreateManyAndReturnArgs} args - Arguments to create many BrandPlatformConnections.
+     * @example
+     * // Create many BrandPlatformConnections
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BrandPlatformConnections and only return the `id`
+     * const brandPlatformConnectionWithIdOnly = await prisma.brandPlatformConnection.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BrandPlatformConnectionCreateManyAndReturnArgs>(args?: SelectSubset<T, BrandPlatformConnectionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BrandPlatformConnection.
+     * @param {BrandPlatformConnectionDeleteArgs} args - Arguments to delete one BrandPlatformConnection.
+     * @example
+     * // Delete one BrandPlatformConnection
+     * const BrandPlatformConnection = await prisma.brandPlatformConnection.delete({
+     *   where: {
+     *     // ... filter to delete one BrandPlatformConnection
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BrandPlatformConnectionDeleteArgs>(args: SelectSubset<T, BrandPlatformConnectionDeleteArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BrandPlatformConnection.
+     * @param {BrandPlatformConnectionUpdateArgs} args - Arguments to update one BrandPlatformConnection.
+     * @example
+     * // Update one BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BrandPlatformConnectionUpdateArgs>(args: SelectSubset<T, BrandPlatformConnectionUpdateArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BrandPlatformConnections.
+     * @param {BrandPlatformConnectionDeleteManyArgs} args - Arguments to filter BrandPlatformConnections to delete.
+     * @example
+     * // Delete a few BrandPlatformConnections
+     * const { count } = await prisma.brandPlatformConnection.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BrandPlatformConnectionDeleteManyArgs>(args?: SelectSubset<T, BrandPlatformConnectionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BrandPlatformConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BrandPlatformConnections
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BrandPlatformConnectionUpdateManyArgs>(args: SelectSubset<T, BrandPlatformConnectionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BrandPlatformConnection.
+     * @param {BrandPlatformConnectionUpsertArgs} args - Arguments to update or create a BrandPlatformConnection.
+     * @example
+     * // Update or create a BrandPlatformConnection
+     * const brandPlatformConnection = await prisma.brandPlatformConnection.upsert({
+     *   create: {
+     *     // ... data to create a BrandPlatformConnection
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BrandPlatformConnection we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BrandPlatformConnectionUpsertArgs>(args: SelectSubset<T, BrandPlatformConnectionUpsertArgs<ExtArgs>>): Prisma__BrandPlatformConnectionClient<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BrandPlatformConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionCountArgs} args - Arguments to filter BrandPlatformConnections to count.
+     * @example
+     * // Count the number of BrandPlatformConnections
+     * const count = await prisma.brandPlatformConnection.count({
+     *   where: {
+     *     // ... the filter for the BrandPlatformConnections we want to count
+     *   }
+     * })
+    **/
+    count<T extends BrandPlatformConnectionCountArgs>(
+      args?: Subset<T, BrandPlatformConnectionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BrandPlatformConnectionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BrandPlatformConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BrandPlatformConnectionAggregateArgs>(args: Subset<T, BrandPlatformConnectionAggregateArgs>): Prisma.PrismaPromise<GetBrandPlatformConnectionAggregateType<T>>
+
+    /**
+     * Group by BrandPlatformConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandPlatformConnectionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BrandPlatformConnectionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BrandPlatformConnectionGroupByArgs['orderBy'] }
+        : { orderBy?: BrandPlatformConnectionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BrandPlatformConnectionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBrandPlatformConnectionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BrandPlatformConnection model
+   */
+  readonly fields: BrandPlatformConnectionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BrandPlatformConnection.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BrandPlatformConnectionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BrandPlatformConnection model
+   */ 
+  interface BrandPlatformConnectionFieldRefs {
+    readonly id: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly tenantId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly brandId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly locationId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly platform: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly status: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly externalStoreId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly externalBrandId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly integrationId: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly lastSyncAt: FieldRef<"BrandPlatformConnection", 'DateTime'>
+    readonly lastWebhookAt: FieldRef<"BrandPlatformConnection", 'DateTime'>
+    readonly lastError: FieldRef<"BrandPlatformConnection", 'String'>
+    readonly metadata: FieldRef<"BrandPlatformConnection", 'Json'>
+    readonly createdAt: FieldRef<"BrandPlatformConnection", 'DateTime'>
+    readonly updatedAt: FieldRef<"BrandPlatformConnection", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BrandPlatformConnection findUnique
+   */
+  export type BrandPlatformConnectionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandPlatformConnection to fetch.
+     */
+    where: BrandPlatformConnectionWhereUniqueInput
+  }
+
+  /**
+   * BrandPlatformConnection findUniqueOrThrow
+   */
+  export type BrandPlatformConnectionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandPlatformConnection to fetch.
+     */
+    where: BrandPlatformConnectionWhereUniqueInput
+  }
+
+  /**
+   * BrandPlatformConnection findFirst
+   */
+  export type BrandPlatformConnectionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandPlatformConnection to fetch.
+     */
+    where?: BrandPlatformConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandPlatformConnections to fetch.
+     */
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BrandPlatformConnections.
+     */
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandPlatformConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandPlatformConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BrandPlatformConnections.
+     */
+    distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * BrandPlatformConnection findFirstOrThrow
+   */
+  export type BrandPlatformConnectionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandPlatformConnection to fetch.
+     */
+    where?: BrandPlatformConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandPlatformConnections to fetch.
+     */
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BrandPlatformConnections.
+     */
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandPlatformConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandPlatformConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BrandPlatformConnections.
+     */
+    distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * BrandPlatformConnection findMany
+   */
+  export type BrandPlatformConnectionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandPlatformConnections to fetch.
+     */
+    where?: BrandPlatformConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandPlatformConnections to fetch.
+     */
+    orderBy?: BrandPlatformConnectionOrderByWithRelationInput | BrandPlatformConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BrandPlatformConnections.
+     */
+    cursor?: BrandPlatformConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandPlatformConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandPlatformConnections.
+     */
+    skip?: number
+    distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * BrandPlatformConnection create
+   */
+  export type BrandPlatformConnectionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BrandPlatformConnection.
+     */
+    data: XOR<BrandPlatformConnectionCreateInput, BrandPlatformConnectionUncheckedCreateInput>
+  }
+
+  /**
+   * BrandPlatformConnection createMany
+   */
+  export type BrandPlatformConnectionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BrandPlatformConnections.
+     */
+    data: BrandPlatformConnectionCreateManyInput | BrandPlatformConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BrandPlatformConnection createManyAndReturn
+   */
+  export type BrandPlatformConnectionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BrandPlatformConnections.
+     */
+    data: BrandPlatformConnectionCreateManyInput | BrandPlatformConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BrandPlatformConnection update
+   */
+  export type BrandPlatformConnectionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BrandPlatformConnection.
+     */
+    data: XOR<BrandPlatformConnectionUpdateInput, BrandPlatformConnectionUncheckedUpdateInput>
+    /**
+     * Choose, which BrandPlatformConnection to update.
+     */
+    where: BrandPlatformConnectionWhereUniqueInput
+  }
+
+  /**
+   * BrandPlatformConnection updateMany
+   */
+  export type BrandPlatformConnectionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BrandPlatformConnections.
+     */
+    data: XOR<BrandPlatformConnectionUpdateManyMutationInput, BrandPlatformConnectionUncheckedUpdateManyInput>
+    /**
+     * Filter which BrandPlatformConnections to update
+     */
+    where?: BrandPlatformConnectionWhereInput
+  }
+
+  /**
+   * BrandPlatformConnection upsert
+   */
+  export type BrandPlatformConnectionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BrandPlatformConnection to update in case it exists.
+     */
+    where: BrandPlatformConnectionWhereUniqueInput
+    /**
+     * In case the BrandPlatformConnection found by the `where` argument doesn't exist, create a new BrandPlatformConnection with this data.
+     */
+    create: XOR<BrandPlatformConnectionCreateInput, BrandPlatformConnectionUncheckedCreateInput>
+    /**
+     * In case the BrandPlatformConnection was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BrandPlatformConnectionUpdateInput, BrandPlatformConnectionUncheckedUpdateInput>
+  }
+
+  /**
+   * BrandPlatformConnection delete
+   */
+  export type BrandPlatformConnectionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
+    /**
+     * Filter which BrandPlatformConnection to delete.
+     */
+    where: BrandPlatformConnectionWhereUniqueInput
+  }
+
+  /**
+   * BrandPlatformConnection deleteMany
+   */
+  export type BrandPlatformConnectionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BrandPlatformConnections to delete
+     */
+    where?: BrandPlatformConnectionWhereInput
+  }
+
+  /**
+   * BrandPlatformConnection without action
+   */
+  export type BrandPlatformConnectionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandPlatformConnection
+     */
+    select?: BrandPlatformConnectionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandPlatformConnectionInclude<ExtArgs> | null
   }
 
 
@@ -86637,6 +88088,10 @@ export namespace Prisma {
     metadata: 'metadata',
     isActive: 'isActive',
     deletedAt: 'deletedAt',
+    description: 'description',
+    cuisine: 'cuisine',
+    isSuspended: 'isSuspended',
+    primaryLocationId: 'primaryLocationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -86656,6 +88111,22 @@ export namespace Prisma {
     settings: 'settings',
     metadata: 'metadata',
     deletedAt: 'deletedAt',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    country: 'country',
+    about: 'about',
+    logoUrl: 'logoUrl',
+    customDomain: 'customDomain',
+    customDomainStatus: 'customDomainStatus',
+    onlineOrderingSlug: 'onlineOrderingSlug',
+    stripeConnectedAccountId: 'stripeConnectedAccountId',
+    applicationFeeFixedAmount: 'applicationFeeFixedAmount',
+    applicationFeePercentage: 'applicationFeePercentage',
+    applicationFeeMode: 'applicationFeeMode',
+    status: 'status',
+    busyModeJson: 'busyModeJson',
     shopCode: 'shopCode',
     printToken: 'printToken',
     slug: 'slug',
@@ -86677,6 +88148,27 @@ export namespace Prisma {
   };
 
   export type LocationScalarFieldEnum = (typeof LocationScalarFieldEnum)[keyof typeof LocationScalarFieldEnum]
+
+
+  export const BrandPlatformConnectionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    locationId: 'locationId',
+    platform: 'platform',
+    status: 'status',
+    externalStoreId: 'externalStoreId',
+    externalBrandId: 'externalBrandId',
+    integrationId: 'integrationId',
+    lastSyncAt: 'lastSyncAt',
+    lastWebhookAt: 'lastWebhookAt',
+    lastError: 'lastError',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BrandPlatformConnectionScalarFieldEnum = (typeof BrandPlatformConnectionScalarFieldEnum)[keyof typeof BrandPlatformConnectionScalarFieldEnum]
 
 
   export const IntegrationScalarFieldEnum: {
@@ -88032,7 +89524,10 @@ export namespace Prisma {
     tenantId: 'tenantId',
     name: 'name',
     slug: 'slug',
-    logoUrl: 'logoUrl'
+    logoUrl: 'logoUrl',
+    description: 'description',
+    cuisine: 'cuisine',
+    primaryLocationId: 'primaryLocationId'
   };
 
   export type BrandOrderByRelevanceFieldEnum = (typeof BrandOrderByRelevanceFieldEnum)[keyof typeof BrandOrderByRelevanceFieldEnum]
@@ -88045,6 +89540,19 @@ export namespace Prisma {
     externalRef: 'externalRef',
     phone: 'phone',
     timezone: 'timezone',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    country: 'country',
+    about: 'about',
+    logoUrl: 'logoUrl',
+    customDomain: 'customDomain',
+    customDomainStatus: 'customDomainStatus',
+    onlineOrderingSlug: 'onlineOrderingSlug',
+    stripeConnectedAccountId: 'stripeConnectedAccountId',
+    applicationFeeMode: 'applicationFeeMode',
+    status: 'status',
     shopCode: 'shopCode',
     printToken: 'printToken',
     slug: 'slug',
@@ -88052,6 +89560,22 @@ export namespace Prisma {
   };
 
   export type LocationOrderByRelevanceFieldEnum = (typeof LocationOrderByRelevanceFieldEnum)[keyof typeof LocationOrderByRelevanceFieldEnum]
+
+
+  export const BrandPlatformConnectionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    locationId: 'locationId',
+    platform: 'platform',
+    status: 'status',
+    externalStoreId: 'externalStoreId',
+    externalBrandId: 'externalBrandId',
+    integrationId: 'integrationId',
+    lastError: 'lastError'
+  };
+
+  export type BrandPlatformConnectionOrderByRelevanceFieldEnum = (typeof BrandPlatformConnectionOrderByRelevanceFieldEnum)[keyof typeof BrandPlatformConnectionOrderByRelevanceFieldEnum]
 
 
   export const IntegrationOrderByRelevanceFieldEnum: {
@@ -88960,6 +90484,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Decimal'
+   */
+  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+  /**
+   * Reference to a field of type 'Decimal[]'
+   */
+  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -89054,20 +90592,6 @@ export namespace Prisma {
    * Reference to a field of type 'MenuImportStatus[]'
    */
   export type ListEnumMenuImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuImportStatus[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Decimal'
-   */
-  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
-
-
-  /**
-   * Reference to a field of type 'Decimal[]'
-   */
-  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -90102,6 +91626,10 @@ export namespace Prisma {
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
     deletedAt?: DateTimeNullableFilter<"Brand"> | Date | string | null
+    description?: StringNullableFilter<"Brand"> | string | null
+    cuisine?: StringNullableFilter<"Brand"> | string | null
+    isSuspended?: BoolFilter<"Brand"> | boolean
+    primaryLocationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -90111,6 +91639,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
+    platformConnections?: BrandPlatformConnectionListRelationFilter
   }
 
   export type BrandOrderByWithRelationInput = {
@@ -90123,6 +91652,10 @@ export namespace Prisma {
     metadata?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    cuisine?: SortOrderInput | SortOrder
+    isSuspended?: SortOrder
+    primaryLocationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -90132,6 +91665,7 @@ export namespace Prisma {
     orders?: OrderOrderByRelationAggregateInput
     mealDeals?: MealDealOrderByRelationAggregateInput
     upsellGroups?: UpsellGroupOrderByRelationAggregateInput
+    platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     _relevance?: BrandOrderByRelevanceInput
   }
 
@@ -90149,6 +91683,10 @@ export namespace Prisma {
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
     deletedAt?: DateTimeNullableFilter<"Brand"> | Date | string | null
+    description?: StringNullableFilter<"Brand"> | string | null
+    cuisine?: StringNullableFilter<"Brand"> | string | null
+    isSuspended?: BoolFilter<"Brand"> | boolean
+    primaryLocationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -90158,6 +91696,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
+    platformConnections?: BrandPlatformConnectionListRelationFilter
   }, "id" | "tenantId_slug">
 
   export type BrandOrderByWithAggregationInput = {
@@ -90170,6 +91709,10 @@ export namespace Prisma {
     metadata?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    cuisine?: SortOrderInput | SortOrder
+    isSuspended?: SortOrder
+    primaryLocationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BrandCountOrderByAggregateInput
@@ -90190,6 +91733,10 @@ export namespace Prisma {
     metadata?: JsonWithAggregatesFilter<"Brand">
     isActive?: BoolWithAggregatesFilter<"Brand"> | boolean
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Brand"> | Date | string | null
+    description?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    cuisine?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    isSuspended?: BoolWithAggregatesFilter<"Brand"> | boolean
+    primaryLocationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
   }
@@ -90209,6 +91756,22 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    addressLine1?: StringNullableFilter<"Location"> | string | null
+    addressLine2?: StringNullableFilter<"Location"> | string | null
+    city?: StringNullableFilter<"Location"> | string | null
+    postcode?: StringNullableFilter<"Location"> | string | null
+    country?: StringFilter<"Location"> | string
+    about?: StringNullableFilter<"Location"> | string | null
+    logoUrl?: StringNullableFilter<"Location"> | string | null
+    customDomain?: StringNullableFilter<"Location"> | string | null
+    customDomainStatus?: StringFilter<"Location"> | string
+    onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
+    stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Location"> | string
+    status?: StringFilter<"Location"> | string
+    busyModeJson?: JsonFilter<"Location">
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
@@ -90234,6 +91797,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
+    platformConnections?: BrandPlatformConnectionListRelationFilter
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -90248,6 +91812,22 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    country?: SortOrder
+    about?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    customDomain?: SortOrderInput | SortOrder
+    customDomainStatus?: SortOrder
+    onlineOrderingSlug?: SortOrderInput | SortOrder
+    stripeConnectedAccountId?: SortOrderInput | SortOrder
+    applicationFeeFixedAmount?: SortOrderInput | SortOrder
+    applicationFeePercentage?: SortOrderInput | SortOrder
+    applicationFeeMode?: SortOrder
+    status?: SortOrder
+    busyModeJson?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
@@ -90273,11 +91853,13 @@ export namespace Prisma {
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
+    platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
   export type LocationWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    onlineOrderingSlug?: string
     shopCode?: string
     printToken?: string
     slug?: string
@@ -90294,6 +91876,21 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    addressLine1?: StringNullableFilter<"Location"> | string | null
+    addressLine2?: StringNullableFilter<"Location"> | string | null
+    city?: StringNullableFilter<"Location"> | string | null
+    postcode?: StringNullableFilter<"Location"> | string | null
+    country?: StringFilter<"Location"> | string
+    about?: StringNullableFilter<"Location"> | string | null
+    logoUrl?: StringNullableFilter<"Location"> | string | null
+    customDomain?: StringNullableFilter<"Location"> | string | null
+    customDomainStatus?: StringFilter<"Location"> | string
+    stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Location"> | string
+    status?: StringFilter<"Location"> | string
+    busyModeJson?: JsonFilter<"Location">
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
     onboardingStep?: IntFilter<"Location"> | number
@@ -90316,7 +91913,8 @@ export namespace Prisma {
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
-  }, "id" | "shopCode" | "printToken" | "slug">
+    platformConnections?: BrandPlatformConnectionListRelationFilter
+  }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -90330,6 +91928,22 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    country?: SortOrder
+    about?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    customDomain?: SortOrderInput | SortOrder
+    customDomainStatus?: SortOrder
+    onlineOrderingSlug?: SortOrderInput | SortOrder
+    stripeConnectedAccountId?: SortOrderInput | SortOrder
+    applicationFeeFixedAmount?: SortOrderInput | SortOrder
+    applicationFeePercentage?: SortOrderInput | SortOrder
+    applicationFeeMode?: SortOrder
+    status?: SortOrder
+    busyModeJson?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
@@ -90370,6 +91984,22 @@ export namespace Prisma {
     settings?: JsonWithAggregatesFilter<"Location">
     metadata?: JsonWithAggregatesFilter<"Location">
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
+    addressLine1?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    addressLine2?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    city?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    postcode?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    country?: StringWithAggregatesFilter<"Location"> | string
+    about?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    logoUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    customDomain?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    customDomainStatus?: StringWithAggregatesFilter<"Location"> | string
+    onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    stripeConnectedAccountId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringWithAggregatesFilter<"Location"> | string
+    status?: StringWithAggregatesFilter<"Location"> | string
+    busyModeJson?: JsonWithAggregatesFilter<"Location">
     shopCode?: StringNullableWithAggregatesFilter<"Location"> | string | null
     printToken?: StringNullableWithAggregatesFilter<"Location"> | string | null
     slug?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -90388,6 +92018,116 @@ export namespace Prisma {
     storeStatusNote?: StringNullableWithAggregatesFilter<"Location"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Location"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Location"> | Date | string
+  }
+
+  export type BrandPlatformConnectionWhereInput = {
+    AND?: BrandPlatformConnectionWhereInput | BrandPlatformConnectionWhereInput[]
+    OR?: BrandPlatformConnectionWhereInput[]
+    NOT?: BrandPlatformConnectionWhereInput | BrandPlatformConnectionWhereInput[]
+    id?: StringFilter<"BrandPlatformConnection"> | string
+    tenantId?: StringFilter<"BrandPlatformConnection"> | string
+    brandId?: StringFilter<"BrandPlatformConnection"> | string
+    locationId?: StringFilter<"BrandPlatformConnection"> | string
+    platform?: StringFilter<"BrandPlatformConnection"> | string
+    status?: StringFilter<"BrandPlatformConnection"> | string
+    externalStoreId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    externalBrandId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    integrationId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    lastSyncAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastWebhookAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastError?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    metadata?: JsonFilter<"BrandPlatformConnection">
+    createdAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type BrandPlatformConnectionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    locationId?: SortOrder
+    platform?: SortOrder
+    status?: SortOrder
+    externalStoreId?: SortOrderInput | SortOrder
+    externalBrandId?: SortOrderInput | SortOrder
+    integrationId?: SortOrderInput | SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
+    lastWebhookAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    _relevance?: BrandPlatformConnectionOrderByRelevanceInput
+  }
+
+  export type BrandPlatformConnectionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId_locationId_platform?: BrandPlatformConnectionBrandIdLocationIdPlatformCompoundUniqueInput
+    AND?: BrandPlatformConnectionWhereInput | BrandPlatformConnectionWhereInput[]
+    OR?: BrandPlatformConnectionWhereInput[]
+    NOT?: BrandPlatformConnectionWhereInput | BrandPlatformConnectionWhereInput[]
+    tenantId?: StringFilter<"BrandPlatformConnection"> | string
+    brandId?: StringFilter<"BrandPlatformConnection"> | string
+    locationId?: StringFilter<"BrandPlatformConnection"> | string
+    platform?: StringFilter<"BrandPlatformConnection"> | string
+    status?: StringFilter<"BrandPlatformConnection"> | string
+    externalStoreId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    externalBrandId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    integrationId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    lastSyncAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastWebhookAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastError?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    metadata?: JsonFilter<"BrandPlatformConnection">
+    createdAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "brandId_locationId_platform">
+
+  export type BrandPlatformConnectionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    locationId?: SortOrder
+    platform?: SortOrder
+    status?: SortOrder
+    externalStoreId?: SortOrderInput | SortOrder
+    externalBrandId?: SortOrderInput | SortOrder
+    integrationId?: SortOrderInput | SortOrder
+    lastSyncAt?: SortOrderInput | SortOrder
+    lastWebhookAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BrandPlatformConnectionCountOrderByAggregateInput
+    _max?: BrandPlatformConnectionMaxOrderByAggregateInput
+    _min?: BrandPlatformConnectionMinOrderByAggregateInput
+  }
+
+  export type BrandPlatformConnectionScalarWhereWithAggregatesInput = {
+    AND?: BrandPlatformConnectionScalarWhereWithAggregatesInput | BrandPlatformConnectionScalarWhereWithAggregatesInput[]
+    OR?: BrandPlatformConnectionScalarWhereWithAggregatesInput[]
+    NOT?: BrandPlatformConnectionScalarWhereWithAggregatesInput | BrandPlatformConnectionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    tenantId?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    brandId?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    locationId?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    platform?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    status?: StringWithAggregatesFilter<"BrandPlatformConnection"> | string
+    externalStoreId?: StringNullableWithAggregatesFilter<"BrandPlatformConnection"> | string | null
+    externalBrandId?: StringNullableWithAggregatesFilter<"BrandPlatformConnection"> | string | null
+    integrationId?: StringNullableWithAggregatesFilter<"BrandPlatformConnection"> | string | null
+    lastSyncAt?: DateTimeNullableWithAggregatesFilter<"BrandPlatformConnection"> | Date | string | null
+    lastWebhookAt?: DateTimeNullableWithAggregatesFilter<"BrandPlatformConnection"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"BrandPlatformConnection"> | string | null
+    metadata?: JsonWithAggregatesFilter<"BrandPlatformConnection">
+    createdAt?: DateTimeWithAggregatesFilter<"BrandPlatformConnection"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BrandPlatformConnection"> | Date | string
   }
 
   export type IntegrationWhereInput = {
@@ -97490,6 +99230,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -97499,6 +99243,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateInput = {
@@ -97511,6 +99256,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -97519,6 +99268,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -97530,6 +99280,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -97539,6 +99293,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateInput = {
@@ -97551,6 +99306,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -97559,6 +99318,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -97571,6 +99331,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -97584,6 +99348,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -97598,6 +99366,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -97613,6 +99385,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -97638,6 +99426,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -97652,6 +99441,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -97676,6 +99481,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -97689,6 +99495,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -97714,6 +99536,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -97728,6 +99551,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -97752,6 +99591,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -97766,6 +99606,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -97797,6 +99653,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -97829,6 +99701,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -97845,6 +99733,130 @@ export namespace Prisma {
     currentPrepTime?: IntFieldUpdateOperationsInput | number
     throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
     storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionCreateInput = {
+    id?: string
+    tenantId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutPlatformConnectionsInput
+    location: LocationCreateNestedOneWithoutPlatformConnectionsInput
+  }
+
+  export type BrandPlatformConnectionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    locationId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandPlatformConnectionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutPlatformConnectionsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPlatformConnectionsNestedInput
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    locationId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandPlatformConnectionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -105972,6 +107984,12 @@ export namespace Prisma {
     none?: UpsellGroupWhereInput
   }
 
+  export type BrandPlatformConnectionListRelationFilter = {
+    every?: BrandPlatformConnectionWhereInput
+    some?: BrandPlatformConnectionWhereInput
+    none?: BrandPlatformConnectionWhereInput
+  }
+
   export type LocationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -105989,6 +108007,10 @@ export namespace Prisma {
   }
 
   export type UpsellGroupOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BrandPlatformConnectionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -106013,6 +108035,10 @@ export namespace Prisma {
     metadata?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    description?: SortOrder
+    cuisine?: SortOrder
+    isSuspended?: SortOrder
+    primaryLocationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -106025,6 +108051,10 @@ export namespace Prisma {
     logoUrl?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    description?: SortOrder
+    cuisine?: SortOrder
+    isSuspended?: SortOrder
+    primaryLocationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -106037,8 +108067,23 @@ export namespace Prisma {
     logoUrl?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    description?: SortOrder
+    cuisine?: SortOrder
+    isSuspended?: SortOrder
+    primaryLocationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type DecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -106138,6 +108183,22 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    about?: SortOrder
+    logoUrl?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
+    status?: SortOrder
+    busyModeJson?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -106159,6 +108220,8 @@ export namespace Prisma {
   }
 
   export type LocationAvgOrderByAggregateInput = {
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
@@ -106173,6 +108236,21 @@ export namespace Prisma {
     timezone?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    about?: SortOrder
+    logoUrl?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
+    status?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -106200,6 +108278,21 @@ export namespace Prisma {
     timezone?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    about?: SortOrder
+    logoUrl?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
+    status?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -106219,9 +108312,27 @@ export namespace Prisma {
   }
 
   export type LocationSumOrderByAggregateInput = {
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
+  }
+
+  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -106266,6 +108377,75 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type LocationRelationFilter = {
+    is?: LocationWhereInput
+    isNot?: LocationWhereInput
+  }
+
+  export type BrandPlatformConnectionOrderByRelevanceInput = {
+    fields: BrandPlatformConnectionOrderByRelevanceFieldEnum | BrandPlatformConnectionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BrandPlatformConnectionBrandIdLocationIdPlatformCompoundUniqueInput = {
+    brandId: string
+    locationId: string
+    platform: string
+  }
+
+  export type BrandPlatformConnectionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    locationId?: SortOrder
+    platform?: SortOrder
+    status?: SortOrder
+    externalStoreId?: SortOrder
+    externalBrandId?: SortOrder
+    integrationId?: SortOrder
+    lastSyncAt?: SortOrder
+    lastWebhookAt?: SortOrder
+    lastError?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BrandPlatformConnectionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    locationId?: SortOrder
+    platform?: SortOrder
+    status?: SortOrder
+    externalStoreId?: SortOrder
+    externalBrandId?: SortOrder
+    integrationId?: SortOrder
+    lastSyncAt?: SortOrder
+    lastWebhookAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BrandPlatformConnectionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    locationId?: SortOrder
+    platform?: SortOrder
+    status?: SortOrder
+    externalStoreId?: SortOrder
+    externalBrandId?: SortOrder
+    integrationId?: SortOrder
+    lastSyncAt?: SortOrder
+    lastWebhookAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type EnumIntegrationPlatformFilter<$PrismaModel = never> = {
     equals?: $Enums.IntegrationPlatform | EnumIntegrationPlatformFieldRefInput<$PrismaModel>
     in?: $Enums.IntegrationPlatform[] | ListEnumIntegrationPlatformFieldRefInput<$PrismaModel>
@@ -106278,11 +108458,6 @@ export namespace Prisma {
     in?: $Enums.IntegrationStatus[] | ListEnumIntegrationStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.IntegrationStatus[] | ListEnumIntegrationStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumIntegrationStatusFilter<$PrismaModel> | $Enums.IntegrationStatus
-  }
-
-  export type LocationRelationFilter = {
-    is?: LocationWhereInput
-    isNot?: LocationWhereInput
   }
 
   export type IntegrationOrderByRelevanceInput = {
@@ -106818,17 +108993,6 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
-  export type DecimalNullableFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-  }
-
   export type MenuCategoryRelationFilter = {
     is?: MenuCategoryWhereInput
     isNot?: MenuCategoryWhereInput
@@ -106882,22 +109046,6 @@ export namespace Prisma {
   export type MenuItemOnCategorySumOrderByAggregateInput = {
     sortOrder?: SortOrder
     priceOverride?: SortOrder
-  }
-
-  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedDecimalNullableFilter<$PrismaModel>
-    _sum?: NestedDecimalNullableFilter<$PrismaModel>
-    _min?: NestedDecimalNullableFilter<$PrismaModel>
-    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type EnumSelectionTypeFilter<$PrismaModel = never> = {
@@ -112230,6 +114378,13 @@ export namespace Prisma {
     connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
   }
 
+  export type BrandPlatformConnectionCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput> | BrandPlatformConnectionCreateWithoutBrandInput[] | BrandPlatformConnectionUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutBrandInput | BrandPlatformConnectionCreateOrConnectWithoutBrandInput[]
+    createMany?: BrandPlatformConnectionCreateManyBrandInputEnvelope
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+  }
+
   export type LocationUncheckedCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -112270,6 +114425,13 @@ export namespace Prisma {
     connectOrCreate?: UpsellGroupCreateOrConnectWithoutBrandInput | UpsellGroupCreateOrConnectWithoutBrandInput[]
     createMany?: UpsellGroupCreateManyBrandInputEnvelope
     connect?: UpsellGroupWhereUniqueInput | UpsellGroupWhereUniqueInput[]
+  }
+
+  export type BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput> | BrandPlatformConnectionCreateWithoutBrandInput[] | BrandPlatformConnectionUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutBrandInput | BrandPlatformConnectionCreateOrConnectWithoutBrandInput[]
+    createMany?: BrandPlatformConnectionCreateManyBrandInputEnvelope
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
   }
 
   export type TenantUpdateOneRequiredWithoutBrandsNestedInput = {
@@ -112364,6 +114526,20 @@ export namespace Prisma {
     deleteMany?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
   }
 
+  export type BrandPlatformConnectionUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput> | BrandPlatformConnectionCreateWithoutBrandInput[] | BrandPlatformConnectionUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutBrandInput | BrandPlatformConnectionCreateOrConnectWithoutBrandInput[]
+    upsert?: BrandPlatformConnectionUpsertWithWhereUniqueWithoutBrandInput | BrandPlatformConnectionUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BrandPlatformConnectionCreateManyBrandInputEnvelope
+    set?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    disconnect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    delete?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    update?: BrandPlatformConnectionUpdateWithWhereUniqueWithoutBrandInput | BrandPlatformConnectionUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BrandPlatformConnectionUpdateManyWithWhereWithoutBrandInput | BrandPlatformConnectionUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+  }
+
   export type LocationUncheckedUpdateManyWithoutBrandNestedInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -112448,6 +114624,20 @@ export namespace Prisma {
     deleteMany?: UpsellGroupScalarWhereInput | UpsellGroupScalarWhereInput[]
   }
 
+  export type BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput> | BrandPlatformConnectionCreateWithoutBrandInput[] | BrandPlatformConnectionUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutBrandInput | BrandPlatformConnectionCreateOrConnectWithoutBrandInput[]
+    upsert?: BrandPlatformConnectionUpsertWithWhereUniqueWithoutBrandInput | BrandPlatformConnectionUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BrandPlatformConnectionCreateManyBrandInputEnvelope
+    set?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    disconnect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    delete?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    update?: BrandPlatformConnectionUpdateWithWhereUniqueWithoutBrandInput | BrandPlatformConnectionUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BrandPlatformConnectionUpdateManyWithWhereWithoutBrandInput | BrandPlatformConnectionUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+  }
+
   export type BrandCreateNestedOneWithoutLocationsInput = {
     create?: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutLocationsInput
@@ -112495,6 +114685,13 @@ export namespace Prisma {
     connect?: LocationPaymentConfigWhereUniqueInput
   }
 
+  export type BrandPlatformConnectionCreateNestedManyWithoutLocationInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput> | BrandPlatformConnectionCreateWithoutLocationInput[] | BrandPlatformConnectionUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
+    createMany?: BrandPlatformConnectionCreateManyLocationInputEnvelope
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -112534,6 +114731,21 @@ export namespace Prisma {
     create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
     connect?: LocationPaymentConfigWhereUniqueInput
+  }
+
+  export type BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput> | BrandPlatformConnectionCreateWithoutLocationInput[] | BrandPlatformConnectionUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
+    createMany?: BrandPlatformConnectionCreateManyLocationInputEnvelope
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+  }
+
+  export type NullableDecimalFieldUpdateOperationsInput = {
+    set?: Decimal | DecimalJsLike | number | string | null
+    increment?: Decimal | DecimalJsLike | number | string
+    decrement?: Decimal | DecimalJsLike | number | string
+    multiply?: Decimal | DecimalJsLike | number | string
+    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -112644,6 +114856,20 @@ export namespace Prisma {
     update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type BrandPlatformConnectionUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput> | BrandPlatformConnectionCreateWithoutLocationInput[] | BrandPlatformConnectionUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
+    upsert?: BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput | BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: BrandPlatformConnectionCreateManyLocationInputEnvelope
+    set?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    disconnect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    delete?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    update?: BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput | BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput | BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -112722,6 +114948,48 @@ export namespace Prisma {
     delete?: LocationPaymentConfigWhereInput | boolean
     connect?: LocationPaymentConfigWhereUniqueInput
     update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput> | BrandPlatformConnectionCreateWithoutLocationInput[] | BrandPlatformConnectionUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
+    upsert?: BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput | BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: BrandPlatformConnectionCreateManyLocationInputEnvelope
+    set?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    disconnect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    delete?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+    update?: BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput | BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput | BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+  }
+
+  export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
+    create?: XOR<BrandCreateWithoutPlatformConnectionsInput, BrandUncheckedCreateWithoutPlatformConnectionsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutPlatformConnectionsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutPlatformConnectionsInput = {
+    create?: XOR<LocationCreateWithoutPlatformConnectionsInput, LocationUncheckedCreateWithoutPlatformConnectionsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPlatformConnectionsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type BrandUpdateOneRequiredWithoutPlatformConnectionsNestedInput = {
+    create?: XOR<BrandCreateWithoutPlatformConnectionsInput, BrandUncheckedCreateWithoutPlatformConnectionsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutPlatformConnectionsInput
+    upsert?: BrandUpsertWithoutPlatformConnectionsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutPlatformConnectionsInput, BrandUpdateWithoutPlatformConnectionsInput>, BrandUncheckedUpdateWithoutPlatformConnectionsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutPlatformConnectionsNestedInput = {
+    create?: XOR<LocationCreateWithoutPlatformConnectionsInput, LocationUncheckedCreateWithoutPlatformConnectionsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPlatformConnectionsInput
+    upsert?: LocationUpsertWithoutPlatformConnectionsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPlatformConnectionsInput, LocationUpdateWithoutPlatformConnectionsInput>, LocationUncheckedUpdateWithoutPlatformConnectionsInput>
   }
 
   export type LocationCreateNestedOneWithoutIntegrationsInput = {
@@ -113142,14 +115410,6 @@ export namespace Prisma {
     create?: XOR<MenuItemCreateWithoutCategoriesInput, MenuItemUncheckedCreateWithoutCategoriesInput>
     connectOrCreate?: MenuItemCreateOrConnectWithoutCategoriesInput
     connect?: MenuItemWhereUniqueInput
-  }
-
-  export type NullableDecimalFieldUpdateOperationsInput = {
-    set?: Decimal | DecimalJsLike | number | string | null
-    increment?: Decimal | DecimalJsLike | number | string
-    decrement?: Decimal | DecimalJsLike | number | string
-    multiply?: Decimal | DecimalJsLike | number | string
-    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type MenuCategoryUpdateOneRequiredWithoutItemsNestedInput = {
@@ -115994,11 +118254,38 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
   export type NestedEnumLocationGoLiveStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.LocationGoLiveStatus | EnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     in?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel> | $Enums.LocationGoLiveStatus
+  }
+
+  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -116175,33 +118462,6 @@ export namespace Prisma {
     _sum?: NestedDecimalFilter<$PrismaModel>
     _min?: NestedDecimalFilter<$PrismaModel>
     _max?: NestedDecimalFilter<$PrismaModel>
-  }
-
-  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-  }
-
-  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedDecimalNullableFilter<$PrismaModel>
-    _sum?: NestedDecimalNullableFilter<$PrismaModel>
-    _min?: NestedDecimalNullableFilter<$PrismaModel>
-    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumSelectionTypeFilter<$PrismaModel = never> = {
@@ -116772,6 +119032,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationCreateNestedManyWithoutBrandInput
@@ -116780,6 +119044,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutTenantInput = {
@@ -116791,6 +119056,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -116799,6 +119068,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -117448,6 +119718,10 @@ export namespace Prisma {
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
     deletedAt?: DateTimeNullableFilter<"Brand"> | Date | string | null
+    description?: StringNullableFilter<"Brand"> | string | null
+    cuisine?: StringNullableFilter<"Brand"> | string | null
+    isSuspended?: BoolFilter<"Brand"> | boolean
+    primaryLocationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
   }
@@ -118949,6 +121223,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -118973,6 +121263,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -118986,6 +121277,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -119010,6 +121317,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -119412,6 +121720,50 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type BrandPlatformConnectionCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPlatformConnectionsInput
+  }
+
+  export type BrandPlatformConnectionUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandPlatformConnectionCreateOrConnectWithoutBrandInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    create: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BrandPlatformConnectionCreateManyBrandInputEnvelope = {
+    data: BrandPlatformConnectionCreateManyBrandInput | BrandPlatformConnectionCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutBrandsInput = {
     update: XOR<TenantUpdateWithoutBrandsInput, TenantUncheckedUpdateWithoutBrandsInput>
     create: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
@@ -119502,6 +121854,22 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    addressLine1?: StringNullableFilter<"Location"> | string | null
+    addressLine2?: StringNullableFilter<"Location"> | string | null
+    city?: StringNullableFilter<"Location"> | string | null
+    postcode?: StringNullableFilter<"Location"> | string | null
+    country?: StringFilter<"Location"> | string
+    about?: StringNullableFilter<"Location"> | string | null
+    logoUrl?: StringNullableFilter<"Location"> | string | null
+    customDomain?: StringNullableFilter<"Location"> | string | null
+    customDomainStatus?: StringFilter<"Location"> | string
+    onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
+    stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Location"> | string
+    status?: StringFilter<"Location"> | string
+    busyModeJson?: JsonFilter<"Location">
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
@@ -119719,6 +122087,43 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"UpsellGroup"> | Date | string
   }
 
+  export type BrandPlatformConnectionUpsertWithWhereUniqueWithoutBrandInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    update: XOR<BrandPlatformConnectionUpdateWithoutBrandInput, BrandPlatformConnectionUncheckedUpdateWithoutBrandInput>
+    create: XOR<BrandPlatformConnectionCreateWithoutBrandInput, BrandPlatformConnectionUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BrandPlatformConnectionUpdateWithWhereUniqueWithoutBrandInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    data: XOR<BrandPlatformConnectionUpdateWithoutBrandInput, BrandPlatformConnectionUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type BrandPlatformConnectionUpdateManyWithWhereWithoutBrandInput = {
+    where: BrandPlatformConnectionScalarWhereInput
+    data: XOR<BrandPlatformConnectionUpdateManyMutationInput, BrandPlatformConnectionUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type BrandPlatformConnectionScalarWhereInput = {
+    AND?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+    OR?: BrandPlatformConnectionScalarWhereInput[]
+    NOT?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+    id?: StringFilter<"BrandPlatformConnection"> | string
+    tenantId?: StringFilter<"BrandPlatformConnection"> | string
+    brandId?: StringFilter<"BrandPlatformConnection"> | string
+    locationId?: StringFilter<"BrandPlatformConnection"> | string
+    platform?: StringFilter<"BrandPlatformConnection"> | string
+    status?: StringFilter<"BrandPlatformConnection"> | string
+    externalStoreId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    externalBrandId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    integrationId?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    lastSyncAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastWebhookAt?: DateTimeNullableFilter<"BrandPlatformConnection"> | Date | string | null
+    lastError?: StringNullableFilter<"BrandPlatformConnection"> | string | null
+    metadata?: JsonFilter<"BrandPlatformConnection">
+    createdAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
+  }
+
   export type BrandCreateWithoutLocationsInput = {
     id?: string
     name: string
@@ -119728,6 +122133,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -119736,6 +122145,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutLocationsInput = {
@@ -119748,6 +122158,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
@@ -119755,6 +122169,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -120101,6 +122516,50 @@ export namespace Prisma {
     create: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type BrandPlatformConnectionCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutPlatformConnectionsInput
+  }
+
+  export type BrandPlatformConnectionUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandPlatformConnectionCreateOrConnectWithoutLocationInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    create: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput>
+  }
+
+  export type BrandPlatformConnectionCreateManyLocationInputEnvelope = {
+    data: BrandPlatformConnectionCreateManyLocationInput | BrandPlatformConnectionCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -120121,6 +122580,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -120129,6 +122592,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutLocationsInput = {
@@ -120141,6 +122605,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
@@ -120148,6 +122616,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -120345,6 +122814,366 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    update: XOR<BrandPlatformConnectionUpdateWithoutLocationInput, BrandPlatformConnectionUncheckedUpdateWithoutLocationInput>
+    create: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput>
+  }
+
+  export type BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput = {
+    where: BrandPlatformConnectionWhereUniqueInput
+    data: XOR<BrandPlatformConnectionUpdateWithoutLocationInput, BrandPlatformConnectionUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput = {
+    where: BrandPlatformConnectionScalarWhereInput
+    data: XOR<BrandPlatformConnectionUpdateManyMutationInput, BrandPlatformConnectionUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type BrandCreateWithoutPlatformConnectionsInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutPlatformConnectionsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutPlatformConnectionsInput, BrandUncheckedCreateWithoutPlatformConnectionsInput>
+  }
+
+  export type LocationCreateWithoutPlatformConnectionsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutPlatformConnectionsInput, LocationUncheckedCreateWithoutPlatformConnectionsInput>
+  }
+
+  export type BrandUpsertWithoutPlatformConnectionsInput = {
+    update: XOR<BrandUpdateWithoutPlatformConnectionsInput, BrandUncheckedUpdateWithoutPlatformConnectionsInput>
+    create: XOR<BrandCreateWithoutPlatformConnectionsInput, BrandUncheckedCreateWithoutPlatformConnectionsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutPlatformConnectionsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutPlatformConnectionsInput, BrandUncheckedUpdateWithoutPlatformConnectionsInput>
+  }
+
+  export type BrandUpdateWithoutPlatformConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutPlatformConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type LocationUpsertWithoutPlatformConnectionsInput = {
+    update: XOR<LocationUpdateWithoutPlatformConnectionsInput, LocationUncheckedUpdateWithoutPlatformConnectionsInput>
+    create: XOR<LocationCreateWithoutPlatformConnectionsInput, LocationUncheckedCreateWithoutPlatformConnectionsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutPlatformConnectionsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutPlatformConnectionsInput, LocationUncheckedUpdateWithoutPlatformConnectionsInput>
+  }
+
+  export type LocationUpdateWithoutPlatformConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
   export type LocationCreateWithoutIntegrationsInput = {
     id?: string
     name: string
@@ -120356,6 +123185,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -120380,6 +123225,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -120394,6 +123240,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -120417,6 +123279,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -120446,6 +123309,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120470,6 +123349,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -120484,6 +123364,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120507,6 +123403,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -120518,6 +123415,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -120526,6 +123427,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutMenusInput = {
@@ -120538,6 +123440,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -120545,6 +123451,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -120652,6 +123559,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -120660,6 +123571,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMenusInput = {
@@ -120672,6 +123584,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -120679,6 +123595,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -121466,6 +124383,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -121474,6 +124395,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutModifierGroupsInput = {
@@ -121486,6 +124408,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -121493,6 +124419,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -121688,6 +124615,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -121696,6 +124627,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutModifierGroupsInput = {
@@ -121708,6 +124640,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -121715,6 +124651,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -122578,6 +125515,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -122586,6 +125527,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutMealDealsInput = {
@@ -122598,6 +125540,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -122605,6 +125551,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -122632,6 +125579,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -122640,6 +125591,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMealDealsInput = {
@@ -122652,6 +125604,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -122659,6 +125615,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -122670,6 +125627,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -122678,6 +125639,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutUpsellGroupsInput = {
@@ -122690,6 +125652,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -122697,6 +125663,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -122724,6 +125691,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -122732,6 +125703,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutUpsellGroupsInput = {
@@ -122744,6 +125716,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -122751,6 +125727,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -123681,6 +126658,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -123705,6 +126698,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -123719,6 +126713,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -123742,6 +126752,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -123771,6 +126782,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123795,6 +126822,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -123809,6 +126837,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123832,6 +126876,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -123845,6 +126890,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -123869,6 +126930,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -123883,6 +126945,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -123906,6 +126984,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -123935,6 +127014,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123959,6 +127054,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -123973,6 +127069,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -123996,6 +127108,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -124062,6 +127175,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -124086,6 +127215,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -124100,6 +127230,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -124123,6 +127269,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -124180,6 +127327,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -124188,6 +127339,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutOrdersInput = {
@@ -124200,6 +127352,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -124207,6 +127363,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -124512,6 +127669,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124536,6 +127709,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -124550,6 +127724,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -124573,6 +127763,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -124642,6 +127833,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -124650,6 +127845,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutOrdersInput = {
@@ -124662,6 +127858,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -124669,6 +127869,7 @@ export namespace Prisma {
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -125406,6 +128607,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -125430,6 +128647,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -125444,6 +128662,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -125467,6 +128701,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -125522,6 +128757,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -125546,6 +128797,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -125560,6 +128812,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -125583,6 +128851,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -125948,6 +129217,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -125972,6 +129257,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -125986,6 +129272,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -126009,6 +129311,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -126082,6 +129385,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126106,6 +129425,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -126120,6 +129440,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126143,6 +129479,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrintJobUpsertWithWhereUniqueWithoutPrinterInput = {
@@ -131424,6 +134761,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
     deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -131621,6 +134962,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUpdateManyWithoutBrandNestedInput
@@ -131629,6 +134974,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutTenantInput = {
@@ -131640,6 +134986,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -131648,6 +134998,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -131659,6 +135010,10 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -132536,6 +135891,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -132715,6 +136086,23 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type BrandPlatformConnectionCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -132726,6 +136114,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -132750,6 +136154,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -132763,6 +136168,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -132787,6 +136208,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -132800,6 +136222,22 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -133319,6 +136757,57 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BrandPlatformConnectionUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPlatformConnectionsNestedInput
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntegrationCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -133437,6 +136926,23 @@ export namespace Prisma {
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
     isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandPlatformConnectionCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    platform: string
+    status?: string
+    externalStoreId?: string | null
+    externalBrandId?: string | null
+    integrationId?: string | null
+    lastSyncAt?: Date | string | null
+    lastWebhookAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -133819,6 +137325,57 @@ export namespace Prisma {
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutPlatformConnectionsNestedInput
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandPlatformConnectionUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    externalStoreId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    integrationId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -136178,6 +139735,10 @@ export namespace Prisma {
      * @deprecated Use LocationDefaultArgs instead
      */
     export type LocationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LocationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BrandPlatformConnectionDefaultArgs instead
+     */
+    export type BrandPlatformConnectionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BrandPlatformConnectionDefaultArgs<ExtArgs>
     /**
      * @deprecated Use IntegrationDefaultArgs instead
      */

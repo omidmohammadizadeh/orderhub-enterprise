@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -22,9 +23,12 @@ export class BrandsController {
   constructor(private readonly brands: BrandsService) {}
 
   @Get()
-  @ApiOperation({ summary: "List brands for the tenant" })
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.brands.findAll(user.tenantId);
+  @ApiOperation({ summary: "List brands for the tenant (optional locationId scope)" })
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.brands.findAll(user.tenantId, locationId);
   }
 
   @Get(":brandId")

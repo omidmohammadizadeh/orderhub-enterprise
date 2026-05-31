@@ -218,6 +218,10 @@ exports.Prisma.BrandScalarFieldEnum = {
   metadata: 'metadata',
   isActive: 'isActive',
   deletedAt: 'deletedAt',
+  description: 'description',
+  cuisine: 'cuisine',
+  isSuspended: 'isSuspended',
+  primaryLocationId: 'primaryLocationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -234,6 +238,22 @@ exports.Prisma.LocationScalarFieldEnum = {
   settings: 'settings',
   metadata: 'metadata',
   deletedAt: 'deletedAt',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  postcode: 'postcode',
+  country: 'country',
+  about: 'about',
+  logoUrl: 'logoUrl',
+  customDomain: 'customDomain',
+  customDomainStatus: 'customDomainStatus',
+  onlineOrderingSlug: 'onlineOrderingSlug',
+  stripeConnectedAccountId: 'stripeConnectedAccountId',
+  applicationFeeFixedAmount: 'applicationFeeFixedAmount',
+  applicationFeePercentage: 'applicationFeePercentage',
+  applicationFeeMode: 'applicationFeeMode',
+  status: 'status',
+  busyModeJson: 'busyModeJson',
   shopCode: 'shopCode',
   printToken: 'printToken',
   slug: 'slug',
@@ -250,6 +270,24 @@ exports.Prisma.LocationScalarFieldEnum = {
   currentPrepTime: 'currentPrepTime',
   throttleLimit: 'throttleLimit',
   storeStatusNote: 'storeStatusNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BrandPlatformConnectionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  locationId: 'locationId',
+  platform: 'platform',
+  status: 'status',
+  externalStoreId: 'externalStoreId',
+  externalBrandId: 'externalBrandId',
+  integrationId: 'integrationId',
+  lastSyncAt: 'lastSyncAt',
+  lastWebhookAt: 'lastWebhookAt',
+  lastError: 'lastError',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1376,7 +1414,10 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   name: 'name',
   slug: 'slug',
-  logoUrl: 'logoUrl'
+  logoUrl: 'logoUrl',
+  description: 'description',
+  cuisine: 'cuisine',
+  primaryLocationId: 'primaryLocationId'
 };
 
 exports.Prisma.LocationOrderByRelevanceFieldEnum = {
@@ -1386,10 +1427,36 @@ exports.Prisma.LocationOrderByRelevanceFieldEnum = {
   externalRef: 'externalRef',
   phone: 'phone',
   timezone: 'timezone',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  postcode: 'postcode',
+  country: 'country',
+  about: 'about',
+  logoUrl: 'logoUrl',
+  customDomain: 'customDomain',
+  customDomainStatus: 'customDomainStatus',
+  onlineOrderingSlug: 'onlineOrderingSlug',
+  stripeConnectedAccountId: 'stripeConnectedAccountId',
+  applicationFeeMode: 'applicationFeeMode',
+  status: 'status',
   shopCode: 'shopCode',
   printToken: 'printToken',
   slug: 'slug',
   storeStatusNote: 'storeStatusNote'
+};
+
+exports.Prisma.BrandPlatformConnectionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  locationId: 'locationId',
+  platform: 'platform',
+  status: 'status',
+  externalStoreId: 'externalStoreId',
+  externalBrandId: 'externalBrandId',
+  integrationId: 'integrationId',
+  lastError: 'lastError'
 };
 
 exports.Prisma.IntegrationOrderByRelevanceFieldEnum = {
@@ -2356,6 +2423,7 @@ exports.Prisma.ModelName = {
   AuditLog: 'AuditLog',
   Brand: 'Brand',
   Location: 'Location',
+  BrandPlatformConnection: 'BrandPlatformConnection',
   Integration: 'Integration',
   Menu: 'Menu',
   MenuCategory: 'MenuCategory',

@@ -60,6 +60,7 @@ import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { DeliveryZonesModule } from "./modules/delivery-zones/delivery-zones.module";
 import { PromoCodesModule } from "./modules/promo-codes/promo-codes.module";
 import { AddressLookupModule } from "./modules/address-lookup/address-lookup.module";
+import { BrandConnectionsModule } from "./modules/brand-connections/brand-connections.module";
 import { QUEUES } from "@orderhub/shared";
 
 @Module({
@@ -181,6 +182,7 @@ import { QUEUES } from "@orderhub/shared";
     DeliveryZonesModule,
     PromoCodesModule,
     AddressLookupModule,
+    BrandConnectionsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
