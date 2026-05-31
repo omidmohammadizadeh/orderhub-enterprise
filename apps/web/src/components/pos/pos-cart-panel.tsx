@@ -734,8 +734,13 @@ export function PosCartPanel(props: CartPanelProps) {
               </div>
             )}
             <div className="space-y-1.5">
-              <Input value={addrLine1} onChange={setAddrLine1} placeholder="Address line 1" />
-              <Input value={addrLine2} onChange={setAddrLine2} placeholder="Address line 2 (optional)" />
+              {/* Phase AP fix #3 — House/flat number gets its own row
+                  above line 1 so the operator never accidentally puts
+                  it on the street line. We use line2 as the canonical
+                  storage so the existing print payload / API doesn't
+                  need a new column. The placeholder is enough hint. */}
+              <Input value={addrLine2} onChange={setAddrLine2} placeholder="House / flat number" />
+              <Input value={addrLine1} onChange={setAddrLine1} placeholder="Street name" />
               <div className="grid grid-cols-2 gap-2">
                 <Input value={city} onChange={setCity} placeholder="City" />
                 <div className="flex gap-1">

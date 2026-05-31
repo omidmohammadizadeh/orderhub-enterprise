@@ -2,7 +2,11 @@ import { Controller, Get, Query } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { AddressLookupService } from "./address-lookup.service";
 import { BillingExempt } from "../../common/guards/billing.guard";
+import { Public } from "../../common/decorators/public.decorator";
 
+// Phase AP — every route is @Public so the customer-facing storefront
+// (no auth) can also call them. The endpoints proxy to OSM / Google /
+// getaddress.io with API-side keys — they never expose tenant data.
 @ApiTags("address-lookup")
 @ApiBearerAuth()
 @BillingExempt()
@@ -10,18 +14,21 @@ import { BillingExempt } from "../../common/guards/billing.guard";
 export class AddressLookupController {
   constructor(private readonly service: AddressLookupService) {}
 
+  @Public()
   @Get("provider")
   @ApiOperation({ summary: "Which provider is active for autocomplete (legacy)" })
   provider() {
     return { provider: this.service.describeActiveProvider() };
   }
 
+  @Public()
   @Get("status")
   @ApiOperation({ summary: "Active providers for both autocomplete + postcode lookup" })
   status() {
     return this.service.status();
   }
 
+  @Public()
   @Get("postcode")
   @ApiOperation({
     summary: "List all addresses at a UK postcode (getaddress.io / Royal Mail PAF)",
@@ -31,6 +38,7 @@ export class AddressLookupController {
     return this.service.searchByPostcode(postcode);
   }
 
+  @Public()
   @Get("details")
   @ApiOperation({
     summary: "Resolve a Google Places id to a full structured address",
@@ -41,6 +49,7 @@ export class AddressLookupController {
     return { suggestion: result };
   }
 
+  @Public()
   @Get("search")
   @ApiOperation({ summary: "Autocomplete address search" })
   @ApiQuery({ name: "q", required: true })

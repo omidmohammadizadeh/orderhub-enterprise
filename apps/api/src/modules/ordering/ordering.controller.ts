@@ -30,4 +30,18 @@ export class OrderingController {
   getOrderStatus(@Param("orderId") orderId: string) {
     return this.ordering.getOrderStatus(orderId);
   }
+
+  // Phase AP — public promo-code redemption from the storefront cart.
+  // Resolves the slug → tenant + location, then delegates to the same
+  // PromoCodesService.validate the POS uses. No customer-side auth
+  // because the storefront has none yet.
+  @Public()
+  @Post("store/:slug/promo")
+  @ApiOperation({ summary: "Validate a promo code for the storefront cart" })
+  validatePromo(
+    @Param("slug") slug: string,
+    @Body() body: { code: string; subtotal: number },
+  ) {
+    return this.ordering.validatePromoForStorefront(slug, body);
+  }
 }

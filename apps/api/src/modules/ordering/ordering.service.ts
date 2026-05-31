@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
+import { PromoCodesService } from "../promo-codes/promo-codes.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -38,7 +39,31 @@ export class OrderingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ordersService: OrdersService,
+    private readonly promoCodes: PromoCodesService,
   ) {}
+
+  /**
+   * Phase AP — validate a promo code from the storefront cart.
+   * The customer has no auth, so we resolve the tenant via the slug
+   * lookup first, then delegate to the standard validate flow.
+   */
+  async validatePromoForStorefront(
+    slug: string,
+    body: { code: string; subtotal: number },
+  ) {
+    const location = await this.prisma.location.findFirst({
+      where: { OR: [{ onlineOrderingSlug: slug }, { slug }] },
+      include: { brand: { select: { tenantId: true } } },
+    });
+    if (!location || !location.isActive || location.deletedAt) {
+      throw new NotFoundException("Store not found");
+    }
+    return this.promoCodes.validate(location.brand.tenantId, {
+      code: body.code,
+      locationId: location.id,
+      subtotal: body.subtotal,
+    });
+  }
 
   async getStorefrontBySlug(slug: string) {
     // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
@@ -135,9 +160,69 @@ export class OrderingService {
       select: { postcodePrefix: true, fee: true, minOrderValue: true },
     });
 
+    // Phase AP fix #4 — pick up categories that link to this menu
+    // through the Phase-AK menuIds[] array but whose primary menuId
+    // points elsewhere. They were silently dropped from the storefront
+    // because the relation only follows the primary FK.
+    const extraCategories = menu
+      ? await this.prisma.menuCategory.findMany({
+          where: {
+            menuIds: { has: menu.id },
+            menuId: { not: menu.id },
+          },
+          orderBy: { sortOrder: "asc" },
+          include: {
+            items: {
+              where: { item: { isAvailable: true } },
+              orderBy: { sortOrder: "asc" },
+              include: {
+                item: {
+                  include: {
+                    modifierGroupLinks: {
+                      include: {
+                        group: {
+                          include: {
+                            options: {
+                              where: { isAvailable: true },
+                              orderBy: { sortOrder: "asc" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+      : [];
+    if (menu && extraCategories.length > 0) {
+      (menu as any).categories = [
+        ...((menu as any).categories ?? []),
+        ...extraCategories,
+      ];
+    }
+
+    // Phase AP fix #4 — also surface the brand's full modifier-group
+    // catalog. Multi-SKU products store per-SKU group IDs in
+    // productSkus[].modifierGroups (plain string arrays, no FK), so the
+    // storefront's modifier modal needs this list to look them up,
+    // same as POS already does.
+    const brandModifierGroups = await this.prisma.modifierGroup.findMany({
+      where: { brandId: location.brandId },
+      include: {
+        options: {
+          where: { isAvailable: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
     return {
       directConfig,
       deliveryZones,
+      brandModifierGroups,
       location: {
         id: location.id,
         name: location.name,

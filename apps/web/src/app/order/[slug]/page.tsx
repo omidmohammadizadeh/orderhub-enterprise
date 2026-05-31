@@ -83,6 +83,10 @@ interface Storefront {
       }
     | null;
   isOpen: boolean;
+  // Phase AP fix #4 — brand-wide modifier-group catalog so the
+  // storefront's modifier modal can resolve per-SKU group IDs the
+  // same way POS does for multi-SKU products.
+  brandModifierGroups?: any[];
   directConfig?: {
     deliveryPrepMinutes: number;
     collectionPrepMinutes: number;
@@ -167,11 +171,33 @@ export default function OrderPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
   const [addrPostcode, setAddrPostcode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD">("CASH");
   const [notes, setNotes] = useState("");
+  // Phase AP fix #1 — promo code redemption from the storefront cart.
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<{
+    code: string;
+    discountAmount: number;
+    freeDelivery: boolean;
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  // Phase AP fix #2 — postcode lookup results in the cart.
+  const [postcodeSuggestions, setPostcodeSuggestions] = useState<
+    Array<{
+      id: string;
+      label: string;
+      line1: string;
+      line2?: string;
+      city?: string;
+      postcode?: string;
+    }>
+  >([]);
+  const [postcodeLookupNote, setPostcodeLookupNote] = useState<string | null>(null);
+  const [postcodeLookupLoading, setPostcodeLookupLoading] = useState(false);
 
   const storefrontQuery = useQuery<Storefront>({
     queryKey: ["storefront", slug],
@@ -222,8 +248,13 @@ export default function OrderPage() {
       (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) * l.quantity,
     0,
   );
-  const deliveryFee = matchedZone?.fee ?? 0;
-  const total = subtotal + deliveryFee;
+  // Phase AP fix #1 — promo code: FREE_DELIVERY zeroes the fee,
+  // FIXED/PERCENTAGE produce a discountAmount that comes off subtotal.
+  const promoDiscount = promoApplied?.discountAmount ?? 0;
+  const freeDelivery = promoApplied?.freeDelivery === true;
+  const rawDeliveryFee = matchedZone?.fee ?? 0;
+  const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
+  const total = Math.max(0, subtotal - promoDiscount) + deliveryFee;
   const cartCount = cart.reduce((s, l) => s + l.quantity, 0);
 
   // Categories + search filter
@@ -279,7 +310,11 @@ export default function OrderPage() {
         deliveryAddress:
           fulfillmentType === "DELIVERY"
             ? {
+                // Phase AP fix #3 — house/flat number sits in line2
+                // so the existing API/print payload picks it up
+                // unchanged. line1 stays as "street + number".
                 line1: addrLine1,
+                line2: addrFlat || undefined,
                 city: addrCity,
                 postcode: addrPostcode,
                 country: "GB",
@@ -294,6 +329,15 @@ export default function OrderPage() {
         // Phase AP — payment method is metadata for now; AP-8 will wire
         // the real Stripe manual-capture flow.
         paymentMethod,
+        // Phase AP fix #1 — applied promo discount lands on the order
+        // so it shows in operator + accounting reports.
+        discount: promoDiscount,
+        promoCode: promoApplied?.code,
+        discountType: promoApplied
+          ? promoApplied.freeDelivery
+            ? "FREE_DELIVERY"
+            : "PROMO_CODE"
+          : undefined,
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload)
@@ -305,6 +349,93 @@ export default function OrderPage() {
       dispatch({ type: "CLEAR" });
     },
   });
+
+  // ── Promo + postcode helpers (Phase AP fix #1 + #2) ─────────────────────
+
+  const applyPromo = async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    setPromoError(null);
+    try {
+      const res = await axios.post<{
+        valid: boolean;
+        reason?: string;
+        code?: string;
+        discountAmount?: number;
+        freeDelivery?: boolean;
+      }>(`${API_BASE}/v1/ordering/store/${slug}/promo`, {
+        code,
+        subtotal,
+      });
+      if (!res.data.valid) {
+        setPromoApplied(null);
+        setPromoError(res.data.reason ?? "Code not valid");
+        return;
+      }
+      setPromoApplied({
+        code: res.data.code ?? code,
+        discountAmount: res.data.discountAmount ?? 0,
+        freeDelivery: res.data.freeDelivery === true,
+      });
+    } catch (err: any) {
+      setPromoError(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Could not check that code",
+      );
+    }
+  };
+
+  const runPostcodeLookup = async () => {
+    const pc = addrPostcode.trim();
+    if (pc.length < 5) {
+      setPostcodeLookupNote("Enter a full postcode first");
+      setPostcodeSuggestions([]);
+      return;
+    }
+    setPostcodeLookupLoading(true);
+    setPostcodeLookupNote(null);
+    try {
+      const res = await axios.get<{
+        provider: string;
+        suggestions: Array<{
+          id: string;
+          label: string;
+          line1: string;
+          line2?: string;
+          city?: string;
+          postcode?: string;
+        }>;
+      }>(`${API_BASE}/v1/address-lookup/postcode`, { params: { postcode: pc } });
+      if (res.data.suggestions.length === 0) {
+        setPostcodeSuggestions([]);
+        setPostcodeLookupNote("No addresses found for this postcode.");
+      } else {
+        setPostcodeSuggestions(res.data.suggestions);
+        const provider = res.data.provider;
+        if (provider === "postcodes_io") {
+          setPostcodeLookupNote("Town + postcode only — type the house number.");
+        } else if (provider === "osm") {
+          setPostcodeLookupNote(
+            `${res.data.suggestions.length} streets — pick one, then add the house number.`,
+          );
+        } else {
+          setPostcodeLookupNote(
+            `${res.data.suggestions.length} address${
+              res.data.suggestions.length === 1 ? "" : "es"
+            } — tap one to use.`,
+          );
+        }
+      }
+    } catch (err: any) {
+      setPostcodeSuggestions([]);
+      setPostcodeLookupNote(
+        err?.response?.data?.message ?? "Postcode lookup failed",
+      );
+    } finally {
+      setPostcodeLookupLoading(false);
+    }
+  };
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -553,12 +684,43 @@ export default function OrderPage() {
           setCustomerPhone={setCustomerPhone}
           customerEmail={customerEmail}
           setCustomerEmail={setCustomerEmail}
+          addrFlat={addrFlat}
+          setAddrFlat={setAddrFlat}
           addrLine1={addrLine1}
           setAddrLine1={setAddrLine1}
           addrCity={addrCity}
           setAddrCity={setAddrCity}
           addrPostcode={addrPostcode}
-          setAddrPostcode={setAddrPostcode}
+          setAddrPostcode={(v) => {
+            setAddrPostcode(v);
+            // Clear stale suggestions when the operator types again.
+            if (postcodeSuggestions.length > 0) setPostcodeSuggestions([]);
+            if (postcodeLookupNote) setPostcodeLookupNote(null);
+          }}
+          promoCode={promoCode}
+          setPromoCode={setPromoCode}
+          promoApplied={promoApplied}
+          promoError={promoError}
+          onApplyPromo={() => applyPromo()}
+          onClearPromo={() => {
+            setPromoApplied(null);
+            setPromoCode("");
+            setPromoError(null);
+          }}
+          promoDiscount={promoDiscount}
+          freeDelivery={freeDelivery}
+          postcodeSuggestions={postcodeSuggestions}
+          postcodeLookupNote={postcodeLookupNote}
+          postcodeLookupLoading={postcodeLookupLoading}
+          onPostcodeLookup={() => runPostcodeLookup()}
+          onPickPostcodeSuggestion={(s) => {
+            if (s.line1) setAddrLine1(s.line1);
+            if (s.city) setAddrCity(s.city);
+            if (s.postcode) setAddrPostcode(s.postcode);
+            setPostcodeSuggestions([]);
+            setPostcodeLookupNote(null);
+          }}
+          slug={slug}
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           notes={notes}
@@ -577,10 +739,13 @@ export default function OrderPage() {
         />
       )}
 
-      {/* Modifier modal — reuses POS modal exactly */}
+      {/* Modifier modal — reuses POS modal exactly. allModifierGroups
+          is required for multi-SKU products (their per-SKU groups are
+          stored as plain ID arrays, not FK-linked). */}
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
+          allModifierGroups={storefront.brandModifierGroups ?? []}
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => {
@@ -781,6 +946,8 @@ interface CartPanelProps {
   setCustomerPhone: (v: string) => void;
   customerEmail: string;
   setCustomerEmail: (v: string) => void;
+  addrFlat: string;
+  setAddrFlat: (v: string) => void;
   addrLine1: string;
   setAddrLine1: (v: string) => void;
   addrCity: string;
@@ -797,12 +964,54 @@ interface CartPanelProps {
   onPlace: () => void;
   isPlacing: boolean;
   placeError: string | null;
+  // Phase AP fix #1 promo + fix #2 postcode lookup
+  promoCode: string;
+  setPromoCode: (v: string) => void;
+  promoApplied: { code: string; discountAmount: number; freeDelivery: boolean } | null;
+  promoError: string | null;
+  onApplyPromo: () => void;
+  onClearPromo: () => void;
+  promoDiscount: number;
+  freeDelivery: boolean;
+  postcodeSuggestions: Array<{
+    id: string;
+    label: string;
+    line1: string;
+    line2?: string;
+    city?: string;
+    postcode?: string;
+  }>;
+  postcodeLookupNote: string | null;
+  postcodeLookupLoading: boolean;
+  onPostcodeLookup: () => void;
+  onPickPostcodeSuggestion: (s: {
+    line1: string;
+    line2?: string;
+    city?: string;
+    postcode?: string;
+  }) => void;
+  slug: string;
 }
 
 function CartPanel(props: CartPanelProps) {
   const {
     onClose,
     cart,
+    addrFlat,
+    setAddrFlat,
+    promoCode,
+    setPromoCode,
+    promoApplied,
+    promoError,
+    onApplyPromo,
+    onClearPromo,
+    promoDiscount,
+    freeDelivery,
+    postcodeSuggestions,
+    postcodeLookupNote,
+    postcodeLookupLoading,
+    onPostcodeLookup,
+    onPickPostcodeSuggestion,
     dispatch,
     subtotal,
     deliveryFee,
@@ -957,10 +1166,16 @@ function CartPanel(props: CartPanelProps) {
           {/* Address (delivery only) */}
           {fulfillmentType === "DELIVERY" && (
             <Section title="Delivery address">
+              {/* Phase AP fix #3 — house/flat number gets its own row */}
+              <TextField
+                value={addrFlat}
+                onChange={setAddrFlat}
+                placeholder="House / flat number"
+              />
               <TextField
                 value={addrLine1}
                 onChange={setAddrLine1}
-                placeholder="Address line 1"
+                placeholder="Street name"
               />
               <div className="grid grid-cols-2 gap-2">
                 <TextField
@@ -968,14 +1183,57 @@ function CartPanel(props: CartPanelProps) {
                   onChange={setAddrCity}
                   placeholder="City"
                 />
-                <TextField
-                  value={addrPostcode}
-                  onChange={(v) => setAddrPostcode(v.toUpperCase())}
-                  placeholder="Postcode"
-                />
+                <div className="flex gap-1">
+                  <input
+                    value={addrPostcode}
+                    onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        onPostcodeLookup();
+                      }
+                    }}
+                    placeholder="Postcode"
+                    className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={onPostcodeLookup}
+                    disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
+                    className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    {postcodeLookupLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Search className="h-3 w-3" />
+                    )}
+                    Find
+                  </button>
+                </div>
               </div>
+
+              {/* Phase AP fix #2 — picker for the lookup results */}
+              {postcodeLookupNote && (
+                <p className="text-[11px] text-zinc-500">{postcodeLookupNote}</p>
+              )}
+              {postcodeSuggestions.length > 0 && (
+                <ul className="max-h-40 overflow-y-auto rounded-md border border-zinc-200 bg-white">
+                  {postcodeSuggestions.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        onClick={() => onPickPostcodeSuggestion(s)}
+                        className="w-full px-2 py-1.5 text-left text-[11px] leading-snug hover:bg-zinc-50"
+                      >
+                        {s.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               {matchedZone && (
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-emerald-700">
                   Matched zone <strong>{matchedZone.prefix}</strong> · £
                   {matchedZone.fee.toFixed(2)} delivery
                   {matchedZone.minOrder ? ` · min £${matchedZone.minOrder.toFixed(2)}` : ""}
@@ -1001,6 +1259,47 @@ function CartPanel(props: CartPanelProps) {
               </span>
               <ChevronRight className="h-3.5 w-3.5 text-zinc-400" />
             </button>
+          </Section>
+
+          {/* Phase AP fix #1 — Promo code redemption */}
+          <Section title="Promo code">
+            {promoApplied ? (
+              <div className="flex items-center justify-between rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                <span>
+                  <strong>{promoApplied.code}</strong>{" "}
+                  {promoApplied.freeDelivery
+                    ? "— Free delivery"
+                    : `— £${promoDiscount.toFixed(2)} off`}
+                </span>
+                <button
+                  type="button"
+                  onClick={onClearPromo}
+                  className="ml-2 rounded p-1 hover:bg-emerald-100"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={onApplyPromo}
+                  disabled={!promoCode.trim()}
+                  className="rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+            {promoError && (
+              <p className="text-[11px] text-red-600">{promoError}</p>
+            )}
           </Section>
 
           {/* Payment */}
@@ -1046,10 +1345,22 @@ function CartPanel(props: CartPanelProps) {
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
           <Row label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+          {promoDiscount > 0 && (
+            <Row
+              label={`Discount (${promoApplied?.code ?? ""})`}
+              value={`-£${promoDiscount.toFixed(2)}`}
+            />
+          )}
           {fulfillmentType === "DELIVERY" && (
             <Row
               label="Delivery"
-              value={deliveryFee > 0 ? `£${deliveryFee.toFixed(2)}` : "—"}
+              value={
+                freeDelivery
+                  ? "Free"
+                  : deliveryFee > 0
+                    ? `£${deliveryFee.toFixed(2)}`
+                    : "—"
+              }
             />
           )}
           <Row label="Total" value={`£${total.toFixed(2)}`} bold />
