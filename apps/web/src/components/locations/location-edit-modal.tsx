@@ -18,14 +18,13 @@ import { Loader2, Wand2, X } from "lucide-react";
 import {
   locationsClient,
   brandsClient,
-  type Brand,
   type Location,
   type LocationStatus,
   type AppFeeMode,
-  type CustomDomainStatus,
 } from "@/lib/api/locations.client";
 import { OpeningHoursEditor } from "./opening-hours-editor";
 import { BrandPlatformGrid } from "./brand-platform-grid";
+import { ImageUploader } from "@/components/products/image-uploader";
 
 interface Props {
   locationId: string | null; // null = create
@@ -120,9 +119,10 @@ function GeneralTab({
   onSaved: () => void;
 }) {
   const qc = useQueryClient();
-  const brandsList = useQuery({ queryKey: ["brands", "all"], queryFn: () => brandsClient.list() });
+  // No brand dropdown on the create form anymore — the API picks/creates a
+  // default brand for the tenant and the operator adds real brands later
+  // from the Brands section.
 
-  const [brandId, setBrandId] = useState(location?.brandId ?? "");
   const [name, setName] = useState(location?.name ?? "");
   const [line1, setLine1] = useState(location?.addressLine1 ?? "");
   const [line2, setLine2] = useState(location?.addressLine2 ?? "");
@@ -157,12 +157,22 @@ function GeneralTab({
 
   const create = useMutation({
     mutationFn: () =>
+      // No fields required other than name — the backend defaults
+      // brand, address parts, and timezone when omitted.
       locationsClient.create({
-        brandId,
         name,
-        address: { line1, line2: line2 || undefined, city, postcode, country },
+        address:
+          line1 || line2 || city || postcode || country !== "GB"
+            ? {
+                line1: line1 || undefined,
+                line2: line2 || undefined,
+                city: city || undefined,
+                postcode: postcode || undefined,
+                country: country || undefined,
+              }
+            : undefined,
         phone: phone || undefined,
-      }),
+      } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
       onSaved();
@@ -215,27 +225,13 @@ function GeneralTab({
 
   return (
     <div className="space-y-4 text-sm">
-      {/* Brand + name */}
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Brand">
-          <select
-            value={brandId}
-            onChange={(e) => setBrandId(e.target.value)}
-            disabled={!isCreate}
-            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none disabled:bg-zinc-50"
-          >
-            <option value="">Select a brand…</option>
-            {(brandsList.data ?? []).map((b: Brand) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Location name">
-          <Input value={name} onChange={setName} placeholder="e.g. KLO Consett" />
-        </Field>
-      </div>
+      {/* Name — the only field with a soft requirement. Everything below
+          is optional, fill in over time. Brands are added later from
+          the Brands section so the create form stays a single short
+          form. */}
+      <Field label="Location name" help="Only field required to create.">
+        <Input value={name} onChange={setName} placeholder="e.g. KLO Consett" />
+      </Field>
 
       {/* Address */}
       <Field label="Address line 1">
@@ -270,8 +266,14 @@ function GeneralTab({
           className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
         />
       </Field>
-      <Field label="Logo URL">
-        <Input value={logoUrl} onChange={setLogoUrl} placeholder="https://…/logo.png" />
+      <Field
+        label="Logo"
+        help="Optional. Recommended square aspect; we resize to 1064×768 with letterboxing if needed."
+      >
+        <ImageUploader
+          value={logoUrl || null}
+          onChange={(v) => setLogoUrl(v ?? "")}
+        />
       </Field>
 
       {!isCreate && (
@@ -376,7 +378,7 @@ function GeneralTab({
       <div className="flex justify-end gap-2 border-t border-zinc-200 pt-3">
         <button
           onClick={submit}
-          disabled={saving || !name || !brandId || !line1 || !city || !postcode}
+          disabled={saving || !name.trim()}
           className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
           {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

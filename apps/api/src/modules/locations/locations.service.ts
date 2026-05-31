@@ -6,18 +6,23 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // connection CRUD lives in their own modules; they call into here only
 // for tenant-access checks.
 
+// Phase AN follow-up: everything except `name` is optional on create so
+// an operator can stand up a placeholder location and fill the rest in
+// later. brandId is also optional — when omitted we find-or-create a
+// default tenant brand so the FK is satisfied without forcing the
+// operator through a brand picker first.
 export interface AddressInput {
-  line1: string;
+  line1?: string;
   line2?: string;
-  city: string;
-  postcode: string;
+  city?: string;
+  postcode?: string;
   country?: string;
 }
 
 export interface CreateLocationDto {
-  brandId: string;
+  brandId?: string;
   name: string;
-  address: AddressInput;
+  address?: AddressInput;
   phone?: string;
   timezone?: string;
 }
@@ -225,27 +230,72 @@ export class LocationsService {
   }
 
   async create(tenantId: string, dto: CreateLocationDto) {
-    const brand = await this.prisma.brand.findFirst({
-      where: { id: dto.brandId, tenantId, deletedAt: null },
-    });
-    if (!brand) throw new NotFoundException("Brand not found");
+    // Resolve the brand. Explicit brandId wins; otherwise reuse the first
+    // brand on this tenant, or seed a default "Main" brand when the
+    // tenant has none. Operators add real brands later from the Brands
+    // section so the create flow stays a single short form.
+    const brandId = await this.resolveOrCreateDefaultBrand(tenantId, dto.brandId);
 
+    const addr = dto.address ?? {};
     const openingHours = emptyOpeningHours();
     return this.prisma.location.create({
       data: {
-        brandId: dto.brandId,
+        brandId,
         name: dto.name,
-        address: dto.address as any,
-        addressLine1: dto.address.line1,
-        addressLine2: dto.address.line2 ?? null,
-        city: dto.address.city,
-        postcode: dto.address.postcode,
-        country: dto.address.country ?? "GB",
-        phone: dto.phone,
+        // Keep the legacy address JSON in sync for any consumer that
+        // still reads it (webhook adapters, older menu imports).
+        address: {
+          line1: addr.line1 ?? "",
+          line2: addr.line2 ?? "",
+          city: addr.city ?? "",
+          postcode: addr.postcode ?? "",
+          country: addr.country ?? "GB",
+        } as any,
+        addressLine1: addr.line1 ?? null,
+        addressLine2: addr.line2 ?? null,
+        city: addr.city ?? null,
+        postcode: addr.postcode ?? null,
+        country: addr.country ?? "GB",
+        phone: dto.phone ?? null,
         timezone: dto.timezone ?? "Europe/London",
         openingHours: openingHours as any,
       },
     });
+  }
+
+  /**
+   * Resolve a brand for the new location. Order:
+   *   1. dto.brandId if it points to a live brand on this tenant
+   *   2. The tenant's first non-deleted brand
+   *   3. Create a default "Main" brand and use it
+   */
+  private async resolveOrCreateDefaultBrand(
+    tenantId: string,
+    explicitBrandId?: string,
+  ): Promise<string> {
+    if (explicitBrandId) {
+      const brand = await this.prisma.brand.findFirst({
+        where: { id: explicitBrandId, tenantId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!brand) throw new NotFoundException("Brand not found");
+      return brand.id;
+    }
+
+    const existing = await this.prisma.brand.findFirst({
+      where: { tenantId, deletedAt: null },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (existing) return existing.id;
+
+    // Tenant has no brands at all — seed one. Slug collision is unlikely
+    // for a fresh tenant but we still pick a slug with a short suffix
+    // so re-runs after a soft-delete don't collide.
+    const created = await this.prisma.brand.create({
+      data: { tenantId, name: "Main", slug: `main-${Date.now().toString(36)}` },
+    });
+    return created.id;
   }
 
   async update(locationId: string, tenantId: string, dto: UpdateLocationDto) {
