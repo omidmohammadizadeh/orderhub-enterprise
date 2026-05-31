@@ -77,6 +77,9 @@ export class OrderingService {
       },
       orderBy: { updatedAt: "desc" },
       include: {
+        // Phase AP — needed for the storefront hero banner.
+        // bannerImage was added in Phase AM; heroImage is a later
+        // alternative slot. Both selected through to the client.
         categories: {
           orderBy: { sortOrder: "asc" },
           include: {
