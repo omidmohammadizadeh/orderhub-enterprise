@@ -21,6 +21,7 @@ import {
 } from "./locations.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("locations")
@@ -150,6 +151,16 @@ export class LocationsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.locations.setBusyMode(locationId, user.tenantId, body);
+  }
+
+  // ── Public storefront ───────────────────────────────────────────────────
+  // Customer-facing: `/order/:slug` on the web hits this. No auth.
+
+  @Public()
+  @Get("public/by-slug/:slug")
+  @ApiOperation({ summary: "Public storefront lookup by online-ordering slug" })
+  publicBySlug(@Param("slug") slug: string) {
+    return this.locations.findPublicBySlug(slug);
   }
 
   @Delete(":locationId")

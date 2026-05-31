@@ -27,12 +27,15 @@ import { LocationEditModal } from "@/components/locations/location-edit-modal";
 import { OpeningHoursDrawer } from "@/components/locations/opening-hours-drawer";
 import { BusyModeDrawer } from "@/components/locations/busy-mode-drawer";
 import { LocationBrandsDrawer } from "@/components/locations/location-brands-drawer";
+import { DeleteLocationModal } from "@/components/locations/delete-location-modal";
+import { Trash2 } from "lucide-react";
 
 type Drawer =
   | { kind: "hours"; locationId: string }
   | { kind: "busy"; locationId: string }
   | { kind: "brands"; locationId: string }
   | { kind: "edit"; locationId: string | null } // null = create
+  | { kind: "delete"; locationId: string; name: string }
   | null;
 
 export default function LocationsPage() {
@@ -131,6 +134,9 @@ export default function LocationsPage() {
               onHours={() => setDrawer({ kind: "hours", locationId: loc.id })}
               onBusy={() => setDrawer({ kind: "busy", locationId: loc.id })}
               onBrands={() => setDrawer({ kind: "brands", locationId: loc.id })}
+              onDelete={() =>
+                setDrawer({ kind: "delete", locationId: loc.id, name: loc.name })
+              }
             />
           ))}
         </ul>
@@ -156,6 +162,14 @@ export default function LocationsPage() {
       {drawer?.kind === "brands" && (
         <LocationBrandsDrawer locationId={drawer.locationId} onClose={closeDrawer} />
       )}
+      {drawer?.kind === "delete" && (
+        <DeleteLocationModal
+          locationId={drawer.locationId}
+          locationName={drawer.name}
+          onClose={closeDrawer}
+          onDeleted={onSaved}
+        />
+      )}
     </div>
   );
 }
@@ -168,6 +182,7 @@ function LocationCard({
   onHours,
   onBusy,
   onBrands,
+  onDelete,
 }: {
   location: Location;
   expanded: boolean;
@@ -176,6 +191,7 @@ function LocationCard({
   onHours: () => void;
   onBusy: () => void;
   onBrands: () => void;
+  onDelete: () => void;
 }) {
   const address = [location.addressLine1, location.city, location.postcode]
     .filter(Boolean)
@@ -223,7 +239,7 @@ function LocationCard({
 
       <div className="flex flex-wrap items-center gap-2 border-t border-zinc-100 bg-zinc-50/40 px-4 py-2">
         <ActionChip icon={<Settings className="h-3 w-3" />} onClick={onEdit}>
-          POS settings
+          Location settings
         </ActionChip>
         <ActionChip icon={<Clock className="h-3 w-3" />} onClick={onHours}>
           Opening hours
@@ -236,7 +252,15 @@ function LocationCard({
         </ActionChip>
         <button
           type="button"
-          className="ml-auto rounded-md p-1 text-zinc-400 hover:bg-zinc-100"
+          onClick={onDelete}
+          title="Delete location"
+          className="ml-auto rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100"
           title="More (coming soon)"
         >
           <MoreHorizontal className="h-3.5 w-3.5" />

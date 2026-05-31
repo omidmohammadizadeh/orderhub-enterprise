@@ -55,19 +55,16 @@ export class BrandsService {
       });
     }
 
-    const loc = await this.prisma.location.findFirst({
-      where: { id: locationId, deletedAt: null, brand: { tenantId } },
-      select: { brandId: true },
-    });
-
+    // Phase AN follow-up: brands listed at a location are STRICTLY scoped
+    // to that location via primaryLocationId. We no longer leak the
+    // tenant's default "Main" / franchise parent brand here — the
+    // operator wants this list to be "brands that operate FROM this
+    // physical kitchen" only.
     return this.prisma.brand.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        OR: [
-          { primaryLocationId: locationId },
-          ...(loc?.brandId ? [{ id: loc.brandId }] : []),
-        ],
+        primaryLocationId: locationId,
       },
       include: { _count: { select: { platformConnections: true } } },
       orderBy: { createdAt: "asc" },

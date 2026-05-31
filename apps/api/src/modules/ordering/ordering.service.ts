@@ -41,11 +41,16 @@ export class OrderingService {
   ) {}
 
   async getStorefrontBySlug(slug: string) {
-    const location = await this.prisma.location.findUnique({
-      where: { slug },
+    // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
+    // older locations may still only have the legacy `slug`. Resolve
+    // either so old printed flyers and QR codes keep working.
+    const location = await this.prisma.location.findFirst({
+      where: {
+        OR: [{ onlineOrderingSlug: slug }, { slug }],
+      },
       include: {
         brand: {
-          select: { id: true, name: true, slug: true, metadata: true },
+          select: { id: true, name: true, slug: true, logoUrl: true, metadata: true },
         },
       },
     });
@@ -54,9 +59,23 @@ export class OrderingService {
       throw new NotFoundException("Store not found");
     }
 
-    // Find published menu for this brand
+    // Prefer the location-scoped active menu (Phase AK shape) then fall
+    // back to the brand's published menu. We accept either status=PUBLISHED
+    // or the legacy isActive=true so a freshly-edited menu isn't hidden
+    // when the operator forgets to flip status.
     const menu = await this.prisma.menu.findFirst({
-      where: { brandId: location.brandId, status: "PUBLISHED", deletedAt: null, isActive: true },
+      where: {
+        OR: [
+          { locationId: location.id, isActive: true, deletedAt: null },
+          {
+            brandId: location.brandId,
+            isActive: true,
+            deletedAt: null,
+            locationId: null,
+          },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
       include: {
         categories: {
           orderBy: { sortOrder: "asc" },
@@ -64,7 +83,24 @@ export class OrderingService {
             items: {
               where: { item: { isAvailable: true } },
               orderBy: { sortOrder: "asc" },
-              include: { item: true },
+              include: {
+                item: {
+                  include: {
+                    modifierGroupLinks: {
+                      include: {
+                        group: {
+                          include: {
+                            options: {
+                              where: { isAvailable: true },
+                              orderBy: { sortOrder: "asc" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -75,22 +111,32 @@ export class OrderingService {
       location: {
         id: location.id,
         name: location.name,
-        slug: location.slug,
+        slug: location.onlineOrderingSlug ?? location.slug,
         phone: location.phone,
+        about: location.about,
+        logoUrl: location.logoUrl,
+        addressLine1: location.addressLine1,
+        addressLine2: location.addressLine2,
+        city: location.city,
+        postcode: location.postcode,
+        country: location.country,
         address: location.address,
         timezone: location.timezone,
         openingHours: location.openingHours,
         deliveryConfig: location.deliveryConfig,
+        status: location.status,
+        busyMode: location.busyMode,
+        currentPrepTime: location.currentPrepTime,
       },
       brand: location.brand,
       menu,
-      isOpen: this.isCurrentlyOpen(location.openingHours as any[], location.timezone),
+      isOpen: this.isCurrentlyOpen(location.openingHours as any, location.timezone),
     };
   }
 
   async checkout(slug: string, dto: CheckoutDto) {
-    const location = await this.prisma.location.findUnique({
-      where: { slug },
+    const location = await this.prisma.location.findFirst({
+      where: { OR: [{ onlineOrderingSlug: slug }, { slug }] },
       include: { brand: { select: { tenantId: true } } },
     });
 
@@ -153,19 +199,50 @@ export class OrderingService {
     return order;
   }
 
-  private isCurrentlyOpen(
-    openingHours: Array<{ day: number; open: string; close: string }>,
-    timezone: string,
-  ): boolean {
-    if (!openingHours || openingHours.length === 0) return true;
+  /**
+   * Handles BOTH opening-hours shapes:
+   *   • Legacy array `[{ day: 1, open: "16:00", close: "23:30" }, …]`
+   *   • Phase AN map `{ monday: { enabled, slots: [{ from, to }] }, … }`
+   *
+   * Returns true when no hours are configured (treat as 24/7 open) so a
+   * brand-new location can still place orders while the operator is
+   * filling things in.
+   */
+  private isCurrentlyOpen(openingHours: any, timezone: string): boolean {
+    if (!openingHours) return true;
 
     const now = new Date(new Date().toLocaleString("en-US", { timeZone: timezone }));
     const dayOfWeek = now.getDay(); // 0=Sun
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-    const todayHours = openingHours.find((h) => h.day === dayOfWeek);
-    if (!todayHours) return false;
+    // Phase AN map shape
+    if (!Array.isArray(openingHours) && typeof openingHours === "object") {
+      const keys = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ] as const;
+      const today = openingHours[keys[dayOfWeek] as string];
+      if (!today || !today.enabled) return false;
+      const slots = Array.isArray(today.slots) ? today.slots : [];
+      return slots.some(
+        (s: { from?: string; to?: string }) =>
+          !!s.from && !!s.to && currentTime >= s.from && currentTime < s.to,
+      );
+    }
 
-    return currentTime >= todayHours.open && currentTime < todayHours.close;
+    // Legacy array shape
+    if (Array.isArray(openingHours)) {
+      if (openingHours.length === 0) return true;
+      const todayHours = openingHours.find((h: any) => h.day === dayOfWeek);
+      if (!todayHours) return false;
+      return currentTime >= todayHours.open && currentTime < todayHours.close;
+    }
+
+    return true;
   }
 }

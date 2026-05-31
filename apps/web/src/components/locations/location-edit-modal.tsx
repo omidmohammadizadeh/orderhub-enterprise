@@ -276,100 +276,111 @@ function GeneralTab({
         />
       </Field>
 
-      {!isCreate && (
-        <>
-          {/* Custom domain + online slug */}
-          <Field label="Custom domain (optional)" help="e.g. order.mylocation.com — DNS verification ships in a later phase.">
-            <Input value={customDomain} onChange={setCustomDomain} placeholder="order.mylocation.com" />
-          </Field>
-          <Field label="Online ordering URL" help="Customers will visit this URL to place online orders.">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-400 whitespace-nowrap">/order/</span>
-              <input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                placeholder="klo-consett"
-                className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => generateSlug.mutate()}
-                disabled={generateSlug.isPending || !name}
-                className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs font-medium hover:bg-zinc-50 disabled:opacity-50"
-              >
-                {generateSlug.isPending ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Wand2 className="h-3 w-3" />
-                )}
-                Generate
-              </button>
-            </div>
-            {liveUrl && (
-              <p className="mt-1 text-[11px] text-zinc-500">
-                Public URL:{" "}
-                <a href={liveUrl} target="_blank" rel="noreferrer" className="underline">
-                  {liveUrl}
-                </a>
-              </p>
+      {/* Phase AN follow-up: show ALL General fields on both create AND
+          edit. Slug generation is disabled until the location exists
+          since it needs an id to call the API. */}
+      <Field
+        label="Custom domain (optional)"
+        help="e.g. order.mylocation.com — DNS verification ships in a later phase."
+      >
+        <Input value={customDomain} onChange={setCustomDomain} placeholder="order.mylocation.com" />
+      </Field>
+      <Field
+        label="Online ordering URL"
+        help={
+          isCreate
+            ? "Generate available after the location is created."
+            : "Customers will visit this URL to place online orders."
+        }
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-400 whitespace-nowrap">/order/</span>
+          <input
+            value={slug}
+            onChange={(e) =>
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+            }
+            placeholder={isCreate ? "auto-generated" : "klo-consett"}
+            disabled={isCreate}
+            className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none disabled:bg-zinc-50"
+          />
+          <button
+            type="button"
+            onClick={() => generateSlug.mutate()}
+            disabled={isCreate || generateSlug.isPending || !name}
+            className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs font-medium hover:bg-zinc-50 disabled:opacity-50"
+          >
+            {generateSlug.isPending ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Wand2 className="h-3 w-3" />
             )}
+            Generate
+          </button>
+        </div>
+        {liveUrl && !isCreate && (
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Public URL:{" "}
+            <a href={liveUrl} target="_blank" rel="noreferrer" className="underline">
+              {liveUrl}
+            </a>
+          </p>
+        )}
+      </Field>
+
+      {/* Stripe Connect + fees */}
+      <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          Stripe Connect
+        </h3>
+        <Field label="Connected account ID">
+          <Input value={stripeAcct} onChange={setStripeAcct} placeholder="acct_…" />
+        </Field>
+
+        <Field label="Application fee mode" help={feeModeHelp(feeMode)}>
+          <select
+            value={feeMode}
+            onChange={(e) => setFeeMode(e.target.value as AppFeeMode)}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          >
+            <option value="none">None</option>
+            <option value="fixed_only">Fixed amount (added to customer total)</option>
+            <option value="percentage_only">Percentage (deducted from merchant payout)</option>
+            <option value="fixed_and_percentage">Both fixed + percentage</option>
+          </select>
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Fixed app fee (£)">
+            <Input
+              value={fixedFee}
+              onChange={setFixedFee}
+              placeholder="0.50"
+              disabled={feeMode === "none" || feeMode === "percentage_only"}
+            />
           </Field>
-
-          {/* Stripe Connect + fees */}
-          <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Stripe Connect
-            </h3>
-            <Field label="Connected account ID">
-              <Input value={stripeAcct} onChange={setStripeAcct} placeholder="acct_…" />
-            </Field>
-
-            <Field label="Application fee mode" help={feeModeHelp(feeMode)}>
-              <select
-                value={feeMode}
-                onChange={(e) => setFeeMode(e.target.value as AppFeeMode)}
-                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-              >
-                <option value="none">None</option>
-                <option value="fixed_only">Fixed amount (added to customer total)</option>
-                <option value="percentage_only">Percentage (deducted from merchant payout)</option>
-                <option value="fixed_and_percentage">Both fixed + percentage</option>
-              </select>
-            </Field>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Fixed app fee (£)">
-                <Input
-                  value={fixedFee}
-                  onChange={setFixedFee}
-                  placeholder="0.50"
-                  disabled={feeMode === "none" || feeMode === "percentage_only"}
-                />
-              </Field>
-              <Field label="Percentage app fee (%)">
-                <Input
-                  value={pctFee}
-                  onChange={setPctFee}
-                  placeholder="5"
-                  disabled={feeMode === "none" || feeMode === "fixed_only"}
-                />
-              </Field>
-            </div>
-          </div>
-
-          <Field label="Status">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as LocationStatus)}
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-            >
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="closed">Closed</option>
-            </select>
+          <Field label="Percentage app fee (%)">
+            <Input
+              value={pctFee}
+              onChange={setPctFee}
+              placeholder="5"
+              disabled={feeMode === "none" || feeMode === "fixed_only"}
+            />
           </Field>
-        </>
-      )}
+        </div>
+      </div>
+
+      <Field label="Status">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as LocationStatus)}
+          className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+        >
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="closed">Closed</option>
+        </select>
+      </Field>
 
       {error && (
         <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
@@ -432,16 +443,19 @@ function BrandsTab({ locationId }: { locationId: string }) {
       </p>
 
       {brands.length === 0 && !brandsQuery.isLoading && (
-        <p className="rounded-md border border-dashed border-zinc-200 py-6 text-center text-xs text-zinc-400">
-          No brands at this location yet.
-        </p>
+        <div className="rounded-md border border-dashed border-zinc-200 px-4 py-8 text-center">
+          <p className="text-sm font-medium text-zinc-700">No brands yet</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Create a brand below. Channel connections show up once a brand exists.
+          </p>
+        </div>
       )}
 
+      {/* Each brand's platform grid is scoped to that brand at THIS
+          location only — connections never leak across brands or
+          locations. */}
       {brands.map((b) => (
-        <details
-          key={b.id}
-          className="overflow-hidden rounded-md border border-zinc-200"
-        >
+        <details key={b.id} className="overflow-hidden rounded-md border border-zinc-200">
           <summary className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-zinc-50">
             {b.logoUrl ? (
               <img src={b.logoUrl} alt="" className="h-7 w-7 rounded object-cover" />
@@ -461,6 +475,9 @@ function BrandsTab({ locationId }: { locationId: string }) {
             </span>
           </summary>
           <div className="border-t border-zinc-200 p-3">
+            <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
+              Channel connections for {b.name}
+            </p>
             <BrandPlatformGrid brandId={b.id} locationId={locationId} />
           </div>
         </details>

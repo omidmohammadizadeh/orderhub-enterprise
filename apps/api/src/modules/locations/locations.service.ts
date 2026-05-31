@@ -438,6 +438,66 @@ export class LocationsService {
     });
   }
 
+  // ── Public storefront (unauthenticated) ─────────────────────────────────
+
+  /**
+   * Phase AN — Resolve a location by its public online-ordering slug.
+   * Returns the safe-to-render presentation fields plus the active
+   * menu's id, no tenant secrets. Used by the public `/order/:slug` page.
+   */
+  async findPublicBySlug(slug: string) {
+    const location = await this.prisma.location.findFirst({
+      where: {
+        onlineOrderingSlug: slug,
+        deletedAt: null,
+        // Don't surface a closed shop from a stale link.
+        status: { in: ["active", "suspended"] },
+      },
+      select: {
+        id: true,
+        name: true,
+        about: true,
+        logoUrl: true,
+        phone: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        country: true,
+        timezone: true,
+        status: true,
+        isOpen: true,
+        busyMode: true,
+        currentPrepTime: true,
+        openingHours: true,
+        onlineOrderingSlug: true,
+        brand: { select: { id: true, name: true, logoUrl: true } },
+      },
+    });
+    if (!location) throw new NotFoundException("Storefront not found");
+
+    // Resolve active menu id WITHOUT calling the menus service (avoid a
+    // circular module dependency). Just need the id — the public menu
+    // controller will fetch the published shape.
+    const menu = await this.prisma.menu.findFirst({
+      where: {
+        OR: [
+          { locationId: location.id, isActive: true, deletedAt: null },
+          {
+            brandId: location.brand.id,
+            isActive: true,
+            deletedAt: null,
+            locationId: null,
+          },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, status: true },
+    });
+
+    return { location, menuId: menu?.id ?? null };
+  }
+
   // ── Access guard ─────────────────────────────────────────────────────────
 
   private async assertAccess(locationId: string, tenantId: string) {

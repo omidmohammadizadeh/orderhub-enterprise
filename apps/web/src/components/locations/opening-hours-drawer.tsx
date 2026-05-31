@@ -5,12 +5,17 @@ import { OpeningHoursEditor } from "./opening-hours-editor";
 import type { Location } from "@/lib/api/locations.client";
 
 // Phase AN — Standalone Opening Hours drawer, opened from the Locations
-// list card's "Opening hours" action chip. Delegates to OpeningHoursEditor
-// for the actual table; the drawer wraps it in a right-side slide-over
-// shell and supplies the location-picker for the apply-to-others action.
+// list card. Wraps OpeningHoursEditor in a right-side slide-over.
+//
+// Phase AN follow-up: removed the "apply to other locations" footer —
+// each location's hours belong to that location only and never mix
+// across the tenant. The duplicate-day modal inside the editor handles
+// copying within a single location.
 
 interface Props {
   locationId: string;
+  /** Kept for backwards-compat with the page's prop, used only to read
+   *  the location name for the drawer title. */
   allLocations: Location[];
   onClose: () => void;
 }
@@ -36,10 +41,7 @@ export function OpeningHoursDrawer({ locationId, allLocations, onClose }: Props)
           </button>
         </header>
         <div className="flex-1 overflow-y-auto p-4">
-          <OpeningHoursEditor
-            locationId={locationId}
-            allLocationsForApply={allLocations.map((l) => ({ id: l.id, name: l.name }))}
-          />
+          <OpeningHoursEditor locationId={locationId} />
         </div>
       </div>
     </div>

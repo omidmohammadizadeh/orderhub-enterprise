@@ -29,11 +29,23 @@ interface Storefront {
     name: string;
     slug: string;
     phone?: string;
-    address: { line1: string; city: string; postcode: string };
-    openingHours: Array<{ day: number; open: string; close: string }>;
-    deliveryConfig: { deliveryFeeFixed?: number; minimumOrder?: number };
+    // Phase AN — surfaced for the customer-facing header card
+    about?: string | null;
+    logoUrl?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    postcode?: string | null;
+    country?: string | null;
+    // Legacy JSON address kept for old locations that haven't been
+    // migrated to the structured columns yet
+    address?: { line1?: string; city?: string; postcode?: string } | null;
+    openingHours: any;
+    deliveryConfig?: { deliveryFeeFixed?: number; minimumOrder?: number };
+    busyMode?: boolean;
+    currentPrepTime?: number;
   };
-  brand: { id: string; name: string };
+  brand: { id: string; name: string; logoUrl?: string | null };
   menu: { id: string; categories: MenuCategory[] } | null;
   isOpen: boolean;
 }
@@ -119,7 +131,10 @@ export default function OrderPage() {
   });
 
   const cartTotal = cart.reduce((s, i) => s + (i.unitPrice + i.modifiers.reduce((ms, m) => ms + m.price, 0)) * i.quantity, 0);
-  const deliveryFee = fulfillmentType === "DELIVERY" ? (storefront?.location.deliveryConfig.deliveryFeeFixed ?? 0) : 0;
+  const deliveryFee =
+    fulfillmentType === "DELIVERY"
+      ? (storefront?.location.deliveryConfig?.deliveryFeeFixed ?? 0)
+      : 0;
   const orderTotal = cartTotal + deliveryFee;
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
@@ -170,26 +185,92 @@ export default function OrderPage() {
     return <OrderConfirmed orderId={confirmedOrderId} storeName={storefront.location.name} />;
   }
 
+  // Compose the address for the header card — prefer the Phase AN
+  // structured columns then fall back to legacy address JSON.
+  const headerAddress = [
+    storefront.location.addressLine1 ?? storefront.location.address?.line1,
+    storefront.location.city ?? storefront.location.address?.city,
+    storefront.location.postcode ?? storefront.location.address?.postcode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const logoUrl = storefront.location.logoUrl ?? storefront.brand.logoUrl ?? null;
+  const headerTitle = storefront.location.name || storefront.brand.name;
+
   return (
     <div className="min-h-screen bg-zinc-50 pb-32">
-      {/* Store header */}
-      <div className="bg-white border-b border-zinc-200 sticky top-0 z-30">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-zinc-900">{storefront.brand.name}</h1>
-              <p className="text-sm text-zinc-500">{storefront.location.name}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={cn("flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full",
-                storefront.isOpen ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-              )}>
-                <div className={cn("h-1.5 w-1.5 rounded-full", storefront.isOpen ? "bg-emerald-500" : "bg-red-500")} />
-                {storefront.isOpen ? "Open" : "Closed"}
+      {/* Store header — Glovo / Uber Eats style hero card */}
+      <div className="bg-gradient-to-b from-orange-50 to-white border-b border-zinc-200">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <div className="flex items-start gap-4">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                className="h-20 w-20 rounded-xl object-cover shadow-md"
+              />
+            ) : (
+              <div className="h-20 w-20 rounded-xl bg-orange-500 text-white grid place-items-center text-2xl font-bold shadow-md">
+                {headerTitle?.slice(0, 1).toUpperCase() ?? "•"}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-zinc-900 leading-tight">
+                {headerTitle}
+              </h1>
+              {storefront.brand.name && storefront.brand.name !== headerTitle && (
+                <p className="text-sm text-zinc-500">by {storefront.brand.name}</p>
+              )}
+              {headerAddress && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                  <MapPin className="h-3 w-3" />
+                  {headerAddress}
+                </p>
+              )}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full",
+                    storefront.isOpen
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-700",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      storefront.isOpen ? "bg-emerald-500" : "bg-red-500",
+                    )}
+                  />
+                  {storefront.isOpen ? "Open" : "Closed"}
+                </span>
+                {storefront.location.busyMode && (
+                  <span className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                    <Clock className="h-3 w-3" /> Kitchen busy
+                  </span>
+                )}
+                {storefront.location.currentPrepTime ? (
+                  <span className="text-xs text-zinc-500">
+                    ~{storefront.location.currentPrepTime}m prep
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
 
+          {storefront.location.about && (
+            <p className="mt-4 text-sm text-zinc-700">
+              {storefront.location.about}
+            </p>
+          )}
+
+          <OpeningHoursSummary hours={storefront.location.openingHours} />
+        </div>
+      </div>
+
+      {/* Sticky fulfillment toggle */}
+      <div className="bg-white border-b border-zinc-200 sticky top-0 z-30">
+        <div className="max-w-2xl mx-auto px-4 py-3">
           {/* Fulfillment type */}
           <div className="flex gap-2 mt-3">
             {(["PICKUP", "DELIVERY"] as const).map((type) => (
@@ -498,4 +579,73 @@ function OrderConfirmed({ orderId, storeName }: { orderId: string; storeName: st
       <p className="text-sm text-zinc-400">You&apos;ll receive updates as your order is prepared.</p>
     </div>
   );
+}
+
+// ── Opening hours summary (Phase AN) ─────────────────────────────────────────
+// Renders the 7-day schedule beneath the hero card. Handles both the new
+// Phase AN map shape and the legacy array shape from older locations.
+
+const DAY_LABELS: Array<[string, string]> = [
+  ["monday", "Mon"],
+  ["tuesday", "Tue"],
+  ["wednesday", "Wed"],
+  ["thursday", "Thu"],
+  ["friday", "Fri"],
+  ["saturday", "Sat"],
+  ["sunday", "Sun"],
+];
+
+function OpeningHoursSummary({ hours }: { hours: any }) {
+  if (!hours) return null;
+  const days = normaliseHours(hours);
+  if (!days.length) return null;
+  return (
+    <details className="mt-3 text-xs text-zinc-600">
+      <summary className="cursor-pointer font-semibold text-zinc-700">
+        Opening hours
+      </summary>
+      <ul className="mt-2 space-y-0.5">
+        {days.map(([label, summary]) => (
+          <li key={label} className="flex justify-between gap-3">
+            <span className="text-zinc-500">{label}</span>
+            <span>{summary}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function normaliseHours(hours: any): Array<[string, string]> {
+  // Phase AN map shape
+  if (!Array.isArray(hours) && typeof hours === "object" && hours) {
+    return DAY_LABELS.map(([key, label]) => {
+      const day = hours[key];
+      if (!day || !day.enabled) return [label, "Closed"] as [string, string];
+      const slots = Array.isArray(day.slots) ? day.slots : [];
+      if (!slots.length) return [label, "Closed"] as [string, string];
+      return [
+        label,
+        slots
+          .map((s: any) => `${s.from ?? "??"}–${s.to ?? "??"}`)
+          .join(", "),
+      ] as [string, string];
+    });
+  }
+  // Legacy array shape — Sunday is day 0
+  if (Array.isArray(hours)) {
+    const byDay = new Map<number, Array<{ open: string; close: string }>>();
+    for (const h of hours) {
+      const list = byDay.get(h.day) ?? [];
+      list.push({ open: h.open, close: h.close });
+      byDay.set(h.day, list);
+    }
+    return DAY_LABELS.map(([, label], idx) => {
+      const dayIdx = (idx + 1) % 7; // Mon=1, … Sun=0
+      const slots = byDay.get(dayIdx);
+      if (!slots || slots.length === 0) return [label, "Closed"] as [string, string];
+      return [label, slots.map((s) => `${s.open}–${s.close}`).join(", ")] as [string, string];
+    });
+  }
+  return [];
 }

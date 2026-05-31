@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Loader2, Plus, Trash2 } from "lucide-react";
+import { Copy, Loader2, Plus, Trash2, X } from "lucide-react";
 import {
   locationsClient,
   type OpeningHoursMap,
@@ -20,11 +20,9 @@ import {
 
 interface Props {
   locationId: string;
-  /** When set, renders a footer with apply-to-other-locations action. */
-  allLocationsForApply?: Array<{ id: string; name: string }>;
 }
 
-export function OpeningHoursEditor({ locationId, allLocationsForApply }: Props) {
+export function OpeningHoursEditor({ locationId }: Props) {
   const qc = useQueryClient();
   const hoursQuery = useQuery({
     queryKey: ["locations", "hours", locationId],
@@ -74,16 +72,25 @@ export function OpeningHoursEditor({ locationId, allLocationsForApply }: Props) 
       ),
     });
 
-  /** Copy this day's schedule onto all other days. */
-  const copyToAllDays = (day: WeekdayKey) => {
-    const src = hours[day];
+  // Phase AN follow-up: duplicating a day no longer applies blindly to
+  // every day. We surface a modal so the operator ticks which days
+  // should receive the schedule.
+  const [duplicateSource, setDuplicateSource] = useState<WeekdayKey | null>(null);
+
+  const applyDuplicate = (targetDays: WeekdayKey[]) => {
+    if (!duplicateSource) return;
+    const src = hours[duplicateSource];
     setHours((prev) => {
       const out = { ...prev };
-      for (const [k] of WEEKDAY_LABELS) {
-        if (k !== day) out[k] = { enabled: src.enabled, slots: src.slots.map((s) => ({ ...s })) };
+      for (const day of targetDays) {
+        if (day === duplicateSource) continue;
+        out[day] = { enabled: src.enabled, slots: src.slots.map((s) => ({ ...s })) };
       }
       return out;
     });
+    setDuplicateSource(null);
+    setFeedback("Schedule copied — remember to Save");
+    window.setTimeout(() => setFeedback(null), 2500);
   };
 
   return (
@@ -100,7 +107,7 @@ export function OpeningHoursEditor({ locationId, allLocationsForApply }: Props) 
             onAddSlot={() => addSlot(key)}
             onRemoveSlot={(i) => removeSlot(key, i)}
             onUpdateSlot={(i, k, v) => updateSlot(key, i, k, v)}
-            onCopyToAll={() => copyToAllDays(key)}
+            onDuplicate={() => setDuplicateSource(key)}
           />
         ))
       )}
@@ -119,12 +126,95 @@ export function OpeningHoursEditor({ locationId, allLocationsForApply }: Props) 
         </button>
       </div>
 
-      {allLocationsForApply && allLocationsForApply.length > 1 && (
-        <ApplyToOtherLocations
-          locationId={locationId}
-          options={allLocationsForApply}
+      {duplicateSource && (
+        <DuplicateDayModal
+          sourceDay={duplicateSource}
+          onCancel={() => setDuplicateSource(null)}
+          onApply={applyDuplicate}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Phase AN — pick which days the duplicated schedule lands on.
+ * Days other than the source are pre-checked; operator unticks any
+ * they want to keep distinct.
+ */
+function DuplicateDayModal({
+  sourceDay,
+  onCancel,
+  onApply,
+}: {
+  sourceDay: WeekdayKey;
+  onCancel: () => void;
+  onApply: (days: WeekdayKey[]) => void;
+}) {
+  const [picked, setPicked] = useState<Set<WeekdayKey>>(
+    () => new Set(WEEKDAY_LABELS.map(([k]) => k).filter((k) => k !== sourceDay)),
+  );
+
+  const toggle = (k: WeekdayKey) => {
+    const next = new Set(picked);
+    if (next.has(k)) next.delete(k);
+    else next.add(k);
+    setPicked(next);
+  };
+
+  const sourceLabel =
+    WEEKDAY_LABELS.find(([k]) => k === sourceDay)?.[1] ?? sourceDay;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">Duplicate {sourceLabel}</h3>
+            <p className="text-[11px] text-zinc-500">Tick the days that should match.</p>
+          </div>
+          <button onClick={onCancel} className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100">
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+        <div className="space-y-1 p-3">
+          {WEEKDAY_LABELS.filter(([k]) => k !== sourceDay).map(([k, label]) => (
+            <label
+              key={k}
+              className="flex items-center gap-2 rounded-md border border-zinc-200 px-2 py-1.5 text-xs text-zinc-700 hover:bg-zinc-50"
+            >
+              <input
+                type="checkbox"
+                checked={picked.has(k)}
+                onChange={() => toggle(k)}
+                className="h-3.5 w-3.5"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        <footer className="flex justify-end gap-2 border-t border-zinc-200 px-4 py-3">
+          <button
+            onClick={onCancel}
+            className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs hover:bg-zinc-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onApply(Array.from(picked))}
+            disabled={picked.size === 0}
+            className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            Apply to {picked.size} {picked.size === 1 ? "day" : "days"}
+          </button>
+        </footer>
+      </div>
     </div>
   );
 }
@@ -136,7 +226,7 @@ function DayRow({
   onAddSlot,
   onRemoveSlot,
   onUpdateSlot,
-  onCopyToAll,
+  onDuplicate,
 }: {
   label: string;
   day: DaySchedule;
@@ -144,7 +234,7 @@ function DayRow({
   onAddSlot: () => void;
   onRemoveSlot: (idx: number) => void;
   onUpdateSlot: (idx: number, k: "from" | "to", v: string) => void;
-  onCopyToAll: () => void;
+  onDuplicate: () => void;
 }) {
   return (
     <div className="rounded-md border border-zinc-200 px-3 py-2">
@@ -153,9 +243,10 @@ function DayRow({
         <span className="text-xs font-medium text-zinc-800 w-24">{label}</span>
         <button
           type="button"
-          onClick={onCopyToAll}
-          title="Copy to all other days"
-          className="rounded p-1 text-zinc-400 hover:bg-zinc-100"
+          onClick={onDuplicate}
+          disabled={!day.enabled}
+          title="Duplicate to other days…"
+          className="rounded p-1 text-zinc-400 hover:bg-zinc-100 disabled:opacity-30"
         >
           <Copy className="h-3 w-3" />
         </button>
@@ -222,70 +313,3 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-function ApplyToOtherLocations({
-  locationId,
-  options,
-}: {
-  locationId: string;
-  options: Array<{ id: string; name: string }>;
-}) {
-  const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [status, setStatus] = useState<string | null>(null);
-
-  const apply = useMutation({
-    mutationFn: () => locationsClient.applyHoursTo(locationId, Array.from(picked)),
-    onSuccess: (r) => {
-      setStatus(`Applied to ${r.applied} location${r.applied === 1 ? "" : "s"}`);
-      setPicked(new Set());
-      window.setTimeout(() => setStatus(null), 3000);
-    },
-    onError: (err: any) =>
-      setStatus(err?.response?.data?.message ?? err.message ?? "Failed"),
-  });
-
-  const togglePick = (id: string) => {
-    const next = new Set(picked);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setPicked(next);
-  };
-
-  const candidates = options.filter((o) => o.id !== locationId);
-  if (candidates.length === 0) return null;
-
-  return (
-    <div className="border-t border-zinc-200 pt-3">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-        Apply these hours to other locations
-      </p>
-      <div className="flex flex-wrap gap-1.5">
-        {candidates.map((o) => (
-          <label
-            key={o.id}
-            className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 text-[11px] text-zinc-700 hover:bg-zinc-50"
-          >
-            <input
-              type="checkbox"
-              checked={picked.has(o.id)}
-              onChange={() => togglePick(o.id)}
-              className="h-3 w-3"
-            />
-            {o.name}
-          </label>
-        ))}
-      </div>
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-[11px] text-zinc-500">{status}</span>
-        <button
-          type="button"
-          onClick={() => apply.mutate()}
-          disabled={apply.isPending || picked.size === 0}
-          className="inline-flex items-center gap-1 rounded-md bg-zinc-900 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
-          {apply.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-          Apply to {picked.size}
-        </button>
-      </div>
-    </div>
-  );
-}

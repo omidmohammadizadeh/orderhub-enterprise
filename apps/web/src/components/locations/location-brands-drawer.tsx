@@ -62,12 +62,23 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
           {brandsQuery.isLoading ? (
             <p className="py-4 text-center text-xs text-zinc-400">Loading…</p>
           ) : (brandsQuery.data ?? []).length === 0 ? (
-            <p className="rounded-md border border-dashed border-zinc-200 py-6 text-center text-xs text-zinc-400">
-              No brands at this location yet.
-            </p>
+            <div className="rounded-md border border-dashed border-zinc-200 px-4 py-8 text-center">
+              <p className="text-sm font-medium text-zinc-700">No brands yet</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Create a brand below. Channel connections appear once a brand exists.
+              </p>
+            </div>
           ) : (
+            // Phase AN follow-up: brand-platform connections sit BELOW the
+            // brand they belong to and only appear once a real brand has
+            // been created. Each brand keeps its own connections — they
+            // never bleed across brands or locations.
             (brandsQuery.data ?? []).map((b) => (
-              <details key={b.id} className="overflow-hidden rounded-md border border-zinc-200" open>
+              <details
+                key={b.id}
+                className="overflow-hidden rounded-md border border-zinc-200"
+                open
+              >
                 <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-50">
                   {b.name}
                   {b.cuisine && (
@@ -75,6 +86,9 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
                   )}
                 </summary>
                 <div className="border-t border-zinc-200 p-3">
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
+                    Channel connections for {b.name}
+                  </p>
                   <BrandPlatformGrid brandId={b.id} locationId={locationId} />
                 </div>
               </details>
