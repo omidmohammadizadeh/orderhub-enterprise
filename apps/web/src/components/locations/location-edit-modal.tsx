@@ -89,11 +89,22 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
 
         <div className="flex-1 overflow-y-auto p-4">
           {tab === "general" && (
-            <GeneralTab
-              location={detailQuery.data ?? null}
-              isCreate={isCreate}
-              onSaved={onSaved}
-            />
+            // For edit mode we hold the General tab until the detail
+            // query lands so the form mounts with real values and not
+            // empty defaults. Create mode mounts immediately.
+            isCreate ? (
+              <GeneralTab location={null} isCreate onSaved={onSaved} />
+            ) : detailQuery.isLoading || !detailQuery.data ? (
+              <p className="py-10 text-center text-xs text-zinc-400">
+                Loading…
+              </p>
+            ) : (
+              <GeneralTab
+                location={detailQuery.data}
+                isCreate={false}
+                onSaved={onSaved}
+              />
+            )
           )}
           {tab === "hours" && locationId && (
             <OpeningHoursEditor locationId={locationId} />

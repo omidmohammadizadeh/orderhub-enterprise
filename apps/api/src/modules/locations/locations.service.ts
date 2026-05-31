@@ -299,7 +299,27 @@ export class LocationsService {
   }
 
   async update(locationId: string, tenantId: string, dto: UpdateLocationDto) {
-    await this.assertAccess(locationId, tenantId);
+    const current = await this.assertAccess(locationId, tenantId);
+
+    // Phase AN follow-up: keep the legacy `address` JSON in sync with the
+    // structured columns whenever any address field changes. Older
+    // consumers (POS labels, webhook payloads) still read the JSON shape.
+    const addressTouched =
+      dto.addressLine1 !== undefined ||
+      dto.addressLine2 !== undefined ||
+      dto.city !== undefined ||
+      dto.postcode !== undefined ||
+      dto.country !== undefined;
+    const mergedAddress = addressTouched
+      ? {
+          line1: dto.addressLine1 ?? current.addressLine1 ?? "",
+          line2: dto.addressLine2 ?? current.addressLine2 ?? undefined,
+          city: dto.city ?? current.city ?? "",
+          postcode: dto.postcode ?? current.postcode ?? "",
+          country: dto.country ?? current.country ?? "GB",
+        }
+      : null;
+
     return this.prisma.location.update({
       where: { id: locationId },
       data: {
@@ -309,6 +329,7 @@ export class LocationsService {
         ...(dto.city !== undefined && { city: dto.city }),
         ...(dto.postcode !== undefined && { postcode: dto.postcode }),
         ...(dto.country !== undefined && { country: dto.country }),
+        ...(mergedAddress && { address: mergedAddress as any }),
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.about !== undefined && { about: dto.about }),
         ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
@@ -332,12 +353,41 @@ export class LocationsService {
     });
   }
 
+  /**
+   * Phase AN follow-up: try a HARD delete so the row genuinely leaves the
+   * database. Most child rows that belong to the location cascade via
+   * Prisma onDelete=Cascade (delivery zones, payment config, brand
+   * platform connections, printers, integrations, KDS screens).
+   *
+   * Two exceptions need explicit handling:
+   *   • Brand.primaryLocationId is a soft FK with no cascade. We null it
+   *     out first so the brand row survives without dangling reference.
+   *   • Order.locationId has onDelete=Restrict (financial history must
+   *     never silently disappear). If any orders exist we fall back to
+   *     a soft delete — the operator sees the row vanish from the UI
+   *     while history is preserved for accounting / refunds.
+   */
   async remove(locationId: string, tenantId: string) {
     await this.assertAccess(locationId, tenantId);
-    await this.prisma.location.update({
-      where: { id: locationId },
-      data: { deletedAt: new Date(), isActive: false, status: "closed" },
+
+    const orderCount = await this.prisma.order.count({ where: { locationId } });
+    if (orderCount > 0) {
+      // Soft delete — preserve financial history.
+      await this.prisma.location.update({
+        where: { id: locationId },
+        data: { deletedAt: new Date(), isActive: false, status: "closed" },
+      });
+      return { hardDeleted: false, orderCount };
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.brand.updateMany({
+        where: { primaryLocationId: locationId },
+        data: { primaryLocationId: null },
+      });
+      await tx.location.delete({ where: { id: locationId } });
     });
+    return { hardDeleted: true, orderCount: 0 };
   }
 
   // ── Slug ─────────────────────────────────────────────────────────────────
