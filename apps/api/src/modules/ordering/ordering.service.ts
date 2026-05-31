@@ -84,44 +84,34 @@ export class OrderingService {
       throw new NotFoundException("Store not found");
     }
 
-    // Prefer the location-scoped active menu (Phase AK shape) then fall
-    // back to the brand's published menu. We accept either status=PUBLISHED
-    // or the legacy isActive=true so a freshly-edited menu isn't hidden
-    // when the operator forgets to flip status.
-    const menu = await this.prisma.menu.findFirst({
-      where: {
-        OR: [
-          { locationId: location.id, isActive: true, deletedAt: null },
-          {
-            brandId: location.brandId,
-            isActive: true,
-            deletedAt: null,
-            locationId: null,
-          },
-        ],
-      },
-      orderBy: { updatedAt: "desc" },
-      include: {
-        // Phase AP — needed for the storefront hero banner.
-        // bannerImage was added in Phase AM; heroImage is a later
-        // alternative slot. Both selected through to the client.
-        categories: {
-          orderBy: { sortOrder: "asc" },
-          include: {
-            items: {
-              where: { item: { isAvailable: true } },
-              orderBy: { sortOrder: "asc" },
-              include: {
-                item: {
-                  include: {
-                    modifierGroupLinks: {
-                      include: {
-                        group: {
-                          include: {
-                            options: {
-                              where: { isAvailable: true },
-                              orderBy: { sortOrder: "asc" },
-                            },
+    // Phase AP fix #2 — mirror POS's findActiveMenuForLocation exactly.
+    // A single OR-then-orderBy(updatedAt) was racing the location-scoped
+    // menu against the brand-scoped one, so when the operator's tenant
+    // had BOTH (e.g. a legacy "Main" brand menu + a freshly published
+    // location-scoped "test 2"), the storefront could pick whichever
+    // was edited most recently — even if it was the wrong one with
+    // only one category.
+    //
+    // We now explicitly try location-scoped first, then fall back to
+    // brand-scoped. Same order POS already uses; same menu always
+    // chosen.
+    const menuInclude = {
+      categories: {
+        orderBy: { sortOrder: "asc" as const },
+        include: {
+          items: {
+            where: { item: { isAvailable: true } },
+            orderBy: { sortOrder: "asc" as const },
+            include: {
+              item: {
+                include: {
+                  modifierGroupLinks: {
+                    include: {
+                      group: {
+                        include: {
+                          options: {
+                            where: { isAvailable: true },
+                            orderBy: { sortOrder: "asc" as const },
                           },
                         },
                       },
@@ -133,7 +123,24 @@ export class OrderingService {
           },
         },
       },
-    });
+    };
+
+    const menu =
+      (await this.prisma.menu.findFirst({
+        where: { locationId: location.id, isActive: true, deletedAt: null },
+        orderBy: { updatedAt: "desc" },
+        include: menuInclude,
+      })) ??
+      (await this.prisma.menu.findFirst({
+        where: {
+          brandId: location.brandId,
+          isActive: true,
+          deletedAt: null,
+          locationId: null,
+        },
+        orderBy: { updatedAt: "desc" },
+        include: menuInclude,
+      }));
 
     // Phase AP — surface the direct-ordering config + delivery zones so
     // the storefront can render prep times, accepted methods, and auto-

@@ -149,54 +149,154 @@ export class OsmStreetsProvider implements PostcodeProvider {
       "";
     const postcodeOut = pio.result.postcode;
 
-    // Step 2 — Overpass for every named highway within 250m of those coords.
-    await this.throttleOverpass();
-    const query =
-      `[out:json][timeout:25];` +
-      `way["highway"]["name"](around:250,${latitude},${longitude});` +
-      `out tags;`;
-    const overpassUrl =
-      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-    const opRes = await fetch(overpassUrl, {
-      headers: { "User-Agent": this.userAgent() },
-    });
-    if (!opRes.ok) {
-      throw new Error(`Overpass ${opRes.status} ${opRes.statusText}`);
+    // Step 2 — Overpass for every named highway within 250m of those
+    // coords. When Overpass times out / 429s / is blocked by the host
+    // network (we've seen this happen on Render's outbound IPs) we
+    // fall back to Nominatim's reverse geocode inside THIS provider
+    // instead of throwing — otherwise the outer chain falls through
+    // to postcodes.io which only knows the town, and the operator's
+    // street picker disappears.
+    const overpassStreets = await this.tryOverpass(latitude, longitude);
+    if (overpassStreets.length > 0) {
+      return overpassStreets.map((street, idx) => ({
+        id: `osm:${postcode}:${idx}`,
+        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
+        line1: street,
+        city: town || undefined,
+        postcode: postcodeOut,
+        country: "GB",
+        latitude,
+        longitude,
+        provider: "osm" as const,
+      }));
     }
-    const data = (await opRes.json()) as {
-      elements?: Array<{ tags?: { name?: string; highway?: string } }>;
-    };
 
-    // Dedupe by street name — OSM stores each segment of a road as its
-    // own way, so we get one element per kerb-line. Also skip motorways
-    // / trunk roads which an operator would never use as a delivery line.
+    const nominatimStreets = await this.tryNominatim(latitude, longitude);
+    if (nominatimStreets.length > 0) {
+      return nominatimStreets.map((street, idx) => ({
+        id: `osm:${postcode}:nom:${idx}`,
+        label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
+        line1: street,
+        city: town || undefined,
+        postcode: postcodeOut,
+        country: "GB",
+        latitude,
+        longitude,
+        provider: "osm" as const,
+      }));
+    }
+
+    // Last-resort: at least give the operator the town + postcode so
+    // they can finish manually.
+    return [
+      {
+        id: `osm:${postcode}:town`,
+        label: `${town}, ${postcodeOut} — add street + house/flat`,
+        line1: "",
+        city: town || undefined,
+        postcode: postcodeOut,
+        country: "GB",
+        latitude,
+        longitude,
+        provider: "osm" as const,
+      },
+    ];
+  }
+
+  /** Overpass query for named highways near the coords. Catches all
+   *  errors so the caller can decide to fall back. */
+  private async tryOverpass(lat: number, lng: number): Promise<string[]> {
+    try {
+      await this.throttleOverpass();
+      const query =
+        `[out:json][timeout:25];` +
+        `way["highway"]["name"](around:250,${lat},${lng});` +
+        `out tags;`;
+      const overpassUrl =
+        `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+      const opRes = await fetch(overpassUrl, {
+        headers: { "User-Agent": this.userAgent() },
+      });
+      if (!opRes.ok) {
+        this.logger.warn(`Overpass ${opRes.status} ${opRes.statusText}`);
+        return [];
+      }
+      const data = (await opRes.json()) as {
+        elements?: Array<{ tags?: { name?: string; highway?: string } }>;
+      };
+      const seen = new Set<string>();
+      const streets: string[] = [];
+      for (const el of data.elements ?? []) {
+        const name = el.tags?.name?.trim();
+        const highway = el.tags?.highway;
+        if (!name) continue;
+        if (highway === "motorway" || highway === "trunk") continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        streets.push(name);
+      }
+      streets.sort((a, b) => a.localeCompare(b, "en-GB"));
+      return streets;
+    } catch (err: any) {
+      this.logger.warn(`Overpass exception: ${err?.message ?? err}`);
+      return [];
+    }
+  }
+
+  /** Nominatim reverse geocode at coords + a handful of small jitters
+   *  around the postcode centroid so we collect multiple road names
+   *  even when the postcode covers more than one street. Each call is
+   *  rate-limited at 1.1s per the OSM policy. */
+  private async tryNominatim(lat: number, lng: number): Promise<string[]> {
     const seen = new Set<string>();
     const streets: string[] = [];
-    for (const el of data.elements ?? []) {
-      const name = el.tags?.name?.trim();
-      const highway = el.tags?.highway;
-      if (!name) continue;
-      if (highway === "motorway" || highway === "trunk") continue;
-      const key = name.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      streets.push(name);
+    // 5 sample points within ~80m of the postcode centroid.
+    const jitters: Array<[number, number]> = [
+      [0, 0],
+      [0.0008, 0],
+      [-0.0008, 0],
+      [0, 0.0012],
+      [0, -0.0012],
+    ];
+    for (const [dLat, dLng] of jitters) {
+      try {
+        await this.throttleNominatim();
+        const url =
+          `https://nominatim.openstreetmap.org/reverse` +
+          `?lat=${lat + dLat}&lon=${lng + dLng}` +
+          `&format=jsonv2&addressdetails=1&zoom=17`;
+        const res = await fetch(url, {
+          headers: { "User-Agent": this.userAgent() },
+        });
+        if (!res.ok) continue;
+        const data = (await res.json()) as {
+          address?: { road?: string; pedestrian?: string; residential?: string };
+        };
+        const road =
+          data.address?.road ??
+          data.address?.pedestrian ??
+          data.address?.residential;
+        if (!road) continue;
+        const key = road.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        streets.push(road);
+      } catch (err: any) {
+        this.logger.warn(`Nominatim reverse exception: ${err?.message ?? err}`);
+      }
     }
-
     streets.sort((a, b) => a.localeCompare(b, "en-GB"));
+    return streets;
+  }
 
-    return streets.map((street, idx) => ({
-      id: `osm:${postcode}:${idx}`,
-      // Hint to the operator that they still need to add a house number.
-      label: `${street}${town ? `, ${town}` : ""}, ${postcodeOut} — add house/flat`,
-      line1: street,
-      city: town || undefined,
-      postcode: postcodeOut,
-      country: pio.result?.country?.startsWith("E") ? "GB" : "GB",
-      latitude,
-      longitude,
-      provider: "osm" as const,
-    }));
+  private lastNominatimCallAt = 0;
+  private async throttleNominatim(): Promise<void> {
+    // OSM's policy is strict: max 1 req/sec per IP. Keep a 1.1s gap.
+    const minGapMs = 1100;
+    const wait = this.lastNominatimCallAt + minGapMs - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    this.lastNominatimCallAt = Date.now();
   }
 }
 
