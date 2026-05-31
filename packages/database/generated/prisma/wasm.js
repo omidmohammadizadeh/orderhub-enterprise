@@ -557,6 +557,26 @@ exports.Prisma.CustomerScalarFieldEnum = {
   isActive: 'isActive',
   tags: 'tags',
   metadata: 'metadata',
+  supabaseUserId: 'supabaseUserId',
+  lastSignInAt: 'lastSignInAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DirectOrderingConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  deliveryPrepMinutes: 'deliveryPrepMinutes',
+  collectionPrepMinutes: 'collectionPrepMinutes',
+  acceptsCash: 'acceptsCash',
+  acceptsCard: 'acceptsCard',
+  acceptsDelivery: 'acceptsDelivery',
+  acceptsCollection: 'acceptsCollection',
+  scheduleMaxDaysAhead: 'scheduleMaxDaysAhead',
+  scheduleSlotMinutes: 'scheduleSlotMinutes',
+  minOrderForDelivery: 'minOrderForDelivery',
+  heroImageUrl: 'heroImageUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1605,7 +1625,15 @@ exports.Prisma.CustomerOrderByRelevanceFieldEnum = {
   phone: 'phone',
   firstName: 'firstName',
   lastName: 'lastName',
-  tags: 'tags'
+  tags: 'tags',
+  supabaseUserId: 'supabaseUserId'
+};
+
+exports.Prisma.DirectOrderingConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  heroImageUrl: 'heroImageUrl'
 };
 
 exports.Prisma.CustomerAddressOrderByRelevanceFieldEnum = {
@@ -2437,6 +2465,7 @@ exports.Prisma.ModelName = {
   UpsellGroup: 'UpsellGroup',
   MenuVersion: 'MenuVersion',
   Customer: 'Customer',
+  DirectOrderingConfig: 'DirectOrderingConfig',
   CustomerAddress: 'CustomerAddress',
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',

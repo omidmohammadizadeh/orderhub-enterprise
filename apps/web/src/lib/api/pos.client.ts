@@ -81,6 +81,53 @@ export interface PromoCode {
   locationIds: string[];
 }
 
+// Phase AP — Direct online ordering config.
+
+export interface DirectOrderingConfig {
+  id: string;
+  tenantId: string;
+  locationId: string;
+  deliveryPrepMinutes: number;
+  collectionPrepMinutes: number;
+  acceptsCash: boolean;
+  acceptsCard: boolean;
+  acceptsDelivery: boolean;
+  acceptsCollection: boolean;
+  scheduleMaxDaysAhead: number;
+  scheduleSlotMinutes: number;
+  minOrderForDelivery: string | number | null;
+  heroImageUrl: string | null;
+}
+
+export const directOrderingClient = {
+  get: (locationId: string) =>
+    apiClient
+      .get<DirectOrderingConfig>("/v1/direct-ordering/config", {
+        params: { locationId },
+      })
+      .then((r) => r.data),
+  update: (
+    locationId: string,
+    body: Partial<{
+      deliveryPrepMinutes: number;
+      collectionPrepMinutes: number;
+      acceptsCash: boolean;
+      acceptsCard: boolean;
+      acceptsDelivery: boolean;
+      acceptsCollection: boolean;
+      scheduleMaxDaysAhead: number;
+      scheduleSlotMinutes: number;
+      minOrderForDelivery: number | null;
+      heroImageUrl: string | null;
+    }>,
+  ) =>
+    apiClient
+      .patch<DirectOrderingConfig>("/v1/direct-ordering/config", body, {
+        params: { locationId },
+      })
+      .then((r) => r.data),
+};
+
 export const promoCodesClient = {
   validate: (body: { code: string; locationId: string; subtotal: number }) =>
     apiClient

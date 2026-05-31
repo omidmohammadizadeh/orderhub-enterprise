@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useReducer } from "react";
+import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -48,6 +48,27 @@ interface Storefront {
   brand: { id: string; name: string; logoUrl?: string | null };
   menu: { id: string; categories: MenuCategory[] } | null;
   isOpen: boolean;
+  // Phase AP — set by the API so the storefront can decide which
+  // payment methods + order types to show + how to advertise prep
+  // times. Permissive defaults are filled in server-side for any
+  // location that never visited the admin tab.
+  directConfig?: {
+    deliveryPrepMinutes: number;
+    collectionPrepMinutes: number;
+    acceptsCash: boolean;
+    acceptsCard: boolean;
+    acceptsDelivery: boolean;
+    acceptsCollection: boolean;
+    scheduleMaxDaysAhead: number;
+    scheduleSlotMinutes: number;
+    minOrderForDelivery: string | number | null;
+    heroImageUrl: string | null;
+  };
+  deliveryZones?: Array<{
+    postcodePrefix: string;
+    fee: string | number;
+    minOrderValue: string | number | null;
+  }>;
 }
 
 interface CartItem {
@@ -268,7 +289,10 @@ export default function OrderPage() {
         </div>
       </div>
 
-      {/* Sticky fulfillment toggle */}
+      {/* Sticky fulfillment + categories nav (Phase AP).
+          The categories strip scrolls horizontally and updates as the
+          user scrolls down the page. Clicking a chip scrolls smoothly
+          to that category's anchor. */}
       <div className="bg-white border-b border-zinc-200 sticky top-0 z-30">
         <div className="max-w-2xl mx-auto px-4 py-3">
           {/* Fulfillment type */}
@@ -292,6 +316,13 @@ export default function OrderPage() {
             ))}
           </div>
         </div>
+
+        {/* Sticky horizontal category nav */}
+        {storefront.menu && storefront.menu.categories.length > 0 && (
+          <CategoryStrip
+            categories={storefront.menu.categories.filter((c) => c.items.length > 0)}
+          />
+        )}
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-4">
@@ -304,7 +335,14 @@ export default function OrderPage() {
         {checkoutStep === "menu" && storefront.menu ? (
           storefront.menu.categories.map((cat) => (
             cat.items.length > 0 && (
-              <div key={cat.id} className="mb-8">
+              // id used by CategoryStrip's smooth scroll + scrollMargin
+              // pushes the heading clear of the sticky header height
+              <div
+                key={cat.id}
+                id={`category-${cat.id}`}
+                data-category-id={cat.id}
+                className="mb-8 scroll-mt-40"
+              >
                 <h2 className="text-lg font-bold text-zinc-900 mb-3">{cat.name}</h2>
                 <div className="space-y-3">
                   {cat.items
@@ -648,4 +686,95 @@ function normaliseHours(hours: any): Array<[string, string]> {
     });
   }
   return [];
+}
+
+// ── Phase AP — Sticky category nav ──────────────────────────────────────────
+//
+// Horizontal scrollable strip pinned at the top of the menu. Clicking a
+// chip smooth-scrolls the page to that category's anchor; as the user
+// scrolls manually, an IntersectionObserver flips the active chip and
+// keeps it visible inside the strip.
+
+function CategoryStrip({
+  categories,
+}: {
+  categories: Array<{ id: string; name: string }>;
+}) {
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [activeId, setActiveId] = useState<string>(categories[0]?.id ?? "");
+
+  // Watch for the section currently dominating the viewport.
+  useEffect(() => {
+    const sections = categories
+      .map((c) => document.getElementById(`category-${c.id}`))
+      .filter((el): el is HTMLElement => !!el);
+    if (sections.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost intersecting entry — IntersectionObserver
+        // delivers them out of order so sort by boundingClientRect.top.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          );
+        const first = visible[0];
+        if (!first) return;
+        const id = first.target.getAttribute("data-category-id");
+        if (id) setActiveId(id);
+      },
+      { rootMargin: "-180px 0px -50% 0px", threshold: 0 },
+    );
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [categories]);
+
+  // Keep the active chip in view inside the horizontal strip.
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const chip = strip.querySelector<HTMLElement>(`[data-chip="${activeId}"]`);
+    if (!chip) return;
+    const stripRect = strip.getBoundingClientRect();
+    const chipRect = chip.getBoundingClientRect();
+    if (chipRect.left < stripRect.left || chipRect.right > stripRect.right) {
+      strip.scrollTo({
+        left: chip.offsetLeft - 16,
+        behavior: "smooth",
+      });
+    }
+  }, [activeId]);
+
+  const onPick = (id: string) => {
+    const el = document.getElementById(`category-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
+  };
+
+  return (
+    <div
+      ref={stripRef}
+      className="flex gap-1.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {categories.map((c) => {
+        const active = c.id === activeId;
+        return (
+          <button
+            key={c.id}
+            data-chip={c.id}
+            onClick={() => onPick(c.id)}
+            className={
+              "flex-shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition " +
+              (active
+                ? "border-orange-500 bg-orange-500 text-white"
+                : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300")
+            }
+          >
+            {c.name}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

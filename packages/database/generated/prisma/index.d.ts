@@ -124,6 +124,11 @@ export type MenuVersion = $Result.DefaultSelection<Prisma.$MenuVersionPayload>
  */
 export type Customer = $Result.DefaultSelection<Prisma.$CustomerPayload>
 /**
+ * Model DirectOrderingConfig
+ * 
+ */
+export type DirectOrderingConfig = $Result.DefaultSelection<Prisma.$DirectOrderingConfigPayload>
+/**
  * Model CustomerAddress
  * 
  */
@@ -1373,6 +1378,16 @@ export class PrismaClient<
   get customer(): Prisma.CustomerDelegate<ExtArgs>;
 
   /**
+   * `prisma.directOrderingConfig`: Exposes CRUD operations for the **DirectOrderingConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DirectOrderingConfigs
+    * const directOrderingConfigs = await prisma.directOrderingConfig.findMany()
+    * ```
+    */
+  get directOrderingConfig(): Prisma.DirectOrderingConfigDelegate<ExtArgs>;
+
+  /**
    * `prisma.customerAddress`: Exposes CRUD operations for the **CustomerAddress** model.
     * Example usage:
     * ```ts
@@ -2354,6 +2369,7 @@ export namespace Prisma {
     UpsellGroup: 'UpsellGroup',
     MenuVersion: 'MenuVersion',
     Customer: 'Customer',
+    DirectOrderingConfig: 'DirectOrderingConfig',
     CustomerAddress: 'CustomerAddress',
     LoyaltyAccount: 'LoyaltyAccount',
     PromoCode: 'PromoCode',
@@ -2421,7 +2437,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
+      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3962,6 +3978,76 @@ export namespace Prisma {
           count: {
             args: Prisma.CustomerCountArgs<ExtArgs>
             result: $Utils.Optional<CustomerCountAggregateOutputType> | number
+          }
+        }
+      }
+      DirectOrderingConfig: {
+        payload: Prisma.$DirectOrderingConfigPayload<ExtArgs>
+        fields: Prisma.DirectOrderingConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DirectOrderingConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DirectOrderingConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.DirectOrderingConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DirectOrderingConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          findMany: {
+            args: Prisma.DirectOrderingConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>[]
+          }
+          create: {
+            args: Prisma.DirectOrderingConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          createMany: {
+            args: Prisma.DirectOrderingConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DirectOrderingConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.DirectOrderingConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          update: {
+            args: Prisma.DirectOrderingConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.DirectOrderingConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DirectOrderingConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DirectOrderingConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DirectOrderingConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.DirectOrderingConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDirectOrderingConfig>
+          }
+          groupBy: {
+            args: Prisma.DirectOrderingConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DirectOrderingConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DirectOrderingConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<DirectOrderingConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -17131,6 +17217,7 @@ export namespace Prisma {
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
+    directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -17240,6 +17327,7 @@ export namespace Prisma {
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
+    directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17257,6 +17345,7 @@ export namespace Prisma {
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
+      directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17676,6 +17765,7 @@ export namespace Prisma {
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
+    directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18200,6 +18290,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * Location.directOrderingConfig
+   */
+  export type Location$directOrderingConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    where?: DirectOrderingConfigWhereInput
   }
 
   /**
@@ -32942,6 +33047,8 @@ export namespace Prisma {
     lastName: string | null
     marketingConsent: boolean | null
     isActive: boolean | null
+    supabaseUserId: string | null
+    lastSignInAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -32955,6 +33062,8 @@ export namespace Prisma {
     lastName: string | null
     marketingConsent: boolean | null
     isActive: boolean | null
+    supabaseUserId: string | null
+    lastSignInAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -32970,6 +33079,8 @@ export namespace Prisma {
     isActive: number
     tags: number
     metadata: number
+    supabaseUserId: number
+    lastSignInAt: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -32985,6 +33096,8 @@ export namespace Prisma {
     lastName?: true
     marketingConsent?: true
     isActive?: true
+    supabaseUserId?: true
+    lastSignInAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -32998,6 +33111,8 @@ export namespace Prisma {
     lastName?: true
     marketingConsent?: true
     isActive?: true
+    supabaseUserId?: true
+    lastSignInAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -33013,6 +33128,8 @@ export namespace Prisma {
     isActive?: true
     tags?: true
     metadata?: true
+    supabaseUserId?: true
+    lastSignInAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -33101,6 +33218,8 @@ export namespace Prisma {
     isActive: boolean
     tags: string[]
     metadata: JsonValue
+    supabaseUserId: string | null
+    lastSignInAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: CustomerCountAggregateOutputType | null
@@ -33133,6 +33252,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: boolean
     metadata?: boolean
+    supabaseUserId?: boolean
+    lastSignInAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -33154,6 +33275,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: boolean
     metadata?: boolean
+    supabaseUserId?: boolean
+    lastSignInAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -33170,6 +33293,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: boolean
     metadata?: boolean
+    supabaseUserId?: boolean
+    lastSignInAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -33206,6 +33331,8 @@ export namespace Prisma {
       isActive: boolean
       tags: string[]
       metadata: Prisma.JsonValue
+      supabaseUserId: string | null
+      lastSignInAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["customer"]>
@@ -33616,6 +33743,8 @@ export namespace Prisma {
     readonly isActive: FieldRef<"Customer", 'Boolean'>
     readonly tags: FieldRef<"Customer", 'String[]'>
     readonly metadata: FieldRef<"Customer", 'Json'>
+    readonly supabaseUserId: FieldRef<"Customer", 'String'>
+    readonly lastSignInAt: FieldRef<"Customer", 'DateTime'>
     readonly createdAt: FieldRef<"Customer", 'DateTime'>
     readonly updatedAt: FieldRef<"Customer", 'DateTime'>
   }
@@ -34022,6 +34151,1109 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CustomerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DirectOrderingConfig
+   */
+
+  export type AggregateDirectOrderingConfig = {
+    _count: DirectOrderingConfigCountAggregateOutputType | null
+    _avg: DirectOrderingConfigAvgAggregateOutputType | null
+    _sum: DirectOrderingConfigSumAggregateOutputType | null
+    _min: DirectOrderingConfigMinAggregateOutputType | null
+    _max: DirectOrderingConfigMaxAggregateOutputType | null
+  }
+
+  export type DirectOrderingConfigAvgAggregateOutputType = {
+    deliveryPrepMinutes: number | null
+    collectionPrepMinutes: number | null
+    scheduleMaxDaysAhead: number | null
+    scheduleSlotMinutes: number | null
+    minOrderForDelivery: Decimal | null
+  }
+
+  export type DirectOrderingConfigSumAggregateOutputType = {
+    deliveryPrepMinutes: number | null
+    collectionPrepMinutes: number | null
+    scheduleMaxDaysAhead: number | null
+    scheduleSlotMinutes: number | null
+    minOrderForDelivery: Decimal | null
+  }
+
+  export type DirectOrderingConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    deliveryPrepMinutes: number | null
+    collectionPrepMinutes: number | null
+    acceptsCash: boolean | null
+    acceptsCard: boolean | null
+    acceptsDelivery: boolean | null
+    acceptsCollection: boolean | null
+    scheduleMaxDaysAhead: number | null
+    scheduleSlotMinutes: number | null
+    minOrderForDelivery: Decimal | null
+    heroImageUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DirectOrderingConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    deliveryPrepMinutes: number | null
+    collectionPrepMinutes: number | null
+    acceptsCash: boolean | null
+    acceptsCard: boolean | null
+    acceptsDelivery: boolean | null
+    acceptsCollection: boolean | null
+    scheduleMaxDaysAhead: number | null
+    scheduleSlotMinutes: number | null
+    minOrderForDelivery: Decimal | null
+    heroImageUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DirectOrderingConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    deliveryPrepMinutes: number
+    collectionPrepMinutes: number
+    acceptsCash: number
+    acceptsCard: number
+    acceptsDelivery: number
+    acceptsCollection: number
+    scheduleMaxDaysAhead: number
+    scheduleSlotMinutes: number
+    minOrderForDelivery: number
+    heroImageUrl: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DirectOrderingConfigAvgAggregateInputType = {
+    deliveryPrepMinutes?: true
+    collectionPrepMinutes?: true
+    scheduleMaxDaysAhead?: true
+    scheduleSlotMinutes?: true
+    minOrderForDelivery?: true
+  }
+
+  export type DirectOrderingConfigSumAggregateInputType = {
+    deliveryPrepMinutes?: true
+    collectionPrepMinutes?: true
+    scheduleMaxDaysAhead?: true
+    scheduleSlotMinutes?: true
+    minOrderForDelivery?: true
+  }
+
+  export type DirectOrderingConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    deliveryPrepMinutes?: true
+    collectionPrepMinutes?: true
+    acceptsCash?: true
+    acceptsCard?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    scheduleMaxDaysAhead?: true
+    scheduleSlotMinutes?: true
+    minOrderForDelivery?: true
+    heroImageUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DirectOrderingConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    deliveryPrepMinutes?: true
+    collectionPrepMinutes?: true
+    acceptsCash?: true
+    acceptsCard?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    scheduleMaxDaysAhead?: true
+    scheduleSlotMinutes?: true
+    minOrderForDelivery?: true
+    heroImageUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DirectOrderingConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    deliveryPrepMinutes?: true
+    collectionPrepMinutes?: true
+    acceptsCash?: true
+    acceptsCard?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    scheduleMaxDaysAhead?: true
+    scheduleSlotMinutes?: true
+    minOrderForDelivery?: true
+    heroImageUrl?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DirectOrderingConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DirectOrderingConfig to aggregate.
+     */
+    where?: DirectOrderingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DirectOrderingConfigs to fetch.
+     */
+    orderBy?: DirectOrderingConfigOrderByWithRelationInput | DirectOrderingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DirectOrderingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DirectOrderingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DirectOrderingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DirectOrderingConfigs
+    **/
+    _count?: true | DirectOrderingConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DirectOrderingConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DirectOrderingConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DirectOrderingConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DirectOrderingConfigMaxAggregateInputType
+  }
+
+  export type GetDirectOrderingConfigAggregateType<T extends DirectOrderingConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateDirectOrderingConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDirectOrderingConfig[P]>
+      : GetScalarType<T[P], AggregateDirectOrderingConfig[P]>
+  }
+
+
+
+
+  export type DirectOrderingConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DirectOrderingConfigWhereInput
+    orderBy?: DirectOrderingConfigOrderByWithAggregationInput | DirectOrderingConfigOrderByWithAggregationInput[]
+    by: DirectOrderingConfigScalarFieldEnum[] | DirectOrderingConfigScalarFieldEnum
+    having?: DirectOrderingConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DirectOrderingConfigCountAggregateInputType | true
+    _avg?: DirectOrderingConfigAvgAggregateInputType
+    _sum?: DirectOrderingConfigSumAggregateInputType
+    _min?: DirectOrderingConfigMinAggregateInputType
+    _max?: DirectOrderingConfigMaxAggregateInputType
+  }
+
+  export type DirectOrderingConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    deliveryPrepMinutes: number
+    collectionPrepMinutes: number
+    acceptsCash: boolean
+    acceptsCard: boolean
+    acceptsDelivery: boolean
+    acceptsCollection: boolean
+    scheduleMaxDaysAhead: number
+    scheduleSlotMinutes: number
+    minOrderForDelivery: Decimal | null
+    heroImageUrl: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DirectOrderingConfigCountAggregateOutputType | null
+    _avg: DirectOrderingConfigAvgAggregateOutputType | null
+    _sum: DirectOrderingConfigSumAggregateOutputType | null
+    _min: DirectOrderingConfigMinAggregateOutputType | null
+    _max: DirectOrderingConfigMaxAggregateOutputType | null
+  }
+
+  type GetDirectOrderingConfigGroupByPayload<T extends DirectOrderingConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DirectOrderingConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DirectOrderingConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DirectOrderingConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], DirectOrderingConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DirectOrderingConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    deliveryPrepMinutes?: boolean
+    collectionPrepMinutes?: boolean
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: boolean
+    scheduleSlotMinutes?: boolean
+    minOrderForDelivery?: boolean
+    heroImageUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["directOrderingConfig"]>
+
+  export type DirectOrderingConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    deliveryPrepMinutes?: boolean
+    collectionPrepMinutes?: boolean
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: boolean
+    scheduleSlotMinutes?: boolean
+    minOrderForDelivery?: boolean
+    heroImageUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["directOrderingConfig"]>
+
+  export type DirectOrderingConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    deliveryPrepMinutes?: boolean
+    collectionPrepMinutes?: boolean
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: boolean
+    scheduleSlotMinutes?: boolean
+    minOrderForDelivery?: boolean
+    heroImageUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DirectOrderingConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type DirectOrderingConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $DirectOrderingConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DirectOrderingConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      deliveryPrepMinutes: number
+      collectionPrepMinutes: number
+      acceptsCash: boolean
+      acceptsCard: boolean
+      acceptsDelivery: boolean
+      acceptsCollection: boolean
+      scheduleMaxDaysAhead: number
+      scheduleSlotMinutes: number
+      minOrderForDelivery: Prisma.Decimal | null
+      heroImageUrl: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["directOrderingConfig"]>
+    composites: {}
+  }
+
+  type DirectOrderingConfigGetPayload<S extends boolean | null | undefined | DirectOrderingConfigDefaultArgs> = $Result.GetResult<Prisma.$DirectOrderingConfigPayload, S>
+
+  type DirectOrderingConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DirectOrderingConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DirectOrderingConfigCountAggregateInputType | true
+    }
+
+  export interface DirectOrderingConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DirectOrderingConfig'], meta: { name: 'DirectOrderingConfig' } }
+    /**
+     * Find zero or one DirectOrderingConfig that matches the filter.
+     * @param {DirectOrderingConfigFindUniqueArgs} args - Arguments to find a DirectOrderingConfig
+     * @example
+     * // Get one DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DirectOrderingConfigFindUniqueArgs>(args: SelectSubset<T, DirectOrderingConfigFindUniqueArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DirectOrderingConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DirectOrderingConfigFindUniqueOrThrowArgs} args - Arguments to find a DirectOrderingConfig
+     * @example
+     * // Get one DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DirectOrderingConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, DirectOrderingConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DirectOrderingConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigFindFirstArgs} args - Arguments to find a DirectOrderingConfig
+     * @example
+     * // Get one DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DirectOrderingConfigFindFirstArgs>(args?: SelectSubset<T, DirectOrderingConfigFindFirstArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DirectOrderingConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigFindFirstOrThrowArgs} args - Arguments to find a DirectOrderingConfig
+     * @example
+     * // Get one DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DirectOrderingConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, DirectOrderingConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DirectOrderingConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DirectOrderingConfigs
+     * const directOrderingConfigs = await prisma.directOrderingConfig.findMany()
+     * 
+     * // Get first 10 DirectOrderingConfigs
+     * const directOrderingConfigs = await prisma.directOrderingConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const directOrderingConfigWithIdOnly = await prisma.directOrderingConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DirectOrderingConfigFindManyArgs>(args?: SelectSubset<T, DirectOrderingConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DirectOrderingConfig.
+     * @param {DirectOrderingConfigCreateArgs} args - Arguments to create a DirectOrderingConfig.
+     * @example
+     * // Create one DirectOrderingConfig
+     * const DirectOrderingConfig = await prisma.directOrderingConfig.create({
+     *   data: {
+     *     // ... data to create a DirectOrderingConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends DirectOrderingConfigCreateArgs>(args: SelectSubset<T, DirectOrderingConfigCreateArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DirectOrderingConfigs.
+     * @param {DirectOrderingConfigCreateManyArgs} args - Arguments to create many DirectOrderingConfigs.
+     * @example
+     * // Create many DirectOrderingConfigs
+     * const directOrderingConfig = await prisma.directOrderingConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DirectOrderingConfigCreateManyArgs>(args?: SelectSubset<T, DirectOrderingConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DirectOrderingConfigs and returns the data saved in the database.
+     * @param {DirectOrderingConfigCreateManyAndReturnArgs} args - Arguments to create many DirectOrderingConfigs.
+     * @example
+     * // Create many DirectOrderingConfigs
+     * const directOrderingConfig = await prisma.directOrderingConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DirectOrderingConfigs and only return the `id`
+     * const directOrderingConfigWithIdOnly = await prisma.directOrderingConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DirectOrderingConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, DirectOrderingConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DirectOrderingConfig.
+     * @param {DirectOrderingConfigDeleteArgs} args - Arguments to delete one DirectOrderingConfig.
+     * @example
+     * // Delete one DirectOrderingConfig
+     * const DirectOrderingConfig = await prisma.directOrderingConfig.delete({
+     *   where: {
+     *     // ... filter to delete one DirectOrderingConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DirectOrderingConfigDeleteArgs>(args: SelectSubset<T, DirectOrderingConfigDeleteArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DirectOrderingConfig.
+     * @param {DirectOrderingConfigUpdateArgs} args - Arguments to update one DirectOrderingConfig.
+     * @example
+     * // Update one DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DirectOrderingConfigUpdateArgs>(args: SelectSubset<T, DirectOrderingConfigUpdateArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DirectOrderingConfigs.
+     * @param {DirectOrderingConfigDeleteManyArgs} args - Arguments to filter DirectOrderingConfigs to delete.
+     * @example
+     * // Delete a few DirectOrderingConfigs
+     * const { count } = await prisma.directOrderingConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DirectOrderingConfigDeleteManyArgs>(args?: SelectSubset<T, DirectOrderingConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DirectOrderingConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DirectOrderingConfigs
+     * const directOrderingConfig = await prisma.directOrderingConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DirectOrderingConfigUpdateManyArgs>(args: SelectSubset<T, DirectOrderingConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DirectOrderingConfig.
+     * @param {DirectOrderingConfigUpsertArgs} args - Arguments to update or create a DirectOrderingConfig.
+     * @example
+     * // Update or create a DirectOrderingConfig
+     * const directOrderingConfig = await prisma.directOrderingConfig.upsert({
+     *   create: {
+     *     // ... data to create a DirectOrderingConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DirectOrderingConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DirectOrderingConfigUpsertArgs>(args: SelectSubset<T, DirectOrderingConfigUpsertArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DirectOrderingConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigCountArgs} args - Arguments to filter DirectOrderingConfigs to count.
+     * @example
+     * // Count the number of DirectOrderingConfigs
+     * const count = await prisma.directOrderingConfig.count({
+     *   where: {
+     *     // ... the filter for the DirectOrderingConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends DirectOrderingConfigCountArgs>(
+      args?: Subset<T, DirectOrderingConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DirectOrderingConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DirectOrderingConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DirectOrderingConfigAggregateArgs>(args: Subset<T, DirectOrderingConfigAggregateArgs>): Prisma.PrismaPromise<GetDirectOrderingConfigAggregateType<T>>
+
+    /**
+     * Group by DirectOrderingConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DirectOrderingConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DirectOrderingConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DirectOrderingConfigGroupByArgs['orderBy'] }
+        : { orderBy?: DirectOrderingConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DirectOrderingConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDirectOrderingConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DirectOrderingConfig model
+   */
+  readonly fields: DirectOrderingConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DirectOrderingConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DirectOrderingConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DirectOrderingConfig model
+   */ 
+  interface DirectOrderingConfigFieldRefs {
+    readonly id: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly tenantId: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly locationId: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly deliveryPrepMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
+    readonly collectionPrepMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
+    readonly acceptsCash: FieldRef<"DirectOrderingConfig", 'Boolean'>
+    readonly acceptsCard: FieldRef<"DirectOrderingConfig", 'Boolean'>
+    readonly acceptsDelivery: FieldRef<"DirectOrderingConfig", 'Boolean'>
+    readonly acceptsCollection: FieldRef<"DirectOrderingConfig", 'Boolean'>
+    readonly scheduleMaxDaysAhead: FieldRef<"DirectOrderingConfig", 'Int'>
+    readonly scheduleSlotMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
+    readonly minOrderForDelivery: FieldRef<"DirectOrderingConfig", 'Decimal'>
+    readonly heroImageUrl: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly createdAt: FieldRef<"DirectOrderingConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"DirectOrderingConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DirectOrderingConfig findUnique
+   */
+  export type DirectOrderingConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which DirectOrderingConfig to fetch.
+     */
+    where: DirectOrderingConfigWhereUniqueInput
+  }
+
+  /**
+   * DirectOrderingConfig findUniqueOrThrow
+   */
+  export type DirectOrderingConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which DirectOrderingConfig to fetch.
+     */
+    where: DirectOrderingConfigWhereUniqueInput
+  }
+
+  /**
+   * DirectOrderingConfig findFirst
+   */
+  export type DirectOrderingConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which DirectOrderingConfig to fetch.
+     */
+    where?: DirectOrderingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DirectOrderingConfigs to fetch.
+     */
+    orderBy?: DirectOrderingConfigOrderByWithRelationInput | DirectOrderingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DirectOrderingConfigs.
+     */
+    cursor?: DirectOrderingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DirectOrderingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DirectOrderingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DirectOrderingConfigs.
+     */
+    distinct?: DirectOrderingConfigScalarFieldEnum | DirectOrderingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * DirectOrderingConfig findFirstOrThrow
+   */
+  export type DirectOrderingConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which DirectOrderingConfig to fetch.
+     */
+    where?: DirectOrderingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DirectOrderingConfigs to fetch.
+     */
+    orderBy?: DirectOrderingConfigOrderByWithRelationInput | DirectOrderingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DirectOrderingConfigs.
+     */
+    cursor?: DirectOrderingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DirectOrderingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DirectOrderingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DirectOrderingConfigs.
+     */
+    distinct?: DirectOrderingConfigScalarFieldEnum | DirectOrderingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * DirectOrderingConfig findMany
+   */
+  export type DirectOrderingConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which DirectOrderingConfigs to fetch.
+     */
+    where?: DirectOrderingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DirectOrderingConfigs to fetch.
+     */
+    orderBy?: DirectOrderingConfigOrderByWithRelationInput | DirectOrderingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DirectOrderingConfigs.
+     */
+    cursor?: DirectOrderingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DirectOrderingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DirectOrderingConfigs.
+     */
+    skip?: number
+    distinct?: DirectOrderingConfigScalarFieldEnum | DirectOrderingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * DirectOrderingConfig create
+   */
+  export type DirectOrderingConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DirectOrderingConfig.
+     */
+    data: XOR<DirectOrderingConfigCreateInput, DirectOrderingConfigUncheckedCreateInput>
+  }
+
+  /**
+   * DirectOrderingConfig createMany
+   */
+  export type DirectOrderingConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DirectOrderingConfigs.
+     */
+    data: DirectOrderingConfigCreateManyInput | DirectOrderingConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DirectOrderingConfig createManyAndReturn
+   */
+  export type DirectOrderingConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DirectOrderingConfigs.
+     */
+    data: DirectOrderingConfigCreateManyInput | DirectOrderingConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DirectOrderingConfig update
+   */
+  export type DirectOrderingConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DirectOrderingConfig.
+     */
+    data: XOR<DirectOrderingConfigUpdateInput, DirectOrderingConfigUncheckedUpdateInput>
+    /**
+     * Choose, which DirectOrderingConfig to update.
+     */
+    where: DirectOrderingConfigWhereUniqueInput
+  }
+
+  /**
+   * DirectOrderingConfig updateMany
+   */
+  export type DirectOrderingConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DirectOrderingConfigs.
+     */
+    data: XOR<DirectOrderingConfigUpdateManyMutationInput, DirectOrderingConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which DirectOrderingConfigs to update
+     */
+    where?: DirectOrderingConfigWhereInput
+  }
+
+  /**
+   * DirectOrderingConfig upsert
+   */
+  export type DirectOrderingConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DirectOrderingConfig to update in case it exists.
+     */
+    where: DirectOrderingConfigWhereUniqueInput
+    /**
+     * In case the DirectOrderingConfig found by the `where` argument doesn't exist, create a new DirectOrderingConfig with this data.
+     */
+    create: XOR<DirectOrderingConfigCreateInput, DirectOrderingConfigUncheckedCreateInput>
+    /**
+     * In case the DirectOrderingConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DirectOrderingConfigUpdateInput, DirectOrderingConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * DirectOrderingConfig delete
+   */
+  export type DirectOrderingConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    /**
+     * Filter which DirectOrderingConfig to delete.
+     */
+    where: DirectOrderingConfigWhereUniqueInput
+  }
+
+  /**
+   * DirectOrderingConfig deleteMany
+   */
+  export type DirectOrderingConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DirectOrderingConfigs to delete
+     */
+    where?: DirectOrderingConfigWhereInput
+  }
+
+  /**
+   * DirectOrderingConfig without action
+   */
+  export type DirectOrderingConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
   }
 
 
@@ -88472,11 +89704,34 @@ export namespace Prisma {
     isActive: 'isActive',
     tags: 'tags',
     metadata: 'metadata',
+    supabaseUserId: 'supabaseUserId',
+    lastSignInAt: 'lastSignInAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+  export const DirectOrderingConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    deliveryPrepMinutes: 'deliveryPrepMinutes',
+    collectionPrepMinutes: 'collectionPrepMinutes',
+    acceptsCash: 'acceptsCash',
+    acceptsCard: 'acceptsCard',
+    acceptsDelivery: 'acceptsDelivery',
+    acceptsCollection: 'acceptsCollection',
+    scheduleMaxDaysAhead: 'scheduleMaxDaysAhead',
+    scheduleSlotMinutes: 'scheduleSlotMinutes',
+    minOrderForDelivery: 'minOrderForDelivery',
+    heroImageUrl: 'heroImageUrl',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DirectOrderingConfigScalarFieldEnum = (typeof DirectOrderingConfigScalarFieldEnum)[keyof typeof DirectOrderingConfigScalarFieldEnum]
 
 
   export const CustomerAddressScalarFieldEnum: {
@@ -89760,10 +91015,21 @@ export namespace Prisma {
     phone: 'phone',
     firstName: 'firstName',
     lastName: 'lastName',
-    tags: 'tags'
+    tags: 'tags',
+    supabaseUserId: 'supabaseUserId'
   };
 
   export type CustomerOrderByRelevanceFieldEnum = (typeof CustomerOrderByRelevanceFieldEnum)[keyof typeof CustomerOrderByRelevanceFieldEnum]
+
+
+  export const DirectOrderingConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    heroImageUrl: 'heroImageUrl'
+  };
+
+  export type DirectOrderingConfigOrderByRelevanceFieldEnum = (typeof DirectOrderingConfigOrderByRelevanceFieldEnum)[keyof typeof DirectOrderingConfigOrderByRelevanceFieldEnum]
 
 
   export const CustomerAddressOrderByRelevanceFieldEnum: {
@@ -91798,6 +93064,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     platformConnections?: BrandPlatformConnectionListRelationFilter
+    directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -91854,6 +93121,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
+    directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -91914,6 +93182,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     platformConnections?: BrandPlatformConnectionListRelationFilter
+    directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -93668,6 +94937,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"Customer"> | boolean
     tags?: StringNullableListFilter<"Customer">
     metadata?: JsonFilter<"Customer">
+    supabaseUserId?: StringNullableFilter<"Customer"> | string | null
+    lastSignInAt?: DateTimeNullableFilter<"Customer"> | Date | string | null
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -93688,6 +94959,8 @@ export namespace Prisma {
     isActive?: SortOrder
     tags?: SortOrder
     metadata?: SortOrder
+    supabaseUserId?: SortOrderInput | SortOrder
+    lastSignInAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -93700,6 +94973,7 @@ export namespace Prisma {
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    supabaseUserId?: string
     tenantId_email?: CustomerTenantIdEmailCompoundUniqueInput
     tenantId_phone?: CustomerTenantIdPhoneCompoundUniqueInput
     AND?: CustomerWhereInput | CustomerWhereInput[]
@@ -93714,6 +94988,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"Customer"> | boolean
     tags?: StringNullableListFilter<"Customer">
     metadata?: JsonFilter<"Customer">
+    lastSignInAt?: DateTimeNullableFilter<"Customer"> | Date | string | null
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -93721,7 +94996,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     loyalty?: XOR<LoyaltyAccountNullableRelationFilter, LoyaltyAccountWhereInput> | null
     paymentMethods?: PaymentMethodListRelationFilter
-  }, "id" | "tenantId_email" | "tenantId_phone">
+  }, "id" | "supabaseUserId" | "tenantId_email" | "tenantId_phone">
 
   export type CustomerOrderByWithAggregationInput = {
     id?: SortOrder
@@ -93734,6 +95009,8 @@ export namespace Prisma {
     isActive?: SortOrder
     tags?: SortOrder
     metadata?: SortOrder
+    supabaseUserId?: SortOrderInput | SortOrder
+    lastSignInAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CustomerCountOrderByAggregateInput
@@ -93755,8 +95032,118 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"Customer"> | boolean
     tags?: StringNullableListFilter<"Customer">
     metadata?: JsonWithAggregatesFilter<"Customer">
+    supabaseUserId?: StringNullableWithAggregatesFilter<"Customer"> | string | null
+    lastSignInAt?: DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
+  }
+
+  export type DirectOrderingConfigWhereInput = {
+    AND?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
+    OR?: DirectOrderingConfigWhereInput[]
+    NOT?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
+    id?: StringFilter<"DirectOrderingConfig"> | string
+    tenantId?: StringFilter<"DirectOrderingConfig"> | string
+    locationId?: StringFilter<"DirectOrderingConfig"> | string
+    deliveryPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    collectionPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    acceptsCash?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsCard?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsDelivery?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsCollection?: BoolFilter<"DirectOrderingConfig"> | boolean
+    scheduleMaxDaysAhead?: IntFilter<"DirectOrderingConfig"> | number
+    scheduleSlotMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    minOrderForDelivery?: DecimalNullableFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
+    createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type DirectOrderingConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    acceptsCash?: SortOrder
+    acceptsCard?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: DirectOrderingConfigOrderByRelevanceInput
+  }
+
+  export type DirectOrderingConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
+    OR?: DirectOrderingConfigWhereInput[]
+    NOT?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
+    tenantId?: StringFilter<"DirectOrderingConfig"> | string
+    deliveryPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    collectionPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    acceptsCash?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsCard?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsDelivery?: BoolFilter<"DirectOrderingConfig"> | boolean
+    acceptsCollection?: BoolFilter<"DirectOrderingConfig"> | boolean
+    scheduleMaxDaysAhead?: IntFilter<"DirectOrderingConfig"> | number
+    scheduleSlotMinutes?: IntFilter<"DirectOrderingConfig"> | number
+    minOrderForDelivery?: DecimalNullableFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
+    createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type DirectOrderingConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    acceptsCash?: SortOrder
+    acceptsCard?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DirectOrderingConfigCountOrderByAggregateInput
+    _avg?: DirectOrderingConfigAvgOrderByAggregateInput
+    _max?: DirectOrderingConfigMaxOrderByAggregateInput
+    _min?: DirectOrderingConfigMinOrderByAggregateInput
+    _sum?: DirectOrderingConfigSumOrderByAggregateInput
+  }
+
+  export type DirectOrderingConfigScalarWhereWithAggregatesInput = {
+    AND?: DirectOrderingConfigScalarWhereWithAggregatesInput | DirectOrderingConfigScalarWhereWithAggregatesInput[]
+    OR?: DirectOrderingConfigScalarWhereWithAggregatesInput[]
+    NOT?: DirectOrderingConfigScalarWhereWithAggregatesInput | DirectOrderingConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
+    locationId?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
+    deliveryPrepMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
+    collectionPrepMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
+    acceptsCash?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
+    acceptsCard?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
+    acceptsDelivery?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
+    acceptsCollection?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
+    scheduleMaxDaysAhead?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
+    scheduleSlotMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
+    minOrderForDelivery?: DecimalNullableWithAggregatesFilter<"DirectOrderingConfig"> | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: StringNullableWithAggregatesFilter<"DirectOrderingConfig"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DirectOrderingConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DirectOrderingConfig"> | Date | string
   }
 
   export type CustomerAddressWhereInput = {
@@ -99427,6 +100814,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -99482,6 +100870,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -99537,6 +100926,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -99592,6 +100982,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -101675,6 +103066,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutCustomersInput
@@ -101695,6 +103088,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
@@ -101713,6 +103108,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutCustomersNestedInput
@@ -101733,6 +103130,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
@@ -101752,6 +103151,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -101766,6 +103167,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -101781,6 +103184,133 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DirectOrderingConfigCreateInput = {
+    id?: string
+    tenantId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutDirectOrderingConfigInput
+  }
+
+  export type DirectOrderingConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DirectOrderingConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutDirectOrderingConfigNestedInput
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DirectOrderingConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DirectOrderingConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -108149,6 +109679,11 @@ export namespace Prisma {
     isNot?: LocationPaymentConfigWhereInput | null
   }
 
+  export type DirectOrderingConfigNullableRelationFilter = {
+    is?: DirectOrderingConfigWhereInput | null
+    isNot?: DirectOrderingConfigWhereInput | null
+  }
+
   export type IntegrationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -109619,6 +111154,8 @@ export namespace Prisma {
     isActive?: SortOrder
     tags?: SortOrder
     metadata?: SortOrder
+    supabaseUserId?: SortOrder
+    lastSignInAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -109632,6 +111169,8 @@ export namespace Prisma {
     lastName?: SortOrder
     marketingConsent?: SortOrder
     isActive?: SortOrder
+    supabaseUserId?: SortOrder
+    lastSignInAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -109645,8 +111184,86 @@ export namespace Prisma {
     lastName?: SortOrder
     marketingConsent?: SortOrder
     isActive?: SortOrder
+    supabaseUserId?: SortOrder
+    lastSignInAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type DirectOrderingConfigOrderByRelevanceInput = {
+    fields: DirectOrderingConfigOrderByRelevanceFieldEnum | DirectOrderingConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type DirectOrderingConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    acceptsCash?: SortOrder
+    acceptsCard?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrder
+    heroImageUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DirectOrderingConfigAvgOrderByAggregateInput = {
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrder
+  }
+
+  export type DirectOrderingConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    acceptsCash?: SortOrder
+    acceptsCard?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrder
+    heroImageUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DirectOrderingConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    acceptsCash?: SortOrder
+    acceptsCard?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrder
+    heroImageUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DirectOrderingConfigSumOrderByAggregateInput = {
+    deliveryPrepMinutes?: SortOrder
+    collectionPrepMinutes?: SortOrder
+    scheduleMaxDaysAhead?: SortOrder
+    scheduleSlotMinutes?: SortOrder
+    minOrderForDelivery?: SortOrder
   }
 
   export type CustomerRelationFilter = {
@@ -114692,6 +116309,12 @@ export namespace Prisma {
     connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
   }
 
+  export type DirectOrderingConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
+    connect?: DirectOrderingConfigWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -114738,6 +116361,12 @@ export namespace Prisma {
     connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
     createMany?: BrandPlatformConnectionCreateManyLocationInputEnvelope
     connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+  }
+
+  export type DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
+    connect?: DirectOrderingConfigWhereUniqueInput
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -114870,6 +116499,16 @@ export namespace Prisma {
     deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
   }
 
+  export type DirectOrderingConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
+    upsert?: DirectOrderingConfigUpsertWithoutLocationInput
+    disconnect?: DirectOrderingConfigWhereInput | boolean
+    delete?: DirectOrderingConfigWhereInput | boolean
+    connect?: DirectOrderingConfigWhereUniqueInput
+    update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput, DirectOrderingConfigUpdateWithoutLocationInput>, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -114962,6 +116601,16 @@ export namespace Prisma {
     update?: BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput | BrandPlatformConnectionUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput | BrandPlatformConnectionUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
+    upsert?: DirectOrderingConfigUpsertWithoutLocationInput
+    disconnect?: DirectOrderingConfigWhereInput | boolean
+    delete?: DirectOrderingConfigWhereInput | boolean
+    connect?: DirectOrderingConfigWhereUniqueInput
+    update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput, DirectOrderingConfigUpdateWithoutLocationInput>, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -115946,6 +117595,20 @@ export namespace Prisma {
     update?: PaymentMethodUpdateWithWhereUniqueWithoutCustomerInput | PaymentMethodUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: PaymentMethodUpdateManyWithWhereWithoutCustomerInput | PaymentMethodUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: PaymentMethodScalarWhereInput | PaymentMethodScalarWhereInput[]
+  }
+
+  export type LocationCreateNestedOneWithoutDirectOrderingConfigInput = {
+    create?: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDirectOrderingConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutDirectOrderingConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutDirectOrderingConfigInput
+    upsert?: LocationUpsertWithoutDirectOrderingConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDirectOrderingConfigInput, LocationUpdateWithoutDirectOrderingConfigInput>, LocationUncheckedUpdateWithoutDirectOrderingConfigInput>
   }
 
   export type CustomerCreateNestedOneWithoutAddressesInput = {
@@ -119363,6 +121026,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressCreateNestedManyWithoutCustomerInput
@@ -119381,6 +121046,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
@@ -119940,6 +121607,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"Customer"> | boolean
     tags?: StringNullableListFilter<"Customer">
     metadata?: JsonFilter<"Customer">
+    supabaseUserId?: StringNullableFilter<"Customer"> | string | null
+    lastSignInAt?: DateTimeNullableFilter<"Customer"> | Date | string | null
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
   }
@@ -121264,6 +122933,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -121318,6 +122988,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -122560,6 +124231,45 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DirectOrderingConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DirectOrderingConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DirectOrderingConfigCreateOrConnectWithoutLocationInput = {
+    where: DirectOrderingConfigWhereUniqueInput
+    create: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -122830,6 +124540,51 @@ export namespace Prisma {
     data: XOR<BrandPlatformConnectionUpdateManyMutationInput, BrandPlatformConnectionUncheckedUpdateManyWithoutLocationInput>
   }
 
+  export type DirectOrderingConfigUpsertWithoutLocationInput = {
+    update: XOR<DirectOrderingConfigUpdateWithoutLocationInput, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
+    where?: DirectOrderingConfigWhereInput
+  }
+
+  export type DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: DirectOrderingConfigWhereInput
+    data: XOR<DirectOrderingConfigUpdateWithoutLocationInput, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type DirectOrderingConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -122935,6 +124690,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -122989,6 +124745,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -123118,6 +124875,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -123172,6 +124930,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -123226,6 +124985,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -123280,6 +125040,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -123350,6 +125111,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -123404,6 +125166,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -126359,6 +128122,242 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PaymentMethod"> | Date | string
   }
 
+  export type LocationCreateWithoutDirectOrderingConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
+  }
+
+  export type LocationUpsertWithoutDirectOrderingConfigInput = {
+    update: XOR<LocationUpdateWithoutDirectOrderingConfigInput, LocationUncheckedUpdateWithoutDirectOrderingConfigInput>
+    create: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutDirectOrderingConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutDirectOrderingConfigInput, LocationUncheckedUpdateWithoutDirectOrderingConfigInput>
+  }
+
+  export type LocationUpdateWithoutDirectOrderingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
   export type CustomerCreateWithoutAddressesInput = {
     id?: string
     email?: string | null
@@ -126369,6 +128368,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutCustomersInput
@@ -126388,6 +128389,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
@@ -126421,6 +128424,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutCustomersNestedInput
@@ -126440,6 +128445,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
@@ -126457,6 +128464,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutCustomersInput
@@ -126476,6 +128485,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
@@ -126509,6 +128520,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutCustomersNestedInput
@@ -126528,6 +128541,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
@@ -126699,6 +128714,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -126753,6 +128769,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -126823,6 +128840,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -126877,6 +128895,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -126931,6 +128950,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -126985,6 +129005,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -127055,6 +129076,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -127109,6 +129131,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -127216,6 +129239,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -127270,6 +129294,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -127287,6 +129312,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutCustomersInput
@@ -127306,6 +129333,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
@@ -127710,6 +129739,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -127764,6 +129794,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -127787,6 +129818,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutCustomersNestedInput
@@ -127806,6 +129839,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
@@ -128648,6 +130683,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -128702,6 +130738,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -128798,6 +130835,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -128852,6 +130890,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -129258,6 +131297,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
@@ -129312,6 +131352,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -129426,6 +131467,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -129480,6 +131522,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintJobUpsertWithWhereUniqueWithoutPrinterInput = {
@@ -131400,6 +133443,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutCustomersInput
@@ -131419,6 +133464,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     addresses?: CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
@@ -131452,6 +133499,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutCustomersNestedInput
@@ -131471,6 +133520,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
@@ -134883,6 +136934,8 @@ export namespace Prisma {
     isActive?: boolean
     tags?: CustomerCreatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: string | null
+    lastSignInAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -135364,6 +137417,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUpdateManyWithoutCustomerNestedInput
@@ -135382,6 +137437,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
@@ -135400,6 +137457,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     tags?: CustomerUpdatetagsInput | string[]
     metadata?: JsonNullValueInput | InputJsonValue
+    supabaseUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSignInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -136155,6 +138214,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -136209,6 +138269,7 @@ export namespace Prisma {
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -139791,6 +141852,10 @@ export namespace Prisma {
      * @deprecated Use CustomerDefaultArgs instead
      */
     export type CustomerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DirectOrderingConfigDefaultArgs instead
+     */
+    export type DirectOrderingConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DirectOrderingConfigDefaultArgs<ExtArgs>
     /**
      * @deprecated Use CustomerAddressDefaultArgs instead
      */

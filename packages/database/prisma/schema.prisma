@@ -253,6 +253,7 @@ model Location {
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   platformConnections  BrandPlatformConnection[]
+  directOrderingConfig DirectOrderingConfig?
 
   // Phase AN — structured address columns (mirror of the address JSON
   // for query/index). Country defaults to GB.
@@ -884,6 +885,12 @@ model Customer {
   tags             String[]
   metadata         Json     @default("{}")
 
+  // Phase AP — link to a Supabase Auth user when the customer signs in
+  // on the storefront. Nullable so existing rows (created from delivery
+  // platforms / staff entry) keep working.
+  supabaseUserId String?   @unique
+  lastSignInAt   DateTime?
+
   addresses      CustomerAddress[]
   orders         Order[]
   loyalty        LoyaltyAccount?
@@ -897,6 +904,35 @@ model Customer {
   @@index([tenantId])
   @@index([tenantId, email])
   @@map("customers")
+}
+
+// Phase AP — Direct online ordering per-location settings.
+// Drives what the storefront displays + what it accepts. Operators
+// edit this from a new "Direct online ordering" tab in the POS top bar.
+model DirectOrderingConfig {
+  id                       String   @id @default(cuid())
+  tenantId                 String
+  locationId               String   @unique
+  location                 Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  deliveryPrepMinutes      Int      @default(45)
+  collectionPrepMinutes    Int      @default(20)
+
+  acceptsCash              Boolean  @default(true)
+  acceptsCard              Boolean  @default(true)
+  acceptsDelivery          Boolean  @default(true)
+  acceptsCollection        Boolean  @default(true)
+
+  scheduleMaxDaysAhead     Int      @default(7)
+  scheduleSlotMinutes      Int      @default(15)
+  minOrderForDelivery      Decimal? @db.Decimal(10, 2)
+  heroImageUrl             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("direct_ordering_configs")
 }
 
 model CustomerAddress {

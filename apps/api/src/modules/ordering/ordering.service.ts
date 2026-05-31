@@ -107,7 +107,34 @@ export class OrderingService {
       },
     });
 
+    // Phase AP — surface the direct-ordering config + delivery zones so
+    // the storefront can render prep times, accepted methods, and auto-
+    // apply delivery fees by postcode. We read directly (no module dep
+    // cycle) and fall back to permissive defaults for any location that
+    // never visited the admin tab.
+    const directConfig =
+      (await this.prisma.directOrderingConfig.findUnique({
+        where: { locationId: location.id },
+      })) ?? {
+        deliveryPrepMinutes: 45,
+        collectionPrepMinutes: 20,
+        acceptsCash: true,
+        acceptsCard: true,
+        acceptsDelivery: true,
+        acceptsCollection: true,
+        scheduleMaxDaysAhead: 7,
+        scheduleSlotMinutes: 15,
+        minOrderForDelivery: null,
+        heroImageUrl: null,
+      };
+    const deliveryZones = await this.prisma.deliveryZone.findMany({
+      where: { locationId: location.id, isActive: true },
+      select: { postcodePrefix: true, fee: true, minOrderValue: true },
+    });
+
     return {
+      directConfig,
+      deliveryZones,
       location: {
         id: location.id,
         name: location.name,
