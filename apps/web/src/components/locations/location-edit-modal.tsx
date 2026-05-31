@@ -94,10 +94,22 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
             // empty defaults. Create mode mounts immediately.
             isCreate ? (
               <GeneralTab location={null} isCreate onSaved={onSaved} />
-            ) : detailQuery.isLoading || !detailQuery.data ? (
-              <p className="py-10 text-center text-xs text-zinc-400">
-                Loading…
-              </p>
+            ) : detailQuery.isLoading ? (
+              <p className="py-10 text-center text-xs text-zinc-400">Loading…</p>
+            ) : detailQuery.error || !detailQuery.data ? (
+              <div className="space-y-3 py-8 text-center">
+                <p className="text-xs text-red-600">
+                  {(detailQuery.error as any)?.response?.data?.message ??
+                    (detailQuery.error as any)?.message ??
+                    "Failed to load location"}
+                </p>
+                <button
+                  onClick={() => detailQuery.refetch()}
+                  className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs hover:bg-zinc-50"
+                >
+                  Retry
+                </button>
+              </div>
             ) : (
               <GeneralTab
                 location={detailQuery.data}
@@ -219,11 +231,24 @@ function GeneralTab({
   });
 
   const generateSlug = useMutation({
-    mutationFn: () => locationsClient.generateSlug(location!.id, name),
+    mutationFn: async () => {
+      if (!location?.id) {
+        throw new Error("Save the location first, then click Generate.");
+      }
+      return locationsClient.generateSlug(location.id, name || location.name);
+    },
     onSuccess: (res) => {
       setSlug(res.slug);
+      setError(null);
       qc.invalidateQueries({ queryKey: ["locations"] });
+      qc.invalidateQueries({ queryKey: ["locations", "detail", location?.id] });
     },
+    onError: (err: any) =>
+      setError(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Failed to generate URL",
+      ),
   });
 
   const submit = () => {

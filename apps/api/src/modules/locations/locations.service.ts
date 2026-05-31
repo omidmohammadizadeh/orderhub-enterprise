@@ -215,14 +215,16 @@ export class LocationsService {
   }
 
   async findOne(locationId: string, tenantId: string) {
+    // Phase AN follow-up: keep this lean. The edit modal only needs the
+    // location's own columns + brand summary; platform connections,
+    // printers, KDS, integrations are loaded by their own panels when
+    // their tab opens, and including them here was both wasteful and a
+    // failure surface (a single relation rename anywhere blew up the
+    // whole modal with a 500 → endless "Loading…").
     const location = await this.prisma.location.findFirst({
       where: { id: locationId, deletedAt: null, brand: { tenantId } },
       include: {
         brand: { select: { id: true, name: true } },
-        integrations: { where: { deletedAt: null }, select: { platform: true, status: true } },
-        printers: { where: { deletedAt: null } },
-        kdsScreens: true,
-        platformConnections: true,
       },
     });
     if (!location) throw new NotFoundException("Location not found");
