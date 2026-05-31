@@ -7,14 +7,19 @@
 // hand them to the auth store, then send the operator into the
 // dashboard. If the API redirected back with `?error=…` instead we
 // surface it on the login screen.
+//
+// useSearchParams must live inside a Suspense boundary on Next.js
+// 14's App Router — the page-level wrapper at the bottom handles
+// that so the build doesn't fail with "should be wrapped in a
+// suspense boundary".
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { authClient } from "@/lib/api/auth.client";
 import { Loader2 } from "lucide-react";
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackInner() {
   const router = useRouter();
   const params = useSearchParams();
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -59,5 +64,19 @@ export default function OAuthCallbackPage() {
         Signing you in…
       </div>
     </div>
+  );
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-zinc-500">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      }
+    >
+      <OAuthCallbackInner />
+    </Suspense>
   );
 }

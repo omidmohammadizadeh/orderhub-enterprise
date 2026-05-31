@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = { title: "Sign in — Order Hub Solutions" };
+
+// Phase AO — useSearchParams inside LoginForm forces a Suspense
+// boundary at build time on Next.js 14. Without this, `next build`
+// hard-fails with "useSearchParams() should be wrapped in a suspense
+// boundary at page '/login'". Setting force-dynamic on top so the
+// page is rendered on demand — there's no point in prerendering an
+// auth page anyway.
+export const dynamic = "force-dynamic";
 
 // The auth pages live in their own (auth) route group so they don't
 // inherit the dashboard layout or protected route guards.
@@ -56,7 +65,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <LoginForm />
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
 
