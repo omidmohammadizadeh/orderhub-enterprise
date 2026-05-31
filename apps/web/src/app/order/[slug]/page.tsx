@@ -41,6 +41,8 @@ import {
   Bike,
   Menu as MenuIcon,
   ChevronRight,
+  Info,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -166,6 +168,7 @@ export default function OrderPage() {
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false); // Phase AP — About modal
 
   // Cart panel form state
   const [customerName, setCustomerName] = useState("");
@@ -258,9 +261,12 @@ export default function OrderPage() {
   const cartCount = cart.reduce((s, l) => s + l.quantity, 0);
 
   // Categories + search filter
+  // Phase AP fix — keep every category in the strip even when it has
+  // no available items yet, so the menu structure on the storefront
+  // mirrors what the operator sees in POS. An empty category just
+  // shows an empty-state placeholder under the grid.
   const allCategories = useMemo(
-    () =>
-      (storefront?.menu?.categories ?? []).filter((c) => c.items.length > 0),
+    () => storefront?.menu?.categories ?? [],
     [storefront?.menu?.categories],
   );
 
@@ -278,7 +284,13 @@ export default function OrderPage() {
             it.name.toLowerCase().includes(q) ||
             (it.description ?? "").toLowerCase().includes(q),
         );
-      if (items.length > 0) lists.push({ cat, items });
+      // On "All" we hide empty categories so the page doesn't render a
+      // wall of headings with no products. When the operator picks a
+      // specific chip we always render that category so they see the
+      // "no items in this category yet" placeholder rather than nothing.
+      if (items.length > 0 || activeCategory === cat.id) {
+        lists.push({ cat, items });
+      }
     }
     return lists;
   }, [allCategories, activeCategory, search]);
@@ -544,16 +556,25 @@ export default function OrderPage() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">
-                {headerTitle}
-              </h1>
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">
+                  {headerTitle}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => setInfoOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+                >
+                  <Info className="h-3.5 w-3.5" /> Info
+                </button>
+              </div>
               {headerAddress && (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
                   <MapPin className="h-3 w-3" /> {headerAddress}
                 </p>
               )}
               {storefront.location.about && (
-                <p className="mt-2 text-sm text-zinc-700">
+                <p className="mt-2 text-sm text-zinc-700 line-clamp-2">
                   {storefront.location.about}
                 </p>
               )}
@@ -642,21 +663,27 @@ export default function OrderPage() {
             </p>
           ) : (
             visibleItems.map(({ cat, items }) => (
-              <section key={cat.id}>
+              <section key={cat.id} id={`category-${cat.id}`}>
                 {activeCategory === "all" && (
                   <h2 className="mb-3 text-lg font-bold text-zinc-900">
                     {cat.name}
                   </h2>
                 )}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {items.map((item) => (
-                    <ProductCard
-                      key={item.id}
-                      item={item}
-                      onClick={() => handleProductClick(item)}
-                    />
-                  ))}
-                </div>
+                {items.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-zinc-200 py-6 text-center text-xs text-zinc-400">
+                    Nothing in {cat.name} yet — check back soon.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {items.map((item) => (
+                      <ProductCard
+                        key={item.id}
+                        item={item}
+                        onClick={() => handleProductClick(item)}
+                      />
+                    ))}
+                  </div>
+                )}
               </section>
             ))
           )}
@@ -764,6 +791,19 @@ export default function OrderPage() {
             });
             setCartOpen(true);
           }}
+        />
+      )}
+
+      {/* Info modal — About + opening hours + delivery fees */}
+      {infoOpen && (
+        <InfoModal
+          locationName={headerTitle}
+          about={storefront.location.about ?? null}
+          address={headerAddress || null}
+          openingHours={storefront.location.openingHours}
+          deliveryZones={storefront.deliveryZones ?? []}
+          isOpenNow={storefront.isOpen}
+          onClose={() => setInfoOpen(false)}
         />
       )}
 
@@ -1694,5 +1734,188 @@ function OrderConfirmed({
         Order again
       </button>
     </div>
+  );
+}
+
+// ── Info modal (Phase AP) ──────────────────────────────────────────────────
+//
+// Surfaced from the Info chip on the restaurant header. Renders three
+// sections matching the Just Eat / Uber Eats info sheet the operator
+// shared as a reference:
+//
+//   • A little bit about us — location.about
+//   • Delivery times — 7-day opening-hours table (Phase AN map shape)
+//   • Delivery fee — every configured delivery zone with its prefix and
+//     fee. When no zones are configured we just say "Manual fee — call
+//     the restaurant" so the customer doesn't assume free delivery.
+
+function InfoModal({
+  locationName,
+  about,
+  address,
+  openingHours,
+  deliveryZones,
+  isOpenNow,
+  onClose,
+}: {
+  locationName: string;
+  about: string | null;
+  address: string | null;
+  openingHours: any;
+  deliveryZones: Array<{
+    postcodePrefix: string;
+    fee: string | number;
+    minOrderValue: string | number | null;
+  }>;
+  isOpenNow: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+          <h2 className="text-base font-bold text-zinc-900">About</h2>
+          <button onClick={onClose} className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100">
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+
+        <div className="space-y-6 overflow-y-auto p-4">
+          {/* About */}
+          <section>
+            <div className="mb-2 flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-zinc-900">A little bit about us</h3>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700 leading-relaxed">
+              {about?.trim() ? (
+                <p>{about}</p>
+              ) : (
+                <p className="text-zinc-500">
+                  {locationName} hasn&apos;t added a description yet.
+                </p>
+              )}
+              {address && (
+                <p className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+                  <MapPin className="h-3 w-3" /> {address}
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* Delivery times */}
+          <section>
+            <div className="mb-2 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-zinc-900">Delivery times</h3>
+              <span
+                className={cn(
+                  "ml-auto text-[10px] font-semibold uppercase tracking-wider",
+                  isOpenNow ? "text-emerald-600" : "text-red-600",
+                )}
+              >
+                {isOpenNow ? "Open" : "Closed"}
+              </span>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
+              <OpeningHoursTable openingHours={openingHours} />
+            </div>
+          </section>
+
+          {/* Delivery fees */}
+          <section>
+            <div className="mb-2 flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-zinc-900">Delivery fee</h3>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
+              {deliveryZones.length === 0 ? (
+                <p className="text-zinc-600">
+                  Delivery fee depends on your postcode — enter it in the cart
+                  to see the price.
+                </p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {deliveryZones.map((z) => {
+                    const fee = Number(z.fee);
+                    const min =
+                      z.minOrderValue != null ? Number(z.minOrderValue) : null;
+                    return (
+                      <li
+                        key={z.postcodePrefix}
+                        className="flex items-center justify-between gap-3 border-b border-zinc-200 pb-1.5 last:border-0 last:pb-0"
+                      >
+                        <span className="font-mono text-xs text-zinc-700">
+                          {z.postcodePrefix}
+                        </span>
+                        <span className="text-right">
+                          <span className="text-sm font-semibold text-zinc-900">
+                            {fee > 0 ? `£${fee.toFixed(2)}` : "Free"}
+                          </span>
+                          {min ? (
+                            <span className="block text-[10px] text-zinc-500">
+                              min £{min.toFixed(2)}
+                            </span>
+                          ) : null}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 7-day opening hours table. Reads the Phase AN map shape; falls back
+// to a "Hours not set" message when the location hasn't configured them.
+const INFO_DAYS: Array<[string, string]> = [
+  ["monday", "Monday"],
+  ["tuesday", "Tuesday"],
+  ["wednesday", "Wednesday"],
+  ["thursday", "Thursday"],
+  ["friday", "Friday"],
+  ["saturday", "Saturday"],
+  ["sunday", "Sunday"],
+];
+
+function OpeningHoursTable({ openingHours }: { openingHours: any }) {
+  if (!openingHours || Array.isArray(openingHours)) {
+    return (
+      <p className="text-zinc-500 text-xs">
+        Hours not set — call the restaurant to confirm.
+      </p>
+    );
+  }
+  return (
+    <ul className="space-y-1.5">
+      {INFO_DAYS.map(([key, label]) => {
+        const day = openingHours[key];
+        const closed = !day?.enabled || !Array.isArray(day.slots) || day.slots.length === 0;
+        const summary = closed
+          ? "Closed"
+          : day.slots
+              .map((s: any) => `${s.from ?? "??"} – ${s.to ?? "??"}`)
+              .join(", ");
+        return (
+          <li key={key} className="flex items-center justify-between">
+            <span className="text-zinc-700">{label}</span>
+            <span className={cn(closed ? "text-zinc-400" : "text-zinc-900 font-medium")}>
+              {summary}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
