@@ -179,10 +179,10 @@ function GeneralTab({
   }, [slug]);
 
   const create = useMutation({
-    mutationFn: () =>
+    mutationFn: async () => {
       // No fields required other than name — the backend defaults
       // brand, address parts, and timezone when omitted.
-      locationsClient.create({
+      const created = await locationsClient.create({
         name,
         address:
           line1 || line2 || city || postcode || country !== "GB"
@@ -195,7 +195,31 @@ function GeneralTab({
               }
             : undefined,
         phone: phone || undefined,
-      } as any),
+      } as any);
+
+      // CreateLocationDto on the API is intentionally minimal (name +
+      // address + phone). Everything else the General tab can collect
+      // (about, logoUrl, customDomain, Stripe Connect, application
+      // fees, status) is sent as a follow-up PATCH so the new row
+      // captures the full form state in a single user action. Without
+      // this, hitting Save on a brand-new location silently dropped
+      // the logo and every other extended field.
+      const extras: Parameters<typeof locationsClient.update>[1] = {};
+      if (about) extras.about = about;
+      if (logoUrl) extras.logoUrl = logoUrl;
+      if (customDomain) extras.customDomain = customDomain;
+      if (stripeAcct) extras.stripeConnectedAccountId = stripeAcct;
+      if (feeMode !== "none") {
+        extras.applicationFeeMode = feeMode;
+        if (fixedFee) extras.applicationFeeFixedAmount = Number(fixedFee);
+        if (pctFee) extras.applicationFeePercentage = Number(pctFee);
+      }
+      if (status !== "active") extras.status = status;
+      if (Object.keys(extras).length > 0) {
+        await locationsClient.update(created.id, extras as any);
+      }
+      return created;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
       onSaved();
@@ -551,14 +575,21 @@ function Field({
   children: React.ReactNode;
   help?: string;
 }) {
+  // Note: we deliberately render as <div>, not <label>. A wrapping label
+  // bubbles every click inside its children to whatever form control
+  // it's labelling — so clicking the ImageUploader's dropzone fires
+  // BOTH the dropzone's own `fileInput.click()` AND the implicit
+  // `<label>` re-click on the hidden <input type="file">, opening the
+  // OS file picker twice. The visible <span> with the label text is
+  // enough; users associate it visually with the next field.
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
         {label}
       </span>
       {children}
       {help && <p className="mt-1 text-[11px] text-zinc-500">{help}</p>}
-    </label>
+    </div>
   );
 }
 
