@@ -989,10 +989,16 @@ export class MenusService {
 
   // ── Location-scoped active menu (POS + storefront) ────────────────────────
   //
-  // Phase AK: Base44 menus belong to a location. Find the active menu for
-  // the given location by checking the locationId column first; fall back
-  // to the brand's active menu if the location-scoped query is empty
-  // (covers brand-scoped pre-Phase-AK menus).
+  // Phase AP — POS only shows a menu when it's been EXPLICITLY published
+  // to this location for the POS target. No brand-scoped fallback, no
+  // implicit "isActive=true is enough" — until the operator opens the
+  // publish modal and ticks "Order Hub POS", the till stays empty.
+  //
+  // The publish flow stores selected targets in Menu.publishedTo[] and
+  // also flips Menu.status to PUBLISHED. We require BOTH:
+  //   • status = PUBLISHED         (so a draft can't accidentally show)
+  //   • publishedTo contains "POS" (so the operator's intent is explicit)
+  //   • locationId = this location (so sibling sites don't leak)
   //
   // Returns a "full menu" structure shaped for POS consumption: every
   // category, every visible item, modifier groups + options, productSkus.
@@ -1003,20 +1009,18 @@ export class MenusService {
     });
     if (!location) throw new NotFoundException("Location not found");
 
-    // Prefer location-scoped active menu (Phase AK shape).
-    let menu = await this.prisma.menu.findFirst({
-      where: { locationId, isActive: true, deletedAt: null },
-      orderBy: { updatedAt: "desc" },
+    const menu = await this.prisma.menu.findFirst({
+      where: {
+        locationId,
+        status: "PUBLISHED",
+        deletedAt: null,
+        publishedTo: { has: "POS" },
+      },
+      // Most recently published wins when an operator has multiple
+      // POS-targeted menus active on a single location.
+      orderBy: [{ lastPublishedAt: "desc" }, { updatedAt: "desc" }],
       select: { id: true },
     });
-    // Fall back to brand-scoped active menu.
-    if (!menu) {
-      menu = await this.prisma.menu.findFirst({
-        where: { brandId: location.brandId, isActive: true, deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-        select: { id: true },
-      });
-    }
     if (!menu) return null;
 
     return this.findOne(menu.id, tenantId);
