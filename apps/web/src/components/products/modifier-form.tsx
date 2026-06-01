@@ -138,29 +138,22 @@ export function ModifierForm({
         </Button>
       </div>
 
-      {!isEdit && (
-        <Card className="p-4 border-orange-200 bg-orange-50">
-          <label className="block">
-            <span className="text-xs font-medium text-zinc-800">
-              Modifier group <span className="text-red-500">*</span>
-            </span>
-            <select
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">Pick a group…</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-[11px] text-zinc-500">
-              You can&apos;t create a modifier without a group. Create one in the
-              Modifier Groups tab first if you need to.
-            </p>
-          </label>
+      {/* Phase AP follow-up: the "which modifier group?" picker was
+          removed at the operator's request. The modifier still needs a
+          parent group (ModifierOption.groupId is NOT NULL on the
+          schema), so we auto-bind to the first group on this location
+          via the existing groups[0]?.id default and let the operator
+          attach the modifier to additional groups later from the
+          Modifier Group form.
+
+          When there are zero groups we surface a one-line nudge to
+          create one first instead of letting the operator start a
+          form that's guaranteed to fail on save. */}
+      {!isEdit && groups.length === 0 && (
+        <Card className="p-3 border-amber-200 bg-amber-50 text-xs text-amber-800">
+          You don&apos;t have any modifier groups yet at this location.
+          Create one in the Modifier Groups tab first — modifiers always
+          live inside a group.
         </Card>
       )}
 
