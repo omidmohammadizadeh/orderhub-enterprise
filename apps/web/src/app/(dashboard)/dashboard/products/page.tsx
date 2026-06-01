@@ -161,10 +161,12 @@ function ProductsPageInner() {
       {/* ── Tab content ──────────────────────────────────────── */}
       {selectedLocationId && (
         <div>
-          {/* Phase AP — pass locationId so Products and Modifier Groups
-              tabs query the per-location library; the others stay
-              brand-scoped for now (Variants, Meal Deals, Upsell Groups
-              all need their own location-scope follow-up). */}
+          {/* Phase AP — every tab is now location-scoped. brandId is
+              still threaded through because the create endpoints (POST
+              /v1/brands/:brandId/...) live under the brand path; the
+              READ endpoints all hit /v1/locations/:locationId/... so
+              switching the location selector immediately filters the
+              list. */}
           {activeTab === "products" && (
             <ProductsTab
               brandId={brandId}
@@ -173,7 +175,11 @@ function ProductsPageInner() {
             />
           )}
           {activeTab === "modifiers" && (
-            <ModifiersTab brandId={brandId} search={search} />
+            <ModifiersTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
           )}
           {activeTab === "modifier-groups" && (
             <ModifierGroupsTab
@@ -183,13 +189,25 @@ function ProductsPageInner() {
             />
           )}
           {activeTab === "variants" && (
-            <VariantsTab brandId={brandId} search={search} />
+            <VariantsTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
           )}
           {activeTab === "meal-deals" && (
-            <MealDealsTab brandId={brandId} search={search} />
+            <MealDealsTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
           )}
           {activeTab === "upsell-groups" && (
-            <UpsellGroupsTab brandId={brandId} search={search} />
+            <UpsellGroupsTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
           )}
         </div>
       )}

@@ -239,6 +239,11 @@ export const variantsClient = {
 export const mealDealsClient = {
   list: (brandId: string) =>
     apiClient.get<MealDeal[]>(`/v1/brands/${brandId}/meal-deals`).then((r) => r.data),
+  // Phase AP — location-scoped Products tab
+  listForLocation: (locationId: string) =>
+    apiClient
+      .get<MealDeal[]>(`/v1/locations/${locationId}/meal-deals`)
+      .then((r) => r.data),
   create: (brandId: string, data: Partial<MealDeal>) =>
     apiClient
       .post<MealDeal>(`/v1/brands/${brandId}/meal-deals`, data)
@@ -252,6 +257,11 @@ export const mealDealsClient = {
 export const upsellGroupsClient = {
   list: (brandId: string) =>
     apiClient.get<UpsellGroup[]>(`/v1/brands/${brandId}/upsell-groups`).then((r) => r.data),
+  // Phase AP — location-scoped Products tab
+  listForLocation: (locationId: string) =>
+    apiClient
+      .get<UpsellGroup[]>(`/v1/locations/${locationId}/upsell-groups`)
+      .then((r) => r.data),
   create: (brandId: string, data: Partial<UpsellGroup>) =>
     apiClient
       .post<UpsellGroup>(`/v1/brands/${brandId}/upsell-groups`, data)

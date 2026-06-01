@@ -28,6 +28,15 @@ export class CatalogController {
     return this.catalog.listMealDeals(brandId, user.tenantId);
   }
 
+  // Phase AP — Products tab is location-scoped
+  @Get("locations/:locationId/meal-deals")
+  listMealDealsForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.catalog.listMealDealsForLocation(locationId, user.tenantId);
+  }
+
   @Post("brands/:brandId/meal-deals")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   createMealDeal(
@@ -58,6 +67,15 @@ export class CatalogController {
   @Get("brands/:brandId/upsell-groups")
   listUpsellGroups(@Param("brandId") brandId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.catalog.listUpsellGroups(brandId, user.tenantId);
+  }
+
+  // Phase AP — Products tab is location-scoped
+  @Get("locations/:locationId/upsell-groups")
+  listUpsellGroupsForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.catalog.listUpsellGroupsForLocation(locationId, user.tenantId);
   }
 
   @Post("brands/:brandId/upsell-groups")

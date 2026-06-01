@@ -25,6 +25,32 @@ export class CatalogService {
     });
   }
 
+  /**
+   * Phase AP — list meal deals that are available at THIS location.
+   *
+   * A meal deal is available at a location when either:
+   *   • its `locationIds[]` is empty (i.e. brand-wide), AND its brand
+   *     matches the location's brand; OR
+   *   • its `locationIds[]` explicitly includes this location.
+   *
+   * Two-stage lookup so the operator's switching the location selector
+   * never bleeds another shop's deals into this tab.
+   */
+  async listMealDealsForLocation(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, brandId: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    return this.prisma.mealDeal.findMany({
+      where: {
+        brandId: location.brandId,
+        OR: [{ locationIds: { isEmpty: true } }, { locationIds: { has: locationId } }],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   async createMealDeal(brandId: string, tenantId: string, data: any) {
     await this.assertBrand(brandId, tenantId);
     if (!data?.name?.trim()) {
@@ -94,6 +120,25 @@ export class CatalogService {
     await this.assertBrand(brandId, tenantId);
     return this.prisma.upsellGroup.findMany({
       where: { brandId },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
+  /**
+   * Phase AP — list upsell groups for THIS location. UpsellGroup has no
+   * locationIds[] of its own, so we scope by the location's brand. With
+   * the Phase AP brand-per-location model in use this gives a clean
+   * 1:1 mapping; in mixed-mode tenants this still keeps the operator
+   * inside their location's brand and never leaks sibling-brand groups.
+   */
+  async listUpsellGroupsForLocation(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, brandId: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    return this.prisma.upsellGroup.findMany({
+      where: { brandId: location.brandId },
       orderBy: { sortOrder: "asc" },
     });
   }

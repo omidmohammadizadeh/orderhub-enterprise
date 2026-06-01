@@ -10,23 +10,29 @@ import { CatalogEmptyState } from "./empty-state";
 
 interface Props {
   brandId: string;
+  /** Phase AP — only show meal deals available at this location. */
+  locationId?: string | null;
   search: string;
 }
 
-// Phase AL — basic UI on the new MealDeal model. Full section/options
-// editor lands in a follow-up; this scaffold lets operators create deals
-// with a name + price so import + publish flows can be wired against
-// real records.
-export function MealDealsTab({ brandId, search }: Props) {
+// Phase AL — basic UI on the new MealDeal model. Phase AP — list is
+// scoped to the selected location (MealDeal.locationIds[] empty means
+// "available at every location of this brand", non-empty means the
+// explicit list).
+export function MealDealsTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
 
+  const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
   const { data: deals = [], isLoading } = useQuery({
-    queryKey: ["catalog", "meal-deals", brandId],
-    queryFn: () => mealDealsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "meal-deals", scopeKey],
+    queryFn: () =>
+      locationId
+        ? mealDealsClient.listForLocation(locationId)
+        : mealDealsClient.list(brandId),
+    enabled: !!brandId || !!locationId,
   });
 
   const filtered = useMemo(
@@ -46,7 +52,7 @@ export function MealDealsTab({ brandId, search }: Props) {
         price: price ? Number(price) : null,
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["catalog", "meal-deals", brandId] });
+      qc.invalidateQueries({ queryKey: ["catalog", "meal-deals", scopeKey] });
       setIsCreating(false);
       setName("");
       setPrice("");

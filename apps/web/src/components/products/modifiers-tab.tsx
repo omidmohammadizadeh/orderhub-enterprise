@@ -13,22 +13,33 @@ import { ModifierForm } from "./modifier-form";
 
 interface Props {
   brandId: string;
+  /** Phase AP — when set, list modifiers belonging to this location only. */
+  locationId?: string | null;
   search: string;
 }
 
 // Modifiers live inside ModifierGroups (each option has a groupId). To
-// surface "all modifiers in this brand" we fetch all groups and flatten
-// the options. We pass groupId through to the form so create knows where
-// to attach.
-export function ModifiersTab({ brandId, search }: Props) {
+// surface "all modifiers at this location" we fetch the location's
+// modifier groups (Phase AP location-scoped lookup) and flatten the
+// options. Falls back to brand-scoped when no location is selected,
+// which only happens on the initial page load before the operator
+// picks a location.
+export function ModifiersTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // The cache key includes locationId so switching the location selector
+  // triggers a fresh fetch and the list never shows stale entries from
+  // another location.
+  const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
   const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["catalog", "modifier-groups-with-options", brandId],
-    queryFn: () => modifierGroupsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "modifier-groups-with-options", scopeKey],
+    queryFn: () =>
+      locationId
+        ? modifierGroupsClient.listForLocation(locationId)
+        : modifierGroupsClient.list(brandId),
+    enabled: !!brandId || !!locationId,
   });
 
   const all: Array<CatalogModifier & { groupName: string }> = useMemo(() => {
@@ -51,7 +62,7 @@ export function ModifiersTab({ brandId, search }: Props) {
     mutationFn: (id: string) => modifiersClient.remove(id),
     onSuccess: () =>
       qc.invalidateQueries({
-        queryKey: ["catalog", "modifier-groups-with-options", brandId],
+        queryKey: ["catalog", "modifier-groups-with-options", scopeKey],
       }),
   });
 
@@ -78,7 +89,7 @@ export function ModifiersTab({ brandId, search }: Props) {
           setIsCreating(false);
           setEditingId(null);
           qc.invalidateQueries({
-            queryKey: ["catalog", "modifier-groups-with-options", brandId],
+            queryKey: ["catalog", "modifier-groups-with-options", scopeKey],
           });
         }}
       />

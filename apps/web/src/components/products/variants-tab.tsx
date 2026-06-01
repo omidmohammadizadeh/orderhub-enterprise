@@ -8,21 +8,29 @@ import { VariantsEditor } from "./variants-editor";
 
 interface Props {
   brandId: string;
+  /** Phase AP — variants are just multi-SKU products; the list must
+   *  match what the Products tab shows for this location, otherwise
+   *  the operator sees SKU products from sibling shops. */
+  locationId?: string | null;
   search: string;
 }
 
 // Variants are simply products with hasMultipleSkus = true. The tab lists
-// every product in the catalog that already has SKU variants, plus an
-// affordance to "promote" a flat product into a multi-SKU one. The editor
-// (VariantsEditor) handles the productSkus[] JSON shape and per-platform
-// pricing overrides.
-export function VariantsTab({ brandId, search }: Props) {
+// the multi-SKU products visible AT THIS LOCATION (Phase AP location-
+// scoped lookup), plus an affordance to "promote" a flat product into
+// a multi-SKU one. The editor (VariantsEditor) handles the productSkus[]
+// JSON shape and per-platform pricing overrides.
+export function VariantsTab({ brandId, locationId, search }: Props) {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
+  const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["catalog", "products", brandId],
-    queryFn: () => productsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "products", scopeKey],
+    queryFn: () =>
+      locationId
+        ? productsClient.listForLocation(locationId)
+        : productsClient.list(brandId),
+    enabled: !!brandId || !!locationId,
   });
 
   const multiSku = useMemo(

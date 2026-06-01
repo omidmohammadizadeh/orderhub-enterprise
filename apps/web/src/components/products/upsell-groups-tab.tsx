@@ -10,21 +10,28 @@ import { CatalogEmptyState } from "./empty-state";
 
 interface Props {
   brandId: string;
+  /** Phase AP — scope the upsell-group list to this location only. */
+  locationId?: string | null;
   search: string;
 }
 
-// Phase AL — basic UI on the new UpsellGroup model. Full trigger/suggest
-// picker lands in a follow-up; this scaffold lets operators create groups
-// so we can wire storefront + POS surface logic against real records.
-export function UpsellGroupsTab({ brandId, search }: Props) {
+// Phase AL — basic UI on the new UpsellGroup model. Phase AP — list is
+// scoped to the selected location (via the location's brand, since
+// upsell groups don't carry their own locationIds[]). New groups are
+// still created under the brand-scoped endpoint.
+export function UpsellGroupsTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
 
+  const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
   const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["catalog", "upsell-groups", brandId],
-    queryFn: () => upsellGroupsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: ["catalog", "upsell-groups", scopeKey],
+    queryFn: () =>
+      locationId
+        ? upsellGroupsClient.listForLocation(locationId)
+        : upsellGroupsClient.list(brandId),
+    enabled: !!brandId || !!locationId,
   });
 
   const filtered = useMemo(
@@ -40,7 +47,7 @@ export function UpsellGroupsTab({ brandId, search }: Props) {
   const createMutation = useMutation({
     mutationFn: () => upsellGroupsClient.create(brandId, { name: name.trim() }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["catalog", "upsell-groups", brandId] });
+      qc.invalidateQueries({ queryKey: ["catalog", "upsell-groups", scopeKey] });
       setIsCreating(false);
       setName("");
     },
