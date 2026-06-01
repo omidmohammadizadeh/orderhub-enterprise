@@ -27,6 +27,7 @@ import {
   ChefHat,
   FlaskConical,
   Layers,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,10 @@ interface NavItem {
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0" },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag },
+  // Phase AP follow-up (AP-NAV-1): Direct online ordering settings used
+  // to be a button on the POS top bar; the operator asked for it to sit
+  // under POS on the sidebar instead, so it gets a dedicated entry here.
+  { href: "/dashboard/direct-ordering", label: "Direct online ordering", icon: Globe },
   // Master catalog (Phase AL). The Menu entry below is the per-location
   // builder that attaches items from this catalog — it does not create
   // duplicate products.

@@ -1,9 +1,9 @@
 "use client";
 
-// Phase AP — Direct Online Ordering settings modal.
+// Phase AP — Direct Online Ordering settings.
 //
-// Opened from the POS top bar. Per-location toggles + numbers that the
-// public storefront reads on every load:
+// Per-location toggles + numbers that the public storefront reads on
+// every load:
 //
 //   • Delivery / collection prep time (advertised to customers)
 //   • Payment methods accepted (cash / card)
@@ -12,6 +12,13 @@
 //   • Minimum order for delivery
 //
 // All persisted to the DirectOrderingConfig row created on first save.
+//
+// Phase AP follow-up (AP-NAV-1): the settings now live on a dedicated
+// sidebar page (`/dashboard/direct-ordering`) rather than a POS top-bar
+// modal. The DirectOrderingSettings component below is the body that
+// page renders; DirectOrderingModal is kept as a thin overlay wrapper
+// for any caller that still wants the modal treatment (none today, but
+// the symbol is referenced indirectly in tests / docs).
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,12 +28,13 @@ import {
   type DirectOrderingConfig,
 } from "@/lib/api/pos.client";
 
-interface Props {
+export interface DirectOrderingSettingsProps {
   locationId: string;
-  onClose: () => void;
 }
 
-export function DirectOrderingModal({ locationId, onClose }: Props) {
+/** Body shared between the standalone page and the legacy modal wrapper.
+ *  Every input the original modal exposed is preserved 1:1. */
+export function DirectOrderingSettings({ locationId }: DirectOrderingSettingsProps) {
   const qc = useQueryClient();
   const configQuery = useQuery<DirectOrderingConfig>({
     queryKey: ["direct-ordering", locationId],
@@ -82,6 +90,72 @@ export function DirectOrderingModal({ locationId, onClose }: Props) {
   });
 
   return (
+    <div className="space-y-5 text-sm">
+      {/* Prep times */}
+      <div>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Prep time advertised to customers
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <NumberField label="Delivery (mins)" value={deliveryPrep} onChange={setDeliveryPrep} />
+          <NumberField label="Collection (mins)" value={collectionPrep} onChange={setCollectionPrep} />
+        </div>
+      </div>
+
+      {/* Payment methods */}
+      <div>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Payment methods accepted online
+        </p>
+        <ToggleRow label="Accept cash on delivery/collection" value={acceptsCash} onChange={setAcceptsCash} />
+        <ToggleRow label="Accept card online (Stripe)" value={acceptsCard} onChange={setAcceptsCard} />
+      </div>
+
+      {/* Order types */}
+      <div>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Order types accepted online
+        </p>
+        <ToggleRow label="Accept delivery orders" value={acceptsDelivery} onChange={setAcceptsDelivery} />
+        <ToggleRow label="Accept collection orders" value={acceptsCollection} onChange={setAcceptsCollection} />
+      </div>
+
+      {/* Schedule + min order */}
+      <div>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Scheduling
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <NumberField label="Days ahead" value={scheduleDays} onChange={setScheduleDays} />
+          <NumberField label="Slot mins" value={slotMins} onChange={setSlotMins} />
+          <NumberField label="Min delivery (£)" value={minDelivery} onChange={setMinDelivery} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-zinc-200 pt-3">
+        <span className="text-[11px] text-zinc-500">{feedback ?? ""}</span>
+        <button
+          onClick={() => save.mutate()}
+          disabled={save.isPending || configQuery.isLoading}
+          className="inline-flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {save.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface ModalProps {
+  locationId: string;
+  onClose: () => void;
+}
+
+/** @deprecated kept for backwards-compat. New code should render
+ *  DirectOrderingSettings on its own page. */
+export function DirectOrderingModal({ locationId, onClose }: ModalProps) {
+  return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onClose}
@@ -92,9 +166,7 @@ export function DirectOrderingModal({ locationId, onClose }: Props) {
       >
         <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-900">
-              Direct online ordering
-            </h2>
+            <h2 className="text-sm font-semibold text-zinc-900">Direct online ordering</h2>
             <p className="text-xs text-zinc-500">
               How your customer-facing storefront behaves at this location.
             </p>
@@ -103,69 +175,9 @@ export function DirectOrderingModal({ locationId, onClose }: Props) {
             <X className="h-4 w-4" />
           </button>
         </header>
-
-        <div className="space-y-5 p-4 text-sm">
-          {/* Prep times */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Prep time advertised to customers
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <NumberField
-                label="Delivery (mins)"
-                value={deliveryPrep}
-                onChange={setDeliveryPrep}
-              />
-              <NumberField
-                label="Collection (mins)"
-                value={collectionPrep}
-                onChange={setCollectionPrep}
-              />
-            </div>
-          </div>
-
-          {/* Payment methods */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Payment methods accepted online
-            </p>
-            <ToggleRow label="Accept cash on delivery/collection" value={acceptsCash} onChange={setAcceptsCash} />
-            <ToggleRow label="Accept card online (Stripe)" value={acceptsCard} onChange={setAcceptsCard} />
-          </div>
-
-          {/* Order types */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Order types accepted online
-            </p>
-            <ToggleRow label="Accept delivery orders" value={acceptsDelivery} onChange={setAcceptsDelivery} />
-            <ToggleRow label="Accept collection orders" value={acceptsCollection} onChange={setAcceptsCollection} />
-          </div>
-
-          {/* Schedule + min order */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Scheduling
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              <NumberField label="Days ahead" value={scheduleDays} onChange={setScheduleDays} />
-              <NumberField label="Slot mins" value={slotMins} onChange={setSlotMins} />
-              <NumberField label="Min delivery (£)" value={minDelivery} onChange={setMinDelivery} />
-            </div>
-          </div>
+        <div className="p-4">
+          <DirectOrderingSettings locationId={locationId} />
         </div>
-
-        <footer className="flex items-center justify-between border-t border-zinc-200 px-4 py-3">
-          <span className="text-[11px] text-zinc-500">{feedback ?? ""}</span>
-          <button
-            onClick={() => save.mutate()}
-            disabled={save.isPending || configQuery.isLoading}
-            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-          >
-            {save.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-            Save
-          </button>
-        </footer>
       </div>
     </div>
   );

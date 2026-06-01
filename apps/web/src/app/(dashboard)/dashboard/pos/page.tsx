@@ -28,8 +28,11 @@ import {
 } from "@/components/pos/pos-cart-panel";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { PromosModal } from "@/components/pos/promos-modal";
-import { DirectOrderingModal } from "@/components/pos/direct-ordering-modal";
-import { Truck, Tag, Globe } from "lucide-react";
+// Phase AP follow-up (AP-NAV-1): Direct online ordering moved to its
+// own sidebar entry (/dashboard/direct-ordering). The modal import and
+// button below are gone; the settings page itself still uses
+// DirectOrderingSettings (re-exported from this file).
+import { Truck, Tag } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { menusClient, type MenuItem } from "@/lib/api/menus.client";
 import { modifierGroupsClient } from "@/lib/api/catalog.client";
@@ -59,7 +62,6 @@ export default function PosPage() {
   // Phase AM — manager-side modals on the POS top bar.
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
-  const [showDirectModal, setShowDirectModal] = useState(false);
 
   // ── Cart draft persistence ────────────────────────────────────────────────
   // Hydrate on mount (per location). Persist on every cart/draft change.
@@ -281,15 +283,6 @@ export default function PosPage() {
           >
             <Tag className="h-3.5 w-3.5" /> Promos
           </button>
-          <button
-            type="button"
-            onClick={() => setShowDirectModal(true)}
-            disabled={!selectedLocationId}
-            title="Configure the customer-facing online ordering site"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            <Globe className="h-3.5 w-3.5" /> Direct online ordering
-          </button>
           <LocationSelector />
         </div>
       </div>
@@ -377,12 +370,6 @@ export default function PosPage() {
         <DeliveryFeeModal
           locationId={selectedLocationId}
           onClose={() => setShowFeeModal(false)}
-        />
-      )}
-      {showDirectModal && selectedLocationId && (
-        <DirectOrderingModal
-          locationId={selectedLocationId}
-          onClose={() => setShowDirectModal(false)}
         />
       )}
       {showPromosModal && selectedLocationId && (
