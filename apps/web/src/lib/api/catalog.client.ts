@@ -126,7 +126,14 @@ export const productsClient = {
     apiClient
       .get<CatalogProduct[]>(`/v1/brands/${brandId}/items`)
       .then((r) => r.data),
-  create: (brandId: string, data: Partial<CatalogProduct>) =>
+  // Phase AP — Products tab is location-scoped. The brand list above
+  // is kept for the menu editor's "Add from catalog" picker, which
+  // still cross-references the full brand library.
+  listForLocation: (locationId: string) =>
+    apiClient
+      .get<CatalogProduct[]>(`/v1/locations/${locationId}/items`)
+      .then((r) => r.data),
+  create: (brandId: string, data: Partial<CatalogProduct> & { locationId?: string }) =>
     apiClient
       .post<CatalogProduct>(`/v1/brands/${brandId}/items`, data)
       .then((r) => r.data),
@@ -158,7 +165,17 @@ export const modifierGroupsClient = {
     apiClient
       .get<CatalogModifierGroup[]>(`/v1/brands/${brandId}/modifier-groups`)
       .then((r) => r.data),
-  create: (brandId: string, data: Partial<CatalogModifierGroup>) =>
+  // Phase AP — Products tab is location-scoped.
+  listForLocation: (locationId: string) =>
+    apiClient
+      .get<CatalogModifierGroup[]>(
+        `/v1/locations/${locationId}/modifier-groups`,
+      )
+      .then((r) => r.data),
+  create: (
+    brandId: string,
+    data: Partial<CatalogModifierGroup> & { locationId?: string },
+  ) =>
     apiClient
       .post<CatalogModifierGroup>(`/v1/brands/${brandId}/modifier-groups`, data)
       .then((r) => r.data),

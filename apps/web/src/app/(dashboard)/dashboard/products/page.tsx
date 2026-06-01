@@ -19,7 +19,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, Layers } from "lucide-react";
+import { Search, Plus, Layers, Package } from "lucide-react";
 import { brandsClient } from "@/lib/api/menus.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,8 @@ import { ModifiersTab } from "@/components/products/modifiers-tab";
 import { VariantsTab } from "@/components/products/variants-tab";
 import { MealDealsTab } from "@/components/products/meal-deals-tab";
 import { UpsellGroupsTab } from "@/components/products/upsell-groups-tab";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { LocationSelector } from "@/components/dashboard/location-selector";
 
 const TABS = [
   { key: "products", label: "Products" },
@@ -66,6 +68,13 @@ function ProductsPageInner() {
 
   const brandId = selectedBrandId ?? user?.brandId ?? brands[0]?.id ?? "";
 
+  // Phase AP — Products section is location-scoped. The brandId above
+  // stays around because creates still need a brand FK; the LIST + UI
+  // is filtered by location.
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
+
   if (brandsLoading) {
     return (
       <div className="space-y-3">
@@ -95,31 +104,24 @@ function ProductsPageInner() {
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">Products</h1>
           <p className="text-sm text-zinc-500">
-            Master catalog — everything you sell, in one place. Menus pull from here.
+            Products and modifiers for the selected location. Switch the
+            location to see a different catalog.
           </p>
         </div>
+        {/* Phase AP — Products tab is location-scoped (same store POS,
+            Menu, Locations and Direct Ordering use). The brand chip
+            strip that used to sit here was leaking catalog rows
+            between sibling locations. */}
+        <LocationSelector />
       </div>
 
-      {/* ── Brand selector pills (only if >1 brand) ───────────── */}
-      {brands.length > 1 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-            Brand
-          </span>
-          {brands.map((b) => (
-            <button
-              key={b.id}
-              onClick={() => setSelectedBrandId(b.id)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                brandId === b.id
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300",
-              )}
-            >
-              {b.name}
-            </button>
-          ))}
+      {!selectedLocationId && (
+        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-zinc-200 rounded-xl">
+          <Package className="h-10 w-10 text-zinc-300 mb-3" />
+          <p className="font-medium text-zinc-500">Pick a location</p>
+          <p className="text-sm text-zinc-400 mt-1">
+            Use the selector above to choose which location&apos;s catalog to manage.
+          </p>
         </div>
       )}
 
@@ -157,18 +159,40 @@ function ProductsPageInner() {
       </div>
 
       {/* ── Tab content ──────────────────────────────────────── */}
-      <div>
-        {activeTab === "products" && <ProductsTab brandId={brandId} search={search} />}
-        {activeTab === "modifiers" && <ModifiersTab brandId={brandId} search={search} />}
-        {activeTab === "modifier-groups" && (
-          <ModifierGroupsTab brandId={brandId} search={search} />
-        )}
-        {activeTab === "variants" && <VariantsTab brandId={brandId} search={search} />}
-        {activeTab === "meal-deals" && <MealDealsTab brandId={brandId} search={search} />}
-        {activeTab === "upsell-groups" && (
-          <UpsellGroupsTab brandId={brandId} search={search} />
-        )}
-      </div>
+      {selectedLocationId && (
+        <div>
+          {/* Phase AP — pass locationId so Products and Modifier Groups
+              tabs query the per-location library; the others stay
+              brand-scoped for now (Variants, Meal Deals, Upsell Groups
+              all need their own location-scope follow-up). */}
+          {activeTab === "products" && (
+            <ProductsTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
+          )}
+          {activeTab === "modifiers" && (
+            <ModifiersTab brandId={brandId} search={search} />
+          )}
+          {activeTab === "modifier-groups" && (
+            <ModifierGroupsTab
+              brandId={brandId}
+              locationId={selectedLocationId}
+              search={search}
+            />
+          )}
+          {activeTab === "variants" && (
+            <VariantsTab brandId={brandId} search={search} />
+          )}
+          {activeTab === "meal-deals" && (
+            <MealDealsTab brandId={brandId} search={search} />
+          )}
+          {activeTab === "upsell-groups" && (
+            <UpsellGroupsTab brandId={brandId} search={search} />
+          )}
+        </div>
+      )}
     </div>
   );
 }

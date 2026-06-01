@@ -259,6 +259,17 @@ export class MenusController {
     return this.menus.findItemsByBrand(brandId, user.tenantId);
   }
 
+  // Phase AP — operators want the Products tab scoped to their selected
+  // location, not the whole brand. Same pattern the Menu tab uses.
+  @Get("locations/:locationId/items")
+  @ApiOperation({ summary: "List items for a single location" })
+  findItemsForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findItemsByLocation(locationId, user.tenantId);
+  }
+
   @Post("brands/:brandId/items")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a menu item" })
@@ -432,12 +443,31 @@ export class MenusController {
     return this.menus.findModifierGroupsByBrand(brandId, user.tenantId);
   }
 
+  // Phase AP — location-scoped modifier groups for the Products tab.
+  @Get("locations/:locationId/modifier-groups")
+  @ApiOperation({ summary: "List modifier groups for a single location" })
+  listModifierGroupsForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findModifierGroupsByLocation(locationId, user.tenantId);
+  }
+
   @Post("brands/:brandId/modifier-groups")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Create a modifier group" })
   createModifierGroup(
     @Param("brandId") brandId: string,
-    @Body() dto: { name: string; description?: string; minSelections?: number; maxSelections?: number; isRequired?: boolean },
+    @Body()
+    dto: {
+      name: string;
+      description?: string;
+      minSelections?: number;
+      maxSelections?: number;
+      isRequired?: boolean;
+      // Phase AP — Products section is location-scoped.
+      locationId?: string;
+    },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.createModifierGroup(brandId, user.tenantId, dto);

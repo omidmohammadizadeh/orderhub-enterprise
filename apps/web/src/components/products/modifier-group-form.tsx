@@ -15,6 +15,8 @@ import { AttachModal } from "./attach-modal";
 
 interface Props {
   brandId: string;
+  /** Phase AP — stamp new groups with this location. */
+  locationId?: string;
   groupId?: string;
   onCancel: () => void;
   // saved arg is optional so existing call sites that ignore it stay
@@ -26,7 +28,13 @@ interface Props {
 const genPlu = () =>
   "MG-" + Math.random().toString(36).slice(2, 8).toUpperCase();
 
-export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props) {
+export function ModifierGroupForm({
+  brandId,
+  locationId,
+  groupId,
+  onCancel,
+  onSaved,
+}: Props) {
   const qc = useQueryClient();
   const isEdit = !!groupId;
 
@@ -99,7 +107,10 @@ export function ModifierGroupForm({ brandId, groupId, onCancel, onSaved }: Props
       };
       const saved = isEdit && groupId
         ? await modifierGroupsClient.update(groupId, payload)
-        : await modifierGroupsClient.create(brandId, payload);
+        : await modifierGroupsClient.create(brandId, {
+            ...payload,
+            ...(locationId && { locationId }),
+          });
 
       // Create any pending NEW modifiers under the saved group.
       for (const m of pendingModifiers) {

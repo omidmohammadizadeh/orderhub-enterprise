@@ -505,6 +505,11 @@ model MenuCategory {
 model MenuItem {
   id          String   @id @default(cuid())
   brandId     String
+  // Phase AP — Products section is location-scoped. When set, this
+  // product only appears in the Products tab for that location.
+  // Backfilled from "Pizza Uno Pelton" by the AP migration; rows that
+  // didn't match keep this null until the operator reassigns them.
+  locationId  String?
   name        String
   description String?
   basePrice   Decimal  @db.Decimal(10, 2)
@@ -625,6 +630,9 @@ model ModifierGroup {
   id            String  @id @default(cuid())
   brandId       String
   brand         Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // Phase AP — Products section is location-scoped. Same backfill rule
+  // as MenuItem.locationId.
+  locationId    String?
   name          String
   description   String?
   plu           String?

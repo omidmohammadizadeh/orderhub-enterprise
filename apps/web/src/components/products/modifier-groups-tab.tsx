@@ -9,29 +9,38 @@ import { ModifierGroupForm } from "./modifier-group-form";
 
 interface Props {
   brandId: string;
+  /** Phase AP — when set, lists only groups attached to this location. */
+  locationId?: string;
   search: string;
 }
 
-export function ModifierGroupsTab({ brandId, search }: Props) {
+export function ModifierGroupsTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const listQueryKey = locationId
+    ? ["catalog", "modifier-groups", "location", locationId]
+    : ["catalog", "modifier-groups", brandId];
+
   const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["catalog", "modifier-groups", brandId],
-    queryFn: () => modifierGroupsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: listQueryKey,
+    queryFn: () =>
+      locationId
+        ? modifierGroupsClient.listForLocation(locationId)
+        : modifierGroupsClient.list(brandId),
+    enabled: !!(locationId || brandId),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => modifierGroupsClient.remove(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["catalog", "modifier-groups", brandId] });
+      qc.invalidateQueries({ queryKey: listQueryKey });
       qc.invalidateQueries({
         queryKey: ["catalog", "modifier-groups-with-options", brandId],
       });
       // Products that referenced this group lose the link — bust their cache too.
-      qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
+      qc.invalidateQueries({ queryKey: ["catalog", "products"] });
     },
   });
 
@@ -58,6 +67,7 @@ export function ModifierGroupsTab({ brandId, search }: Props) {
     return (
       <ModifierGroupForm
         brandId={brandId}
+        locationId={locationId}
         groupId={editingId ?? undefined}
         onCancel={() => {
           setIsCreating(false);
@@ -66,7 +76,7 @@ export function ModifierGroupsTab({ brandId, search }: Props) {
         onSaved={() => {
           setIsCreating(false);
           setEditingId(null);
-          qc.invalidateQueries({ queryKey: ["catalog", "modifier-groups", brandId] });
+          qc.invalidateQueries({ queryKey: listQueryKey });
           qc.invalidateQueries({
             queryKey: ["catalog", "modifier-groups-with-options", brandId],
           });

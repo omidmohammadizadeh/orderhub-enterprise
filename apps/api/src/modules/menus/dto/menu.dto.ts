@@ -156,6 +156,8 @@ export class CreateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) menuIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) brandIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsObject() platformPricingOverrides?: Record<string, number>;
+  // Phase AP — Products section is location-scoped.
+  @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
 
   @ApiPropertyOptional({ type: [ModifierGroupDto] })
   @IsOptional()
@@ -193,6 +195,8 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) menuIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) brandIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsObject() platformPricingOverrides?: Record<string, number>;
+  // Phase AP — Products section is location-scoped.
+  @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
 
   @ApiPropertyOptional({ type: [ModifierGroupDto] })
   @IsOptional()

@@ -384,6 +384,29 @@ export class MenusService {
     });
   }
 
+  /**
+   * Phase AP — list catalog items scoped strictly to a location.
+   *
+   * Operators reported sibling locations seeing each other's products
+   * because the Products tab was filtering by brandId. This mirrors
+   * the Menu tab change: each shop only sees its own catalog. Items
+   * with locationId=null are intentionally NOT included — those are
+   * legacy brand-only rows the operator can re-assign from the UI.
+   */
+  async findItemsByLocation(locationId: string, tenantId: string) {
+    await this.assertLocationAccess(locationId, tenantId);
+    return this.prisma.menuItem.findMany({
+      where: { locationId },
+      include: {
+        modifierGroupLinks: {
+          include: { group: { include: { options: true } } },
+        },
+        variants: { orderBy: { sortOrder: "asc" } },
+      },
+      orderBy: { name: "asc" },
+    });
+  }
+
   async createItem(brandId: string, tenantId: string, dto: CreateMenuItemDto) {
     await this.assertBrandAccess(brandId, tenantId);
     // Phase AK: auto-generate PLU if the caller didn't supply one. This
@@ -395,6 +418,10 @@ export class MenusService {
     return this.prisma.menuItem.create({
       data: {
         brandId,
+        // Phase AP — stamp the product onto a specific location when the
+        // caller (Products tab) provides one. Without it the row stays
+        // brand-only and shows up nowhere on the new location-scoped UI.
+        ...((dto as any).locationId && { locationId: (dto as any).locationId }),
         name: dto.name,
         description: dto.description,
         basePrice: dto.basePrice,
@@ -592,6 +619,22 @@ export class MenusService {
 
   // ── Modifier Groups ────────────────────────────────────────────────────────
 
+  /**
+   * Phase AP — list modifier groups scoped strictly to a location.
+   * Same rationale as findItemsByLocation.
+   */
+  async findModifierGroupsByLocation(locationId: string, tenantId: string) {
+    await this.assertLocationAccess(locationId, tenantId);
+    return this.prisma.modifierGroup.findMany({
+      where: { locationId },
+      include: {
+        options: { orderBy: { sortOrder: "asc" } },
+        _count: { select: { itemLinks: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+  }
+
   async findModifierGroupsByBrand(brandId: string, tenantId: string) {
     await this.assertBrandAccess(brandId, tenantId);
     const groups = await this.prisma.modifierGroup.findMany({
@@ -657,6 +700,8 @@ export class MenusService {
       allowDuplicateSelections?: boolean;
       plu?: string;
       menuIds?: string[];
+      // Phase AP — Products section is location-scoped.
+      locationId?: string;
     },
   ) {
     await this.assertBrandAccess(brandId, tenantId);
@@ -665,6 +710,7 @@ export class MenusService {
     return this.prisma.modifierGroup.create({
       data: {
         brandId,
+        ...(dto.locationId && { locationId: dto.locationId }),
         name: dto.name,
         description: dto.description ?? null,
         plu,
@@ -1024,6 +1070,17 @@ export class MenusService {
     });
     if (!brand) throw new NotFoundException("Brand not found");
     return brand;
+  }
+
+  /** Phase AP — used by every location-scoped endpoint
+   *  (findAllByLocation, findItemsByLocation, findModifierGroupsByLocation). */
+  private async assertLocationAccess(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, deletedAt: null, brand: { tenantId } },
+      select: { id: true, brandId: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    return location;
   }
 
   private async assertMenuAccess(menuId: string, tenantId: string) {

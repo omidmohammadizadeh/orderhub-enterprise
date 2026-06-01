@@ -22925,6 +22925,7 @@ export namespace Prisma {
   export type MenuItemMinAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
     basePrice: Decimal | null
@@ -22957,6 +22958,7 @@ export namespace Prisma {
   export type MenuItemMaxAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
     basePrice: Decimal | null
@@ -22989,6 +22991,7 @@ export namespace Prisma {
   export type MenuItemCountAggregateOutputType = {
     id: number
     brandId: number
+    locationId: number
     name: number
     description: number
     basePrice: number
@@ -23054,6 +23057,7 @@ export namespace Prisma {
   export type MenuItemMinAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     basePrice?: true
@@ -23086,6 +23090,7 @@ export namespace Prisma {
   export type MenuItemMaxAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     basePrice?: true
@@ -23118,6 +23123,7 @@ export namespace Prisma {
   export type MenuItemCountAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     basePrice?: true
@@ -23246,6 +23252,7 @@ export namespace Prisma {
   export type MenuItemGroupByOutputType = {
     id: string
     brandId: string
+    locationId: string | null
     name: string
     description: string | null
     basePrice: Decimal
@@ -23306,6 +23313,7 @@ export namespace Prisma {
   export type MenuItemSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     basePrice?: boolean
@@ -23352,6 +23360,7 @@ export namespace Prisma {
   export type MenuItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     basePrice?: boolean
@@ -23393,6 +23402,7 @@ export namespace Prisma {
   export type MenuItemSelectScalar = {
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     basePrice?: boolean
@@ -23451,6 +23461,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       brandId: string
+      locationId: string | null
       name: string
       description: string | null
       basePrice: Prisma.Decimal
@@ -23886,6 +23897,7 @@ export namespace Prisma {
   interface MenuItemFieldRefs {
     readonly id: FieldRef<"MenuItem", 'String'>
     readonly brandId: FieldRef<"MenuItem", 'String'>
+    readonly locationId: FieldRef<"MenuItem", 'String'>
     readonly name: FieldRef<"MenuItem", 'String'>
     readonly description: FieldRef<"MenuItem", 'String'>
     readonly basePrice: FieldRef<"MenuItem", 'Decimal'>
@@ -25329,6 +25341,7 @@ export namespace Prisma {
   export type ModifierGroupMinAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
     plu: string | null
@@ -25352,6 +25365,7 @@ export namespace Prisma {
   export type ModifierGroupMaxAggregateOutputType = {
     id: string | null
     brandId: string | null
+    locationId: string | null
     name: string | null
     description: string | null
     plu: string | null
@@ -25375,6 +25389,7 @@ export namespace Prisma {
   export type ModifierGroupCountAggregateOutputType = {
     id: number
     brandId: number
+    locationId: number
     name: number
     description: number
     plu: number
@@ -25415,6 +25430,7 @@ export namespace Prisma {
   export type ModifierGroupMinAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     plu?: true
@@ -25438,6 +25454,7 @@ export namespace Prisma {
   export type ModifierGroupMaxAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     plu?: true
@@ -25461,6 +25478,7 @@ export namespace Prisma {
   export type ModifierGroupCountAggregateInputType = {
     id?: true
     brandId?: true
+    locationId?: true
     name?: true
     description?: true
     plu?: true
@@ -25574,6 +25592,7 @@ export namespace Prisma {
   export type ModifierGroupGroupByOutputType = {
     id: string
     brandId: string
+    locationId: string | null
     name: string
     description: string | null
     plu: string | null
@@ -25619,6 +25638,7 @@ export namespace Prisma {
   export type ModifierGroupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     plu?: boolean
@@ -25650,6 +25670,7 @@ export namespace Prisma {
   export type ModifierGroupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     plu?: boolean
@@ -25677,6 +25698,7 @@ export namespace Prisma {
   export type ModifierGroupSelectScalar = {
     id?: boolean
     brandId?: boolean
+    locationId?: boolean
     name?: boolean
     description?: boolean
     plu?: boolean
@@ -25722,6 +25744,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       brandId: string
+      locationId: string | null
       name: string
       description: string | null
       plu: string | null
@@ -26142,6 +26165,7 @@ export namespace Prisma {
   interface ModifierGroupFieldRefs {
     readonly id: FieldRef<"ModifierGroup", 'String'>
     readonly brandId: FieldRef<"ModifierGroup", 'String'>
+    readonly locationId: FieldRef<"ModifierGroup", 'String'>
     readonly name: FieldRef<"ModifierGroup", 'String'>
     readonly description: FieldRef<"ModifierGroup", 'String'>
     readonly plu: FieldRef<"ModifierGroup", 'String'>
@@ -89490,6 +89514,7 @@ export namespace Prisma {
   export const MenuItemScalarFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
     description: 'description',
     basePrice: 'basePrice',
@@ -89545,6 +89570,7 @@ export namespace Prisma {
   export const ModifierGroupScalarFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
     description: 'description',
     plu: 'plu',
@@ -90884,6 +90910,7 @@ export namespace Prisma {
   export const MenuItemOrderByRelevanceFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
     description: 'description',
     imageUrl: 'imageUrl',
@@ -90914,6 +90941,7 @@ export namespace Prisma {
   export const ModifierGroupOrderByRelevanceFieldEnum: {
     id: 'id',
     brandId: 'brandId',
+    locationId: 'locationId',
     name: 'name',
     description: 'description',
     plu: 'plu',
@@ -93842,6 +93870,7 @@ export namespace Prisma {
     NOT?: MenuItemWhereInput | MenuItemWhereInput[]
     id?: StringFilter<"MenuItem"> | string
     brandId?: StringFilter<"MenuItem"> | string
+    locationId?: StringNullableFilter<"MenuItem"> | string | null
     name?: StringFilter<"MenuItem"> | string
     description?: StringNullableFilter<"MenuItem"> | string | null
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
@@ -93887,6 +93916,7 @@ export namespace Prisma {
   export type MenuItemOrderByWithRelationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     basePrice?: SortOrder
@@ -93936,6 +93966,7 @@ export namespace Prisma {
     OR?: MenuItemWhereInput[]
     NOT?: MenuItemWhereInput | MenuItemWhereInput[]
     brandId?: StringFilter<"MenuItem"> | string
+    locationId?: StringNullableFilter<"MenuItem"> | string | null
     name?: StringFilter<"MenuItem"> | string
     description?: StringNullableFilter<"MenuItem"> | string | null
     basePrice?: DecimalFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
@@ -93981,6 +94012,7 @@ export namespace Prisma {
   export type MenuItemOrderByWithAggregationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     basePrice?: SortOrder
@@ -94030,6 +94062,7 @@ export namespace Prisma {
     NOT?: MenuItemScalarWhereWithAggregatesInput | MenuItemScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"MenuItem"> | string
     brandId?: StringWithAggregatesFilter<"MenuItem"> | string
+    locationId?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     name?: StringWithAggregatesFilter<"MenuItem"> | string
     description?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     basePrice?: DecimalWithAggregatesFilter<"MenuItem"> | Decimal | DecimalJsLike | number | string
@@ -94136,6 +94169,7 @@ export namespace Prisma {
     NOT?: ModifierGroupWhereInput | ModifierGroupWhereInput[]
     id?: StringFilter<"ModifierGroup"> | string
     brandId?: StringFilter<"ModifierGroup"> | string
+    locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
@@ -94166,6 +94200,7 @@ export namespace Prisma {
   export type ModifierGroupOrderByWithRelationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
@@ -94200,6 +94235,7 @@ export namespace Prisma {
     OR?: ModifierGroupWhereInput[]
     NOT?: ModifierGroupWhereInput | ModifierGroupWhereInput[]
     brandId?: StringFilter<"ModifierGroup"> | string
+    locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
@@ -94230,6 +94266,7 @@ export namespace Prisma {
   export type ModifierGroupOrderByWithAggregationInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     plu?: SortOrderInput | SortOrder
@@ -94264,6 +94301,7 @@ export namespace Prisma {
     NOT?: ModifierGroupScalarWhereWithAggregatesInput | ModifierGroupScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"ModifierGroup"> | string
     brandId?: StringWithAggregatesFilter<"ModifierGroup"> | string
+    locationId?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     name?: StringWithAggregatesFilter<"ModifierGroup"> | string
     description?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
     plu?: StringNullableWithAggregatesFilter<"ModifierGroup"> | string | null
@@ -101789,6 +101827,7 @@ export namespace Prisma {
   export type MenuItemCreateInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -101834,6 +101873,7 @@ export namespace Prisma {
   export type MenuItemUncheckedCreateInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -101879,6 +101919,7 @@ export namespace Prisma {
   export type MenuItemUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -101924,6 +101965,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -101969,6 +102011,7 @@ export namespace Prisma {
   export type MenuItemCreateManyInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -102010,6 +102053,7 @@ export namespace Prisma {
   export type MenuItemUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -102051,6 +102095,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -102145,6 +102190,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -102175,6 +102221,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedCreateInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -102203,6 +102250,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102233,6 +102281,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102262,6 +102311,7 @@ export namespace Prisma {
   export type ModifierGroupCreateManyInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -102287,6 +102337,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -102313,6 +102364,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -110388,6 +110440,7 @@ export namespace Prisma {
   export type MenuItemCountOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     basePrice?: SortOrder
@@ -110440,6 +110493,7 @@ export namespace Prisma {
   export type MenuItemMaxOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     basePrice?: SortOrder
@@ -110472,6 +110526,7 @@ export namespace Prisma {
   export type MenuItemMinOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     basePrice?: SortOrder
@@ -110609,6 +110664,7 @@ export namespace Prisma {
   export type ModifierGroupCountOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     plu?: SortOrder
@@ -110641,6 +110697,7 @@ export namespace Prisma {
   export type ModifierGroupMaxOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     plu?: SortOrder
@@ -110664,6 +110721,7 @@ export namespace Prisma {
   export type ModifierGroupMinOrderByAggregateInput = {
     id?: SortOrder
     brandId?: SortOrder
+    locationId?: SortOrder
     name?: SortOrder
     description?: SortOrder
     plu?: SortOrder
@@ -123087,6 +123145,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateWithoutBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -123115,6 +123174,7 @@ export namespace Prisma {
 
   export type ModifierGroupUncheckedCreateWithoutBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -123638,6 +123698,7 @@ export namespace Prisma {
     NOT?: ModifierGroupScalarWhereInput | ModifierGroupScalarWhereInput[]
     id?: StringFilter<"ModifierGroup"> | string
     brandId?: StringFilter<"ModifierGroup"> | string
+    locationId?: StringNullableFilter<"ModifierGroup"> | string | null
     name?: StringFilter<"ModifierGroup"> | string
     description?: StringNullableFilter<"ModifierGroup"> | string | null
     plu?: StringNullableFilter<"ModifierGroup"> | string | null
@@ -125895,6 +125956,7 @@ export namespace Prisma {
   export type MenuItemCreateWithoutCategoriesInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -125939,6 +126001,7 @@ export namespace Prisma {
   export type MenuItemUncheckedCreateWithoutCategoriesInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -126052,6 +126115,7 @@ export namespace Prisma {
   export type MenuItemUpdateWithoutCategoriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -126096,6 +126160,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateWithoutCategoriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -126503,6 +126568,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateWithoutOptionsInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126532,6 +126598,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedCreateWithoutOptionsInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126564,6 +126631,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateWithoutNestedUnderOptionsInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126593,6 +126661,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedCreateWithoutNestedUnderOptionsInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126636,6 +126705,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateWithoutOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126665,6 +126735,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedUpdateWithoutOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126703,6 +126774,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateWithoutNestedUnderOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126732,6 +126804,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedUpdateWithoutNestedUnderOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -126760,6 +126833,7 @@ export namespace Prisma {
   export type MenuItemCreateWithoutModifierGroupLinksInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -126804,6 +126878,7 @@ export namespace Prisma {
   export type MenuItemUncheckedCreateWithoutModifierGroupLinksInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -126852,6 +126927,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateWithoutItemLinksInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126881,6 +126957,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedCreateWithoutItemLinksInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -126925,6 +127002,7 @@ export namespace Prisma {
   export type MenuItemUpdateWithoutModifierGroupLinksInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -126969,6 +127047,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateWithoutModifierGroupLinksInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -127023,6 +127102,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateWithoutItemLinksInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -127052,6 +127132,7 @@ export namespace Prisma {
   export type ModifierGroupUncheckedUpdateWithoutItemLinksInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -127080,6 +127161,7 @@ export namespace Prisma {
   export type MenuItemCreateWithoutVariantsInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -127124,6 +127206,7 @@ export namespace Prisma {
   export type MenuItemUncheckedCreateWithoutVariantsInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -127184,6 +127267,7 @@ export namespace Prisma {
   export type MenuItemUpdateWithoutVariantsInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -127228,6 +127312,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateWithoutVariantsInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -134586,6 +134671,7 @@ export namespace Prisma {
   export type MenuItemCreateWithoutRecipeInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -134630,6 +134716,7 @@ export namespace Prisma {
   export type MenuItemUncheckedCreateWithoutRecipeInput = {
     id?: string
     brandId: string
+    locationId?: string | null
     name: string
     description?: string | null
     basePrice: Decimal | DecimalJsLike | number | string
@@ -134712,6 +134799,7 @@ export namespace Prisma {
   export type MenuItemUpdateWithoutRecipeInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -134756,6 +134844,7 @@ export namespace Prisma {
   export type MenuItemUncheckedUpdateWithoutRecipeInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -138023,6 +138112,7 @@ export namespace Prisma {
 
   export type ModifierGroupCreateManyBrandInput = {
     id?: string
+    locationId?: string | null
     name: string
     description?: string | null
     plu?: string | null
@@ -138430,6 +138520,7 @@ export namespace Prisma {
 
   export type ModifierGroupUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -138458,6 +138549,7 @@ export namespace Prisma {
 
   export type ModifierGroupUncheckedUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null
@@ -138486,6 +138578,7 @@ export namespace Prisma {
 
   export type ModifierGroupUncheckedUpdateManyWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     plu?: NullableStringFieldUpdateOperationsInput | string | null

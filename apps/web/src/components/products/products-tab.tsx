@@ -10,30 +10,40 @@ import { ProductForm } from "./product-form";
 
 interface Props {
   brandId: string;
+  /** Phase AP — when set, query the location-scoped product list so
+   *  sibling locations stay siloed. */
+  locationId?: string;
   search: string;
 }
 
-export function ProductsTab({ brandId, search }: Props) {
+export function ProductsTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Query key includes locationId so switching locations triggers a
+  // fresh fetch rather than reusing the previous location's cache.
+  const listQueryKey = locationId
+    ? ["catalog", "products", "location", locationId]
+    : ["catalog", "products", brandId];
+
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["catalog", "products", brandId],
-    queryFn: () => productsClient.list(brandId),
-    enabled: !!brandId,
+    queryKey: listQueryKey,
+    queryFn: () =>
+      locationId
+        ? productsClient.listForLocation(locationId)
+        : productsClient.list(brandId),
+    enabled: !!(locationId || brandId),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsClient.remove(id),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: listQueryKey }),
   });
 
   const toggleMutation = useMutation({
     mutationFn: (id: string) => productsClient.toggleAvailability(id),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: listQueryKey }),
   });
 
   const filtered = useMemo(
@@ -64,6 +74,7 @@ export function ProductsTab({ brandId, search }: Props) {
     return (
       <ProductForm
         brandId={brandId}
+        locationId={locationId}
         productId={editingId ?? undefined}
         onCancel={() => {
           setIsCreating(false);
@@ -72,7 +83,7 @@ export function ProductsTab({ brandId, search }: Props) {
         onSaved={() => {
           setIsCreating(false);
           setEditingId(null);
-          qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
+          qc.invalidateQueries({ queryKey: listQueryKey });
         }}
       />
     );

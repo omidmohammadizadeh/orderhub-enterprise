@@ -17,6 +17,9 @@ import { ModifierGroupForm } from "./modifier-group-form";
 
 interface Props {
   brandId: string;
+  /** Phase AP — stamp new products with this location so they show
+   *  up in the location-scoped Products tab. */
+  locationId?: string;
   productId?: string;
   onCancel: () => void;
   onSaved: () => void;
@@ -34,7 +37,13 @@ const genSkuPlu = (parentPlu: string, index: number) => {
   return `${base}-${index + 1}`;
 };
 
-export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
+export function ProductForm({
+  brandId,
+  locationId,
+  productId,
+  onCancel,
+  onSaved,
+}: Props) {
   const qc = useQueryClient();
   const isEdit = !!productId;
 
@@ -150,7 +159,12 @@ export function ProductForm({ brandId, productId, onCancel, onSaved }: Props) {
       if (isEdit && productId) {
         saved = await productsClient.update(productId, payload);
       } else {
-        saved = await productsClient.create(brandId, payload);
+        // Phase AP — pass locationId so the new product lands in this
+        // location's Products tab right away.
+        saved = await productsClient.create(brandId, {
+          ...payload,
+          ...(locationId && { locationId }),
+        });
       }
 
       // Sync the attached modifier groups. We diff against the server's

@@ -370,6 +370,7 @@ exports.Prisma.MenuCategoryScalarFieldEnum = {
 exports.Prisma.MenuItemScalarFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
   description: 'description',
   basePrice: 'basePrice',
@@ -419,6 +420,7 @@ exports.Prisma.MenuItemOnCategoryScalarFieldEnum = {
 exports.Prisma.ModifierGroupScalarFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
   description: 'description',
   plu: 'plu',
@@ -1521,6 +1523,7 @@ exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
 exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
   description: 'description',
   imageUrl: 'imageUrl',
@@ -1545,6 +1548,7 @@ exports.Prisma.MenuItemOnCategoryOrderByRelevanceFieldEnum = {
 exports.Prisma.ModifierGroupOrderByRelevanceFieldEnum = {
   id: 'id',
   brandId: 'brandId',
+  locationId: 'locationId',
   name: 'name',
   description: 'description',
   plu: 'plu',
