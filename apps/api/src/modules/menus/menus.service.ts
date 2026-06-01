@@ -68,6 +68,41 @@ export class MenusService {
     });
   }
 
+  /**
+   * Phase AP — list menus that belong to a specific LOCATION only.
+   *
+   * Operators were seeing menus from sibling locations because the menu
+   * list page filtered by brandId; in a multi-location franchise that
+   * brand owns several locations and their menus all rolled up. The
+   * Menu tab now scopes strictly to the location currently selected
+   * in the location selector, so each location only sees its own menus.
+   *
+   * We include menus whose Menu.locationId matches the requested
+   * location. Legacy brand-only menus (Menu.locationId null) are
+   * deliberately NOT included — they belong to no location in the
+   * Phase AP model. Operators with one such menu can migrate it via
+   * the existing update endpoint (set locationId on the menu).
+   */
+  async findAllByLocation(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    return this.prisma.menu.findMany({
+      where: { locationId, deletedAt: null },
+      include: {
+        _count: { select: { categories: true, versions: true } },
+        versions: {
+          orderBy: { version: "desc" },
+          take: 1,
+          select: { version: true, label: true, createdAt: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   async findOne(menuId: string, tenantId: string) {
     const menu = await this.prisma.menu.findFirst({
       where: { id: menuId, deletedAt: null, brand: { tenantId } },

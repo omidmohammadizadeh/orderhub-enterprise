@@ -27,6 +27,8 @@ import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { Send, CheckCircle2 } from "lucide-react";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { LocationSelector } from "@/components/dashboard/location-selector";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -75,10 +77,16 @@ export default function MenuPage() {
   const brandId =
     selectedBrandId ?? user?.brandId ?? brands[0]?.id ?? "";
 
+  // Phase AP — Menu tab is scoped to the currently selected location.
+  // Each location only ever sees its own menus, not the franchise
+  // brand's union of menus across every sibling location.
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
   const { data: menus = [], isLoading } = useQuery({
-    queryKey: ["menus", brandId],
-    queryFn: () => menusClient.listMenus(brandId),
-    enabled: !!brandId,
+    queryKey: ["menus", "location", selectedLocationId],
+    queryFn: () => menusClient.listMenusForLocation(selectedLocationId!),
+    enabled: !!selectedLocationId,
   });
 
   const createBrandMutation = useMutation({
@@ -101,23 +109,23 @@ export default function MenuPage() {
 
   const publishMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.publishMenu(menuId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
   });
 
   const archiveMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.archiveMenu(menuId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
   });
 
   const cloneMutation = useMutation({
     mutationFn: ({ menuId, name }: { menuId: string; name: string }) =>
       menusClient.cloneMenu(menuId, name),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.deleteMenu(menuId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus", brandId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
   });
 
   // Phase AK — bulk PLU backfill. MUST stay above the early-return branches
@@ -130,7 +138,7 @@ export default function MenuPage() {
   const generatePlusMutation = useMutation({
     mutationFn: () => menusClient.generateMissingPlus(),
     onSuccess: (r) => {
-      qc.invalidateQueries({ queryKey: ["menus", brandId] });
+      qc.invalidateQueries({ queryKey: ["menus"] });
       alert(
         `Generated PLUs: ${r.products} products, ${r.modifierGroups} groups, ${r.modifiers} modifiers.`,
       );
@@ -219,12 +227,18 @@ export default function MenuPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">Menu Management</h1>
-          <p className="text-sm text-zinc-500">Manage menus, categories, and items across all platforms.</p>
+          <p className="text-sm text-zinc-500">
+            Menus belong to the selected location. Switch the location to see its menus.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Phase AP — single source of truth for which location's
+              menus the operator is editing. POS, Locations, and this
+              tab all share useSelectedLocationStore. */}
+          <LocationSelector />
           <Button
             size="sm"
             variant="outline"
@@ -237,6 +251,7 @@ export default function MenuPage() {
           <Button
             size="sm"
             onClick={openAddMenu}
+            disabled={!selectedLocationId}
             className="bg-zinc-900 hover:bg-zinc-800 text-white"
           >
             <Plus className="h-4 w-4 mr-1.5" />
@@ -258,8 +273,9 @@ export default function MenuPage() {
       <CreateMenuModal
         open={addStep === "create"}
         brandId={brandId}
+        locationId={selectedLocationId}
         onCreated={(menu) => {
-          qc.invalidateQueries({ queryKey: ["menus", brandId] });
+          qc.invalidateQueries({ queryKey: ["menus"] });
           setAddStep(null);
           router.push(`/dashboard/menu/${menu.id}`);
         }}
@@ -276,25 +292,19 @@ export default function MenuPage() {
         onCancel={() => setAddStep(null)}
       />
 
-      {brands.length > 1 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-            Brand
-          </span>
-          {brands.map((b) => (
-            <button
-              key={b.id}
-              onClick={() => setSelectedBrandId(b.id)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                brandId === b.id
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300",
-              )}
-            >
-              {b.name}
-            </button>
-          ))}
+      {/* Phase AP — brand chip strip removed. The Menu tab is now
+          location-scoped (see the LocationSelector in the header).
+          A franchise can still cross-publish a menu via the publish
+          modal; the per-location list keeps the operator focused on
+          the shop they're working at. */}
+
+      {!selectedLocationId && (
+        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-zinc-200 rounded-xl">
+          <UtensilsCrossed className="h-10 w-10 text-zinc-300 mb-3" />
+          <p className="font-medium text-zinc-500">Pick a location</p>
+          <p className="text-sm text-zinc-400 mt-1">
+            Use the selector above to choose which location&apos;s menus to manage.
+          </p>
         </div>
       )}
 
@@ -349,7 +359,7 @@ export default function MenuPage() {
           ((publishingMenu as any)?.publishedTo ?? []) as string[]
         }
         onConfirmed={(targets) => {
-          qc.invalidateQueries({ queryKey: ["menus", brandId] });
+          qc.invalidateQueries({ queryKey: ["menus"] });
           // Show the success toast even when the operator unchecks
           // every target — distinguish in the copy.
           if (publishingMenu) {

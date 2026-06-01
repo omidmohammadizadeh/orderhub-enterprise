@@ -37,7 +37,9 @@ import {
   GripVertical,
   Eye,
   Search,
+  Settings,
 } from "lucide-react";
+import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +77,7 @@ export default function MenuEditorPage() {
   // ── Local state ────────────────────────────────────────────────────
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -263,6 +266,15 @@ export default function MenuEditorPage() {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5"
             onClick={() =>
               window.open(`/menu/${menuId}/preview`, "_blank")
             }
@@ -281,6 +293,16 @@ export default function MenuEditorPage() {
           )}
         </div>
       </div>
+
+      {/* Phase AP — menu Settings drawer. Edit name/description/menuType
+          + hero/banner/logo images here. Categories, products, modifier
+          groups remain in the sidebar + main panel. */}
+      {settingsOpen && (
+        <MenuSettingsDrawer
+          menu={menu as any}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {/* ── Body: sidebar + main ─────────────────────────────── */}
       <div className="flex-1 flex min-h-0">

@@ -116,6 +116,18 @@ export class MenusController {
     return this.menus.findAllByBrand(brandId, user.tenantId);
   }
 
+  // Phase AP — operators wanted the Menu tab scoped to the location
+  // they're currently working at, not their whole brand. This endpoint
+  // returns ONLY the menus whose Menu.locationId matches.
+  @Get("locations/:locationId/menus")
+  @ApiOperation({ summary: "List menus for a single location" })
+  findAllForLocation(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findAllByLocation(locationId, user.tenantId);
+  }
+
   @Get("menus/:menuId")
   @ApiOperation({ summary: "Get menu with categories and items" })
   findOne(

@@ -19,10 +19,17 @@ export const brandsClient = {
 export interface Menu {
   id: string;
   brandId: string;
+  locationId?: string | null;
   name: string;
   description?: string | null;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   isActive: boolean;
+  /** Phase AM presentation fields, editable from the Settings drawer. */
+  menuType?: string | null;
+  bannerImage?: string | null;
+  logoImage?: string | null;
+  heroImage?: string | null;
+  publishedTo?: string[];
   createdAt: string;
   updatedAt: string;
   _count?: { categories: number };
@@ -126,14 +133,50 @@ export const menusClient = {
   listMenus: (brandId: string) =>
     apiClient.get<Menu[]>(`/v1/brands/${brandId}/menus`).then((r) => r.data),
 
+  // Phase AP — Menu tab now scopes by the currently selected location
+  // instead of leaking every menu under the brand.
+  listMenusForLocation: (locationId: string) =>
+    apiClient
+      .get<Menu[]>(`/v1/locations/${locationId}/menus`)
+      .then((r) => r.data),
+
   getMenu: (menuId: string) =>
     apiClient.get<MenuWithCategories>(`/v1/menus/${menuId}`).then((r) => r.data),
 
-  createMenu: (brandId: string, data: { name: string; description?: string }) =>
-    apiClient.post<Menu>(`/v1/brands/${brandId}/menus`, data).then((r) => r.data),
+  createMenu: (
+    brandId: string,
+    data: {
+      name: string;
+      description?: string;
+      // Phase AP — when present, the new menu is stamped with this
+      // locationId so it appears under that location in the Menu tab.
+      locationId?: string;
+      menuType?: string;
+      bannerImage?: string;
+      logoImage?: string;
+      heroImage?: string;
+    },
+  ) =>
+    apiClient
+      .post<Menu>(`/v1/brands/${brandId}/menus`, data)
+      .then((r) => r.data),
 
-  updateMenu: (menuId: string, data: Partial<{ name: string; description: string; status: string; isActive: boolean }>) =>
-    apiClient.patch<Menu>(`/v1/menus/${menuId}`, data).then((r) => r.data),
+  updateMenu: (
+    menuId: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      status: string;
+      isActive: boolean;
+      // Phase AP — editable from the menu editor "Settings" panel.
+      menuType: string;
+      bannerImage: string | null;
+      logoImage: string | null;
+      heroImage: string | null;
+      locationId: string;
+      publishedTo: string[];
+    }>,
+  ) => apiClient.patch<Menu>(`/v1/menus/${menuId}`, data).then((r) => r.data),
 
   publishMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/publish`, {}).then((r) => r.data),

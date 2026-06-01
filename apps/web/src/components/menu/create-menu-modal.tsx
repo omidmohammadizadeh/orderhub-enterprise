@@ -21,11 +21,21 @@ import { ImageUploader } from "@/components/products/image-uploader";
 interface Props {
   open: boolean;
   brandId: string;
+  /** Phase AP — stamp the new menu with this location's id so it only
+   *  appears under that location in the Menu tab. The Menu tab now
+   *  passes the value from `useSelectedLocationStore`. */
+  locationId?: string | null;
   onCreated: (menu: Menu) => void;
   onCancel: () => void;
 }
 
-export function CreateMenuModal({ open, brandId, onCreated, onCancel }: Props) {
+export function CreateMenuModal({
+  open,
+  brandId,
+  locationId,
+  onCreated,
+  onCancel,
+}: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [menuType, setMenuType] = useState<"DELIVERY" | "DELIVERY_AND_PICKUP">(
@@ -41,9 +51,12 @@ export function CreateMenuModal({ open, brandId, onCreated, onCancel }: Props) {
         description: description.trim() || undefined,
         // Phase AM extras — backend silently ignores if absent.
         menuType,
-        bannerImage,
-        logoImage,
-      } as any),
+        bannerImage: bannerImage ?? undefined,
+        logoImage: logoImage ?? undefined,
+        // Phase AP — scope this menu to the current location so the
+        // location-only Menu tab picks it up.
+        locationId: locationId ?? undefined,
+      }),
     onSuccess: (menu) => {
       onCreated(menu);
       // Reset local state so the next open is clean.
