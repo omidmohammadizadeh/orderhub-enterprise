@@ -41,7 +41,19 @@ export default function DirectOrderingPage() {
         </div>
       ) : (
         <div className="max-w-2xl rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <DirectOrderingSettings locationId={selectedLocationId} />
+          {/*
+            Keying the form by locationId guarantees React fully
+            remounts it whenever the operator switches the location
+            selector. Without this, the inner useState values (prep
+            times, toggles, etc.) would briefly retain the previous
+            location's settings until the new useQuery resolved — and
+            an unsaved change made during that window would be saved
+            against the WRONG location's DirectOrderingConfig.
+          */}
+          <DirectOrderingSettings
+            key={selectedLocationId}
+            locationId={selectedLocationId}
+          />
         </div>
       )}
     </div>
