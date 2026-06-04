@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { AuthGuard } from "@/components/dashboard/auth-guard";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+
+// Private app — never appear in search results.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 // This layout wraps every route inside (dashboard)/ — which includes
 // all /dashboard/* pages. AuthGuard enforces authentication before

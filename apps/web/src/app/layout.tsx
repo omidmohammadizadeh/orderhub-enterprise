@@ -22,7 +22,10 @@ export const metadata: Metadata = {
   },
   description:
     "Omnichannel restaurant integration platform. Unify Uber Eats, Deliveroo, Just Eat, and direct orders in one place.",
-  robots: { index: false, follow: false }, // Private SaaS — never index
+  // Marketing landing at / wants to be indexed; private routes
+  // (/dashboard, /kds, /order/*) opt out via their own segment
+  // metadata. Pages override this default per-route as needed.
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
