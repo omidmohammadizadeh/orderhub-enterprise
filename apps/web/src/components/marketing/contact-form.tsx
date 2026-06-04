@@ -16,10 +16,29 @@ import { useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { InView } from "./in-view";
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL ?? "";
 const FALLBACK_EMAIL = "hello@orderhub.io";
 
-export function ContactForm() {
+interface Props {
+  /**
+   * Google Apps Script Web App URL.
+   *
+   * Read server-side by the page (which can see runtime env vars
+   * regardless of whether they're prefixed NEXT_PUBLIC_) and passed
+   * down here as a prop. We deliberately don't read
+   * process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL inside this client
+   * file because Render's Docker build doesn't reliably pass
+   * NEXT_PUBLIC_* into `next build`, which left the form silently
+   * falling back to mailto even when the operator had configured
+   * the variable correctly.
+   *
+   * Empty string → form opens the user's mailto fallback instead of
+   * POSTing.
+   */
+  webhookUrl?: string;
+}
+
+export function ContactForm({ webhookUrl = "" }: Props) {
+  const WEBHOOK_URL = webhookUrl;
   const [name, setName] = useState("");
   const [restaurant, setRestaurant] = useState("");
   const [phone, setPhone] = useState("");

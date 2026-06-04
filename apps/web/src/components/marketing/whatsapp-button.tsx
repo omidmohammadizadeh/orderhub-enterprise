@@ -1,33 +1,39 @@
-"use client";
-
 // Phase AP marketing — floating WhatsApp chat bubble.
 //
-// Reads the support number from NEXT_PUBLIC_WHATSAPP_NUMBER (digits
-// only — `447900123456`, no `+` or spaces). When unset we hide the
-// bubble entirely instead of rendering a dead link.
+// Render's Docker build doesn't reliably pass NEXT_PUBLIC_* env vars
+// into `next build`, which means anything we read via
+// `process.env.NEXT_PUBLIC_X` from a "use client" file becomes the
+// empty string in production. The bubble was hidden because the gate
+// `if (!NUMBER) return null;` tripped on every render.
 //
-// Tap → opens the standard wa.me deep link with a prefilled message.
-// On desktop that opens WhatsApp Web; on mobile it opens the app
-// directly.
+// Fix: drop "use client" entirely. This component is now a Server
+// Component that reads the env var at render time (after `noStore()`
+// opts out of route caching), so the value is picked up from Render's
+// runtime env without any build-time inlining.
+//
+// Reads BOTH `WHATSAPP_NUMBER` (the new server-only var) and the
+// legacy `NEXT_PUBLIC_WHATSAPP_NUMBER` so the operator's existing
+// Render config still works without renaming.
+//
+// All animations are pure CSS. The 600ms entrance delay that used to
+// live in a React useEffect now sits on `animation-delay` so the
+// browser handles the staggering with zero JS.
 
-import { useEffect, useState } from "react";
+import { unstable_noStore as noStore } from "next/cache";
 import { MessageCircle } from "lucide-react";
 
-const NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
 const DEFAULT_MESSAGE = "Hi Order Hub — I'd like to know more.";
 
 export function WhatsAppButton() {
-  // Delay first paint a half-second so the bubble pops in AFTER the
-  // hero loads — keeps it from competing with the hero CTA at first
-  // glance.
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const t = window.setTimeout(() => setShown(true), 600);
-    return () => window.clearTimeout(t);
-  }, []);
+  noStore();
+  const raw =
+    process.env.WHATSAPP_NUMBER ??
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ??
+    "";
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (!digits) return null;
 
-  if (!NUMBER) return null;
-  const href = `https://wa.me/${NUMBER.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
+  const href = `https://wa.me/${digits}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
 
   return (
     <>
@@ -41,16 +47,18 @@ export function WhatsAppButton() {
           0%,100% { box-shadow: 0 0 0 0 rgba(37,211,102,0.55); }
           50%     { box-shadow: 0 0 0 14px rgba(37,211,102,0); }
         }
-        .wa-anim { animation: wa-pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both, wa-pulse 2.4s ease-out infinite 1s; }
+        .wa-anim {
+          animation:
+            wa-pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 600ms both,
+            wa-pulse 2.4s ease-out infinite 1.8s;
+        }
       `}</style>
       <a
         href={href}
         target="_blank"
         rel="noreferrer noopener"
         aria-label="Chat with us on WhatsApp"
-        className={`fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 font-semibold text-white shadow-2xl transition-transform hover:scale-105 sm:bottom-7 sm:right-7 ${
-          shown ? "wa-anim" : "invisible"
-        }`}
+        className="wa-anim fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 font-semibold text-white shadow-2xl transition-transform hover:scale-105 sm:bottom-7 sm:right-7"
       >
         <MessageCircle className="h-5 w-5 fill-white" />
         <span className="hidden text-sm sm:inline">Chat with us</span>

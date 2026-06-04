@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 import { ArrowRight } from "lucide-react";
 import { LoggedInBanner } from "@/components/marketing/logged-in-banner";
 import { SiteNav } from "@/components/marketing/site-nav";
@@ -26,6 +27,17 @@ export const metadata: Metadata = {
 };
 
 export default function MarketingHomePage() {
+  // noStore() opts the page out of route-level caching so the
+  // process.env reads below resolve against Render's RUNTIME env
+  // rather than the empty-at-build-time snapshot Next.js would
+  // otherwise bake in. The page still renders fast (it's not doing
+  // anything async) — we just skip the static cache step.
+  noStore();
+  const contactWebhookUrl =
+    process.env.CONTACT_WEBHOOK_URL ??
+    process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL ??
+    "";
+
   return (
     <div className="min-h-screen bg-white text-zinc-900">
       <LoggedInBanner />
@@ -35,7 +47,7 @@ export default function MarketingHomePage() {
       <StatCounters />
       <FeatureBlocks />
       <CaseStudy />
-      <Contact />
+      <Contact webhookUrl={contactWebhookUrl} />
       <FinalCta />
       <SiteFooter />
       <WhatsAppButton />
@@ -160,11 +172,11 @@ function Metric({ label, value }: { label: string; value: string }) {
 // MARKETING_GOOGLE_SHEET.md for the operator setup steps. The pricing
 // anchor stays valid (#pricing) so the nav link still scrolls here.
 
-function Contact() {
+function Contact({ webhookUrl }: { webhookUrl: string }) {
   return (
     <section id="pricing" className="bg-zinc-50 py-24">
       <div className="mx-auto max-w-5xl px-4">
-        <ContactForm />
+        <ContactForm webhookUrl={webhookUrl} />
       </div>
     </section>
   );
