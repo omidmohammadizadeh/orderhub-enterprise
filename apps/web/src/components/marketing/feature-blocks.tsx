@@ -7,7 +7,7 @@
 // layout stays identical.
 
 import { InView } from "./in-view";
-import { PlatformLogo } from "@/components/ui/platform-logo";
+import { BrandLogo } from "./brand-logo";
 import {
   ShoppingBag,
   Globe,
@@ -151,11 +151,12 @@ function MockupPosBoard() {
                 className="mb-1.5 rounded-md border border-zinc-200 bg-white p-2"
               >
                 <div className="flex items-center gap-1">
-                  <PlatformLogo
-                    platform={
-                      i === 0 ? "UBER_EATS" : i === 1 ? "DELIVEROO" : "POS"
+                  <BrandLogo
+                    brand={
+                      i === 0 ? "ubereats" : i === 1 ? "deliveroo" : "orderhub"
                     }
                     size={14}
+                    rounded
                   />
                   <span className="text-[10px] font-mono font-bold text-zinc-900">
                     #{1000 + i}

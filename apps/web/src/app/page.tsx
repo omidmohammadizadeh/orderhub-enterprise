@@ -15,7 +15,9 @@ import { MarqueeLogos } from "@/components/marketing/marquee-logos";
 import { StatCounters } from "@/components/marketing/stat-counters";
 import { FeatureBlocks } from "@/components/marketing/feature-blocks";
 import { InView } from "@/components/marketing/in-view";
-import { PlatformLogo } from "@/components/ui/platform-logo";
+import { BrandLogo } from "@/components/marketing/brand-logo";
+import { ContactForm } from "@/components/marketing/contact-form";
+import { WhatsAppButton } from "@/components/marketing/whatsapp-button";
 
 export const metadata: Metadata = {
   title: "Order Hub — One inbox for every restaurant order",
@@ -33,9 +35,10 @@ export default function MarketingHomePage() {
       <StatCounters />
       <FeatureBlocks />
       <CaseStudy />
-      <Pricing />
+      <Contact />
       <FinalCta />
       <SiteFooter />
+      <WhatsAppButton />
     </div>
   );
 }
@@ -125,9 +128,9 @@ function CaseStudy() {
               <div className="relative hidden lg:block bg-gradient-to-bl from-orange-500/20 via-transparent to-emerald-500/10">
                 <div className="absolute inset-0 grid place-items-center">
                   <div className="flex flex-col gap-3">
-                    <PlatformLogo platform="UBER_EATS" size={56} rounded />
-                    <PlatformLogo platform="DELIVEROO" size={56} rounded />
-                    <PlatformLogo platform="POS" size={56} rounded />
+                    <BrandLogo brand="ubereats" size={56} rounded />
+                    <BrandLogo brand="deliveroo" size={56} rounded />
+                    <BrandLogo brand="orderhub" size={56} rounded />
                   </div>
                 </div>
               </div>
@@ -150,11 +153,28 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ── Pricing teaser ───────────────────────────────────────────────────────────
+// ── Contact section ─────────────────────────────────────────────────────────
+//
+// Replaces the previous static "Talk to us" card. The ContactForm
+// component POSTs straight to a Google Sheet via Apps Script — see
+// MARKETING_GOOGLE_SHEET.md for the operator setup steps. The pricing
+// anchor stays valid (#pricing) so the nav link still scrolls here.
 
-function Pricing() {
+function Contact() {
   return (
-    <section id="pricing" className="py-24">
+    <section id="pricing" className="bg-zinc-50 py-24">
+      <div className="mx-auto max-w-5xl px-4">
+        <ContactForm />
+      </div>
+    </section>
+  );
+}
+
+// ── Pricing teaser (kept as a no-op for now in case anything links here) ──
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _UnusedPricing() {
+  return (
+    <section className="py-24">
       <div className="mx-auto max-w-3xl px-4">
         <InView>
           <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center shadow-sm">

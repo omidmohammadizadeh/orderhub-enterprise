@@ -38,3 +38,8 @@ coverage/
 
 # Docker volumes (local dev data)
 .docker-volumes/
+
+
+# Claude Code — personal permissions allow-list (per-machine, not committed)
+.claude/settings.local.json
+

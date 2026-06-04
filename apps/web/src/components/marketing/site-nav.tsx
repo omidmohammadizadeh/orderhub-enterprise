@@ -6,14 +6,14 @@
 
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { PlatformLogo } from "@/components/ui/platform-logo";
+import { BrandLogo, type BrandKey } from "./brand-logo";
 
 interface MenuItem {
   label: string;
   description?: string;
   href: string;
   /** Optional brand mark — used by Integrations menu. */
-  platform?: string;
+  brand?: BrandKey;
 }
 
 const SOLUTIONS: MenuItem[] = [
@@ -40,12 +40,12 @@ const SOLUTIONS: MenuItem[] = [
 ];
 
 const INTEGRATIONS: MenuItem[] = [
-  { label: "Uber Eats", href: "/login", platform: "UBER_EATS" },
-  { label: "Deliveroo", href: "/login", platform: "DELIVEROO" },
-  { label: "HubRise", href: "/login", platform: "HUBRISE" },
-  { label: "Just Eat (coming soon)", href: "/login", platform: "JUST_EAT" },
-  { label: "Order Hub POS", href: "/login", platform: "POS" },
-  { label: "Stripe", href: "/login" },
+  { label: "Uber Eats", href: "/login", brand: "ubereats" },
+  { label: "Deliveroo", href: "/login", brand: "deliveroo" },
+  { label: "HubRise", href: "/login", brand: "hubrise" },
+  { label: "Just Eat (coming soon)", href: "/login", brand: "justeat" },
+  { label: "Order Hub POS", href: "/login", brand: "orderhub" },
+  { label: "Stripe", href: "/login", brand: "stripe" },
 ];
 
 const RESOURCES: MenuItem[] = [
@@ -132,8 +132,8 @@ function MegaMenu({
                     href={it.href}
                     className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-zinc-50"
                   >
-                    {it.platform && (
-                      <PlatformLogo platform={it.platform} size={24} rounded />
+                    {it.brand && (
+                      <BrandLogo brand={it.brand} size={24} rounded />
                     )}
                     <span className="text-sm text-zinc-800">{it.label}</span>
                   </Link>
