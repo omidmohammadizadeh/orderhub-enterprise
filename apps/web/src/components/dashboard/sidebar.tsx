@@ -28,6 +28,7 @@ import {
   FlaskConical,
   Layers,
   Globe,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,14 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/inventory", label: "Inventory", icon: Package },
   { href: "/dashboard/integrations", label: "Integrations", icon: Plug2 },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },
+  // Phase AP — admin-only secrets vault. Only PLATFORM_ADMIN can see
+  // the link AND the page itself; the API also enforces the role.
+  {
+    href: "/dashboard/secrets",
+    label: "Secrets",
+    icon: KeyRound,
+    roles: ["PLATFORM_ADMIN"],
+  },
 ];
 
 const operationsNav: NavItem[] = [
@@ -120,7 +129,16 @@ export function Sidebar() {
 
       {/* ── Primary navigation ──────────────────────── */}
       <nav className="flex-1 overflow-y-auto sidebar-scroll px-2 pt-4 pb-2 space-y-0.5">
-        {primaryNav.map((item) => (
+        {primaryNav
+          .filter(
+            (item) =>
+              // Phase AP — items with a `roles` array are hidden from
+              // users without that role. Server enforces too — this is
+              // UI cleanliness.
+              !item.roles ||
+              (user?.role && item.roles.includes(user.role)),
+          )
+          .map((item) => (
           <SidebarNavItem
             key={item.href}
             item={item}

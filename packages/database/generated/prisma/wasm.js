@@ -1325,6 +1325,20 @@ exports.Prisma.WebPushSubscriptionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SystemSecretScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  label: 'label',
+  description: 'description',
+  category: 'category',
+  encryptedValue: 'encryptedValue',
+  lastFourChars: 'lastFourChars',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.OutboxEventScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2087,6 +2101,18 @@ exports.Prisma.WebPushSubscriptionOrderByRelevanceFieldEnum = {
   auth: 'auth'
 };
 
+exports.Prisma.SystemSecretOrderByRelevanceFieldEnum = {
+  id: 'id',
+  key: 'key',
+  label: 'label',
+  description: 'description',
+  category: 'category',
+  encryptedValue: 'encryptedValue',
+  lastFourChars: 'lastFourChars',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.OutboxEventOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2521,6 +2547,7 @@ exports.Prisma.ModelName = {
   WebhookRoute: 'WebhookRoute',
   MobileSession: 'MobileSession',
   WebPushSubscription: 'WebPushSubscription',
+  SystemSecret: 'SystemSecret',
   OutboxEvent: 'OutboxEvent'
 };
 

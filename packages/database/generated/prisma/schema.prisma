@@ -2152,6 +2152,33 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Phase AP — encrypted secret values used by other modules in place of
+// process.env. AES-256-GCM encryption with SECRETS_MASTER_KEY; the DB
+// never sees plaintext. Only the last 4 characters of the value are
+// stored separately (lastFourChars) so the admin UI can show
+// "sk_live_••••4u9X" without needing to decrypt.
+model SystemSecret {
+  id             String   @id @default(cuid())
+  key            String   @unique // e.g. STRIPE_SECRET_KEY
+  label          String?
+  description    String?
+  category       String? // grouping for the admin UI: stripe / google / supabase / delivery / etc.
+  encryptedValue String // base64(iv || authTag || ciphertext)
+  lastFourChars  String?
+  createdBy      String?
+  updatedBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([category])
+  @@map("system_secrets")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
 // ══════════════════════════════════════════════════════════════════════════════
 

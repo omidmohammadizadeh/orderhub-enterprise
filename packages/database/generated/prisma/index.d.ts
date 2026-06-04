@@ -384,6 +384,11 @@ export type MobileSession = $Result.DefaultSelection<Prisma.$MobileSessionPayloa
  */
 export type WebPushSubscription = $Result.DefaultSelection<Prisma.$WebPushSubscriptionPayload>
 /**
+ * Model SystemSecret
+ * 
+ */
+export type SystemSecret = $Result.DefaultSelection<Prisma.$SystemSecretPayload>
+/**
  * Model OutboxEvent
  * 
  */
@@ -1898,6 +1903,16 @@ export class PrismaClient<
   get webPushSubscription(): Prisma.WebPushSubscriptionDelegate<ExtArgs>;
 
   /**
+   * `prisma.systemSecret`: Exposes CRUD operations for the **SystemSecret** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SystemSecrets
+    * const systemSecrets = await prisma.systemSecret.findMany()
+    * ```
+    */
+  get systemSecret(): Prisma.SystemSecretDelegate<ExtArgs>;
+
+  /**
    * `prisma.outboxEvent`: Exposes CRUD operations for the **OutboxEvent** model.
     * Example usage:
     * ```ts
@@ -2421,6 +2436,7 @@ export namespace Prisma {
     WebhookRoute: 'WebhookRoute',
     MobileSession: 'MobileSession',
     WebPushSubscription: 'WebPushSubscription',
+    SystemSecret: 'SystemSecret',
     OutboxEvent: 'OutboxEvent'
   };
 
@@ -2437,7 +2453,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "outboxEvent"
+      modelProps: "tenant" | "user" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -7618,6 +7634,76 @@ export namespace Prisma {
           count: {
             args: Prisma.WebPushSubscriptionCountArgs<ExtArgs>
             result: $Utils.Optional<WebPushSubscriptionCountAggregateOutputType> | number
+          }
+        }
+      }
+      SystemSecret: {
+        payload: Prisma.$SystemSecretPayload<ExtArgs>
+        fields: Prisma.SystemSecretFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SystemSecretFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SystemSecretFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          findFirst: {
+            args: Prisma.SystemSecretFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SystemSecretFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          findMany: {
+            args: Prisma.SystemSecretFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>[]
+          }
+          create: {
+            args: Prisma.SystemSecretCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          createMany: {
+            args: Prisma.SystemSecretCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SystemSecretCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>[]
+          }
+          delete: {
+            args: Prisma.SystemSecretDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          update: {
+            args: Prisma.SystemSecretUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          deleteMany: {
+            args: Prisma.SystemSecretDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SystemSecretUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SystemSecretUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SystemSecretPayload>
+          }
+          aggregate: {
+            args: Prisma.SystemSecretAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSystemSecret>
+          }
+          groupBy: {
+            args: Prisma.SystemSecretGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SystemSecretGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SystemSecretCountArgs<ExtArgs>
+            result: $Utils.Optional<SystemSecretCountAggregateOutputType> | number
           }
         }
       }
@@ -88173,6 +88259,956 @@ export namespace Prisma {
 
 
   /**
+   * Model SystemSecret
+   */
+
+  export type AggregateSystemSecret = {
+    _count: SystemSecretCountAggregateOutputType | null
+    _min: SystemSecretMinAggregateOutputType | null
+    _max: SystemSecretMaxAggregateOutputType | null
+  }
+
+  export type SystemSecretMinAggregateOutputType = {
+    id: string | null
+    key: string | null
+    label: string | null
+    description: string | null
+    category: string | null
+    encryptedValue: string | null
+    lastFourChars: string | null
+    createdBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SystemSecretMaxAggregateOutputType = {
+    id: string | null
+    key: string | null
+    label: string | null
+    description: string | null
+    category: string | null
+    encryptedValue: string | null
+    lastFourChars: string | null
+    createdBy: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SystemSecretCountAggregateOutputType = {
+    id: number
+    key: number
+    label: number
+    description: number
+    category: number
+    encryptedValue: number
+    lastFourChars: number
+    createdBy: number
+    updatedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SystemSecretMinAggregateInputType = {
+    id?: true
+    key?: true
+    label?: true
+    description?: true
+    category?: true
+    encryptedValue?: true
+    lastFourChars?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SystemSecretMaxAggregateInputType = {
+    id?: true
+    key?: true
+    label?: true
+    description?: true
+    category?: true
+    encryptedValue?: true
+    lastFourChars?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SystemSecretCountAggregateInputType = {
+    id?: true
+    key?: true
+    label?: true
+    description?: true
+    category?: true
+    encryptedValue?: true
+    lastFourChars?: true
+    createdBy?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SystemSecretAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SystemSecret to aggregate.
+     */
+    where?: SystemSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SystemSecrets to fetch.
+     */
+    orderBy?: SystemSecretOrderByWithRelationInput | SystemSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SystemSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SystemSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SystemSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SystemSecrets
+    **/
+    _count?: true | SystemSecretCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SystemSecretMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SystemSecretMaxAggregateInputType
+  }
+
+  export type GetSystemSecretAggregateType<T extends SystemSecretAggregateArgs> = {
+        [P in keyof T & keyof AggregateSystemSecret]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSystemSecret[P]>
+      : GetScalarType<T[P], AggregateSystemSecret[P]>
+  }
+
+
+
+
+  export type SystemSecretGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SystemSecretWhereInput
+    orderBy?: SystemSecretOrderByWithAggregationInput | SystemSecretOrderByWithAggregationInput[]
+    by: SystemSecretScalarFieldEnum[] | SystemSecretScalarFieldEnum
+    having?: SystemSecretScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SystemSecretCountAggregateInputType | true
+    _min?: SystemSecretMinAggregateInputType
+    _max?: SystemSecretMaxAggregateInputType
+  }
+
+  export type SystemSecretGroupByOutputType = {
+    id: string
+    key: string
+    label: string | null
+    description: string | null
+    category: string | null
+    encryptedValue: string
+    lastFourChars: string | null
+    createdBy: string | null
+    updatedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SystemSecretCountAggregateOutputType | null
+    _min: SystemSecretMinAggregateOutputType | null
+    _max: SystemSecretMaxAggregateOutputType | null
+  }
+
+  type GetSystemSecretGroupByPayload<T extends SystemSecretGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SystemSecretGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SystemSecretGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SystemSecretGroupByOutputType[P]>
+            : GetScalarType<T[P], SystemSecretGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SystemSecretSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    label?: boolean
+    description?: boolean
+    category?: boolean
+    encryptedValue?: boolean
+    lastFourChars?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["systemSecret"]>
+
+  export type SystemSecretSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    label?: boolean
+    description?: boolean
+    category?: boolean
+    encryptedValue?: boolean
+    lastFourChars?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["systemSecret"]>
+
+  export type SystemSecretSelectScalar = {
+    id?: boolean
+    key?: boolean
+    label?: boolean
+    description?: boolean
+    category?: boolean
+    encryptedValue?: boolean
+    lastFourChars?: boolean
+    createdBy?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $SystemSecretPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SystemSecret"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      key: string
+      label: string | null
+      description: string | null
+      category: string | null
+      encryptedValue: string
+      lastFourChars: string | null
+      createdBy: string | null
+      updatedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["systemSecret"]>
+    composites: {}
+  }
+
+  type SystemSecretGetPayload<S extends boolean | null | undefined | SystemSecretDefaultArgs> = $Result.GetResult<Prisma.$SystemSecretPayload, S>
+
+  type SystemSecretCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SystemSecretFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SystemSecretCountAggregateInputType | true
+    }
+
+  export interface SystemSecretDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SystemSecret'], meta: { name: 'SystemSecret' } }
+    /**
+     * Find zero or one SystemSecret that matches the filter.
+     * @param {SystemSecretFindUniqueArgs} args - Arguments to find a SystemSecret
+     * @example
+     * // Get one SystemSecret
+     * const systemSecret = await prisma.systemSecret.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SystemSecretFindUniqueArgs>(args: SelectSubset<T, SystemSecretFindUniqueArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SystemSecret that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SystemSecretFindUniqueOrThrowArgs} args - Arguments to find a SystemSecret
+     * @example
+     * // Get one SystemSecret
+     * const systemSecret = await prisma.systemSecret.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SystemSecretFindUniqueOrThrowArgs>(args: SelectSubset<T, SystemSecretFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SystemSecret that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretFindFirstArgs} args - Arguments to find a SystemSecret
+     * @example
+     * // Get one SystemSecret
+     * const systemSecret = await prisma.systemSecret.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SystemSecretFindFirstArgs>(args?: SelectSubset<T, SystemSecretFindFirstArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SystemSecret that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretFindFirstOrThrowArgs} args - Arguments to find a SystemSecret
+     * @example
+     * // Get one SystemSecret
+     * const systemSecret = await prisma.systemSecret.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SystemSecretFindFirstOrThrowArgs>(args?: SelectSubset<T, SystemSecretFindFirstOrThrowArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SystemSecrets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SystemSecrets
+     * const systemSecrets = await prisma.systemSecret.findMany()
+     * 
+     * // Get first 10 SystemSecrets
+     * const systemSecrets = await prisma.systemSecret.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const systemSecretWithIdOnly = await prisma.systemSecret.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SystemSecretFindManyArgs>(args?: SelectSubset<T, SystemSecretFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SystemSecret.
+     * @param {SystemSecretCreateArgs} args - Arguments to create a SystemSecret.
+     * @example
+     * // Create one SystemSecret
+     * const SystemSecret = await prisma.systemSecret.create({
+     *   data: {
+     *     // ... data to create a SystemSecret
+     *   }
+     * })
+     * 
+     */
+    create<T extends SystemSecretCreateArgs>(args: SelectSubset<T, SystemSecretCreateArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SystemSecrets.
+     * @param {SystemSecretCreateManyArgs} args - Arguments to create many SystemSecrets.
+     * @example
+     * // Create many SystemSecrets
+     * const systemSecret = await prisma.systemSecret.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SystemSecretCreateManyArgs>(args?: SelectSubset<T, SystemSecretCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SystemSecrets and returns the data saved in the database.
+     * @param {SystemSecretCreateManyAndReturnArgs} args - Arguments to create many SystemSecrets.
+     * @example
+     * // Create many SystemSecrets
+     * const systemSecret = await prisma.systemSecret.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SystemSecrets and only return the `id`
+     * const systemSecretWithIdOnly = await prisma.systemSecret.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SystemSecretCreateManyAndReturnArgs>(args?: SelectSubset<T, SystemSecretCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SystemSecret.
+     * @param {SystemSecretDeleteArgs} args - Arguments to delete one SystemSecret.
+     * @example
+     * // Delete one SystemSecret
+     * const SystemSecret = await prisma.systemSecret.delete({
+     *   where: {
+     *     // ... filter to delete one SystemSecret
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SystemSecretDeleteArgs>(args: SelectSubset<T, SystemSecretDeleteArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SystemSecret.
+     * @param {SystemSecretUpdateArgs} args - Arguments to update one SystemSecret.
+     * @example
+     * // Update one SystemSecret
+     * const systemSecret = await prisma.systemSecret.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SystemSecretUpdateArgs>(args: SelectSubset<T, SystemSecretUpdateArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SystemSecrets.
+     * @param {SystemSecretDeleteManyArgs} args - Arguments to filter SystemSecrets to delete.
+     * @example
+     * // Delete a few SystemSecrets
+     * const { count } = await prisma.systemSecret.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SystemSecretDeleteManyArgs>(args?: SelectSubset<T, SystemSecretDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SystemSecrets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SystemSecrets
+     * const systemSecret = await prisma.systemSecret.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SystemSecretUpdateManyArgs>(args: SelectSubset<T, SystemSecretUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SystemSecret.
+     * @param {SystemSecretUpsertArgs} args - Arguments to update or create a SystemSecret.
+     * @example
+     * // Update or create a SystemSecret
+     * const systemSecret = await prisma.systemSecret.upsert({
+     *   create: {
+     *     // ... data to create a SystemSecret
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SystemSecret we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SystemSecretUpsertArgs>(args: SelectSubset<T, SystemSecretUpsertArgs<ExtArgs>>): Prisma__SystemSecretClient<$Result.GetResult<Prisma.$SystemSecretPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SystemSecrets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretCountArgs} args - Arguments to filter SystemSecrets to count.
+     * @example
+     * // Count the number of SystemSecrets
+     * const count = await prisma.systemSecret.count({
+     *   where: {
+     *     // ... the filter for the SystemSecrets we want to count
+     *   }
+     * })
+    **/
+    count<T extends SystemSecretCountArgs>(
+      args?: Subset<T, SystemSecretCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SystemSecretCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SystemSecret.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SystemSecretAggregateArgs>(args: Subset<T, SystemSecretAggregateArgs>): Prisma.PrismaPromise<GetSystemSecretAggregateType<T>>
+
+    /**
+     * Group by SystemSecret.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SystemSecretGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SystemSecretGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SystemSecretGroupByArgs['orderBy'] }
+        : { orderBy?: SystemSecretGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SystemSecretGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSystemSecretGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SystemSecret model
+   */
+  readonly fields: SystemSecretFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SystemSecret.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SystemSecretClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SystemSecret model
+   */ 
+  interface SystemSecretFieldRefs {
+    readonly id: FieldRef<"SystemSecret", 'String'>
+    readonly key: FieldRef<"SystemSecret", 'String'>
+    readonly label: FieldRef<"SystemSecret", 'String'>
+    readonly description: FieldRef<"SystemSecret", 'String'>
+    readonly category: FieldRef<"SystemSecret", 'String'>
+    readonly encryptedValue: FieldRef<"SystemSecret", 'String'>
+    readonly lastFourChars: FieldRef<"SystemSecret", 'String'>
+    readonly createdBy: FieldRef<"SystemSecret", 'String'>
+    readonly updatedBy: FieldRef<"SystemSecret", 'String'>
+    readonly createdAt: FieldRef<"SystemSecret", 'DateTime'>
+    readonly updatedAt: FieldRef<"SystemSecret", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SystemSecret findUnique
+   */
+  export type SystemSecretFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which SystemSecret to fetch.
+     */
+    where: SystemSecretWhereUniqueInput
+  }
+
+  /**
+   * SystemSecret findUniqueOrThrow
+   */
+  export type SystemSecretFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which SystemSecret to fetch.
+     */
+    where: SystemSecretWhereUniqueInput
+  }
+
+  /**
+   * SystemSecret findFirst
+   */
+  export type SystemSecretFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which SystemSecret to fetch.
+     */
+    where?: SystemSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SystemSecrets to fetch.
+     */
+    orderBy?: SystemSecretOrderByWithRelationInput | SystemSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SystemSecrets.
+     */
+    cursor?: SystemSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SystemSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SystemSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SystemSecrets.
+     */
+    distinct?: SystemSecretScalarFieldEnum | SystemSecretScalarFieldEnum[]
+  }
+
+  /**
+   * SystemSecret findFirstOrThrow
+   */
+  export type SystemSecretFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which SystemSecret to fetch.
+     */
+    where?: SystemSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SystemSecrets to fetch.
+     */
+    orderBy?: SystemSecretOrderByWithRelationInput | SystemSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SystemSecrets.
+     */
+    cursor?: SystemSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SystemSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SystemSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SystemSecrets.
+     */
+    distinct?: SystemSecretScalarFieldEnum | SystemSecretScalarFieldEnum[]
+  }
+
+  /**
+   * SystemSecret findMany
+   */
+  export type SystemSecretFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which SystemSecrets to fetch.
+     */
+    where?: SystemSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SystemSecrets to fetch.
+     */
+    orderBy?: SystemSecretOrderByWithRelationInput | SystemSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SystemSecrets.
+     */
+    cursor?: SystemSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SystemSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SystemSecrets.
+     */
+    skip?: number
+    distinct?: SystemSecretScalarFieldEnum | SystemSecretScalarFieldEnum[]
+  }
+
+  /**
+   * SystemSecret create
+   */
+  export type SystemSecretCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * The data needed to create a SystemSecret.
+     */
+    data: XOR<SystemSecretCreateInput, SystemSecretUncheckedCreateInput>
+  }
+
+  /**
+   * SystemSecret createMany
+   */
+  export type SystemSecretCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SystemSecrets.
+     */
+    data: SystemSecretCreateManyInput | SystemSecretCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SystemSecret createManyAndReturn
+   */
+  export type SystemSecretCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SystemSecrets.
+     */
+    data: SystemSecretCreateManyInput | SystemSecretCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SystemSecret update
+   */
+  export type SystemSecretUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * The data needed to update a SystemSecret.
+     */
+    data: XOR<SystemSecretUpdateInput, SystemSecretUncheckedUpdateInput>
+    /**
+     * Choose, which SystemSecret to update.
+     */
+    where: SystemSecretWhereUniqueInput
+  }
+
+  /**
+   * SystemSecret updateMany
+   */
+  export type SystemSecretUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SystemSecrets.
+     */
+    data: XOR<SystemSecretUpdateManyMutationInput, SystemSecretUncheckedUpdateManyInput>
+    /**
+     * Filter which SystemSecrets to update
+     */
+    where?: SystemSecretWhereInput
+  }
+
+  /**
+   * SystemSecret upsert
+   */
+  export type SystemSecretUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * The filter to search for the SystemSecret to update in case it exists.
+     */
+    where: SystemSecretWhereUniqueInput
+    /**
+     * In case the SystemSecret found by the `where` argument doesn't exist, create a new SystemSecret with this data.
+     */
+    create: XOR<SystemSecretCreateInput, SystemSecretUncheckedCreateInput>
+    /**
+     * In case the SystemSecret was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SystemSecretUpdateInput, SystemSecretUncheckedUpdateInput>
+  }
+
+  /**
+   * SystemSecret delete
+   */
+  export type SystemSecretDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+    /**
+     * Filter which SystemSecret to delete.
+     */
+    where: SystemSecretWhereUniqueInput
+  }
+
+  /**
+   * SystemSecret deleteMany
+   */
+  export type SystemSecretDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SystemSecrets to delete
+     */
+    where?: SystemSecretWhereInput
+  }
+
+  /**
+   * SystemSecret without action
+   */
+  export type SystemSecretDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SystemSecret
+     */
+    select?: SystemSecretSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model OutboxEvent
    */
 
@@ -90655,6 +91691,23 @@ export namespace Prisma {
   export type WebPushSubscriptionScalarFieldEnum = (typeof WebPushSubscriptionScalarFieldEnum)[keyof typeof WebPushSubscriptionScalarFieldEnum]
 
 
+  export const SystemSecretScalarFieldEnum: {
+    id: 'id',
+    key: 'key',
+    label: 'label',
+    description: 'description',
+    category: 'category',
+    encryptedValue: 'encryptedValue',
+    lastFourChars: 'lastFourChars',
+    createdBy: 'createdBy',
+    updatedBy: 'updatedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SystemSecretScalarFieldEnum = (typeof SystemSecretScalarFieldEnum)[keyof typeof SystemSecretScalarFieldEnum]
+
+
   export const OutboxEventScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -91658,6 +92711,21 @@ export namespace Prisma {
   };
 
   export type WebPushSubscriptionOrderByRelevanceFieldEnum = (typeof WebPushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof WebPushSubscriptionOrderByRelevanceFieldEnum]
+
+
+  export const SystemSecretOrderByRelevanceFieldEnum: {
+    id: 'id',
+    key: 'key',
+    label: 'label',
+    description: 'description',
+    category: 'category',
+    encryptedValue: 'encryptedValue',
+    lastFourChars: 'lastFourChars',
+    createdBy: 'createdBy',
+    updatedBy: 'updatedBy'
+  };
+
+  export type SystemSecretOrderByRelevanceFieldEnum = (typeof SystemSecretOrderByRelevanceFieldEnum)[keyof typeof SystemSecretOrderByRelevanceFieldEnum]
 
 
   export const OutboxEventOrderByRelevanceFieldEnum: {
@@ -99861,6 +100929,89 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"WebPushSubscription"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"WebPushSubscription"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"WebPushSubscription"> | Date | string
+  }
+
+  export type SystemSecretWhereInput = {
+    AND?: SystemSecretWhereInput | SystemSecretWhereInput[]
+    OR?: SystemSecretWhereInput[]
+    NOT?: SystemSecretWhereInput | SystemSecretWhereInput[]
+    id?: StringFilter<"SystemSecret"> | string
+    key?: StringFilter<"SystemSecret"> | string
+    label?: StringNullableFilter<"SystemSecret"> | string | null
+    description?: StringNullableFilter<"SystemSecret"> | string | null
+    category?: StringNullableFilter<"SystemSecret"> | string | null
+    encryptedValue?: StringFilter<"SystemSecret"> | string
+    lastFourChars?: StringNullableFilter<"SystemSecret"> | string | null
+    createdBy?: StringNullableFilter<"SystemSecret"> | string | null
+    updatedBy?: StringNullableFilter<"SystemSecret"> | string | null
+    createdAt?: DateTimeFilter<"SystemSecret"> | Date | string
+    updatedAt?: DateTimeFilter<"SystemSecret"> | Date | string
+  }
+
+  export type SystemSecretOrderByWithRelationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    label?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    encryptedValue?: SortOrder
+    lastFourChars?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: SystemSecretOrderByRelevanceInput
+  }
+
+  export type SystemSecretWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    key?: string
+    AND?: SystemSecretWhereInput | SystemSecretWhereInput[]
+    OR?: SystemSecretWhereInput[]
+    NOT?: SystemSecretWhereInput | SystemSecretWhereInput[]
+    label?: StringNullableFilter<"SystemSecret"> | string | null
+    description?: StringNullableFilter<"SystemSecret"> | string | null
+    category?: StringNullableFilter<"SystemSecret"> | string | null
+    encryptedValue?: StringFilter<"SystemSecret"> | string
+    lastFourChars?: StringNullableFilter<"SystemSecret"> | string | null
+    createdBy?: StringNullableFilter<"SystemSecret"> | string | null
+    updatedBy?: StringNullableFilter<"SystemSecret"> | string | null
+    createdAt?: DateTimeFilter<"SystemSecret"> | Date | string
+    updatedAt?: DateTimeFilter<"SystemSecret"> | Date | string
+  }, "id" | "key">
+
+  export type SystemSecretOrderByWithAggregationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    label?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    encryptedValue?: SortOrder
+    lastFourChars?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SystemSecretCountOrderByAggregateInput
+    _max?: SystemSecretMaxOrderByAggregateInput
+    _min?: SystemSecretMinOrderByAggregateInput
+  }
+
+  export type SystemSecretScalarWhereWithAggregatesInput = {
+    AND?: SystemSecretScalarWhereWithAggregatesInput | SystemSecretScalarWhereWithAggregatesInput[]
+    OR?: SystemSecretScalarWhereWithAggregatesInput[]
+    NOT?: SystemSecretScalarWhereWithAggregatesInput | SystemSecretScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SystemSecret"> | string
+    key?: StringWithAggregatesFilter<"SystemSecret"> | string
+    label?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    description?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    category?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    encryptedValue?: StringWithAggregatesFilter<"SystemSecret"> | string
+    lastFourChars?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"SystemSecret"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SystemSecret"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SystemSecret"> | Date | string
   }
 
   export type OutboxEventWhereInput = {
@@ -108622,6 +109773,104 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SystemSecretCreateInput = {
+    id?: string
+    key: string
+    label?: string | null
+    description?: string | null
+    category?: string | null
+    encryptedValue: string
+    lastFourChars?: string | null
+    createdBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SystemSecretUncheckedCreateInput = {
+    id?: string
+    key: string
+    label?: string | null
+    description?: string | null
+    category?: string | null
+    encryptedValue: string
+    lastFourChars?: string | null
+    createdBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SystemSecretUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptedValue?: StringFieldUpdateOperationsInput | string
+    lastFourChars?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SystemSecretUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptedValue?: StringFieldUpdateOperationsInput | string
+    lastFourChars?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SystemSecretCreateManyInput = {
+    id?: string
+    key: string
+    label?: string | null
+    description?: string | null
+    category?: string | null
+    encryptedValue: string
+    lastFourChars?: string | null
+    createdBy?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SystemSecretUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptedValue?: StringFieldUpdateOperationsInput | string
+    lastFourChars?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SystemSecretUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptedValue?: StringFieldUpdateOperationsInput | string
+    lastFourChars?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OutboxEventCreateInput = {
     id?: string
     tenantId: string
@@ -115019,6 +116268,54 @@ export namespace Prisma {
     p256dh?: SortOrder
     auth?: SortOrder
     isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SystemSecretOrderByRelevanceInput = {
+    fields: SystemSecretOrderByRelevanceFieldEnum | SystemSecretOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SystemSecretCountOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    encryptedValue?: SortOrder
+    lastFourChars?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SystemSecretMaxOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    encryptedValue?: SortOrder
+    lastFourChars?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SystemSecretMinOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    label?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    encryptedValue?: SortOrder
+    lastFourChars?: SortOrder
+    createdBy?: SortOrder
+    updatedBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -142153,6 +143450,10 @@ export namespace Prisma {
      * @deprecated Use WebPushSubscriptionDefaultArgs instead
      */
     export type WebPushSubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WebPushSubscriptionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SystemSecretDefaultArgs instead
+     */
+    export type SystemSecretArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SystemSecretDefaultArgs<ExtArgs>
     /**
      * @deprecated Use OutboxEventDefaultArgs instead
      */

@@ -61,6 +61,7 @@ import { DeliveryZonesModule } from "./modules/delivery-zones/delivery-zones.mod
 import { PromoCodesModule } from "./modules/promo-codes/promo-codes.module";
 import { AddressLookupModule } from "./modules/address-lookup/address-lookup.module";
 import { DirectOrderingModule } from "./modules/direct-ordering/direct-ordering.module";
+import { SecretsModule } from "./modules/secrets/secrets.module";
 import { BrandConnectionsModule } from "./modules/brand-connections/brand-connections.module";
 import { QUEUES } from "@orderhub/shared";
 
@@ -184,6 +185,7 @@ import { QUEUES } from "@orderhub/shared";
     PromoCodesModule,
     AddressLookupModule,
     DirectOrderingModule,
+    SecretsModule,
     BrandConnectionsModule,
   ],
   providers: [
