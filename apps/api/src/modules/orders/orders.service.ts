@@ -323,12 +323,17 @@ export class OrdersService {
       posUpdate.paymentStatus = dto.paymentStatus as any;
     }
 
-    // Phase AM — allocate sequential per-tenant order number for
-    // POS/DIRECT orders. Marketplace orders keep their own displayId from
-    // the platform (Uber Eats display_id, Deliveroo orderNumber, etc.).
+    // Phase AM (+ AP fix) — allocate sequential per-tenant order number
+    // for orders we own ourselves: POS, DIRECT, and ONLINE storefront.
+    // Marketplace orders (Just Eat / Uber Eats / Deliveroo / HubRise)
+    // arrive with their own platform-issued displayId so they keep
+    // that and skip the counter — the operator wants the marketplace's
+    // number on the card so the customer service ticket lookups still
+    // work both ways.
     const isInternal =
       (canonical.orderSource as string) === "POS" ||
-      (canonical.orderSource as string) === "DIRECT";
+      (canonical.orderSource as string) === "DIRECT" ||
+      (canonical.orderSource as string) === "ONLINE";
     if (isInternal) {
       const orderNumber = await this.allocateOrderNumber(tenantId);
       posUpdate.orderNumber = orderNumber;

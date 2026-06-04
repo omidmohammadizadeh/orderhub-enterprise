@@ -39,19 +39,23 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         </div>
 
         {/* Order number + customer + payment badge.
-            POS/DIRECT orders show our sequential #N (Phase AM); external
-            platforms keep their own displayId. */}
+            Phase AM + AP fix:
+              • POS / DIRECT / ONLINE orders show our sequential #N
+              • Marketplaces (Just Eat / Uber Eats / Deliveroo /
+                HubRise) keep their own platform displayId
+              • If for any reason neither is present (very old rows,
+                a webhook that didn't include one), fall back to the
+                short tail of the id so the card NEVER reads
+                blank — operators always have something to refer to. */}
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            {order.orderNumber != null ? (
-              <span className="text-sm font-bold text-zinc-900">
-                #{order.orderNumber}
-              </span>
-            ) : order.displayId ? (
-              <span className="text-sm font-bold text-zinc-900">
-                #{order.displayId}
-              </span>
-            ) : null}
+            <span className="text-sm font-bold text-zinc-900">
+              {order.orderNumber != null
+                ? `#${order.orderNumber}`
+                : order.displayId
+                  ? `#${order.displayId}`
+                  : `#${order.id.slice(-6).toUpperCase()}`}
+            </span>
             <span className="text-sm font-medium text-zinc-700">
               {order.customerInfo.name}
             </span>
