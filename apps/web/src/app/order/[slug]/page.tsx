@@ -43,6 +43,7 @@ import {
   ChevronRight,
   Info,
   Receipt,
+  Hourglass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -541,8 +542,14 @@ export default function OrderPage() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4">
-        {/* Restaurant info card (overlapping the hero) */}
-        <div className="-mt-12 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+        {/* Restaurant info card.
+            Sat below the hero now — the previous -mt-12 made the
+            title text clip into the banner image at certain viewport
+            widths. Dropping the negative margin keeps the banner
+            fully visible. The "About" description has also been
+            removed from this card; it already lives inside the Info
+            modal and was duplicated here. */}
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex items-start gap-4">
             {logoUrl ? (
               <img
@@ -571,11 +578,6 @@ export default function OrderPage() {
               {headerAddress && (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
                   <MapPin className="h-3 w-3" /> {headerAddress}
-                </p>
-              )}
-              {storefront.location.about && (
-                <p className="mt-2 text-sm text-zinc-700 line-clamp-2">
-                  {storefront.location.about}
                 </p>
               )}
             </div>
@@ -789,7 +791,10 @@ export default function OrderPage() {
                 plu: line.plu,
               },
             });
-            setCartOpen(true);
+            // Phase AP follow-up: adding from the modifier modal no
+            // longer auto-pops the cart. The customer browses through
+            // the menu and opens the cart manually from the Cart pill
+            // when they're ready to checkout.
           }}
         />
       )}
@@ -848,7 +853,9 @@ export default function OrderPage() {
         plu: item.plu ?? null,
       },
     });
-    setCartOpen(true);
+    // Phase AP follow-up: do NOT auto-pop the cart. Customer keeps
+    // browsing the menu; they tap the Cart pill when they're ready
+    // to finish.
   }
 }
 
@@ -1700,7 +1707,40 @@ function formatScheduledFor(iso: string): string {
   return `${label} ${formatTime(iso)}`;
 }
 
-// ── Confirmation ───────────────────────────────────────────────────────────
+// ── Confirmation / live tracking ────────────────────────────────────────────
+//
+// Phase AP fix #3: replaces the static "Order placed!" card with a real
+// status-polling experience.
+//
+//   PENDING                → "Processing your order…" with an animated
+//                            hourglass icon. Polls every 3s.
+//   ACCEPTED → COMPLETED   → "Order accepted!" with the customer-facing
+//                            order number badge + a vertical timeline
+//                            that ticks each milestone as the staff
+//                            transitions it on the POS.
+//   CANCELLED / REJECTED   → "Sorry, {storeName} has cancelled your
+//                            order" with the reason the staff entered
+//                            (when there is one).
+//
+// All driven off /v1/ordering/orders/:orderId/status — public, no auth.
+
+type StatusPayload = {
+  id: string;
+  status: string;
+  fulfillmentType: string;
+  orderNumber?: number | null;
+  displayId?: string | null;
+  receivedAt: string;
+  acceptedAt?: string | null;
+  preparingAt?: string | null;
+  readyAt?: string | null;
+  outForDeliveryAt?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
+  cancelReason?: string | null;
+  estimatedReadyAt?: string | null;
+  location?: { name?: string } | null;
+};
 
 function OrderConfirmed({
   orderId,
@@ -1711,28 +1751,271 @@ function OrderConfirmed({
   storeName: string;
   onReset: () => void;
 }) {
+  // Poll every 3s. Stop polling once the order reaches a terminal state
+  // (delivered / collected / cancelled / rejected) — no point hammering
+  // the API after that.
+  const statusQuery = useQuery({
+    queryKey: ["ordering", "order-status", orderId],
+    queryFn: () =>
+      axios
+        .get<StatusPayload>(
+          `${API_BASE}/v1/ordering/orders/${orderId}/status`,
+        )
+        .then((r) => r.data),
+    refetchInterval: (q) => {
+      const s = (q.state.data as StatusPayload | undefined)?.status;
+      const terminal = ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"];
+      return s && terminal.includes(s) ? false : 3000;
+    },
+  });
+
+  const data = statusQuery.data;
+  const status = data?.status ?? "PENDING";
+  const cancelled = ["CANCELLED", "REJECTED", "FAILED"].includes(status);
+  const accepted = !cancelled && status !== "PENDING";
+
+  if (cancelled) {
+    return (
+      <CancelledScreen
+        storeName={data?.location?.name ?? storeName}
+        reason={data?.cancelReason ?? null}
+        onReset={onReset}
+      />
+    );
+  }
+
+  if (!accepted) {
+    return <PendingScreen storeName={storeName} onReset={onReset} />;
+  }
+
+  return (
+    <AcceptedScreen data={data!} storeName={storeName} onReset={onReset} />
+  );
+}
+
+function PendingScreen({
+  storeName,
+  onReset,
+}: {
+  storeName: string;
+  onReset: () => void;
+}) {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
-      <div className="h-20 w-20 rounded-full bg-emerald-100 grid place-items-center mb-6">
-        <CheckCircle className="h-10 w-10 text-emerald-500" />
+      {/* Sand-timer animation: the icon itself flips between two states
+          via CSS keyframes (defined in globals.css fallback below) so
+          the user sees something moving even on a slow connection. */}
+      <div className="relative mb-6">
+        {/* Inline keyframes — keeps this self-contained without
+            touching tailwind.config / globals.css. */}
+        <style>{`
+          @keyframes flip-clock {
+            0%   { transform: rotate(0deg);   }
+            45%  { transform: rotate(0deg);   }
+            50%  { transform: rotate(180deg); }
+            95%  { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .animate-flip { animation: flip-clock 3s ease-in-out infinite; transform-origin: 50% 50%; }
+        `}</style>
+        <div className="h-24 w-24 rounded-full bg-orange-50 grid place-items-center animate-pulse">
+          <Hourglass className="h-12 w-12 text-orange-500 animate-flip" />
+        </div>
       </div>
-      <h1 className="text-2xl font-bold text-zinc-900 mb-2">Order placed!</h1>
-      <p className="text-zinc-500 mb-6">
-        Your order has been sent to {storeName}. You&apos;ll get updates as it
-        progresses.
+      <h1 className="text-2xl font-bold text-zinc-900 mb-2">
+        Processing your order…
+      </h1>
+      <p className="max-w-sm text-sm text-zinc-500 mb-8">
+        Please wait while <span className="font-semibold">{storeName}</span>{" "}
+        confirms your order. This usually takes a minute or two.
       </p>
-      <div className="bg-zinc-100 rounded-xl px-6 py-4 mb-8">
-        <p className="text-xs text-zinc-400 mb-1">Order reference</p>
-        <p className="font-mono text-sm font-semibold text-zinc-700">
-          {orderId.slice(-8).toUpperCase()}
-        </p>
+      <p className="text-[11px] text-zinc-400">
+        You can leave this page open — we&apos;ll update it as soon as the
+        restaurant responds.
+      </p>
+      <button
+        onClick={onReset}
+        className="mt-8 text-xs text-zinc-400 underline hover:text-zinc-600"
+      >
+        Cancel and go back
+      </button>
+    </div>
+  );
+}
+
+function CancelledScreen({
+  storeName,
+  reason,
+  onReset,
+}: {
+  storeName: string;
+  reason: string | null;
+  onReset: () => void;
+}) {
+  return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="h-20 w-20 rounded-full bg-red-50 grid place-items-center mb-6">
+        <X className="h-10 w-10 text-red-500" />
       </div>
+      <h1 className="text-2xl font-bold text-zinc-900 mb-2">
+        Sorry, {storeName} has cancelled your order
+      </h1>
+      {reason ? (
+        <div className="max-w-sm rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 mb-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-red-600 mb-1">
+            Reason
+          </p>
+          {reason}
+        </div>
+      ) : (
+        <p className="max-w-sm text-sm text-zinc-500 mb-6">
+          No reason was provided. Please contact the restaurant for more
+          details.
+        </p>
+      )}
+      <p className="text-xs text-zinc-400 mb-8">
+        You have not been charged.
+      </p>
       <button
         onClick={onReset}
         className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
       >
-        Order again
+        Back to menu
       </button>
+    </div>
+  );
+}
+
+function AcceptedScreen({
+  data,
+  storeName,
+  onReset,
+}: {
+  data: StatusPayload;
+  storeName: string;
+  onReset: () => void;
+}) {
+  const isDelivery = data.fulfillmentType === "DELIVERY";
+  // Steps in order. Each step is "done" once its timestamp fires.
+  const steps: Array<{ key: string; label: string; at: string | null | undefined }> = [
+    { key: "RECEIVED", label: "Order received", at: data.receivedAt },
+    { key: "ACCEPTED", label: "Confirmed by restaurant", at: data.acceptedAt },
+    { key: "PREPARING", label: "Preparing your food", at: data.preparingAt },
+    { key: "READY", label: isDelivery ? "Ready for driver" : "Ready to collect", at: data.readyAt },
+    ...(isDelivery
+      ? [
+          {
+            key: "OUT_FOR_DELIVERY",
+            label: "Out for delivery",
+            at: data.outForDeliveryAt,
+          },
+          { key: "DELIVERED", label: "Delivered", at: data.deliveredAt },
+        ]
+      : [{ key: "COLLECTED", label: "Collected", at: data.deliveredAt }]),
+  ];
+  const orderRef = data.orderNumber
+    ? `#${data.orderNumber}`
+    : data.displayId
+      ? `#${data.displayId}`
+      : `#${data.id.slice(-6).toUpperCase()}`;
+  const completed = data.status === "COMPLETED";
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
+      <div className="w-full max-w-md text-center">
+        <div className="h-20 w-20 mx-auto rounded-full bg-emerald-100 grid place-items-center mb-6">
+          <CheckCircle className="h-10 w-10 text-emerald-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-zinc-900 mb-1">
+          {completed
+            ? isDelivery
+              ? "Order delivered!"
+              : "Order collected!"
+            : "Your order has been accepted"}
+        </h1>
+        <p className="text-sm text-zinc-500 mb-6">
+          {storeName} is on it. Track your order below — this page updates
+          automatically as your order progresses.
+        </p>
+        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 mb-8">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            Order number
+          </span>
+          <span className="font-mono text-lg font-bold text-zinc-900">
+            {orderRef}
+          </span>
+        </div>
+        {data.estimatedReadyAt && !completed && (
+          <p className="mb-8 text-xs text-zinc-500">
+            Est. ready by{" "}
+            <span className="font-semibold text-zinc-700">
+              {new Date(data.estimatedReadyAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </p>
+        )}
+
+        {/* Vertical timeline — each step lights up as the POS marks it. */}
+        <ol className="text-left">
+          {steps.map((s, i) => {
+            const done = !!s.at;
+            const isLast = i === steps.length - 1;
+            // Mark the most-recent done step as "active" so the
+            // customer can see at a glance where their order is.
+            const isActive =
+              done &&
+              (i === steps.length - 1 || !steps[i + 1]?.at);
+            return (
+              <li key={s.key} className="relative flex items-start gap-3 pb-5">
+                {!isLast && (
+                  <span
+                    className={`absolute left-[11px] top-6 h-full w-0.5 ${
+                      done ? "bg-emerald-300" : "bg-zinc-200"
+                    }`}
+                  />
+                )}
+                <span
+                  className={`relative grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${
+                    done
+                      ? isActive
+                        ? "bg-emerald-500 text-white ring-4 ring-emerald-100"
+                        : "bg-emerald-500 text-white"
+                      : "bg-zinc-200 text-zinc-400"
+                  }`}
+                >
+                  {done ? "✓" : i + 1}
+                </span>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <p
+                    className={`text-sm ${
+                      done ? "font-semibold text-zinc-900" : "text-zinc-400"
+                    }`}
+                  >
+                    {s.label}
+                  </p>
+                  {s.at && (
+                    <p className="mt-0.5 text-[11px] text-zinc-400">
+                      {new Date(s.at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        <button
+          onClick={onReset}
+          className="mt-4 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+        >
+          Order again
+        </button>
+      </div>
     </div>
   );
 }

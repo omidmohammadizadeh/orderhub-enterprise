@@ -301,20 +301,34 @@ export class OrderingService {
   }
 
   async getOrderStatus(orderId: string) {
+    // Phase AP follow-up: the customer-facing storefront polls this
+    // endpoint while it shows the "waiting for restaurant" screen and
+    // then for live tracking once the order is accepted. We surface
+    // everything the screen needs:
+    //   • orderNumber for the customer-facing #N badge
+    //   • outForDeliveryAt + deliveredAt for the timeline
+    //   • location.name so the cancel screen can say which shop
+    //     cancelled
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       select: {
         id: true,
         displayId: true,
+        orderNumber: true,
         status: true,
         fulfillmentType: true,
         estimatedReadyAt: true,
+        scheduledFor: true,
+        receivedAt: true,
         acceptedAt: true,
         preparingAt: true,
         readyAt: true,
+        outForDeliveryAt: true,
+        deliveredAt: true,
         cancelledAt: true,
         cancelReason: true,
         total: true,
+        location: { select: { name: true } },
       },
     });
     if (!order) throw new NotFoundException("Order not found");
