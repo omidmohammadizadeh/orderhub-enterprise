@@ -59,9 +59,18 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-zinc-100 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 text-sm font-bold text-white shadow-sm">
-            OH
-          </span>
+          {/* Real Order Hub POS logo. The asset lives at
+              /orderhub-logo.png in apps/web/public — drop the image
+              file there once and it shows up in the header AND the
+              marquee strip below. PNG with transparent background
+              keeps it crisp on both white and tinted nav backgrounds. */}
+          <img
+            src="/orderhub-logo.png"
+            alt="Order Hub"
+            width={36}
+            height={36}
+            className="h-9 w-9 object-contain"
+          />
           <span className="font-bold tracking-tight">Order Hub</span>
         </Link>
 

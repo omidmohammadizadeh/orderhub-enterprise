@@ -54,12 +54,14 @@ export function ContactForm({ webhookUrl = "" }: Props) {
     e.preventDefault();
     setError(null);
     if (!WEBHOOK_URL) {
-      // No webhook configured — open the user's mail client instead so
-      // the lead doesn't fall on the floor.
-      const body = encodeURIComponent(
-        `Name: ${name}\nRestaurant: ${restaurant}\nPhone: ${phone}\nEmail: ${email}\nLocations: ${locations}\n\nMessage:\n${message}`,
+      // No webhook configured — show a clear error rather than
+      // silently launching the mail client (which previous behavior
+      // made the operator believe the form was "broken" when it was
+      // really just unconfigured). The mailto link stays as a manual
+      // escape hatch the visitor can click if they want.
+      setError(
+        `The contact form isn't connected to a database yet. Email us at ${FALLBACK_EMAIL} directly, or check back shortly.`,
       );
-      window.location.href = `mailto:${FALLBACK_EMAIL}?subject=Order%20Hub%20enquiry&body=${body}`;
       return;
     }
     setStatus("sending");
@@ -105,11 +107,12 @@ export function ContactForm({ webhookUrl = "" }: Props) {
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white">
           <CheckCircle2 className="h-7 w-7" />
         </div>
-        <h3 className="mt-4 text-xl font-bold text-zinc-900">Got it — thank you!</h3>
+        <h3 className="mt-4 text-xl font-bold text-zinc-900">
+          Thanks for contacting us
+        </h3>
         <p className="mt-2 text-sm text-zinc-600">
-          We&apos;ll be in touch within one working day. In the meantime,
-          feel free to drop us a WhatsApp using the chat bubble at the
-          bottom-right of your screen.
+          We&apos;ll be in touch soon. In the meantime, feel free to drop us
+          a WhatsApp using the chat bubble at the bottom-right of your screen.
         </p>
         <button
           onClick={() => setStatus("idle")}

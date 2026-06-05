@@ -13,10 +13,9 @@
 // monochrome shape (white "Uber" + green "Eats" on black), so it gets
 // a small purpose-built inline SVG that matches their wordmark.
 //
-// Order Hub stays on the PlatformLogo SVG we built earlier — it's
-// already our own brand, no CDN dependency needed.
-
-import { PlatformLogo } from "@/components/ui/platform-logo";
+// Order Hub uses the operator's own PNG asset at
+// apps/web/public/orderhub-logo.png — that's the badge they shared
+// in chat, drop the file and it shows up everywhere.
 
 export type BrandKey =
   | "deliveroo"
@@ -56,9 +55,32 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
   if (brand === "ubereats") {
     mark = <UberEatsMark size={size} />;
   } else if (brand === "orderhub") {
-    // Reuse the existing inline SVG mark — already matches the badge
-    // the operator shared as the OrderHub brand image.
-    mark = <PlatformLogo platform="POS" size={size} rounded={rounded} />;
+    // Real Order Hub POS badge — image asset in apps/web/public/.
+    // Wrapped in a white-bordered rounded tile to match the visual
+    // weight of the other brand tiles in the marquee strip.
+    mark = (
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          background: "#ffffff",
+          display: "grid",
+          placeItems: "center",
+          border: "1px solid #e4e4e7",
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src="/orderhub-logo.png"
+          alt="Order Hub POS"
+          width={size * 0.88}
+          height={size * 0.88}
+          loading="eager"
+          style={{ display: "block", objectFit: "contain" }}
+        />
+      </div>
+    );
   } else if (brand === "hubrise") {
     mark = <HubRiseMark size={size} />;
   } else if (meta.slug) {

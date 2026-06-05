@@ -259,9 +259,15 @@ function SiteFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 text-sm font-bold text-white">
-                OH
-              </span>
+              {/* Same real logo as the header — sourced from
+                  apps/web/public/orderhub-logo.png. */}
+              <img
+                src="/orderhub-logo.png"
+                alt="Order Hub"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
               <span className="font-bold tracking-tight">Order Hub</span>
             </Link>
             <p className="mt-3 text-sm text-zinc-500">
