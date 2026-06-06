@@ -42,6 +42,8 @@ const SOLUTIONS: MenuItem[] = [
 const INTEGRATIONS: MenuItem[] = [
   { label: "Uber Eats", href: "/login", brand: "ubereats" },
   { label: "Deliveroo", href: "/login", brand: "deliveroo" },
+  { label: "Uber Direct", href: "/login", brand: "uberdirect" },
+  { label: "Stuart", href: "/login", brand: "stuart" },
   { label: "HubRise", href: "/login", brand: "hubrise" },
   { label: "Just Eat (coming soon)", href: "/login", brand: "justeat" },
   { label: "Order Hub POS", href: "/login", brand: "orderhub" },

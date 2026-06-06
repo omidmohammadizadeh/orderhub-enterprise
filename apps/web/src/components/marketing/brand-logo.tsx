@@ -1,26 +1,28 @@
+"use client";
+
 // Phase AP marketing — real brand marks for the partner / integrations
 // strip and feature blocks.
 //
-// Strategy: simpleicons.org's CDN returns a single-color SVG of every
-// major brand mark on demand. We render it WHITE inside a tile whose
-// background matches the brand's primary colour — so Deliveroo lands
-// as the white kangaroo-V on its trademark teal, Just Eat as the
-// white house-and-cutlery on orange, etc. That visual style mirrors
-// what each platform actually ships in their press kit, while keeping
-// us legally clean (the simpleicons project ships under CC0).
+// All brand tiles now load the operator-uploaded PNG from
+// /brand-logos/{slug}.png (apps/web/public/brand-logos/). If a file
+// 404s — typo or not yet uploaded — we silently fall back to either
+// a purpose-built inline SVG (Uber Eats wordmark, HubRise "H") or to
+// the simpleicons.org CDN (Stripe). That way the page never shows a
+// broken-image icon and the visual identity stays cohesive even mid-
+// upload.
 //
-// Uber Eats is the only mark that can't be reduced to a single
-// monochrome shape (white "Uber" + green "Eats" on black), so it gets
-// a small purpose-built inline SVG that matches their wordmark.
-//
-// Order Hub uses the operator's own PNG asset at
-// apps/web/public/orderhub-logo.png — that's the badge they shared
-// in chat, drop the file and it shows up everywhere.
+// The companion BrandLogo lives in /components/ui/platform-logo.tsx
+// — same approach, same slugs, same /brand-logos/ folder. Upload one
+// PNG per platform and it appears across both surfaces.
+
+import { useState } from "react";
 
 export type BrandKey =
   | "deliveroo"
   | "justeat"
   | "ubereats"
+  | "uberdirect"
+  | "stuart"
   | "hubrise"
   | "orderhub"
   | "stripe";
@@ -35,55 +37,79 @@ interface Props {
   label?: boolean;
 }
 
-const BRAND_META: Record<
-  BrandKey,
-  { name: string; bg: string; slug?: string }
-> = {
-  deliveroo: { name: "Deliveroo", bg: "#00CCBC", slug: "deliveroo" },
-  justeat: { name: "Just Eat", bg: "#FF8000", slug: "justeat" },
-  ubereats: { name: "Uber Eats", bg: "#000000" }, // custom — see UberEatsMark
-  hubrise: { name: "HubRise", bg: "#7C3AED" }, // custom
-  orderhub: { name: "Order Hub POS", bg: "#0a0a0a" }, // PlatformLogo
-  stripe: { name: "Stripe", bg: "#635BFF", slug: "stripe" },
+interface BrandMeta {
+  name: string;
+  /** Background colour shown behind transparent PNGs. */
+  bg: string;
+  /** Filename stem under /brand-logos/. Always lowercase. */
+  slug: string;
+  /** Optional simpleicons.org slug used as a CDN fallback. */
+  iconSlug?: string;
+}
+
+const BRAND_META: Record<BrandKey, BrandMeta> = {
+  deliveroo:  { name: "Deliveroo",     bg: "#00CCBC", slug: "deliveroo",  iconSlug: "deliveroo" },
+  justeat:    { name: "Just Eat",      bg: "#FF8000", slug: "justeat",    iconSlug: "justeat" },
+  ubereats:   { name: "Uber Eats",     bg: "#000000", slug: "ubereats" },
+  uberdirect: { name: "Uber Direct",   bg: "#000000", slug: "uberdirect" },
+  stuart:     { name: "Stuart",        bg: "#FF5A1A", slug: "stuart" },
+  hubrise:    { name: "HubRise",       bg: "#7C3AED", slug: "hubrise" },
+  orderhub:   { name: "Order Hub POS", bg: "#FFFFFF", slug: "orderhub" },
+  stripe:     { name: "Stripe",        bg: "#635BFF", slug: "stripe",     iconSlug: "stripe" },
 };
 
 export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
   const meta = BRAND_META[brand];
   const radius = rounded ? size * 0.18 : 0;
+  const [primaryFailed, setPrimaryFailed] = useState(false);
+  const [secondaryFailed, setSecondaryFailed] = useState(false);
+
+  // Order Hub uses the existing /orderhub-logo.png the operator already
+  // uploaded — keep that working without forcing them to duplicate the
+  // file inside /brand-logos/.
+  const primarySrc =
+    brand === "orderhub"
+      ? "/orderhub-logo.png"
+      : `/brand-logos/${meta.slug}.png`;
+
+  const secondarySrc =
+    meta.iconSlug && !primaryFailed
+      ? null
+      : meta.iconSlug
+        ? `https://cdn.simpleicons.org/${meta.iconSlug}/FFFFFF`
+        : null;
 
   let mark: React.ReactNode;
-  if (brand === "ubereats") {
-    mark = <UberEatsMark size={size} />;
-  } else if (brand === "orderhub") {
-    // Real Order Hub POS badge — image asset in apps/web/public/.
-    // Wrapped in a white-bordered rounded tile to match the visual
-    // weight of the other brand tiles in the marquee strip.
+
+  // Tier 1 — operator-uploaded PNG
+  if (!primaryFailed) {
     mark = (
       <div
         style={{
           width: size,
           height: size,
           borderRadius: radius,
-          background: "#ffffff",
+          background: meta.bg,
           display: "grid",
           placeItems: "center",
-          border: "1px solid #e4e4e7",
           overflow: "hidden",
+          border: brand === "orderhub" ? "1px solid #e4e4e7" : undefined,
         }}
       >
         <img
-          src="/orderhub-logo.png"
-          alt="Order Hub POS"
+          src={primarySrc}
+          alt={`${meta.name} logo`}
           width={size * 0.88}
           height={size * 0.88}
           loading="eager"
+          onError={() => setPrimaryFailed(true)}
           style={{ display: "block", objectFit: "contain" }}
         />
       </div>
     );
-  } else if (brand === "hubrise") {
-    mark = <HubRiseMark size={size} />;
-  } else if (meta.slug) {
+  }
+  // Tier 2 — simpleicons CDN (only for brands where we have a slug)
+  else if (secondarySrc && !secondaryFailed) {
     mark = (
       <div
         style={{
@@ -95,20 +121,28 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
           placeItems: "center",
         }}
       >
-        {/* SVG is fetched white from simpleicons; tile colour comes
-            from the wrapper. eager loading because these sit in the
-            hero/feature region and lazy-load was popping logos in
-            late as you scroll. */}
         <img
-          src={`https://cdn.simpleicons.org/${meta.slug}/FFFFFF`}
+          src={secondarySrc}
           alt={`${meta.name} logo`}
           width={size * 0.6}
           height={size * 0.6}
           loading="eager"
+          onError={() => setSecondaryFailed(true)}
           style={{ display: "block" }}
         />
       </div>
     );
+  }
+  // Tier 3 — inline SVG fallback (Uber Eats wordmark, HubRise "H",
+  // Uber Direct wordmark, Stuart "S") or generic colour tile.
+  else if (brand === "ubereats") {
+    mark = <UberEatsMark size={size} />;
+  } else if (brand === "uberdirect") {
+    mark = <UberDirectMark size={size} />;
+  } else if (brand === "stuart") {
+    mark = <StuartMark size={size} />;
+  } else if (brand === "hubrise") {
+    mark = <HubRiseMark size={size} />;
   } else {
     mark = (
       <div
@@ -133,73 +167,40 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
   );
 }
 
-/** Uber Eats wordmark — black tile, white "Uber" / Eats-green "Eats"
- *  stacked. Approximates the actual Uber Eats brand mark per their
- *  press kit (white #FFFFFF + green #06C167). */
+/** Uber Eats wordmark — black tile, white "Uber" / Eats-green "Eats". */
 function UberEatsMark({ size }: { size: number }) {
   return (
-    <svg
-      viewBox="0 0 100 100"
-      width={size}
-      height={size}
-      style={{
-        borderRadius: size * 0.18,
-        background: "#000000",
-        display: "block",
-      }}
-      aria-label="Uber Eats"
-    >
-      <text
-        x="50"
-        y="46"
-        textAnchor="middle"
-        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-        fontWeight="800"
-        fontSize="24"
-        fill="#FFFFFF"
-      >
-        Uber
-      </text>
-      <text
-        x="50"
-        y="74"
-        textAnchor="middle"
-        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-        fontWeight="800"
-        fontSize="24"
-        fill="#06C167"
-      >
-        Eats
-      </text>
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{ borderRadius: size * 0.18, background: "#000000", display: "block" }} aria-label="Uber Eats">
+      <text x="50" y="46" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="800" fontSize="24" fill="#FFFFFF">Uber</text>
+      <text x="50" y="74" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="800" fontSize="24" fill="#06C167">Eats</text>
     </svg>
   );
 }
 
-/** HubRise — violet tile with white H wordmark. */
+/** Uber Direct — black tile, white "Uber" + grey "DIRECT" wordmark. */
+function UberDirectMark({ size }: { size: number }) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{ borderRadius: size * 0.18, background: "#000000", display: "block" }} aria-label="Uber Direct">
+      <text x="50" y="46" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="800" fontSize="22" fill="#FFFFFF">Uber</text>
+      <text x="50" y="74" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="700" fontSize="14" fill="#9CA3AF">DIRECT</text>
+    </svg>
+  );
+}
+
+/** Stuart — orange tile, white "S" wordmark. */
+function StuartMark({ size }: { size: number }) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{ borderRadius: size * 0.18, background: "#FF5A1A", display: "block" }} aria-label="Stuart">
+      <text x="50" y="72" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="900" fontSize="62" fill="white">S</text>
+    </svg>
+  );
+}
+
+/** HubRise — violet tile, white "H" wordmark. */
 function HubRiseMark({ size }: { size: number }) {
   return (
-    <svg
-      viewBox="0 0 100 100"
-      width={size}
-      height={size}
-      style={{
-        borderRadius: size * 0.18,
-        background: "#7C3AED",
-        display: "block",
-      }}
-      aria-label="HubRise"
-    >
-      <text
-        x="50"
-        y="72"
-        textAnchor="middle"
-        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-        fontWeight="900"
-        fontSize="62"
-        fill="white"
-      >
-        H
-      </text>
+    <svg viewBox="0 0 100 100" width={size} height={size} style={{ borderRadius: size * 0.18, background: "#7C3AED", display: "block" }} aria-label="HubRise">
+      <text x="50" y="72" textAnchor="middle" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" fontWeight="900" fontSize="62" fill="white">H</text>
     </svg>
   );
 }

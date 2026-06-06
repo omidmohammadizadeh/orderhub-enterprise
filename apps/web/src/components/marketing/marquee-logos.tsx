@@ -15,6 +15,8 @@ const LOGOS: Array<{ brand: BrandKey; name: string; soon?: boolean }> = [
   { brand: "ubereats", name: "Uber Eats" },
   { brand: "deliveroo", name: "Deliveroo" },
   { brand: "justeat", name: "Just Eat", soon: true },
+  { brand: "uberdirect", name: "Uber Direct" },
+  { brand: "stuart", name: "Stuart" },
   { brand: "hubrise", name: "HubRise" },
   { brand: "orderhub", name: "Order Hub POS" },
   { brand: "stripe", name: "Stripe" },
