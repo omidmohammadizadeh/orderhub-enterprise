@@ -58,12 +58,20 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   ],
   ASSIGNED_DRIVER: [
     "ACCEPTED_BY_DRIVER",
-    "OUT_FOR_DELIVERY", // some flows skip the driver-accept step
+    "RIDER_ARRIVED",     // staff can skip ACCEPTED if rider walks in unannounced
+    "OUT_FOR_DELIVERY",  // some flows skip the driver-accept step
     "DISPATCHED",
     "CANCELLED",
     "FAILED",
   ],
   ACCEPTED_BY_DRIVER: [
+    "RIDER_ARRIVED",     // canonical happy path for platform delivery
+    "OUT_FOR_DELIVERY",  // skip-ahead for couriers who never check in
+    "DISPATCHED",
+    "CANCELLED",
+    "FAILED",
+  ],
+  RIDER_ARRIVED: [
     "OUT_FOR_DELIVERY",
     "DISPATCHED",
     "CANCELLED",
@@ -129,6 +137,10 @@ export function getTimestampField(
     ACCEPTED: "acceptedAt",
     PREPARING: "preparingAt",
     READY: "readyAt",
+    // RIDER_ARRIVED does not have its own column on Order — the audit-log
+    // entry written by OrdersService is the source of truth for "when did
+    // the courier turn up at the shop", and the timestamp can be read from
+    // there if/when the operator wants courier punctuality analytics.
     OUT_FOR_DELIVERY: "outForDeliveryAt",
     DISPATCHED: "outForDeliveryAt", // legacy alias
     COMPLETED: "deliveredAt",

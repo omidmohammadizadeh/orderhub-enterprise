@@ -11,6 +11,7 @@ import {
   Send,
   UserCheck,
   Truck,
+  BellRing,
   PackageCheck,
   ShoppingBag,
   XCircle,
@@ -91,10 +92,20 @@ const COLUMNS: Column[] = [
   },
   {
     key: "ACCEPTED_BY_DRIVER",
-    title: "Picked up",
+    title: "Driver en route",
     match: (o) => o.status === "ACCEPTED_BY_DRIVER",
     color: "bg-teal-500",
     icon: <Truck className="h-4 w-4" />,
+  },
+  {
+    // RIDER_ARRIVED — the platform courier is physically at the shop
+    // waiting to collect. Plays the rider-arrived.mp3 alert when it
+    // arrives via socket (handled in use-live-orders).
+    key: "RIDER_ARRIVED",
+    title: "Rider arrived",
+    match: (o) => o.status === "RIDER_ARRIVED",
+    color: "bg-fuchsia-500",
+    icon: <BellRing className="h-4 w-4" />,
   },
   {
     key: "OUT_FOR_DELIVERY",
@@ -149,6 +160,7 @@ const ACTIVE_STATUSES = new Set([
   "PENDING_DISPATCH",
   "ASSIGNED_DRIVER",
   "ACCEPTED_BY_DRIVER",
+  "RIDER_ARRIVED",
   "OUT_FOR_DELIVERY",
   "DISPATCHED",
 ]);

@@ -6,6 +6,7 @@ import { ordersClient, type Order } from "../lib/api/orders.client";
 import { useOrdersStore } from "../stores/orders.store";
 import { getSocket } from "../lib/socket/socket.client";
 import { useAuthStore } from "../stores/auth.store";
+import { useOrderSounds } from "./use-order-sounds";
 
 // ── React Query key ─────────────────────────────────────────────────────────
 // Exported so the mutation hook below (and any future consumer) shares the
@@ -21,6 +22,7 @@ export function useLiveOrders(locationId?: string) {
   const applyOrderCancelled = useOrdersStore((s) => s.applyOrderCancelled);
   const liveOrders = useOrdersStore((s) => s.liveOrders);
   const token = useAuthStore((s) => s.accessToken);
+  const { play } = useOrderSounds();
 
   const query = useQuery({
     queryKey: liveOrdersKey(locationId),
@@ -58,18 +60,44 @@ export function useLiveOrders(locationId?: string) {
     if (!token) return;
     const socket = getSocket(token);
 
-    socket.on("order:new", applyNewOrder);
-    socket.on("order:updated", applyOrderUpdated);
-    socket.on("order:cancelled", applyOrderCancelled);
+    // Wrap each handler so we can play the matching sound *in addition*
+    // to running the store mutation. We thread the original handler
+    // through unchanged so all the existing optimistic-update logic
+    // still fires; the sound is a side effect of the same event.
+    const onNew = (order: Order) => {
+      play("new");
+      applyNewOrder(order);
+    };
+    const onUpdated = (order: Order) => {
+      // Only sound the rider-arrived alert when the status genuinely
+      // transitioned *into* RIDER_ARRIVED — any re-emit of the same
+      // status (idempotent webhook retries, board re-syncs) shouldn't
+      // re-beep.
+      if (order.status === "RIDER_ARRIVED") {
+        const prev = useOrdersStore.getState().liveOrders.find((o) => o.id === order.id);
+        if (!prev || prev.status !== "RIDER_ARRIVED") {
+          play("rider_arrived");
+        }
+      }
+      applyOrderUpdated(order);
+    };
+    const onCancelled = (order: Order) => {
+      play("cancelled");
+      applyOrderCancelled(order);
+    };
+
+    socket.on("order:new", onNew);
+    socket.on("order:updated", onUpdated);
+    socket.on("order:cancelled", onCancelled);
 
     if (locationId) socket.emit("room:join", locationId);
 
     return () => {
-      socket.off("order:new", applyNewOrder);
-      socket.off("order:updated", applyOrderUpdated);
-      socket.off("order:cancelled", applyOrderCancelled);
+      socket.off("order:new", onNew);
+      socket.off("order:updated", onUpdated);
+      socket.off("order:cancelled", onCancelled);
     };
-  }, [token, locationId, applyNewOrder, applyOrderUpdated, applyOrderCancelled]);
+  }, [token, locationId, applyNewOrder, applyOrderUpdated, applyOrderCancelled, play]);
 
   return {
     orders: liveOrders,

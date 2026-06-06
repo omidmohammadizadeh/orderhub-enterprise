@@ -36,7 +36,12 @@ export type IntegrationSource = z.infer<typeof IntegrationSourceSchema>;
 //
 // Forward flow:
 //   PENDING → ACCEPTED → PREPARING → READY → ASSIGNED_DRIVER → ACCEPTED_BY_DRIVER
-//          → OUT_FOR_DELIVERY → COMPLETED (delivered/collected)
+//          → RIDER_ARRIVED → OUT_FOR_DELIVERY → COMPLETED (delivered/collected)
+//
+// RIDER_ARRIVED is emitted when a platform-rider (Uber Eats / Just Eat /
+// Deliveroo / Stuart / Uber Direct) reaches the shop to collect — it signals
+// front-of-house "the bag is being handed over right now" so staff can audibly
+// react. Mark "Out for delivery" once the rider walks out the door.
 //
 // Terminal/exception states (any non-terminal status can transition to one):
 //   CANCELLED, REJECTED, FAILED
@@ -52,6 +57,7 @@ export const OrderStatusSchema = z.enum([
   "PENDING_DISPATCH", // dispatched to 3rd-party (Uber Direct / Stuart / JET) — no driver accepted yet
   "ASSIGNED_DRIVER",
   "ACCEPTED_BY_DRIVER",
+  "RIDER_ARRIVED",    // platform rider physically at the shop, ready to collect
   "OUT_FOR_DELIVERY",
   "DISPATCHED", // legacy alias for OUT_FOR_DELIVERY
   "COMPLETED",

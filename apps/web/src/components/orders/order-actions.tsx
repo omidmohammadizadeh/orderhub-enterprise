@@ -139,6 +139,33 @@ function buttonsForStatus(
       ];
     case "ASSIGNED_DRIVER":
     case "ACCEPTED_BY_DRIVER":
+      // Primary: rider just walked in → "Rider arrived". Secondary
+      // skip-ahead: "Out for delivery" for couriers who never check in
+      // physically (door-dash style, or merchant delivery).
+      return [
+        {
+          label: "Rider arrived",
+          toStatus: "RIDER_ARRIVED",
+          icon: Bike,
+          variant: "primary",
+        },
+        {
+          label: "Out for delivery",
+          toStatus: "OUT_FOR_DELIVERY",
+          icon: Bike,
+          variant: "secondary",
+        },
+        {
+          label: "Cancel",
+          toStatus: "CANCELLED",
+          icon: X,
+          variant: "danger",
+          promptForReason: true,
+        },
+      ];
+    case "RIDER_ARRIVED":
+      // Bag handed over → rider leaves. Cancel still allowed in case
+      // the courier has to abort (lost bag, broken bike, etc.).
       return [
         {
           label: "Out for delivery",
