@@ -69,9 +69,9 @@ export function SiteNav() {
           <img
             src="/orderhub-logo.png"
             alt="Order Hub"
-            width={36}
-            height={36}
-            className="h-9 w-9 object-contain"
+            width={48}
+            height={48}
+            className="h-11 w-11 object-contain"
           />
           <span className="font-bold tracking-tight">Order Hub</span>
         </Link>
@@ -144,7 +144,7 @@ function MegaMenu({
                     className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-zinc-50"
                   >
                     {it.brand && (
-                      <BrandLogo brand={it.brand} size={24} rounded />
+                      <BrandLogo brand={it.brand} size={32} rounded />
                     )}
                     <span className="text-sm text-zinc-800">{it.label}</span>
                   </Link>
