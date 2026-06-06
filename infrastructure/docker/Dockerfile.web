@@ -59,8 +59,10 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-# apps/web/public is omitted — no static assets directory exists in this project.
-# Add this line back (and create the directory) when static assets are needed.
+# Static assets (logo, og-image, robots.txt, etc.) live in apps/web/public and
+# are served at the site root by Next.js. Must be copied into the runtime image
+# explicitly — `next build` does NOT bundle them into .next/standalone.
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 USER nextjs
 EXPOSE 3000
