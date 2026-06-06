@@ -392,7 +392,7 @@ export default function MenuPage() {
                       key={t}
                       className="inline-flex items-center gap-1 text-[11px] text-zinc-600"
                     >
-                      <PlatformLogo platform={t} size={16} />
+                      <PlatformLogo platform={t} size={22} />
                       {platformLabel(t)}
                     </span>
                   ))}

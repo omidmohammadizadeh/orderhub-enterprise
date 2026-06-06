@@ -18,8 +18,8 @@ const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
 // platform name on the right. Compact enough for order card headers.
 export function PlatformBadge({ platform }: { platform: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-white border border-zinc-200 pr-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-700">
-      <PlatformLogo platform={platform} size={18} title={false} />
+    <span className="inline-flex items-center gap-2 rounded-md bg-white border border-zinc-200 pr-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-700">
+      <PlatformLogo platform={platform} size={28} title={false} />
       {platformLabel(platform)}
     </span>
   );

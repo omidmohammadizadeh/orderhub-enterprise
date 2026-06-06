@@ -121,7 +121,7 @@ function ConnectionRow({
   return (
     <li className="rounded-md border border-zinc-200 px-3 py-2">
       <div className="flex items-center gap-3">
-        <PlatformLogo platform={platform} size={28} />
+        <PlatformLogo platform={platform} size={44} />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-zinc-900">{platformLabel(platform)}</span>
