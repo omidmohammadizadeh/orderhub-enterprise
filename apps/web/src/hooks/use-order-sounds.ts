@@ -31,10 +31,13 @@ import { useEffect, useRef } from "react";
 
 export type OrderSoundKind = "new" | "cancelled" | "rider_arrived";
 
+// Filenames match what the operator uploaded to apps/web/public/sounds/
+// — underscores, US spelling "canceled". If you re-upload with
+// different names, update these paths to match.
 const SOUND_PATHS: Record<OrderSoundKind, string> = {
-  new: "/sounds/new-order.mp3",
-  cancelled: "/sounds/cancelled-order.mp3",
-  rider_arrived: "/sounds/rider-arrived.mp3",
+  new: "/sounds/new_order.mp3",
+  cancelled: "/sounds/canceled_order.mp3",
+  rider_arrived: "/sounds/rider_arrived.mp3",
 };
 
 interface UseOrderSoundsReturn {

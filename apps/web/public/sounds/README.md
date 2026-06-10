@@ -9,9 +9,9 @@ Render build picking up the new files.
 
 | File                      | Plays when                                        |
 |---------------------------|---------------------------------------------------|
-| `new-order.mp3`           | A new order lands (POS, Direct online, Uber Eats, Just Eat, Deliveroo, HubRise — any source) |
-| `cancelled-order.mp3`     | An order moves into CANCELLED / REJECTED / FAILED |
-| `rider-arrived.mp3`       | A platform rider reaches the shop (RIDER_ARRIVED) — Uber Eats / Just Eat / Deliveroo / Stuart / Uber Direct |
+| `new_order.mp3`           | A new order lands (POS, Direct online, Uber Eats, Just Eat, Deliveroo, HubRise — any source) |
+| `canceled_order.mp3`      | An order moves into CANCELLED / REJECTED / FAILED |
+| `rider_arrived.mp3`       | A platform rider reaches the shop (RIDER_ARRIVED) — Uber Eats / Just Eat / Deliveroo / Stuart / Uber Direct |
 
 ## Recommended specs
 
