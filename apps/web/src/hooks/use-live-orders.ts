@@ -7,6 +7,10 @@ import { useOrdersStore } from "../stores/orders.store";
 import { getSocket } from "../lib/socket/socket.client";
 import { useAuthStore } from "../stores/auth.store";
 import { useOrderSounds } from "./use-order-sounds";
+import type {
+  OrderEventPayload,
+  OrderCancelledPayload,
+} from "@orderhub/shared";
 
 // ── React Query key ─────────────────────────────────────────────────────────
 // Exported so the mutation hook below (and any future consumer) shares the
@@ -61,29 +65,35 @@ export function useLiveOrders(locationId?: string) {
     const socket = getSocket(token);
 
     // Wrap each handler so we can play the matching sound *in addition*
-    // to running the store mutation. We thread the original handler
+    // to running the store mutation. We thread the original payload
     // through unchanged so all the existing optimistic-update logic
     // still fires; the sound is a side effect of the same event.
-    const onNew = (order: Order) => {
+    //
+    // Socket events use the slim OrderEventPayload / OrderCancelledPayload
+    // shapes (orderId, not id) — not the full Order from the REST list
+    // endpoint.
+    const onNew = (payload: OrderEventPayload) => {
       play("new");
-      applyNewOrder(order);
+      applyNewOrder(payload);
     };
-    const onUpdated = (order: Order) => {
+    const onUpdated = (payload: OrderEventPayload) => {
       // Only sound the rider-arrived alert when the status genuinely
       // transitioned *into* RIDER_ARRIVED — any re-emit of the same
       // status (idempotent webhook retries, board re-syncs) shouldn't
       // re-beep.
-      if (order.status === "RIDER_ARRIVED") {
-        const prev = useOrdersStore.getState().liveOrders.find((o) => o.id === order.id);
+      if (payload.status === "RIDER_ARRIVED") {
+        const prev = useOrdersStore
+          .getState()
+          .liveOrders.find((o) => o.id === payload.orderId);
         if (!prev || prev.status !== "RIDER_ARRIVED") {
           play("rider_arrived");
         }
       }
-      applyOrderUpdated(order);
+      applyOrderUpdated(payload);
     };
-    const onCancelled = (order: Order) => {
+    const onCancelled = (payload: OrderCancelledPayload) => {
       play("cancelled");
-      applyOrderCancelled(order);
+      applyOrderCancelled(payload);
     };
 
     socket.on("order:new", onNew);
