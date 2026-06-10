@@ -2346,6 +2346,7 @@ enum OrderStatusActorType {
 
 enum PaymentStatus {
   PENDING
+  AUTHORIZED         // Phase AP-8 — Stripe authorization succeeded, money is held on the card but NOT yet captured. Captured when the restaurant clicks Accept; released (no charge) when they reject.
   PAID
   REFUNDED
   PARTIALLY_REFUNDED

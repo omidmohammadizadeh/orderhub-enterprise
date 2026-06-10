@@ -2253,6 +2253,7 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   PENDING_DISPATCH: 'PENDING_DISPATCH',
   ASSIGNED_DRIVER: 'ASSIGNED_DRIVER',
   ACCEPTED_BY_DRIVER: 'ACCEPTED_BY_DRIVER',
+  RIDER_ARRIVED: 'RIDER_ARRIVED',
   OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DISPATCHED: 'DISPATCHED',
   COMPLETED: 'COMPLETED',
@@ -2271,6 +2272,7 @@ exports.FulfillmentType = exports.$Enums.FulfillmentType = {
 
 exports.PaymentStatus = exports.$Enums.PaymentStatus = {
   PENDING: 'PENDING',
+  AUTHORIZED: 'AUTHORIZED',
   PAID: 'PAID',
   REFUNDED: 'REFUNDED',
   PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',

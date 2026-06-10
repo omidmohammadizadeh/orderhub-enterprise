@@ -2327,6 +2327,7 @@ enum OrderStatus {
   PENDING_DISPATCH // order has been pushed to a third-party dispatcher (Uber Direct, Stuart, JET, etc.) but no driver has accepted yet
   ASSIGNED_DRIVER
   ACCEPTED_BY_DRIVER
+  RIDER_ARRIVED // platform rider (UE / JET / Deliveroo / Stuart / Uber Direct) physically at the shop, ready to collect — staff hands the bag over and marks Out for delivery
   OUT_FOR_DELIVERY
   DISPATCHED // legacy alias for OUT_FOR_DELIVERY — kept for backward compatibility with older outbox events and integration adapters
   COMPLETED
@@ -2345,6 +2346,7 @@ enum OrderStatusActorType {
 
 enum PaymentStatus {
   PENDING
+  AUTHORIZED // Phase AP-8 — Stripe authorization succeeded, money is held on the card but NOT yet captured. Captured when the restaurant clicks Accept; released (no charge) when they reject.
   PAID
   REFUNDED
   PARTIALLY_REFUNDED

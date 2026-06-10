@@ -169,6 +169,29 @@ export default function OrderPage() {
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+
+  // Phase AP-8 — Stripe Checkout success URL bounces the customer back to
+  // /order/[slug]/confirmation which redirects here with ?confirmedOrderId
+  // in the query string. Pick it up on mount so the order-tracking screen
+  // shows automatically instead of the empty cart.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const id = sp.get("confirmedOrderId");
+    if (id) {
+      setConfirmedOrderId(id);
+      // Strip the query string so a manual refresh doesn't re-trigger.
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+    // Phase AP-8 — customer clicked "back" on Stripe Checkout. The order
+    // is still in PENDING state server-side; for now we just leave the
+    // cart restored (cart state already persists). A future polish would
+    // call DELETE /orders/{id} to clean up the dangling order.
+    if (sp.has("canceledOrderId")) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   const [infoOpen, setInfoOpen] = useState(false); // Phase AP — About modal
 
   // Cart panel form state
@@ -357,6 +380,23 @@ export default function OrderPage() {
         .then((r) => r.data);
     },
     onSuccess: (order) => {
+      // Phase AP-8 — CARD orders come back with checkoutUrl pointing at
+      // the Stripe-hosted payment page. Redirect the whole window so the
+      // customer enters their card on Stripe's domain (no PCI scope for
+      // us, supports Apple Pay / Google Pay / Link automatically).
+      //
+      // The success_url Stripe sends them back to is
+      // /order/[slug]/confirmation?orderId=...&session_id={...} — the
+      // existing waiting-for-restaurant screen polls /order-status by id.
+      if (order?.checkoutUrl && typeof window !== "undefined") {
+        // Clear the cart NOW so a back-button after payment doesn't show
+        // the unpaid cart again. The order is already created server-side.
+        dispatch({ type: "CLEAR" });
+        window.location.href = order.checkoutUrl;
+        return;
+      }
+      // Cash path: same behaviour as before — show the "waiting for
+      // restaurant" confirmation screen in-place.
       setConfirmedOrderId(order.id);
       setCartOpen(false);
       dispatch({ type: "CLEAR" });

@@ -7,6 +7,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
+import { PaymentsService } from "../payments/payments.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -30,6 +31,10 @@ export interface CheckoutDto {
   total: number;
   specialInstructions?: string;
   promoCode?: string;
+  // Phase AP-8 — when set to "CARD", checkout() returns a Stripe Checkout
+  // Session URL the storefront should redirect the browser to. Defaults
+  // to "CASH" if absent so existing callers keep working.
+  paymentMethod?: "CASH" | "CARD";
 }
 
 @Injectable()
@@ -40,6 +45,10 @@ export class OrderingService {
     private readonly prisma: PrismaService,
     private readonly ordersService: OrdersService,
     private readonly promoCodes: PromoCodesService,
+    // Phase AP-8 — Stripe Checkout Session for card payments. Injected
+    // optionally so the module doesn't blow up at boot if Stripe creds
+    // aren't set yet on a fresh deploy.
+    private readonly payments: PaymentsService,
   ) {}
 
   /**
@@ -280,7 +289,7 @@ export class OrderingService {
       notes: item.notes,
     }));
 
-    return this.ordersService.create(
+    const order = await this.ordersService.create(
       {
         locationId: location.id,
         orderSource: "ONLINE",
@@ -295,9 +304,35 @@ export class OrderingService {
         total: dto.total,
         specialInstructions: dto.specialInstructions,
         idempotencyKey: dto.idempotencyKey,
-      },
+        paymentMethod: dto.paymentMethod ?? "CASH",
+        paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
+      } as any,
       location.brand.tenantId,
     );
+
+    // Phase AP-8 — cash orders flow straight to the staff Orders board
+    // as today. Card orders, on the other hand, need the customer to
+    // complete payment through Stripe Checkout *first*; we return the
+    // hosted-checkout URL for the storefront to redirect to. The order
+    // joins the staff board only once the Stripe webhook reports
+    // authorization (payment_intent.amount_capturable_updated).
+    if (dto.paymentMethod === "CARD") {
+      const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+      const successUrl = `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}`;
+      const cancelUrl = `${origin}/order/${slug}?canceledOrderId=${order.id}`;
+
+      const { url } = await this.payments.createCheckoutSession({
+        tenantId: location.brand.tenantId,
+        orderId: order.id,
+        successUrl,
+        cancelUrl,
+        customerEmail: dto.customerInfo.email,
+      });
+
+      return { ...order, checkoutUrl: url } as any;
+    }
+
+    return order;
   }
 
   async getOrderStatus(orderId: string) {

@@ -13,6 +13,7 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
+import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
 import type { CreateOrderDto } from "./dto/create-order.dto";
@@ -54,6 +55,7 @@ export class OrdersService {
     private readonly outbox: OutboxService,
     private readonly printQueue: PrintQueueService, // Phase AM
     private readonly promoCodes: PromoCodesService, // Phase AM
+    private readonly payments: PaymentsService, // Phase AP-8 — Stripe manual-capture lifecycle hooks
   ) {}
 
   /**
@@ -536,12 +538,33 @@ export class OrdersService {
           `enqueueForNewOrder failed for ${orderId}: ${err.message}`,
         );
       });
-    } else if (newStatus === "CANCELLED") {
+      // Phase AP-8 — capture the held card authorization. No-op for
+      // cash orders / orders without a held PI. Best-effort by design;
+      // a capture failure is reported in logs and surfaced to ops, but
+      // does NOT roll back the status change because the bag is going
+      // out either way and reconciliation can happen out-of-band.
+      this.payments
+        .captureForOrder(orderId)
+        .catch((err: any) =>
+          this.logger.error(`Stripe capture failed for ${orderId}: ${err.message}`),
+        );
+    } else if (newStatus === "CANCELLED" || newStatus === "REJECTED") {
       this.printQueue.enqueueCancel(orderId).catch((err: any) => {
         this.logger.warn(
           `enqueueCancel failed for ${orderId}: ${err.message}`,
         );
       });
+      // Phase AP-8 — refund-or-cancel based on capture state.
+      // refundForOrder() is the smart entry point: if the payment is
+      // already captured it issues a refund; if it's still in
+      // authorization (pre-accept rejection) it cancels the auth
+      // instead, which is cheaper and leaves no charge on the
+      // customer's statement.
+      this.payments
+        .refundForOrder(orderId, dto.cancelReason ?? undefined)
+        .catch((err: any) =>
+          this.logger.error(`Stripe refund/cancel failed for ${orderId}: ${err.message}`),
+        );
     }
 
     // Broadcast update — best-effort, immediate

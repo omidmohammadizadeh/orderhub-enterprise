@@ -419,6 +419,434 @@ export class PaymentsService {
     return result;
   }
 
+  // ── Phase AP-8 — Stripe Connect manual-capture flow ────────────────────────
+  //
+  // Used by the online-ordering storefront. Customer hits "Place order" with
+  // payment method CARD → API calls createCheckoutSession → storefront
+  // redirects to the Stripe-hosted Checkout page → customer enters card (or
+  // Apple Pay / Google Pay / Link — Stripe auto-detects) → Stripe AUTHORIZES
+  // the card (manual capture mode, money held but not taken).
+  //
+  // Then four order-lifecycle hooks trigger the rest:
+  //
+  //   1. Restaurant accepts          → captureForOrder()         → money taken
+  //   2. Restaurant rejects pre-cap  → cancelAuthForOrder()      → hold released
+  //   3. Restaurant cancels post-cap → refundForOrder()          → money returned
+  //   4. Stripe webhook events       → reflect state into DB
+
+  /**
+   * Look up the operative Stripe Connect account for a location, preferring
+   * a location-scoped account and falling back to a tenant-level one.
+   *
+   * Why two levels: the operator can either give every restaurant its own
+   * onboarded Connect account (location-scoped, the multi-restaurant case)
+   * OR run one account for the whole tenant (single-shop case). We honour
+   * either configuration without forcing one model.
+   */
+  private async resolveConnectAccount(
+    tenantId: string,
+    locationId: string,
+  ): Promise<{ id: string; stripeAccountId: string } | null> {
+    const locationLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, locationId, chargesEnabled: true },
+    });
+    if (locationLevel) {
+      return { id: locationLevel.id, stripeAccountId: locationLevel.stripeAccountId };
+    }
+    const tenantLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, locationId: null, chargesEnabled: true },
+    });
+    return tenantLevel
+      ? { id: tenantLevel.id, stripeAccountId: tenantLevel.stripeAccountId }
+      : null;
+  }
+
+  /**
+   * Compute application_fee_amount from the location's per-location fee
+   * configuration. Falls back to the global PLATFORM_FEE_RATE if the
+   * location has no fee config — keeps things working out of the box.
+   */
+  private computeApplicationFeePence(
+    location: any,
+    basketGbp: number,
+  ): number {
+    const mode = location?.applicationFeeMode as
+      | "none"
+      | "fixed_only"
+      | "percentage_only"
+      | "fixed_and_percentage"
+      | null
+      | undefined;
+    if (!mode || mode === "none") {
+      return Math.round(basketGbp * PLATFORM_FEE_RATE.toNumber() * 100);
+    }
+    const fixed = Number(location.applicationFeeFixedAmount ?? 0);
+    const pct = Number(location.applicationFeePercentage ?? 0);
+    const usesFixed = mode === "fixed_only" || mode === "fixed_and_percentage";
+    const usesPct = mode === "percentage_only" || mode === "fixed_and_percentage";
+    const fixedPart = usesFixed ? fixed : 0;
+    const pctPart = usesPct ? basketGbp * (pct / 100) : 0;
+    return Math.round((fixedPart + pctPart) * 100);
+  }
+
+  /**
+   * Create a Stripe Checkout Session in manual-capture mode for the given
+   * order. Returns the hosted-checkout URL the storefront should redirect
+   * the customer to.
+   *
+   * The Payment row is created up-front in PENDING state so we have
+   * something to reconcile when the webhook arrives. We attach the Stripe
+   * Checkout Session ID + the future PaymentIntent ID via metadata so the
+   * webhook can find it.
+   */
+  async createCheckoutSession(params: {
+    tenantId: string;
+    orderId: string;
+    successUrl: string;
+    cancelUrl: string;
+    customerEmail?: string;
+  }): Promise<{ url: string; sessionId: string }> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: params.orderId, tenantId: params.tenantId },
+      include: {
+        items: true,
+        location: true,
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (!order.locationId) {
+      throw new BadRequestException("Order has no location");
+    }
+    if (!this.stripe) {
+      throw new BadRequestException(
+        "Stripe is not configured on the server — set STRIPE_SECRET_KEY",
+      );
+    }
+
+    const connect = await this.resolveConnectAccount(
+      params.tenantId,
+      order.locationId,
+    );
+    if (!connect) {
+      throw new BadRequestException(
+        "This location has no active Stripe Connect account — restaurant must complete Stripe onboarding before accepting card payments.",
+      );
+    }
+
+    // Order doesn't have a currency column today — every existing Payment
+    // defaults to GBP per the Phase F schema, and the storefront is UK-
+    // only. Hardcode here, override later if/when multi-currency lands.
+    const currency = "gbp";
+    const totalGbp = Number(order.total);
+    const applicationFeePence = this.computeApplicationFeePence(
+      order.location,
+      totalGbp,
+    );
+
+    // One line item for the cart subtotal + one each for delivery / tax /
+    // tip / discount as needed. Stripe shows each line on the hosted
+    // checkout page, so itemising helps the customer recognise their cart.
+    const lineItems: any[] = order.items.map((it: any) => ({
+      price_data: {
+        currency,
+        product_data: { name: it.name },
+        unit_amount: Math.round(Number(it.unitPrice) * 100),
+      },
+      quantity: it.quantity,
+    }));
+    const addLine = (label: string, amountGbp: number) => {
+      if (amountGbp > 0.005) {
+        lineItems.push({
+          price_data: {
+            currency,
+            product_data: { name: label },
+            unit_amount: Math.round(amountGbp * 100),
+          },
+          quantity: 1,
+        });
+      }
+    };
+    addLine("Delivery", Number(order.deliveryFee ?? 0));
+    addLine("Service / tax", Number(order.taxAmount ?? 0));
+
+    let session;
+    try {
+      session = await this.stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: lineItems,
+        // Pre-fill the customer's email if we have it — saves a step on the
+        // hosted page.
+        customer_email: params.customerEmail || undefined,
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+        // The headline feature: AUTHORIZE only, do NOT capture. Money is
+        // held on the card; we capture later when the restaurant accepts.
+        // Application fee + Connect transfer route the captured funds to
+        // the right Connect account with our cut taken out.
+        payment_intent_data: {
+          capture_method: "manual",
+          application_fee_amount: applicationFeePence,
+          transfer_data: { destination: connect.stripeAccountId },
+          metadata: {
+            orderId: order.id,
+            tenantId: params.tenantId,
+            locationId: order.locationId,
+          },
+        },
+        metadata: {
+          orderId: order.id,
+          tenantId: params.tenantId,
+          locationId: order.locationId,
+        },
+      });
+    } catch (err: any) {
+      this.logger.error(`Stripe Checkout Session create failed: ${err.message}`);
+      throw new BadRequestException(
+        `Couldn't start Stripe checkout: ${err.message}`,
+      );
+    }
+
+    // Persist Payment row in PENDING — webhook fills the rest.
+    const totalDecimal = new Decimal(totalGbp.toFixed(2));
+    const platformFeeDecimal = new Decimal(applicationFeePence).div(100);
+    const processingFeeDecimal = totalDecimal
+      .mul(PROCESSING_FEE_RATE)
+      .add(PROCESSING_FEE_FLAT)
+      .toDecimalPlaces(2);
+    const netAmountDecimal = totalDecimal
+      .sub(platformFeeDecimal)
+      .sub(processingFeeDecimal)
+      .toDecimalPlaces(2);
+
+    await (this.prisma as any).payment.create({
+      data: {
+        tenantId: params.tenantId,
+        orderId: order.id,
+        stripeConnectAccountId: connect.id,
+        stripePaymentIntentId: session.payment_intent ?? null,
+        amount: totalDecimal,
+        currency,
+        status: PaymentRecordStatus.PENDING,
+        method: "CARD",
+        tipAmount: new Decimal(0),
+        platformFee: platformFeeDecimal,
+        processingFee: processingFeeDecimal,
+        netAmount: netAmountDecimal,
+        metadata: { stripeCheckoutSessionId: session.id },
+      },
+    });
+
+    this.logger.log(
+      `Stripe Checkout Session created for order ${order.id} -> ${session.id}`,
+    );
+    return { url: session.url, sessionId: session.id };
+  }
+
+  /**
+   * Restaurant accepted the order — capture the held authorization. Safe
+   * to call for non-card orders (cash etc.); returns early if there's
+   * nothing to capture.
+   */
+  async captureForOrder(orderId: string): Promise<void> {
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { orderId, method: "CARD" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!payment || !payment.stripePaymentIntentId) return;
+    if (
+      payment.status === PaymentRecordStatus.SUCCEEDED ||
+      payment.status === PaymentRecordStatus.REFUNDED ||
+      payment.status === PaymentRecordStatus.CANCELLED
+    ) {
+      return; // already terminal
+    }
+    if (!this.stripe) return;
+    try {
+      await this.stripe.paymentIntents.capture(payment.stripePaymentIntentId);
+      this.logger.log(
+        `Stripe capture invoked for order ${orderId} (PI ${payment.stripePaymentIntentId})`,
+      );
+      // The payment_intent.succeeded webhook will flip statuses + write
+      // ledger entries. We don't update DB here to avoid drift.
+    } catch (err: any) {
+      this.logger.error(
+        `Stripe capture failed for order ${orderId}: ${err.message}`,
+      );
+      throw new BadRequestException(`Capture failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Restaurant rejected the order before capture — release the hold.
+   * Customer sees no charge on their statement.
+   */
+  async cancelAuthForOrder(orderId: string, reason?: string): Promise<void> {
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { orderId, method: "CARD" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!payment || !payment.stripePaymentIntentId) return;
+    if (
+      payment.status === PaymentRecordStatus.CANCELLED ||
+      payment.status === PaymentRecordStatus.REFUNDED ||
+      payment.status === PaymentRecordStatus.FAILED
+    ) {
+      return; // already done
+    }
+    if (!this.stripe) return;
+    try {
+      await this.stripe.paymentIntents.cancel(payment.stripePaymentIntentId, {
+        cancellation_reason: "requested_by_customer",
+      });
+      this.logger.log(
+        `Stripe PI cancelled for order ${orderId} (reason: ${reason ?? "n/a"})`,
+      );
+      // payment_intent.canceled webhook will flip statuses.
+    } catch (err: any) {
+      this.logger.error(
+        `Stripe cancel failed for order ${orderId}: ${err.message}`,
+      );
+      throw new BadRequestException(`Authorization cancel failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Order cancelled AFTER the restaurant accepted (and we captured).
+   * Issues a full refund. For pre-capture cancels, use cancelAuthForOrder
+   * instead — it's cheaper and the customer never sees a charge.
+   */
+  async refundForOrder(orderId: string, reason?: string): Promise<void> {
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { orderId, method: "CARD" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!payment || !payment.stripePaymentIntentId) return;
+    if (payment.status !== PaymentRecordStatus.SUCCEEDED) {
+      // Not captured yet → use cancel-auth path instead.
+      return this.cancelAuthForOrder(orderId, reason);
+    }
+    if (!this.stripe) return;
+    try {
+      const total = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
+      await this.stripe.refunds.create({
+        payment_intent: payment.stripePaymentIntentId,
+        amount: Math.round(total.toNumber() * 100),
+        reason: "requested_by_customer",
+        metadata: { orderId, reason: reason ?? "" },
+      });
+      this.logger.log(
+        `Stripe refund created for order ${orderId} (PI ${payment.stripePaymentIntentId})`,
+      );
+      // charge.refunded webhook will flip statuses + write ledger entries.
+    } catch (err: any) {
+      this.logger.error(`Stripe refund failed for order ${orderId}: ${err.message}`);
+      throw new BadRequestException(`Refund failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Webhook handler — Stripe authorization succeeded. The Order joins the
+   * staff board now (with paymentStatus AUTHORIZED) so the restaurant
+   * can accept or reject it.
+   */
+  async markAuthorized(paymentIntentId: string): Promise<void> {
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { stripePaymentIntentId: paymentIntentId },
+    });
+    if (!payment) return;
+    await this.prisma.$transaction([
+      (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentRecordStatus.PROCESSING },
+      }),
+      this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: { paymentStatus: "AUTHORIZED" as any },
+      }),
+    ]);
+    this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
+      orderId: payment.orderId,
+      paymentStatus: "AUTHORIZED",
+    } as any);
+  }
+
+  /**
+   * Webhook handler — Stripe authorization cancelled (we called cancel(),
+   * or Stripe auto-released a stale hold). Mark Payment and Order
+   * accordingly.
+   */
+  async markCancelled(paymentIntentId: string): Promise<void> {
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { stripePaymentIntentId: paymentIntentId },
+    });
+    if (!payment) return;
+    await this.prisma.$transaction([
+      (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentRecordStatus.CANCELLED },
+      }),
+      this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: { paymentStatus: "FAILED" as any },
+      }),
+    ]);
+    this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
+      orderId: payment.orderId,
+      paymentStatus: "FAILED",
+    } as any);
+  }
+
+  /**
+   * Webhook handler — Stripe charge refunded. Cover the case where staff
+   * cancelled an already-captured order; reflect REFUNDED on both
+   * Payment and Order.
+   */
+  async markRefunded(chargeId: string, refundAmountPence: number): Promise<void> {
+    // Look up by charge ID via the Payment.stripeChargeId column, OR by
+    // resolving the charge -> PaymentIntent if our row only has the PI.
+    let payment = await (this.prisma as any).payment.findFirst({
+      where: { stripeChargeId: chargeId },
+    });
+    if (!payment && this.stripe) {
+      try {
+        const charge = await this.stripe.charges.retrieve(chargeId);
+        if (charge?.payment_intent) {
+          payment = await (this.prisma as any).payment.findFirst({
+            where: { stripePaymentIntentId: charge.payment_intent },
+          });
+        }
+      } catch {
+        /* swallow — payment will just be null */
+      }
+    }
+    if (!payment) return;
+
+    const total = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
+    const refundedGbp = new Decimal(refundAmountPence).div(100);
+    const isFull = refundedGbp.greaterThanOrEqualTo(total.sub(new Decimal("0.01")));
+
+    await this.prisma.$transaction([
+      (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: {
+          status: isFull
+            ? PaymentRecordStatus.REFUNDED
+            : PaymentRecordStatus.SUCCEEDED,
+        },
+      }),
+      this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: {
+          paymentStatus: (isFull ? "REFUNDED" : "PARTIALLY_REFUNDED") as any,
+        },
+      }),
+    ]);
+    this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
+      orderId: payment.orderId,
+      paymentStatus: isFull ? "REFUNDED" : "PARTIALLY_REFUNDED",
+    } as any);
+  }
+
   // ── Query Methods ──────────────────────────────────────────────────────────
 
   async getPaymentsByOrder(orderId: string, tenantId: string) {
@@ -626,6 +1054,39 @@ export class PaymentsService {
               this.logger.error(`payment_failed update failed: ${err.message}`),
             );
         }
+        break;
+      }
+
+      // Phase AP-8 — Stripe manual-capture lifecycle.
+      case "payment_intent.amount_capturable_updated": {
+        // Authorization succeeded; money is held but not yet captured.
+        // Mark the order as AUTHORIZED so it joins the staff Orders board.
+        const pi = event.data.object;
+        await this.markAuthorized(pi.id).catch((err: any) =>
+          this.logger.error(`markAuthorized failed: ${err.message}`),
+        );
+        break;
+      }
+
+      case "payment_intent.canceled": {
+        // Either we called cancel() because staff rejected the order, or
+        // Stripe auto-cancelled a stale uncaptured auth. Either way the
+        // customer sees nothing on their statement.
+        const pi = event.data.object;
+        await this.markCancelled(pi.id).catch((err: any) =>
+          this.logger.error(`markCancelled failed: ${err.message}`),
+        );
+        break;
+      }
+
+      case "charge.refunded": {
+        // Staff cancelled an already-captured order, or a previous refund
+        // was extended. Reflect into our Payment + Order state.
+        const charge = event.data.object;
+        const refunded = charge.amount_refunded ?? 0;
+        await this.markRefunded(charge.id, refunded).catch((err: any) =>
+          this.logger.error(`markRefunded failed: ${err.message}`),
+        );
         break;
       }
 
