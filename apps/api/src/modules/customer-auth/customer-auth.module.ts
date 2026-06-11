@@ -9,11 +9,12 @@ import { AuthModule } from "../auth/auth.module";
 import { CustomerAuthController } from "./customer-auth.controller";
 import { CustomerAuthService } from "./customer-auth.service";
 import { CustomerJwtStrategy } from "./customer-jwt.strategy";
+import { CustomerGoogleStrategy } from "./customer-google.strategy";
 
 @Module({
   imports: [ConfigModule, AuthModule],
   controllers: [CustomerAuthController],
-  providers: [CustomerAuthService, CustomerJwtStrategy],
+  providers: [CustomerAuthService, CustomerJwtStrategy, CustomerGoogleStrategy],
   exports: [CustomerAuthService],
 })
 export class CustomerAuthModule {}

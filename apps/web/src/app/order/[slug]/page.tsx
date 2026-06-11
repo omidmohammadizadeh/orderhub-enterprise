@@ -28,6 +28,7 @@ import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
+import { HeaderAuthButton } from "@/components/storefront/header-auth-button";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import {
   ShoppingBag,
@@ -420,7 +421,7 @@ export default function OrderPage() {
   // it. Pre-fills cart name + phone with the customer's profile so
   // they don't retype, and auto-fires checkout if they hit "Place
   // order" before signing in.
-  const { customer: authCustomer } = useCustomerAuth();
+  const { customer: authCustomer, logout: logoutCustomer } = useCustomerAuth();
   useEffect(() => {
     if (!authCustomer) return;
     if (!customerName) {
@@ -601,17 +602,29 @@ export default function OrderPage() {
               {headerTitle}
             </span>
           </div>
-          <button
-            onClick={() => setCartOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-          >
-            <ShoppingBag className="h-4 w-4" /> Cart
-            {cartCount > 0 && (
-              <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
-                {cartCount}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Phase AP-AUTH increment 2b — persistent customer auth
+                control. Shows "Sign in" pre-auth, or the avatar +
+                first-name dropdown post-auth. Lives next to the cart
+                pill so it stays visible the whole time the customer
+                is browsing. */}
+            <HeaderAuthButton
+              customer={authCustomer ?? null}
+              onSignInClick={() => setLoginOpen(true)}
+              onLogout={logoutCustomer}
+            />
+            <button
+              onClick={() => setCartOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+            >
+              <ShoppingBag className="h-4 w-4" /> Cart
+              {cartCount > 0 && (
+                <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
