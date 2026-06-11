@@ -60,7 +60,7 @@ export class CustomerAuthService {
       throw new BadRequestException(strength.errors.join(". "));
     }
 
-    const existing = await (this.prisma as any).customer.findUnique({
+    const existing = await (this.prisma as any).customerAccount.findUnique({
       where: { email: emailNormalised },
     });
     if (existing) {
@@ -76,7 +76,7 @@ export class CustomerAuthService {
     // 32 bytes of randomness, hex-encoded. Single-use; cleared on verify.
     const token = randomBytes(32).toString("hex");
 
-    const customer = await (this.prisma as any).customer.create({
+    const customer = await (this.prisma as any).customerAccount.create({
       data: {
         email: emailNormalised,
         password: hashed,
@@ -107,7 +107,7 @@ export class CustomerAuthService {
     if (!token || token.length < 32) {
       throw new BadRequestException("Invalid verification link");
     }
-    const customer = await (this.prisma as any).customer.findFirst({
+    const customer = await (this.prisma as any).customerAccount.findFirst({
       where: { emailVerificationToken: token },
     });
     if (!customer) {
@@ -115,7 +115,7 @@ export class CustomerAuthService {
         "This verification link is no longer valid. It may have already been used, or you may have signed up again — try logging in.",
       );
     }
-    const updated = await (this.prisma as any).customer.update({
+    const updated = await (this.prisma as any).customerAccount.update({
       where: { id: customer.id },
       data: {
         isVerified: true,
@@ -131,7 +131,7 @@ export class CustomerAuthService {
 
   async login(dto: CustomerLoginDto): Promise<{ accessToken: string; customer: any }> {
     const emailNormalised = dto.email.trim().toLowerCase();
-    const customer = await (this.prisma as any).customer.findUnique({
+    const customer = await (this.prisma as any).customerAccount.findUnique({
       where: { email: emailNormalised },
     });
     // Deliberately identical 401 for "no such email" and "wrong password"
@@ -148,7 +148,7 @@ export class CustomerAuthService {
         "Please confirm your email first. Check your inbox for the confirmation link we sent.",
       );
     }
-    await (this.prisma as any).customer.update({
+    await (this.prisma as any).customerAccount.update({
       where: { id: customer.id },
       data: { lastLoginAt: new Date() },
     });
@@ -172,17 +172,17 @@ export class CustomerAuthService {
   }): Promise<{ accessToken: string; customer: any }> {
     const emailNormalised = profile.email.trim().toLowerCase();
     // Existing Google-linked account → just sign in.
-    let customer = await (this.prisma as any).customer.findUnique({
+    let customer = await (this.prisma as any).customerAccount.findUnique({
       where: { googleId: profile.googleId },
     });
     if (!customer) {
       // Maybe they signed up by email previously and are now linking
       // Google — match on email.
-      customer = await (this.prisma as any).customer.findUnique({
+      customer = await (this.prisma as any).customerAccount.findUnique({
         where: { email: emailNormalised },
       });
       if (customer) {
-        customer = await (this.prisma as any).customer.update({
+        customer = await (this.prisma as any).customerAccount.update({
           where: { id: customer.id },
           data: {
             googleId: profile.googleId,
@@ -193,7 +193,7 @@ export class CustomerAuthService {
         });
       } else {
         // Brand new customer.
-        customer = await (this.prisma as any).customer.create({
+        customer = await (this.prisma as any).customerAccount.create({
           data: {
             email: emailNormalised,
             googleId: profile.googleId,
@@ -209,7 +209,7 @@ export class CustomerAuthService {
       }
     } else {
       // Existing Google-linked customer — just bump lastLoginAt.
-      customer = await (this.prisma as any).customer.update({
+      customer = await (this.prisma as any).customerAccount.update({
         where: { id: customer.id },
         data: { lastLoginAt: new Date() },
       });
@@ -221,7 +221,7 @@ export class CustomerAuthService {
   }
 
   async getById(id: string): Promise<any | null> {
-    const customer = await (this.prisma as any).customer.findUnique({
+    const customer = await (this.prisma as any).customerAccount.findUnique({
       where: { id },
     });
     return customer ? this.serialise(customer) : null;

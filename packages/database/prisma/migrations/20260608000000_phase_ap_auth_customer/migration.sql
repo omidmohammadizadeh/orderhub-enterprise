@@ -1,10 +1,13 @@
--- Phase AP-AUTH — Customer-facing accounts for the public storefront.
+-- Phase AP-AUTH — Customer-facing auth accounts for the public storefront.
 --
--- Separate from "users" (which is staff/admin only) so customers can never
--- accidentally inherit dashboard permissions and so JWT audiences stay
--- clean. One Customer record spans every restaurant on the platform.
+-- Named "customer_accounts" not "customers" because a tenant-scoped
+-- "customers" CRM table already exists (orders, addresses, loyalty per
+-- restaurant). This new table is the AUTH IDENTITY — one row per real
+-- human, not per "human-at-restaurant". A future migration can FK
+-- Customer.accountId -> CustomerAccount.id if/when the storefront
+-- wants to share order history across restaurants.
 
-CREATE TABLE IF NOT EXISTS "customers" (
+CREATE TABLE IF NOT EXISTS "customer_accounts" (
   "id"                     TEXT NOT NULL,
   "email"                  TEXT NOT NULL,
   "password"               TEXT,
@@ -19,10 +22,10 @@ CREATE TABLE IF NOT EXISTS "customers" (
   "lastLoginAt"            TIMESTAMP(3),
   "createdAt"              TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt"              TIMESTAMP(3) NOT NULL,
-  CONSTRAINT "customers_pkey" PRIMARY KEY ("id")
+  CONSTRAINT "customer_accounts_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "customers_email_key"     ON "customers"("email");
-CREATE UNIQUE INDEX "customers_googleId_key"  ON "customers"("googleId");
-CREATE INDEX        "customers_email_idx"     ON "customers"("email");
-CREATE INDEX        "customers_googleId_idx"  ON "customers"("googleId");
+CREATE UNIQUE INDEX "customer_accounts_email_key"    ON "customer_accounts"("email");
+CREATE UNIQUE INDEX "customer_accounts_googleId_key" ON "customer_accounts"("googleId");
+CREATE INDEX        "customer_accounts_email_idx"    ON "customer_accounts"("email");
+CREATE INDEX        "customer_accounts_googleId_idx" ON "customer_accounts"("googleId");

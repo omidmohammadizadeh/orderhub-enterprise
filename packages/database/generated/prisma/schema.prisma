@@ -104,6 +104,46 @@ model User {
   @@map("users")
 }
 
+// ── CustomerAccount ──────────────────────────────────────────────────────
+//
+// Phase AP-AUTH — Customer-facing AUTH accounts for the public storefront.
+// Kept SEPARATE from:
+//   1. User (staff/admin auth) — so customers cannot inherit dashboard
+//      permissions and JWT audiences never overlap.
+//   2. Customer (CRM record, declared below at line ~920) — that model
+//      is tenant-scoped and holds order history / loyalty / addresses
+//      for a specific restaurant. A single CustomerAccount can be linked
+//      to many Customer rows (one per restaurant they've ordered from)
+//      once we wire the FK in a follow-up; for now they live independently.
+//
+// Auth methods supported:
+//   • Email + password (requires email confirmation)
+//   • Google OAuth (Google already verifies the email — no extra step)
+//
+// emailVerificationToken is a one-use random string stored on the row so
+// /order/[slug]/auth/confirm?token=... can flip isVerified without
+// needing a separate VerificationToken table. NULL once verified.
+model CustomerAccount {
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  password               String? // null for Google-only signups
+  firstName              String
+  lastName               String
+  phone                  String?
+  googleId               String?   @unique
+  avatarUrl              String?
+  isVerified             Boolean   @default(false)
+  emailVerificationToken String? // set during signup, cleared on verify
+  marketingOptIn         Boolean   @default(false)
+  lastLoginAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([email])
+  @@index([googleId])
+  @@map("customer_accounts")
+}
+
 // ── RefreshToken ──────────────────────────────────────────────────────────────
 model RefreshToken {
   id                String    @id @default(cuid())
@@ -191,7 +231,7 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ── Brand ───────────────────────────────────────────��─────────────────────────
+// ── Brand ─────────────────────────────────────────────────────────────────────
 model Brand {
   id        String    @id @default(cuid())
   tenantId  String

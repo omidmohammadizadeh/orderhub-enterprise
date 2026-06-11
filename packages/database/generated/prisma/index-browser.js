@@ -151,6 +151,23 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CustomerAccountScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  password: 'password',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  googleId: 'googleId',
+  avatarUrl: 'avatarUrl',
+  isVerified: 'isVerified',
+  emailVerificationToken: 'emailVerificationToken',
+  marketingOptIn: 'marketingOptIn',
+  lastLoginAt: 'lastLoginAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RefreshTokenScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1405,6 +1422,18 @@ exports.Prisma.UserOrderByRelevanceFieldEnum = {
   permissions: 'permissions'
 };
 
+exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
+  id: 'id',
+  email: 'email',
+  password: 'password',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  googleId: 'googleId',
+  avatarUrl: 'avatarUrl',
+  emailVerificationToken: 'emailVerificationToken'
+};
+
 exports.Prisma.RefreshTokenOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2477,6 +2506,7 @@ exports.OutboxEventStatus = exports.$Enums.OutboxEventStatus = {
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   User: 'User',
+  CustomerAccount: 'CustomerAccount',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   ApiKey: 'ApiKey',

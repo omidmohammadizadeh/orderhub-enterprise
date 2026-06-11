@@ -104,23 +104,26 @@ model User {
   @@map("users")
 }
 
-// ── Customer ──────────────────────────────────────────────────────────────
+// ── CustomerAccount ──────────────────────────────────────────────────────
 //
-// Phase AP-AUTH — Customer-facing accounts for the public storefront. Kept
-// SEPARATE from User (which is staff/admin only) so customers can never
-// accidentally inherit dashboard permissions, and so the JWT audiences
-// never overlap. One Customer record spans every restaurant on the
-// platform — a customer who orders from "Pizza Uno" and later from
-// "Kebab Express" is the same person, not two rows.
+// Phase AP-AUTH — Customer-facing AUTH accounts for the public storefront.
+// Kept SEPARATE from:
+//   1. User (staff/admin auth) — so customers cannot inherit dashboard
+//      permissions and JWT audiences never overlap.
+//   2. Customer (CRM record, declared below at line ~920) — that model
+//      is tenant-scoped and holds order history / loyalty / addresses
+//      for a specific restaurant. A single CustomerAccount can be linked
+//      to many Customer rows (one per restaurant they've ordered from)
+//      once we wire the FK in a follow-up; for now they live independently.
 //
 // Auth methods supported:
 //   • Email + password (requires email confirmation)
 //   • Google OAuth (Google already verifies the email — no extra step)
 //
-// emailVerificationToken is a one-use signed string stored on the row
-// so that landing on /order/[slug]/confirm?token=... can flip isVerified
-// without needing a separate VerificationToken table. NULL once verified.
-model Customer {
+// emailVerificationToken is a one-use random string stored on the row so
+// /order/[slug]/auth/confirm?token=... can flip isVerified without
+// needing a separate VerificationToken table. NULL once verified.
+model CustomerAccount {
   id                     String    @id @default(cuid())
   email                  String    @unique
   password               String?   // null for Google-only signups
@@ -138,7 +141,7 @@ model Customer {
 
   @@index([email])
   @@index([googleId])
-  @@map("customers")
+  @@map("customer_accounts")
 }
 
 // ── RefreshToken ──────────────────────────────────────────────────────────────
