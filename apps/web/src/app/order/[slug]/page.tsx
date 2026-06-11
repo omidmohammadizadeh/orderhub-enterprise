@@ -27,6 +27,8 @@ import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { LoginModal } from "@/components/storefront/login-modal";
+import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import {
   ShoppingBag,
   Plus,
@@ -193,6 +195,15 @@ export default function OrderPage() {
     }
   }, []);
   const [infoOpen, setInfoOpen] = useState(false); // Phase AP — About modal
+
+  // Phase AP-AUTH — auth-gate state for the storefront. Friendly
+  // flavour: the menu and cart are browsable freely; the modal only
+  // opens when an unauthenticated customer clicks "Place order". State
+  // is declared up here; the auth hook + post-login pre-fill effect
+  // run further down (after `customerName` / `customerPhone` /
+  // `checkout` exist, which they need to reference).
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [pendingPlaceOrder, setPendingPlaceOrder] = useState(false);
 
   // Cart panel form state
   const [customerName, setCustomerName] = useState("");
@@ -402,6 +413,42 @@ export default function OrderPage() {
       dispatch({ type: "CLEAR" });
     },
   });
+
+  // ── Phase AP-AUTH — customer auth hook + pre-fill effect ─────────────
+  //
+  // Declared AFTER `checkout` so the post-login replay can reference
+  // it. Pre-fills cart name + phone with the customer's profile so
+  // they don't retype, and auto-fires checkout if they hit "Place
+  // order" before signing in.
+  const { customer: authCustomer } = useCustomerAuth();
+  useEffect(() => {
+    if (!authCustomer) return;
+    if (!customerName) {
+      setCustomerName(
+        `${authCustomer.firstName} ${authCustomer.lastName}`.trim(),
+      );
+    }
+    if (!customerPhone && authCustomer.phone) {
+      setCustomerPhone(authCustomer.phone);
+    }
+    if (pendingPlaceOrder) {
+      setPendingPlaceOrder(false);
+      checkout.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authCustomer]);
+
+  // Wraps the existing checkout.mutate() call so the modal opens when
+  // the customer isn't authenticated. The pending flag is consumed
+  // by the effect above the moment auth state flips to authenticated.
+  const handlePlaceOrder = () => {
+    if (!authCustomer) {
+      setPendingPlaceOrder(true);
+      setLoginOpen(true);
+      return;
+    }
+    checkout.mutate();
+  };
 
   // ── Promo + postcode helpers (Phase AP fix #1 + #2) ─────────────────────
 
@@ -797,7 +844,7 @@ export default function OrderPage() {
           matchedZone={matchedZone}
           scheduledFor={scheduledFor}
           onOpenSchedule={() => setScheduleOpen(true)}
-          onPlace={() => checkout.mutate()}
+          onPlace={handlePlaceOrder}
           isPlacing={checkout.isPending}
           placeError={
             checkout.error
@@ -870,6 +917,27 @@ export default function OrderPage() {
           }}
         />
       )}
+
+      {/* Phase AP-AUTH — login / signup modal. Opens on Place Order click
+          when the customer isn't authenticated; the pendingPlaceOrder
+          flag (set in handlePlaceOrder above) is consumed by the auth
+          effect, which auto-fires checkout once the modal closes
+          successfully. */}
+      <LoginModal
+        open={loginOpen}
+        storeSlug={String(slug)}
+        onClose={() => {
+          setLoginOpen(false);
+          // If the customer dismissed the modal without signing in,
+          // drop the pending flag too so a later auth (e.g. from
+          // another tab via cross-tab sync) doesn't auto-checkout.
+          setPendingPlaceOrder(false);
+        }}
+        onAuthenticated={() => {
+          // The effect above sees authCustomer flip and replays
+          // checkout.mutate(); nothing else to do here.
+        }}
+      />
     </div>
   );
 

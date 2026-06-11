@@ -29,6 +29,7 @@ import { ObservabilityModule } from "./common/observability/observability.module
 // ── Domain Modules ─────────────────────────────────────────
 import { HealthModule } from "./modules/health/health.module";
 import { AuthModule } from "./modules/auth/auth.module";
+import { CustomerAuthModule } from "./modules/customer-auth/customer-auth.module";
 import { TenantsModule } from "./modules/tenants/tenants.module";
 import { BrandsModule } from "./modules/brands/brands.module";
 import { LocationsModule } from "./modules/locations/locations.module";
@@ -155,6 +156,7 @@ import { QUEUES } from "@orderhub/shared";
 
     // ── Domain ───────────────────────────────────────────
     AuthModule,
+    CustomerAuthModule,
     UsersModule,
     TenantsModule,
     BrandsModule,

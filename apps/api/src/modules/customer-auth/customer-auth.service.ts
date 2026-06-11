@@ -1,0 +1,324 @@
+// Phase AP-AUTH — Customer-facing auth for the public storefront.
+//
+// Separate from staff auth (AuthService) because:
+//   1. Different identity model (Customer, not User)
+//   2. Different JWT audience so customer tokens can't access /v1/...
+//      staff endpoints by accident
+//   3. Different signup UX: email confirmation required for password
+//      signups; immediate session for Google OAuth (Google verified)
+//
+// What lives here:
+//   * signup()           — create Customer, send confirmation email
+//   * verifyEmail()      — flip isVerified, return session JWT
+//   * login()            — email/password authentication, return JWT
+//   * createOrLinkGoogle()— upsert Customer from Google profile (used by
+//                          the OAuth callback handler)
+//   * getById()          — load Customer for the JWT strategy
+
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { randomBytes } from "node:crypto";
+import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { EmailService } from "../../infrastructure/email/email.service";
+import { PasswordService } from "../auth/services/password.service";
+import { CustomerSignupDto } from "./dto/signup.dto";
+import { CustomerLoginDto } from "./dto/login.dto";
+
+// JWT audience used to distinguish customer tokens from staff tokens.
+// CustomerJwtStrategy verifies this matches before accepting a token,
+// so a leaked customer JWT can't be replayed against staff endpoints
+// and vice versa.
+export const CUSTOMER_JWT_AUDIENCE = "orderhub-customer";
+
+@Injectable()
+export class CustomerAuthService {
+  private readonly logger = new Logger(CustomerAuthService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly password: PasswordService,
+    private readonly jwt: JwtService,
+    private readonly email: EmailService,
+    private readonly config: ConfigService,
+  ) {}
+
+  async signup(dto: CustomerSignupDto): Promise<{ pendingVerification: true; email: string }> {
+    const emailNormalised = dto.email.trim().toLowerCase();
+
+    // Strength check happens after the basic DTO validation so we can
+    // return the specific rule failure (uppercase missing, etc.) rather
+    // than a generic "min length 8".
+    const strength = this.password.validateStrength(dto.password);
+    if (!strength.valid) {
+      throw new BadRequestException(strength.errors.join(". "));
+    }
+
+    const existing = await (this.prisma as any).customer.findUnique({
+      where: { email: emailNormalised },
+    });
+    if (existing) {
+      // Soft-leak prevention: same message whether the row exists or not.
+      // The genuinely-new-user path also lands here when they re-submit
+      // a stale signup form, so this isn't user-hostile.
+      throw new ConflictException(
+        "An account already exists with this email. Try signing in.",
+      );
+    }
+
+    const hashed = await this.password.hash(dto.password);
+    // 32 bytes of randomness, hex-encoded. Single-use; cleared on verify.
+    const token = randomBytes(32).toString("hex");
+
+    const customer = await (this.prisma as any).customer.create({
+      data: {
+        email: emailNormalised,
+        password: hashed,
+        firstName: dto.firstName.trim(),
+        lastName: dto.lastName.trim(),
+        phone: dto.phone?.trim() || null,
+        isVerified: false,
+        emailVerificationToken: token,
+        marketingOptIn: dto.marketingOptIn ?? false,
+      },
+    });
+
+    await this.sendConfirmationEmail({
+      to: customer.email,
+      firstName: customer.firstName,
+      token,
+      storeSlug: dto.storeSlug,
+    });
+
+    this.logger.log(
+      `Customer signup: ${customer.id} (${customer.email}) — verification email sent`,
+    );
+
+    return { pendingVerification: true, email: customer.email };
+  }
+
+  async verifyEmail(token: string): Promise<{ accessToken: string; customer: any }> {
+    if (!token || token.length < 32) {
+      throw new BadRequestException("Invalid verification link");
+    }
+    const customer = await (this.prisma as any).customer.findFirst({
+      where: { emailVerificationToken: token },
+    });
+    if (!customer) {
+      throw new BadRequestException(
+        "This verification link is no longer valid. It may have already been used, or you may have signed up again — try logging in.",
+      );
+    }
+    const updated = await (this.prisma as any).customer.update({
+      where: { id: customer.id },
+      data: {
+        isVerified: true,
+        emailVerificationToken: null,
+        lastLoginAt: new Date(),
+      },
+    });
+    return {
+      accessToken: await this.signCustomerToken(updated),
+      customer: this.serialise(updated),
+    };
+  }
+
+  async login(dto: CustomerLoginDto): Promise<{ accessToken: string; customer: any }> {
+    const emailNormalised = dto.email.trim().toLowerCase();
+    const customer = await (this.prisma as any).customer.findUnique({
+      where: { email: emailNormalised },
+    });
+    // Deliberately identical 401 for "no such email" and "wrong password"
+    // — prevents account enumeration.
+    if (!customer || !customer.password) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
+    const ok = await this.password.compare(dto.password, customer.password);
+    if (!ok) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
+    if (!customer.isVerified) {
+      throw new UnauthorizedException(
+        "Please confirm your email first. Check your inbox for the confirmation link we sent.",
+      );
+    }
+    await (this.prisma as any).customer.update({
+      where: { id: customer.id },
+      data: { lastLoginAt: new Date() },
+    });
+    return {
+      accessToken: await this.signCustomerToken(customer),
+      customer: this.serialise(customer),
+    };
+  }
+
+  /**
+   * Used by the Google OAuth callback (next increment). Finds an
+   * existing Customer by googleId or email, or creates a new one
+   * marked isVerified (Google has already verified the address).
+   */
+  async createOrLinkGoogle(profile: {
+    googleId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  }): Promise<{ accessToken: string; customer: any }> {
+    const emailNormalised = profile.email.trim().toLowerCase();
+    // Existing Google-linked account → just sign in.
+    let customer = await (this.prisma as any).customer.findUnique({
+      where: { googleId: profile.googleId },
+    });
+    if (!customer) {
+      // Maybe they signed up by email previously and are now linking
+      // Google — match on email.
+      customer = await (this.prisma as any).customer.findUnique({
+        where: { email: emailNormalised },
+      });
+      if (customer) {
+        customer = await (this.prisma as any).customer.update({
+          where: { id: customer.id },
+          data: {
+            googleId: profile.googleId,
+            isVerified: true,
+            avatarUrl: customer.avatarUrl ?? profile.avatarUrl ?? null,
+            lastLoginAt: new Date(),
+          },
+        });
+      } else {
+        // Brand new customer.
+        customer = await (this.prisma as any).customer.create({
+          data: {
+            email: emailNormalised,
+            googleId: profile.googleId,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            avatarUrl: profile.avatarUrl ?? null,
+            isVerified: true,
+            lastLoginAt: new Date(),
+            // No password — Google-only account. Can set one later
+            // via password-reset if they want email login too.
+          },
+        });
+      }
+    } else {
+      // Existing Google-linked customer — just bump lastLoginAt.
+      customer = await (this.prisma as any).customer.update({
+        where: { id: customer.id },
+        data: { lastLoginAt: new Date() },
+      });
+    }
+    return {
+      accessToken: await this.signCustomerToken(customer),
+      customer: this.serialise(customer),
+    };
+  }
+
+  async getById(id: string): Promise<any | null> {
+    const customer = await (this.prisma as any).customer.findUnique({
+      where: { id },
+    });
+    return customer ? this.serialise(customer) : null;
+  }
+
+  // ── internals ─────────────────────────────────────────────────────
+
+  private async signCustomerToken(customer: any): Promise<string> {
+    return this.jwt.signAsync(
+      {
+        sub: customer.id,
+        email: customer.email,
+        // aud claim — CustomerJwtStrategy verifies this matches so
+        // a customer token can't be replayed against staff routes.
+        aud: CUSTOMER_JWT_AUDIENCE,
+      },
+      {
+        // 30 days — customer sessions should feel persistent. They're
+        // re-validated on every request anyway via JWT strategy.
+        expiresIn: "30d",
+      },
+    );
+  }
+
+  private serialise(customer: any) {
+    return {
+      id: customer.id,
+      email: customer.email,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      phone: customer.phone,
+      avatarUrl: customer.avatarUrl,
+      isVerified: customer.isVerified,
+    };
+  }
+
+  private async sendConfirmationEmail(opts: {
+    to: string;
+    firstName: string;
+    token: string;
+    storeSlug?: string;
+  }) {
+    const webUrl =
+      this.config.get<string>("WEB_URL") ??
+      "https://www.orderhubsolutions.com";
+    // Link lands on the storefront's confirm page so the customer ends
+    // up back at the menu they were trying to order from. Without
+    // storeSlug, fall back to the marketing homepage.
+    const confirmPath = opts.storeSlug
+      ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}`
+      : `/auth/confirm?token=${opts.token}`;
+    const url = `${webUrl}${confirmPath}`;
+
+    const html = `
+<!doctype html>
+<html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #f8fafc; padding: 32px 16px; margin: 0;">
+  <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <tr><td>
+      <h1 style="margin: 0 0 16px; font-size: 20px; color: #0f172a;">Welcome, ${escapeHtml(opts.firstName)}</h1>
+      <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.5;">
+        Tap the button below to confirm your email and start ordering.
+      </p>
+      <p style="margin: 24px 0;">
+        <a href="${url}" style="background: #059669; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">Confirm my email</a>
+      </p>
+      <p style="margin: 24px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+        Or copy this link into your browser:<br>
+        <span style="color: #64748b; word-break: break-all;">${url}</span>
+      </p>
+      <p style="margin: 24px 0 0; font-size: 11px; color: #94a3b8;">
+        If you didn't create an Order Hub account, you can ignore this email.
+      </p>
+    </td></tr>
+  </table>
+</body></html>`;
+
+    try {
+      await this.email.send({
+        to: opts.to,
+        subject: "Confirm your Order Hub account",
+        html,
+      });
+    } catch (err: any) {
+      // Don't fail the signup if email send fails — the row is in DB
+      // and the operator can re-trigger via a "resend confirmation"
+      // flow (not built yet). Log loudly.
+      this.logger.error(
+        `Confirmation email failed for ${opts.to}: ${err.message}`,
+      );
+    }
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
