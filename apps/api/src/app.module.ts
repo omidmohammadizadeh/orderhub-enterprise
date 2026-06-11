@@ -23,6 +23,7 @@ import { winstonConfig } from "./config/logger.config";
 // ── Infrastructure ─────────────────────────────────────────
 import { DatabaseModule } from "./infrastructure/database/database.module";
 import { SocketModule } from "./infrastructure/socket/socket.module";
+import { EmailModule } from "./infrastructure/email/email.module";
 import { ObservabilityModule } from "./common/observability/observability.module";
 
 // ── Domain Modules ─────────────────────────────────────────
@@ -146,6 +147,7 @@ import { QUEUES } from "@orderhub/shared";
     // ── Infrastructure ───────────────────────────────────
     DatabaseModule,
     SocketModule,
+    EmailModule,
 
     // ── Operational ──────────────────────────────────────
     HealthModule,

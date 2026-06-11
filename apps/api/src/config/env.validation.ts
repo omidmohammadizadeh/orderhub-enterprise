@@ -71,6 +71,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+
   // Platform webhook secrets (per-tenant overrides stored in DB; these are fallback globals)
   UBER_EATS_CLIENT_ID: z.string().optional(),
   UBER_EATS_CLIENT_SECRET: z.string().optional(),
