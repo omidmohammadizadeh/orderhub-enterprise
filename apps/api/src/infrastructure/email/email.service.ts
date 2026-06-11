@@ -23,13 +23,16 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-let Resend: any;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  Resend = require("resend").Resend;
-} catch {
-  /* package not installed in this environment — fall through to mock */
-}
+// Call Resend's HTTP API directly with fetch instead of pulling in
+// the npm SDK. Two reasons:
+//   1. Their SDK lists react + react-dom as peer dependencies (for
+//      the React-Email helpers we don't use). In a partial monorepo
+//      install (which is what Render's Docker build does) that
+//      peer-dep tree resolves inconsistently and breaks
+//      --frozen-lockfile.
+//   2. The Resend API is one endpoint with a JSON body and a Bearer
+//      header — fetch is genuinely all we need.
+// Node 18+ has a global fetch, so no import is required.
 
 export interface SendEmailOpts {
   to: string;
@@ -41,10 +44,12 @@ export interface SendEmailOpts {
   replyTo?: string;
 }
 
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly client: any | null;
+  private readonly apiKey: string | null;
   private readonly fromAddress: string;
 
   constructor(private readonly config: ConfigService) {
@@ -57,13 +62,13 @@ export class EmailService {
       this.config.get<string>("EMAIL_FROM") ??
       "Order Hub <hello@orderhubsolutions.com>";
 
-    if (apiKey && Resend) {
-      this.client = new Resend(apiKey);
+    if (apiKey) {
+      this.apiKey = apiKey;
       this.logger.log(
-        `Resend client initialised (from: ${this.fromAddress})`,
+        `Resend HTTP client ready (from: ${this.fromAddress})`,
       );
     } else {
-      this.client = null;
+      this.apiKey = null;
       this.logger.warn(
         "RESEND_API_KEY not set — emails will be logged, not delivered",
       );
@@ -76,7 +81,7 @@ export class EmailService {
    * (or rejects on hard failures — caller decides whether to retry).
    */
   async send(opts: SendEmailOpts): Promise<{ id: string | null }> {
-    if (!this.client) {
+    if (!this.apiKey) {
       // Mock path — log enough to debug a missing email in dev without
       // dumping the entire HTML body in the console.
       this.logger.log(
@@ -85,15 +90,29 @@ export class EmailService {
       return { id: null };
     }
     try {
-      const result = await this.client.emails.send({
-        from: this.fromAddress,
-        to: opts.to,
-        subject: opts.subject,
-        html: opts.html,
-        text: opts.text,
-        reply_to: opts.replyTo,
+      const res = await fetch(RESEND_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: this.fromAddress,
+          to: [opts.to],
+          subject: opts.subject,
+          html: opts.html,
+          text: opts.text,
+          reply_to: opts.replyTo,
+        }),
       });
-      const id = result?.data?.id ?? null;
+      if (!res.ok) {
+        const errorBody = await res.text().catch(() => "");
+        throw new Error(
+          `Resend ${res.status}: ${errorBody || res.statusText}`,
+        );
+      }
+      const data = (await res.json().catch(() => ({}))) as { id?: string };
+      const id = data?.id ?? null;
       this.logger.log(
         `Email sent to ${opts.to} subject="${opts.subject}" id=${id ?? "n/a"}`,
       );
