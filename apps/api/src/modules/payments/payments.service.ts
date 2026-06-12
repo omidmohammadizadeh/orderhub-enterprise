@@ -602,41 +602,91 @@ export class PaymentsService {
     addLine("Delivery", Number(order.deliveryFee ?? 0));
     addLine("Service / tax", Number(order.taxAmount ?? 0));
 
-    let session;
-    try {
-      session = await this.stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: lineItems,
-        // Pre-fill the customer's email if we have it — saves a step on the
-        // hosted page.
-        customer_email: params.customerEmail || undefined,
-        success_url: params.successUrl,
-        cancel_url: params.cancelUrl,
-        // The headline feature: AUTHORIZE only, do NOT capture. Money is
-        // held on the card; we capture later when the restaurant accepts.
-        // Application fee + Connect transfer route the captured funds to
-        // the right Connect account with our cut taken out.
-        payment_intent_data: {
-          capture_method: "manual",
-          application_fee_amount: applicationFeePence,
-          transfer_data: { destination: connect.stripeAccountId },
-          metadata: {
-            orderId: order.id,
-            tenantId: params.tenantId,
-            locationId: order.locationId,
-          },
-        },
+    // Build the base session params we'll try first (with Connect
+    // transfer + application fee).
+    const baseSessionParams: any = {
+      mode: "payment",
+      line_items: lineItems,
+      customer_email: params.customerEmail || undefined,
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      payment_intent_data: {
+        capture_method: "manual",
+        application_fee_amount: applicationFeePence,
+        transfer_data: { destination: connect.stripeAccountId },
         metadata: {
           orderId: order.id,
           tenantId: params.tenantId,
           locationId: order.locationId,
         },
-      });
+      },
+      metadata: {
+        orderId: order.id,
+        tenantId: params.tenantId,
+        locationId: order.locationId,
+      },
+    };
+
+    // Try Connect destination charge first; if Stripe rejects because the
+    // Connect account doesn't have the `transfers` capability yet, retry as
+    // a direct charge to the platform's own Stripe account. This unblocks
+    // operators who pasted a raw acct_… ID before completing proper Connect
+    // onboarding (transfers capability is the gate Stripe puts in front of
+    // automated balance routing). The operator's money still ends up in
+    // their platform Stripe balance — they just have to manually transfer
+    // it out to the restaurant or enable transfers and re-test.
+    let session;
+    let usedDirectCharge = false;
+    try {
+      session = await this.stripe.checkout.sessions.create(baseSessionParams);
     } catch (err: any) {
-      this.logger.error(`Stripe Checkout Session create failed: ${err.message}`);
-      throw new BadRequestException(
-        `Couldn't start Stripe checkout: ${err.message}`,
-      );
+      const msg = String(err?.message ?? "");
+      const capabilityMissing =
+        msg.includes("capabilities") &&
+        (msg.includes("transfers") || msg.includes("legacy_payments"));
+      if (capabilityMissing) {
+        this.logger.warn(
+          `Connect destination charge rejected (capabilities missing on ${connect.stripeAccountId}). ` +
+            `Retrying as direct charge to platform account. Operator should enable transfers on the Connect account.`,
+        );
+        // Direct-charge fallback: drop transfer_data + application_fee.
+        // Money lands in the platform's Stripe balance, NOT the
+        // restaurant's. Operator must reconcile manually until they
+        // complete Connect onboarding.
+        const fallbackParams = { ...baseSessionParams };
+        fallbackParams.payment_intent_data = {
+          capture_method: "manual",
+          metadata: baseSessionParams.payment_intent_data.metadata,
+        };
+        try {
+          session = await this.stripe.checkout.sessions.create(fallbackParams);
+          usedDirectCharge = true;
+        } catch (err2: any) {
+          this.logger.error(
+            `Stripe direct-charge fallback also failed: ${err2.message}`,
+          );
+          throw new BadRequestException(
+            `Couldn't start Stripe checkout: ${err2.message}`,
+          );
+        }
+      } else {
+        this.logger.error(`Stripe Checkout Session create failed: ${msg}`);
+        throw new BadRequestException(
+          `Couldn't start Stripe checkout: ${msg}`,
+        );
+      }
+    }
+
+    if (usedDirectCharge) {
+      // Mark the metadata so the webhook handler + operator dashboards
+      // can tell the two flows apart at reconciliation time.
+      try {
+        await this.stripe.checkout.sessions.update(session.id, {
+          metadata: { ...session.metadata, chargeMode: "direct_fallback" },
+        });
+      } catch {
+        /* best-effort metadata stamp — not worth blocking checkout */
+      }
     }
 
     // Persist Payment row in PENDING — webhook fills the rest.
