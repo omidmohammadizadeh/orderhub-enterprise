@@ -275,7 +275,7 @@ function GoogleButton({ storeSlug }: { storeSlug: string }) {
   // flow so we know where to return the customer.
   const API_BASE =
     process.env.NEXT_PUBLIC_API_URL ?? "https://orderhub-api-0re6.onrender.com";
-  const href = `${API_BASE}/v1/customer-auth/google?state=${encodeURIComponent(storeSlug)}`;
+  const href = `${API_BASE}/api/v1/customer-auth/google?state=${encodeURIComponent(storeSlug)}`;
   return (
     <a
       href={href}
