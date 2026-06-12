@@ -54,6 +54,11 @@ export class CustomerAuthController {
     return this.customerAuth.login(dto);
   }
 
+  // @Public() bypasses the global staff JwtAuthGuard registered in
+  // AppModule. Without it the staff strategy fires first, fails the
+  // customer token's missing `type: "access"` claim, and 401s with
+  // "Invalid token type" before our CustomerJwtGuard ever runs.
+  @Public()
   @UseGuards(CustomerJwtGuard)
   @Get("me")
   @ApiOperation({ summary: "Current customer (from JWT)" })
