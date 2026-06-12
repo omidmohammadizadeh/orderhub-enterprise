@@ -273,9 +273,14 @@ function GoogleButton({ storeSlug }: { storeSlug: string }) {
   // callback redirects back to the storefront with the token. The
   // `state` query param threads storeSlug through Google's OAuth
   // flow so we know where to return the customer.
+  // API_BASE already carries "/api" (production: NEXT_PUBLIC_API_URL=/api
+  // proxies through the Next.js rewrite layer; dev fallback hardcodes /api
+  // onto the hosted host). The path here must NOT include /api or the
+  // browser hits /api/api/v1/... and gets a 404.
   const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL ?? "https://orderhub-api-0re6.onrender.com";
-  const href = `${API_BASE}/api/v1/customer-auth/google?state=${encodeURIComponent(storeSlug)}`;
+    process.env.NEXT_PUBLIC_API_URL ??
+    "https://orderhub-api-0re6.onrender.com/api";
+  const href = `${API_BASE}/v1/customer-auth/google?state=${encodeURIComponent(storeSlug)}`;
   return (
     <a
       href={href}

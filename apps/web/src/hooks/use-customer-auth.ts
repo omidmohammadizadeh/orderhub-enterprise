@@ -17,8 +17,16 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
+// On Render: NEXT_PUBLIC_API_URL = "/api" so requests hit the Next.js
+// rewrite layer (apps/web/next.config.js) which proxies to the API.
+// In local dev when the env var is unset, we point straight at the
+// hosted API and include "/api" so the call hits NestJS's global
+// prefix. The route paths below DO NOT include "/api" — the base
+// always carries it. This avoids the "/api/api/v1/..." double-prefix
+// bug.
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://orderhub-api-0re6.onrender.com";
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://orderhub-api-0re6.onrender.com/api";
 const TOKEN_KEY = "orderhub.customerToken";
 
 export interface Customer {
@@ -69,7 +77,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     }
     setToken(stored);
     axios
-      .get(`${API_BASE}/api/v1/customer-auth/me`, {
+      .get(`${API_BASE}/v1/customer-auth/me`, {
         headers: { Authorization: `Bearer ${stored}` },
       })
       .then((res) => {
@@ -97,7 +105,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
         setToken(e.newValue);
         // Re-fetch /me with the new token.
         axios
-          .get(`${API_BASE}/api/v1/customer-auth/me`, {
+          .get(`${API_BASE}/v1/customer-auth/me`, {
             headers: { Authorization: `Bearer ${e.newValue}` },
           })
           .then((res) => setCustomer(res.data))
@@ -118,7 +126,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
   };
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await axios.post(`${API_BASE}/api/v1/customer-auth/login`, {
+    const res = await axios.post(`${API_BASE}/v1/customer-auth/login`, {
       email,
       password,
     });
@@ -128,7 +136,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
   }, []);
 
   const signup = useCallback(async (input: SignupInput) => {
-    await axios.post(`${API_BASE}/api/v1/customer-auth/signup`, input);
+    await axios.post(`${API_BASE}/v1/customer-auth/signup`, input);
     // Customer is NOT signed in yet — they need to click the email
     // confirmation link first. The modal shows the "check your email"
     // state when this resolves.
@@ -144,7 +152,7 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
   const refresh = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await axios.get(`${API_BASE}/api/v1/customer-auth/me`, {
+      const res = await axios.get(`${API_BASE}/v1/customer-auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCustomer(res.data);
