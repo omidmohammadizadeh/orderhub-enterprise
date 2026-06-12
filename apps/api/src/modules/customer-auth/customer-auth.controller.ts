@@ -16,6 +16,7 @@ import {
 import type { Request, Response } from "express";
 import { AuthGuard } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
+import { CustomerGoogleGuard } from "./customer-google.guard";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
 import { CustomerAuthService } from "./customer-auth.service";
@@ -71,7 +72,7 @@ export class CustomerAuthController {
 
   @Public()
   @Get("google")
-  @UseGuards(AuthGuard("customer-google"))
+  @UseGuards(CustomerGoogleGuard)
   @ApiOperation({ summary: "Start Google OAuth (customer)" })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   googleStart(@Query("storeSlug") _storeSlug?: string) {
@@ -84,7 +85,7 @@ export class CustomerAuthController {
 
   @Public()
   @Get("google/callback")
-  @UseGuards(AuthGuard("customer-google"))
+  @UseGuards(CustomerGoogleGuard)
   @ApiOperation({ summary: "Google OAuth callback (customer)" })
   async googleCallback(
     @Req() req: Request,
