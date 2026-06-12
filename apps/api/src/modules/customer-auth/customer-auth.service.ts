@@ -230,15 +230,20 @@ export class CustomerAuthService {
   // ── internals ─────────────────────────────────────────────────────
 
   private async signCustomerToken(customer: any): Promise<string> {
+    // We pass `audience` via the OPTIONS object, not as `aud` in the
+    // payload — the shared JwtModule (auth.module.ts) sets a default
+    // audience of "orderhub-api" in signOptions. If we also put `aud`
+    // into the payload, jsonwebtoken refuses both with:
+    //   "Bad options.audience option. The payload already has an aud property."
+    // Overriding via the options object lets us swap the audience to
+    // CUSTOMER_JWT_AUDIENCE without touching the staff token flow.
     return this.jwt.signAsync(
       {
         sub: customer.id,
         email: customer.email,
-        // aud claim — CustomerJwtStrategy verifies this matches so
-        // a customer token can't be replayed against staff routes.
-        aud: CUSTOMER_JWT_AUDIENCE,
       },
       {
+        audience: CUSTOMER_JWT_AUDIENCE,
         // 30 days — customer sessions should feel persistent. They're
         // re-validated on every request anyway via JWT strategy.
         expiresIn: "30d",
