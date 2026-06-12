@@ -310,12 +310,12 @@ function SiteFooter() {
             reserved.
           </p>
           <div className="flex items-center gap-5">
-            <a href="#" className="hover:text-zinc-900">
+            <Link href="/terms" className="hover:text-zinc-900">
               Terms
-            </a>
-            <a href="#" className="hover:text-zinc-900">
+            </Link>
+            <Link href="/privacy" className="hover:text-zinc-900">
               Privacy
-            </a>
+            </Link>
             <a href="#" className="hover:text-zinc-900">
               Security
             </a>
