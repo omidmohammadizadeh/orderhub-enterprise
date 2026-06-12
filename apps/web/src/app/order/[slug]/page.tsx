@@ -1922,7 +1922,7 @@ function OrderConfirmed({
       data={data!}
       storeName={storeName}
       onReset={onReset}
-      storeSlug={slug}
+      storeSlug={storeSlug}
     />
   );
 }
