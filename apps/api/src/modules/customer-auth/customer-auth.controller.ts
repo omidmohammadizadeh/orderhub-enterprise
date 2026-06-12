@@ -95,15 +95,37 @@ export class CustomerAuthController {
     const profile = req.user as CustomerGoogleProfile;
     const { accessToken } = await this.customerAuth.createOrLinkGoogle(profile);
 
-    // Build the storefront redirect. `state` was the storeSlug at
-    // start; fall back to the marketing root if it's missing.
-    const webUrl =
-      this.config.get<string>("WEB_URL") ??
-      "https://www.orderhubsolutions.com";
-    const storeSlug = (state ?? "").trim();
+    // `state` may be either the bare slug (legacy) or a pipe-joined
+    // tuple "slug|origin" so we can land the customer back on the
+    // exact origin they started from. Falling back to WEB_URL when
+    // origin is absent.
+    //
+    // localStorage is origin-scoped: writing the token at
+    // www.example.com and reading at example.com gives "Sign in"
+    // forever. Threading the origin through OAuth state fixes that.
+    const decodedState = decodeURIComponent((state ?? "").trim());
+    const [rawSlug, rawOrigin] = decodedState.includes("|")
+      ? decodedState.split("|", 2)
+      : [decodedState, ""];
+    const storeSlug = decodeURIComponent(rawSlug ?? "").trim();
+    const candidateOrigin = decodeURIComponent(rawOrigin ?? "").trim();
+
+    // Tight allow-list — only accept origins we recognise to avoid
+    // turning this into an open redirect.
+    const ALLOWED_ORIGINS = new Set([
+      "https://www.orderhubsolutions.com",
+      "https://orderhubsolutions.com",
+      "https://orderhub-web.onrender.com",
+      "http://localhost:3000",
+    ]);
+    const safeOrigin = ALLOWED_ORIGINS.has(candidateOrigin)
+      ? candidateOrigin
+      : (this.config.get<string>("WEB_URL") ??
+          "https://www.orderhubsolutions.com");
+
     const target = storeSlug
-      ? `${webUrl}/order/${encodeURIComponent(storeSlug)}/auth/google-callback?token=${encodeURIComponent(accessToken)}`
-      : `${webUrl}/auth/google-callback?token=${encodeURIComponent(accessToken)}`;
+      ? `${safeOrigin}/order/${encodeURIComponent(storeSlug)}/auth/google-callback?token=${encodeURIComponent(accessToken)}`
+      : `${safeOrigin}/auth/google-callback?token=${encodeURIComponent(accessToken)}`;
     return res.redirect(target);
   }
 }

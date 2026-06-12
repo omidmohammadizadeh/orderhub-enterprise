@@ -280,7 +280,16 @@ function GoogleButton({ storeSlug }: { storeSlug: string }) {
   const API_BASE =
     process.env.NEXT_PUBLIC_API_URL ??
     "https://orderhub-api-0re6.onrender.com/api";
-  const href = `${API_BASE}/v1/customer-auth/google?state=${encodeURIComponent(storeSlug)}`;
+  // Pass the storefront origin along with the slug — the API uses it
+  // to redirect back to the SAME origin the customer started on after
+  // Google auth completes. Without this, the API uses WEB_URL which
+  // may differ (e.g. WEB_URL is the www subdomain but the customer is
+  // on the apex domain), causing the auth token to land in a different
+  // origin's localStorage than the storefront reads from.
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const stateParts = [storeSlug, origin].map(encodeURIComponent).join("|");
+  const href = `${API_BASE}/v1/customer-auth/google?state=${encodeURIComponent(stateParts)}`;
   return (
     <a
       href={href}
