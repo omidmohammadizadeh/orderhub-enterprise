@@ -125,13 +125,16 @@ export default function MyOrdersPage() {
   }, [token]);
 
   const handleReorder = (order: Order) => {
-    // Stash the cart in localStorage under the storefront's
-    // OFFLINE_CART_KEY (set in apps/web/src/app/order/[slug]/page.tsx)
-    // so navigating to /order/{slug} pre-fills the basket. The page
-    // restores from that key on mount.
+    // Hand the cart off via sessionStorage rather than localStorage.
+    // sessionStorage is tab-scoped so leaving a stale reorder in the
+    // bin can't bleed into a future fresh visit; it also clears the
+    // moment the customer closes the tab. The storefront page reads
+    // this key on mount when ?reorder=1 is present and dispatches an
+    // ADD for each line, then deletes the key so a refresh of the
+    // storefront doesn't double-fill the cart.
     const cart = order.items.map((it) => ({
       menuItemId: (it as any).menuItemId ?? it.id,
-      name: it.name,
+      displayName: it.name,
       quantity: it.quantity,
       unitPrice: it.unitPrice,
       modifiers: it.modifiers ?? [],
@@ -139,14 +142,19 @@ export default function MyOrdersPage() {
     }));
     const slug = order.location.onlineOrderingSlug ?? params.slug;
     try {
-      window.localStorage.setItem(
-        `orderhub.cart.${slug}`,
-        JSON.stringify({ items: cart, restoredFromOrderId: order.id }),
+      window.sessionStorage.setItem(
+        `orderhub.reorder.${slug}`,
+        JSON.stringify({
+          items: cart,
+          restoredFromOrderId: order.id,
+          stashedAt: Date.now(),
+        }),
       );
     } catch {
-      /* private window / quota — proceed anyway */
+      /* private window / quota — proceed anyway, the storefront
+         just won't pre-fill in that case */
     }
-    router.push(`/order/${slug}?reordered=1`);
+    router.push(`/order/${slug}?reorder=1`);
   };
 
   return (

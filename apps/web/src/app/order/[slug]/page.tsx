@@ -163,6 +163,64 @@ export default function OrderPage() {
   const { slug } = useParams<{ slug: string }>();
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [cartOpen, setCartOpen] = useState(false);
+
+  // Phase AP-5 — "Order again" hand-off from My Orders.
+  //
+  // My Orders writes the previous order's items to
+  // sessionStorage.orderhub.reorder.{slug} and navigates here with
+  // ?reorder=1. We dispatch one ADD per line, then delete the key so
+  // a refresh of the storefront doesn't re-fill the cart, and finally
+  // scrub the ?reorder=1 query so the URL bar looks tidy.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!new URLSearchParams(window.location.search).has("reorder")) return;
+    const key = `orderhub.reorder.${slug}`;
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) return;
+    try {
+      const stash = JSON.parse(raw) as {
+        items: Array<{
+          menuItemId: string;
+          displayName: string;
+          unitPrice: number;
+          quantity: number;
+          modifiers: Array<{ name: string; price: number; quantity?: number }>;
+          notes?: string;
+        }>;
+      };
+      for (const it of stash.items) {
+        dispatch({
+          type: "ADD",
+          line: {
+            menuItemId: it.menuItemId,
+            displayName: it.displayName,
+            unitPrice: it.unitPrice,
+            quantity: it.quantity,
+            modifiers: it.modifiers.map((m) => ({
+              name: m.name,
+              price: m.price,
+              quantity: m.quantity ?? 1,
+            })),
+            notes: it.notes,
+            selectedSku: null,
+          },
+        });
+      }
+      // Open the cart so the customer sees the re-filled basket
+      // immediately — no hunting for the bag icon.
+      setCartOpen(true);
+    } catch {
+      /* corrupt stash — ignore */
+    } finally {
+      window.sessionStorage.removeItem(key);
+      // Drop the ?reorder=1 from the URL.
+      const url = new URL(window.location.href);
+      url.searchParams.delete("reorder");
+      window.history.replaceState(null, "", url.toString());
+    }
+    // Intentionally only run on first mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
   const [search, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [fulfillmentType, setFulfillmentType] = useState<"PICKUP" | "DELIVERY">(
