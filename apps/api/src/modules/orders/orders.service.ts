@@ -121,6 +121,11 @@ export class OrdersService {
             customerName: canonical.customerInfo.name ?? null,
             customerPhone: canonical.customerInfo.phone ?? null,
             customerInfo: canonical.customerInfo as Prisma.InputJsonValue,
+            // Phase AP-5 — link signed-in storefront customers to their
+            // CustomerAccount so the "My Orders" page can list this
+            // order. Undefined for non-storefront sources (POS, platform
+            // webhooks) and for guest checkouts.
+            customerAccountId: (canonical as any).customerAccountId ?? undefined,
             deliveryAddress: canonical.deliveryAddress
               ? (canonical.deliveryAddress as Prisma.InputJsonValue)
               : undefined,

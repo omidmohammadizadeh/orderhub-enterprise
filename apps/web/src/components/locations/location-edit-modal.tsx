@@ -156,6 +156,9 @@ function GeneralTab({
   const [about, setAbout] = useState(location?.about ?? "");
   const [logoUrl, setLogoUrl] = useState(location?.logoUrl ?? "");
   const [customDomain, setCustomDomain] = useState(location?.customDomain ?? "");
+  const [googleReviewUrl, setGoogleReviewUrl] = useState(
+    location?.googleReviewUrl ?? "",
+  );
   const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? "");
   const [stripeAcct, setStripeAcct] = useState(location?.stripeConnectedAccountId ?? "");
   const [feeMode, setFeeMode] = useState<AppFeeMode>(location?.applicationFeeMode ?? "none");
@@ -208,6 +211,7 @@ function GeneralTab({
       if (about) extras.about = about;
       if (logoUrl) extras.logoUrl = logoUrl;
       if (customDomain) extras.customDomain = customDomain;
+      if (googleReviewUrl) extras.googleReviewUrl = googleReviewUrl;
       if (stripeAcct) extras.stripeConnectedAccountId = stripeAcct;
       if (feeMode !== "none") {
         extras.applicationFeeMode = feeMode;
@@ -239,6 +243,7 @@ function GeneralTab({
         phone: phone || null,
         about: about || null,
         logoUrl: logoUrl || null,
+        googleReviewUrl: googleReviewUrl || null,
         customDomain: customDomain || null,
         onlineOrderingSlug: slug || null,
         stripeConnectedAccountId: stripeAcct || null,
@@ -344,6 +349,21 @@ function GeneralTab({
         help="e.g. order.mylocation.com — DNS verification ships in a later phase."
       >
         <Input value={customDomain} onChange={setCustomDomain} placeholder="order.mylocation.com" />
+      </Field>
+
+      {/* Phase AP-5 — Google Business Profile review URL. Surfaced on
+          the customer "My Orders" card as a "Leave Google review"
+          button after a delivered order. Get the URL from Google
+          Business Profile → "Get more reviews" → "Share review form". */}
+      <Field
+        label="Google review link (optional)"
+        help="From Google Business Profile → Get more reviews → Share review form. Customers see a 'Leave Google review' button on their completed orders."
+      >
+        <Input
+          value={googleReviewUrl}
+          onChange={setGoogleReviewUrl}
+          placeholder="https://g.page/r/..."
+        />
       </Field>
       <Field
         label="Online ordering URL"

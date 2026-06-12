@@ -386,6 +386,10 @@ export default function OrderPage() {
             ? "FREE_DELIVERY"
             : "PROMO_CODE"
           : undefined,
+        // Phase AP-5 — attribute the order to the signed-in customer
+        // so it shows up on their My Orders page. Undefined means
+        // guest checkout — server treats it as no link.
+        customerAccountId: authCustomer?.id,
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload)
@@ -612,6 +616,7 @@ export default function OrderPage() {
               customer={authCustomer ?? null}
               onSignInClick={() => setLoginOpen(true)}
               onLogout={logoutCustomer}
+              myOrdersHref={`/order/${slug}/my-orders`}
             />
             <button
               onClick={() => setCartOpen(true)}

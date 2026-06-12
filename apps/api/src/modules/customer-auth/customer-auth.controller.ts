@@ -66,6 +66,17 @@ export class CustomerAuthController {
     return customer;
   }
 
+  // Phase AP-5 — customer's order history for the "My Orders" page.
+  // Split into active (status not terminal) and history (last ~50
+  // delivered/collected/cancelled). The page renders separate sections.
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Get("orders")
+  @ApiOperation({ summary: "Current customer's orders, split active/history" })
+  myOrders(@CurrentCustomer() customer: any) {
+    return this.customerAuth.listOrders(customer.id);
+  }
+
   // ── Google OAuth ─────────────────────────────────────────────────
   //
   // Two-leg dance. Customer hits /google?storeSlug=X → Passport sends

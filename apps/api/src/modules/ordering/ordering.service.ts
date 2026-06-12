@@ -35,6 +35,11 @@ export interface CheckoutDto {
   // Session URL the storefront should redirect the browser to. Defaults
   // to "CASH" if absent so existing callers keep working.
   paymentMethod?: "CASH" | "CARD";
+  // Phase AP-5 — when the storefront customer is signed in, the
+  // CustomerAccount id is threaded through here so the Order can be
+  // attributed to them for the "My Orders" page. Null/undefined
+  // means guest checkout — order is still placed, just unlinked.
+  customerAccountId?: string;
 }
 
 @Injectable()
@@ -306,6 +311,10 @@ export class OrderingService {
         idempotencyKey: dto.idempotencyKey,
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
+        // Phase AP-5 — attribute the order to the signed-in customer
+        // so it shows up on their My Orders page. Guest checkouts
+        // pass undefined, which OrdersService.create treats as null.
+        customerAccountId: dto.customerAccountId,
       } as any,
       location.brand.tenantId,
     );

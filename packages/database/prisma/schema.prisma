@@ -139,6 +139,8 @@ model CustomerAccount {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
+  orders                 Order[]   // Phase AP-5 — back-relation for "My Orders"
+
   @@index([email])
   @@index([googleId])
   @@map("customer_accounts")
@@ -319,6 +321,12 @@ model Location {
   // Phase AN — operational status string (active | suspended | closed)
   // kept alongside isActive/isPaused for finer-grained UI presentation.
   status String @default("active")
+
+  // Phase AP-5 — public Google Business Profile review URL. Surfaced on
+  // the customer "My Orders" history card via a "Leave Google review"
+  // button after a delivered/collected order. Optional; the button is
+  // hidden when null.
+  googleReviewUrl String?
 
   // Phase AN — structured busy-mode metadata. The boolean below stays
   // (used by AM); this carries reason + until + affected platforms.
@@ -1100,6 +1108,12 @@ model Order {
   location          Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
   customerId        String?
   customer          Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  // Phase AP-5 — link to the authenticated CustomerAccount (the
+  // identity that signed in via Google / email-password). Distinct
+  // from `customerId` which is the per-tenant CRM record. Used to
+  // power the customer "My Orders" page.
+  customerAccountId String?
+  customerAccount   CustomerAccount? @relation(fields: [customerAccountId], references: [id], onDelete: SetNull)
 
   // Optional brand reference. A single location can serve multiple virtual
   // brands (e.g. "Greek Gyros" and "crunchy chikin" run from the same kitchen).

@@ -31,6 +31,67 @@ import { PasswordService } from "../auth/services/password.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
 
+// Phase AP-5 — fields the customer "My Orders" page needs and nothing
+// else. Includes the location's slug + name + Google review URL so
+// each order card can link back to the storefront and render the
+// "Leave review" CTA without a second round-trip.
+const ORDER_PROJECTION = {
+  id: true,
+  displayId: true,
+  orderNumber: true,
+  status: true,
+  fulfillmentType: true,
+  total: true,
+  currency: true,
+  createdAt: true,
+  scheduledFor: true,
+  estimatedReadyAt: true,
+  deliveredAt: true,
+  cancelledAt: true,
+  paymentStatus: true,
+  paymentMethod: true,
+  items: {
+    select: {
+      id: true,
+      name: true,
+      quantity: true,
+      unitPrice: true,
+      totalPrice: true,
+      modifiers: true,
+      notes: true,
+    },
+  },
+  location: {
+    select: {
+      id: true,
+      name: true,
+      onlineOrderingSlug: true,
+      googleReviewUrl: true,
+      logoUrl: true,
+    },
+  },
+} as const;
+
+function serialiseOrderForCustomer(o: any) {
+  // Strip nothing — the projection already selected only safe fields.
+  // We do convert Decimal to number so the JSON wire format is plain.
+  return {
+    ...o,
+    total: typeof o.total?.toNumber === "function" ? o.total.toNumber() : o.total,
+    items: (o.items ?? []).map((it: any) => ({
+      ...it,
+      unitPrice:
+        typeof it.unitPrice?.toNumber === "function"
+          ? it.unitPrice.toNumber()
+          : it.unitPrice,
+      totalPrice:
+        typeof it.totalPrice?.toNumber === "function"
+          ? it.totalPrice.toNumber()
+          : it.totalPrice,
+    })),
+  };
+}
+
 // JWT audience used to distinguish customer tokens from staff tokens.
 // CustomerJwtStrategy verifies this matches before accepting a token,
 // so a leaked customer JWT can't be replayed against staff endpoints
@@ -225,6 +286,53 @@ export class CustomerAuthService {
       where: { id },
     });
     return customer ? this.serialise(customer) : null;
+  }
+
+  /**
+   * Phase AP-5 — list a customer's orders, split into "active" (in
+   * flight) and "history" (terminal). Pulled together here rather
+   * than via the OrdersService because the public storefront cannot
+   * be authenticated as a staff user, and we want minimal projection
+   * (no tenant-internal fields like outbox event ids) over the wire.
+   *
+   * History is capped at 50 most recent — anything older is rare
+   * enough on the storefront that a "load more" pager would be wasted
+   * effort. Active is uncapped because the realistic max is single
+   * digits anyway.
+   */
+  async listOrders(customerAccountId: string): Promise<{
+    active: any[];
+    history: any[];
+  }> {
+    const TERMINAL_STATUSES = ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"];
+
+    // One query for each side. The board uses a single live query
+    // for staff; the customer page is loaded on demand and benefits
+    // from precise filtering at the DB layer.
+    const [active, history] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          customerAccountId,
+          status: { notIn: TERMINAL_STATUSES as any },
+        },
+        select: ORDER_PROJECTION,
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.order.findMany({
+        where: {
+          customerAccountId,
+          status: { in: TERMINAL_STATUSES as any },
+        },
+        select: ORDER_PROJECTION,
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+    ]);
+
+    return {
+      active: active.map(serialiseOrderForCustomer),
+      history: history.map(serialiseOrderForCustomer),
+    };
   }
 
   // ── internals ─────────────────────────────────────────────────────

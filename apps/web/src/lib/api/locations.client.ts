@@ -29,6 +29,8 @@ export interface Location {
   status: LocationStatus;
   about?: string | null;
   logoUrl?: string | null;
+  /** Phase AP-5 — Google Business Profile review URL. */
+  googleReviewUrl?: string | null;
   addressLine1?: string | null;
   addressLine2?: string | null;
   city?: string | null;

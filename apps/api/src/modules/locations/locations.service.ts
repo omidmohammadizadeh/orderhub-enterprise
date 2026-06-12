@@ -37,6 +37,7 @@ export interface UpdateLocationDto {
   phone?: string | null;
   about?: string | null;
   logoUrl?: string | null;
+  googleReviewUrl?: string | null;
   customDomain?: string | null;
   customDomainStatus?: "not_configured" | "pending" | "verified" | "failed";
   onlineOrderingSlug?: string | null;
@@ -335,6 +336,7 @@ export class LocationsService {
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.about !== undefined && { about: dto.about }),
         ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
+        ...(dto.googleReviewUrl !== undefined && { googleReviewUrl: dto.googleReviewUrl }),
         ...(dto.customDomain !== undefined && { customDomain: dto.customDomain }),
         ...(dto.customDomainStatus !== undefined && { customDomainStatus: dto.customDomainStatus }),
         ...(dto.onlineOrderingSlug !== undefined && { onlineOrderingSlug: dto.onlineOrderingSlug }),
@@ -510,6 +512,7 @@ export class LocationsService {
         name: true,
         about: true,
         logoUrl: true,
+        googleReviewUrl: true,
         phone: true,
         addressLine1: true,
         addressLine2: true,

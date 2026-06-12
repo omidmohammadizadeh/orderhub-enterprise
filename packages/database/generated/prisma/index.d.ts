@@ -8210,6 +8210,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type CustomerAccountCountOutputType
+   */
+
+  export type CustomerAccountCountOutputType = {
+    orders: number
+  }
+
+  export type CustomerAccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    orders?: boolean | CustomerAccountCountOutputTypeCountOrdersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerAccountCountOutputType
+     */
+    select?: CustomerAccountCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CustomerAccountCountOutputType without action
+   */
+  export type CustomerAccountCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrderWhereInput
+  }
+
+
+  /**
    * Count Type BrandCountOutputType
    */
 
@@ -11867,6 +11898,8 @@ export namespace Prisma {
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
+    _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerAccount"]>
 
   export type CustomerAccountSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -11903,10 +11936,17 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
+  export type CustomerAccountInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    orders?: boolean | CustomerAccount$ordersArgs<ExtArgs>
+    _count?: boolean | CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomerAccountIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $CustomerAccountPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "CustomerAccount"
-    objects: {}
+    objects: {
+      orders: Prisma.$OrderPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       email: string
@@ -12286,6 +12326,7 @@ export namespace Prisma {
    */
   export interface Prisma__CustomerAccountClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    orders<T extends CustomerAccount$ordersArgs<ExtArgs> = {}>(args?: Subset<T, CustomerAccount$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12342,6 +12383,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * Filter, which CustomerAccount to fetch.
      */
     where: CustomerAccountWhereUniqueInput
@@ -12356,6 +12401,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * Filter, which CustomerAccount to fetch.
      */
     where: CustomerAccountWhereUniqueInput
@@ -12369,6 +12418,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the CustomerAccount
      */
     select?: CustomerAccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
     /**
      * Filter, which CustomerAccount to fetch.
      */
@@ -12414,6 +12467,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * Filter, which CustomerAccount to fetch.
      */
     where?: CustomerAccountWhereInput
@@ -12458,6 +12515,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * Filter, which CustomerAccounts to fetch.
      */
     where?: CustomerAccountWhereInput
@@ -12496,6 +12557,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the CustomerAccount
      */
     select?: CustomerAccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
     /**
      * The data needed to create a CustomerAccount.
      */
@@ -12537,6 +12602,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * The data needed to update a CustomerAccount.
      */
     data: XOR<CustomerAccountUpdateInput, CustomerAccountUncheckedUpdateInput>
@@ -12569,6 +12638,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * The filter to search for the CustomerAccount to update in case it exists.
      */
     where: CustomerAccountWhereUniqueInput
@@ -12591,6 +12664,10 @@ export namespace Prisma {
      */
     select?: CustomerAccountSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    /**
      * Filter which CustomerAccount to delete.
      */
     where: CustomerAccountWhereUniqueInput
@@ -12607,6 +12684,26 @@ export namespace Prisma {
   }
 
   /**
+   * CustomerAccount.orders
+   */
+  export type CustomerAccount$ordersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Order
+     */
+    select?: OrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderInclude<ExtArgs> | null
+    where?: OrderWhereInput
+    orderBy?: OrderOrderByWithRelationInput | OrderOrderByWithRelationInput[]
+    cursor?: OrderWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
+  }
+
+  /**
    * CustomerAccount without action
    */
   export type CustomerAccountDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12614,6 +12711,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the CustomerAccount
      */
     select?: CustomerAccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
   }
 
 
@@ -17911,6 +18012,7 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
     status: string | null
+    googleReviewUrl: string | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -17953,6 +18055,7 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string | null
     status: string | null
+    googleReviewUrl: string | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -17998,6 +18101,7 @@ export namespace Prisma {
     applicationFeePercentage: number
     applicationFeeMode: number
     status: number
+    googleReviewUrl: number
     busyModeJson: number
     shopCode: number
     printToken: number
@@ -18061,6 +18165,7 @@ export namespace Prisma {
     applicationFeePercentage?: true
     applicationFeeMode?: true
     status?: true
+    googleReviewUrl?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -18103,6 +18208,7 @@ export namespace Prisma {
     applicationFeePercentage?: true
     applicationFeeMode?: true
     status?: true
+    googleReviewUrl?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -18148,6 +18254,7 @@ export namespace Prisma {
     applicationFeePercentage?: true
     applicationFeeMode?: true
     status?: true
+    googleReviewUrl?: true
     busyModeJson?: true
     shopCode?: true
     printToken?: true
@@ -18283,6 +18390,7 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     applicationFeeMode: string
     status: string
+    googleReviewUrl: string | null
     busyModeJson: JsonValue
     shopCode: string | null
     printToken: string | null
@@ -18350,6 +18458,7 @@ export namespace Prisma {
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
     status?: boolean
+    googleReviewUrl?: boolean
     busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
@@ -18408,6 +18517,7 @@ export namespace Prisma {
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
     status?: boolean
+    googleReviewUrl?: boolean
     busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
@@ -18457,6 +18567,7 @@ export namespace Prisma {
     applicationFeePercentage?: boolean
     applicationFeeMode?: boolean
     status?: boolean
+    googleReviewUrl?: boolean
     busyModeJson?: boolean
     shopCode?: boolean
     printToken?: boolean
@@ -18534,6 +18645,7 @@ export namespace Prisma {
       applicationFeePercentage: Prisma.Decimal | null
       applicationFeeMode: string
       status: string
+      googleReviewUrl: string | null
       busyModeJson: Prisma.JsonValue
       shopCode: string | null
       printToken: string | null
@@ -18981,6 +19093,7 @@ export namespace Prisma {
     readonly applicationFeePercentage: FieldRef<"Location", 'Decimal'>
     readonly applicationFeeMode: FieldRef<"Location", 'String'>
     readonly status: FieldRef<"Location", 'String'>
+    readonly googleReviewUrl: FieldRef<"Location", 'String'>
     readonly busyModeJson: FieldRef<"Location", 'Json'>
     readonly shopCode: FieldRef<"Location", 'String'>
     readonly printToken: FieldRef<"Location", 'String'>
@@ -41617,6 +41730,7 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     customerId: string | null
+    customerAccountId: string | null
     brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform | null
@@ -41672,6 +41786,7 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     customerId: string | null
+    customerAccountId: string | null
     brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform | null
@@ -41727,6 +41842,7 @@ export namespace Prisma {
     tenantId: number
     locationId: number
     customerId: number
+    customerAccountId: number
     brandId: number
     externalId: number
     platform: number
@@ -41812,6 +41928,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    customerAccountId?: true
     brandId?: true
     externalId?: true
     platform?: true
@@ -41867,6 +41984,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    customerAccountId?: true
     brandId?: true
     externalId?: true
     platform?: true
@@ -41922,6 +42040,7 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     customerId?: true
+    customerAccountId?: true
     brandId?: true
     externalId?: true
     platform?: true
@@ -42068,6 +42187,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId: string | null
+    customerAccountId: string | null
     brandId: string | null
     externalId: string | null
     platform: $Enums.OrderPlatform
@@ -42146,6 +42266,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    customerAccountId?: boolean
     brandId?: boolean
     externalId?: boolean
     platform?: boolean
@@ -42201,6 +42322,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    customerAccount?: boolean | Order$customerAccountArgs<ExtArgs>
     brand?: boolean | Order$brandArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     statusHistory?: boolean | Order$statusHistoryArgs<ExtArgs>
@@ -42216,6 +42338,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    customerAccountId?: boolean
     brandId?: boolean
     externalId?: boolean
     platform?: boolean
@@ -42271,6 +42394,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    customerAccount?: boolean | Order$customerAccountArgs<ExtArgs>
     brand?: boolean | Order$brandArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
@@ -42279,6 +42403,7 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     customerId?: boolean
+    customerAccountId?: boolean
     brandId?: boolean
     externalId?: boolean
     platform?: boolean
@@ -42337,6 +42462,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    customerAccount?: boolean | Order$customerAccountArgs<ExtArgs>
     brand?: boolean | Order$brandArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     statusHistory?: boolean | Order$statusHistoryArgs<ExtArgs>
@@ -42350,6 +42476,7 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customer?: boolean | Order$customerArgs<ExtArgs>
+    customerAccount?: boolean | Order$customerAccountArgs<ExtArgs>
     brand?: boolean | Order$brandArgs<ExtArgs>
   }
 
@@ -42359,6 +42486,7 @@ export namespace Prisma {
       tenant: Prisma.$TenantPayload<ExtArgs>
       location: Prisma.$LocationPayload<ExtArgs>
       customer: Prisma.$CustomerPayload<ExtArgs> | null
+      customerAccount: Prisma.$CustomerAccountPayload<ExtArgs> | null
       brand: Prisma.$BrandPayload<ExtArgs> | null
       items: Prisma.$OrderItemPayload<ExtArgs>[]
       statusHistory: Prisma.$OrderStatusHistoryPayload<ExtArgs>[]
@@ -42372,6 +42500,7 @@ export namespace Prisma {
       tenantId: string
       locationId: string
       customerId: string | null
+      customerAccountId: string | null
       brandId: string | null
       externalId: string | null
       platform: $Enums.OrderPlatform
@@ -42791,6 +42920,7 @@ export namespace Prisma {
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     customer<T extends Order$customerArgs<ExtArgs> = {}>(args?: Subset<T, Order$customerArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    customerAccount<T extends Order$customerAccountArgs<ExtArgs> = {}>(args?: Subset<T, Order$customerAccountArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     brand<T extends Order$brandArgs<ExtArgs> = {}>(args?: Subset<T, Order$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     items<T extends Order$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany"> | Null>
     statusHistory<T extends Order$statusHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Order$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderStatusHistoryPayload<ExtArgs>, T, "findMany"> | Null>
@@ -42831,6 +42961,7 @@ export namespace Prisma {
     readonly tenantId: FieldRef<"Order", 'String'>
     readonly locationId: FieldRef<"Order", 'String'>
     readonly customerId: FieldRef<"Order", 'String'>
+    readonly customerAccountId: FieldRef<"Order", 'String'>
     readonly brandId: FieldRef<"Order", 'String'>
     readonly externalId: FieldRef<"Order", 'String'>
     readonly platform: FieldRef<"Order", 'OrderPlatform'>
@@ -43213,6 +43344,21 @@ export namespace Prisma {
      */
     include?: CustomerInclude<ExtArgs> | null
     where?: CustomerWhereInput
+  }
+
+  /**
+   * Order.customerAccount
+   */
+  export type Order$customerAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerAccount
+     */
+    select?: CustomerAccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerAccountInclude<ExtArgs> | null
+    where?: CustomerAccountWhereInput
   }
 
   /**
@@ -91512,6 +91658,7 @@ export namespace Prisma {
     applicationFeePercentage: 'applicationFeePercentage',
     applicationFeeMode: 'applicationFeeMode',
     status: 'status',
+    googleReviewUrl: 'googleReviewUrl',
     busyModeJson: 'busyModeJson',
     shopCode: 'shopCode',
     printToken: 'printToken',
@@ -91980,6 +92127,7 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     customerId: 'customerId',
+    customerAccountId: 'customerAccountId',
     brandId: 'brandId',
     externalId: 'externalId',
     platform: 'platform',
@@ -92996,6 +93144,7 @@ export namespace Prisma {
     stripeConnectedAccountId: 'stripeConnectedAccountId',
     applicationFeeMode: 'applicationFeeMode',
     status: 'status',
+    googleReviewUrl: 'googleReviewUrl',
     shopCode: 'shopCode',
     printToken: 'printToken',
     slug: 'slug',
@@ -93282,6 +93431,7 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     customerId: 'customerId',
+    customerAccountId: 'customerAccountId',
     brandId: 'brandId',
     externalId: 'externalId',
     displayId: 'displayId',
@@ -94752,6 +94902,7 @@ export namespace Prisma {
     lastLoginAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
+    orders?: OrderListRelationFilter
   }
 
   export type CustomerAccountOrderByWithRelationInput = {
@@ -94769,6 +94920,7 @@ export namespace Prisma {
     lastLoginAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    orders?: OrderOrderByRelationAggregateInput
     _relevance?: CustomerAccountOrderByRelevanceInput
   }
 
@@ -94790,6 +94942,7 @@ export namespace Prisma {
     lastLoginAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
+    orders?: OrderListRelationFilter
   }, "id" | "email" | "googleId">
 
   export type CustomerAccountOrderByWithAggregationInput = {
@@ -95340,6 +95493,7 @@ export namespace Prisma {
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Location"> | string
     status?: StringFilter<"Location"> | string
+    googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
@@ -95397,6 +95551,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
     status?: SortOrder
+    googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
@@ -95461,6 +95616,7 @@ export namespace Prisma {
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Location"> | string
     status?: StringFilter<"Location"> | string
+    googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
@@ -95515,6 +95671,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrderInput | SortOrder
     applicationFeeMode?: SortOrder
     status?: SortOrder
+    googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
@@ -95571,6 +95728,7 @@ export namespace Prisma {
     applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringWithAggregatesFilter<"Location"> | string
     status?: StringWithAggregatesFilter<"Location"> | string
+    googleReviewUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
     busyModeJson?: JsonWithAggregatesFilter<"Location">
     shopCode?: StringNullableWithAggregatesFilter<"Location"> | string | null
     printToken?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -97905,6 +98063,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    customerAccountId?: StringNullableFilter<"Order"> | string | null
     brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
@@ -97960,6 +98119,7 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
+    customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
     brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
     items?: OrderItemListRelationFilter
     statusHistory?: OrderStatusHistoryListRelationFilter
@@ -97974,6 +98134,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    customerAccountId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     platform?: SortOrder
@@ -98029,6 +98190,7 @@ export namespace Prisma {
     tenant?: TenantOrderByWithRelationInput
     location?: LocationOrderByWithRelationInput
     customer?: CustomerOrderByWithRelationInput
+    customerAccount?: CustomerAccountOrderByWithRelationInput
     brand?: BrandOrderByWithRelationInput
     items?: OrderItemOrderByRelationAggregateInput
     statusHistory?: OrderStatusHistoryOrderByRelationAggregateInput
@@ -98049,6 +98211,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    customerAccountId?: StringNullableFilter<"Order"> | string | null
     brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
@@ -98103,6 +98266,7 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
+    customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
     brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
     items?: OrderItemListRelationFilter
     statusHistory?: OrderStatusHistoryListRelationFilter
@@ -98117,6 +98281,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    customerAccountId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
     externalId?: SortOrderInput | SortOrder
     platform?: SortOrder
@@ -98184,6 +98349,7 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"Order"> | string
     locationId?: StringWithAggregatesFilter<"Order"> | string
     customerId?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    customerAccountId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     brandId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     externalId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     platform?: EnumOrderPlatformWithAggregatesFilter<"Order"> | $Enums.OrderPlatform
@@ -102624,6 +102790,7 @@ export namespace Prisma {
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    orders?: OrderCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountUncheckedCreateInput = {
@@ -102641,6 +102808,7 @@ export namespace Prisma {
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerAccountInput
   }
 
   export type CustomerAccountUpdateInput = {
@@ -102658,6 +102826,7 @@ export namespace Prisma {
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type CustomerAccountUncheckedUpdateInput = {
@@ -102675,6 +102844,7 @@ export namespace Prisma {
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orders?: OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput
   }
 
   export type CustomerAccountCreateManyInput = {
@@ -103302,6 +103472,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -103359,6 +103530,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -103414,6 +103586,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -103471,6 +103644,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -103527,6 +103701,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -103574,6 +103749,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -103622,6 +103798,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -106385,6 +106562,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -106399,6 +106577,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -106515,6 +106694,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -106529,6 +106709,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -106594,6 +106775,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -106708,6 +106890,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -112417,6 +112600,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
     status?: SortOrder
+    googleReviewUrl?: SortOrder
     busyModeJson?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
@@ -112470,6 +112654,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
     status?: SortOrder
+    googleReviewUrl?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -112512,6 +112697,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     applicationFeeMode?: SortOrder
     status?: SortOrder
+    googleReviewUrl?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -114303,6 +114489,11 @@ export namespace Prisma {
     isNot?: CustomerWhereInput | null
   }
 
+  export type CustomerAccountNullableRelationFilter = {
+    is?: CustomerAccountWhereInput | null
+    isNot?: CustomerAccountWhereInput | null
+  }
+
   export type BrandNullableRelationFilter = {
     is?: BrandWhereInput | null
     isNot?: BrandWhereInput | null
@@ -114369,6 +114560,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    customerAccountId?: SortOrder
     brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
@@ -114440,6 +114632,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    customerAccountId?: SortOrder
     brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
@@ -114495,6 +114688,7 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     customerId?: SortOrder
+    customerAccountId?: SortOrder
     brandId?: SortOrder
     externalId?: SortOrder
     platform?: SortOrder
@@ -118614,6 +118808,48 @@ export namespace Prisma {
     deleteMany?: DeviceTokenScalarWhereInput | DeviceTokenScalarWhereInput[]
   }
 
+  export type OrderCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: OrderCreateManyCustomerAccountInputEnvelope
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type OrderUncheckedCreateNestedManyWithoutCustomerAccountInput = {
+    create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
+    createMany?: OrderCreateManyCustomerAccountInputEnvelope
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type OrderUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: OrderUpsertWithWhereUniqueWithoutCustomerAccountInput | OrderUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: OrderCreateManyCustomerAccountInputEnvelope
+    set?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    disconnect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    delete?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    update?: OrderUpdateWithWhereUniqueWithoutCustomerAccountInput | OrderUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: OrderUpdateManyWithWhereWithoutCustomerAccountInput | OrderUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
+  export type OrderUncheckedUpdateManyWithoutCustomerAccountNestedInput = {
+    create?: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput> | OrderCreateWithoutCustomerAccountInput[] | OrderUncheckedCreateWithoutCustomerAccountInput[]
+    connectOrCreate?: OrderCreateOrConnectWithoutCustomerAccountInput | OrderCreateOrConnectWithoutCustomerAccountInput[]
+    upsert?: OrderUpsertWithWhereUniqueWithoutCustomerAccountInput | OrderUpsertWithWhereUniqueWithoutCustomerAccountInput[]
+    createMany?: OrderCreateManyCustomerAccountInputEnvelope
+    set?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    disconnect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    delete?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+    update?: OrderUpdateWithWhereUniqueWithoutCustomerAccountInput | OrderUpdateWithWhereUniqueWithoutCustomerAccountInput[]
+    updateMany?: OrderUpdateManyWithWhereWithoutCustomerAccountInput | OrderUpdateManyWithWhereWithoutCustomerAccountInput[]
+    deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutRefreshTokensInput = {
     create?: XOR<UserCreateWithoutRefreshTokensInput, UserUncheckedCreateWithoutRefreshTokensInput>
     connectOrCreate?: UserCreateOrConnectWithoutRefreshTokensInput
@@ -120450,6 +120686,12 @@ export namespace Prisma {
     connect?: CustomerWhereUniqueInput
   }
 
+  export type CustomerAccountCreateNestedOneWithoutOrdersInput = {
+    create?: XOR<CustomerAccountCreateWithoutOrdersInput, CustomerAccountUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutOrdersInput
+    connect?: CustomerAccountWhereUniqueInput
+  }
+
   export type BrandCreateNestedOneWithoutOrdersInput = {
     create?: XOR<BrandCreateWithoutOrdersInput, BrandUncheckedCreateWithoutOrdersInput>
     connectOrCreate?: BrandCreateOrConnectWithoutOrdersInput
@@ -120586,6 +120828,16 @@ export namespace Prisma {
     delete?: CustomerWhereInput | boolean
     connect?: CustomerWhereUniqueInput
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutOrdersInput, CustomerUpdateWithoutOrdersInput>, CustomerUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type CustomerAccountUpdateOneWithoutOrdersNestedInput = {
+    create?: XOR<CustomerAccountCreateWithoutOrdersInput, CustomerAccountUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerAccountCreateOrConnectWithoutOrdersInput
+    upsert?: CustomerAccountUpsertWithoutOrdersInput
+    disconnect?: CustomerAccountWhereInput | boolean
+    delete?: CustomerAccountWhereInput | boolean
+    connect?: CustomerAccountWhereUniqueInput
+    update?: XOR<XOR<CustomerAccountUpdateToOneWithWhereWithoutOrdersInput, CustomerAccountUpdateWithoutOrdersInput>, CustomerAccountUncheckedUpdateWithoutOrdersInput>
   }
 
   export type BrandUpdateOneWithoutOrdersNestedInput = {
@@ -123627,6 +123879,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -123640,6 +123893,7 @@ export namespace Prisma {
     id?: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -124224,6 +124478,7 @@ export namespace Prisma {
     tenantId?: StringFilter<"Order"> | string
     locationId?: StringFilter<"Order"> | string
     customerId?: StringNullableFilter<"Order"> | string | null
+    customerAccountId?: StringNullableFilter<"Order"> | string | null
     brandId?: StringNullableFilter<"Order"> | string | null
     externalId?: StringNullableFilter<"Order"> | string | null
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
@@ -125142,6 +125397,162 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"DeviceToken"> | Date | string
   }
 
+  export type OrderCreateWithoutCustomerAccountInput = {
+    id?: string
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutOrdersInput
+    location: LocationCreateNestedOneWithoutOrdersInput
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
+    payments?: PaymentCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    brandId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryUncheckedCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutCustomerAccountInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type OrderCreateManyCustomerAccountInputEnvelope = {
+    data: OrderCreateManyCustomerAccountInput | OrderCreateManyCustomerAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OrderUpsertWithWhereUniqueWithoutCustomerAccountInput = {
+    where: OrderWhereUniqueInput
+    update: XOR<OrderUpdateWithoutCustomerAccountInput, OrderUncheckedUpdateWithoutCustomerAccountInput>
+    create: XOR<OrderCreateWithoutCustomerAccountInput, OrderUncheckedCreateWithoutCustomerAccountInput>
+  }
+
+  export type OrderUpdateWithWhereUniqueWithoutCustomerAccountInput = {
+    where: OrderWhereUniqueInput
+    data: XOR<OrderUpdateWithoutCustomerAccountInput, OrderUncheckedUpdateWithoutCustomerAccountInput>
+  }
+
+  export type OrderUpdateManyWithWhereWithoutCustomerAccountInput = {
+    where: OrderScalarWhereInput
+    data: XOR<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyWithoutCustomerAccountInput>
+  }
+
   export type UserCreateWithoutRefreshTokensInput = {
     id?: string
     email: string
@@ -125645,6 +126056,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -125700,6 +126112,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -125947,6 +126360,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -125960,6 +126374,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -126280,6 +126695,7 @@ export namespace Prisma {
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFilter<"Location"> | string
     status?: StringFilter<"Location"> | string
+    googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
@@ -126688,6 +127104,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -126701,6 +127118,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -127405,6 +127823,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -127461,6 +127880,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -127590,6 +128010,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -127646,6 +128067,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -127700,6 +128122,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -127756,6 +128179,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -127826,6 +128250,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -127882,6 +128307,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -130566,6 +130992,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -130579,6 +131006,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId: string
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -130913,6 +131341,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -130969,6 +131398,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -131039,6 +131469,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131095,6 +131526,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131453,6 +131885,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -131509,6 +131942,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -131579,6 +132013,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131635,6 +132070,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131689,6 +132125,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -131745,6 +132182,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -131815,6 +132253,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131871,6 +132310,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -131978,6 +132418,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -132034,6 +132475,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -132110,6 +132552,45 @@ export namespace Prisma {
   export type CustomerCreateOrConnectWithoutOrdersInput = {
     where: CustomerWhereUniqueInput
     create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+  }
+
+  export type CustomerAccountCreateWithoutOrdersInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerAccountUncheckedCreateWithoutOrdersInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    phone?: string | null
+    googleId?: string | null
+    avatarUrl?: string | null
+    isVerified?: boolean
+    emailVerificationToken?: string | null
+    marketingOptIn?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerAccountCreateOrConnectWithoutOrdersInput = {
+    where: CustomerAccountWhereUniqueInput
+    create: XOR<CustomerAccountCreateWithoutOrdersInput, CustomerAccountUncheckedCreateWithoutOrdersInput>
   }
 
   export type BrandCreateWithoutOrdersInput = {
@@ -132478,6 +132959,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -132534,6 +133016,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -132611,6 +133094,51 @@ export namespace Prisma {
     addresses?: CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
     loyalty?: LoyaltyAccountUncheckedUpdateOneWithoutCustomerNestedInput
     paymentMethods?: PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerAccountUpsertWithoutOrdersInput = {
+    update: XOR<CustomerAccountUpdateWithoutOrdersInput, CustomerAccountUncheckedUpdateWithoutOrdersInput>
+    create: XOR<CustomerAccountCreateWithoutOrdersInput, CustomerAccountUncheckedCreateWithoutOrdersInput>
+    where?: CustomerAccountWhereInput
+  }
+
+  export type CustomerAccountUpdateToOneWithWhereWithoutOrdersInput = {
+    where?: CustomerAccountWhereInput
+    data: XOR<CustomerAccountUpdateWithoutOrdersInput, CustomerAccountUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type CustomerAccountUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerAccountUncheckedUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BrandUpsertWithoutOrdersInput = {
@@ -132908,6 +133436,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -132921,6 +133450,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -133052,6 +133582,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -133065,6 +133596,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -133180,6 +133712,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
@@ -133193,6 +133726,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -133324,6 +133858,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -133337,6 +133872,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -133422,6 +133958,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -133478,6 +134015,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -133574,6 +134112,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -133630,6 +134169,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -133759,6 +134299,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -133772,6 +134313,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -133938,6 +134480,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -133951,6 +134494,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -134036,6 +134580,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -134092,6 +134637,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -134206,6 +134752,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -134262,6 +134809,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -134472,6 +135020,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -134485,6 +135034,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -134738,6 +135288,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -134751,6 +135302,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -135040,6 +135592,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -135053,6 +135606,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -135251,6 +135805,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -135264,6 +135819,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -135758,6 +136314,7 @@ export namespace Prisma {
     tenant: TenantCreateNestedOneWithoutOrdersInput
     location: LocationCreateNestedOneWithoutOrdersInput
     customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
     brand?: BrandCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
@@ -135771,6 +136328,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -136015,6 +136573,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -136028,6 +136587,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -139622,6 +140182,7 @@ export namespace Prisma {
     id?: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -139994,6 +140555,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -140007,6 +140569,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -140071,6 +140634,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -140708,6 +141272,254 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OrderCreateManyCustomerAccountInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    brandId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OrderUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
+    location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUncheckedUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateManyWithoutCustomerAccountInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LocationCreateManyBrandInput = {
     id?: string
     name: string
@@ -140734,6 +141546,7 @@ export namespace Prisma {
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: string
     status?: string
+    googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: string | null
     printToken?: string | null
@@ -140821,6 +141634,7 @@ export namespace Prisma {
     tenantId: string
     locationId: string
     customerId?: string | null
+    customerAccountId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
     displayId?: string | null
@@ -140958,6 +141772,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141013,6 +141828,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141068,6 +141884,7 @@ export namespace Prisma {
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeeMode?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141338,6 +142155,7 @@ export namespace Prisma {
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
@@ -141351,6 +142169,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141415,6 +142234,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141663,6 +142483,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     customerId?: string | null
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -141887,6 +142708,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -141900,6 +142722,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -141964,6 +142787,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -142745,6 +143569,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId: string
+    customerAccountId?: string | null
     brandId?: string | null
     externalId?: string | null
     platform: $Enums.OrderPlatform
@@ -142905,6 +143730,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
     location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
     brand?: BrandUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
@@ -142918,6 +143744,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -142982,6 +143809,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
@@ -144445,6 +145273,10 @@ export namespace Prisma {
      * @deprecated Use UserCountOutputTypeDefaultArgs instead
      */
     export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CustomerAccountCountOutputTypeDefaultArgs instead
+     */
+    export type CustomerAccountCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerAccountCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use BrandCountOutputTypeDefaultArgs instead
      */
