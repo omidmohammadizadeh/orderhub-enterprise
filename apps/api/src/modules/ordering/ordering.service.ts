@@ -263,6 +263,15 @@ export class OrderingService {
         status: location.status,
         busyMode: location.busyMode,
         currentPrepTime: location.currentPrepTime,
+        // Phase AP-8 — application fee config so the storefront cart
+        // can show a "Service charge" line when the customer picks
+        // CARD and the location has a fixed-fee component. Percent-
+        // only fees stay silent (taken from the restaurant's payout,
+        // not shown to the customer).
+        applicationFeeMode: location.applicationFeeMode,
+        applicationFeeFixedAmount: location.applicationFeeFixedAmount
+          ? Number(location.applicationFeeFixedAmount)
+          : null,
       },
       brand: location.brand,
       menu,

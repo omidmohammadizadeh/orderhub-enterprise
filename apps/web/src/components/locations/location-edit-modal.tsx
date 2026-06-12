@@ -13,6 +13,7 @@
 // tabs 2 + 3 appear after first save.
 
 import { useEffect, useMemo, useState } from "react";
+import { StripeConnectControl } from "./stripe-connect-control";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Wand2, X } from "lucide-react";
 import {
@@ -413,7 +414,12 @@ function GeneralTab({
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Stripe Connect
         </h3>
-        <Field label="Connected account ID">
+        <StripeConnectControl
+          locationId={location?.id ?? null}
+          stripeAcct={stripeAcct}
+          setStripeAcct={setStripeAcct}
+        />
+        <Field label="Or enter Connected account ID manually" help="Skip if you used the Connect button above.">
           <Input value={stripeAcct} onChange={setStripeAcct} placeholder="acct_…" />
         </Field>
 

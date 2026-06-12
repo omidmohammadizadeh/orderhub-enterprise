@@ -359,7 +359,27 @@ export default function OrderPage() {
   const freeDelivery = promoApplied?.freeDelivery === true;
   const rawDeliveryFee = matchedZone?.fee ?? 0;
   const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
-  const total = Math.max(0, subtotal - promoDiscount) + deliveryFee;
+
+  // Phase AP-8 — visible service charge.
+  // Only the fixed portion of the application fee surfaces to the
+  // customer; percent-only fees are deducted from the restaurant's
+  // payout silently. Only applied when payment method is CARD.
+  const feeMode = (storefront?.location as any)?.applicationFeeMode as
+    | "none"
+    | "fixed_only"
+    | "percentage_only"
+    | "fixed_and_percentage"
+    | undefined;
+  const feeFixed = Number(
+    (storefront?.location as any)?.applicationFeeFixedAmount ?? 0,
+  );
+  const usesFixedFee =
+    feeMode === "fixed_only" || feeMode === "fixed_and_percentage";
+  const serviceCharge =
+    paymentMethod === "CARD" && usesFixedFee && feeFixed > 0 ? feeFixed : 0;
+
+  const total =
+    Math.max(0, subtotal - promoDiscount) + deliveryFee + serviceCharge;
   const cartCount = cart.reduce((s, l) => s + l.quantity, 0);
 
   // Categories + search filter
@@ -872,6 +892,7 @@ export default function OrderPage() {
           dispatch={dispatch}
           subtotal={subtotal}
           deliveryFee={deliveryFee}
+          serviceCharge={serviceCharge}
           total={total}
           fulfillmentType={fulfillmentType}
           setFulfillmentType={setFulfillmentType}
@@ -1173,6 +1194,7 @@ interface CartPanelProps {
   dispatch: React.Dispatch<CartAction>;
   subtotal: number;
   deliveryFee: number;
+  serviceCharge: number;
   total: number;
   fulfillmentType: "PICKUP" | "DELIVERY";
   setFulfillmentType: (v: "PICKUP" | "DELIVERY") => void;
@@ -1255,6 +1277,7 @@ function CartPanel(props: CartPanelProps) {
     dispatch,
     subtotal,
     deliveryFee,
+    serviceCharge,
     total,
     fulfillmentType,
     setFulfillmentType,
@@ -1601,6 +1624,12 @@ function CartPanel(props: CartPanelProps) {
                     ? `£${deliveryFee.toFixed(2)}`
                     : "—"
               }
+            />
+          )}
+          {serviceCharge > 0 && (
+            <Row
+              label="Service charge"
+              value={`£${serviceCharge.toFixed(2)}`}
             />
           )}
           <Row label="Total" value={`£${total.toFixed(2)}`} bold />

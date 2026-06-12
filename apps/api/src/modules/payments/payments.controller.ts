@@ -142,4 +142,37 @@ export class PaymentsController {
   startOnboarding(@CurrentUser() user: AuthenticatedUser) {
     return this.payments.createConnectOnboardingLink(user.tenantId);
   }
+
+  // ── Phase AP-8 — per-location Connect onboarding ─────────────────
+
+  // POST /v1/payments/connect/locations/:locationId/onboard
+  // Returns a Stripe-hosted onboarding URL the operator opens in a
+  // new tab. On the location's first call, this creates the Express
+  // Connect account and stamps the acct_… ID onto the Location row
+  // so resolveConnectAccount finds it on the very next checkout.
+  @Post("connect/locations/:locationId/onboard")
+  @Roles("MANAGER", "TENANT_OWNER")
+  @ApiOperation({ summary: "Start Stripe Connect onboarding for a location" })
+  startLocationOnboarding(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    return this.payments.createLocationConnectOnboardingLink(
+      user.tenantId,
+      locationId,
+    );
+  }
+
+  // GET /v1/payments/connect/locations/:locationId/status
+  // Lets the Location settings UI render the connection state +
+  // capability flags (chargesEnabled / payoutsEnabled / done).
+  @Get("connect/locations/:locationId/status")
+  @Roles("MANAGER", "TENANT_OWNER", "CASHIER", "KITCHEN_STAFF")
+  @ApiOperation({ summary: "Get a location's Stripe Connect status" })
+  getLocationConnectStatus(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    return this.payments.getLocationConnectStatus(user.tenantId, locationId);
+  }
 }

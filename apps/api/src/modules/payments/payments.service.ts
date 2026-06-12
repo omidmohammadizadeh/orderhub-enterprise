@@ -495,14 +495,41 @@ export class PaymentsService {
   }
 
   /**
-   * Compute application_fee_amount from the location's per-location fee
-   * configuration. Falls back to the global PLATFORM_FEE_RATE if the
-   * location has no fee config — keeps things working out of the box.
+   * Phase AP-8 — application fee + customer service charge.
+   *
+   * Operator-specified rules for the four fee modes:
+   *
+   *   * fixed_only          — fixed amount ADDS to the customer bill.
+   *                           Application fee = fixed.
+   *                           Example: 50p fixed on £20 basket
+   *                              → customer pays £20.50, platform keeps 50p,
+   *                                restaurant gets £20.
+   *
+   *   * percentage_only     — percent does NOT change the customer bill.
+   *                           Application fee = pct × basket.
+   *                           Example: 5% on £20 basket
+   *                              → customer pays £20, platform keeps £1,
+   *                                restaurant gets £19.
+   *
+   *   * fixed_and_percentage — fixed ADDS to customer, percent does not.
+   *                           Application fee = fixed + (pct × basket).
+   *                           Example: 50p + 5% on £10 basket
+   *                              → customer pays £10.50, platform keeps £1
+   *                                (50p fixed + 50p which is 5% of £10),
+   *                                restaurant gets £9.50.
+   *
+   *   * none                — no platform fee, no customer surcharge.
+   *                           Direct charge to restaurant, zero application_fee.
+   *
+   * Returns both the customer-side surcharge (line-item value, in pence)
+   * AND the application_fee_amount (Stripe takes from the captured charge,
+   * in pence). The caller adds the surcharge as a Stripe line item so the
+   * customer sees "Service charge" on the Stripe Checkout page.
    */
-  private computeApplicationFeePence(
+  private computeFeeBreakdownPence(
     location: any,
     basketGbp: number,
-  ): number {
+  ): { applicationFeePence: number; customerSurchargePence: number } {
     const mode = location?.applicationFeeMode as
       | "none"
       | "fixed_only"
@@ -511,7 +538,7 @@ export class PaymentsService {
       | null
       | undefined;
     if (!mode || mode === "none") {
-      return Math.round(basketGbp * PLATFORM_FEE_RATE.toNumber() * 100);
+      return { applicationFeePence: 0, customerSurchargePence: 0 };
     }
     const fixed = Number(location.applicationFeeFixedAmount ?? 0);
     const pct = Number(location.applicationFeePercentage ?? 0);
@@ -519,7 +546,13 @@ export class PaymentsService {
     const usesPct = mode === "percentage_only" || mode === "fixed_and_percentage";
     const fixedPart = usesFixed ? fixed : 0;
     const pctPart = usesPct ? basketGbp * (pct / 100) : 0;
-    return Math.round((fixedPart + pctPart) * 100);
+    // application_fee_amount = what platform keeps (fixed + percent on basket)
+    const applicationFeePence = Math.round((fixedPart + pctPart) * 100);
+    // The fixed portion is added on top of the customer's bill as a
+    // visible "Service charge" line. Percent is silent (taken from
+    // the restaurant's share of the captured charge).
+    const customerSurchargePence = usesFixed ? Math.round(fixed * 100) : 0;
+    return { applicationFeePence, customerSurchargePence };
   }
 
   /**
@@ -571,10 +604,8 @@ export class PaymentsService {
     // only. Hardcode here, override later if/when multi-currency lands.
     const currency = "gbp";
     const totalGbp = Number(order.total);
-    const applicationFeePence = this.computeApplicationFeePence(
-      order.location,
-      totalGbp,
-    );
+    const { applicationFeePence, customerSurchargePence } =
+      this.computeFeeBreakdownPence(order.location, totalGbp);
 
     // One line item for the cart subtotal + one each for delivery / tax /
     // tip / discount as needed. Stripe shows each line on the hosted
@@ -601,6 +632,20 @@ export class PaymentsService {
     };
     addLine("Delivery", Number(order.deliveryFee ?? 0));
     addLine("Service / tax", Number(order.taxAmount ?? 0));
+    // Phase AP-8 — visible fixed-fee surcharge on the customer side.
+    // The customer pays this on top of the basket; the platform keeps
+    // it as part of application_fee_amount. Only added when the
+    // location's applicationFeeMode includes the fixed portion.
+    if (customerSurchargePence > 0) {
+      lineItems.push({
+        price_data: {
+          currency,
+          product_data: { name: "Service charge" },
+          unit_amount: customerSurchargePence,
+        },
+        quantity: 1,
+      });
+    }
 
     // Build the base session params we'll try first (with Connect
     // transfer + application fee).
@@ -1035,6 +1080,128 @@ export class PaymentsService {
     });
     if (!account) throw new NotFoundException("Stripe Connect account not found");
     return account;
+  }
+
+  /**
+   * Phase AP-8 — per-location Stripe Connect onboarding.
+   *
+   * Creates an Express Connect account for the restaurant if one
+   * doesn't exist yet (stored in StripeConnectAccount with the
+   * matching locationId) and returns a Stripe-hosted onboarding URL.
+   * The restaurant fills in business details, bank account, KYC, etc.
+   * on Stripe — Stripe enables the `transfers` capability once they
+   * pass underwriting — and the `account.updated` webhook flips
+   * chargesEnabled / payoutsEnabled in our DB automatically.
+   *
+   * Distinct from createConnectOnboardingLink (tenant-scoped) so a
+   * platform with multiple restaurants per tenant can give each a
+   * separate payout account.
+   */
+  async createLocationConnectOnboardingLink(
+    tenantId: string,
+    locationId: string,
+    options: { returnPath?: string; refreshPath?: string } = {},
+  ): Promise<{ url: string; accountId: string }> {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, name: true },
+    });
+    if (!location) {
+      throw new NotFoundException("Location not found");
+    }
+
+    let account = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, locationId },
+    });
+
+    // First-time onboarding for this location → create the Express
+    // account on Stripe and our DB row.
+    if (!account) {
+      let stripeAccountId = `mock_acct_${locationId.slice(0, 8)}`;
+      if (this.stripe) {
+        try {
+          const stripeAccount = await this.stripe.accounts.create({
+            type: "express",
+            country: "GB",
+            capabilities: {
+              card_payments: { requested: true },
+              transfers: { requested: true },
+            },
+            business_profile: { name: location.name },
+            metadata: { tenantId, locationId, locationName: location.name },
+          });
+          stripeAccountId = stripeAccount.id;
+        } catch (err: any) {
+          this.logger.error(
+            `Stripe Connect account create failed for location ${locationId}: ${err.message}`,
+          );
+          throw new BadRequestException(
+            `Couldn't start Stripe onboarding: ${err.message}`,
+          );
+        }
+      }
+      account = await (this.prisma as any).stripeConnectAccount.create({
+        data: {
+          tenantId,
+          locationId,
+          stripeAccountId,
+          accountType: "EXPRESS",
+          chargesEnabled: false,
+          payoutsEnabled: false,
+          onboardingComplete: false,
+        },
+      });
+      // Mirror the acct_… ID onto the Location row so the existing
+      // resolveConnectAccount tiered lookup finds it instantly even
+      // before the first account.updated webhook lands.
+      await this.prisma.location.update({
+        where: { id: locationId },
+        data: { stripeConnectedAccountId: stripeAccountId },
+      });
+    }
+
+    const webBase = (
+      this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
+    ).replace(/\/+$/, "");
+    const refreshUrl = `${webBase}${options.refreshPath ?? `/dashboard/locations?connect=refresh&locationId=${locationId}`}`;
+    const returnUrl = `${webBase}${options.returnPath ?? `/dashboard/locations?connect=complete&locationId=${locationId}`}`;
+
+    let onboardingUrl = `https://connect.stripe.com/setup/mock/${account.stripeAccountId}`;
+    if (this.stripe) {
+      try {
+        const link = await this.stripe.accountLinks.create({
+          account: account.stripeAccountId,
+          refresh_url: refreshUrl,
+          return_url: returnUrl,
+          type: "account_onboarding",
+        });
+        onboardingUrl = link.url;
+      } catch (err: any) {
+        this.logger.error(`Stripe account link create failed: ${err.message}`);
+        throw new BadRequestException(
+          `Couldn't generate onboarding link: ${err.message}`,
+        );
+      }
+    }
+
+    return { url: onboardingUrl, accountId: account.stripeAccountId };
+  }
+
+  /** Returns the current Connect status for a location's account. */
+  async getLocationConnectStatus(tenantId: string, locationId: string) {
+    const account = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, locationId },
+    });
+    if (!account) {
+      return { connected: false };
+    }
+    return {
+      connected: true,
+      stripeAccountId: account.stripeAccountId,
+      chargesEnabled: account.chargesEnabled,
+      payoutsEnabled: account.payoutsEnabled,
+      onboardingComplete: account.onboardingComplete,
+    };
   }
 
   async createConnectOnboardingLink(tenantId: string) {
