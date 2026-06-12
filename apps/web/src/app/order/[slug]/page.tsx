@@ -196,7 +196,15 @@ export default function OrderPage() {
             displayName: it.displayName,
             unitPrice: it.unitPrice,
             quantity: it.quantity,
-            modifiers: it.modifiers.map((m) => ({
+            // Reorder modifiers persist as name + price; we don't
+            // bother re-linking them to the live menu's groups (the
+            // shape of a customer's basket is already tolerant of
+            // synthetic ids), so synthesise stable-ish ids and put
+            // them in a single "reorder" group bucket.
+            modifiers: it.modifiers.map((m, idx) => ({
+              id: `reorder-${idx}-${m.name}`,
+              groupId: "reorder",
+              groupName: "Reorder",
               name: m.name,
               price: m.price,
               quantity: m.quantity ?? 1,
