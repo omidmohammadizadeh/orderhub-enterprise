@@ -57,6 +57,26 @@ const nextConfig: NextConfig = {
   // of NestJS CORS config. By routing all browser API calls through the Next.js server
   // (NEXT_PUBLIC_API_URL = /api), requests are same-origin and never need CORS.
   //
+  // Force apex (orderhubsolutions.com) → www (www.orderhubsolutions.com)
+  // so the storefront only ever runs on ONE canonical origin. Without
+  // this, localStorage written during the Google OAuth callback (which
+  // lands on whichever origin the customer started on) becomes
+  // invisible the moment the customer types the bare domain in the
+  // URL bar — apex and www are separate origins under the browser's
+  // same-origin policy. www is canonical because every existing
+  // marketing link, the contact-form footer, and the Google OAuth
+  // consent screen already point at www.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "orderhubsolutions.com" }],
+        destination: "https://www.orderhubsolutions.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   // NEXT_PUBLIC_SOCKET_URL is the API server root (https://orderhub-api-0re6.onrender.com)
   // and is available as a Docker build-time ARG, so it is baked into the rewrite at
   // next build time. NestJS global prefix is "api", so the destination must include it.
