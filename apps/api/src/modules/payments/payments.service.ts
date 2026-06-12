@@ -784,7 +784,41 @@ export class PaymentsService {
       where: { orderId, method: "CARD" },
       orderBy: { createdAt: "desc" },
     });
-    if (!payment || !payment.stripePaymentIntentId) return;
+    if (!payment) return;
+    // Backfill the PaymentIntent ID if the webhook hasn't landed yet.
+    // Stripe Checkout Session stores the PI on session.payment_intent
+    // once the customer completes payment, but the
+    // payment_intent.amount_capturable_updated webhook can race the
+    // staff-accept click. Pull the session synchronously to find it.
+    let piId: string | null = payment.stripePaymentIntentId;
+    if (!piId && this.stripe) {
+      const sessionId = payment.metadata?.stripeCheckoutSessionId as
+        | string
+        | undefined;
+      if (sessionId) {
+        try {
+          const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+          piId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : (session.payment_intent?.id ?? null);
+          if (piId) {
+            await (this.prisma as any).payment.update({
+              where: { id: payment.id },
+              data: { stripePaymentIntentId: piId },
+            });
+          }
+        } catch (err: any) {
+          this.logger.warn(`Session lookup for capture backfill failed: ${err.message}`);
+        }
+      }
+    }
+    if (!piId) {
+      this.logger.warn(
+        `captureForOrder ${orderId}: no PaymentIntent yet — customer hasn't completed Stripe Checkout?`,
+      );
+      return;
+    }
     if (
       payment.status === PaymentRecordStatus.SUCCEEDED ||
       payment.status === PaymentRecordStatus.REFUNDED ||
@@ -794,9 +828,9 @@ export class PaymentsService {
     }
     if (!this.stripe) return;
     try {
-      await this.stripe.paymentIntents.capture(payment.stripePaymentIntentId);
+      await this.stripe.paymentIntents.capture(piId);
       this.logger.log(
-        `Stripe capture invoked for order ${orderId} (PI ${payment.stripePaymentIntentId})`,
+        `Stripe capture invoked for order ${orderId} (PI ${piId})`,
       );
       // The payment_intent.succeeded webhook will flip statuses + write
       // ledger entries. We don't update DB here to avoid drift.
@@ -877,14 +911,52 @@ export class PaymentsService {
   }
 
   /**
+   * Resolve a Payment row from a PaymentIntent webhook event, even
+   * when our Payment row was created BEFORE the PI existed.
+   *
+   * Stripe Checkout Sessions don't issue the PaymentIntent ID until
+   * the customer actually completes payment, so our createCheckout-
+   * Session code persisted Payment.stripePaymentIntentId = null. By
+   * the time payment_intent.amount_capturable_updated fires, we
+   * still don't have a row matching the PI id directly. Fall back to
+   * the orderId we stashed in the PI's metadata at session-create
+   * time, then backfill the PI id onto the Payment row so all
+   * subsequent webhooks (succeeded, canceled, charge.refunded) find
+   * it by the fast path.
+   */
+  private async findPaymentForPi(pi: any): Promise<any | null> {
+    if (!pi?.id) return null;
+    let payment = await (this.prisma as any).payment.findFirst({
+      where: { stripePaymentIntentId: pi.id },
+    });
+    if (payment) return payment;
+    const orderId = pi.metadata?.orderId as string | undefined;
+    if (!orderId) return null;
+    payment = await (this.prisma as any).payment.findFirst({
+      where: { orderId, method: "CARD" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!payment) return null;
+    // Backfill — first time we've seen the real PI for this Payment.
+    try {
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { stripePaymentIntentId: pi.id },
+      });
+      payment.stripePaymentIntentId = pi.id;
+    } catch (err: any) {
+      this.logger.warn(`Payment PI backfill failed: ${err.message}`);
+    }
+    return payment;
+  }
+
+  /**
    * Webhook handler — Stripe authorization succeeded. The Order joins the
    * staff board now (with paymentStatus AUTHORIZED) so the restaurant
    * can accept or reject it.
    */
-  async markAuthorized(paymentIntentId: string): Promise<void> {
-    const payment = await (this.prisma as any).payment.findFirst({
-      where: { stripePaymentIntentId: paymentIntentId },
-    });
+  async markAuthorized(pi: any): Promise<void> {
+    const payment = await this.findPaymentForPi(pi);
     if (!payment) return;
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
@@ -907,10 +979,8 @@ export class PaymentsService {
    * or Stripe auto-released a stale hold). Mark Payment and Order
    * accordingly.
    */
-  async markCancelled(paymentIntentId: string): Promise<void> {
-    const payment = await (this.prisma as any).payment.findFirst({
-      where: { stripePaymentIntentId: paymentIntentId },
-    });
+  async markCancelled(pi: any): Promise<void> {
+    const payment = await this.findPaymentForPi(pi);
     if (!payment) return;
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
@@ -1316,7 +1386,7 @@ export class PaymentsService {
         // Authorization succeeded; money is held but not yet captured.
         // Mark the order as AUTHORIZED so it joins the staff Orders board.
         const pi = event.data.object;
-        await this.markAuthorized(pi.id).catch((err: any) =>
+        await this.markAuthorized(pi).catch((err: any) =>
           this.logger.error(`markAuthorized failed: ${err.message}`),
         );
         break;
@@ -1327,7 +1397,7 @@ export class PaymentsService {
         // Stripe auto-cancelled a stale uncaptured auth. Either way the
         // customer sees nothing on their statement.
         const pi = event.data.object;
-        await this.markCancelled(pi.id).catch((err: any) =>
+        await this.markCancelled(pi).catch((err: any) =>
           this.logger.error(`markCancelled failed: ${err.message}`),
         );
         break;
