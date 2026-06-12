@@ -284,6 +284,24 @@ export class OrderingService {
       throw new BadRequestException("Store is currently closed");
     }
 
+    // Phase AP-8 pre-flight — for CARD orders, validate the location
+    // has a Stripe Connect account configured BEFORE we create the
+    // Order row. Otherwise a failed createCheckoutSession leaves an
+    // orphan order on the staff Orders board and a 500 in the
+    // customer's browser. The actual Checkout Session is built later
+    // (after the Order exists so the success_url can reference it).
+    if (dto.paymentMethod === "CARD") {
+      const connect = await this.payments.resolveConnectAccount(
+        location.brand.tenantId,
+        location.id,
+      );
+      if (!connect) {
+        throw new BadRequestException(
+          "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
+        );
+      }
+    }
+
     const items = dto.items.map((item) => ({
       menuItemId: item.menuItemId,
       name: item.name,

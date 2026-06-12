@@ -731,6 +731,14 @@ export class OrdersService {
       where: {
         tenantId,
         ...(locationId && { locationId }),
+        // Phase AP-8 — card orders aren't real to the kitchen until the
+        // customer's authorization webhook lands and we flip paymentStatus
+        // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
+        // start preparing food the customer hasn't successfully paid for.
+        NOT: {
+          paymentMethod: "CARD",
+          paymentStatus: "PENDING",
+        },
         OR: [
           {
             status: {

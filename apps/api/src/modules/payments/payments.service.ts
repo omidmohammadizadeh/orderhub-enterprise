@@ -443,10 +443,30 @@ export class PaymentsService {
    * OR run one account for the whole tenant (single-shop case). We honour
    * either configuration without forcing one model.
    */
-  private async resolveConnectAccount(
+  /**
+   * Public so OrderingService.checkout can pre-flight the lookup
+   * BEFORE creating an Order — otherwise a failed createCheckoutSession
+   * leaves orphan orders showing up on the staff board.
+   *
+   * Three levels of lookup, first match wins:
+   *
+   *   1. StripeConnectAccount row scoped to this location (the proper
+   *      multi-restaurant setup once they've completed Connect
+   *      onboarding through the platform).
+   *   2. StripeConnectAccount row scoped to the tenant (single-shop
+   *      operators).
+   *   3. The raw `acct_…` ID pasted by the operator into the Location
+   *      settings field (`stripeConnectedAccountId`). This is the
+   *      "I already have a Stripe account, just take the money there"
+   *      escape hatch — no DB row, no chargesEnabled flag, we trust
+   *      Stripe to validate.
+   *
+   * Returns null if all three miss.
+   */
+  async resolveConnectAccount(
     tenantId: string,
     locationId: string,
-  ): Promise<{ id: string; stripeAccountId: string } | null> {
+  ): Promise<{ id: string | null; stripeAccountId: string } | null> {
     const locationLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
       where: { tenantId, locationId, chargesEnabled: true },
     });
@@ -456,9 +476,22 @@ export class PaymentsService {
     const tenantLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
       where: { tenantId, locationId: null, chargesEnabled: true },
     });
-    return tenantLevel
-      ? { id: tenantLevel.id, stripeAccountId: tenantLevel.stripeAccountId }
-      : null;
+    if (tenantLevel) {
+      return { id: tenantLevel.id, stripeAccountId: tenantLevel.stripeAccountId };
+    }
+    // Escape hatch: operator pasted an acct_… ID directly on the
+    // Location settings. We have no `StripeConnectAccount` row to
+    // link the Payment to, so id stays null and we just stash the
+    // raw account id for the transfer.
+    const location = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { stripeConnectedAccountId: true },
+    });
+    const raw = location?.stripeConnectedAccountId?.trim();
+    if (raw && raw.startsWith("acct_")) {
+      return { id: null, stripeAccountId: raw };
+    }
+    return null;
   }
 
   /**
@@ -622,7 +655,11 @@ export class PaymentsService {
       data: {
         tenantId: params.tenantId,
         orderId: order.id,
-        stripeConnectAccountId: connect.id,
+        // Null when using the raw-acct_id escape hatch (no
+        // StripeConnectAccount row exists yet — link will fill in
+        // later if/when the operator completes proper Connect
+        // onboarding through the platform).
+        stripeConnectAccountId: connect.id ?? null,
         stripePaymentIntentId: session.payment_intent ?? null,
         amount: totalDecimal,
         currency,
