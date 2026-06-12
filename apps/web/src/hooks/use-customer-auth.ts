@@ -65,25 +65,42 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
   const [isLoading, setIsLoading] = useState(true);
 
   // Initial hydration from localStorage + fetch /me to validate.
+  //
+  // Verbose console logging deliberately retained so that any future
+  // "header still shows Sign in" regression can be diagnosed by the
+  // operator opening DevTools and grepping for "[customer-auth]".
   useEffect(() => {
     if (typeof window === "undefined") {
       setIsLoading(false);
       return;
     }
     const stored = window.localStorage.getItem(TOKEN_KEY);
+    // eslint-disable-next-line no-console
+    console.log(
+      `[customer-auth] init origin=${window.location.origin} token=${stored ? `present(${stored.slice(0, 20)}...)` : "missing"}`,
+    );
     if (!stored) {
       setIsLoading(false);
       return;
     }
     setToken(stored);
+    const meUrl = `${API_BASE}/v1/customer-auth/me`;
+    // eslint-disable-next-line no-console
+    console.log(`[customer-auth] GET ${meUrl}`);
     axios
-      .get(`${API_BASE}/v1/customer-auth/me`, {
+      .get(meUrl, {
         headers: { Authorization: `Bearer ${stored}` },
       })
       .then((res) => {
+        // eslint-disable-next-line no-console
+        console.log("[customer-auth] /me 200 →", res.data);
         setCustomer(res.data);
       })
-      .catch(() => {
+      .catch((err: any) => {
+        // eslint-disable-next-line no-console
+        console.error(
+          `[customer-auth] /me FAILED status=${err?.response?.status} message=${err?.response?.data?.message ?? err?.message}`,
+        );
         // Token expired / invalid → drop it silently. The next gated
         // action will reopen the login modal.
         window.localStorage.removeItem(TOKEN_KEY);

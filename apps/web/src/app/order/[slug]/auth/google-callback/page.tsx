@@ -29,7 +29,18 @@ function Inner() {
   useEffect(() => {
     if (!token) return;
     if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[customer-auth] callback origin=${window.location.origin} writing token=${token.slice(0, 20)}...`,
+      );
       window.localStorage.setItem(TOKEN_KEY, token);
+      // Sanity check: read it straight back so we catch the case where
+      // localStorage is blocked (private-window / quota / extension).
+      const verify = window.localStorage.getItem(TOKEN_KEY);
+      // eslint-disable-next-line no-console
+      console.log(
+        `[customer-auth] callback verify read=${verify ? "ok" : "FAILED"}`,
+      );
     }
     // Tiny delay so the customer sees the green tick before the
     // redirect — feels intentional, not like a flicker.
