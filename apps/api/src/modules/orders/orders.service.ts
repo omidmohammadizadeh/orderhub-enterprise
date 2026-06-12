@@ -291,6 +291,13 @@ export class OrdersService {
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
       },
+      // Phase AP-5 — thread the storefront customerAccountId through
+      // to persistOrder so the Order row gets attributed and the
+      // customer's "My Orders" page can find it. CanonicalOrder
+      // doesn't have a typed slot for this yet (marketplace adapters
+      // don't need it) so we ride along on the (canonical as any)
+      // cast at the persist site. Undefined for guest checkouts.
+      customerAccountId: (dto as any).customerAccountId,
     };
 
     const order = await this.ingestCanonical(canonical as any, tenantId, dto.locationId);
