@@ -42,7 +42,10 @@ const ORDER_PROJECTION = {
   status: true,
   fulfillmentType: true,
   total: true,
-  currency: true,
+  // NOTE: Order has no `currency` column — Payment owns currency. The
+  // storefront only handles GBP today so we can hardcode the symbol in
+  // the UI; if/when multi-currency lands, surface it from the
+  // Payment row instead.
   createdAt: true,
   scheduledFor: true,
   estimatedReadyAt: true,

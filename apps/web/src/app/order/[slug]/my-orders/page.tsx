@@ -58,7 +58,6 @@ interface Order {
   status: string;
   fulfillmentType: string;
   total: number;
-  currency: string;
   createdAt: string;
   scheduledFor: string | null;
   estimatedReadyAt: string | null;

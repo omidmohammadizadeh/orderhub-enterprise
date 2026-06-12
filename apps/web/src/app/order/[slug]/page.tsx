@@ -572,6 +572,7 @@ export default function OrderPage() {
         orderId={confirmedOrderId}
         storeName={storefront.location.name}
         onReset={() => setConfirmedOrderId(null)}
+        storeSlug={slug}
       />
     );
   }
@@ -1872,10 +1873,12 @@ function OrderConfirmed({
   orderId,
   storeName,
   onReset,
+  storeSlug,
 }: {
   orderId: string;
   storeName: string;
   onReset: () => void;
+  storeSlug: string;
 }) {
   // Poll every 3s. Stop polling once the order reaches a terminal state
   // (delivered / collected / cancelled / rejected) — no point hammering
@@ -1915,7 +1918,12 @@ function OrderConfirmed({
   }
 
   return (
-    <AcceptedScreen data={data!} storeName={storeName} onReset={onReset} />
+    <AcceptedScreen
+      data={data!}
+      storeName={storeName}
+      onReset={onReset}
+      storeSlug={slug}
+    />
   );
 }
 
@@ -2016,10 +2024,14 @@ function AcceptedScreen({
   data,
   storeName,
   onReset,
+  storeSlug,
 }: {
   data: StatusPayload;
   storeName: string;
   onReset: () => void;
+  /** Phase AP-5 — used by the "Back to menu" link to navigate without
+   *  resetting the order-tracking state. */
+  storeSlug: string;
 }) {
   const isDelivery = data.fulfillmentType === "DELIVERY";
   // Steps in order. Each step is "done" once its timestamp fires.
@@ -2135,12 +2147,27 @@ function AcceptedScreen({
           })}
         </ol>
 
-        <button
-          onClick={onReset}
-          className="mt-4 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-        >
-          Order again
-        </button>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <button
+            onClick={onReset}
+            className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+          >
+            Order again
+          </button>
+          {/* Phase AP-5 follow-up — explicit way out of the tracking
+              screen back to the menu. Without this customers were stuck
+              on the tracker until the order completed; many wanted to
+              keep browsing or place a second order while the first
+              cooked. Same handler as Order again would reset the page
+              entirely; this just navigates back without touching the
+              cart, which is what most customers expect. */}
+          <a
+            href={`/order/${storeSlug}`}
+            className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+          >
+            Back to menu
+          </a>
+        </div>
       </div>
     </div>
   );
