@@ -18,7 +18,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Search, ShoppingBag } from "lucide-react";
 import { round2, type SelectedModifier, type ProductSku } from "@orderhub/shared";
-import { LocationSelector } from "@/components/dashboard/location-selector";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
   PosCartPanel,
@@ -283,7 +282,6 @@ export default function PosPage() {
           >
             <Tag className="h-3.5 w-3.5" /> Promos
           </button>
-          <LocationSelector />
         </div>
       </div>
 

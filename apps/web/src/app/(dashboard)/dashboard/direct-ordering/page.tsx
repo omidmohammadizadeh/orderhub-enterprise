@@ -8,7 +8,6 @@
 // The form body is the existing DirectOrderingSettings component;
 // nothing here changes WHAT can be configured, only WHERE.
 
-import { LocationSelector } from "@/components/dashboard/location-selector";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { DirectOrderingSettings } from "@/components/pos/direct-ordering-modal";
 
@@ -28,7 +27,6 @@ export default function DirectOrderingPage() {
             How your customer-facing storefront behaves at this location.
           </p>
         </div>
-        <LocationSelector />
       </div>
 
       {!selectedLocationId ? (

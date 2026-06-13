@@ -11,7 +11,6 @@ import {
   Settings,
   HelpCircle,
   ChevronDown,
-  Building2,
   Monitor,
   Rocket,
   Store,
@@ -32,6 +31,7 @@ import {
   UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth.store";
 import { getInitials } from "@/lib/utils";
@@ -115,19 +115,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* ── Tenant / Brand pill ───────────────────────── */}
-      {user && (
-        <button className="mx-3 mt-3 flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.07] group">
-          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-violet-500/20">
-            <Building2 className="h-3.5 w-3.5 text-violet-400" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-white truncate">{user.tenantName}</p>
-            <p className="text-[10px] text-zinc-500 truncate">All locations</p>
-          </div>
-          <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-        </button>
-      )}
+      {/* ── Location switcher (global scope) ─────────── */}
+      {user && <SidebarLocationSwitcher />}
 
       {/* ── Primary navigation ──────────────────────── */}
       <nav className="flex-1 overflow-y-auto sidebar-scroll px-2 pt-4 pb-2 space-y-0.5">

@@ -32,7 +32,6 @@ import { VariantsTab } from "@/components/products/variants-tab";
 import { MealDealsTab } from "@/components/products/meal-deals-tab";
 import { UpsellGroupsTab } from "@/components/products/upsell-groups-tab";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { LocationSelector } from "@/components/dashboard/location-selector";
 
 const TABS = [
   { key: "products", label: "Products" },
@@ -108,11 +107,6 @@ function ProductsPageInner() {
             location to see a different catalog.
           </p>
         </div>
-        {/* Phase AP — Products tab is location-scoped (same store POS,
-            Menu, Locations and Direct Ordering use). The brand chip
-            strip that used to sit here was leaking catalog rows
-            between sibling locations. */}
-        <LocationSelector />
       </div>
 
       {!selectedLocationId && (

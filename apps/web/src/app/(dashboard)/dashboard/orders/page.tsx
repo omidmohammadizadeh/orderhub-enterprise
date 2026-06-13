@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Beaker, Bike, ShoppingBag, Loader2 } from "lucide-react";
 import { OrderBoard } from "@/components/orders/order-board";
 import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
-import { LocationSelector } from "@/components/dashboard/location-selector";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { apiClient } from "@/lib/api/client";
 
@@ -65,7 +64,6 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <LocationSelector allowAll />
           <button
             type="button"
             onClick={() => testOrder.mutate("DELIVERY")}

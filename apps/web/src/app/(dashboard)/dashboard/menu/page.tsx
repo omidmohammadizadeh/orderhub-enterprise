@@ -28,7 +28,6 @@ import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { Send, CheckCircle2 } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { LocationSelector } from "@/components/dashboard/location-selector";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -235,10 +234,6 @@ export default function MenuPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Phase AP — single source of truth for which location's
-              menus the operator is editing. POS, Locations, and this
-              tab all share useSelectedLocationStore. */}
-          <LocationSelector />
           <Button
             size="sm"
             variant="outline"

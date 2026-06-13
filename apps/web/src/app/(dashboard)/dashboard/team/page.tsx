@@ -27,6 +27,7 @@ import {
   humaniseRole,
 } from "@/lib/api/team.client";
 import { locationsClient, brandsClient } from "@/lib/api/locations.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 type Tab = "members" | "invites";
 
@@ -34,6 +35,9 @@ export default function TeamRolesPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("members");
   const [modal, setModal] = useState<"assign" | "invite" | null>(null);
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
 
   const membersQuery = useQuery({
     queryKey: ["team", "members"],
@@ -43,6 +47,31 @@ export default function TeamRolesPage() {
     queryKey: ["team", "invites"],
     queryFn: teamClient.listInvitations,
   });
+
+  // Scope the lists to the sidebar's selected location. When the
+  // operator picks "All locations" we show everyone. Otherwise we
+  // include members assigned to the selected location, plus members
+  // with no location scope at all (admins, owners) so the list still
+  // shows the people who can manage the place.
+  const scopedMembers = useMemo(() => {
+    const all = membersQuery.data ?? [];
+    if (!selectedLocationId) return all;
+    return all.filter(
+      (m) =>
+        m.locations.length === 0 ||
+        m.locations.some((l) => l.id === selectedLocationId),
+    );
+  }, [membersQuery.data, selectedLocationId]);
+
+  const scopedInvites = useMemo(() => {
+    const all = invitesQuery.data ?? [];
+    if (!selectedLocationId) return all;
+    return all.filter(
+      (i) =>
+        i.locationIds.length === 0 ||
+        i.locationIds.includes(selectedLocationId),
+    );
+  }, [invitesQuery.data, selectedLocationId]);
 
   return (
     <div className="space-y-6">
@@ -75,19 +104,15 @@ export default function TeamRolesPage() {
         <div className="flex gap-1">
           <TabBtn active={tab === "members"} onClick={() => setTab("members")}>
             Members{" "}
-            {membersQuery.data && (
-              <span className="text-xs text-zinc-400">
-                ({membersQuery.data.length})
-              </span>
-            )}
+            <span className="text-xs text-zinc-400">
+              ({scopedMembers.length})
+            </span>
           </TabBtn>
           <TabBtn active={tab === "invites"} onClick={() => setTab("invites")}>
             Pending invitations{" "}
-            {invitesQuery.data && (
-              <span className="text-xs text-zinc-400">
-                ({invitesQuery.data.length})
-              </span>
-            )}
+            <span className="text-xs text-zinc-400">
+              ({scopedInvites.length})
+            </span>
           </TabBtn>
         </div>
       </div>
@@ -96,12 +121,12 @@ export default function TeamRolesPage() {
       {tab === "members" ? (
         <MembersTable
           loading={membersQuery.isLoading}
-          members={membersQuery.data ?? []}
+          members={scopedMembers}
         />
       ) : (
         <InvitesTable
           loading={invitesQuery.isLoading}
-          invites={invitesQuery.data ?? []}
+          invites={scopedInvites}
           onCancel={async (id) => {
             await teamClient.cancelInvitation(id);
             qc.invalidateQueries({ queryKey: ["team", "invites"] });
