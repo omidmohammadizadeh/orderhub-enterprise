@@ -24,6 +24,17 @@ import {
 } from "lucide-react";
 import { locationsClient, type Location } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
+
+// Roles allowed to create new locations and open the per-location
+// settings drawer. OWNER + DARK_KITCHEN_MANAGER run their stores but
+// don't get to add new ones or edit the underlying record — that's
+// tenant ownership / onboarding territory.
+const CAN_MANAGE_LOCATIONS = new Set([
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "ONBOARDING_AGENT",
+]);
 import { LocationEditModal } from "@/components/locations/location-edit-modal";
 import { OpeningHoursDrawer } from "@/components/locations/opening-hours-drawer";
 import { BusyModeDrawer } from "@/components/locations/busy-mode-drawer";
@@ -41,6 +52,8 @@ type Drawer =
 
 export default function LocationsPage() {
   const qc = useQueryClient();
+  const myRole = useAuthStore((s) => s.user?.role);
+  const canManage = !!myRole && CAN_MANAGE_LOCATIONS.has(myRole);
   const locationsQuery = useQuery({
     queryKey: ["locations", "list"],
     queryFn: locationsClient.list,
@@ -100,7 +113,13 @@ export default function LocationsPage() {
         <button
           type="button"
           onClick={() => setDrawer({ kind: "edit", locationId: null })}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800"
+          disabled={!canManage}
+          title={
+            canManage
+              ? undefined
+              : "Only tenant owners and onboarding agents can add locations."
+          }
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" /> Add location
         </button>
@@ -147,6 +166,7 @@ export default function LocationsPage() {
               onDelete={() =>
                 setDrawer({ kind: "delete", locationId: loc.id, name: loc.name })
               }
+              canManage={canManage}
             />
           ))}
         </ul>
@@ -193,6 +213,7 @@ function LocationCard({
   onBusy,
   onBrands,
   onDelete,
+  canManage,
 }: {
   location: Location;
   expanded: boolean;
@@ -202,6 +223,7 @@ function LocationCard({
   onBusy: () => void;
   onBrands: () => void;
   onDelete: () => void;
+  canManage: boolean;
 }) {
   const address = [location.addressLine1, location.city, location.postcode]
     .filter(Boolean)
@@ -248,9 +270,11 @@ function LocationCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-zinc-100 bg-zinc-50/40 px-4 py-2">
-        <ActionChip icon={<Settings className="h-3 w-3" />} onClick={onEdit}>
-          Location settings
-        </ActionChip>
+        {canManage && (
+          <ActionChip icon={<Settings className="h-3 w-3" />} onClick={onEdit}>
+            Location settings
+          </ActionChip>
+        )}
         <ActionChip icon={<Clock className="h-3 w-3" />} onClick={onHours}>
           Opening hours
         </ActionChip>
@@ -260,14 +284,16 @@ function LocationCard({
         <ActionChip icon={<Pause className="h-3 w-3" />} onClick={onBusy}>
           Busy mode
         </ActionChip>
-        <button
-          type="button"
-          onClick={onDelete}
-          title="Delete location"
-          className="ml-auto rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        {canManage && (
+          <button
+            type="button"
+            onClick={onDelete}
+            title="Delete location"
+            className="ml-auto rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
         <button
           type="button"
           className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100"

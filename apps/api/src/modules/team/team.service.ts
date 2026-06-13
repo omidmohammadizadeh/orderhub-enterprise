@@ -154,12 +154,26 @@ export class TeamService {
       orderBy: { createdAt: "desc" },
     });
 
-    // Phase AR — hide platform-level peers (Order Hub staff,
-    // onboarding agents, billing agents) from regular tenant
-    // managers. PLATFORM_ADMIN sees everyone.
+    // Phase AR — visibility rules:
+    //   • Hide platform-level peers (Order Hub staff, onboarding /
+    //     billing agents) from regular tenant managers.
+    //   • Hide unassigned accounts (zero locations AND zero brands)
+    //     from operator-tier managers — only PLATFORM_ADMIN and
+    //     ONBOARDING_AGENT need to see freshly signed-up users
+    //     before they've been routed to a location. An OWNER
+    //     shouldn't see a Viewer who happens to share their tenant
+    //     but hasn't been onboarded yet.
+    const isPlatformOrOnboarding =
+      callerRole === "PLATFORM_ADMIN" || callerRole === "ONBOARDING_AGENT";
     const hidePlatform = callerRole !== "PLATFORM_ADMIN";
     return users
-      .filter((u: any) => !hidePlatform || !PLATFORM_ROLES.has(u.role))
+      .filter(
+        (u: any) =>
+          (!hidePlatform || !PLATFORM_ROLES.has(u.role)) &&
+          (isPlatformOrOnboarding ||
+            u.locations.length > 0 ||
+            u.brands.length > 0),
+      )
       .map((u: any) => ({
         id: u.id,
         email: u.email,

@@ -30,6 +30,7 @@ import {
 } from "@/lib/api/team.client";
 import { locationsClient, brandsClient } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
 
 type Tab = "members" | "invites";
 
@@ -39,8 +40,21 @@ type ModalState =
   | { kind: "edit"; member: TeamMember }
   | null;
 
+// Owner + Dark Kitchen Manager are scoped operators: they can grow
+// their team by inviting new people but shouldn't have the "Assign
+// role" power tool — that one searches every account in the
+// platform by email and re-targets them, which is a sharp edge that
+// belongs to tenant ownership / Order Hub staff.
+const CAN_ASSIGN_ROLES = new Set([
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "ONBOARDING_AGENT",
+]);
+
 export default function TeamRolesPage() {
   const qc = useQueryClient();
+  const myRole = useAuthStore((s) => s.user?.role);
+  const canAssign = !!myRole && CAN_ASSIGN_ROLES.has(myRole);
   const [tab, setTab] = useState<Tab>("members");
   const [modal, setModal] = useState<ModalState>(null);
   const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null);
@@ -94,12 +108,14 @@ export default function TeamRolesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setModal({ kind: "assign" })}
-            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
-          >
-            <UserPlus className="h-4 w-4" /> Assign role
-          </button>
+          {canAssign && (
+            <button
+              onClick={() => setModal({ kind: "assign" })}
+              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+            >
+              <UserPlus className="h-4 w-4" /> Assign role
+            </button>
+          )}
           <button
             onClick={() => setModal({ kind: "invite" })}
             className="inline-flex items-center gap-2 rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
