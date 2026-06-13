@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 
 type Tab = "stock" | "suppliers" | "purchase-orders";
@@ -66,7 +67,13 @@ export default function InventoryPage() {
   const { user } = useAuthStore();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("stock");
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  // Phase AR — read selected location from the sidebar switcher
+  // instead of a local state slot. "" means "All locations" — the
+  // inventory API treats absent locationId as no filter.
+  const sidebarLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
+  const selectedLocation = sidebarLocationId ?? "";
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [showCreatePO, setShowCreatePO] = useState(false);

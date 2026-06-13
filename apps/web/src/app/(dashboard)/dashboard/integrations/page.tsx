@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -84,10 +85,17 @@ export default function IntegrationsPage() {
   const user = useAuthStore((s) => s.user);
   const qc = useQueryClient();
   const [configuring, setConfiguring] = useState<string | null>(null);
-  const [locationId, setLocationId] = useState<string>("");
 
-  // In a real app this would come from a locations selector; for now use URL param or first location
-  const activeLocationId = locationId || ((user as any)?.defaultLocationId ?? "");
+  // Phase AR — drive off the sidebar location switcher. Integrations
+  // are per-location (each platform connection lives at a specific
+  // store) so this page only ever shows one location's wiring at a
+  // time. "All locations" leaves activeLocationId empty and the
+  // integrations query stays disabled until the operator picks one.
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
+  const activeLocationId =
+    selectedLocationId ?? ((user as any)?.defaultLocationId ?? "");
 
   const { data: integrations = [], isLoading } = useQuery<Integration[]>({
     queryKey: ["integrations", activeLocationId],
@@ -177,15 +185,12 @@ export default function IntegrationsPage() {
       {!activeLocationId && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Plug2 className="h-10 w-10 text-zinc-300 mb-3" />
-          <p className="font-medium text-zinc-500">Select a location to manage integrations</p>
-          <div className="mt-4 max-w-xs w-full">
-            <Input
-              placeholder="Paste location ID"
-              value={locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-              className="h-9 text-sm text-center"
-            />
-          </div>
+          <p className="font-medium text-zinc-500">
+            Pick a location from the sidebar switcher to manage integrations.
+          </p>
+          <p className="mt-1 text-xs text-zinc-400">
+            Integrations are configured per location.
+          </p>
         </div>
       )}
     </div>

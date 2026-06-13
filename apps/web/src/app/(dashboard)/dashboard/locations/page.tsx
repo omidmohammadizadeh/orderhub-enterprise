@@ -23,6 +23,7 @@ import {
   Pause,
 } from "lucide-react";
 import { locationsClient, type Location } from "@/lib/api/locations.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { LocationEditModal } from "@/components/locations/location-edit-modal";
 import { OpeningHoursDrawer } from "@/components/locations/opening-hours-drawer";
 import { BusyModeDrawer } from "@/components/locations/busy-mode-drawer";
@@ -56,10 +57,19 @@ export default function LocationsPage() {
     closeDrawer();
   };
 
+  // Phase AR — narrow to the sidebar switcher's selected location.
+  // "All locations" (null) keeps every row visible; picking a specific
+  // location restricts the page to just that one card so the operator
+  // can't accidentally edit a sibling's settings.
+  const selectedLocationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
+
   const filteredLocations = useMemo(() => {
     const all = locationsQuery.data ?? [];
     const q = search.trim().toLowerCase();
     return all.filter((l) => {
+      if (selectedLocationId && l.id !== selectedLocationId) return false;
       if (statusFilter !== "all" && (l.status ?? "active") !== statusFilter) return false;
       if (!q) return true;
       return (
@@ -68,7 +78,7 @@ export default function LocationsPage() {
         (l.city ?? "").toLowerCase().includes(q)
       );
     });
-  }, [locationsQuery.data, search, statusFilter]);
+  }, [locationsQuery.data, search, statusFilter, selectedLocationId]);
 
   const toggleExpanded = (id: string) =>
     setExpanded((prev) => {
