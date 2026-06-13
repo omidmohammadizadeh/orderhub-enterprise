@@ -47,6 +47,54 @@ function isValidRole(role: string): role is NewRole {
   return (NEW_ROLES as readonly string[]).includes(role);
 }
 
+// Platform-level roles — invisible to tenant-level team managers.
+// A regular operator running a restaurant should never see Order Hub
+// staff (PLATFORM_ADMIN), the team onboarding agents, or the billing
+// agents in their Team Roles list.
+const PLATFORM_ROLES = new Set([
+  "PLATFORM_ADMIN",
+  "ONBOARDING_AGENT",
+  "FINANCIAL_AGENT",
+]);
+
+// What roles a given caller can grant via Assign Role / Invite. The
+// keys are the caller's current role; the values are the set of
+// roles they're allowed to set on someone else.
+const ALLOWED_GRANTS: Record<string, string[]> = {
+  PLATFORM_ADMIN: [
+    "OWNER",
+    "DARK_KITCHEN_MANAGER",
+    "MANAGER",
+    "STAFF",
+    "DRIVER",
+    "ONBOARDING_AGENT",
+    "FINANCIAL_AGENT",
+    "PLATFORM_ADMIN",
+  ],
+  TENANT_OWNER: [
+    "OWNER",
+    "DARK_KITCHEN_MANAGER",
+    "MANAGER",
+    "STAFF",
+    "DRIVER",
+  ],
+  // OWNER + DARK_KITCHEN_MANAGER can grow their kitchen team but not
+  // promote anyone to ownership or any platform-level role.
+  OWNER: ["MANAGER", "STAFF", "DRIVER"],
+  DARK_KITCHEN_MANAGER: ["MANAGER", "STAFF", "DRIVER"],
+  // Everyone else can't manage the team at all — the @Roles guard on
+  // the controller also blocks them, but defence-in-depth.
+  MANAGER: [],
+  STAFF: [],
+  DRIVER: [],
+  ONBOARDING_AGENT: [],
+  FINANCIAL_AGENT: [],
+};
+
+export function allowedGrantsForRole(role: string): string[] {
+  return ALLOWED_GRANTS[role] ?? [];
+}
+
 const INVITE_TTL_DAYS = 14;
 
 export interface AssignRoleDto {
@@ -80,7 +128,7 @@ export class TeamService {
 
   // ── Members ────────────────────────────────────────────────────
 
-  async listMembers(tenantId: string) {
+  async listMembers(tenantId: string, callerRole?: string) {
     const users = await this.prisma.user.findMany({
       where: { tenantId, isActive: true },
       select: {
@@ -106,18 +154,24 @@ export class TeamService {
       orderBy: { createdAt: "desc" },
     });
 
-    return users.map((u: any) => ({
-      id: u.id,
-      email: u.email,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      role: u.role,
-      isActive: u.isActive,
-      lastLoginAt: u.lastLoginAt,
-      createdAt: u.createdAt,
-      locations: u.locations.map((l: any) => l.location),
-      brands: u.brands.map((b: any) => b.brand),
-    }));
+    // Phase AR — hide platform-level peers (Order Hub staff,
+    // onboarding agents, billing agents) from regular tenant
+    // managers. PLATFORM_ADMIN sees everyone.
+    const hidePlatform = callerRole !== "PLATFORM_ADMIN";
+    return users
+      .filter((u: any) => !hidePlatform || !PLATFORM_ROLES.has(u.role))
+      .map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        role: u.role,
+        isActive: u.isActive,
+        lastLoginAt: u.lastLoginAt,
+        createdAt: u.createdAt,
+        locations: u.locations.map((l: any) => l.location),
+        brands: u.brands.map((b: any) => b.brand),
+      }));
   }
 
   // ── User lookup for Assign-Role flow ──────────────────────────
@@ -143,9 +197,21 @@ export class TeamService {
 
   // ── Assign role + scope to an existing user ────────────────────
 
-  async assignRole(actorTenantId: string, dto: AssignRoleDto) {
+  async assignRole(
+    actorTenantId: string,
+    dto: AssignRoleDto,
+    callerRole?: string,
+  ) {
     if (!isValidRole(dto.role)) {
       throw new BadRequestException(`Unknown role: ${dto.role}`);
+    }
+    if (callerRole) {
+      const allowed = ALLOWED_GRANTS[callerRole] ?? [];
+      if (!allowed.includes(dto.role)) {
+        throw new BadRequestException(
+          `Your role (${callerRole}) can't assign ${dto.role}.`,
+        );
+      }
     }
 
     const target = await this.prisma.user.findUnique({
@@ -226,8 +292,8 @@ export class TeamService {
 
   // ── Invitations ────────────────────────────────────────────────
 
-  async listInvitations(tenantId: string) {
-    return this.prisma.invitation.findMany({
+  async listInvitations(tenantId: string, callerRole?: string) {
+    const rows = await this.prisma.invitation.findMany({
       where: { tenantId, acceptedAt: null, cancelledAt: null },
       orderBy: { createdAt: "desc" },
       include: {
@@ -236,15 +302,28 @@ export class TeamService {
         },
       },
     });
+    const hidePlatform = callerRole !== "PLATFORM_ADMIN";
+    return hidePlatform
+      ? rows.filter((r) => !PLATFORM_ROLES.has(r.role))
+      : rows;
   }
 
   async createInvitation(
     tenantId: string,
     invitedById: string,
     dto: InviteDto,
+    callerRole?: string,
   ) {
     if (!isValidRole(dto.role)) {
       throw new BadRequestException(`Unknown role: ${dto.role}`);
+    }
+    if (callerRole) {
+      const allowed = ALLOWED_GRANTS[callerRole] ?? [];
+      if (!allowed.includes(dto.role)) {
+        throw new BadRequestException(
+          `Your role (${callerRole}) can't invite ${dto.role}.`,
+        );
+      }
     }
     const email = dto.email.toLowerCase().trim();
     if (!email.includes("@")) {

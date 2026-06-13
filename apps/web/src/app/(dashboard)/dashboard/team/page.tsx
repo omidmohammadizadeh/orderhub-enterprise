@@ -5,7 +5,7 @@
 // Two top buttons (Assign Role / Invite Team Member) → modals.
 // Two tabs: Members + Pending Invitations.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   UserPlus,
@@ -405,6 +405,34 @@ function RoleModal({
     );
   }, [brandsQuery.data, locationIds]);
 
+  // Phase AR — only show role options the API actually lets the
+  // caller grant. An Owner sees Manager / Staff / Driver only; a
+  // Dark Kitchen Manager the same; a Platform Admin sees everything.
+  const grantableQuery = useQuery({
+    queryKey: ["team", "grantable-roles"],
+    queryFn: teamClient.grantableRoles,
+  });
+  const allowedRoles = useMemo(
+    () =>
+      ASSIGNABLE_ROLES.filter(
+        (r) =>
+          !grantableQuery.data || grantableQuery.data.includes(r.value),
+      ),
+    [grantableQuery.data],
+  );
+
+  // Default the role select to the first thing this caller can
+  // actually grant — otherwise the form lands on MANAGER (the
+  // default) and silently errors on submit when the caller can't
+  // grant it.
+  useEffect(() => {
+    if (!allowedRoles.length) return;
+    const first = allowedRoles[0];
+    if (first && !allowedRoles.find((r) => r.value === role)) {
+      setRole(first.value);
+    }
+  }, [allowedRoles, role]);
+
   const lookup = useMutation({
     mutationFn: () => teamClient.lookupUser(email),
     onSuccess: (data) => {
@@ -521,14 +549,14 @@ function RoleModal({
               onChange={(e) => setRole(e.target.value)}
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             >
-              {ASSIGNABLE_ROLES.map((r) => (
+              {allowedRoles.map((r) => (
                 <option key={r.value} value={r.value}>
                   {r.label}
                 </option>
               ))}
             </select>
             <p className="mt-1 text-xs text-zinc-500">
-              {ASSIGNABLE_ROLES.find((r) => r.value === role)?.description}
+              {allowedRoles.find((r) => r.value === role)?.description}
             </p>
           </div>
 

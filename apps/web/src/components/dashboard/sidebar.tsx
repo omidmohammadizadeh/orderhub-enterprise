@@ -44,26 +44,45 @@ interface NavItem {
   roles?: string[];
 }
 
+// Phase AR — every NavItem optionally declares which roles see it.
+// The visibility logic at render time treats an absent `roles` array
+// as "everyone in MANAGER+ tier sees this" (i.e. excluded from
+// MANAGER/STAFF/DRIVER unless explicitly listed). This matches the
+// operator's spec:
+//   • MANAGER + STAFF → Orders + POS only
+//   • DRIVER          → Orders only
+//   • OWNER / DARK_KITCHEN_MANAGER → full ops nav minus platform pages
+//   • TENANT_OWNER / PLATFORM_ADMIN → everything
+
+const MANAGER_TIER = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "DARK_KITCHEN_MANAGER",
+];
+const STAFF_TIER = [...MANAGER_TIER, "MANAGER", "STAFF"];
+const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
+
 const primaryNav: NavItem[] = [
-  { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0" },
-  { href: "/dashboard/pos", label: "POS", icon: ShoppingBag },
+  { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
+  { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
   // Phase AP follow-up (AP-NAV-1): Direct online ordering settings used
   // to be a button on the POS top bar; the operator asked for it to sit
   // under POS on the sidebar instead, so it gets a dedicated entry here.
-  { href: "/dashboard/direct-ordering", label: "Direct online ordering", icon: Globe },
+  { href: "/dashboard/direct-ordering", label: "Direct online ordering", icon: Globe, roles: MANAGER_TIER },
   // Master catalog (Phase AL). The Menu entry below is the per-location
   // builder that attaches items from this catalog — it does not create
   // duplicate products.
-  { href: "/dashboard/products", label: "Products", icon: Layers },
-  { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed },
-  { href: "/dashboard/store-ops", label: "Store Ops", icon: Store },
-  { href: "/dashboard/customers", label: "Customers", icon: Users },
-  { href: "/dashboard/drivers", label: "Drivers", icon: Truck },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-  { href: "/dashboard/integrations", label: "Integrations", icon: Plug2 },
-  { href: "/dashboard/team", label: "Team Roles", icon: UserCog },
-  { href: "/dashboard/locations", label: "Locations", icon: MapPin },
+  { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
+  { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
+  { href: "/dashboard/store-ops", label: "Store Ops", icon: Store, roles: MANAGER_TIER },
+  { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
+  { href: "/dashboard/drivers", label: "Drivers", icon: Truck, roles: MANAGER_TIER },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER },
+  { href: "/dashboard/integrations", label: "Integrations", icon: Plug2, roles: MANAGER_TIER },
+  { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
+  { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
   // Phase AP — admin-only secrets vault. Only PLATFORM_ADMIN can see
   // the link AND the page itself; the API also enforces the role.
   {
@@ -75,24 +94,27 @@ const primaryNav: NavItem[] = [
 ];
 
 const operationsNav: NavItem[] = [
-  { href: "/dashboard/orders/rush-hour", label: "Rush Hour", icon: Zap },
-  { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat },
-  { href: "/dashboard/orders/dispatch", label: "Dispatch", icon: Truck },
-  { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag },
+  { href: "/dashboard/orders/rush-hour", label: "Rush Hour", icon: Zap, roles: MANAGER_TIER },
+  { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat, roles: MANAGER_TIER },
+  { href: "/dashboard/orders/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER },
+  { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];
 
 const financeNav: NavItem[] = [
-  { href: "/dashboard/payments", label: "Payments", icon: DollarSign },
-  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+  // Phase AR — finance is reserved for top-of-tenant ownership +
+  // platform admin. Operators (OWNER) don't get finance unless we
+  // later add a finance-delegate role.
+  { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
 ];
 
 const secondaryNav: NavItem[] = [
-  { href: "/dashboard/onboarding", label: "Setup guide", icon: Rocket },
-  { href: "/dashboard/settings/printers", label: "Printers", icon: Printer },
-  { href: "/dashboard/settings/security", label: "Security", icon: Shield },
-  { href: "/dashboard/settings/branding", label: "Branding", icon: Palette },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-  { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical },
+  { href: "/dashboard/onboarding", label: "Setup guide", icon: Rocket, roles: [...MANAGER_TIER, "ONBOARDING_AGENT"] },
+  { href: "/dashboard/settings/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER },
+  { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: MANAGER_TIER },
+  { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: MANAGER_TIER },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: MANAGER_TIER },
+  { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
 export function Sidebar() {
@@ -137,37 +159,67 @@ export function Sidebar() {
           />
         ))}
 
-        <div className="my-3 mx-1 h-px bg-white/[0.06]" />
-
-        <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Operations</p>
-        {operationsNav.map((item) => (
-          <SidebarNavItem
-            key={item.href}
-            item={item}
-            isActive={pathname === item.href}
-          />
-        ))}
-
-        <div className="my-3 mx-1 h-px bg-white/[0.06]" />
-
-        <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Finance</p>
-        {financeNav.map((item) => (
-          <SidebarNavItem
-            key={item.href}
-            item={item}
-            isActive={pathname.startsWith(item.href)}
-          />
-        ))}
-
-        <div className="my-3 mx-1 h-px bg-white/[0.06]" />
-
-        {secondaryNav.map((item) => (
-          <SidebarNavItem
-            key={item.href}
-            item={item}
-            isActive={pathname === item.href || (item.href !== "/dashboard/settings" && pathname.startsWith(item.href))}
-          />
-        ))}
+        {(() => {
+          const filterFor = (nav: NavItem[]) =>
+            nav.filter(
+              (i) =>
+                !i.roles ||
+                (user?.role && i.roles.includes(user.role)),
+            );
+          const ops = filterFor(operationsNav);
+          const fin = filterFor(financeNav);
+          const sec = filterFor(secondaryNav);
+          return (
+            <>
+              {ops.length > 0 && (
+                <>
+                  <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+                  <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+                    Operations
+                  </p>
+                  {ops.map((item) => (
+                    <SidebarNavItem
+                      key={item.href}
+                      item={item}
+                      isActive={pathname === item.href}
+                    />
+                  ))}
+                </>
+              )}
+              {fin.length > 0 && (
+                <>
+                  <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+                  <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+                    Finance
+                  </p>
+                  {fin.map((item) => (
+                    <SidebarNavItem
+                      key={item.href}
+                      item={item}
+                      isActive={pathname.startsWith(item.href)}
+                    />
+                  ))}
+                </>
+              )}
+              {sec.length > 0 && (
+                <>
+                  <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+                  {sec.map((item) => (
+                    <SidebarNavItem
+                      key={item.href}
+                      item={item}
+                      isActive={
+                        pathname === item.href ||
+                        (item.href !== "/dashboard/settings" &&
+                          pathname.startsWith(item.href))
+                      }
+                    />
+                  ))}
+                </>
+              )}
+            </>
+          );
+        })()}
 
         <SidebarNavItem
           item={{ href: "#", label: "Help & Support", icon: HelpCircle }}

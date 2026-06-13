@@ -36,7 +36,16 @@ export class LocationsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("brandId") brandId?: string,
   ) {
-    return this.locations.findAll(user.tenantId, brandId);
+    // Phase AR — tenant-wide roles (platform admin, tenant owner)
+    // see every location; every other role gets narrowed to their
+    // UserLocation rows. The service falls back to tenant-wide if a
+    // scoped role has no rows yet so a freshly-created OWNER who
+    // hasn't been bound to specific locations isn't locked out.
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
+    const userId = TENANT_WIDE_ROLES.has(user.role as string)
+      ? undefined
+      : user.userId;
+    return this.locations.findAll(user.tenantId, brandId, userId);
   }
 
   @Get(":locationId")

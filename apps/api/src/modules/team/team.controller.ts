@@ -22,6 +22,7 @@ import {
   AssignRoleDto,
   InviteDto,
   TeamService,
+  allowedGrantsForRole,
 } from "./team.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -32,7 +33,7 @@ const MANAGE_TEAM_ROLES = [
   "PLATFORM_ADMIN",
   "TENANT_OWNER",
   "OWNER",
-  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
 ] as const;
 
 @ApiTags("team")
@@ -47,7 +48,16 @@ export class TeamController {
   @Roles(...MANAGE_TEAM_ROLES)
   @ApiOperation({ summary: "List team members in this tenant" })
   listMembers(@CurrentUser() user: AuthenticatedUser) {
-    return this.team.listMembers(user.tenantId);
+    return this.team.listMembers(user.tenantId, user.role as string);
+  }
+
+  @Get("grantable-roles")
+  @Roles(...MANAGE_TEAM_ROLES)
+  @ApiOperation({
+    summary: "Roles the current caller is allowed to grant via assign/invite",
+  })
+  grantableRoles(@CurrentUser() user: AuthenticatedUser) {
+    return { roles: allowedGrantsForRole(user.role as string) };
   }
 
   // ── User lookup for Assign Role ────────────────────────────────
@@ -71,7 +81,7 @@ export class TeamController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: AssignRoleDto,
   ) {
-    return this.team.assignRole(user.tenantId, dto);
+    return this.team.assignRole(user.tenantId, dto, user.role as string);
   }
 
   // ── Invitations ────────────────────────────────────────────────
@@ -80,7 +90,7 @@ export class TeamController {
   @Roles(...MANAGE_TEAM_ROLES)
   @ApiOperation({ summary: "List pending invitations" })
   listInvitations(@CurrentUser() user: AuthenticatedUser) {
-    return this.team.listInvitations(user.tenantId);
+    return this.team.listInvitations(user.tenantId, user.role as string);
   }
 
   @Post("invitations")
@@ -90,7 +100,12 @@ export class TeamController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: InviteDto,
   ) {
-    return this.team.createInvitation(user.tenantId, user.userId, dto);
+    return this.team.createInvitation(
+      user.tenantId,
+      user.userId,
+      dto,
+      user.role as string,
+    );
   }
 
   @Delete("invitations/:id")

@@ -55,6 +55,10 @@ export interface InvitationDetails {
 export const teamClient = {
   listMembers: () =>
     apiClient.get<TeamMember[]>("/v1/team/members").then((r) => r.data),
+  grantableRoles: () =>
+    apiClient
+      .get<{ roles: string[] }>("/v1/team/grantable-roles")
+      .then((r) => r.data.roles),
   listInvitations: () =>
     apiClient
       .get<PendingInvitation[]>("/v1/team/invitations")

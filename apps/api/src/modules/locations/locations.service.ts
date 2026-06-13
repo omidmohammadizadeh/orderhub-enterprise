@@ -201,11 +201,35 @@ export function isOpenAt(hours: OpeningHours | null | undefined, at: Date): bool
 export class LocationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(tenantId: string, brandId?: string) {
+  async findAll(
+    tenantId: string,
+    brandId?: string,
+    // Phase AR — when a userId is passed, restrict to the locations
+    // that user has been explicitly assigned to (via UserLocation).
+    // Skip the join entirely for users with tenant-wide reach
+    // (PLATFORM_ADMIN / TENANT_OWNER) by not passing userId from the
+    // controller in those cases. If a userId is passed but no rows
+    // exist in UserLocation (e.g. an OWNER who was created without
+    // any scope) we fall back to "see everything in the tenant" so
+    // tenant founders aren't accidentally locked out.
+    userId?: string,
+  ) {
+    let allowedLocationIds: string[] | null = null;
+    if (userId) {
+      const scoped = await (this.prisma as any).userLocation.findMany({
+        where: { userId },
+        select: { locationId: true },
+      });
+      if (scoped.length > 0) {
+        allowedLocationIds = scoped.map((r: any) => r.locationId);
+      }
+    }
+
     return this.prisma.location.findMany({
       where: {
         deletedAt: null,
         brand: { tenantId, ...(brandId && { id: brandId }) },
+        ...(allowedLocationIds && { id: { in: allowedLocationIds } }),
       },
       include: {
         brand: { select: { id: true, name: true } },
