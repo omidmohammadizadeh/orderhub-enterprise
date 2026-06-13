@@ -6,7 +6,15 @@ import { Beaker, Bike, ShoppingBag, Loader2 } from "lucide-react";
 import { OrderBoard } from "@/components/orders/order-board";
 import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
 import { apiClient } from "@/lib/api/client";
+
+// Phase AR — the test-order buttons spawn fake orders against the
+// real pipeline, useful for go-live wiring checks. They are not
+// something a Manager / Staff / Owner should see during normal
+// operations because triggering one creates a noisy ghost order on
+// the live board.
+const CAN_RUN_TEST_ORDERS = new Set(["PLATFORM_ADMIN", "ONBOARDING_AGENT"]);
 
 // Phase AJ — the live orders board with location filter and a "Create test
 // order" affordance for go-live verification. This page itself is a thin
@@ -24,6 +32,8 @@ export default function OrdersPage() {
   );
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const role = useAuthStore((s) => s.user?.role);
+  const canRunTests = !!role && CAN_RUN_TEST_ORDERS.has(role);
 
   const testOrder = useMutation({
     mutationFn: async (fulfillmentType: "DELIVERY" | "PICKUP") => {
@@ -63,36 +73,38 @@ export default function OrdersPage() {
             Real-time order board — updates automatically via WebSocket.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => testOrder.mutate("DELIVERY")}
-            disabled={disabled}
-            title={tooltip}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {testOrder.isPending && testOrder.variables === "DELIVERY" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Bike className="h-4 w-4" />
-            )}
-            Test delivery
-          </button>
-          <button
-            type="button"
-            onClick={() => testOrder.mutate("PICKUP")}
-            disabled={disabled}
-            title={tooltip}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {testOrder.isPending && testOrder.variables === "PICKUP" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ShoppingBag className="h-4 w-4" />
-            )}
-            Test collection
-          </button>
-        </div>
+        {canRunTests && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => testOrder.mutate("DELIVERY")}
+              disabled={disabled}
+              title={tooltip}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {testOrder.isPending && testOrder.variables === "DELIVERY" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Bike className="h-4 w-4" />
+              )}
+              Test delivery
+            </button>
+            <button
+              type="button"
+              onClick={() => testOrder.mutate("PICKUP")}
+              disabled={disabled}
+              title={tooltip}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {testOrder.isPending && testOrder.variables === "PICKUP" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShoppingBag className="h-4 w-4" />
+              )}
+              Test collection
+            </button>
+          </div>
+        )}
       </div>
       {feedback && (
         <div className="mb-3 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
