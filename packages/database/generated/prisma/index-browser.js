@@ -181,6 +181,25 @@ exports.Prisma.InvitationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.LeadScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  phone: 'phone',
+  country: 'country',
+  companyName: 'companyName',
+  numberOfLocations: 'numberOfLocations',
+  hearAboutUs: 'hearAboutUs',
+  message: 'message',
+  source: 'source',
+  status: 'status',
+  submittedByUserId: 'submittedByUserId',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CustomerAccountScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -1476,6 +1495,21 @@ exports.Prisma.InvitationOrderByRelevanceFieldEnum = {
   invitedById: 'invitedById'
 };
 
+exports.Prisma.LeadOrderByRelevanceFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  phone: 'phone',
+  country: 'country',
+  companyName: 'companyName',
+  numberOfLocations: 'numberOfLocations',
+  hearAboutUs: 'hearAboutUs',
+  message: 'message',
+  submittedByUserId: 'submittedByUserId',
+  notes: 'notes'
+};
+
 exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   email: 'email',
@@ -2235,6 +2269,20 @@ exports.UserRole = exports.$Enums.UserRole = {
   FINANCIAL_AGENT: 'FINANCIAL_AGENT'
 };
 
+exports.LeadSource = exports.$Enums.LeadSource = {
+  NO_ACCESS_SCREEN: 'NO_ACCESS_SCREEN',
+  MARKETING_SITE: 'MARKETING_SITE',
+  OTHER: 'OTHER'
+};
+
+exports.LeadStatus = exports.$Enums.LeadStatus = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  QUALIFIED: 'QUALIFIED',
+  WON: 'WON',
+  LOST: 'LOST'
+};
+
 exports.OAuthProvider = exports.$Enums.OAuthProvider = {
   GOOGLE: 'GOOGLE',
   APPLE: 'APPLE',
@@ -2570,6 +2618,7 @@ exports.Prisma.ModelName = {
   UserLocation: 'UserLocation',
   UserBrand: 'UserBrand',
   Invitation: 'Invitation',
+  Lead: 'Lead',
   CustomerAccount: 'CustomerAccount',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',

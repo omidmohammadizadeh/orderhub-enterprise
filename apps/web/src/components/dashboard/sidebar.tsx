@@ -29,6 +29,7 @@ import {
   Globe,
   KeyRound,
   UserCog,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -90,6 +91,14 @@ const primaryNav: NavItem[] = [
     label: "Secrets",
     icon: KeyRound,
     roles: ["PLATFORM_ADMIN"],
+  },
+  // Phase AR — leads inbox. Visible to the platform team + the
+  // onboarding agents who own the response workflow.
+  {
+    href: "/dashboard/leads",
+    label: "Leads",
+    icon: Inbox,
+    roles: ["PLATFORM_ADMIN", "ONBOARDING_AGENT"],
   },
 ];
 

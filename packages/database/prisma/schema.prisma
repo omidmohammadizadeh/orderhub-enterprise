@@ -101,6 +101,7 @@ model User {
   locations         UserLocation[]
   brands            UserBrand[]
   invitationsSent   Invitation[]   @relation("InvitationInvitedBy")
+  leadsSubmitted    Lead[]         @relation("LeadSubmittedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -174,6 +175,50 @@ model Invitation {
   @@index([email])
   @@index([tenantId, acceptedAt])
   @@map("invitations")
+}
+
+// ── Lead ────────────────────────────────────────────────────────────────
+// Phase AR. Surface for two contact-form flows: the no-access screen
+// (shown to a freshly-created user with no location assignments yet)
+// and the marketing site contact form. Surfaced to PLATFORM_ADMIN +
+// ONBOARDING_AGENT at /dashboard/leads so the team can follow up.
+model Lead {
+  id                String     @id @default(cuid())
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  country           String?
+  companyName       String?
+  numberOfLocations String?
+  hearAboutUs       String?
+  message           String?
+  source            LeadSource @default(NO_ACCESS_SCREEN)
+  status            LeadStatus @default(NEW)
+  submittedByUserId String?
+  submittedBy       User?      @relation("LeadSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  notes             String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@map("leads")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+}
+
+enum LeadSource {
+  NO_ACCESS_SCREEN
+  MARKETING_SITE
+  OTHER
 }
 
 // ── CustomerAccount ──────────────────────────────────────────────────────
