@@ -860,8 +860,31 @@ export class PaymentsService {
       this.logger.log(
         `Stripe capture invoked for order ${orderId} (PI ${piId} on ${stripeAccount})`,
       );
-      // The payment_intent.succeeded webhook will flip statuses + write
-      // ledger entries. We don't update DB here to avoid drift.
+
+      // Optimistic local flip. The payment_intent.succeeded webhook
+      // would normally do this, but with direct charges the webhook
+      // fires on the connected-account scope which the operator may
+      // not have wired up. If it never arrives, Payment.status stays
+      // PROCESSING — then a subsequent refund attempt incorrectly
+      // routes through cancelAuthForOrder (because !== SUCCEEDED) and
+      // Stripe rejects it ("PI status: succeeded, can't cancel"). The
+      // capture call above just confirmed Stripe charged the customer,
+      // so we know the truth — write it down. Webhook will be a no-op
+      // when/if it does land.
+      try {
+        await (this.prisma as any).payment.update({
+          where: { id: payment.id },
+          data: { status: PaymentRecordStatus.SUCCEEDED },
+        });
+        await this.prisma.order.update({
+          where: { id: orderId },
+          data: { paymentStatus: "PAID" as any },
+        });
+      } catch (err: any) {
+        this.logger.warn(
+          `Optimistic capture flip failed for ${orderId}: ${err.message}`,
+        );
+      }
     } catch (err: any) {
       this.logger.error(
         `Stripe capture failed for order ${orderId}: ${err.message}`,
@@ -924,10 +947,6 @@ export class PaymentsService {
       orderBy: { createdAt: "desc" },
     });
     if (!payment || !payment.stripePaymentIntentId) return;
-    if (payment.status !== PaymentRecordStatus.SUCCEEDED) {
-      // Not captured yet → use cancel-auth path instead.
-      return this.cancelAuthForOrder(orderId, reason);
-    }
     if (!this.stripe) return;
     const stripeAccount = await this.stripeAccountForPayment(payment);
     if (!stripeAccount) {
@@ -935,6 +954,38 @@ export class PaymentsService {
         `refundForOrder ${orderId}: no stripeAccount; direct-charge refund impossible.`,
       );
       return;
+    }
+    if (payment.status !== PaymentRecordStatus.SUCCEEDED) {
+      // Local Payment row says not-captured-yet, but with direct-charge
+      // webhooks routed to Connected-account scope our PROCESSING flag
+      // may simply be stale. Ask Stripe directly before deciding
+      // whether to cancel the auth or issue a refund — the wrong call
+      // gets a 400 from Stripe and the customer keeps their money.
+      try {
+        const pi = await this.stripe.paymentIntents.retrieve(
+          payment.stripePaymentIntentId,
+          { stripeAccount },
+        );
+        if (pi.status === "succeeded") {
+          // Already captured — fall through to the refund path.
+        } else if (
+          pi.status === "requires_capture" ||
+          pi.status === "requires_payment_method" ||
+          pi.status === "requires_confirmation" ||
+          pi.status === "requires_action" ||
+          pi.status === "processing"
+        ) {
+          return this.cancelAuthForOrder(orderId, reason);
+        } else {
+          // canceled / already-refunded / unknown — nothing to do.
+          return;
+        }
+      } catch (err: any) {
+        this.logger.warn(
+          `refundForOrder PI lookup failed for ${orderId}: ${err.message} — falling back to local status`,
+        );
+        return this.cancelAuthForOrder(orderId, reason);
+      }
     }
     try {
       const total = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
@@ -950,7 +1001,22 @@ export class PaymentsService {
       this.logger.log(
         `Stripe refund created for order ${orderId} on ${stripeAccount} (PI ${payment.stripePaymentIntentId})`,
       );
-      // charge.refunded webhook will flip statuses + write ledger entries.
+      // Optimistic local flip — same reasoning as capture above.
+      // Don't rely on charge.refunded webhook (Connected-account scope).
+      try {
+        await (this.prisma as any).payment.update({
+          where: { id: payment.id },
+          data: { status: PaymentRecordStatus.REFUNDED },
+        });
+        await this.prisma.order.update({
+          where: { id: orderId },
+          data: { paymentStatus: "REFUNDED" as any },
+        });
+      } catch (err: any) {
+        this.logger.warn(
+          `Optimistic refund flip failed for ${orderId}: ${err.message}`,
+        );
+      }
     } catch (err: any) {
       this.logger.error(`Stripe refund failed for order ${orderId}: ${err.message}`);
       throw new BadRequestException(`Refund failed: ${err.message}`);
