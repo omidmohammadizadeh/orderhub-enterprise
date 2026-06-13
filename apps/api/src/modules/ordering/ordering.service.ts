@@ -380,6 +380,28 @@ export class OrderingService {
     //   • outForDeliveryAt + deliveredAt for the timeline
     //   • location.name so the cancel screen can say which shop
     //     cancelled
+    //   • paymentStatus so the "Processing your order…" screen knows
+    //     whether the Stripe authorisation has landed yet
+    //
+    // Belt-and-braces for the Stripe webhook path: if paymentStatus
+    // is still PENDING when the storefront polls, hit Stripe live to
+    // see if the customer actually paid. This kicks in when the
+    // operator's webhook endpoint isn't configured for Connected-
+    // account events (direct charges fire there, not on platform
+    // scope), which would otherwise leave the order stuck forever.
+    const initial = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { paymentMethod: true, paymentStatus: true },
+    });
+    if (initial?.paymentMethod === "CARD" && initial.paymentStatus === "PENDING") {
+      try {
+        await this.payments.reconcileOrderPayment(orderId);
+      } catch {
+        /* best-effort — the underlying read below still returns
+           whatever's in the DB so the polling loop keeps trying. */
+      }
+    }
+
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       select: {
@@ -387,6 +409,8 @@ export class OrderingService {
         displayId: true,
         orderNumber: true,
         status: true,
+        paymentMethod: true,
+        paymentStatus: true,
         fulfillmentType: true,
         estimatedReadyAt: true,
         scheduledFor: true,

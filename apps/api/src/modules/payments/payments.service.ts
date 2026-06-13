@@ -958,6 +958,71 @@ export class PaymentsService {
   }
 
   /**
+   * Reconcile a CARD order's payment status directly against Stripe.
+   *
+   * Belt-and-braces for the webhook path: with direct charges the
+   * PaymentIntent lives on the CONNECTED account, so Stripe events
+   * fire on the "Connected accounts" scope. If the operator's webhook
+   * endpoint is only listening to platform-scope events the
+   * authorisation event never reaches us — paymentStatus stays
+   * PENDING, the storefront stays on "Processing your order…", and
+   * the staff Orders board never lights up.
+   *
+   * The storefront's polling loop on /v1/ordering/orders/:id/status
+   * calls this opportunistically. We fetch the Checkout Session live
+   * (with stripeAccount option) and, if the customer has paid,
+   * synthesise the same effect markAuthorized() would have had from a
+   * real webhook: flip paymentStatus to AUTHORIZED, broadcast the
+   * new-order socket event so the staff board renders the card.
+   *
+   * Best-effort and idempotent — safe to call on every poll.
+   */
+  async reconcileOrderPayment(orderId: string): Promise<void> {
+    if (!this.stripe) return;
+    const payment = await (this.prisma as any).payment.findFirst({
+      where: { orderId, method: "CARD" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!payment) return;
+    if (payment.status !== PaymentRecordStatus.PENDING) return;
+
+    const sessionId = (payment.metadata as any)?.stripeCheckoutSessionId;
+    if (!sessionId) return;
+
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+    if (!stripeAccount) return;
+
+    let session: any;
+    try {
+      session = await this.stripe.checkout.sessions.retrieve(
+        sessionId,
+        { expand: ["payment_intent"] },
+        { stripeAccount },
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `reconcileOrderPayment: session retrieve failed for ${orderId}: ${err.message}`,
+      );
+      return;
+    }
+
+    const pi = session?.payment_intent;
+    if (!pi || typeof pi === "string") return;
+
+    // requires_capture = authorised, waiting for staff Accept → manual
+    //                    capture. This is the success path for
+    //                    manual-capture Checkout sessions.
+    // succeeded         = already captured (shouldn't happen pre-Accept
+    //                    but handle it gracefully).
+    // canceled          = customer cancelled, refund, or 3DS failed.
+    if (pi.status === "requires_capture" || pi.status === "succeeded") {
+      await this.markAuthorized(pi);
+    } else if (pi.status === "canceled") {
+      await this.markCancelled(pi);
+    }
+  }
+
+  /**
    * Resolve a Payment row from a PaymentIntent webhook event, even
    * when our Payment row was created BEFORE the PI existed.
    *
