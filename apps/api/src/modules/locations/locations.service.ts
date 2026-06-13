@@ -204,14 +204,16 @@ export class LocationsService {
   async findAll(
     tenantId: string,
     brandId?: string,
-    // Phase AR — when a userId is passed, restrict to the locations
-    // that user has been explicitly assigned to (via UserLocation).
-    // Skip the join entirely for users with tenant-wide reach
-    // (PLATFORM_ADMIN / TENANT_OWNER) by not passing userId from the
-    // controller in those cases. If a userId is passed but no rows
-    // exist in UserLocation (e.g. an OWNER who was created without
-    // any scope) we fall back to "see everything in the tenant" so
-    // tenant founders aren't accidentally locked out.
+    // Phase AR — when userId is passed, restrict to the locations
+    // that user has been explicitly assigned to via UserLocation.
+    // Tenant-wide roles (PLATFORM_ADMIN / TENANT_OWNER) skip this
+    // check by not passing userId from the controller.
+    //
+    // No safety fallback. If a scoped user has zero rows, return
+    // zero locations — that's the signal AccessGate uses to show
+    // the no-access screen. Granting tenant-wide access on empty
+    // scope (which earlier versions did) silently leaked every
+    // location to brand-new accounts.
     userId?: string,
   ) {
     let allowedLocationIds: string[] | null = null;
@@ -220,9 +222,8 @@ export class LocationsService {
         where: { userId },
         select: { locationId: true },
       });
-      if (scoped.length > 0) {
-        allowedLocationIds = scoped.map((r: any) => r.locationId);
-      }
+      allowedLocationIds = scoped.map((r: any) => r.locationId);
+      if (allowedLocationIds!.length === 0) return [];
     }
 
     return this.prisma.location.findMany({

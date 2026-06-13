@@ -68,24 +68,26 @@ export class BrandsService {
       ]);
       const explicitIds = explicit.map((r: any) => r.brandId);
       const locationIds = scopedLocations.map((r: any) => r.locationId);
-      if (explicitIds.length || locationIds.length) {
-        const viaLocations = locationIds.length
-          ? await this.prisma.brand.findMany({
-              where: {
-                tenantId,
-                deletedAt: null,
-                OR: [
-                  { primaryLocationId: { in: locationIds } },
-                  { locations: { some: { id: { in: locationIds } } } },
-                ],
-              },
-              select: { id: true },
-            })
-          : [];
-        allowedBrandIds = Array.from(
-          new Set([...explicitIds, ...viaLocations.map((b) => b.id)]),
-        );
-      }
+      const viaLocations = locationIds.length
+        ? await this.prisma.brand.findMany({
+            where: {
+              tenantId,
+              deletedAt: null,
+              OR: [
+                { primaryLocationId: { in: locationIds } },
+                { locations: { some: { id: { in: locationIds } } } },
+              ],
+            },
+            select: { id: true },
+          })
+        : [];
+      allowedBrandIds = Array.from(
+        new Set([...explicitIds, ...viaLocations.map((b) => b.id)]),
+      );
+      // No fallback. If the user has no scope, they see no brands —
+      // matches the LocationsService behaviour and lets the
+      // no-access screen catch them upstream.
+      if (allowedBrandIds.length === 0) return [];
     }
 
     if (!locationId) {
