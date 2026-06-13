@@ -195,9 +195,21 @@ export class OrdersService {
         },
       });
 
+      // Phase AP-8 — suppress the realtime "new order" broadcast for
+      // unpaid CARD orders. We persist the row early so Stripe Checkout
+      // can attach to a real orderId, but the restaurant must NOT see it
+      // until payment_intent.amount_capturable_updated lands and we flip
+      // paymentStatus to AUTHORIZED. The live-board DB query already
+      // filters these out; the socket is the side channel we have to
+      // gate manually. markAuthorized() emits the new-order event when
+      // the customer actually pays.
+      const meta: any = (canonical as any).metadata ?? {};
+      const isUnpaidCard =
+        meta.paymentMethod === "CARD" && meta.paymentStatus === "PENDING";
+
       // Socket emit is best-effort and immediate — it does NOT affect downstream
       // processing which is guaranteed by the outbox.
-      this.socket.emitNewOrder(locationId, {
+      if (!isUnpaidCard) this.socket.emitNewOrder(locationId, {
         orderId: order.id,
         tenantId,
         locationId,

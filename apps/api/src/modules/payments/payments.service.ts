@@ -672,6 +672,13 @@ export class PaymentsService {
     // brittle transfers-capability dependency we hit on first deploy.
     const sessionParams: any = {
       mode: "payment",
+      // Constrain to card only. Stripe's automatic_payment_methods would
+      // surface Klarna / BNPL on a GBP session, but those methods don't
+      // support capture_method=manual — picking one causes Checkout to
+      // hang on "Processing…" and never confirm the PaymentIntent. Card
+      // still covers Apple Pay / Google Pay (Stripe treats wallet
+      // tokens as card payments), and both support manual capture.
+      payment_method_types: ["card"],
       line_items: lineItems,
       customer_email: params.customerEmail || undefined,
       success_url: params.successUrl,
@@ -1008,6 +1015,35 @@ export class PaymentsService {
         data: { paymentStatus: "AUTHORIZED" as any },
       }),
     ]);
+
+    // The new-order socket broadcast was suppressed at create time for
+    // unpaid CARD orders. Emit it now so the staff Orders board lights
+    // up the moment Stripe authorises the hold.
+    const order = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+      include: { items: { select: { quantity: true } } },
+    });
+    if (order && order.locationId) {
+      this.socket.emitNewOrder(order.locationId, {
+        orderId: order.id,
+        tenantId: order.tenantId,
+        locationId: order.locationId,
+        platform: order.platform,
+        orderSource: order.orderSource,
+        fulfillmentType: order.fulfillmentType,
+        displayId: order.displayId,
+        status: order.status,
+        total: Number(order.total),
+        itemCount: order.items.reduce(
+          (sum, i) => sum + (i.quantity ?? 0),
+          0,
+        ),
+        customerName: order.customerName,
+        scheduledFor: order.scheduledFor?.toISOString() ?? null,
+        createdAt: order.createdAt.toISOString(),
+      } as any);
+    }
+
     this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
       orderId: payment.orderId,
       paymentStatus: "AUTHORIZED",
