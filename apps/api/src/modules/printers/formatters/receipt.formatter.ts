@@ -26,9 +26,47 @@ export interface ReceiptPayload {
   deliveryFee: number;
   discount: number;
   total: number;
+  // Raw payment columns + a pre-rendered banner the printer agent
+  // drops onto the ticket. We render server-side so every printer
+  // model gets the same wording without each agent reimplementing the
+  // mapping. See paymentLabelFor() for the rules.
+  paymentMethod: string | null;
+  paymentStatus: string | null;
+  paymentLabel: string;
   specialInstructions?: string | null;
   scheduledFor?: string | null;
   printedAt: string;
+}
+
+/**
+ * Big, unmissable banner the kitchen reads at a glance:
+ *   • CARD authorised/captured → "PAID (CARD)" — money is in the
+ *     account already, no cash needed at handover.
+ *   • CASH paid up-front (POS) → "PAID (CASH)"
+ *   • CASH owed at handover    → "CASH ON HANDOVER" — collect at the
+ *     door / counter.
+ *   • Marketplace pre-paid     → "PAID"
+ *   • Refunded                 → "REFUNDED"
+ *   • Anything else            → "UNPAID"
+ */
+export function paymentLabelFor(
+  method: string | null | undefined,
+  status: string | null | undefined,
+): string {
+  if (method === "CARD") {
+    if (status === "PAID" || status === "AUTHORIZED") return "*** PAID (CARD) ***";
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+      return "*** REFUNDED ***";
+    return "*** CARD NOT PAID ***";
+  }
+  if (method === "CASH") {
+    if (status === "PAID") return "*** PAID (CASH) ***";
+    return "*** CASH ON HANDOVER ***";
+  }
+  // Marketplace orders (Uber/Deliveroo/Just Eat) come pre-paid; just
+  // honour whatever the platform reported.
+  if (status === "PAID") return "*** PAID ***";
+  return "*** UNPAID ***";
 }
 
 export function buildReceiptPayload(order: any): ReceiptPayload {
@@ -65,6 +103,9 @@ export function buildReceiptPayload(order: any): ReceiptPayload {
     deliveryFee: Number(order.deliveryFee),
     discount: Number(order.discount),
     total: Number(order.total),
+    paymentMethod: order.paymentMethod ?? null,
+    paymentStatus: order.paymentStatus ?? null,
+    paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
     specialInstructions: order.specialInstructions ?? null,
     scheduledFor: order.scheduledFor?.toISOString() ?? null,
     printedAt: new Date().toISOString(),

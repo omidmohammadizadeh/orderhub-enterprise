@@ -98,6 +98,8 @@ export interface OrderPrintData {
   taxAmount?: number;
   discount?: number;
   total: number;
+  paymentMethod?: string | null;
+  paymentStatus?: string | null;
   specialInstructions?: string;
   receivedAt: Date;
   locationName: string;
@@ -114,6 +116,24 @@ function padded(left: string, right: string, width = 42): string {
 
 function formatPrice(p: number): string {
   return `£${p.toFixed(2)}`;
+}
+
+function paymentBannerFor(
+  method: string | null | undefined,
+  status: string | null | undefined,
+): string {
+  if (method === "CARD") {
+    if (status === "PAID" || status === "AUTHORIZED") return "*** PAID (CARD) ***";
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+      return "*** REFUNDED ***";
+    return "*** CARD NOT PAID ***";
+  }
+  if (method === "CASH") {
+    if (status === "PAID") return "*** PAID (CASH) ***";
+    return "*** CASH ON HANDOVER ***";
+  }
+  if (status === "PAID") return "*** PAID ***";
+  return "*** UNPAID ***";
 }
 
 export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
@@ -162,6 +182,18 @@ export function buildReceiptDocument(order: OrderPrintData): PrintDocument {
   lines.push({ text: padded("TOTAL", formatPrice(order.total)), bold: true, size: "double-height" });
   lines.push({ text: ruler() });
 
+  // Payment banner — kitchen / handover staff need to know at a glance
+  // whether to expect cash or whether the order has already been paid.
+  lines.push({
+    text: paymentBannerFor(order.paymentMethod, order.paymentStatus),
+    align: "center",
+    bold: true,
+    size: "double-height",
+    linesBefore: 1,
+    linesAfter: 1,
+  });
+  lines.push({ text: ruler() });
+
   // Special instructions
   if (order.specialInstructions) {
     lines.push({ text: "SPECIAL INSTRUCTIONS:", bold: true });
@@ -185,6 +217,15 @@ export function buildKitchenTicketDocument(order: OrderPrintData): PrintDocument
   lines.push({ text: `#${order.displayId ?? "—"}`, align: "center", bold: true, size: "double", linesAfter: 1 });
   lines.push({ text: order.fulfillmentType.replace("_", " "), align: "center", bold: true });
   lines.push({ text: order.customerName, align: "center" });
+  // Cash-vs-paid banner above the items so the line cook / packer
+  // sees it at the same moment they see the order number.
+  lines.push({
+    text: paymentBannerFor(order.paymentMethod, order.paymentStatus),
+    align: "center",
+    bold: true,
+    size: "double-height",
+    linesBefore: 1,
+  });
   lines.push({ text: ruler() });
 
   // Items only — no prices on kitchen ticket

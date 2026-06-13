@@ -1,3 +1,5 @@
+import { paymentLabelFor } from "./receipt.formatter";
+
 export interface KitchenTicketPayload {
   type: "KITCHEN_TICKET";
   orderId: string;
@@ -12,6 +14,12 @@ export interface KitchenTicketPayload {
     modifiers: Array<{ name: string }>;
     notes?: string | null;
   }>;
+  // Kitchen needs to know at a glance whether to expect cash at
+  // handover. Mirrors the receipt's banner. See receipt.formatter.ts
+  // paymentLabelFor() for the wording rules.
+  paymentMethod: string | null;
+  paymentStatus: string | null;
+  paymentLabel: string;
   specialInstructions?: string | null;
   scheduledFor?: string | null;
   printedAt: string;
@@ -34,6 +42,9 @@ export function buildKitchenTicketPayload(order: any): KitchenTicketPayload {
       modifiers: (item.modifiers ?? []).map((m: any) => ({ name: m.name })),
       notes: item.notes ?? null,
     })),
+    paymentMethod: order.paymentMethod ?? null,
+    paymentStatus: order.paymentStatus ?? null,
+    paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
     specialInstructions: order.specialInstructions ?? null,
     scheduledFor: order.scheduledFor?.toISOString() ?? null,
     printedAt: new Date().toISOString(),
