@@ -642,12 +642,21 @@ function RoleModal({
           brandIds,
         });
       } else {
-        await teamClient.invite({
+        const result = await teamClient.invite({
           email: email.trim(),
           role,
           locationIds,
           brandIds,
         });
+        // Server returns the invitation row including an emailError
+        // field when delivery failed. Surface that so the operator
+        // knows to fix Resend before hitting Resend on the row.
+        const emailErr = (result as any)?.emailError;
+        if (emailErr) {
+          throw new Error(
+            `Invitation created, but the email didn't go out: ${emailErr}. Use the paper-aeroplane button on the pending row to retry.`,
+          );
+        }
       }
     },
     onSuccess: onSaved,

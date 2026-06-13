@@ -430,8 +430,12 @@ export class TeamService {
       },
     });
 
-    // Best-effort: email failure shouldn't block the invitation row
-    // from being created — operators can resend.
+    // Email send. We *don't* throw on failure because we still want
+    // the invite row to exist so the operator can hit Resend from
+    // the UI — but we capture the reason so the response can surface
+    // it (the toast on the frontend warns the operator that the
+    // email didn't go out).
+    let emailError: string | null = null;
     try {
       const tenant = await this.prisma.tenant.findUnique({
         where: { id: tenantId },
@@ -451,12 +455,13 @@ export class TeamService {
           : "Order Hub",
       });
     } catch (err: any) {
-      this.logger.warn(
-        `Invite email send failed for ${email}: ${err.message} — invite row is still active.`,
+      emailError = err?.message ?? "Email send failed";
+      this.logger.error(
+        `Invite email send failed for ${email}: ${emailError} — invite row is still active, operator can Resend.`,
       );
     }
 
-    return invite;
+    return { ...invite, emailError } as any;
   }
 
   // Re-email an existing pending invitation. Useful when the original
@@ -490,15 +495,26 @@ export class TeamService {
         })
       : null;
 
-    await this.invites.sendInvite({
-      to: invite.email,
-      token: invite.token,
-      role: invite.role,
-      tenantName: tenant?.name ?? "Order Hub",
-      inviterName: inviter
-        ? `${inviter.firstName} ${inviter.lastName}`.trim() || inviter.email
-        : "Order Hub",
-    });
+    try {
+      await this.invites.sendInvite({
+        to: invite.email,
+        token: invite.token,
+        role: invite.role,
+        tenantName: tenant?.name ?? "Order Hub",
+        inviterName: inviter
+          ? `${inviter.firstName} ${inviter.lastName}`.trim() || inviter.email
+          : "Order Hub",
+      });
+    } catch (err: any) {
+      // Convert the upstream Resend HTTP error into a 400 with the
+      // exact reason so the operator can see "domain not verified"
+      // or "rate limited" instead of a generic 500.
+      const reason = err?.message ?? "Email send failed";
+      this.logger.error(`Resend invite failed for ${invite.email}: ${reason}`);
+      throw new BadRequestException(
+        `Couldn't deliver the email: ${reason}. Check your Resend dashboard or EMAIL_FROM sender verification.`,
+      );
+    }
     this.logger.log(`Invitation re-sent to ${invite.email}`);
     return { ok: true };
   }

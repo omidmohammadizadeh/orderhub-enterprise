@@ -74,7 +74,12 @@ export const teamClient = {
   removeMember: (userId: string) =>
     apiClient.delete(`/v1/team/members/${userId}`).then((r) => r.data),
   invite: (body: InviteBody) =>
-    apiClient.post("/v1/team/invitations", body).then((r) => r.data),
+    apiClient
+      .post<{ id: string; emailError?: string | null }>(
+        "/v1/team/invitations",
+        body,
+      )
+      .then((r) => r.data),
   cancelInvitation: (id: string) =>
     apiClient.delete(`/v1/team/invitations/${id}`).then((r) => r.data),
   resendInvitation: (id: string) =>
