@@ -51,7 +51,7 @@ export const appConfig = registerAs("app", () => ({
 
   email: {
     resendApiKey: process.env.RESEND_API_KEY ?? "",
-    from: process.env.EMAIL_FROM ?? "OrderHub <noreply@orderhub.io>",
+    from: process.env.EMAIL_FROM ?? "Order Hub <hello@orderhubsolutions.com>",
   },
 
   socket: {

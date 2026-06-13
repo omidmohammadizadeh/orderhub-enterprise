@@ -92,7 +92,13 @@ const envSchema = z.object({
 
   // Email
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default("OrderHub <noreply@orderhub.io>"),
+  // Phase AR — orderhubsolutions.com is the verified sender on the
+  // production Resend account. Sending from anywhere else (including
+  // the legacy orderhub.io default) gets a 403 "API key is not
+  // authorized to send emails from <domain>".
+  EMAIL_FROM: z
+    .string()
+    .default("Order Hub <hello@orderhubsolutions.com>"),
 
   // Socket.IO
   SOCKET_CORS_ORIGIN: z.string().default("http://localhost:3000"),
