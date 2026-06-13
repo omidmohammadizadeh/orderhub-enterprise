@@ -65,6 +65,7 @@ model Tenant {
   connectAccount StripeConnectAccount[]
   branding       TenantBranding?
   subscription   TenantSubscription?
+  invitations    Invitation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,6 +96,12 @@ model User {
   deviceSessions DeviceSession[]
   deviceTokens   DeviceToken[]
 
+  // Phase AR — Team Roles. Per-user scoping to a subset of the
+  // tenant's locations / brands.
+  locations       UserLocation[]
+  brands          UserBrand[]
+  invitationsSent Invitation[]   @relation("InvitationInvitedBy")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -104,7 +111,72 @@ model User {
   @@map("users")
 }
 
-// ── CustomerAccount ──────────────────────────────────────────────────────
+// ── UserLocation ──────────────────────────────────────────────────────────
+// Phase AR. Many-to-many join between User and Location. A user can
+// only access settings/data for locations they're attached to here
+// (PLATFORM_ADMIN bypasses, treated as if attached to everything).
+model UserLocation {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
+  @@map("user_locations")
+}
+
+// ── UserBrand ────────────────────────────────────────────────────────────
+// Phase AR. Brands a user can manage. Usually a subset of the brands
+// available at their assigned locations, but tracked separately so an
+// operator can scope (e.g. "only the wings brand at this multi-brand
+// site").
+model UserBrand {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, brandId])
+  @@index([userId])
+  @@index([brandId])
+  @@map("user_brands")
+}
+
+// ── Invitation ───────────────────────────────────────────────────────────
+// Phase AR. Pending invitations sent by email. acceptedAt flips when
+// the invited person hits the accept link and creates an account.
+// cancelledAt flips if the inviter revokes. Tokens are single-use
+// (we look the row up by token, then require acceptedAt == null).
+model Invitation {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email       String
+  role        UserRole
+  locationIds String[]  @default([])
+  brandIds    String[]  @default([])
+  token       String    @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  cancelledAt DateTime?
+  invitedById String?
+  invitedBy   User?     @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([tenantId, acceptedAt])
+  @@map("invitations")
+}
+
+// ── CustomerAccount ────────────���─────────────────────────────────────────
 //
 // Phase AP-AUTH — Customer-facing AUTH accounts for the public storefront.
 // Kept SEPARATE from:
@@ -262,6 +334,7 @@ model Brand {
   mealDeals           MealDeal[]
   upsellGroups        UpsellGroup[]
   platformConnections BrandPlatformConnection[]
+  userBrands          UserBrand[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -294,6 +367,7 @@ model Location {
   kdsScreens           KdsScreen[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
+  userLocations        UserLocation[]
   platformConnections  BrandPlatformConnection[]
   directOrderingConfig DirectOrderingConfig?
 
@@ -484,7 +558,7 @@ model Menu {
   // re-import of an unchanged menu can short-circuit.
   syncHash         String?
 
-  // ── Publish targets ────────────────────────────────────────────────────
+  // ── Publish targets ───────────────────────────────────���────────────────
   // Slugs of platforms this menu has been pushed to (e.g. ["ubereats_uk",
   // "deliveroo_uk"]). Distinct from importStatus — these are outbound.
   publishedTo     String[]  @default([])
@@ -673,7 +747,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ───────────────────────────────────────────────────────────
+// ── Modifier Groups ────────────────────────��──────────────────────────────────
 model ModifierGroup {
   id                       String        @id @default(cuid())
   brandId                  String
@@ -1836,7 +1910,7 @@ model NotificationLog {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
-// ════════════════════════��═════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 model TenantBranding {
   id              String  @id @default(cuid())
@@ -2162,7 +2236,7 @@ model WebhookRoute {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — MOBILE ARCHITECTURE
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════��══════════════════════════════════════════
 
 // Mobile/POS app sessions — separate from web DeviceSession
 model MobileSession {
@@ -2302,6 +2376,15 @@ enum UserRole {
   KITCHEN_STAFF
   DRIVER
   VIEWER
+
+  // Phase AR — Team Roles. Coexist with the legacy names above so
+  // existing @Roles(...) decorators keep working; new assignments
+  // through the Team Roles UI use these.
+  OWNER
+  DARK_KITCHEN_MANAGER
+  STAFF
+  ONBOARDING_AGENT
+  FINANCIAL_AGENT
 }
 
 enum OAuthProvider {

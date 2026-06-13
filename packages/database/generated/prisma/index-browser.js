@@ -151,6 +151,36 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.UserLocationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  locationId: 'locationId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.UserBrandScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  brandId: 'brandId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.InvitationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  role: 'role',
+  locationIds: 'locationIds',
+  brandIds: 'brandIds',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  acceptedAt: 'acceptedAt',
+  cancelledAt: 'cancelledAt',
+  invitedById: 'invitedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CustomerAccountScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -1424,6 +1454,28 @@ exports.Prisma.UserOrderByRelevanceFieldEnum = {
   permissions: 'permissions'
 };
 
+exports.Prisma.UserLocationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  locationId: 'locationId'
+};
+
+exports.Prisma.UserBrandOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  brandId: 'brandId'
+};
+
+exports.Prisma.InvitationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  locationIds: 'locationIds',
+  brandIds: 'brandIds',
+  token: 'token',
+  invitedById: 'invitedById'
+};
+
 exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   email: 'email',
@@ -2175,7 +2227,12 @@ exports.UserRole = exports.$Enums.UserRole = {
   CASHIER: 'CASHIER',
   KITCHEN_STAFF: 'KITCHEN_STAFF',
   DRIVER: 'DRIVER',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
+  OWNER: 'OWNER',
+  DARK_KITCHEN_MANAGER: 'DARK_KITCHEN_MANAGER',
+  STAFF: 'STAFF',
+  ONBOARDING_AGENT: 'ONBOARDING_AGENT',
+  FINANCIAL_AGENT: 'FINANCIAL_AGENT'
 };
 
 exports.OAuthProvider = exports.$Enums.OAuthProvider = {
@@ -2510,6 +2567,9 @@ exports.OutboxEventStatus = exports.$Enums.OutboxEventStatus = {
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   User: 'User',
+  UserLocation: 'UserLocation',
+  UserBrand: 'UserBrand',
+  Invitation: 'Invitation',
   CustomerAccount: 'CustomerAccount',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',

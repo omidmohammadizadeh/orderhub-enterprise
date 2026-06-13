@@ -33,6 +33,7 @@ import { CustomerAuthModule } from "./modules/customer-auth/customer-auth.module
 import { TenantsModule } from "./modules/tenants/tenants.module";
 import { BrandsModule } from "./modules/brands/brands.module";
 import { LocationsModule } from "./modules/locations/locations.module";
+import { TeamModule } from "./modules/team/team.module";
 import { UsersModule } from "./modules/users/users.module";
 import { MenusModule } from "./modules/menus/menus.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
@@ -161,6 +162,7 @@ import { QUEUES } from "@orderhub/shared";
     TenantsModule,
     BrandsModule,
     LocationsModule,
+    TeamModule,
     MenusModule,
     CatalogModule,
     OrdersModule,

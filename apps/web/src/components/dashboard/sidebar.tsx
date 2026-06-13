@@ -29,6 +29,7 @@ import {
   Layers,
   Globe,
   KeyRound,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package },
   { href: "/dashboard/integrations", label: "Integrations", icon: Plug2 },
+  { href: "/dashboard/team", label: "Team Roles", icon: UserCog },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },
   // Phase AP — admin-only secrets vault. Only PLATFORM_ADMIN can see
   // the link AND the page itself; the API also enforces the role.

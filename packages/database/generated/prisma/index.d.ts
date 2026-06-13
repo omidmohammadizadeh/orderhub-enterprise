@@ -24,6 +24,21 @@ export type Tenant = $Result.DefaultSelection<Prisma.$TenantPayload>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model UserLocation
+ * 
+ */
+export type UserLocation = $Result.DefaultSelection<Prisma.$UserLocationPayload>
+/**
+ * Model UserBrand
+ * 
+ */
+export type UserBrand = $Result.DefaultSelection<Prisma.$UserBrandPayload>
+/**
+ * Model Invitation
+ * 
+ */
+export type Invitation = $Result.DefaultSelection<Prisma.$InvitationPayload>
+/**
  * Model CustomerAccount
  * 
  */
@@ -428,7 +443,12 @@ export const UserRole: {
   CASHIER: 'CASHIER',
   KITCHEN_STAFF: 'KITCHEN_STAFF',
   DRIVER: 'DRIVER',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
+  OWNER: 'OWNER',
+  DARK_KITCHEN_MANAGER: 'DARK_KITCHEN_MANAGER',
+  STAFF: 'STAFF',
+  ONBOARDING_AGENT: 'ONBOARDING_AGENT',
+  FINANCIAL_AGENT: 'FINANCIAL_AGENT'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -1188,6 +1208,36 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs>;
+
+  /**
+   * `prisma.userLocation`: Exposes CRUD operations for the **UserLocation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserLocations
+    * const userLocations = await prisma.userLocation.findMany()
+    * ```
+    */
+  get userLocation(): Prisma.UserLocationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.userBrand`: Exposes CRUD operations for the **UserBrand** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserBrands
+    * const userBrands = await prisma.userBrand.findMany()
+    * ```
+    */
+  get userBrand(): Prisma.UserBrandDelegate<ExtArgs>;
+
+  /**
+   * `prisma.invitation`: Exposes CRUD operations for the **Invitation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Invitations
+    * const invitations = await prisma.invitation.findMany()
+    * ```
+    */
+  get invitation(): Prisma.InvitationDelegate<ExtArgs>;
 
   /**
    * `prisma.customerAccount`: Exposes CRUD operations for the **CustomerAccount** model.
@@ -2381,6 +2431,9 @@ export namespace Prisma {
   export const ModelName: {
     Tenant: 'Tenant',
     User: 'User',
+    UserLocation: 'UserLocation',
+    UserBrand: 'UserBrand',
+    Invitation: 'Invitation',
     CustomerAccount: 'CustomerAccount',
     RefreshToken: 'RefreshToken',
     OAuthAccount: 'OAuthAccount',
@@ -2471,7 +2524,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2612,6 +2665,216 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserLocation: {
+        payload: Prisma.$UserLocationPayload<ExtArgs>
+        fields: Prisma.UserLocationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserLocationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserLocationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          findFirst: {
+            args: Prisma.UserLocationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserLocationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          findMany: {
+            args: Prisma.UserLocationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>[]
+          }
+          create: {
+            args: Prisma.UserLocationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          createMany: {
+            args: Prisma.UserLocationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserLocationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>[]
+          }
+          delete: {
+            args: Prisma.UserLocationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          update: {
+            args: Prisma.UserLocationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserLocationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserLocationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.UserLocationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserLocationPayload>
+          }
+          aggregate: {
+            args: Prisma.UserLocationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserLocation>
+          }
+          groupBy: {
+            args: Prisma.UserLocationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserLocationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserLocationCountArgs<ExtArgs>
+            result: $Utils.Optional<UserLocationCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserBrand: {
+        payload: Prisma.$UserBrandPayload<ExtArgs>
+        fields: Prisma.UserBrandFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserBrandFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserBrandFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          findFirst: {
+            args: Prisma.UserBrandFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserBrandFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          findMany: {
+            args: Prisma.UserBrandFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>[]
+          }
+          create: {
+            args: Prisma.UserBrandCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          createMany: {
+            args: Prisma.UserBrandCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserBrandCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>[]
+          }
+          delete: {
+            args: Prisma.UserBrandDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          update: {
+            args: Prisma.UserBrandUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserBrandDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserBrandUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.UserBrandUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBrandPayload>
+          }
+          aggregate: {
+            args: Prisma.UserBrandAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserBrand>
+          }
+          groupBy: {
+            args: Prisma.UserBrandGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserBrandGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserBrandCountArgs<ExtArgs>
+            result: $Utils.Optional<UserBrandCountAggregateOutputType> | number
+          }
+        }
+      }
+      Invitation: {
+        payload: Prisma.$InvitationPayload<ExtArgs>
+        fields: Prisma.InvitationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InvitationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InvitationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          findFirst: {
+            args: Prisma.InvitationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InvitationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          findMany: {
+            args: Prisma.InvitationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>[]
+          }
+          create: {
+            args: Prisma.InvitationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          createMany: {
+            args: Prisma.InvitationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InvitationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>[]
+          }
+          delete: {
+            args: Prisma.InvitationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          update: {
+            args: Prisma.InvitationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          deleteMany: {
+            args: Prisma.InvitationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InvitationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.InvitationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitationPayload>
+          }
+          aggregate: {
+            args: Prisma.InvitationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInvitation>
+          }
+          groupBy: {
+            args: Prisma.InvitationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InvitationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InvitationCountArgs<ExtArgs>
+            result: $Utils.Optional<InvitationCountAggregateOutputType> | number
           }
         }
       }
@@ -8037,6 +8300,7 @@ export namespace Prisma {
     suppliers: number
     ipAllowlists: number
     connectAccount: number
+    invitations: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8051,6 +8315,7 @@ export namespace Prisma {
     suppliers?: boolean | TenantCountOutputTypeCountSuppliersArgs
     ipAllowlists?: boolean | TenantCountOutputTypeCountIpAllowlistsArgs
     connectAccount?: boolean | TenantCountOutputTypeCountConnectAccountArgs
+    invitations?: boolean | TenantCountOutputTypeCountInvitationsArgs
   }
 
   // Custom InputTypes
@@ -8141,6 +8406,13 @@ export namespace Prisma {
     where?: StripeConnectAccountWhereInput
   }
 
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InvitationWhereInput
+  }
+
 
   /**
    * Count Type UserCountOutputType
@@ -8152,6 +8424,9 @@ export namespace Prisma {
     auditLogs: number
     deviceSessions: number
     deviceTokens: number
+    locations: number
+    brands: number
+    invitationsSent: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8160,6 +8435,9 @@ export namespace Prisma {
     auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
     deviceSessions?: boolean | UserCountOutputTypeCountDeviceSessionsArgs
     deviceTokens?: boolean | UserCountOutputTypeCountDeviceTokensArgs
+    locations?: boolean | UserCountOutputTypeCountLocationsArgs
+    brands?: boolean | UserCountOutputTypeCountBrandsArgs
+    invitationsSent?: boolean | UserCountOutputTypeCountInvitationsSentArgs
   }
 
   // Custom InputTypes
@@ -8208,6 +8486,27 @@ export namespace Prisma {
     where?: DeviceTokenWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountLocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserLocationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBrandsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserBrandWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountInvitationsSentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InvitationWhereInput
+  }
+
 
   /**
    * Count Type CustomerAccountCountOutputType
@@ -8252,6 +8551,7 @@ export namespace Prisma {
     mealDeals: number
     upsellGroups: number
     platformConnections: number
+    userBrands: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8262,6 +8562,7 @@ export namespace Prisma {
     mealDeals?: boolean | BrandCountOutputTypeCountMealDealsArgs
     upsellGroups?: boolean | BrandCountOutputTypeCountUpsellGroupsArgs
     platformConnections?: boolean | BrandCountOutputTypeCountPlatformConnectionsArgs
+    userBrands?: boolean | BrandCountOutputTypeCountUserBrandsArgs
   }
 
   // Custom InputTypes
@@ -8324,6 +8625,13 @@ export namespace Prisma {
     where?: BrandPlatformConnectionWhereInput
   }
 
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountUserBrandsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserBrandWhereInput
+  }
+
 
   /**
    * Count Type LocationCountOutputType
@@ -8335,6 +8643,7 @@ export namespace Prisma {
     printers: number
     kdsScreens: number
     deliveryZones: number
+    userLocations: number
     platformConnections: number
   }
 
@@ -8344,6 +8653,7 @@ export namespace Prisma {
     printers?: boolean | LocationCountOutputTypeCountPrintersArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
+    userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
   }
 
@@ -8391,6 +8701,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountDeliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountUserLocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserLocationWhereInput
   }
 
   /**
@@ -9419,6 +9736,7 @@ export namespace Prisma {
     connectAccount?: boolean | Tenant$connectAccountArgs<ExtArgs>
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
+    invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -9460,6 +9778,7 @@ export namespace Prisma {
     connectAccount?: boolean | Tenant$connectAccountArgs<ExtArgs>
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
+    invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -9480,6 +9799,7 @@ export namespace Prisma {
       connectAccount: Prisma.$StripeConnectAccountPayload<ExtArgs>[]
       branding: Prisma.$TenantBrandingPayload<ExtArgs> | null
       subscription: Prisma.$TenantSubscriptionPayload<ExtArgs> | null
+      invitations: Prisma.$InvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9868,6 +10188,7 @@ export namespace Prisma {
     connectAccount<T extends Tenant$connectAccountArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$connectAccountArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StripeConnectAccountPayload<ExtArgs>, T, "findMany"> | Null>
     branding<T extends Tenant$brandingArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$brandingArgs<ExtArgs>>): Prisma__TenantBrandingClient<$Result.GetResult<Prisma.$TenantBrandingPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     subscription<T extends Tenant$subscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$subscriptionArgs<ExtArgs>>): Prisma__TenantSubscriptionClient<$Result.GetResult<Prisma.$TenantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    invitations<T extends Tenant$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10470,6 +10791,26 @@ export namespace Prisma {
   }
 
   /**
+   * Tenant.invitations
+   */
+  export type Tenant$invitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    where?: InvitationWhereInput
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    cursor?: InvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
    * Tenant without action
    */
   export type TenantDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10723,6 +11064,9 @@ export namespace Prisma {
     mfaConfig?: boolean | User$mfaConfigArgs<ExtArgs>
     deviceSessions?: boolean | User$deviceSessionsArgs<ExtArgs>
     deviceTokens?: boolean | User$deviceTokensArgs<ExtArgs>
+    locations?: boolean | User$locationsArgs<ExtArgs>
+    brands?: boolean | User$brandsArgs<ExtArgs>
+    invitationsSent?: boolean | User$invitationsSentArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -10769,6 +11113,9 @@ export namespace Prisma {
     mfaConfig?: boolean | User$mfaConfigArgs<ExtArgs>
     deviceSessions?: boolean | User$deviceSessionsArgs<ExtArgs>
     deviceTokens?: boolean | User$deviceTokensArgs<ExtArgs>
+    locations?: boolean | User$locationsArgs<ExtArgs>
+    brands?: boolean | User$brandsArgs<ExtArgs>
+    invitationsSent?: boolean | User$invitationsSentArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10785,6 +11132,9 @@ export namespace Prisma {
       mfaConfig: Prisma.$MfaConfigPayload<ExtArgs> | null
       deviceSessions: Prisma.$DeviceSessionPayload<ExtArgs>[]
       deviceTokens: Prisma.$DeviceTokenPayload<ExtArgs>[]
+      locations: Prisma.$UserLocationPayload<ExtArgs>[]
+      brands: Prisma.$UserBrandPayload<ExtArgs>[]
+      invitationsSent: Prisma.$InvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -11172,6 +11522,9 @@ export namespace Prisma {
     mfaConfig<T extends User$mfaConfigArgs<ExtArgs> = {}>(args?: Subset<T, User$mfaConfigArgs<ExtArgs>>): Prisma__MfaConfigClient<$Result.GetResult<Prisma.$MfaConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     deviceSessions<T extends User$deviceSessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$deviceSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeviceSessionPayload<ExtArgs>, T, "findMany"> | Null>
     deviceTokens<T extends User$deviceTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$deviceTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeviceTokenPayload<ExtArgs>, T, "findMany"> | Null>
+    locations<T extends User$locationsArgs<ExtArgs> = {}>(args?: Subset<T, User$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
+    brands<T extends User$brandsArgs<ExtArgs> = {}>(args?: Subset<T, User$brandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
+    invitationsSent<T extends User$invitationsSentArgs<ExtArgs> = {}>(args?: Subset<T, User$invitationsSentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11648,6 +12001,66 @@ export namespace Prisma {
   }
 
   /**
+   * User.locations
+   */
+  export type User$locationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    where?: UserLocationWhereInput
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    cursor?: UserLocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserLocationScalarFieldEnum | UserLocationScalarFieldEnum[]
+  }
+
+  /**
+   * User.brands
+   */
+  export type User$brandsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    where?: UserBrandWhereInput
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    cursor?: UserBrandWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
+  }
+
+  /**
+   * User.invitationsSent
+   */
+  export type User$invitationsSentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    where?: InvitationWhereInput
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    cursor?: InvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11659,6 +12072,2902 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserLocation
+   */
+
+  export type AggregateUserLocation = {
+    _count: UserLocationCountAggregateOutputType | null
+    _min: UserLocationMinAggregateOutputType | null
+    _max: UserLocationMaxAggregateOutputType | null
+  }
+
+  export type UserLocationMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    locationId: string | null
+    createdAt: Date | null
+  }
+
+  export type UserLocationMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    locationId: string | null
+    createdAt: Date | null
+  }
+
+  export type UserLocationCountAggregateOutputType = {
+    id: number
+    userId: number
+    locationId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type UserLocationMinAggregateInputType = {
+    id?: true
+    userId?: true
+    locationId?: true
+    createdAt?: true
+  }
+
+  export type UserLocationMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    locationId?: true
+    createdAt?: true
+  }
+
+  export type UserLocationCountAggregateInputType = {
+    id?: true
+    userId?: true
+    locationId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type UserLocationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserLocation to aggregate.
+     */
+    where?: UserLocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserLocations to fetch.
+     */
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserLocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserLocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserLocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserLocations
+    **/
+    _count?: true | UserLocationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserLocationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserLocationMaxAggregateInputType
+  }
+
+  export type GetUserLocationAggregateType<T extends UserLocationAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserLocation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserLocation[P]>
+      : GetScalarType<T[P], AggregateUserLocation[P]>
+  }
+
+
+
+
+  export type UserLocationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserLocationWhereInput
+    orderBy?: UserLocationOrderByWithAggregationInput | UserLocationOrderByWithAggregationInput[]
+    by: UserLocationScalarFieldEnum[] | UserLocationScalarFieldEnum
+    having?: UserLocationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserLocationCountAggregateInputType | true
+    _min?: UserLocationMinAggregateInputType
+    _max?: UserLocationMaxAggregateInputType
+  }
+
+  export type UserLocationGroupByOutputType = {
+    id: string
+    userId: string
+    locationId: string
+    createdAt: Date
+    _count: UserLocationCountAggregateOutputType | null
+    _min: UserLocationMinAggregateOutputType | null
+    _max: UserLocationMaxAggregateOutputType | null
+  }
+
+  type GetUserLocationGroupByPayload<T extends UserLocationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserLocationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserLocationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserLocationGroupByOutputType[P]>
+            : GetScalarType<T[P], UserLocationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserLocationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    locationId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userLocation"]>
+
+  export type UserLocationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    locationId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userLocation"]>
+
+  export type UserLocationSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    locationId?: boolean
+    createdAt?: boolean
+  }
+
+  export type UserLocationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type UserLocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $UserLocationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserLocation"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      locationId: string
+      createdAt: Date
+    }, ExtArgs["result"]["userLocation"]>
+    composites: {}
+  }
+
+  type UserLocationGetPayload<S extends boolean | null | undefined | UserLocationDefaultArgs> = $Result.GetResult<Prisma.$UserLocationPayload, S>
+
+  type UserLocationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<UserLocationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: UserLocationCountAggregateInputType | true
+    }
+
+  export interface UserLocationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserLocation'], meta: { name: 'UserLocation' } }
+    /**
+     * Find zero or one UserLocation that matches the filter.
+     * @param {UserLocationFindUniqueArgs} args - Arguments to find a UserLocation
+     * @example
+     * // Get one UserLocation
+     * const userLocation = await prisma.userLocation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserLocationFindUniqueArgs>(args: SelectSubset<T, UserLocationFindUniqueArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one UserLocation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {UserLocationFindUniqueOrThrowArgs} args - Arguments to find a UserLocation
+     * @example
+     * // Get one UserLocation
+     * const userLocation = await prisma.userLocation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserLocationFindUniqueOrThrowArgs>(args: SelectSubset<T, UserLocationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first UserLocation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationFindFirstArgs} args - Arguments to find a UserLocation
+     * @example
+     * // Get one UserLocation
+     * const userLocation = await prisma.userLocation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserLocationFindFirstArgs>(args?: SelectSubset<T, UserLocationFindFirstArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first UserLocation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationFindFirstOrThrowArgs} args - Arguments to find a UserLocation
+     * @example
+     * // Get one UserLocation
+     * const userLocation = await prisma.userLocation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserLocationFindFirstOrThrowArgs>(args?: SelectSubset<T, UserLocationFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more UserLocations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserLocations
+     * const userLocations = await prisma.userLocation.findMany()
+     * 
+     * // Get first 10 UserLocations
+     * const userLocations = await prisma.userLocation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userLocationWithIdOnly = await prisma.userLocation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserLocationFindManyArgs>(args?: SelectSubset<T, UserLocationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a UserLocation.
+     * @param {UserLocationCreateArgs} args - Arguments to create a UserLocation.
+     * @example
+     * // Create one UserLocation
+     * const UserLocation = await prisma.userLocation.create({
+     *   data: {
+     *     // ... data to create a UserLocation
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserLocationCreateArgs>(args: SelectSubset<T, UserLocationCreateArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many UserLocations.
+     * @param {UserLocationCreateManyArgs} args - Arguments to create many UserLocations.
+     * @example
+     * // Create many UserLocations
+     * const userLocation = await prisma.userLocation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserLocationCreateManyArgs>(args?: SelectSubset<T, UserLocationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserLocations and returns the data saved in the database.
+     * @param {UserLocationCreateManyAndReturnArgs} args - Arguments to create many UserLocations.
+     * @example
+     * // Create many UserLocations
+     * const userLocation = await prisma.userLocation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserLocations and only return the `id`
+     * const userLocationWithIdOnly = await prisma.userLocation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserLocationCreateManyAndReturnArgs>(args?: SelectSubset<T, UserLocationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a UserLocation.
+     * @param {UserLocationDeleteArgs} args - Arguments to delete one UserLocation.
+     * @example
+     * // Delete one UserLocation
+     * const UserLocation = await prisma.userLocation.delete({
+     *   where: {
+     *     // ... filter to delete one UserLocation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserLocationDeleteArgs>(args: SelectSubset<T, UserLocationDeleteArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one UserLocation.
+     * @param {UserLocationUpdateArgs} args - Arguments to update one UserLocation.
+     * @example
+     * // Update one UserLocation
+     * const userLocation = await prisma.userLocation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserLocationUpdateArgs>(args: SelectSubset<T, UserLocationUpdateArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more UserLocations.
+     * @param {UserLocationDeleteManyArgs} args - Arguments to filter UserLocations to delete.
+     * @example
+     * // Delete a few UserLocations
+     * const { count } = await prisma.userLocation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserLocationDeleteManyArgs>(args?: SelectSubset<T, UserLocationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserLocations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserLocations
+     * const userLocation = await prisma.userLocation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserLocationUpdateManyArgs>(args: SelectSubset<T, UserLocationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one UserLocation.
+     * @param {UserLocationUpsertArgs} args - Arguments to update or create a UserLocation.
+     * @example
+     * // Update or create a UserLocation
+     * const userLocation = await prisma.userLocation.upsert({
+     *   create: {
+     *     // ... data to create a UserLocation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserLocation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserLocationUpsertArgs>(args: SelectSubset<T, UserLocationUpsertArgs<ExtArgs>>): Prisma__UserLocationClient<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of UserLocations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationCountArgs} args - Arguments to filter UserLocations to count.
+     * @example
+     * // Count the number of UserLocations
+     * const count = await prisma.userLocation.count({
+     *   where: {
+     *     // ... the filter for the UserLocations we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserLocationCountArgs>(
+      args?: Subset<T, UserLocationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserLocationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserLocation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserLocationAggregateArgs>(args: Subset<T, UserLocationAggregateArgs>): Prisma.PrismaPromise<GetUserLocationAggregateType<T>>
+
+    /**
+     * Group by UserLocation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserLocationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserLocationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserLocationGroupByArgs['orderBy'] }
+        : { orderBy?: UserLocationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserLocationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserLocationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserLocation model
+   */
+  readonly fields: UserLocationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserLocation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserLocationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserLocation model
+   */ 
+  interface UserLocationFieldRefs {
+    readonly id: FieldRef<"UserLocation", 'String'>
+    readonly userId: FieldRef<"UserLocation", 'String'>
+    readonly locationId: FieldRef<"UserLocation", 'String'>
+    readonly createdAt: FieldRef<"UserLocation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserLocation findUnique
+   */
+  export type UserLocationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter, which UserLocation to fetch.
+     */
+    where: UserLocationWhereUniqueInput
+  }
+
+  /**
+   * UserLocation findUniqueOrThrow
+   */
+  export type UserLocationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter, which UserLocation to fetch.
+     */
+    where: UserLocationWhereUniqueInput
+  }
+
+  /**
+   * UserLocation findFirst
+   */
+  export type UserLocationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter, which UserLocation to fetch.
+     */
+    where?: UserLocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserLocations to fetch.
+     */
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserLocations.
+     */
+    cursor?: UserLocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserLocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserLocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserLocations.
+     */
+    distinct?: UserLocationScalarFieldEnum | UserLocationScalarFieldEnum[]
+  }
+
+  /**
+   * UserLocation findFirstOrThrow
+   */
+  export type UserLocationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter, which UserLocation to fetch.
+     */
+    where?: UserLocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserLocations to fetch.
+     */
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserLocations.
+     */
+    cursor?: UserLocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserLocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserLocations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserLocations.
+     */
+    distinct?: UserLocationScalarFieldEnum | UserLocationScalarFieldEnum[]
+  }
+
+  /**
+   * UserLocation findMany
+   */
+  export type UserLocationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter, which UserLocations to fetch.
+     */
+    where?: UserLocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserLocations to fetch.
+     */
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserLocations.
+     */
+    cursor?: UserLocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserLocations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserLocations.
+     */
+    skip?: number
+    distinct?: UserLocationScalarFieldEnum | UserLocationScalarFieldEnum[]
+  }
+
+  /**
+   * UserLocation create
+   */
+  export type UserLocationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserLocation.
+     */
+    data: XOR<UserLocationCreateInput, UserLocationUncheckedCreateInput>
+  }
+
+  /**
+   * UserLocation createMany
+   */
+  export type UserLocationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserLocations.
+     */
+    data: UserLocationCreateManyInput | UserLocationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserLocation createManyAndReturn
+   */
+  export type UserLocationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many UserLocations.
+     */
+    data: UserLocationCreateManyInput | UserLocationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserLocation update
+   */
+  export type UserLocationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserLocation.
+     */
+    data: XOR<UserLocationUpdateInput, UserLocationUncheckedUpdateInput>
+    /**
+     * Choose, which UserLocation to update.
+     */
+    where: UserLocationWhereUniqueInput
+  }
+
+  /**
+   * UserLocation updateMany
+   */
+  export type UserLocationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserLocations.
+     */
+    data: XOR<UserLocationUpdateManyMutationInput, UserLocationUncheckedUpdateManyInput>
+    /**
+     * Filter which UserLocations to update
+     */
+    where?: UserLocationWhereInput
+  }
+
+  /**
+   * UserLocation upsert
+   */
+  export type UserLocationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserLocation to update in case it exists.
+     */
+    where: UserLocationWhereUniqueInput
+    /**
+     * In case the UserLocation found by the `where` argument doesn't exist, create a new UserLocation with this data.
+     */
+    create: XOR<UserLocationCreateInput, UserLocationUncheckedCreateInput>
+    /**
+     * In case the UserLocation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserLocationUpdateInput, UserLocationUncheckedUpdateInput>
+  }
+
+  /**
+   * UserLocation delete
+   */
+  export type UserLocationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    /**
+     * Filter which UserLocation to delete.
+     */
+    where: UserLocationWhereUniqueInput
+  }
+
+  /**
+   * UserLocation deleteMany
+   */
+  export type UserLocationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserLocations to delete
+     */
+    where?: UserLocationWhereInput
+  }
+
+  /**
+   * UserLocation without action
+   */
+  export type UserLocationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserBrand
+   */
+
+  export type AggregateUserBrand = {
+    _count: UserBrandCountAggregateOutputType | null
+    _min: UserBrandMinAggregateOutputType | null
+    _max: UserBrandMaxAggregateOutputType | null
+  }
+
+  export type UserBrandMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    brandId: string | null
+    createdAt: Date | null
+  }
+
+  export type UserBrandMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    brandId: string | null
+    createdAt: Date | null
+  }
+
+  export type UserBrandCountAggregateOutputType = {
+    id: number
+    userId: number
+    brandId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type UserBrandMinAggregateInputType = {
+    id?: true
+    userId?: true
+    brandId?: true
+    createdAt?: true
+  }
+
+  export type UserBrandMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    brandId?: true
+    createdAt?: true
+  }
+
+  export type UserBrandCountAggregateInputType = {
+    id?: true
+    userId?: true
+    brandId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type UserBrandAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserBrand to aggregate.
+     */
+    where?: UserBrandWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBrands to fetch.
+     */
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserBrandWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBrands from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBrands.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserBrands
+    **/
+    _count?: true | UserBrandCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserBrandMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserBrandMaxAggregateInputType
+  }
+
+  export type GetUserBrandAggregateType<T extends UserBrandAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserBrand]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserBrand[P]>
+      : GetScalarType<T[P], AggregateUserBrand[P]>
+  }
+
+
+
+
+  export type UserBrandGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserBrandWhereInput
+    orderBy?: UserBrandOrderByWithAggregationInput | UserBrandOrderByWithAggregationInput[]
+    by: UserBrandScalarFieldEnum[] | UserBrandScalarFieldEnum
+    having?: UserBrandScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserBrandCountAggregateInputType | true
+    _min?: UserBrandMinAggregateInputType
+    _max?: UserBrandMaxAggregateInputType
+  }
+
+  export type UserBrandGroupByOutputType = {
+    id: string
+    userId: string
+    brandId: string
+    createdAt: Date
+    _count: UserBrandCountAggregateOutputType | null
+    _min: UserBrandMinAggregateOutputType | null
+    _max: UserBrandMaxAggregateOutputType | null
+  }
+
+  type GetUserBrandGroupByPayload<T extends UserBrandGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserBrandGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserBrandGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserBrandGroupByOutputType[P]>
+            : GetScalarType<T[P], UserBrandGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserBrandSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    brandId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userBrand"]>
+
+  export type UserBrandSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    brandId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userBrand"]>
+
+  export type UserBrandSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    brandId?: boolean
+    createdAt?: boolean
+  }
+
+  export type UserBrandInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+  export type UserBrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $UserBrandPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserBrand"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      brand: Prisma.$BrandPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      brandId: string
+      createdAt: Date
+    }, ExtArgs["result"]["userBrand"]>
+    composites: {}
+  }
+
+  type UserBrandGetPayload<S extends boolean | null | undefined | UserBrandDefaultArgs> = $Result.GetResult<Prisma.$UserBrandPayload, S>
+
+  type UserBrandCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<UserBrandFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: UserBrandCountAggregateInputType | true
+    }
+
+  export interface UserBrandDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserBrand'], meta: { name: 'UserBrand' } }
+    /**
+     * Find zero or one UserBrand that matches the filter.
+     * @param {UserBrandFindUniqueArgs} args - Arguments to find a UserBrand
+     * @example
+     * // Get one UserBrand
+     * const userBrand = await prisma.userBrand.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserBrandFindUniqueArgs>(args: SelectSubset<T, UserBrandFindUniqueArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one UserBrand that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {UserBrandFindUniqueOrThrowArgs} args - Arguments to find a UserBrand
+     * @example
+     * // Get one UserBrand
+     * const userBrand = await prisma.userBrand.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserBrandFindUniqueOrThrowArgs>(args: SelectSubset<T, UserBrandFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first UserBrand that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandFindFirstArgs} args - Arguments to find a UserBrand
+     * @example
+     * // Get one UserBrand
+     * const userBrand = await prisma.userBrand.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserBrandFindFirstArgs>(args?: SelectSubset<T, UserBrandFindFirstArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first UserBrand that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandFindFirstOrThrowArgs} args - Arguments to find a UserBrand
+     * @example
+     * // Get one UserBrand
+     * const userBrand = await prisma.userBrand.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserBrandFindFirstOrThrowArgs>(args?: SelectSubset<T, UserBrandFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more UserBrands that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserBrands
+     * const userBrands = await prisma.userBrand.findMany()
+     * 
+     * // Get first 10 UserBrands
+     * const userBrands = await prisma.userBrand.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userBrandWithIdOnly = await prisma.userBrand.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserBrandFindManyArgs>(args?: SelectSubset<T, UserBrandFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a UserBrand.
+     * @param {UserBrandCreateArgs} args - Arguments to create a UserBrand.
+     * @example
+     * // Create one UserBrand
+     * const UserBrand = await prisma.userBrand.create({
+     *   data: {
+     *     // ... data to create a UserBrand
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserBrandCreateArgs>(args: SelectSubset<T, UserBrandCreateArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many UserBrands.
+     * @param {UserBrandCreateManyArgs} args - Arguments to create many UserBrands.
+     * @example
+     * // Create many UserBrands
+     * const userBrand = await prisma.userBrand.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserBrandCreateManyArgs>(args?: SelectSubset<T, UserBrandCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserBrands and returns the data saved in the database.
+     * @param {UserBrandCreateManyAndReturnArgs} args - Arguments to create many UserBrands.
+     * @example
+     * // Create many UserBrands
+     * const userBrand = await prisma.userBrand.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserBrands and only return the `id`
+     * const userBrandWithIdOnly = await prisma.userBrand.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserBrandCreateManyAndReturnArgs>(args?: SelectSubset<T, UserBrandCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a UserBrand.
+     * @param {UserBrandDeleteArgs} args - Arguments to delete one UserBrand.
+     * @example
+     * // Delete one UserBrand
+     * const UserBrand = await prisma.userBrand.delete({
+     *   where: {
+     *     // ... filter to delete one UserBrand
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserBrandDeleteArgs>(args: SelectSubset<T, UserBrandDeleteArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one UserBrand.
+     * @param {UserBrandUpdateArgs} args - Arguments to update one UserBrand.
+     * @example
+     * // Update one UserBrand
+     * const userBrand = await prisma.userBrand.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserBrandUpdateArgs>(args: SelectSubset<T, UserBrandUpdateArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more UserBrands.
+     * @param {UserBrandDeleteManyArgs} args - Arguments to filter UserBrands to delete.
+     * @example
+     * // Delete a few UserBrands
+     * const { count } = await prisma.userBrand.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserBrandDeleteManyArgs>(args?: SelectSubset<T, UserBrandDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserBrands.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserBrands
+     * const userBrand = await prisma.userBrand.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserBrandUpdateManyArgs>(args: SelectSubset<T, UserBrandUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one UserBrand.
+     * @param {UserBrandUpsertArgs} args - Arguments to update or create a UserBrand.
+     * @example
+     * // Update or create a UserBrand
+     * const userBrand = await prisma.userBrand.upsert({
+     *   create: {
+     *     // ... data to create a UserBrand
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserBrand we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserBrandUpsertArgs>(args: SelectSubset<T, UserBrandUpsertArgs<ExtArgs>>): Prisma__UserBrandClient<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of UserBrands.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandCountArgs} args - Arguments to filter UserBrands to count.
+     * @example
+     * // Count the number of UserBrands
+     * const count = await prisma.userBrand.count({
+     *   where: {
+     *     // ... the filter for the UserBrands we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserBrandCountArgs>(
+      args?: Subset<T, UserBrandCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserBrandCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserBrand.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserBrandAggregateArgs>(args: Subset<T, UserBrandAggregateArgs>): Prisma.PrismaPromise<GetUserBrandAggregateType<T>>
+
+    /**
+     * Group by UserBrand.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBrandGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserBrandGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserBrandGroupByArgs['orderBy'] }
+        : { orderBy?: UserBrandGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserBrandGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserBrandGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserBrand model
+   */
+  readonly fields: UserBrandFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserBrand.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserBrandClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserBrand model
+   */ 
+  interface UserBrandFieldRefs {
+    readonly id: FieldRef<"UserBrand", 'String'>
+    readonly userId: FieldRef<"UserBrand", 'String'>
+    readonly brandId: FieldRef<"UserBrand", 'String'>
+    readonly createdAt: FieldRef<"UserBrand", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserBrand findUnique
+   */
+  export type UserBrandFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter, which UserBrand to fetch.
+     */
+    where: UserBrandWhereUniqueInput
+  }
+
+  /**
+   * UserBrand findUniqueOrThrow
+   */
+  export type UserBrandFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter, which UserBrand to fetch.
+     */
+    where: UserBrandWhereUniqueInput
+  }
+
+  /**
+   * UserBrand findFirst
+   */
+  export type UserBrandFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter, which UserBrand to fetch.
+     */
+    where?: UserBrandWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBrands to fetch.
+     */
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserBrands.
+     */
+    cursor?: UserBrandWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBrands from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBrands.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserBrands.
+     */
+    distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
+  }
+
+  /**
+   * UserBrand findFirstOrThrow
+   */
+  export type UserBrandFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter, which UserBrand to fetch.
+     */
+    where?: UserBrandWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBrands to fetch.
+     */
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserBrands.
+     */
+    cursor?: UserBrandWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBrands from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBrands.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserBrands.
+     */
+    distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
+  }
+
+  /**
+   * UserBrand findMany
+   */
+  export type UserBrandFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter, which UserBrands to fetch.
+     */
+    where?: UserBrandWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBrands to fetch.
+     */
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserBrands.
+     */
+    cursor?: UserBrandWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBrands from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBrands.
+     */
+    skip?: number
+    distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
+  }
+
+  /**
+   * UserBrand create
+   */
+  export type UserBrandCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserBrand.
+     */
+    data: XOR<UserBrandCreateInput, UserBrandUncheckedCreateInput>
+  }
+
+  /**
+   * UserBrand createMany
+   */
+  export type UserBrandCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserBrands.
+     */
+    data: UserBrandCreateManyInput | UserBrandCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserBrand createManyAndReturn
+   */
+  export type UserBrandCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many UserBrands.
+     */
+    data: UserBrandCreateManyInput | UserBrandCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserBrand update
+   */
+  export type UserBrandUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserBrand.
+     */
+    data: XOR<UserBrandUpdateInput, UserBrandUncheckedUpdateInput>
+    /**
+     * Choose, which UserBrand to update.
+     */
+    where: UserBrandWhereUniqueInput
+  }
+
+  /**
+   * UserBrand updateMany
+   */
+  export type UserBrandUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserBrands.
+     */
+    data: XOR<UserBrandUpdateManyMutationInput, UserBrandUncheckedUpdateManyInput>
+    /**
+     * Filter which UserBrands to update
+     */
+    where?: UserBrandWhereInput
+  }
+
+  /**
+   * UserBrand upsert
+   */
+  export type UserBrandUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserBrand to update in case it exists.
+     */
+    where: UserBrandWhereUniqueInput
+    /**
+     * In case the UserBrand found by the `where` argument doesn't exist, create a new UserBrand with this data.
+     */
+    create: XOR<UserBrandCreateInput, UserBrandUncheckedCreateInput>
+    /**
+     * In case the UserBrand was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserBrandUpdateInput, UserBrandUncheckedUpdateInput>
+  }
+
+  /**
+   * UserBrand delete
+   */
+  export type UserBrandDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    /**
+     * Filter which UserBrand to delete.
+     */
+    where: UserBrandWhereUniqueInput
+  }
+
+  /**
+   * UserBrand deleteMany
+   */
+  export type UserBrandDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserBrands to delete
+     */
+    where?: UserBrandWhereInput
+  }
+
+  /**
+   * UserBrand without action
+   */
+  export type UserBrandDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Invitation
+   */
+
+  export type AggregateInvitation = {
+    _count: InvitationCountAggregateOutputType | null
+    _min: InvitationMinAggregateOutputType | null
+    _max: InvitationMaxAggregateOutputType | null
+  }
+
+  export type InvitationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    email: string | null
+    role: $Enums.UserRole | null
+    token: string | null
+    expiresAt: Date | null
+    acceptedAt: Date | null
+    cancelledAt: Date | null
+    invitedById: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InvitationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    email: string | null
+    role: $Enums.UserRole | null
+    token: string | null
+    expiresAt: Date | null
+    acceptedAt: Date | null
+    cancelledAt: Date | null
+    invitedById: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InvitationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    email: number
+    role: number
+    locationIds: number
+    brandIds: number
+    token: number
+    expiresAt: number
+    acceptedAt: number
+    cancelledAt: number
+    invitedById: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InvitationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    email?: true
+    role?: true
+    token?: true
+    expiresAt?: true
+    acceptedAt?: true
+    cancelledAt?: true
+    invitedById?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InvitationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    email?: true
+    role?: true
+    token?: true
+    expiresAt?: true
+    acceptedAt?: true
+    cancelledAt?: true
+    invitedById?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InvitationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    email?: true
+    role?: true
+    locationIds?: true
+    brandIds?: true
+    token?: true
+    expiresAt?: true
+    acceptedAt?: true
+    cancelledAt?: true
+    invitedById?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InvitationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Invitation to aggregate.
+     */
+    where?: InvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invitations to fetch.
+     */
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Invitations
+    **/
+    _count?: true | InvitationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InvitationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InvitationMaxAggregateInputType
+  }
+
+  export type GetInvitationAggregateType<T extends InvitationAggregateArgs> = {
+        [P in keyof T & keyof AggregateInvitation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInvitation[P]>
+      : GetScalarType<T[P], AggregateInvitation[P]>
+  }
+
+
+
+
+  export type InvitationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InvitationWhereInput
+    orderBy?: InvitationOrderByWithAggregationInput | InvitationOrderByWithAggregationInput[]
+    by: InvitationScalarFieldEnum[] | InvitationScalarFieldEnum
+    having?: InvitationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InvitationCountAggregateInputType | true
+    _min?: InvitationMinAggregateInputType
+    _max?: InvitationMaxAggregateInputType
+  }
+
+  export type InvitationGroupByOutputType = {
+    id: string
+    tenantId: string
+    email: string
+    role: $Enums.UserRole
+    locationIds: string[]
+    brandIds: string[]
+    token: string
+    expiresAt: Date
+    acceptedAt: Date | null
+    cancelledAt: Date | null
+    invitedById: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: InvitationCountAggregateOutputType | null
+    _min: InvitationMinAggregateOutputType | null
+    _max: InvitationMaxAggregateOutputType | null
+  }
+
+  type GetInvitationGroupByPayload<T extends InvitationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InvitationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InvitationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InvitationGroupByOutputType[P]>
+            : GetScalarType<T[P], InvitationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InvitationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    email?: boolean
+    role?: boolean
+    locationIds?: boolean
+    brandIds?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    acceptedAt?: boolean
+    cancelledAt?: boolean
+    invitedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    invitedBy?: boolean | Invitation$invitedByArgs<ExtArgs>
+  }, ExtArgs["result"]["invitation"]>
+
+  export type InvitationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    email?: boolean
+    role?: boolean
+    locationIds?: boolean
+    brandIds?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    acceptedAt?: boolean
+    cancelledAt?: boolean
+    invitedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    invitedBy?: boolean | Invitation$invitedByArgs<ExtArgs>
+  }, ExtArgs["result"]["invitation"]>
+
+  export type InvitationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    email?: boolean
+    role?: boolean
+    locationIds?: boolean
+    brandIds?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    acceptedAt?: boolean
+    cancelledAt?: boolean
+    invitedById?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InvitationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    invitedBy?: boolean | Invitation$invitedByArgs<ExtArgs>
+  }
+  export type InvitationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    invitedBy?: boolean | Invitation$invitedByArgs<ExtArgs>
+  }
+
+  export type $InvitationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Invitation"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      invitedBy: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      email: string
+      role: $Enums.UserRole
+      locationIds: string[]
+      brandIds: string[]
+      token: string
+      expiresAt: Date
+      acceptedAt: Date | null
+      cancelledAt: Date | null
+      invitedById: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["invitation"]>
+    composites: {}
+  }
+
+  type InvitationGetPayload<S extends boolean | null | undefined | InvitationDefaultArgs> = $Result.GetResult<Prisma.$InvitationPayload, S>
+
+  type InvitationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<InvitationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: InvitationCountAggregateInputType | true
+    }
+
+  export interface InvitationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Invitation'], meta: { name: 'Invitation' } }
+    /**
+     * Find zero or one Invitation that matches the filter.
+     * @param {InvitationFindUniqueArgs} args - Arguments to find a Invitation
+     * @example
+     * // Get one Invitation
+     * const invitation = await prisma.invitation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InvitationFindUniqueArgs>(args: SelectSubset<T, InvitationFindUniqueArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Invitation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {InvitationFindUniqueOrThrowArgs} args - Arguments to find a Invitation
+     * @example
+     * // Get one Invitation
+     * const invitation = await prisma.invitation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InvitationFindUniqueOrThrowArgs>(args: SelectSubset<T, InvitationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Invitation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationFindFirstArgs} args - Arguments to find a Invitation
+     * @example
+     * // Get one Invitation
+     * const invitation = await prisma.invitation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InvitationFindFirstArgs>(args?: SelectSubset<T, InvitationFindFirstArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Invitation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationFindFirstOrThrowArgs} args - Arguments to find a Invitation
+     * @example
+     * // Get one Invitation
+     * const invitation = await prisma.invitation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InvitationFindFirstOrThrowArgs>(args?: SelectSubset<T, InvitationFindFirstOrThrowArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Invitations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Invitations
+     * const invitations = await prisma.invitation.findMany()
+     * 
+     * // Get first 10 Invitations
+     * const invitations = await prisma.invitation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const invitationWithIdOnly = await prisma.invitation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InvitationFindManyArgs>(args?: SelectSubset<T, InvitationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Invitation.
+     * @param {InvitationCreateArgs} args - Arguments to create a Invitation.
+     * @example
+     * // Create one Invitation
+     * const Invitation = await prisma.invitation.create({
+     *   data: {
+     *     // ... data to create a Invitation
+     *   }
+     * })
+     * 
+     */
+    create<T extends InvitationCreateArgs>(args: SelectSubset<T, InvitationCreateArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Invitations.
+     * @param {InvitationCreateManyArgs} args - Arguments to create many Invitations.
+     * @example
+     * // Create many Invitations
+     * const invitation = await prisma.invitation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InvitationCreateManyArgs>(args?: SelectSubset<T, InvitationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Invitations and returns the data saved in the database.
+     * @param {InvitationCreateManyAndReturnArgs} args - Arguments to create many Invitations.
+     * @example
+     * // Create many Invitations
+     * const invitation = await prisma.invitation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Invitations and only return the `id`
+     * const invitationWithIdOnly = await prisma.invitation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InvitationCreateManyAndReturnArgs>(args?: SelectSubset<T, InvitationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Invitation.
+     * @param {InvitationDeleteArgs} args - Arguments to delete one Invitation.
+     * @example
+     * // Delete one Invitation
+     * const Invitation = await prisma.invitation.delete({
+     *   where: {
+     *     // ... filter to delete one Invitation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InvitationDeleteArgs>(args: SelectSubset<T, InvitationDeleteArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Invitation.
+     * @param {InvitationUpdateArgs} args - Arguments to update one Invitation.
+     * @example
+     * // Update one Invitation
+     * const invitation = await prisma.invitation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InvitationUpdateArgs>(args: SelectSubset<T, InvitationUpdateArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Invitations.
+     * @param {InvitationDeleteManyArgs} args - Arguments to filter Invitations to delete.
+     * @example
+     * // Delete a few Invitations
+     * const { count } = await prisma.invitation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InvitationDeleteManyArgs>(args?: SelectSubset<T, InvitationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Invitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Invitations
+     * const invitation = await prisma.invitation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InvitationUpdateManyArgs>(args: SelectSubset<T, InvitationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Invitation.
+     * @param {InvitationUpsertArgs} args - Arguments to update or create a Invitation.
+     * @example
+     * // Update or create a Invitation
+     * const invitation = await prisma.invitation.upsert({
+     *   create: {
+     *     // ... data to create a Invitation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Invitation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InvitationUpsertArgs>(args: SelectSubset<T, InvitationUpsertArgs<ExtArgs>>): Prisma__InvitationClient<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Invitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationCountArgs} args - Arguments to filter Invitations to count.
+     * @example
+     * // Count the number of Invitations
+     * const count = await prisma.invitation.count({
+     *   where: {
+     *     // ... the filter for the Invitations we want to count
+     *   }
+     * })
+    **/
+    count<T extends InvitationCountArgs>(
+      args?: Subset<T, InvitationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InvitationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Invitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InvitationAggregateArgs>(args: Subset<T, InvitationAggregateArgs>): Prisma.PrismaPromise<GetInvitationAggregateType<T>>
+
+    /**
+     * Group by Invitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvitationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InvitationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InvitationGroupByArgs['orderBy'] }
+        : { orderBy?: InvitationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InvitationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInvitationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Invitation model
+   */
+  readonly fields: InvitationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Invitation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InvitationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    invitedBy<T extends Invitation$invitedByArgs<ExtArgs> = {}>(args?: Subset<T, Invitation$invitedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Invitation model
+   */ 
+  interface InvitationFieldRefs {
+    readonly id: FieldRef<"Invitation", 'String'>
+    readonly tenantId: FieldRef<"Invitation", 'String'>
+    readonly email: FieldRef<"Invitation", 'String'>
+    readonly role: FieldRef<"Invitation", 'UserRole'>
+    readonly locationIds: FieldRef<"Invitation", 'String[]'>
+    readonly brandIds: FieldRef<"Invitation", 'String[]'>
+    readonly token: FieldRef<"Invitation", 'String'>
+    readonly expiresAt: FieldRef<"Invitation", 'DateTime'>
+    readonly acceptedAt: FieldRef<"Invitation", 'DateTime'>
+    readonly cancelledAt: FieldRef<"Invitation", 'DateTime'>
+    readonly invitedById: FieldRef<"Invitation", 'String'>
+    readonly createdAt: FieldRef<"Invitation", 'DateTime'>
+    readonly updatedAt: FieldRef<"Invitation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Invitation findUnique
+   */
+  export type InvitationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which Invitation to fetch.
+     */
+    where: InvitationWhereUniqueInput
+  }
+
+  /**
+   * Invitation findUniqueOrThrow
+   */
+  export type InvitationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which Invitation to fetch.
+     */
+    where: InvitationWhereUniqueInput
+  }
+
+  /**
+   * Invitation findFirst
+   */
+  export type InvitationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which Invitation to fetch.
+     */
+    where?: InvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invitations to fetch.
+     */
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Invitations.
+     */
+    cursor?: InvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invitations.
+     */
+    distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
+   * Invitation findFirstOrThrow
+   */
+  export type InvitationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which Invitation to fetch.
+     */
+    where?: InvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invitations to fetch.
+     */
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Invitations.
+     */
+    cursor?: InvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invitations.
+     */
+    distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
+   * Invitation findMany
+   */
+  export type InvitationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which Invitations to fetch.
+     */
+    where?: InvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invitations to fetch.
+     */
+    orderBy?: InvitationOrderByWithRelationInput | InvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Invitations.
+     */
+    cursor?: InvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invitations.
+     */
+    skip?: number
+    distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
+   * Invitation create
+   */
+  export type InvitationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Invitation.
+     */
+    data: XOR<InvitationCreateInput, InvitationUncheckedCreateInput>
+  }
+
+  /**
+   * Invitation createMany
+   */
+  export type InvitationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Invitations.
+     */
+    data: InvitationCreateManyInput | InvitationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Invitation createManyAndReturn
+   */
+  export type InvitationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Invitations.
+     */
+    data: InvitationCreateManyInput | InvitationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Invitation update
+   */
+  export type InvitationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Invitation.
+     */
+    data: XOR<InvitationUpdateInput, InvitationUncheckedUpdateInput>
+    /**
+     * Choose, which Invitation to update.
+     */
+    where: InvitationWhereUniqueInput
+  }
+
+  /**
+   * Invitation updateMany
+   */
+  export type InvitationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Invitations.
+     */
+    data: XOR<InvitationUpdateManyMutationInput, InvitationUncheckedUpdateManyInput>
+    /**
+     * Filter which Invitations to update
+     */
+    where?: InvitationWhereInput
+  }
+
+  /**
+   * Invitation upsert
+   */
+  export type InvitationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Invitation to update in case it exists.
+     */
+    where: InvitationWhereUniqueInput
+    /**
+     * In case the Invitation found by the `where` argument doesn't exist, create a new Invitation with this data.
+     */
+    create: XOR<InvitationCreateInput, InvitationUncheckedCreateInput>
+    /**
+     * In case the Invitation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InvitationUpdateInput, InvitationUncheckedUpdateInput>
+  }
+
+  /**
+   * Invitation delete
+   */
+  export type InvitationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
+    /**
+     * Filter which Invitation to delete.
+     */
+    where: InvitationWhereUniqueInput
+  }
+
+  /**
+   * Invitation deleteMany
+   */
+  export type InvitationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Invitations to delete
+     */
+    where?: InvitationWhereInput
+  }
+
+  /**
+   * Invitation.invitedBy
+   */
+  export type Invitation$invitedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * Invitation without action
+   */
+  export type InvitationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invitation
+     */
+    select?: InvitationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvitationInclude<ExtArgs> | null
   }
 
 
@@ -16989,6 +20298,7 @@ export namespace Prisma {
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
+    userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
 
@@ -17038,6 +20348,7 @@ export namespace Prisma {
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
+    userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17055,6 +20366,7 @@ export namespace Prisma {
       mealDeals: Prisma.$MealDealPayload<ExtArgs>[]
       upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
+      userBrands: Prisma.$UserBrandPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17444,6 +20756,7 @@ export namespace Prisma {
     mealDeals<T extends Brand$mealDealsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$mealDealsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findMany"> | Null>
     upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Brand$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
+    userBrands<T extends Brand$userBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$userBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17943,6 +21256,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BrandPlatformConnectionScalarFieldEnum | BrandPlatformConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.userBrands
+   */
+  export type Brand$userBrandsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBrand
+     */
+    select?: UserBrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserBrandInclude<ExtArgs> | null
+    where?: UserBrandWhereInput
+    orderBy?: UserBrandOrderByWithRelationInput | UserBrandOrderByWithRelationInput[]
+    cursor?: UserBrandWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
   }
 
   /**
@@ -18485,6 +21818,7 @@ export namespace Prisma {
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
+    userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
@@ -18597,6 +21931,7 @@ export namespace Prisma {
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
+    userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
@@ -18615,6 +21950,7 @@ export namespace Prisma {
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
+      userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
     }
@@ -19036,6 +22372,7 @@ export namespace Prisma {
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
@@ -19543,6 +22880,26 @@ export namespace Prisma {
      */
     include?: LocationPaymentConfigInclude<ExtArgs> | null
     where?: LocationPaymentConfigWhereInput
+  }
+
+  /**
+   * Location.userLocations
+   */
+  export type Location$userLocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserLocation
+     */
+    select?: UserLocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserLocationInclude<ExtArgs> | null
+    where?: UserLocationWhereInput
+    orderBy?: UserLocationOrderByWithRelationInput | UserLocationOrderByWithRelationInput[]
+    cursor?: UserLocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserLocationScalarFieldEnum | UserLocationScalarFieldEnum[]
   }
 
   /**
@@ -91521,6 +94878,45 @@ export namespace Prisma {
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const UserLocationScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    locationId: 'locationId',
+    createdAt: 'createdAt'
+  };
+
+  export type UserLocationScalarFieldEnum = (typeof UserLocationScalarFieldEnum)[keyof typeof UserLocationScalarFieldEnum]
+
+
+  export const UserBrandScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    brandId: 'brandId',
+    createdAt: 'createdAt'
+  };
+
+  export type UserBrandScalarFieldEnum = (typeof UserBrandScalarFieldEnum)[keyof typeof UserBrandScalarFieldEnum]
+
+
+  export const InvitationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    email: 'email',
+    role: 'role',
+    locationIds: 'locationIds',
+    brandIds: 'brandIds',
+    token: 'token',
+    expiresAt: 'expiresAt',
+    acceptedAt: 'acceptedAt',
+    cancelledAt: 'cancelledAt',
+    invitedById: 'invitedById',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InvitationScalarFieldEnum = (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum]
+
+
   export const CustomerAccountScalarFieldEnum: {
     id: 'id',
     email: 'email',
@@ -93041,6 +96437,37 @@ export namespace Prisma {
   };
 
   export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
+
+
+  export const UserLocationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    locationId: 'locationId'
+  };
+
+  export type UserLocationOrderByRelevanceFieldEnum = (typeof UserLocationOrderByRelevanceFieldEnum)[keyof typeof UserLocationOrderByRelevanceFieldEnum]
+
+
+  export const UserBrandOrderByRelevanceFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    brandId: 'brandId'
+  };
+
+  export type UserBrandOrderByRelevanceFieldEnum = (typeof UserBrandOrderByRelevanceFieldEnum)[keyof typeof UserBrandOrderByRelevanceFieldEnum]
+
+
+  export const InvitationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    email: 'email',
+    locationIds: 'locationIds',
+    brandIds: 'brandIds',
+    token: 'token',
+    invitedById: 'invitedById'
+  };
+
+  export type InvitationOrderByRelevanceFieldEnum = (typeof InvitationOrderByRelevanceFieldEnum)[keyof typeof InvitationOrderByRelevanceFieldEnum]
 
 
   export const CustomerAccountOrderByRelevanceFieldEnum: {
@@ -94679,6 +98106,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountListRelationFilter
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
+    invitations?: InvitationListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -94704,6 +98132,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountOrderByRelationAggregateInput
     branding?: TenantBrandingOrderByWithRelationInput
     subscription?: TenantSubscriptionOrderByWithRelationInput
+    invitations?: InvitationOrderByRelationAggregateInput
     _relevance?: TenantOrderByRelevanceInput
   }
 
@@ -94733,6 +98162,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountListRelationFilter
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
+    invitations?: InvitationListRelationFilter
   }, "id" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -94790,6 +98220,9 @@ export namespace Prisma {
     mfaConfig?: XOR<MfaConfigNullableRelationFilter, MfaConfigWhereInput> | null
     deviceSessions?: DeviceSessionListRelationFilter
     deviceTokens?: DeviceTokenListRelationFilter
+    locations?: UserLocationListRelationFilter
+    brands?: UserBrandListRelationFilter
+    invitationsSent?: InvitationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -94814,6 +98247,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigOrderByWithRelationInput
     deviceSessions?: DeviceSessionOrderByRelationAggregateInput
     deviceTokens?: DeviceTokenOrderByRelationAggregateInput
+    locations?: UserLocationOrderByRelationAggregateInput
+    brands?: UserBrandOrderByRelationAggregateInput
+    invitationsSent?: InvitationOrderByRelationAggregateInput
     _relevance?: UserOrderByRelevanceInput
   }
 
@@ -94842,6 +98278,9 @@ export namespace Prisma {
     mfaConfig?: XOR<MfaConfigNullableRelationFilter, MfaConfigWhereInput> | null
     deviceSessions?: DeviceSessionListRelationFilter
     deviceTokens?: DeviceTokenListRelationFilter
+    locations?: UserLocationListRelationFilter
+    brands?: UserBrandListRelationFilter
+    invitationsSent?: InvitationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -94882,6 +98321,215 @@ export namespace Prisma {
     lastLoginAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type UserLocationWhereInput = {
+    AND?: UserLocationWhereInput | UserLocationWhereInput[]
+    OR?: UserLocationWhereInput[]
+    NOT?: UserLocationWhereInput | UserLocationWhereInput[]
+    id?: StringFilter<"UserLocation"> | string
+    userId?: StringFilter<"UserLocation"> | string
+    locationId?: StringFilter<"UserLocation"> | string
+    createdAt?: DateTimeFilter<"UserLocation"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type UserLocationOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    _relevance?: UserLocationOrderByRelevanceInput
+  }
+
+  export type UserLocationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_locationId?: UserLocationUserIdLocationIdCompoundUniqueInput
+    AND?: UserLocationWhereInput | UserLocationWhereInput[]
+    OR?: UserLocationWhereInput[]
+    NOT?: UserLocationWhereInput | UserLocationWhereInput[]
+    userId?: StringFilter<"UserLocation"> | string
+    locationId?: StringFilter<"UserLocation"> | string
+    createdAt?: DateTimeFilter<"UserLocation"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "userId_locationId">
+
+  export type UserLocationOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    createdAt?: SortOrder
+    _count?: UserLocationCountOrderByAggregateInput
+    _max?: UserLocationMaxOrderByAggregateInput
+    _min?: UserLocationMinOrderByAggregateInput
+  }
+
+  export type UserLocationScalarWhereWithAggregatesInput = {
+    AND?: UserLocationScalarWhereWithAggregatesInput | UserLocationScalarWhereWithAggregatesInput[]
+    OR?: UserLocationScalarWhereWithAggregatesInput[]
+    NOT?: UserLocationScalarWhereWithAggregatesInput | UserLocationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserLocation"> | string
+    userId?: StringWithAggregatesFilter<"UserLocation"> | string
+    locationId?: StringWithAggregatesFilter<"UserLocation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"UserLocation"> | Date | string
+  }
+
+  export type UserBrandWhereInput = {
+    AND?: UserBrandWhereInput | UserBrandWhereInput[]
+    OR?: UserBrandWhereInput[]
+    NOT?: UserBrandWhereInput | UserBrandWhereInput[]
+    id?: StringFilter<"UserBrand"> | string
+    userId?: StringFilter<"UserBrand"> | string
+    brandId?: StringFilter<"UserBrand"> | string
+    createdAt?: DateTimeFilter<"UserBrand"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }
+
+  export type UserBrandOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    brandId?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: UserBrandOrderByRelevanceInput
+  }
+
+  export type UserBrandWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_brandId?: UserBrandUserIdBrandIdCompoundUniqueInput
+    AND?: UserBrandWhereInput | UserBrandWhereInput[]
+    OR?: UserBrandWhereInput[]
+    NOT?: UserBrandWhereInput | UserBrandWhereInput[]
+    userId?: StringFilter<"UserBrand"> | string
+    brandId?: StringFilter<"UserBrand"> | string
+    createdAt?: DateTimeFilter<"UserBrand"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }, "id" | "userId_brandId">
+
+  export type UserBrandOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    brandId?: SortOrder
+    createdAt?: SortOrder
+    _count?: UserBrandCountOrderByAggregateInput
+    _max?: UserBrandMaxOrderByAggregateInput
+    _min?: UserBrandMinOrderByAggregateInput
+  }
+
+  export type UserBrandScalarWhereWithAggregatesInput = {
+    AND?: UserBrandScalarWhereWithAggregatesInput | UserBrandScalarWhereWithAggregatesInput[]
+    OR?: UserBrandScalarWhereWithAggregatesInput[]
+    NOT?: UserBrandScalarWhereWithAggregatesInput | UserBrandScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserBrand"> | string
+    userId?: StringWithAggregatesFilter<"UserBrand"> | string
+    brandId?: StringWithAggregatesFilter<"UserBrand"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"UserBrand"> | Date | string
+  }
+
+  export type InvitationWhereInput = {
+    AND?: InvitationWhereInput | InvitationWhereInput[]
+    OR?: InvitationWhereInput[]
+    NOT?: InvitationWhereInput | InvitationWhereInput[]
+    id?: StringFilter<"Invitation"> | string
+    tenantId?: StringFilter<"Invitation"> | string
+    email?: StringFilter<"Invitation"> | string
+    role?: EnumUserRoleFilter<"Invitation"> | $Enums.UserRole
+    locationIds?: StringNullableListFilter<"Invitation">
+    brandIds?: StringNullableListFilter<"Invitation">
+    token?: StringFilter<"Invitation"> | string
+    expiresAt?: DateTimeFilter<"Invitation"> | Date | string
+    acceptedAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    invitedById?: StringNullableFilter<"Invitation"> | string | null
+    createdAt?: DateTimeFilter<"Invitation"> | Date | string
+    updatedAt?: DateTimeFilter<"Invitation"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    invitedBy?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }
+
+  export type InvitationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    email?: SortOrder
+    role?: SortOrder
+    locationIds?: SortOrder
+    brandIds?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    acceptedAt?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
+    invitedById?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    invitedBy?: UserOrderByWithRelationInput
+    _relevance?: InvitationOrderByRelevanceInput
+  }
+
+  export type InvitationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: InvitationWhereInput | InvitationWhereInput[]
+    OR?: InvitationWhereInput[]
+    NOT?: InvitationWhereInput | InvitationWhereInput[]
+    tenantId?: StringFilter<"Invitation"> | string
+    email?: StringFilter<"Invitation"> | string
+    role?: EnumUserRoleFilter<"Invitation"> | $Enums.UserRole
+    locationIds?: StringNullableListFilter<"Invitation">
+    brandIds?: StringNullableListFilter<"Invitation">
+    expiresAt?: DateTimeFilter<"Invitation"> | Date | string
+    acceptedAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    invitedById?: StringNullableFilter<"Invitation"> | string | null
+    createdAt?: DateTimeFilter<"Invitation"> | Date | string
+    updatedAt?: DateTimeFilter<"Invitation"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    invitedBy?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }, "id" | "token">
+
+  export type InvitationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    email?: SortOrder
+    role?: SortOrder
+    locationIds?: SortOrder
+    brandIds?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    acceptedAt?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
+    invitedById?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InvitationCountOrderByAggregateInput
+    _max?: InvitationMaxOrderByAggregateInput
+    _min?: InvitationMinOrderByAggregateInput
+  }
+
+  export type InvitationScalarWhereWithAggregatesInput = {
+    AND?: InvitationScalarWhereWithAggregatesInput | InvitationScalarWhereWithAggregatesInput[]
+    OR?: InvitationScalarWhereWithAggregatesInput[]
+    NOT?: InvitationScalarWhereWithAggregatesInput | InvitationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Invitation"> | string
+    tenantId?: StringWithAggregatesFilter<"Invitation"> | string
+    email?: StringWithAggregatesFilter<"Invitation"> | string
+    role?: EnumUserRoleWithAggregatesFilter<"Invitation"> | $Enums.UserRole
+    locationIds?: StringNullableListFilter<"Invitation">
+    brandIds?: StringNullableListFilter<"Invitation">
+    token?: StringWithAggregatesFilter<"Invitation"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"Invitation"> | Date | string
+    acceptedAt?: DateTimeNullableWithAggregatesFilter<"Invitation"> | Date | string | null
+    cancelledAt?: DateTimeNullableWithAggregatesFilter<"Invitation"> | Date | string | null
+    invitedById?: StringNullableWithAggregatesFilter<"Invitation"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Invitation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Invitation"> | Date | string
   }
 
   export type CustomerAccountWhereInput = {
@@ -95362,6 +99010,7 @@ export namespace Prisma {
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
+    userBrands?: UserBrandListRelationFilter
   }
 
   export type BrandOrderByWithRelationInput = {
@@ -95388,6 +99037,7 @@ export namespace Prisma {
     mealDeals?: MealDealOrderByRelationAggregateInput
     upsellGroups?: UpsellGroupOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
+    userBrands?: UserBrandOrderByRelationAggregateInput
     _relevance?: BrandOrderByRelevanceInput
   }
 
@@ -95419,6 +99069,7 @@ export namespace Prisma {
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
+    userBrands?: UserBrandListRelationFilter
   }, "id" | "tenantId_slug">
 
   export type BrandOrderByWithAggregationInput = {
@@ -95520,6 +99171,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
+    userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
   }
@@ -95578,6 +99230,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
+    userLocations?: UserLocationOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
@@ -95640,6 +99293,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
+    userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
@@ -102520,6 +106174,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -102545,6 +106200,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -102570,6 +106226,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -102595,6 +106252,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -102654,6 +106312,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -102677,6 +106338,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUpdateInput = {
@@ -102700,6 +106364,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -102723,6 +106390,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -102771,6 +106441,210 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutLocationsInput
+    location: LocationCreateNestedOneWithoutUserLocationsInput
+  }
+
+  export type UserLocationUncheckedCreateInput = {
+    id?: string
+    userId: string
+    locationId: string
+    createdAt?: Date | string
+  }
+
+  export type UserLocationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutLocationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutUserLocationsNestedInput
+  }
+
+  export type UserLocationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationCreateManyInput = {
+    id?: string
+    userId: string
+    locationId: string
+    createdAt?: Date | string
+  }
+
+  export type UserLocationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutBrandsInput
+    brand: BrandCreateNestedOneWithoutUserBrandsInput
+  }
+
+  export type UserBrandUncheckedCreateInput = {
+    id?: string
+    userId: string
+    brandId: string
+    createdAt?: Date | string
+  }
+
+  export type UserBrandUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBrandsNestedInput
+    brand?: BrandUpdateOneRequiredWithoutUserBrandsNestedInput
+  }
+
+  export type UserBrandUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandCreateManyInput = {
+    id?: string
+    userId: string
+    brandId: string
+    createdAt?: Date | string
+  }
+
+  export type UserBrandUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationCreateInput = {
+    id?: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutInvitationsInput
+    invitedBy?: UserCreateNestedOneWithoutInvitationsSentInput
+  }
+
+  export type InvitationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    invitedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InvitationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutInvitationsNestedInput
+    invitedBy?: UserUpdateOneWithoutInvitationsSentNestedInput
+  }
+
+  export type InvitationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    invitedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationCreateManyInput = {
+    id?: string
+    tenantId: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    invitedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InvitationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    invitedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -103316,6 +107190,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateInput = {
@@ -103341,6 +107216,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -103366,6 +107242,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateInput = {
@@ -103391,6 +107268,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -103499,6 +107377,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -103556,6 +107435,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -103613,6 +107493,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -103670,6 +107551,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -111652,6 +115534,12 @@ export namespace Prisma {
     isNot?: TenantSubscriptionWhereInput | null
   }
 
+  export type InvitationListRelationFilter = {
+    every?: InvitationWhereInput
+    some?: InvitationWhereInput
+    none?: InvitationWhereInput
+  }
+
   export type BrandOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -111693,6 +115581,10 @@ export namespace Prisma {
   }
 
   export type StripeConnectAccountOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type InvitationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -111899,6 +115791,18 @@ export namespace Prisma {
     none?: DeviceTokenWhereInput
   }
 
+  export type UserLocationListRelationFilter = {
+    every?: UserLocationWhereInput
+    some?: UserLocationWhereInput
+    none?: UserLocationWhereInput
+  }
+
+  export type UserBrandListRelationFilter = {
+    every?: UserBrandWhereInput
+    some?: UserBrandWhereInput
+    none?: UserBrandWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -111921,6 +115825,14 @@ export namespace Prisma {
   }
 
   export type DeviceTokenOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserLocationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserBrandOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -112030,6 +115942,140 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
+  export type UserRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type LocationRelationFilter = {
+    is?: LocationWhereInput
+    isNot?: LocationWhereInput
+  }
+
+  export type UserLocationOrderByRelevanceInput = {
+    fields: UserLocationOrderByRelevanceFieldEnum | UserLocationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type UserLocationUserIdLocationIdCompoundUniqueInput = {
+    userId: string
+    locationId: string
+  }
+
+  export type UserLocationCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserLocationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserLocationMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BrandRelationFilter = {
+    is?: BrandWhereInput
+    isNot?: BrandWhereInput
+  }
+
+  export type UserBrandOrderByRelevanceInput = {
+    fields: UserBrandOrderByRelevanceFieldEnum | UserBrandOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type UserBrandUserIdBrandIdCompoundUniqueInput = {
+    userId: string
+    brandId: string
+  }
+
+  export type UserBrandCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    brandId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserBrandMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    brandId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserBrandMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    brandId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserNullableRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
+  export type InvitationOrderByRelevanceInput = {
+    fields: InvitationOrderByRelevanceFieldEnum | InvitationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type InvitationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    email?: SortOrder
+    role?: SortOrder
+    locationIds?: SortOrder
+    brandIds?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    acceptedAt?: SortOrder
+    cancelledAt?: SortOrder
+    invitedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InvitationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    email?: SortOrder
+    role?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    acceptedAt?: SortOrder
+    cancelledAt?: SortOrder
+    invitedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InvitationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    email?: SortOrder
+    role?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    acceptedAt?: SortOrder
+    cancelledAt?: SortOrder
+    invitedById?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type CustomerAccountOrderByRelevanceInput = {
     fields: CustomerAccountOrderByRelevanceFieldEnum | CustomerAccountOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -112085,11 +116131,6 @@ export namespace Prisma {
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type UserRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
   }
 
   export type RefreshTokenOrderByRelevanceInput = {
@@ -112301,11 +116342,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type UserNullableRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
-  }
-
   export type AuditLogOrderByRelevanceInput = {
     fields: AuditLogOrderByRelevanceFieldEnum | AuditLogOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -112510,11 +116546,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type BrandRelationFilter = {
-    is?: BrandWhereInput
-    isNot?: BrandWhereInput
   }
 
   export type IntegrationListRelationFilter = {
@@ -112780,11 +116811,6 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type LocationRelationFilter = {
-    is?: LocationWhereInput
-    isNot?: LocationWhereInput
   }
 
   export type BrandPlatformConnectionOrderByRelevanceInput = {
@@ -118074,6 +122100,13 @@ export namespace Prisma {
     connect?: TenantSubscriptionWhereUniqueInput
   }
 
+  export type InvitationCreateNestedManyWithoutTenantInput = {
+    create?: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput> | InvitationCreateWithoutTenantInput[] | InvitationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
+    createMany?: InvitationCreateManyTenantInputEnvelope
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+  }
+
   export type BrandUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -118161,6 +122194,13 @@ export namespace Prisma {
     create?: XOR<TenantSubscriptionCreateWithoutTenantInput, TenantSubscriptionUncheckedCreateWithoutTenantInput>
     connectOrCreate?: TenantSubscriptionCreateOrConnectWithoutTenantInput
     connect?: TenantSubscriptionWhereUniqueInput
+  }
+
+  export type InvitationUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput> | InvitationCreateWithoutTenantInput[] | InvitationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
+    createMany?: InvitationCreateManyTenantInputEnvelope
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -118353,6 +122393,20 @@ export namespace Prisma {
     update?: XOR<XOR<TenantSubscriptionUpdateToOneWithWhereWithoutTenantInput, TenantSubscriptionUpdateWithoutTenantInput>, TenantSubscriptionUncheckedUpdateWithoutTenantInput>
   }
 
+  export type InvitationUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput> | InvitationCreateWithoutTenantInput[] | InvitationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
+    upsert?: InvitationUpsertWithWhereUniqueWithoutTenantInput | InvitationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: InvitationCreateManyTenantInputEnvelope
+    set?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    disconnect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    delete?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    update?: InvitationUpdateWithWhereUniqueWithoutTenantInput | InvitationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: InvitationUpdateManyWithWhereWithoutTenantInput | InvitationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+  }
+
   export type BrandUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -118527,6 +122581,20 @@ export namespace Prisma {
     update?: XOR<XOR<TenantSubscriptionUpdateToOneWithWhereWithoutTenantInput, TenantSubscriptionUpdateWithoutTenantInput>, TenantSubscriptionUncheckedUpdateWithoutTenantInput>
   }
 
+  export type InvitationUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput> | InvitationCreateWithoutTenantInput[] | InvitationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
+    upsert?: InvitationUpsertWithWhereUniqueWithoutTenantInput | InvitationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: InvitationCreateManyTenantInputEnvelope
+    set?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    disconnect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    delete?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    update?: InvitationUpdateWithWhereUniqueWithoutTenantInput | InvitationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: InvitationUpdateManyWithWhereWithoutTenantInput | InvitationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+  }
+
   export type UserCreatepermissionsInput = {
     set: string[]
   }
@@ -118578,6 +122646,27 @@ export namespace Prisma {
     connect?: DeviceTokenWhereUniqueInput | DeviceTokenWhereUniqueInput[]
   }
 
+  export type UserLocationCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput> | UserLocationCreateWithoutUserInput[] | UserLocationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutUserInput | UserLocationCreateOrConnectWithoutUserInput[]
+    createMany?: UserLocationCreateManyUserInputEnvelope
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+  }
+
+  export type UserBrandCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput> | UserBrandCreateWithoutUserInput[] | UserBrandUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutUserInput | UserBrandCreateOrConnectWithoutUserInput[]
+    createMany?: UserBrandCreateManyUserInputEnvelope
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+  }
+
+  export type InvitationCreateNestedManyWithoutInvitedByInput = {
+    create?: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput> | InvitationCreateWithoutInvitedByInput[] | InvitationUncheckedCreateWithoutInvitedByInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutInvitedByInput | InvitationCreateOrConnectWithoutInvitedByInput[]
+    createMany?: InvitationCreateManyInvitedByInputEnvelope
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+  }
+
   export type RefreshTokenUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<RefreshTokenCreateWithoutUserInput, RefreshTokenUncheckedCreateWithoutUserInput> | RefreshTokenCreateWithoutUserInput[] | RefreshTokenUncheckedCreateWithoutUserInput[]
     connectOrCreate?: RefreshTokenCreateOrConnectWithoutUserInput | RefreshTokenCreateOrConnectWithoutUserInput[]
@@ -118617,6 +122706,27 @@ export namespace Prisma {
     connectOrCreate?: DeviceTokenCreateOrConnectWithoutUserInput | DeviceTokenCreateOrConnectWithoutUserInput[]
     createMany?: DeviceTokenCreateManyUserInputEnvelope
     connect?: DeviceTokenWhereUniqueInput | DeviceTokenWhereUniqueInput[]
+  }
+
+  export type UserLocationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput> | UserLocationCreateWithoutUserInput[] | UserLocationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutUserInput | UserLocationCreateOrConnectWithoutUserInput[]
+    createMany?: UserLocationCreateManyUserInputEnvelope
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+  }
+
+  export type UserBrandUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput> | UserBrandCreateWithoutUserInput[] | UserBrandUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutUserInput | UserBrandCreateOrConnectWithoutUserInput[]
+    createMany?: UserBrandCreateManyUserInputEnvelope
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+  }
+
+  export type InvitationUncheckedCreateNestedManyWithoutInvitedByInput = {
+    create?: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput> | InvitationCreateWithoutInvitedByInput[] | InvitationUncheckedCreateWithoutInvitedByInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutInvitedByInput | InvitationCreateOrConnectWithoutInvitedByInput[]
+    createMany?: InvitationCreateManyInvitedByInputEnvelope
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -118728,6 +122838,48 @@ export namespace Prisma {
     deleteMany?: DeviceTokenScalarWhereInput | DeviceTokenScalarWhereInput[]
   }
 
+  export type UserLocationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput> | UserLocationCreateWithoutUserInput[] | UserLocationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutUserInput | UserLocationCreateOrConnectWithoutUserInput[]
+    upsert?: UserLocationUpsertWithWhereUniqueWithoutUserInput | UserLocationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserLocationCreateManyUserInputEnvelope
+    set?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    disconnect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    delete?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    update?: UserLocationUpdateWithWhereUniqueWithoutUserInput | UserLocationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserLocationUpdateManyWithWhereWithoutUserInput | UserLocationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
+  }
+
+  export type UserBrandUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput> | UserBrandCreateWithoutUserInput[] | UserBrandUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutUserInput | UserBrandCreateOrConnectWithoutUserInput[]
+    upsert?: UserBrandUpsertWithWhereUniqueWithoutUserInput | UserBrandUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserBrandCreateManyUserInputEnvelope
+    set?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    disconnect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    delete?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    update?: UserBrandUpdateWithWhereUniqueWithoutUserInput | UserBrandUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserBrandUpdateManyWithWhereWithoutUserInput | UserBrandUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+  }
+
+  export type InvitationUpdateManyWithoutInvitedByNestedInput = {
+    create?: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput> | InvitationCreateWithoutInvitedByInput[] | InvitationUncheckedCreateWithoutInvitedByInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutInvitedByInput | InvitationCreateOrConnectWithoutInvitedByInput[]
+    upsert?: InvitationUpsertWithWhereUniqueWithoutInvitedByInput | InvitationUpsertWithWhereUniqueWithoutInvitedByInput[]
+    createMany?: InvitationCreateManyInvitedByInputEnvelope
+    set?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    disconnect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    delete?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    update?: InvitationUpdateWithWhereUniqueWithoutInvitedByInput | InvitationUpdateWithWhereUniqueWithoutInvitedByInput[]
+    updateMany?: InvitationUpdateManyWithWhereWithoutInvitedByInput | InvitationUpdateManyWithWhereWithoutInvitedByInput[]
+    deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+  }
+
   export type RefreshTokenUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<RefreshTokenCreateWithoutUserInput, RefreshTokenUncheckedCreateWithoutUserInput> | RefreshTokenCreateWithoutUserInput[] | RefreshTokenUncheckedCreateWithoutUserInput[]
     connectOrCreate?: RefreshTokenCreateOrConnectWithoutUserInput | RefreshTokenCreateOrConnectWithoutUserInput[]
@@ -118806,6 +122958,152 @@ export namespace Prisma {
     update?: DeviceTokenUpdateWithWhereUniqueWithoutUserInput | DeviceTokenUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: DeviceTokenUpdateManyWithWhereWithoutUserInput | DeviceTokenUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: DeviceTokenScalarWhereInput | DeviceTokenScalarWhereInput[]
+  }
+
+  export type UserLocationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput> | UserLocationCreateWithoutUserInput[] | UserLocationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutUserInput | UserLocationCreateOrConnectWithoutUserInput[]
+    upsert?: UserLocationUpsertWithWhereUniqueWithoutUserInput | UserLocationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserLocationCreateManyUserInputEnvelope
+    set?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    disconnect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    delete?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    update?: UserLocationUpdateWithWhereUniqueWithoutUserInput | UserLocationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserLocationUpdateManyWithWhereWithoutUserInput | UserLocationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
+  }
+
+  export type UserBrandUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput> | UserBrandCreateWithoutUserInput[] | UserBrandUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutUserInput | UserBrandCreateOrConnectWithoutUserInput[]
+    upsert?: UserBrandUpsertWithWhereUniqueWithoutUserInput | UserBrandUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserBrandCreateManyUserInputEnvelope
+    set?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    disconnect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    delete?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    update?: UserBrandUpdateWithWhereUniqueWithoutUserInput | UserBrandUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserBrandUpdateManyWithWhereWithoutUserInput | UserBrandUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+  }
+
+  export type InvitationUncheckedUpdateManyWithoutInvitedByNestedInput = {
+    create?: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput> | InvitationCreateWithoutInvitedByInput[] | InvitationUncheckedCreateWithoutInvitedByInput[]
+    connectOrCreate?: InvitationCreateOrConnectWithoutInvitedByInput | InvitationCreateOrConnectWithoutInvitedByInput[]
+    upsert?: InvitationUpsertWithWhereUniqueWithoutInvitedByInput | InvitationUpsertWithWhereUniqueWithoutInvitedByInput[]
+    createMany?: InvitationCreateManyInvitedByInputEnvelope
+    set?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    disconnect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    delete?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+    update?: InvitationUpdateWithWhereUniqueWithoutInvitedByInput | InvitationUpdateWithWhereUniqueWithoutInvitedByInput[]
+    updateMany?: InvitationUpdateManyWithWhereWithoutInvitedByInput | InvitationUpdateManyWithWhereWithoutInvitedByInput[]
+    deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutLocationsInput = {
+    create?: XOR<UserCreateWithoutLocationsInput, UserUncheckedCreateWithoutLocationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutLocationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutUserLocationsInput = {
+    create?: XOR<LocationCreateWithoutUserLocationsInput, LocationUncheckedCreateWithoutUserLocationsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutUserLocationsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutLocationsNestedInput = {
+    create?: XOR<UserCreateWithoutLocationsInput, UserUncheckedCreateWithoutLocationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutLocationsInput
+    upsert?: UserUpsertWithoutLocationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutLocationsInput, UserUpdateWithoutLocationsInput>, UserUncheckedUpdateWithoutLocationsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutUserLocationsNestedInput = {
+    create?: XOR<LocationCreateWithoutUserLocationsInput, LocationUncheckedCreateWithoutUserLocationsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutUserLocationsInput
+    upsert?: LocationUpsertWithoutUserLocationsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutUserLocationsInput, LocationUpdateWithoutUserLocationsInput>, LocationUncheckedUpdateWithoutUserLocationsInput>
+  }
+
+  export type UserCreateNestedOneWithoutBrandsInput = {
+    create?: XOR<UserCreateWithoutBrandsInput, UserUncheckedCreateWithoutBrandsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBrandsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type BrandCreateNestedOneWithoutUserBrandsInput = {
+    create?: XOR<BrandCreateWithoutUserBrandsInput, BrandUncheckedCreateWithoutUserBrandsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutUserBrandsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutBrandsNestedInput = {
+    create?: XOR<UserCreateWithoutBrandsInput, UserUncheckedCreateWithoutBrandsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBrandsInput
+    upsert?: UserUpsertWithoutBrandsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBrandsInput, UserUpdateWithoutBrandsInput>, UserUncheckedUpdateWithoutBrandsInput>
+  }
+
+  export type BrandUpdateOneRequiredWithoutUserBrandsNestedInput = {
+    create?: XOR<BrandCreateWithoutUserBrandsInput, BrandUncheckedCreateWithoutUserBrandsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutUserBrandsInput
+    upsert?: BrandUpsertWithoutUserBrandsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutUserBrandsInput, BrandUpdateWithoutUserBrandsInput>, BrandUncheckedUpdateWithoutUserBrandsInput>
+  }
+
+  export type InvitationCreatelocationIdsInput = {
+    set: string[]
+  }
+
+  export type InvitationCreatebrandIdsInput = {
+    set: string[]
+  }
+
+  export type TenantCreateNestedOneWithoutInvitationsInput = {
+    create?: XOR<TenantCreateWithoutInvitationsInput, TenantUncheckedCreateWithoutInvitationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutInvitationsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutInvitationsSentInput = {
+    create?: XOR<UserCreateWithoutInvitationsSentInput, UserUncheckedCreateWithoutInvitationsSentInput>
+    connectOrCreate?: UserCreateOrConnectWithoutInvitationsSentInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type InvitationUpdatelocationIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type InvitationUpdatebrandIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutInvitationsNestedInput = {
+    create?: XOR<TenantCreateWithoutInvitationsInput, TenantUncheckedCreateWithoutInvitationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutInvitationsInput
+    upsert?: TenantUpsertWithoutInvitationsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutInvitationsInput, TenantUpdateWithoutInvitationsInput>, TenantUncheckedUpdateWithoutInvitationsInput>
+  }
+
+  export type UserUpdateOneWithoutInvitationsSentNestedInput = {
+    create?: XOR<UserCreateWithoutInvitationsSentInput, UserUncheckedCreateWithoutInvitationsSentInput>
+    connectOrCreate?: UserCreateOrConnectWithoutInvitationsSentInput
+    upsert?: UserUpsertWithoutInvitationsSentInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutInvitationsSentInput, UserUpdateWithoutInvitationsSentInput>, UserUncheckedUpdateWithoutInvitationsSentInput>
   }
 
   export type OrderCreateNestedManyWithoutCustomerAccountInput = {
@@ -118976,6 +123274,13 @@ export namespace Prisma {
     connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
   }
 
+  export type UserBrandCreateNestedManyWithoutBrandInput = {
+    create?: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput> | UserBrandCreateWithoutBrandInput[] | UserBrandUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutBrandInput | UserBrandCreateOrConnectWithoutBrandInput[]
+    createMany?: UserBrandCreateManyBrandInputEnvelope
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+  }
+
   export type LocationUncheckedCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -119023,6 +123328,13 @@ export namespace Prisma {
     connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutBrandInput | BrandPlatformConnectionCreateOrConnectWithoutBrandInput[]
     createMany?: BrandPlatformConnectionCreateManyBrandInputEnvelope
     connect?: BrandPlatformConnectionWhereUniqueInput | BrandPlatformConnectionWhereUniqueInput[]
+  }
+
+  export type UserBrandUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput> | UserBrandCreateWithoutBrandInput[] | UserBrandUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutBrandInput | UserBrandCreateOrConnectWithoutBrandInput[]
+    createMany?: UserBrandCreateManyBrandInputEnvelope
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
   }
 
   export type TenantUpdateOneRequiredWithoutBrandsNestedInput = {
@@ -119131,6 +123443,20 @@ export namespace Prisma {
     deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
   }
 
+  export type UserBrandUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput> | UserBrandCreateWithoutBrandInput[] | UserBrandUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutBrandInput | UserBrandCreateOrConnectWithoutBrandInput[]
+    upsert?: UserBrandUpsertWithWhereUniqueWithoutBrandInput | UserBrandUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: UserBrandCreateManyBrandInputEnvelope
+    set?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    disconnect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    delete?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    update?: UserBrandUpdateWithWhereUniqueWithoutBrandInput | UserBrandUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: UserBrandUpdateManyWithWhereWithoutBrandInput | UserBrandUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+  }
+
   export type LocationUncheckedUpdateManyWithoutBrandNestedInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -119229,6 +123555,20 @@ export namespace Prisma {
     deleteMany?: BrandPlatformConnectionScalarWhereInput | BrandPlatformConnectionScalarWhereInput[]
   }
 
+  export type UserBrandUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput> | UserBrandCreateWithoutBrandInput[] | UserBrandUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: UserBrandCreateOrConnectWithoutBrandInput | UserBrandCreateOrConnectWithoutBrandInput[]
+    upsert?: UserBrandUpsertWithWhereUniqueWithoutBrandInput | UserBrandUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: UserBrandCreateManyBrandInputEnvelope
+    set?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    disconnect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    delete?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+    update?: UserBrandUpdateWithWhereUniqueWithoutBrandInput | UserBrandUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: UserBrandUpdateManyWithWhereWithoutBrandInput | UserBrandUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+  }
+
   export type BrandCreateNestedOneWithoutLocationsInput = {
     create?: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutLocationsInput
@@ -119274,6 +123614,13 @@ export namespace Prisma {
     create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
     connect?: LocationPaymentConfigWhereUniqueInput
+  }
+
+  export type UserLocationCreateNestedManyWithoutLocationInput = {
+    create?: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput> | UserLocationCreateWithoutLocationInput[] | UserLocationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutLocationInput | UserLocationCreateOrConnectWithoutLocationInput[]
+    createMany?: UserLocationCreateManyLocationInputEnvelope
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
   }
 
   export type BrandPlatformConnectionCreateNestedManyWithoutLocationInput = {
@@ -119328,6 +123675,13 @@ export namespace Prisma {
     create?: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LocationPaymentConfigCreateOrConnectWithoutLocationInput
     connect?: LocationPaymentConfigWhereUniqueInput
+  }
+
+  export type UserLocationUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput> | UserLocationCreateWithoutLocationInput[] | UserLocationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutLocationInput | UserLocationCreateOrConnectWithoutLocationInput[]
+    createMany?: UserLocationCreateManyLocationInputEnvelope
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
   }
 
   export type BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput = {
@@ -119459,6 +123813,20 @@ export namespace Prisma {
     update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type UserLocationUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput> | UserLocationCreateWithoutLocationInput[] | UserLocationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutLocationInput | UserLocationCreateOrConnectWithoutLocationInput[]
+    upsert?: UserLocationUpsertWithWhereUniqueWithoutLocationInput | UserLocationUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: UserLocationCreateManyLocationInputEnvelope
+    set?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    disconnect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    delete?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    update?: UserLocationUpdateWithWhereUniqueWithoutLocationInput | UserLocationUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: UserLocationUpdateManyWithWhereWithoutLocationInput | UserLocationUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
+  }
+
   export type BrandPlatformConnectionUpdateManyWithoutLocationNestedInput = {
     create?: XOR<BrandPlatformConnectionCreateWithoutLocationInput, BrandPlatformConnectionUncheckedCreateWithoutLocationInput> | BrandPlatformConnectionCreateWithoutLocationInput[] | BrandPlatformConnectionUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: BrandPlatformConnectionCreateOrConnectWithoutLocationInput | BrandPlatformConnectionCreateOrConnectWithoutLocationInput[]
@@ -119561,6 +123929,20 @@ export namespace Prisma {
     delete?: LocationPaymentConfigWhereInput | boolean
     connect?: LocationPaymentConfigWhereUniqueInput
     update?: XOR<XOR<LocationPaymentConfigUpdateToOneWithWhereWithoutLocationInput, LocationPaymentConfigUpdateWithoutLocationInput>, LocationPaymentConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type UserLocationUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput> | UserLocationCreateWithoutLocationInput[] | UserLocationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: UserLocationCreateOrConnectWithoutLocationInput | UserLocationCreateOrConnectWithoutLocationInput[]
+    upsert?: UserLocationUpsertWithWhereUniqueWithoutLocationInput | UserLocationUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: UserLocationCreateManyLocationInputEnvelope
+    set?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    disconnect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    delete?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    connect?: UserLocationWhereUniqueInput | UserLocationWhereUniqueInput[]
+    update?: UserLocationUpdateWithWhereUniqueWithoutLocationInput | UserLocationUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: UserLocationUpdateManyWithWhereWithoutLocationInput | UserLocationUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
   }
 
   export type BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -123698,6 +128080,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutTenantInput = {
@@ -123722,6 +128105,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -123754,6 +128138,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutTenantInput = {
@@ -123776,6 +128163,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutTenantInput = {
@@ -124348,6 +128738,46 @@ export namespace Prisma {
     create: XOR<TenantSubscriptionCreateWithoutTenantInput, TenantSubscriptionUncheckedCreateWithoutTenantInput>
   }
 
+  export type InvitationCreateWithoutTenantInput = {
+    id?: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    invitedBy?: UserCreateNestedOneWithoutInvitationsSentInput
+  }
+
+  export type InvitationUncheckedCreateWithoutTenantInput = {
+    id?: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    invitedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InvitationCreateOrConnectWithoutTenantInput = {
+    where: InvitationWhereUniqueInput
+    create: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type InvitationCreateManyTenantInputEnvelope = {
+    data: InvitationCreateManyTenantInput | InvitationCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithWhereUniqueWithoutTenantInput = {
     where: BrandWhereUniqueInput
     update: XOR<BrandUpdateWithoutTenantInput, BrandUncheckedUpdateWithoutTenantInput>
@@ -124882,6 +129312,41 @@ export namespace Prisma {
     usageRecords?: UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
+  export type InvitationUpsertWithWhereUniqueWithoutTenantInput = {
+    where: InvitationWhereUniqueInput
+    update: XOR<InvitationUpdateWithoutTenantInput, InvitationUncheckedUpdateWithoutTenantInput>
+    create: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type InvitationUpdateWithWhereUniqueWithoutTenantInput = {
+    where: InvitationWhereUniqueInput
+    data: XOR<InvitationUpdateWithoutTenantInput, InvitationUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type InvitationUpdateManyWithWhereWithoutTenantInput = {
+    where: InvitationScalarWhereInput
+    data: XOR<InvitationUpdateManyMutationInput, InvitationUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type InvitationScalarWhereInput = {
+    AND?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+    OR?: InvitationScalarWhereInput[]
+    NOT?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+    id?: StringFilter<"Invitation"> | string
+    tenantId?: StringFilter<"Invitation"> | string
+    email?: StringFilter<"Invitation"> | string
+    role?: EnumUserRoleFilter<"Invitation"> | $Enums.UserRole
+    locationIds?: StringNullableListFilter<"Invitation">
+    brandIds?: StringNullableListFilter<"Invitation">
+    token?: StringFilter<"Invitation"> | string
+    expiresAt?: DateTimeFilter<"Invitation"> | Date | string
+    acceptedAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"Invitation"> | Date | string | null
+    invitedById?: StringNullableFilter<"Invitation"> | string | null
+    createdAt?: DateTimeFilter<"Invitation"> | Date | string
+    updatedAt?: DateTimeFilter<"Invitation"> | Date | string
+  }
+
   export type TenantCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -124904,6 +129369,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -124928,6 +129394,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -125142,6 +129609,90 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserLocationCreateWithoutUserInput = {
+    id?: string
+    createdAt?: Date | string
+    location: LocationCreateNestedOneWithoutUserLocationsInput
+  }
+
+  export type UserLocationUncheckedCreateWithoutUserInput = {
+    id?: string
+    locationId: string
+    createdAt?: Date | string
+  }
+
+  export type UserLocationCreateOrConnectWithoutUserInput = {
+    where: UserLocationWhereUniqueInput
+    create: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserLocationCreateManyUserInputEnvelope = {
+    data: UserLocationCreateManyUserInput | UserLocationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserBrandCreateWithoutUserInput = {
+    id?: string
+    createdAt?: Date | string
+    brand: BrandCreateNestedOneWithoutUserBrandsInput
+  }
+
+  export type UserBrandUncheckedCreateWithoutUserInput = {
+    id?: string
+    brandId: string
+    createdAt?: Date | string
+  }
+
+  export type UserBrandCreateOrConnectWithoutUserInput = {
+    where: UserBrandWhereUniqueInput
+    create: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserBrandCreateManyUserInputEnvelope = {
+    data: UserBrandCreateManyUserInput | UserBrandCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type InvitationCreateWithoutInvitedByInput = {
+    id?: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutInvitationsInput
+  }
+
+  export type InvitationUncheckedCreateWithoutInvitedByInput = {
+    id?: string
+    tenantId: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InvitationCreateOrConnectWithoutInvitedByInput = {
+    where: InvitationWhereUniqueInput
+    create: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput>
+  }
+
+  export type InvitationCreateManyInvitedByInputEnvelope = {
+    data: InvitationCreateManyInvitedByInput | InvitationCreateManyInvitedByInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutUsersInput = {
     update: XOR<TenantUpdateWithoutUsersInput, TenantUncheckedUpdateWithoutUsersInput>
     create: XOR<TenantCreateWithoutUsersInput, TenantUncheckedCreateWithoutUsersInput>
@@ -125175,6 +129726,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -125199,6 +129751,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type RefreshTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -125397,6 +129950,898 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"DeviceToken"> | Date | string
   }
 
+  export type UserLocationUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserLocationWhereUniqueInput
+    update: XOR<UserLocationUpdateWithoutUserInput, UserLocationUncheckedUpdateWithoutUserInput>
+    create: XOR<UserLocationCreateWithoutUserInput, UserLocationUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserLocationUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserLocationWhereUniqueInput
+    data: XOR<UserLocationUpdateWithoutUserInput, UserLocationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserLocationUpdateManyWithWhereWithoutUserInput = {
+    where: UserLocationScalarWhereInput
+    data: XOR<UserLocationUpdateManyMutationInput, UserLocationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserLocationScalarWhereInput = {
+    AND?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
+    OR?: UserLocationScalarWhereInput[]
+    NOT?: UserLocationScalarWhereInput | UserLocationScalarWhereInput[]
+    id?: StringFilter<"UserLocation"> | string
+    userId?: StringFilter<"UserLocation"> | string
+    locationId?: StringFilter<"UserLocation"> | string
+    createdAt?: DateTimeFilter<"UserLocation"> | Date | string
+  }
+
+  export type UserBrandUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserBrandWhereUniqueInput
+    update: XOR<UserBrandUpdateWithoutUserInput, UserBrandUncheckedUpdateWithoutUserInput>
+    create: XOR<UserBrandCreateWithoutUserInput, UserBrandUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserBrandUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserBrandWhereUniqueInput
+    data: XOR<UserBrandUpdateWithoutUserInput, UserBrandUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserBrandUpdateManyWithWhereWithoutUserInput = {
+    where: UserBrandScalarWhereInput
+    data: XOR<UserBrandUpdateManyMutationInput, UserBrandUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserBrandScalarWhereInput = {
+    AND?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+    OR?: UserBrandScalarWhereInput[]
+    NOT?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+    id?: StringFilter<"UserBrand"> | string
+    userId?: StringFilter<"UserBrand"> | string
+    brandId?: StringFilter<"UserBrand"> | string
+    createdAt?: DateTimeFilter<"UserBrand"> | Date | string
+  }
+
+  export type InvitationUpsertWithWhereUniqueWithoutInvitedByInput = {
+    where: InvitationWhereUniqueInput
+    update: XOR<InvitationUpdateWithoutInvitedByInput, InvitationUncheckedUpdateWithoutInvitedByInput>
+    create: XOR<InvitationCreateWithoutInvitedByInput, InvitationUncheckedCreateWithoutInvitedByInput>
+  }
+
+  export type InvitationUpdateWithWhereUniqueWithoutInvitedByInput = {
+    where: InvitationWhereUniqueInput
+    data: XOR<InvitationUpdateWithoutInvitedByInput, InvitationUncheckedUpdateWithoutInvitedByInput>
+  }
+
+  export type InvitationUpdateManyWithWhereWithoutInvitedByInput = {
+    where: InvitationScalarWhereInput
+    data: XOR<InvitationUpdateManyMutationInput, InvitationUncheckedUpdateManyWithoutInvitedByInput>
+  }
+
+  export type UserCreateWithoutLocationsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutUsersInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
+  }
+
+  export type UserUncheckedCreateWithoutLocationsInput = {
+    id?: string
+    tenantId: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  }
+
+  export type UserCreateOrConnectWithoutLocationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutLocationsInput, UserUncheckedCreateWithoutLocationsInput>
+  }
+
+  export type LocationCreateWithoutUserLocationsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutUserLocationsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutUserLocationsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutUserLocationsInput, LocationUncheckedCreateWithoutUserLocationsInput>
+  }
+
+  export type UserUpsertWithoutLocationsInput = {
+    update: XOR<UserUpdateWithoutLocationsInput, UserUncheckedUpdateWithoutLocationsInput>
+    create: XOR<UserCreateWithoutLocationsInput, UserUncheckedCreateWithoutLocationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutLocationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutLocationsInput, UserUncheckedUpdateWithoutLocationsInput>
+  }
+
+  export type UserUpdateWithoutLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutUsersNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  }
+
+  export type LocationUpsertWithoutUserLocationsInput = {
+    update: XOR<LocationUpdateWithoutUserLocationsInput, LocationUncheckedUpdateWithoutUserLocationsInput>
+    create: XOR<LocationCreateWithoutUserLocationsInput, LocationUncheckedCreateWithoutUserLocationsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutUserLocationsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutUserLocationsInput, LocationUncheckedUpdateWithoutUserLocationsInput>
+  }
+
+  export type LocationUpdateWithoutUserLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutUserLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type UserCreateWithoutBrandsInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutUsersInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
+  }
+
+  export type UserUncheckedCreateWithoutBrandsInput = {
+    id?: string
+    tenantId: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  }
+
+  export type UserCreateOrConnectWithoutBrandsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBrandsInput, UserUncheckedCreateWithoutBrandsInput>
+  }
+
+  export type BrandCreateWithoutUserBrandsInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutUserBrandsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutUserBrandsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutUserBrandsInput, BrandUncheckedCreateWithoutUserBrandsInput>
+  }
+
+  export type UserUpsertWithoutBrandsInput = {
+    update: XOR<UserUpdateWithoutBrandsInput, UserUncheckedUpdateWithoutBrandsInput>
+    create: XOR<UserCreateWithoutBrandsInput, UserUncheckedCreateWithoutBrandsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBrandsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBrandsInput, UserUncheckedUpdateWithoutBrandsInput>
+  }
+
+  export type UserUpdateWithoutBrandsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutUsersNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBrandsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  }
+
+  export type BrandUpsertWithoutUserBrandsInput = {
+    update: XOR<BrandUpdateWithoutUserBrandsInput, BrandUncheckedUpdateWithoutUserBrandsInput>
+    create: XOR<BrandCreateWithoutUserBrandsInput, BrandUncheckedCreateWithoutUserBrandsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutUserBrandsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutUserBrandsInput, BrandUncheckedUpdateWithoutUserBrandsInput>
+  }
+
+  export type BrandUpdateWithoutUserBrandsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutUserBrandsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type TenantCreateWithoutInvitationsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutInvitationsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutInvitationsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutInvitationsInput, TenantUncheckedCreateWithoutInvitationsInput>
+  }
+
+  export type UserCreateWithoutInvitationsSentInput = {
+    id?: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutUsersInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutInvitationsSentInput = {
+    id?: string
+    tenantId: string
+    email: string
+    password?: string | null
+    firstName: string
+    lastName: string
+    avatarUrl?: string | null
+    role?: $Enums.UserRole
+    permissions?: UserCreatepermissionsInput | string[]
+    isActive?: boolean
+    isVerified?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
+    deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
+    deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutInvitationsSentInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutInvitationsSentInput, UserUncheckedCreateWithoutInvitationsSentInput>
+  }
+
+  export type TenantUpsertWithoutInvitationsInput = {
+    update: XOR<TenantUpdateWithoutInvitationsInput, TenantUncheckedUpdateWithoutInvitationsInput>
+    create: XOR<TenantCreateWithoutInvitationsInput, TenantUncheckedCreateWithoutInvitationsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutInvitationsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutInvitationsInput, TenantUncheckedUpdateWithoutInvitationsInput>
+  }
+
+  export type TenantUpdateWithoutInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+  }
+
+  export type UserUpsertWithoutInvitationsSentInput = {
+    update: XOR<UserUpdateWithoutInvitationsSentInput, UserUncheckedUpdateWithoutInvitationsSentInput>
+    create: XOR<UserCreateWithoutInvitationsSentInput, UserUncheckedCreateWithoutInvitationsSentInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutInvitationsSentInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutInvitationsSentInput, UserUncheckedUpdateWithoutInvitationsSentInput>
+  }
+
+  export type UserUpdateWithoutInvitationsSentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutUsersNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutInvitationsSentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    permissions?: UserUpdatepermissionsInput | string[]
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
+    deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+    deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type OrderCreateWithoutCustomerAccountInput = {
     id?: string
     externalId?: string | null
@@ -125573,6 +131018,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -125595,6 +131043,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -125633,6 +131084,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -125655,6 +131109,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserCreateWithoutOauthAccountsInput = {
@@ -125677,6 +131134,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutOauthAccountsInput = {
@@ -125699,6 +131159,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutOauthAccountsInput = {
@@ -125737,6 +131200,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOauthAccountsInput = {
@@ -125759,6 +131225,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type TenantCreateWithoutApiKeysInput = {
@@ -125783,6 +131252,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutApiKeysInput = {
@@ -125807,6 +131277,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutApiKeysInput = {
@@ -125847,6 +131318,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutApiKeysInput = {
@@ -125871,6 +131343,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -125893,6 +131366,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -125915,6 +131391,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -125953,6 +131432,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -125975,6 +131457,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type TenantCreateWithoutBrandsInput = {
@@ -125999,6 +131484,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandsInput = {
@@ -126023,6 +131509,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandsInput = {
@@ -126082,6 +131569,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -126138,6 +131626,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -126590,6 +132079,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserBrandCreateWithoutBrandInput = {
+    id?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutBrandsInput
+  }
+
+  export type UserBrandUncheckedCreateWithoutBrandInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
+  }
+
+  export type UserBrandCreateOrConnectWithoutBrandInput = {
+    where: UserBrandWhereUniqueInput
+    create: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput>
+  }
+
+  export type UserBrandCreateManyBrandInputEnvelope = {
+    data: UserBrandCreateManyBrandInput | UserBrandCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutBrandsInput = {
     update: XOR<TenantUpdateWithoutBrandsInput, TenantUncheckedUpdateWithoutBrandsInput>
     create: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
@@ -126623,6 +132134,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandsInput = {
@@ -126647,6 +132159,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithWhereUniqueWithoutBrandInput = {
@@ -126952,6 +132465,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"BrandPlatformConnection"> | Date | string
   }
 
+  export type UserBrandUpsertWithWhereUniqueWithoutBrandInput = {
+    where: UserBrandWhereUniqueInput
+    update: XOR<UserBrandUpdateWithoutBrandInput, UserBrandUncheckedUpdateWithoutBrandInput>
+    create: XOR<UserBrandCreateWithoutBrandInput, UserBrandUncheckedCreateWithoutBrandInput>
+  }
+
+  export type UserBrandUpdateWithWhereUniqueWithoutBrandInput = {
+    where: UserBrandWhereUniqueInput
+    data: XOR<UserBrandUpdateWithoutBrandInput, UserBrandUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type UserBrandUpdateManyWithWhereWithoutBrandInput = {
+    where: UserBrandScalarWhereInput
+    data: XOR<UserBrandUpdateManyMutationInput, UserBrandUncheckedUpdateManyWithoutBrandInput>
+  }
+
   export type BrandCreateWithoutLocationsInput = {
     id?: string
     name: string
@@ -126974,6 +132503,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutLocationsInput = {
@@ -126998,6 +132528,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -127346,6 +132877,28 @@ export namespace Prisma {
     create: XOR<LocationPaymentConfigCreateWithoutLocationInput, LocationPaymentConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type UserLocationCreateWithoutLocationInput = {
+    id?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutLocationsInput
+  }
+
+  export type UserLocationUncheckedCreateWithoutLocationInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
+  }
+
+  export type UserLocationCreateOrConnectWithoutLocationInput = {
+    where: UserLocationWhereUniqueInput
+    create: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput>
+  }
+
+  export type UserLocationCreateManyLocationInputEnvelope = {
+    data: UserLocationCreateManyLocationInput | UserLocationCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandPlatformConnectionCreateWithoutLocationInput = {
     id?: string
     tenantId: string
@@ -127462,6 +133015,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutLocationsInput = {
@@ -127486,6 +133040,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -127683,6 +133238,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserLocationUpsertWithWhereUniqueWithoutLocationInput = {
+    where: UserLocationWhereUniqueInput
+    update: XOR<UserLocationUpdateWithoutLocationInput, UserLocationUncheckedUpdateWithoutLocationInput>
+    create: XOR<UserLocationCreateWithoutLocationInput, UserLocationUncheckedCreateWithoutLocationInput>
+  }
+
+  export type UserLocationUpdateWithWhereUniqueWithoutLocationInput = {
+    where: UserLocationWhereUniqueInput
+    data: XOR<UserLocationUpdateWithoutLocationInput, UserLocationUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type UserLocationUpdateManyWithWhereWithoutLocationInput = {
+    where: UserLocationScalarWhereInput
+    data: XOR<UserLocationUpdateManyMutationInput, UserLocationUncheckedUpdateManyWithoutLocationInput>
+  }
+
   export type BrandPlatformConnectionUpsertWithWhereUniqueWithoutLocationInput = {
     where: BrandPlatformConnectionWhereUniqueInput
     update: XOR<BrandPlatformConnectionUpdateWithoutLocationInput, BrandPlatformConnectionUncheckedUpdateWithoutLocationInput>
@@ -127766,6 +133337,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -127790,6 +133362,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -127850,6 +133423,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
 
@@ -127906,6 +133480,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
@@ -127947,6 +133522,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -127971,6 +133547,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationUpsertWithoutPlatformConnectionsInput = {
@@ -128037,6 +133614,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
 
@@ -128093,6 +133671,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
@@ -128148,6 +133727,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -128204,6 +133784,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -128276,6 +133857,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -128332,6 +133914,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -128358,6 +133941,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutMenusInput = {
@@ -128382,6 +133966,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -128502,6 +134087,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMenusInput = {
@@ -128526,6 +134112,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -129330,6 +134917,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutModifierGroupsInput = {
@@ -129354,6 +134942,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -129562,6 +135151,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutModifierGroupsInput = {
@@ -129586,6 +135176,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -130482,6 +136073,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutMealDealsInput = {
@@ -130506,6 +136098,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -130546,6 +136139,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMealDealsInput = {
@@ -130570,6 +136164,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -130594,6 +136189,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutUpsellGroupsInput = {
@@ -130618,6 +136214,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -130658,6 +136255,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutUpsellGroupsInput = {
@@ -130682,6 +136280,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -130870,6 +136469,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCustomersInput = {
@@ -130894,6 +136494,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCustomersInput = {
@@ -131173,6 +136774,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCustomersInput = {
@@ -131197,6 +136799,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomerAddressUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -131368,6 +136971,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
   }
 
@@ -131424,6 +137028,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
   }
 
@@ -131496,6 +137101,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
   }
 
@@ -131552,6 +137158,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
   }
 
@@ -131769,6 +137376,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPromoCodesInput = {
@@ -131793,6 +137401,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPromoCodesInput = {
@@ -131833,6 +137442,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPromoCodesInput = {
@@ -131857,6 +137467,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -131911,6 +137522,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -131967,6 +137579,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -132039,6 +137652,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -132095,6 +137709,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -132151,6 +137766,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -132207,6 +137823,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -132279,6 +137896,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -132335,6 +137953,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -132361,6 +137980,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrdersInput = {
@@ -132385,6 +138005,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrdersInput = {
@@ -132444,6 +138065,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -132500,6 +138122,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -132615,6 +138238,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutOrdersInput = {
@@ -132639,6 +138263,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -132896,6 +138521,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrdersInput = {
@@ -132920,6 +138546,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutOrdersInput = {
@@ -132985,6 +138612,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -133041,6 +138669,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -133174,6 +138803,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutOrdersInput = {
@@ -133198,6 +138828,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -133984,6 +139615,7 @@ export namespace Prisma {
     printers?: PrinterCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -134040,6 +139672,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -134138,6 +139771,7 @@ export namespace Prisma {
     printers?: PrinterUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -134194,6 +139828,7 @@ export namespace Prisma {
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -134606,6 +140241,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
   }
@@ -134662,6 +140298,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -134778,6 +140415,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -134834,6 +140472,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -134876,6 +140515,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintJobsInput = {
@@ -134900,6 +140540,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintJobsInput = {
@@ -135132,6 +140773,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintJobsInput = {
@@ -135156,6 +140798,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PrinterUpsertWithoutPrintJobsInput = {
@@ -135384,6 +141027,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -135408,6 +141052,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -135480,6 +141125,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -135504,6 +141150,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -136033,6 +141680,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutConnectAccountInput = {
@@ -136057,6 +141705,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutConnectAccountInput = {
@@ -136183,6 +141832,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutConnectAccountInput = {
@@ -136207,6 +141857,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PaymentUpsertWithWhereUniqueWithoutConnectAccountInput = {
@@ -137276,6 +142927,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSuppliersInput = {
@@ -137300,6 +142952,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSuppliersInput = {
@@ -137426,6 +143079,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSuppliersInput = {
@@ -137450,6 +143104,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type IngredientUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -138670,6 +144325,9 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutDeviceTokensInput = {
@@ -138692,6 +144350,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutDeviceTokensInput = {
@@ -138730,6 +144391,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDeviceTokensInput = {
@@ -138752,6 +144416,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type TenantCreateWithoutBrandingInput = {
@@ -138776,6 +144443,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandingInput = {
@@ -138800,6 +144468,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandingInput = {
@@ -138874,6 +144543,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandingInput = {
@@ -138898,6 +144568,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomDomainUpsertWithWhereUniqueWithoutBrandingInput = {
@@ -139152,6 +144823,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSubscriptionInput = {
@@ -139176,6 +144848,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSubscriptionInput = {
@@ -139333,6 +145006,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSubscriptionInput = {
@@ -139357,6 +145031,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SubscriptionPlanUpsertWithoutSubscriptionsInput = {
@@ -139832,6 +145507,9 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     deviceSessions?: DeviceSessionCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutMfaConfigInput = {
@@ -139854,6 +145532,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     deviceSessions?: DeviceSessionUncheckedCreateNestedManyWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutMfaConfigInput = {
@@ -139892,6 +145573,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMfaConfigInput = {
@@ -139914,6 +145598,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type TenantCreateWithoutIpAllowlistsInput = {
@@ -139938,6 +145625,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutIpAllowlistsInput = {
@@ -139962,6 +145650,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutIpAllowlistsInput = {
@@ -140002,6 +145691,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutIpAllowlistsInput = {
@@ -140026,6 +145716,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutDeviceSessionsInput = {
@@ -140048,6 +145739,9 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     mfaConfig?: MfaConfigCreateNestedOneWithoutUserInput
     deviceTokens?: DeviceTokenCreateNestedManyWithoutUserInput
+    locations?: UserLocationCreateNestedManyWithoutUserInput
+    brands?: UserBrandCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserUncheckedCreateWithoutDeviceSessionsInput = {
@@ -140070,6 +145764,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     mfaConfig?: MfaConfigUncheckedCreateNestedOneWithoutUserInput
     deviceTokens?: DeviceTokenUncheckedCreateNestedManyWithoutUserInput
+    locations?: UserLocationUncheckedCreateNestedManyWithoutUserInput
+    brands?: UserBrandUncheckedCreateNestedManyWithoutUserInput
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   }
 
   export type UserCreateOrConnectWithoutDeviceSessionsInput = {
@@ -140108,6 +145805,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDeviceSessionsInput = {
@@ -140130,6 +145830,9 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type BrandCreateManyTenantInput = {
@@ -140336,6 +146039,21 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type InvitationCreateManyTenantInput = {
+    id?: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    invitedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type BrandUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -140358,6 +146076,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutTenantInput = {
@@ -140382,6 +146101,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -140421,6 +146141,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTenantInput = {
@@ -140443,6 +146166,9 @@ export namespace Prisma {
     mfaConfig?: MfaConfigUncheckedUpdateOneWithoutUserNestedInput
     deviceSessions?: DeviceSessionUncheckedUpdateManyWithoutUserNestedInput
     deviceTokens?: DeviceTokenUncheckedUpdateManyWithoutUserNestedInput
+    locations?: UserLocationUncheckedUpdateManyWithoutUserNestedInput
+    brands?: UserBrandUncheckedUpdateManyWithoutUserNestedInput
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutTenantInput = {
@@ -141004,6 +146730,51 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type InvitationUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    invitedBy?: UserUpdateOneWithoutInvitationsSentNestedInput
+  }
+
+  export type InvitationUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    invitedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    invitedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type RefreshTokenCreateManyUserInput = {
     id?: string
     tokenHash: string
@@ -141067,6 +146838,33 @@ export namespace Prisma {
     deviceId?: string | null
     appId?: string | null
     isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserLocationCreateManyUserInput = {
+    id?: string
+    locationId: string
+    createdAt?: Date | string
+  }
+
+  export type UserBrandCreateManyUserInput = {
+    id?: string
+    brandId: string
+    createdAt?: Date | string
+  }
+
+  export type InvitationCreateManyInvitedByInput = {
+    id?: string
+    tenantId: string
+    email: string
+    role: $Enums.UserRole
+    locationIds?: InvitationCreatelocationIdsInput | string[]
+    brandIds?: InvitationCreatebrandIdsInput | string[]
+    token: string
+    expiresAt: Date | string
+    acceptedAt?: Date | string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -141268,6 +147066,87 @@ export namespace Prisma {
     deviceId?: NullableStringFieldUpdateOperationsInput | string | null
     appId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutUserLocationsNestedInput
+  }
+
+  export type UserLocationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutUserBrandsNestedInput
+  }
+
+  export type UserBrandUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationUpdateWithoutInvitedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutInvitationsNestedInput
+  }
+
+  export type InvitationUncheckedUpdateWithoutInvitedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvitationUncheckedUpdateManyWithoutInvitedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    locationIds?: InvitationUpdatelocationIdsInput | string[]
+    brandIds?: InvitationUpdatebrandIdsInput | string[]
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -141746,6 +147625,12 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type UserBrandCreateManyBrandInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -141798,6 +147683,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
   }
@@ -141854,6 +147740,7 @@ export namespace Prisma {
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -142462,6 +148349,24 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserBrandUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBrandsNestedInput
+  }
+
+  export type UserBrandUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBrandUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntegrationCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -142583,6 +148488,12 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type UserLocationCreateManyLocationInput = {
+    id?: string
+    userId: string
+    createdAt?: Date | string
   }
 
   export type BrandPlatformConnectionCreateManyLocationInput = {
@@ -142985,6 +148896,24 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutLocationsNestedInput
+  }
+
+  export type UserLocationUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserLocationUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BrandPlatformConnectionUpdateWithoutLocationInput = {
@@ -145377,6 +151306,18 @@ export namespace Prisma {
      * @deprecated Use UserDefaultArgs instead
      */
     export type UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use UserLocationDefaultArgs instead
+     */
+    export type UserLocationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserLocationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use UserBrandDefaultArgs instead
+     */
+    export type UserBrandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserBrandDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use InvitationDefaultArgs instead
+     */
+    export type InvitationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = InvitationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use CustomerAccountDefaultArgs instead
      */
