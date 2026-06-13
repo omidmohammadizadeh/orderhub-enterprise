@@ -647,9 +647,30 @@ export class PaymentsService {
       });
     }
 
-    // Build the base session params we'll try first (with Connect
-    // transfer + application fee).
-    const baseSessionParams: any = {
+    // DIRECT CHARGE on the connected account.
+    //
+    // Two Stripe Connect models route money differently:
+    //
+    //   * Destination charge — PaymentIntent created on the PLATFORM
+    //     with transfer_data.destination = acct_…; after capture Stripe
+    //     auto-transfers funds to the connected account. Requires the
+    //     connected account to have the `transfers` capability enabled.
+    //     The Charge object appears under the PLATFORM in Stripe
+    //     dashboards.
+    //
+    //   * Direct charge — PaymentIntent created on the CONNECTED
+    //     account by passing { stripeAccount: 'acct_…' } as a request
+    //     option. application_fee_amount automatically transferred to
+    //     the platform. Requires only the `card_payments` capability,
+    //     which every Connect account has by default once they finish
+    //     basic onboarding. The Charge appears under the CONNECTED
+    //     account in Stripe dashboards — exactly what operators expect
+    //     when they look at a single restaurant's revenue.
+    //
+    // Direct charges match the operator's mental model ("money goes to
+    // the restaurant's account, my cut comes out of it") and avoid the
+    // brittle transfers-capability dependency we hit on first deploy.
+    const sessionParams: any = {
       mode: "payment",
       line_items: lineItems,
       customer_email: params.customerEmail || undefined,
@@ -658,7 +679,6 @@ export class PaymentsService {
       payment_intent_data: {
         capture_method: "manual",
         application_fee_amount: applicationFeePence,
-        transfer_data: { destination: connect.stripeAccountId },
         metadata: {
           orderId: order.id,
           tenantId: params.tenantId,
@@ -672,66 +692,22 @@ export class PaymentsService {
       },
     };
 
-    // Try Connect destination charge first; if Stripe rejects because the
-    // Connect account doesn't have the `transfers` capability yet, retry as
-    // a direct charge to the platform's own Stripe account. This unblocks
-    // operators who pasted a raw acct_… ID before completing proper Connect
-    // onboarding (transfers capability is the gate Stripe puts in front of
-    // automated balance routing). The operator's money still ends up in
-    // their platform Stripe balance — they just have to manually transfer
-    // it out to the restaurant or enable transfers and re-test.
     let session;
-    let usedDirectCharge = false;
     try {
-      session = await this.stripe.checkout.sessions.create(baseSessionParams);
+      // The { stripeAccount } request option is the single line that
+      // makes this a direct charge instead of a platform charge.
+      // Stripe-Node attaches it as the `Stripe-Account` HTTP header.
+      session = await this.stripe.checkout.sessions.create(sessionParams, {
+        stripeAccount: connect.stripeAccountId,
+      });
     } catch (err: any) {
       const msg = String(err?.message ?? "");
-      const capabilityMissing =
-        msg.includes("capabilities") &&
-        (msg.includes("transfers") || msg.includes("legacy_payments"));
-      if (capabilityMissing) {
-        this.logger.warn(
-          `Connect destination charge rejected (capabilities missing on ${connect.stripeAccountId}). ` +
-            `Retrying as direct charge to platform account. Operator should enable transfers on the Connect account.`,
-        );
-        // Direct-charge fallback: drop transfer_data + application_fee.
-        // Money lands in the platform's Stripe balance, NOT the
-        // restaurant's. Operator must reconcile manually until they
-        // complete Connect onboarding.
-        const fallbackParams = { ...baseSessionParams };
-        fallbackParams.payment_intent_data = {
-          capture_method: "manual",
-          metadata: baseSessionParams.payment_intent_data.metadata,
-        };
-        try {
-          session = await this.stripe.checkout.sessions.create(fallbackParams);
-          usedDirectCharge = true;
-        } catch (err2: any) {
-          this.logger.error(
-            `Stripe direct-charge fallback also failed: ${err2.message}`,
-          );
-          throw new BadRequestException(
-            `Couldn't start Stripe checkout: ${err2.message}`,
-          );
-        }
-      } else {
-        this.logger.error(`Stripe Checkout Session create failed: ${msg}`);
-        throw new BadRequestException(
-          `Couldn't start Stripe checkout: ${msg}`,
-        );
-      }
-    }
-
-    if (usedDirectCharge) {
-      // Mark the metadata so the webhook handler + operator dashboards
-      // can tell the two flows apart at reconciliation time.
-      try {
-        await this.stripe.checkout.sessions.update(session.id, {
-          metadata: { ...session.metadata, chargeMode: "direct_fallback" },
-        });
-      } catch {
-        /* best-effort metadata stamp — not worth blocking checkout */
-      }
+      this.logger.error(
+        `Stripe direct-charge Checkout Session create failed on ${connect.stripeAccountId}: ${msg}`,
+      );
+      throw new BadRequestException(
+        `Couldn't start Stripe checkout: ${msg}`,
+      );
     }
 
     // Persist Payment row in PENDING — webhook fills the rest.
@@ -779,25 +755,60 @@ export class PaymentsService {
    * to call for non-card orders (cash etc.); returns early if there's
    * nothing to capture.
    */
+  /**
+   * Resolve the connected-account ID a Payment was charged on, so
+   * follow-up Stripe calls (capture / cancel / refund) use the same
+   * direct-charge context. Falls back to the location's saved
+   * Connect account if the Payment row pre-dates direct charges.
+   */
+  private async stripeAccountForPayment(payment: any): Promise<string | null> {
+    if (payment?.stripeConnectAccountId) {
+      const row = await (this.prisma as any).stripeConnectAccount.findUnique({
+        where: { id: payment.stripeConnectAccountId },
+        select: { stripeAccountId: true },
+      });
+      if (row?.stripeAccountId) return row.stripeAccountId;
+    }
+    // Direct-charge created the PI on a connected account but our
+    // Payment row may not be FK-linked (raw-acct_ id path). Look the
+    // Order up and re-resolve through the location.
+    const order = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+      select: { tenantId: true, locationId: true },
+    });
+    if (!order) return null;
+    const connect = await this.resolveConnectAccount(
+      order.tenantId,
+      order.locationId,
+    );
+    return connect?.stripeAccountId ?? null;
+  }
+
   async captureForOrder(orderId: string): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
       where: { orderId, method: "CARD" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment) return;
+    // Direct-charge mode: every Checkout Session, PaymentIntent,
+    // capture / cancel / refund call must include the {stripeAccount}
+    // option so it operates on the connected account where the charge
+    // actually lives. Without it Stripe will look in the platform's
+    // account and 404 ("No such payment_intent").
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+
     // Backfill the PaymentIntent ID if the webhook hasn't landed yet.
-    // Stripe Checkout Session stores the PI on session.payment_intent
-    // once the customer completes payment, but the
-    // payment_intent.amount_capturable_updated webhook can race the
-    // staff-accept click. Pull the session synchronously to find it.
     let piId: string | null = payment.stripePaymentIntentId;
-    if (!piId && this.stripe) {
+    if (!piId && this.stripe && stripeAccount) {
       const sessionId = payment.metadata?.stripeCheckoutSessionId as
         | string
         | undefined;
       if (sessionId) {
         try {
-          const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+          const session = await this.stripe.checkout.sessions.retrieve(
+            sessionId,
+            { stripeAccount },
+          );
           piId =
             typeof session.payment_intent === "string"
               ? session.payment_intent
@@ -827,10 +838,20 @@ export class PaymentsService {
       return; // already terminal
     }
     if (!this.stripe) return;
+    if (!stripeAccount) {
+      this.logger.error(
+        `captureForOrder ${orderId}: couldn't resolve stripeAccount for direct-charge capture.`,
+      );
+      throw new BadRequestException(
+        "Couldn't capture payment — no Stripe Connect account linked to this order.",
+      );
+    }
     try {
-      await this.stripe.paymentIntents.capture(piId);
+      await this.stripe.paymentIntents.capture(piId, undefined, {
+        stripeAccount,
+      });
       this.logger.log(
-        `Stripe capture invoked for order ${orderId} (PI ${piId})`,
+        `Stripe capture invoked for order ${orderId} (PI ${piId} on ${stripeAccount})`,
       );
       // The payment_intent.succeeded webhook will flip statuses + write
       // ledger entries. We don't update DB here to avoid drift.
@@ -860,12 +881,21 @@ export class PaymentsService {
       return; // already done
     }
     if (!this.stripe) return;
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+    if (!stripeAccount) {
+      this.logger.error(
+        `cancelAuthForOrder ${orderId}: no stripeAccount; direct-charge cancel impossible.`,
+      );
+      return;
+    }
     try {
-      await this.stripe.paymentIntents.cancel(payment.stripePaymentIntentId, {
-        cancellation_reason: "requested_by_customer",
-      });
+      await this.stripe.paymentIntents.cancel(
+        payment.stripePaymentIntentId,
+        { cancellation_reason: "requested_by_customer" },
+        { stripeAccount },
+      );
       this.logger.log(
-        `Stripe PI cancelled for order ${orderId} (reason: ${reason ?? "n/a"})`,
+        `Stripe PI cancelled for order ${orderId} on ${stripeAccount} (reason: ${reason ?? "n/a"})`,
       );
       // payment_intent.canceled webhook will flip statuses.
     } catch (err: any) {
@@ -892,16 +922,26 @@ export class PaymentsService {
       return this.cancelAuthForOrder(orderId, reason);
     }
     if (!this.stripe) return;
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+    if (!stripeAccount) {
+      this.logger.error(
+        `refundForOrder ${orderId}: no stripeAccount; direct-charge refund impossible.`,
+      );
+      return;
+    }
     try {
       const total = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
-      await this.stripe.refunds.create({
-        payment_intent: payment.stripePaymentIntentId,
-        amount: Math.round(total.toNumber() * 100),
-        reason: "requested_by_customer",
-        metadata: { orderId, reason: reason ?? "" },
-      });
+      await this.stripe.refunds.create(
+        {
+          payment_intent: payment.stripePaymentIntentId,
+          amount: Math.round(total.toNumber() * 100),
+          reason: "requested_by_customer",
+          metadata: { orderId, reason: reason ?? "" },
+        },
+        { stripeAccount },
+      );
       this.logger.log(
-        `Stripe refund created for order ${orderId} (PI ${payment.stripePaymentIntentId})`,
+        `Stripe refund created for order ${orderId} on ${stripeAccount} (PI ${payment.stripePaymentIntentId})`,
       );
       // charge.refunded webhook will flip statuses + write ledger entries.
     } catch (err: any) {
