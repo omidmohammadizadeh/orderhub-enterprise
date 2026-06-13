@@ -28,7 +28,13 @@ export class BrandsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,
   ) {
-    return this.brands.findAll(user.tenantId, locationId);
+    // Phase AR — tenant-wide roles see every brand; everyone else
+    // gets narrowed by UserBrand + brands at their UserLocation set.
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
+    const userId = TENANT_WIDE_ROLES.has(user.role as string)
+      ? undefined
+      : user.userId;
+    return this.brands.findAll(user.tenantId, locationId, userId);
   }
 
   @Get(":brandId")

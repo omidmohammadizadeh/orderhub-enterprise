@@ -73,6 +73,22 @@ export class TeamController {
     return { user };
   }
 
+  @Delete("members/:userId")
+  @HttpCode(HttpStatus.OK)
+  @Roles(...MANAGE_TEAM_ROLES)
+  @ApiOperation({ summary: "Remove a team member from this tenant" })
+  removeMember(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("userId") userId: string,
+  ) {
+    return this.team.removeMember(
+      user.tenantId,
+      user.userId,
+      userId,
+      user.role as string,
+    );
+  }
+
   @Post("assign")
   @HttpCode(HttpStatus.OK)
   @Roles(...MANAGE_TEAM_ROLES)

@@ -18,6 +18,8 @@ import {
   Clock,
   Building2,
   MapPin,
+  Pencil,
+  AlertTriangle,
 } from "lucide-react";
 import {
   teamClient,
@@ -31,10 +33,18 @@ import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 type Tab = "members" | "invites";
 
+type ModalState =
+  | { kind: "assign" }
+  | { kind: "invite" }
+  | { kind: "edit"; member: TeamMember }
+  | null;
+
 export default function TeamRolesPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("members");
-  const [modal, setModal] = useState<"assign" | "invite" | null>(null);
+  const [modal, setModal] = useState<ModalState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
@@ -85,13 +95,13 @@ export default function TeamRolesPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setModal("assign")}
+            onClick={() => setModal({ kind: "assign" })}
             className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
           >
             <UserPlus className="h-4 w-4" /> Assign role
           </button>
           <button
-            onClick={() => setModal("invite")}
+            onClick={() => setModal({ kind: "invite" })}
             className="inline-flex items-center gap-2 rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
           >
             <Mail className="h-4 w-4" /> Invite team member
@@ -122,6 +132,11 @@ export default function TeamRolesPage() {
         <MembersTable
           loading={membersQuery.isLoading}
           members={scopedMembers}
+          onEdit={(m) => setModal({ kind: "edit", member: m })}
+          onDelete={(m) => {
+            setDeleteError(null);
+            setDeleteTarget(m);
+          }}
         />
       ) : (
         <InvitesTable
@@ -136,12 +151,32 @@ export default function TeamRolesPage() {
 
       {modal && (
         <RoleModal
-          mode={modal}
+          state={modal}
           onClose={() => setModal(null)}
           onSaved={() => {
             setModal(null);
             qc.invalidateQueries({ queryKey: ["team", "members"] });
             qc.invalidateQueries({ queryKey: ["team", "invites"] });
+          }}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteMemberModal
+          member={deleteTarget}
+          error={deleteError}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            try {
+              await teamClient.removeMember(deleteTarget.id);
+              setDeleteTarget(null);
+              qc.invalidateQueries({ queryKey: ["team", "members"] });
+            } catch (err: any) {
+              setDeleteError(
+                err?.response?.data?.message ??
+                  err?.message ??
+                  "Couldn't remove member.",
+              );
+            }
           }}
         />
       )}
@@ -175,9 +210,13 @@ function TabBtn({
 function MembersTable({
   loading,
   members,
+  onEdit,
+  onDelete,
 }: {
   loading: boolean;
   members: TeamMember[];
+  onEdit: (m: TeamMember) => void;
+  onDelete: (m: TeamMember) => void;
 }) {
   if (loading) return <Skeleton />;
   if (!members.length) return <Empty message="No team members yet." />;
@@ -192,6 +231,7 @@ function MembersTable({
             <Th>Locations</Th>
             <Th>Brands</Th>
             <Th>Last login</Th>
+            <Th></Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100">
@@ -219,10 +259,101 @@ function MembersTable({
                     : "Never"}
                 </span>
               </Td>
+              <Td>
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onEdit(m)}
+                    title="Edit role, locations, brands"
+                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDelete(m)}
+                    title="Remove from team"
+                    className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </Td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Delete-member confirmation modal
+// ────────────────────────────────────────────────────────────────────
+
+function DeleteMemberModal({
+  member,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  member: TeamMember;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const fullName =
+    [member.firstName, member.lastName].filter(Boolean).join(" ") ||
+    member.email;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4">
+      <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+        <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-4">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-red-50">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+          </div>
+          <h2 className="text-base font-semibold text-zinc-900">
+            Remove team member
+          </h2>
+        </div>
+        <div className="space-y-3 p-5">
+          <p className="text-sm text-zinc-600">
+            Are you sure you want to delete{" "}
+            <strong className="text-zinc-900">{fullName}</strong>? They'll lose
+            access to Order Hub immediately. This can't be undone.
+          </p>
+          {error && (
+            <p className="rounded bg-red-50 px-3 py-2 text-xs text-red-700">
+              {error}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-200 px-5 py-3">
+          <button
+            onClick={onCancel}
+            disabled={busy}
+            className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await onConfirm();
+              } finally {
+                setBusy(false);
+              }
+            }}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Yes, remove
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -357,18 +488,25 @@ function Empty({ message }: { message: string }) {
 // ────────────────────────────────────────────────────────────────────
 
 function RoleModal({
-  mode,
+  state,
   onClose,
   onSaved,
 }: {
-  mode: "assign" | "invite";
+  state: NonNullable<ModalState>;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<string>("MANAGER");
-  const [locationIds, setLocationIds] = useState<string[]>([]);
-  const [brandIds, setBrandIds] = useState<string[]>([]);
+  const mode = state.kind;
+  const editTarget = state.kind === "edit" ? state.member : null;
+
+  const [email, setEmail] = useState(editTarget?.email ?? "");
+  const [role, setRole] = useState<string>(editTarget?.role ?? "MANAGER");
+  const [locationIds, setLocationIds] = useState<string[]>(
+    editTarget?.locations.map((l) => l.id) ?? [],
+  );
+  const [brandIds, setBrandIds] = useState<string[]>(
+    editTarget?.brands.map((b) => b.id) ?? [],
+  );
   const [error, setError] = useState<string | null>(null);
 
   // For Assign flow: resolve existing user id by email
@@ -444,7 +582,16 @@ function RoleModal({
   const save = useMutation({
     mutationFn: async () => {
       setError(null);
-      if (mode === "assign") {
+      if (mode === "edit") {
+        // Same endpoint as Assign — it replaces the user's role and
+        // scope wholesale, which is exactly what Edit needs.
+        await teamClient.assign({
+          userId: editTarget!.id,
+          role,
+          locationIds,
+          brandIds,
+        });
+      } else if (mode === "assign") {
         if (lookupState.kind !== "found") {
           throw new Error("Look up a user by email first.");
         }
@@ -475,9 +622,11 @@ function RoleModal({
       <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
           <h2 className="text-base font-semibold text-zinc-900">
-            {mode === "assign"
-              ? "Assign role to existing user"
-              : "Invite team member"}
+            {mode === "edit"
+              ? `Edit ${editTarget!.email}`
+              : mode === "assign"
+                ? "Assign role to existing user"
+                : "Invite team member"}
           </h2>
           <button
             onClick={onClose}
@@ -498,11 +647,15 @@ function RoleModal({
                 type="email"
                 value={email}
                 onChange={(e) => {
+                  if (mode === "edit") return;
                   setEmail(e.target.value);
                   setLookupState({ kind: "idle" });
                 }}
+                readOnly={mode === "edit"}
                 placeholder="person@example.com"
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className={`flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm ${
+                  mode === "edit" ? "bg-zinc-50 text-zinc-500" : ""
+                }`}
               />
               {mode === "assign" && (
                 <button
@@ -607,7 +760,11 @@ function RoleModal({
             {save.isPending && (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             )}
-            {mode === "assign" ? "Assign role" : "Send invitation"}
+            {mode === "edit"
+              ? "Save changes"
+              : mode === "assign"
+                ? "Assign role"
+                : "Send invitation"}
           </button>
         </div>
       </div>

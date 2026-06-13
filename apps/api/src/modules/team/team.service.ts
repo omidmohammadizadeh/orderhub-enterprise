@@ -197,6 +197,55 @@ export class TeamService {
 
   // ── Assign role + scope to an existing user ────────────────────
 
+  // ── Remove a team member ──────────────────────────────────────
+  //
+  // Hard delete the User row + every join (UserLocation / UserBrand
+  // / OAuthAccount / RefreshToken cascade via Prisma onDelete in the
+  // schema). We don't soft-delete because the operator's mental
+  // model is "this person no longer works here" and we don't want
+  // ghost rows showing up later in audits. PLATFORM_ADMIN audit
+  // logs already capture who removed whom via the access log.
+  async removeMember(
+    actorTenantId: string,
+    actorUserId: string,
+    targetUserId: string,
+    callerRole?: string,
+  ): Promise<{ ok: true }> {
+    if (actorUserId === targetUserId) {
+      throw new BadRequestException(
+        "You can't remove your own account from here. Ask another owner to do it.",
+      );
+    }
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, tenantId: true, role: true, email: true },
+    });
+    if (!target) throw new NotFoundException("User not found");
+    if (target.tenantId !== actorTenantId) {
+      throw new BadRequestException(
+        "User belongs to a different tenant.",
+      );
+    }
+    // Refuse to delete higher-tier roles (e.g. an OWNER trying to
+    // delete the TENANT_OWNER). The simplest rule: caller can only
+    // delete users whose role they could also grant — same matrix as
+    // assignRole. PLATFORM_ADMIN bypasses entirely.
+    if (callerRole && callerRole !== "PLATFORM_ADMIN") {
+      const allowed = ALLOWED_GRANTS[callerRole] ?? [];
+      if (!allowed.includes(target.role as string)) {
+        throw new BadRequestException(
+          `Your role (${callerRole}) can't remove a ${target.role}.`,
+        );
+      }
+    }
+
+    await this.prisma.user.delete({ where: { id: targetUserId } });
+    this.logger.log(
+      `User removed: ${target.email} (by ${actorUserId}, role=${callerRole})`,
+    );
+    return { ok: true };
+  }
+
   async assignRole(
     actorTenantId: string,
     dto: AssignRoleDto,

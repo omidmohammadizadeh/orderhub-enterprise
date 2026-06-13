@@ -45,11 +45,56 @@ export class BrandsService {
 
   /** List brands for a tenant. When locationId is given, returns brands
    *  whose primaryLocationId === locationId (virtual brands at that
-   *  location) PLUS the franchise brand the location belongs to. */
-  async findAll(tenantId: string, locationId?: string) {
+   *  location) PLUS the franchise brand the location belongs to.
+   *
+   *  Phase AR — when userId is passed, also restrict to brands the
+   *  user has either an explicit UserBrand row for, OR brands whose
+   *  primaryLocationId is in their UserLocation set (so an Owner
+   *  scoped to "pizza uno pelton" sees the brands at that location
+   *  but not brands at a sibling location). Empty scope falls back
+   *  to tenant-wide so a freshly-created operator isn't locked out. */
+  async findAll(tenantId: string, locationId?: string, userId?: string) {
+    let allowedBrandIds: string[] | null = null;
+    if (userId) {
+      const [explicit, scopedLocations] = await Promise.all([
+        (this.prisma as any).userBrand.findMany({
+          where: { userId },
+          select: { brandId: true },
+        }),
+        (this.prisma as any).userLocation.findMany({
+          where: { userId },
+          select: { locationId: true },
+        }),
+      ]);
+      const explicitIds = explicit.map((r: any) => r.brandId);
+      const locationIds = scopedLocations.map((r: any) => r.locationId);
+      if (explicitIds.length || locationIds.length) {
+        const viaLocations = locationIds.length
+          ? await this.prisma.brand.findMany({
+              where: {
+                tenantId,
+                deletedAt: null,
+                OR: [
+                  { primaryLocationId: { in: locationIds } },
+                  { locations: { some: { id: { in: locationIds } } } },
+                ],
+              },
+              select: { id: true },
+            })
+          : [];
+        allowedBrandIds = Array.from(
+          new Set([...explicitIds, ...viaLocations.map((b) => b.id)]),
+        );
+      }
+    }
+
     if (!locationId) {
       return this.prisma.brand.findMany({
-        where: { tenantId, deletedAt: null },
+        where: {
+          tenantId,
+          deletedAt: null,
+          ...(allowedBrandIds && { id: { in: allowedBrandIds } }),
+        },
         include: { _count: { select: { locations: true, platformConnections: true } } },
         orderBy: { createdAt: "asc" },
       });
@@ -65,6 +110,7 @@ export class BrandsService {
         tenantId,
         deletedAt: null,
         primaryLocationId: locationId,
+        ...(allowedBrandIds && { id: { in: allowedBrandIds } }),
       },
       include: { _count: { select: { platformConnections: true } } },
       orderBy: { createdAt: "asc" },
