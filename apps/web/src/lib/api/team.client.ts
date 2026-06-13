@@ -77,6 +77,10 @@ export const teamClient = {
     apiClient.post("/v1/team/invitations", body).then((r) => r.data),
   cancelInvitation: (id: string) =>
     apiClient.delete(`/v1/team/invitations/${id}`).then((r) => r.data),
+  resendInvitation: (id: string) =>
+    apiClient
+      .post(`/v1/team/invitations/${id}/resend`)
+      .then((r) => r.data),
 
   // PUBLIC — no auth header needed (apiClient still works because the
   // backend route is @Public()).

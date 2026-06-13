@@ -162,6 +162,18 @@ export default function TeamRolesPage() {
             await teamClient.cancelInvitation(id);
             qc.invalidateQueries({ queryKey: ["team", "invites"] });
           }}
+          onResend={async (id) => {
+            try {
+              await teamClient.resendInvitation(id);
+              alert("Invitation email resent.");
+            } catch (err: any) {
+              alert(
+                err?.response?.data?.message ??
+                  err?.message ??
+                  "Couldn't resend the invitation.",
+              );
+            }
+          }}
         />
       )}
 
@@ -378,10 +390,12 @@ function InvitesTable({
   loading,
   invites,
   onCancel,
+  onResend,
 }: {
   loading: boolean;
   invites: PendingInvitation[];
   onCancel: (id: string) => void;
+  onResend: (id: string) => void;
 }) {
   if (loading) return <Skeleton />;
   if (!invites.length)
@@ -424,12 +438,22 @@ function InvitesTable({
                 </span>
               </Td>
               <Td>
-                <button
-                  onClick={() => onCancel(i.id)}
-                  className="text-zinc-400 hover:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => onResend(i.id)}
+                    title="Resend invitation email"
+                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                  >
+                    <Mail className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => onCancel(i.id)}
+                    title="Cancel invitation"
+                    className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </Td>
             </tr>
           ))}

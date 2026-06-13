@@ -134,6 +134,17 @@ export class TeamController {
     return this.team.cancelInvitation(user.tenantId, id);
   }
 
+  @Post("invitations/:id/resend")
+  @HttpCode(HttpStatus.OK)
+  @Roles(...MANAGE_TEAM_ROLES)
+  @ApiOperation({ summary: "Re-send the invitation email" })
+  resendInvite(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+  ) {
+    return this.team.resendInvitation(user.tenantId, id);
+  }
+
   // ── Accept invitation (PUBLIC) ────────────────────────────────
 
   @Public()

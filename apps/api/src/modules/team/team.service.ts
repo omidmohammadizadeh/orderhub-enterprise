@@ -459,6 +459,50 @@ export class TeamService {
     return invite;
   }
 
+  // Re-email an existing pending invitation. Useful when the original
+  // send hit a Resend rate limit, an unverified sender, or just
+  // landed in spam — saves the operator from cancelling and
+  // recreating from scratch. Throws on the same not-found / already-
+  // accepted / cancelled / expired conditions as accept.
+  async resendInvitation(tenantId: string, id: string) {
+    const invite = await this.prisma.invitation.findFirst({
+      where: { id, tenantId },
+    });
+    if (!invite) throw new NotFoundException("Invitation not found");
+    if (invite.acceptedAt) {
+      throw new BadRequestException("Invitation already accepted");
+    }
+    if (invite.cancelledAt) {
+      throw new BadRequestException("Invitation was cancelled");
+    }
+    if (invite.expiresAt < new Date()) {
+      throw new BadRequestException("Invitation has expired");
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { name: true },
+    });
+    const inviter = invite.invitedById
+      ? await this.prisma.user.findUnique({
+          where: { id: invite.invitedById },
+          select: { firstName: true, lastName: true, email: true },
+        })
+      : null;
+
+    await this.invites.sendInvite({
+      to: invite.email,
+      token: invite.token,
+      role: invite.role,
+      tenantName: tenant?.name ?? "Order Hub",
+      inviterName: inviter
+        ? `${inviter.firstName} ${inviter.lastName}`.trim() || inviter.email
+        : "Order Hub",
+    });
+    this.logger.log(`Invitation re-sent to ${invite.email}`);
+    return { ok: true };
+  }
+
   async cancelInvitation(tenantId: string, id: string) {
     const invite = await this.prisma.invitation.findFirst({
       where: { id, tenantId },
