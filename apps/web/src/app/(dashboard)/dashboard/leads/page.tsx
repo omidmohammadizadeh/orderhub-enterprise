@@ -5,7 +5,7 @@
 // request submitted via the no-access screen (or the marketing form
 // when that lands), with a side drawer to update status + notes.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
@@ -186,12 +186,35 @@ function LeadDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [status, setStatus] = useState<Lead["status"]>(lead.status);
+  const qc = useQueryClient();
+  // If the lead was NEW when the drawer opened, treat the open as
+  // "the operator has now seen it" and auto-flip to CONTACTED so the
+  // sidebar badge clears immediately. The form below still lets them
+  // pick a different status before saving.
+  const [status, setStatus] = useState<Lead["status"]>(
+    lead.status === "NEW" ? "CONTACTED" : lead.status,
+  );
   const [notes, setNotes] = useState(lead.notes ?? "");
+
+  useEffect(() => {
+    if (lead.status !== "NEW") return;
+    leadsClient
+      .update(lead.id, { status: "CONTACTED" })
+      .then(() => {
+        qc.invalidateQueries({ queryKey: ["leads"] });
+        qc.invalidateQueries({ queryKey: ["leads", "unread-count"] });
+      })
+      .catch(() => {
+        /* best-effort — badge will refresh on next poll */
+      });
+    // Only fire once, when this drawer mounts for a NEW lead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const save = useMutation({
     mutationFn: () => leadsClient.update(lead.id, { status, notes }),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads", "unread-count"] });
       onSaved();
       onClose();
     },

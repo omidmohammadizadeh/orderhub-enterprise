@@ -81,6 +81,13 @@ export class LeadsService {
     });
   }
 
+  // Lightweight count of unread (status=NEW) leads. Drives the
+  // sidebar badge — keep it cheap so we can poll every 30s without
+  // straining the DB.
+  async unreadCount(): Promise<number> {
+    return (this.prisma as any).lead.count({ where: { status: "NEW" } });
+  }
+
   async update(id: string, dto: UpdateLeadDto) {
     const exists = await (this.prisma as any).lead.findUnique({
       where: { id },

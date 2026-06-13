@@ -55,6 +55,14 @@ export class LeadsController {
     return this.leads.list({ status, q });
   }
 
+  @Get("unread-count")
+  @ApiBearerAuth()
+  @Roles(...VIEW_ROLES)
+  @ApiOperation({ summary: "Count of NEW leads — drives sidebar badge" })
+  async unreadCount() {
+    return { count: await this.leads.unreadCount() };
+  }
+
   @Patch(":id")
   @ApiBearerAuth()
   @Roles(...VIEW_ROLES)

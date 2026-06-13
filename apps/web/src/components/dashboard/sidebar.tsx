@@ -36,6 +36,8 @@ import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth.store";
 import { getInitials } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { leadsClient } from "@/lib/api/leads.client";
 
 interface NavItem {
   href: string;
@@ -130,6 +132,20 @@ export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
 
+  // Phase AR — live unread-leads count for the sidebar badge. Only
+  // PLATFORM_ADMIN + ONBOARDING_AGENT see the Leads entry; everyone
+  // else short-circuits the query via `enabled: false`. Poll every
+  // 30s so a fresh submission shows up without a hard refresh.
+  const canSeeLeads =
+    !!user && ["PLATFORM_ADMIN", "ONBOARDING_AGENT"].includes(user.role);
+  const leadsCountQuery = useQuery({
+    queryKey: ["leads", "unread-count"],
+    queryFn: leadsClient.unreadCount,
+    enabled: canSeeLeads,
+    refetchInterval: 30_000,
+  });
+  const unreadLeads = leadsCountQuery.data ?? 0;
+
   return (
     <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
       {/* ── Logo ─────────────────────────────────────── */}
@@ -160,13 +176,22 @@ export function Sidebar() {
               !item.roles ||
               (user?.role && item.roles.includes(user.role)),
           )
-          .map((item) => (
-          <SidebarNavItem
-            key={item.href}
-            item={item}
-            isActive={pathname.startsWith(item.href)}
-          />
-        ))}
+          .map((item) => {
+            // Phase AR — overlay the live unread-leads count onto
+            // the Leads entry so a fresh submission lights up the
+            // sidebar without the operator having to open the page.
+            const withBadge =
+              item.href === "/dashboard/leads" && unreadLeads > 0
+                ? { ...item, badge: String(unreadLeads) }
+                : item;
+            return (
+              <SidebarNavItem
+                key={item.href}
+                item={withBadge}
+                isActive={pathname.startsWith(item.href)}
+              />
+            );
+          })}
 
         {(() => {
           const filterFor = (nav: NavItem[]) =>

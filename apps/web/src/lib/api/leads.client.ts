@@ -42,6 +42,10 @@ export const leadsClient = {
     apiClient
       .get<Lead[]>("/v1/leads", { params })
       .then((r) => r.data),
+  unreadCount: () =>
+    apiClient
+      .get<{ count: number }>("/v1/leads/unread-count")
+      .then((r) => r.data.count),
   update: (id: string, body: { status?: string; notes?: string }) =>
     apiClient.patch(`/v1/leads/${id}`, body).then((r) => r.data),
 };
