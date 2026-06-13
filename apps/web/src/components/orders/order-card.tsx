@@ -1,6 +1,15 @@
 "use client";
 
-import { Clock, User, MapPin, Calendar, Banknote, CheckCircle2 } from "lucide-react";
+import {
+  Clock,
+  User,
+  MapPin,
+  Calendar,
+  Banknote,
+  CheckCircle2,
+  CreditCard,
+  Undo2,
+} from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
@@ -106,14 +115,20 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
 }
 
 /**
- * Phase AM — payment chip shown alongside the customer name.
- *   • Cash + unpaid → amber "Cash" (money still owed at handover)
- *   • Cash + paid   → green "Cash" with check (kept the cash already)
- *   • Card terminal / online / external + PAID → green "Paid"
- *   • Anything else → no badge
+ * Payment chip shown alongside the customer name. Always renders
+ * something for CARD/CASH so staff can tell at a glance whether the
+ * order is paid online, owes cash at handover, or sat in some
+ * intermediate state (authorised hold, refunded after cancel).
  *
- * Marketplace orders (Uber/Deliveroo/Just Eat) come in pre-paid, so they
- * also render the green "Paid" chip — no manual checkbox needed.
+ *   • CASH paid       → green "Cash"
+ *   • CASH unpaid     → amber "Cash" (collect at handover)
+ *   • CARD PAID       → green "Card paid"
+ *   • CARD AUTHORIZED → blue "Card held" (auth captured at Accept)
+ *   • CARD REFUNDED   → amber "Refunded"
+ *   • CARD PENDING/   → amber "Card unpaid" (shouldn't reach the
+ *     FAILED            board — live query filters PENDING out — but
+ *                       safety net in case it ever does)
+ *   • Marketplace pre-paid → green "Paid"
  */
 function PaymentBadge({
   method,
@@ -122,9 +137,8 @@ function PaymentBadge({
   method?: string | null;
   status?: string | null;
 }) {
-  const paid = status === "PAID";
   if (method === "CASH") {
-    return paid ? (
+    return status === "PAID" ? (
       <Chip tone="success">
         <CheckCircle2 className="h-3 w-3" /> Cash
       </Chip>
@@ -134,7 +148,36 @@ function PaymentBadge({
       </Chip>
     );
   }
-  if (paid) {
+  if (method === "CARD") {
+    if (status === "PAID") {
+      return (
+        <Chip tone="success">
+          <CheckCircle2 className="h-3 w-3" /> Card paid
+        </Chip>
+      );
+    }
+    if (status === "AUTHORIZED") {
+      return (
+        <Chip tone="info">
+          <CreditCard className="h-3 w-3" /> Card held
+        </Chip>
+      );
+    }
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+      return (
+        <Chip tone="amber">
+          <Undo2 className="h-3 w-3" /> Refunded
+        </Chip>
+      );
+    }
+    return (
+      <Chip tone="amber">
+        <CreditCard className="h-3 w-3" /> Card unpaid
+      </Chip>
+    );
+  }
+  // Marketplace platforms come in pre-paid
+  if (status === "PAID") {
     return (
       <Chip tone="success">
         <CheckCircle2 className="h-3 w-3" /> Paid
@@ -148,13 +191,15 @@ function Chip({
   tone,
   children,
 }: {
-  tone: "success" | "amber";
+  tone: "success" | "amber" | "info";
   children: React.ReactNode;
 }) {
   const cls =
     tone === "success"
       ? "bg-emerald-50 text-emerald-700"
-      : "bg-amber-50 text-amber-700";
+      : tone === "info"
+        ? "bg-sky-50 text-sky-700"
+        : "bg-amber-50 text-amber-700";
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${cls}`}
