@@ -941,6 +941,8 @@ exports.Prisma.PrintAgentScalarFieldEnum = {
   apiTokenHash: 'apiTokenHash',
   capabilities: 'capabilities',
   versionString: 'versionString',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
   osType: 'osType',
   hostname: 'hostname',
   printerCount: 'printerCount',
@@ -949,6 +951,18 @@ exports.Prisma.PrintAgentScalarFieldEnum = {
   deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AgentPairCodeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  code: 'code',
+  createdById: 'createdById',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  agentId: 'agentId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.MenuItemStationScalarFieldEnum = {
@@ -2007,8 +2021,19 @@ exports.Prisma.PrintAgentOrderByRelevanceFieldEnum = {
   name: 'name',
   apiTokenHash: 'apiTokenHash',
   versionString: 'versionString',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
   osType: 'osType',
   hostname: 'hostname'
+};
+
+exports.Prisma.AgentPairCodeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  code: 'code',
+  createdById: 'createdById',
+  agentId: 'agentId'
 };
 
 exports.Prisma.MenuItemStationOrderByRelevanceFieldEnum = {
@@ -2806,6 +2831,7 @@ exports.Prisma.ModelName = {
   PrintJob: 'PrintJob',
   PrinterStation: 'PrinterStation',
   PrintAgent: 'PrintAgent',
+  AgentPairCode: 'AgentPairCode',
   MenuItemStation: 'MenuItemStation',
   ModifierGroupStation: 'ModifierGroupStation',
   MenuCategoryStation: 'MenuCategoryStation',

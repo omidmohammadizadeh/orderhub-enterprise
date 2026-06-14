@@ -29,6 +29,19 @@ export interface RegisterAgentDto {
   versionString?: string;
 }
 
+export interface PairAgentDto {
+  code: string;
+  deviceId: string;
+  deviceName: string;
+  hostname?: string;
+  osType?: string;
+  versionString?: string;
+  kind?: "WEB_BRIDGE" | "FLUTTER_MOBILE" | "FLUTTER_DESKTOP";
+  capabilities?: Record<string, any>;
+}
+
+const PAIR_CODE_TTL_MS = 10 * 60_000;
+
 export interface HeartbeatDto {
   versionString?: string;
   osType?: string;
@@ -223,6 +236,131 @@ export class PrintAgentsService {
       data: { apiTokenHash },
     });
     return { apiToken };
+  }
+
+  // ── Pairing ────────────────────────────────────────────────────────
+  //
+  // createPairCode (operator, JWT) → returns the 6-character code +
+  // QR string. The agent binary then calls redeemPairCode (public,
+  // no JWT — the code IS the auth) with its device identity and gets
+  // back a permanent agent id + token.
+
+  async createPairCode(
+    tenantId: string,
+    userId: string,
+    locationId: string,
+  ): Promise<{ code: string; expiresAt: Date; qr: string }> {
+    const loc = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!loc) throw new NotFoundException("Location not found");
+
+    // Human-typable 6 chars, unambiguous alphabet (no 0/O/1/I).
+    const code = this.generateCode(6);
+    const expiresAt = new Date(Date.now() + PAIR_CODE_TTL_MS);
+    await (this.prisma as any).agentPairCode.create({
+      data: {
+        tenantId,
+        locationId,
+        code,
+        createdById: userId,
+        expiresAt,
+      },
+    });
+    // Embedded JSON so the agent app can scan one QR and learn API
+    // URL + code in a single read.
+    const qr = JSON.stringify({
+      api: "https://orderhub-api-0re6.onrender.com/api/v1",
+      code,
+    });
+    return { code, expiresAt, qr };
+  }
+
+  async redeemPairCode(
+    dto: PairAgentDto,
+  ): Promise<{ id: string; apiToken: string; locationId: string }> {
+    const code = (dto.code ?? "").trim().toUpperCase();
+    if (!code) throw new BadRequestException("Missing pair code");
+
+    const pair = await (this.prisma as any).agentPairCode.findUnique({
+      where: { code },
+    });
+    if (!pair) throw new NotFoundException("Invalid pair code");
+    if (pair.usedAt) throw new BadRequestException("Pair code already used");
+    if (pair.expiresAt < new Date()) {
+      throw new BadRequestException("Pair code expired");
+    }
+    if (!dto.deviceId) {
+      throw new BadRequestException("Missing deviceId");
+    }
+
+    // Idempotent install: if this device already has an agent row
+    // (re-pair after token rotation / re-install), reuse the row and
+    // mint a fresh token.
+    const existing = await (this.prisma as any).printAgent.findUnique({
+      where: { deviceId: dto.deviceId },
+    });
+
+    const apiToken = `oha_${crypto.randomBytes(32).toString("hex")}`;
+    const apiTokenHash = await bcrypt.hash(apiToken, 10);
+
+    let agentId: string;
+    if (existing) {
+      await (this.prisma as any).printAgent.update({
+        where: { id: existing.id },
+        data: {
+          tenantId: pair.tenantId,
+          locationId: pair.locationId,
+          name: dto.deviceName,
+          deviceName: dto.deviceName,
+          kind: dto.kind ?? "WEB_BRIDGE",
+          apiTokenHash,
+          capabilities: (dto.capabilities ?? {}) as any,
+          versionString: dto.versionString ?? null,
+          osType: dto.osType ?? null,
+          hostname: dto.hostname ?? null,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+      agentId = existing.id;
+    } else {
+      const created = await (this.prisma as any).printAgent.create({
+        data: {
+          tenantId: pair.tenantId,
+          locationId: pair.locationId,
+          name: dto.deviceName,
+          deviceName: dto.deviceName,
+          deviceId: dto.deviceId,
+          kind: dto.kind ?? "WEB_BRIDGE",
+          apiTokenHash,
+          capabilities: (dto.capabilities ?? {}) as any,
+          versionString: dto.versionString ?? null,
+          osType: dto.osType ?? null,
+          hostname: dto.hostname ?? null,
+        },
+      });
+      agentId = created.id;
+    }
+
+    await (this.prisma as any).agentPairCode.update({
+      where: { id: pair.id },
+      data: { usedAt: new Date(), agentId },
+    });
+
+    this.logger.log(`PrintAgent paired: ${agentId} (${dto.deviceName})`);
+    return { id: agentId, apiToken, locationId: pair.locationId };
+  }
+
+  private generateCode(len: number): string {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
+    let out = "";
+    const bytes = crypto.randomBytes(len);
+    for (let i = 0; i < len; i++) {
+      out += alphabet[bytes[i]! % alphabet.length];
+    }
+    return out;
   }
 
   async revoke(tenantId: string, agentId: string) {

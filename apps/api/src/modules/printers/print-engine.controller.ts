@@ -41,6 +41,7 @@ import {
 import {
   PrintAgentsService,
   type HeartbeatDto,
+  type PairAgentDto,
   type RegisterAgentDto,
 } from "./print-agents.service";
 import {
@@ -194,6 +195,31 @@ export class PrintAgentsController {
     @Param("id") id: string,
   ) {
     return this.agents.revoke(user.tenantId, id);
+  }
+
+  // ── Pairing ────────────────────────────────────────────────────────
+
+  @Post("pair-codes")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES)
+  @ApiOperation({ summary: "Generate a 6-char pair code + QR string" })
+  createPairCode(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { locationId: string },
+  ) {
+    return this.agents.createPairCode(
+      user.tenantId,
+      user.userId,
+      body.locationId,
+    );
+  }
+
+  @Public()
+  @Post("pair")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Agent redeems a pair code (public)" })
+  pair(@Body() dto: PairAgentDto) {
+    return this.agents.redeemPairCode(dto);
   }
 
   // ── Agent protocol — public + X-Agent-Token header auth ────────────

@@ -234,6 +234,11 @@ export type PrinterStation = $Result.DefaultSelection<Prisma.$PrinterStationPayl
  */
 export type PrintAgent = $Result.DefaultSelection<Prisma.$PrintAgentPayload>
 /**
+ * Model AgentPairCode
+ * 
+ */
+export type AgentPairCode = $Result.DefaultSelection<Prisma.$AgentPairCodePayload>
+/**
  * Model MenuItemStation
  * 
  */
@@ -1724,6 +1729,16 @@ export class PrismaClient<
   get printAgent(): Prisma.PrintAgentDelegate<ExtArgs>;
 
   /**
+   * `prisma.agentPairCode`: Exposes CRUD operations for the **AgentPairCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AgentPairCodes
+    * const agentPairCodes = await prisma.agentPairCode.findMany()
+    * ```
+    */
+  get agentPairCode(): Prisma.AgentPairCodeDelegate<ExtArgs>;
+
+  /**
    * `prisma.menuItemStation`: Exposes CRUD operations for the **MenuItemStation** model.
     * Example usage:
     * ```ts
@@ -2627,6 +2642,7 @@ export namespace Prisma {
     PrintJob: 'PrintJob',
     PrinterStation: 'PrinterStation',
     PrintAgent: 'PrintAgent',
+    AgentPairCode: 'AgentPairCode',
     MenuItemStation: 'MenuItemStation',
     ModifierGroupStation: 'ModifierGroupStation',
     MenuCategoryStation: 'MenuCategoryStation',
@@ -2684,7 +2700,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5765,6 +5781,76 @@ export namespace Prisma {
           count: {
             args: Prisma.PrintAgentCountArgs<ExtArgs>
             result: $Utils.Optional<PrintAgentCountAggregateOutputType> | number
+          }
+        }
+      }
+      AgentPairCode: {
+        payload: Prisma.$AgentPairCodePayload<ExtArgs>
+        fields: Prisma.AgentPairCodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AgentPairCodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AgentPairCodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          findFirst: {
+            args: Prisma.AgentPairCodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AgentPairCodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          findMany: {
+            args: Prisma.AgentPairCodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>[]
+          }
+          create: {
+            args: Prisma.AgentPairCodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          createMany: {
+            args: Prisma.AgentPairCodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AgentPairCodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>[]
+          }
+          delete: {
+            args: Prisma.AgentPairCodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          update: {
+            args: Prisma.AgentPairCodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          deleteMany: {
+            args: Prisma.AgentPairCodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AgentPairCodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AgentPairCodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AgentPairCodePayload>
+          }
+          aggregate: {
+            args: Prisma.AgentPairCodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAgentPairCode>
+          }
+          groupBy: {
+            args: Prisma.AgentPairCodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AgentPairCodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AgentPairCodeCountArgs<ExtArgs>
+            result: $Utils.Optional<AgentPairCodeCountAggregateOutputType> | number
           }
         }
       }
@@ -58873,6 +58959,8 @@ export namespace Prisma {
     kind: $Enums.PrintAgentKind | null
     apiTokenHash: string | null
     versionString: string | null
+    deviceId: string | null
+    deviceName: string | null
     osType: string | null
     hostname: string | null
     printerCount: number | null
@@ -58891,6 +58979,8 @@ export namespace Prisma {
     kind: $Enums.PrintAgentKind | null
     apiTokenHash: string | null
     versionString: string | null
+    deviceId: string | null
+    deviceName: string | null
     osType: string | null
     hostname: string | null
     printerCount: number | null
@@ -58910,6 +59000,8 @@ export namespace Prisma {
     apiTokenHash: number
     capabilities: number
     versionString: number
+    deviceId: number
+    deviceName: number
     osType: number
     hostname: number
     printerCount: number
@@ -58938,6 +59030,8 @@ export namespace Prisma {
     kind?: true
     apiTokenHash?: true
     versionString?: true
+    deviceId?: true
+    deviceName?: true
     osType?: true
     hostname?: true
     printerCount?: true
@@ -58956,6 +59050,8 @@ export namespace Prisma {
     kind?: true
     apiTokenHash?: true
     versionString?: true
+    deviceId?: true
+    deviceName?: true
     osType?: true
     hostname?: true
     printerCount?: true
@@ -58975,6 +59071,8 @@ export namespace Prisma {
     apiTokenHash?: true
     capabilities?: true
     versionString?: true
+    deviceId?: true
+    deviceName?: true
     osType?: true
     hostname?: true
     printerCount?: true
@@ -59081,6 +59179,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities: JsonValue
     versionString: string | null
+    deviceId: string | null
+    deviceName: string | null
     osType: string | null
     hostname: string | null
     printerCount: number
@@ -59119,6 +59219,8 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    deviceId?: boolean
+    deviceName?: boolean
     osType?: boolean
     hostname?: boolean
     printerCount?: boolean
@@ -59143,6 +59245,8 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    deviceId?: boolean
+    deviceName?: boolean
     osType?: boolean
     hostname?: boolean
     printerCount?: boolean
@@ -59164,6 +59268,8 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    deviceId?: boolean
+    deviceName?: boolean
     osType?: boolean
     hostname?: boolean
     printerCount?: boolean
@@ -59203,6 +59309,8 @@ export namespace Prisma {
       apiTokenHash: string
       capabilities: Prisma.JsonValue
       versionString: string | null
+      deviceId: string | null
+      deviceName: string | null
       osType: string | null
       hostname: string | null
       printerCount: number
@@ -59616,6 +59724,8 @@ export namespace Prisma {
     readonly apiTokenHash: FieldRef<"PrintAgent", 'String'>
     readonly capabilities: FieldRef<"PrintAgent", 'Json'>
     readonly versionString: FieldRef<"PrintAgent", 'String'>
+    readonly deviceId: FieldRef<"PrintAgent", 'String'>
+    readonly deviceName: FieldRef<"PrintAgent", 'String'>
     readonly osType: FieldRef<"PrintAgent", 'String'>
     readonly hostname: FieldRef<"PrintAgent", 'String'>
     readonly printerCount: FieldRef<"PrintAgent", 'Int'>
@@ -59993,6 +60103,932 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PrintAgentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AgentPairCode
+   */
+
+  export type AggregateAgentPairCode = {
+    _count: AgentPairCodeCountAggregateOutputType | null
+    _min: AgentPairCodeMinAggregateOutputType | null
+    _max: AgentPairCodeMaxAggregateOutputType | null
+  }
+
+  export type AgentPairCodeMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    code: string | null
+    createdById: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    agentId: string | null
+    createdAt: Date | null
+  }
+
+  export type AgentPairCodeMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    code: string | null
+    createdById: string | null
+    expiresAt: Date | null
+    usedAt: Date | null
+    agentId: string | null
+    createdAt: Date | null
+  }
+
+  export type AgentPairCodeCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    code: number
+    createdById: number
+    expiresAt: number
+    usedAt: number
+    agentId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AgentPairCodeMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    code?: true
+    createdById?: true
+    expiresAt?: true
+    usedAt?: true
+    agentId?: true
+    createdAt?: true
+  }
+
+  export type AgentPairCodeMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    code?: true
+    createdById?: true
+    expiresAt?: true
+    usedAt?: true
+    agentId?: true
+    createdAt?: true
+  }
+
+  export type AgentPairCodeCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    code?: true
+    createdById?: true
+    expiresAt?: true
+    usedAt?: true
+    agentId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AgentPairCodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AgentPairCode to aggregate.
+     */
+    where?: AgentPairCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentPairCodes to fetch.
+     */
+    orderBy?: AgentPairCodeOrderByWithRelationInput | AgentPairCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AgentPairCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentPairCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentPairCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AgentPairCodes
+    **/
+    _count?: true | AgentPairCodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AgentPairCodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AgentPairCodeMaxAggregateInputType
+  }
+
+  export type GetAgentPairCodeAggregateType<T extends AgentPairCodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateAgentPairCode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAgentPairCode[P]>
+      : GetScalarType<T[P], AggregateAgentPairCode[P]>
+  }
+
+
+
+
+  export type AgentPairCodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AgentPairCodeWhereInput
+    orderBy?: AgentPairCodeOrderByWithAggregationInput | AgentPairCodeOrderByWithAggregationInput[]
+    by: AgentPairCodeScalarFieldEnum[] | AgentPairCodeScalarFieldEnum
+    having?: AgentPairCodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AgentPairCodeCountAggregateInputType | true
+    _min?: AgentPairCodeMinAggregateInputType
+    _max?: AgentPairCodeMaxAggregateInputType
+  }
+
+  export type AgentPairCodeGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    code: string
+    createdById: string | null
+    expiresAt: Date
+    usedAt: Date | null
+    agentId: string | null
+    createdAt: Date
+    _count: AgentPairCodeCountAggregateOutputType | null
+    _min: AgentPairCodeMinAggregateOutputType | null
+    _max: AgentPairCodeMaxAggregateOutputType | null
+  }
+
+  type GetAgentPairCodeGroupByPayload<T extends AgentPairCodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AgentPairCodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AgentPairCodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AgentPairCodeGroupByOutputType[P]>
+            : GetScalarType<T[P], AgentPairCodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AgentPairCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    code?: boolean
+    createdById?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    agentId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["agentPairCode"]>
+
+  export type AgentPairCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    code?: boolean
+    createdById?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    agentId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["agentPairCode"]>
+
+  export type AgentPairCodeSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    code?: boolean
+    createdById?: boolean
+    expiresAt?: boolean
+    usedAt?: boolean
+    agentId?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $AgentPairCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AgentPairCode"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      code: string
+      createdById: string | null
+      expiresAt: Date
+      usedAt: Date | null
+      agentId: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["agentPairCode"]>
+    composites: {}
+  }
+
+  type AgentPairCodeGetPayload<S extends boolean | null | undefined | AgentPairCodeDefaultArgs> = $Result.GetResult<Prisma.$AgentPairCodePayload, S>
+
+  type AgentPairCodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AgentPairCodeFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AgentPairCodeCountAggregateInputType | true
+    }
+
+  export interface AgentPairCodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AgentPairCode'], meta: { name: 'AgentPairCode' } }
+    /**
+     * Find zero or one AgentPairCode that matches the filter.
+     * @param {AgentPairCodeFindUniqueArgs} args - Arguments to find a AgentPairCode
+     * @example
+     * // Get one AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AgentPairCodeFindUniqueArgs>(args: SelectSubset<T, AgentPairCodeFindUniqueArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AgentPairCode that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AgentPairCodeFindUniqueOrThrowArgs} args - Arguments to find a AgentPairCode
+     * @example
+     * // Get one AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AgentPairCodeFindUniqueOrThrowArgs>(args: SelectSubset<T, AgentPairCodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AgentPairCode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeFindFirstArgs} args - Arguments to find a AgentPairCode
+     * @example
+     * // Get one AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AgentPairCodeFindFirstArgs>(args?: SelectSubset<T, AgentPairCodeFindFirstArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AgentPairCode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeFindFirstOrThrowArgs} args - Arguments to find a AgentPairCode
+     * @example
+     * // Get one AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AgentPairCodeFindFirstOrThrowArgs>(args?: SelectSubset<T, AgentPairCodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AgentPairCodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AgentPairCodes
+     * const agentPairCodes = await prisma.agentPairCode.findMany()
+     * 
+     * // Get first 10 AgentPairCodes
+     * const agentPairCodes = await prisma.agentPairCode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const agentPairCodeWithIdOnly = await prisma.agentPairCode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AgentPairCodeFindManyArgs>(args?: SelectSubset<T, AgentPairCodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AgentPairCode.
+     * @param {AgentPairCodeCreateArgs} args - Arguments to create a AgentPairCode.
+     * @example
+     * // Create one AgentPairCode
+     * const AgentPairCode = await prisma.agentPairCode.create({
+     *   data: {
+     *     // ... data to create a AgentPairCode
+     *   }
+     * })
+     * 
+     */
+    create<T extends AgentPairCodeCreateArgs>(args: SelectSubset<T, AgentPairCodeCreateArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AgentPairCodes.
+     * @param {AgentPairCodeCreateManyArgs} args - Arguments to create many AgentPairCodes.
+     * @example
+     * // Create many AgentPairCodes
+     * const agentPairCode = await prisma.agentPairCode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AgentPairCodeCreateManyArgs>(args?: SelectSubset<T, AgentPairCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AgentPairCodes and returns the data saved in the database.
+     * @param {AgentPairCodeCreateManyAndReturnArgs} args - Arguments to create many AgentPairCodes.
+     * @example
+     * // Create many AgentPairCodes
+     * const agentPairCode = await prisma.agentPairCode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AgentPairCodes and only return the `id`
+     * const agentPairCodeWithIdOnly = await prisma.agentPairCode.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AgentPairCodeCreateManyAndReturnArgs>(args?: SelectSubset<T, AgentPairCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AgentPairCode.
+     * @param {AgentPairCodeDeleteArgs} args - Arguments to delete one AgentPairCode.
+     * @example
+     * // Delete one AgentPairCode
+     * const AgentPairCode = await prisma.agentPairCode.delete({
+     *   where: {
+     *     // ... filter to delete one AgentPairCode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AgentPairCodeDeleteArgs>(args: SelectSubset<T, AgentPairCodeDeleteArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AgentPairCode.
+     * @param {AgentPairCodeUpdateArgs} args - Arguments to update one AgentPairCode.
+     * @example
+     * // Update one AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AgentPairCodeUpdateArgs>(args: SelectSubset<T, AgentPairCodeUpdateArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AgentPairCodes.
+     * @param {AgentPairCodeDeleteManyArgs} args - Arguments to filter AgentPairCodes to delete.
+     * @example
+     * // Delete a few AgentPairCodes
+     * const { count } = await prisma.agentPairCode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AgentPairCodeDeleteManyArgs>(args?: SelectSubset<T, AgentPairCodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AgentPairCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AgentPairCodes
+     * const agentPairCode = await prisma.agentPairCode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AgentPairCodeUpdateManyArgs>(args: SelectSubset<T, AgentPairCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AgentPairCode.
+     * @param {AgentPairCodeUpsertArgs} args - Arguments to update or create a AgentPairCode.
+     * @example
+     * // Update or create a AgentPairCode
+     * const agentPairCode = await prisma.agentPairCode.upsert({
+     *   create: {
+     *     // ... data to create a AgentPairCode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AgentPairCode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AgentPairCodeUpsertArgs>(args: SelectSubset<T, AgentPairCodeUpsertArgs<ExtArgs>>): Prisma__AgentPairCodeClient<$Result.GetResult<Prisma.$AgentPairCodePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AgentPairCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeCountArgs} args - Arguments to filter AgentPairCodes to count.
+     * @example
+     * // Count the number of AgentPairCodes
+     * const count = await prisma.agentPairCode.count({
+     *   where: {
+     *     // ... the filter for the AgentPairCodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends AgentPairCodeCountArgs>(
+      args?: Subset<T, AgentPairCodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AgentPairCodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AgentPairCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AgentPairCodeAggregateArgs>(args: Subset<T, AgentPairCodeAggregateArgs>): Prisma.PrismaPromise<GetAgentPairCodeAggregateType<T>>
+
+    /**
+     * Group by AgentPairCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AgentPairCodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AgentPairCodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AgentPairCodeGroupByArgs['orderBy'] }
+        : { orderBy?: AgentPairCodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AgentPairCodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAgentPairCodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AgentPairCode model
+   */
+  readonly fields: AgentPairCodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AgentPairCode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AgentPairCodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AgentPairCode model
+   */ 
+  interface AgentPairCodeFieldRefs {
+    readonly id: FieldRef<"AgentPairCode", 'String'>
+    readonly tenantId: FieldRef<"AgentPairCode", 'String'>
+    readonly locationId: FieldRef<"AgentPairCode", 'String'>
+    readonly code: FieldRef<"AgentPairCode", 'String'>
+    readonly createdById: FieldRef<"AgentPairCode", 'String'>
+    readonly expiresAt: FieldRef<"AgentPairCode", 'DateTime'>
+    readonly usedAt: FieldRef<"AgentPairCode", 'DateTime'>
+    readonly agentId: FieldRef<"AgentPairCode", 'String'>
+    readonly createdAt: FieldRef<"AgentPairCode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AgentPairCode findUnique
+   */
+  export type AgentPairCodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter, which AgentPairCode to fetch.
+     */
+    where: AgentPairCodeWhereUniqueInput
+  }
+
+  /**
+   * AgentPairCode findUniqueOrThrow
+   */
+  export type AgentPairCodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter, which AgentPairCode to fetch.
+     */
+    where: AgentPairCodeWhereUniqueInput
+  }
+
+  /**
+   * AgentPairCode findFirst
+   */
+  export type AgentPairCodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter, which AgentPairCode to fetch.
+     */
+    where?: AgentPairCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentPairCodes to fetch.
+     */
+    orderBy?: AgentPairCodeOrderByWithRelationInput | AgentPairCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AgentPairCodes.
+     */
+    cursor?: AgentPairCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentPairCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentPairCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AgentPairCodes.
+     */
+    distinct?: AgentPairCodeScalarFieldEnum | AgentPairCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AgentPairCode findFirstOrThrow
+   */
+  export type AgentPairCodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter, which AgentPairCode to fetch.
+     */
+    where?: AgentPairCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentPairCodes to fetch.
+     */
+    orderBy?: AgentPairCodeOrderByWithRelationInput | AgentPairCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AgentPairCodes.
+     */
+    cursor?: AgentPairCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentPairCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentPairCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AgentPairCodes.
+     */
+    distinct?: AgentPairCodeScalarFieldEnum | AgentPairCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AgentPairCode findMany
+   */
+  export type AgentPairCodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter, which AgentPairCodes to fetch.
+     */
+    where?: AgentPairCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AgentPairCodes to fetch.
+     */
+    orderBy?: AgentPairCodeOrderByWithRelationInput | AgentPairCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AgentPairCodes.
+     */
+    cursor?: AgentPairCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AgentPairCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AgentPairCodes.
+     */
+    skip?: number
+    distinct?: AgentPairCodeScalarFieldEnum | AgentPairCodeScalarFieldEnum[]
+  }
+
+  /**
+   * AgentPairCode create
+   */
+  export type AgentPairCodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * The data needed to create a AgentPairCode.
+     */
+    data: XOR<AgentPairCodeCreateInput, AgentPairCodeUncheckedCreateInput>
+  }
+
+  /**
+   * AgentPairCode createMany
+   */
+  export type AgentPairCodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AgentPairCodes.
+     */
+    data: AgentPairCodeCreateManyInput | AgentPairCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AgentPairCode createManyAndReturn
+   */
+  export type AgentPairCodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AgentPairCodes.
+     */
+    data: AgentPairCodeCreateManyInput | AgentPairCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AgentPairCode update
+   */
+  export type AgentPairCodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * The data needed to update a AgentPairCode.
+     */
+    data: XOR<AgentPairCodeUpdateInput, AgentPairCodeUncheckedUpdateInput>
+    /**
+     * Choose, which AgentPairCode to update.
+     */
+    where: AgentPairCodeWhereUniqueInput
+  }
+
+  /**
+   * AgentPairCode updateMany
+   */
+  export type AgentPairCodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AgentPairCodes.
+     */
+    data: XOR<AgentPairCodeUpdateManyMutationInput, AgentPairCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which AgentPairCodes to update
+     */
+    where?: AgentPairCodeWhereInput
+  }
+
+  /**
+   * AgentPairCode upsert
+   */
+  export type AgentPairCodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * The filter to search for the AgentPairCode to update in case it exists.
+     */
+    where: AgentPairCodeWhereUniqueInput
+    /**
+     * In case the AgentPairCode found by the `where` argument doesn't exist, create a new AgentPairCode with this data.
+     */
+    create: XOR<AgentPairCodeCreateInput, AgentPairCodeUncheckedCreateInput>
+    /**
+     * In case the AgentPairCode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AgentPairCodeUpdateInput, AgentPairCodeUncheckedUpdateInput>
+  }
+
+  /**
+   * AgentPairCode delete
+   */
+  export type AgentPairCodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
+    /**
+     * Filter which AgentPairCode to delete.
+     */
+    where: AgentPairCodeWhereUniqueInput
+  }
+
+  /**
+   * AgentPairCode deleteMany
+   */
+  export type AgentPairCodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AgentPairCodes to delete
+     */
+    where?: AgentPairCodeWhereInput
+  }
+
+  /**
+   * AgentPairCode without action
+   */
+  export type AgentPairCodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AgentPairCode
+     */
+    select?: AgentPairCodeSelect<ExtArgs> | null
   }
 
 
@@ -103513,6 +104549,8 @@ export namespace Prisma {
     apiTokenHash: 'apiTokenHash',
     capabilities: 'capabilities',
     versionString: 'versionString',
+    deviceId: 'deviceId',
+    deviceName: 'deviceName',
     osType: 'osType',
     hostname: 'hostname',
     printerCount: 'printerCount',
@@ -103524,6 +104562,21 @@ export namespace Prisma {
   };
 
   export type PrintAgentScalarFieldEnum = (typeof PrintAgentScalarFieldEnum)[keyof typeof PrintAgentScalarFieldEnum]
+
+
+  export const AgentPairCodeScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    code: 'code',
+    createdById: 'createdById',
+    expiresAt: 'expiresAt',
+    usedAt: 'usedAt',
+    agentId: 'agentId',
+    createdAt: 'createdAt'
+  };
+
+  export type AgentPairCodeScalarFieldEnum = (typeof AgentPairCodeScalarFieldEnum)[keyof typeof AgentPairCodeScalarFieldEnum]
 
 
   export const MenuItemStationScalarFieldEnum: {
@@ -104855,11 +105908,25 @@ export namespace Prisma {
     name: 'name',
     apiTokenHash: 'apiTokenHash',
     versionString: 'versionString',
+    deviceId: 'deviceId',
+    deviceName: 'deviceName',
     osType: 'osType',
     hostname: 'hostname'
   };
 
   export type PrintAgentOrderByRelevanceFieldEnum = (typeof PrintAgentOrderByRelevanceFieldEnum)[keyof typeof PrintAgentOrderByRelevanceFieldEnum]
+
+
+  export const AgentPairCodeOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    code: 'code',
+    createdById: 'createdById',
+    agentId: 'agentId'
+  };
+
+  export type AgentPairCodeOrderByRelevanceFieldEnum = (typeof AgentPairCodeOrderByRelevanceFieldEnum)[keyof typeof AgentPairCodeOrderByRelevanceFieldEnum]
 
 
   export const MenuItemStationOrderByRelevanceFieldEnum: {
@@ -111162,6 +112229,8 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    deviceId?: StringNullableFilter<"PrintAgent"> | string | null
+    deviceName?: StringNullableFilter<"PrintAgent"> | string | null
     osType?: StringNullableFilter<"PrintAgent"> | string | null
     hostname?: StringNullableFilter<"PrintAgent"> | string | null
     printerCount?: IntFilter<"PrintAgent"> | number
@@ -111185,6 +112254,8 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrderInput | SortOrder
+    deviceId?: SortOrderInput | SortOrder
+    deviceName?: SortOrderInput | SortOrder
     osType?: SortOrderInput | SortOrder
     hostname?: SortOrderInput | SortOrder
     printerCount?: SortOrder
@@ -111202,6 +112273,7 @@ export namespace Prisma {
 
   export type PrintAgentWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    deviceId?: string
     AND?: PrintAgentWhereInput | PrintAgentWhereInput[]
     OR?: PrintAgentWhereInput[]
     NOT?: PrintAgentWhereInput | PrintAgentWhereInput[]
@@ -111212,6 +112284,7 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    deviceName?: StringNullableFilter<"PrintAgent"> | string | null
     osType?: StringNullableFilter<"PrintAgent"> | string | null
     hostname?: StringNullableFilter<"PrintAgent"> | string | null
     printerCount?: IntFilter<"PrintAgent"> | number
@@ -111224,7 +112297,7 @@ export namespace Prisma {
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     printers?: PrinterListRelationFilter
     claimedJobs?: PrintJobListRelationFilter
-  }, "id">
+  }, "id" | "deviceId">
 
   export type PrintAgentOrderByWithAggregationInput = {
     id?: SortOrder
@@ -111235,6 +112308,8 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrderInput | SortOrder
+    deviceId?: SortOrderInput | SortOrder
+    deviceName?: SortOrderInput | SortOrder
     osType?: SortOrderInput | SortOrder
     hostname?: SortOrderInput | SortOrder
     printerCount?: SortOrder
@@ -111262,6 +112337,8 @@ export namespace Prisma {
     apiTokenHash?: StringWithAggregatesFilter<"PrintAgent"> | string
     capabilities?: JsonWithAggregatesFilter<"PrintAgent">
     versionString?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    deviceId?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    deviceName?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
     osType?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
     hostname?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
     printerCount?: IntWithAggregatesFilter<"PrintAgent"> | number
@@ -111270,6 +112347,79 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
+  }
+
+  export type AgentPairCodeWhereInput = {
+    AND?: AgentPairCodeWhereInput | AgentPairCodeWhereInput[]
+    OR?: AgentPairCodeWhereInput[]
+    NOT?: AgentPairCodeWhereInput | AgentPairCodeWhereInput[]
+    id?: StringFilter<"AgentPairCode"> | string
+    tenantId?: StringFilter<"AgentPairCode"> | string
+    locationId?: StringFilter<"AgentPairCode"> | string
+    code?: StringFilter<"AgentPairCode"> | string
+    createdById?: StringNullableFilter<"AgentPairCode"> | string | null
+    expiresAt?: DateTimeFilter<"AgentPairCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AgentPairCode"> | Date | string | null
+    agentId?: StringNullableFilter<"AgentPairCode"> | string | null
+    createdAt?: DateTimeFilter<"AgentPairCode"> | Date | string
+  }
+
+  export type AgentPairCodeOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    code?: SortOrder
+    createdById?: SortOrderInput | SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    agentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: AgentPairCodeOrderByRelevanceInput
+  }
+
+  export type AgentPairCodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: AgentPairCodeWhereInput | AgentPairCodeWhereInput[]
+    OR?: AgentPairCodeWhereInput[]
+    NOT?: AgentPairCodeWhereInput | AgentPairCodeWhereInput[]
+    tenantId?: StringFilter<"AgentPairCode"> | string
+    locationId?: StringFilter<"AgentPairCode"> | string
+    createdById?: StringNullableFilter<"AgentPairCode"> | string | null
+    expiresAt?: DateTimeFilter<"AgentPairCode"> | Date | string
+    usedAt?: DateTimeNullableFilter<"AgentPairCode"> | Date | string | null
+    agentId?: StringNullableFilter<"AgentPairCode"> | string | null
+    createdAt?: DateTimeFilter<"AgentPairCode"> | Date | string
+  }, "id" | "code">
+
+  export type AgentPairCodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    code?: SortOrder
+    createdById?: SortOrderInput | SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    agentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: AgentPairCodeCountOrderByAggregateInput
+    _max?: AgentPairCodeMaxOrderByAggregateInput
+    _min?: AgentPairCodeMinOrderByAggregateInput
+  }
+
+  export type AgentPairCodeScalarWhereWithAggregatesInput = {
+    AND?: AgentPairCodeScalarWhereWithAggregatesInput | AgentPairCodeScalarWhereWithAggregatesInput[]
+    OR?: AgentPairCodeScalarWhereWithAggregatesInput[]
+    NOT?: AgentPairCodeScalarWhereWithAggregatesInput | AgentPairCodeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AgentPairCode"> | string
+    tenantId?: StringWithAggregatesFilter<"AgentPairCode"> | string
+    locationId?: StringWithAggregatesFilter<"AgentPairCode"> | string
+    code?: StringWithAggregatesFilter<"AgentPairCode"> | string
+    createdById?: StringNullableWithAggregatesFilter<"AgentPairCode"> | string | null
+    expiresAt?: DateTimeWithAggregatesFilter<"AgentPairCode"> | Date | string
+    usedAt?: DateTimeNullableWithAggregatesFilter<"AgentPairCode"> | Date | string | null
+    agentId?: StringNullableWithAggregatesFilter<"AgentPairCode"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AgentPairCode"> | Date | string
   }
 
   export type MenuItemStationWhereInput = {
@@ -120747,6 +121897,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -120770,6 +121922,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -120789,6 +121943,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -120812,6 +121968,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -120833,6 +121991,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -120850,6 +122010,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -120869,6 +122031,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -120877,6 +122041,90 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AgentPairCodeCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    code: string
+    createdById?: string | null
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    agentId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AgentPairCodeUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    code: string
+    createdById?: string | null
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    agentId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AgentPairCodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AgentPairCodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AgentPairCodeCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    code: string
+    createdById?: string | null
+    expiresAt: Date | string
+    usedAt?: Date | string | null
+    agentId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type AgentPairCodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AgentPairCodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MenuItemStationCreateInput = {
@@ -129137,6 +130385,8 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrder
+    deviceId?: SortOrder
+    deviceName?: SortOrder
     osType?: SortOrder
     hostname?: SortOrder
     printerCount?: SortOrder
@@ -129159,6 +130409,8 @@ export namespace Prisma {
     kind?: SortOrder
     apiTokenHash?: SortOrder
     versionString?: SortOrder
+    deviceId?: SortOrder
+    deviceName?: SortOrder
     osType?: SortOrder
     hostname?: SortOrder
     printerCount?: SortOrder
@@ -129177,6 +130429,8 @@ export namespace Prisma {
     kind?: SortOrder
     apiTokenHash?: SortOrder
     versionString?: SortOrder
+    deviceId?: SortOrder
+    deviceName?: SortOrder
     osType?: SortOrder
     hostname?: SortOrder
     printerCount?: SortOrder
@@ -129199,6 +130453,48 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPrintAgentKindFilter<$PrismaModel>
     _max?: NestedEnumPrintAgentKindFilter<$PrismaModel>
+  }
+
+  export type AgentPairCodeOrderByRelevanceInput = {
+    fields: AgentPairCodeOrderByRelevanceFieldEnum | AgentPairCodeOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AgentPairCodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    code?: SortOrder
+    createdById?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    agentId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AgentPairCodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    code?: SortOrder
+    createdById?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    agentId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AgentPairCodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    code?: SortOrder
+    createdById?: SortOrder
+    expiresAt?: SortOrder
+    usedAt?: SortOrder
+    agentId?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type PrinterStationRelationFilter = {
@@ -139925,6 +141221,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -139946,6 +141244,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -140609,6 +141909,8 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    deviceId?: StringNullableFilter<"PrintAgent"> | string | null
+    deviceName?: StringNullableFilter<"PrintAgent"> | string | null
     osType?: StringNullableFilter<"PrintAgent"> | string | null
     hostname?: StringNullableFilter<"PrintAgent"> | string | null
     printerCount?: IntFilter<"PrintAgent"> | number
@@ -144522,6 +145824,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -144543,6 +145847,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -152968,6 +154274,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -152990,6 +154298,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -153539,6 +154849,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -153561,6 +154873,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -153961,6 +155275,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -153983,6 +155299,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -154359,6 +155677,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -154381,6 +155701,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -161799,6 +163121,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -162623,6 +163947,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -162644,6 +163970,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -162664,6 +163992,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -164487,6 +165817,8 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    deviceId?: string | null
+    deviceName?: string | null
     osType?: string | null
     hostname?: string | null
     printerCount?: number
@@ -164950,6 +166282,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -164971,6 +166305,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -164991,6 +166327,8 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceId?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
     osType?: NullableStringFieldUpdateOperationsInput | string | null
     hostname?: NullableStringFieldUpdateOperationsInput | string | null
     printerCount?: IntFieldUpdateOperationsInput | number
@@ -169085,6 +170423,10 @@ export namespace Prisma {
      * @deprecated Use PrintAgentDefaultArgs instead
      */
     export type PrintAgentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintAgentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AgentPairCodeDefaultArgs instead
+     */
+    export type AgentPairCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AgentPairCodeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuItemStationDefaultArgs instead
      */

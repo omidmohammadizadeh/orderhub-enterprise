@@ -1674,6 +1674,12 @@ model PrintAgent {
   apiTokenHash  String
   capabilities  Json           @default("{}")
   versionString String?
+  // Phase AS-3 — stable device identity. deviceId is a UUID the agent
+  // generates locally on first boot; running the binary again with
+  // the same config file reuses the same agent row. deviceName is the
+  // human label ("Front-of-house Mac", "Kitchen Tablet").
+  deviceId      String?        @unique
+  deviceName    String?
   // Phase AS-2 — telemetry the operator dashboard reads to spot a sick
   // device without ssh-ing into it. osType: "macOS 14.5" / "Android 14"
   // / "Windows 11 Pro". hostname: machine name as the user knows it.
@@ -1695,6 +1701,27 @@ model PrintAgent {
   @@index([locationId])
   @@index([lastSeenAt])
   @@map("print_agents")
+}
+
+// ── AgentPairCode ────────────────────────────────────────────────────
+// Phase AS-3. Short-lived pairing token. Operator generates one from
+// the dashboard; the agent binary scans the QR (or the operator types
+// the code) and POSTs it back to /v1/print-agents/pair to receive a
+// permanent agent id + token.
+model AgentPairCode {
+  id          String   @id @default(cuid())
+  tenantId    String
+  locationId  String
+  code        String   @unique
+  createdById String?
+  expiresAt   DateTime
+  usedAt      DateTime?
+  agentId     String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("agent_pair_codes")
 }
 
 // ── Routing join tables ────────────────────────────────────────────────
