@@ -8,6 +8,7 @@ import { QUEUES, PRINT_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintersService } from "./printers.service";
 import { PrintJobsService } from "./print-jobs.service";
+import { PrintAgentsService } from "./print-agents.service";
 
 const PROBE_TIMEOUT_MS = 3_000;
 const EPOS_PROBE_TIMEOUT_MS = 4_000;
@@ -42,19 +43,26 @@ export class PrinterHeartbeatCron {
     private readonly prisma: PrismaService,
     private readonly printersService: PrintersService,
     private readonly printJobs: PrintJobsService,
+    private readonly agents: PrintAgentsService,
     @InjectQueue(QUEUES.PRINTING) private readonly printQueue: Queue,
   ) {}
 
-  // Phase AS-1 — un-claim stuck print jobs (agent crashed mid-print)
-  // every 30s so they go back to QUEUED and another agent can take
-  // them. Matches the 15s heartbeat × 4 missed beats grace.
+  // Phase AS-1+2 — three quick housekeeping passes on the same 30s
+  // cadence. Each is wrapped in its own try/catch so one failure
+  // doesn't starve the others.
   @Cron("*/30 * * * * *")
-  async releaseStalePrintJobs() {
-    try {
-      await this.printJobs.releaseStaleClaims();
-    } catch (err: any) {
-      this.logger.warn(`reaper failed: ${err.message}`);
-    }
+  async housekeeping() {
+    await Promise.allSettled([
+      this.printJobs.releaseStaleClaims().catch((err: any) =>
+        this.logger.warn(`stale-claim reaper failed: ${err.message}`),
+      ),
+      this.printJobs.promoteRetries().catch((err: any) =>
+        this.logger.warn(`retry promoter failed: ${err.message}`),
+      ),
+      this.agents.detectOfflineAgents().catch((err: any) =>
+        this.logger.warn(`offline-agent detector failed: ${err.message}`),
+      ),
+    ]);
   }
 
   // Probe every 30 seconds — fast enough to detect reboots, slow enough to not flood

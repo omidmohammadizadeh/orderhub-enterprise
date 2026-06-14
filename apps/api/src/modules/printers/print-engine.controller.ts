@@ -300,10 +300,10 @@ export class PrintJobsController {
     @Headers("x-agent-id") agentId: string,
     @Headers("x-agent-token") token: string,
     @Param("id") id: string,
-    @Body() body: { error: string; retryable: boolean },
+    @Body() body: { failureReason: string; lastError: string; retryable: boolean },
   ) {
     if (!agentId || !token) throw new UnauthorizedException();
     await this.agents.verifyToken(agentId, token);
-    return this.jobs.markFailed(id, agentId, body.error, body.retryable);
+    return this.jobs.markFailed(id, agentId, body);
   }
 }

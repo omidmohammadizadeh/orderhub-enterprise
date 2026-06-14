@@ -19,6 +19,7 @@ import {
 import * as bcrypt from "bcryptjs";
 import * as crypto from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { SocketService } from "../../infrastructure/socket/socket.service";
 
 export interface RegisterAgentDto {
   locationId: string;
@@ -30,14 +31,65 @@ export interface RegisterAgentDto {
 
 export interface HeartbeatDto {
   versionString?: string;
+  osType?: string;
+  hostname?: string;
+  printerCount?: number;
   printerStatuses?: { printerId: string; isOnline: boolean }[];
 }
+
+const OFFLINE_THRESHOLD_MS = 90_000;
 
 @Injectable()
 export class PrintAgentsService {
   private readonly logger = new Logger(PrintAgentsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socket: SocketService,
+  ) {}
+
+  // Phase AS-2 — cron-callable. For every active agent whose
+  // lastSeenAt is older than the 90s threshold, emit
+  // printer.agent.offline and mark the agent's printers offline.
+  // Returns the count for logging.
+  async detectOfflineAgents(): Promise<{ flipped: number }> {
+    const cutoff = new Date(Date.now() - OFFLINE_THRESHOLD_MS);
+    const stale = await (this.prisma as any).printAgent.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        lastSeenAt: { lt: cutoff },
+      },
+      select: { id: true, locationId: true, name: true },
+    });
+    if (!stale.length) return { flipped: 0 };
+
+    // Idempotent: only emit if their printers weren't already offline.
+    for (const agent of stale) {
+      const { count } = await (this.prisma as any).printer.updateMany({
+        where: { agentId: agent.id, isOnline: true },
+        data: { isOnline: false },
+      });
+      if (count > 0) {
+        this.socket.emitToLocation(
+          agent.locationId,
+          "printer:agent:offline" as any,
+          { agentId: agent.id, name: agent.name } as any,
+        );
+      }
+    }
+    return { flipped: stale.length };
+  }
+
+  // Helper for the controller heartbeat path — emits online event
+  // when an agent that had been offline phones home.
+  async noteOnline(agentId: string, locationId: string, name: string) {
+    this.socket.emitToLocation(
+      locationId,
+      "printer:agent:online" as any,
+      { agentId, name } as any,
+    );
+  }
 
   // ── Register ────────────────────────────────────────────────────────
   //
@@ -108,6 +160,11 @@ export class PrintAgentsService {
       data: {
         lastSeenAt: new Date(),
         versionString: dto.versionString ?? undefined,
+        osType: dto.osType ?? undefined,
+        hostname: dto.hostname ?? undefined,
+        ...(dto.printerCount !== undefined && {
+          printerCount: dto.printerCount,
+        }),
       },
     });
 

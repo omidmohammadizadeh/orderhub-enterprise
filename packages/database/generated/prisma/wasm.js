@@ -876,6 +876,12 @@ exports.Prisma.PrinterScalarFieldEnum = {
   supportsLabels: 'supportsLabels',
   supportsCut: 'supportsCut',
   supportsCashDrawer: 'supportsCashDrawer',
+  supportsBluetooth: 'supportsBluetooth',
+  supportsUsb: 'supportsUsb',
+  supportsLan: 'supportsLan',
+  supportsEscPos: 'supportsEscPos',
+  supportsQrCode: 'supportsQrCode',
+  supportsImages: 'supportsImages',
   defaults: 'defaults',
   autoPrintRules: 'autoPrintRules',
   settings: 'settings',
@@ -905,6 +911,10 @@ exports.Prisma.PrintJobScalarFieldEnum = {
   routeKey: 'routeKey',
   idempotencyKey: 'idempotencyKey',
   copies: 'copies',
+  nextRetryAt: 'nextRetryAt',
+  failureReason: 'failureReason',
+  deadLetteredAt: 'deadLetteredAt',
+  lastError: 'lastError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -931,6 +941,9 @@ exports.Prisma.PrintAgentScalarFieldEnum = {
   apiTokenHash: 'apiTokenHash',
   capabilities: 'capabilities',
   versionString: 'versionString',
+  osType: 'osType',
+  hostname: 'hostname',
+  printerCount: 'printerCount',
   lastSeenAt: 'lastSeenAt',
   isActive: 'isActive',
   deletedAt: 'deletedAt',
@@ -1974,7 +1987,9 @@ exports.Prisma.PrintJobOrderByRelevanceFieldEnum = {
   stationId: 'stationId',
   claimedByAgentId: 'claimedByAgentId',
   routeKey: 'routeKey',
-  idempotencyKey: 'idempotencyKey'
+  idempotencyKey: 'idempotencyKey',
+  failureReason: 'failureReason',
+  lastError: 'lastError'
 };
 
 exports.Prisma.PrinterStationOrderByRelevanceFieldEnum = {
@@ -1991,7 +2006,9 @@ exports.Prisma.PrintAgentOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   name: 'name',
   apiTokenHash: 'apiTokenHash',
-  versionString: 'versionString'
+  versionString: 'versionString',
+  osType: 'osType',
+  hostname: 'hostname'
 };
 
 exports.Prisma.MenuItemStationOrderByRelevanceFieldEnum = {

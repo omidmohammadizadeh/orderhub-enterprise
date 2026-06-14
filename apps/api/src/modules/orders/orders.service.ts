@@ -13,6 +13,7 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
+import { PrintJobsService } from "../printers/print-jobs.service";
 import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
@@ -54,6 +55,7 @@ export class OrdersService {
     private readonly audit: AuditLogService,
     private readonly outbox: OutboxService,
     private readonly printQueue: PrintQueueService, // Phase AM
+    private readonly printJobs: PrintJobsService, // Phase AS-2
     private readonly promoCodes: PromoCodesService, // Phase AM
     private readonly payments: PaymentsService, // Phase AP-8 — Stripe manual-capture lifecycle hooks
   ) {}
@@ -554,9 +556,32 @@ export class OrdersService {
     //   • Scheduled future orders bypass the trigger at create-time and arrive
     //     here when the operator clicks "Start preparing now".
     // CANCELLED also fires a cancel ticket so the kitchen knows to bin the bag.
+    // Phase AS-2 — drive the print engine off the same status events.
+    // Each non-MANUAL trigger fans out via PrintJobsService which honours
+    // each printer's autoPrintRules; printers without a matching rule
+    // silently skip. Scheduled orders short-circuit ORDER_RECEIVED in
+    // the service.
+    const triggerForStatus = (() => {
+      switch (newStatus) {
+        case "ACCEPTED": return "ORDER_ACCEPTED";
+        case "PREPARING": return "ORDER_PREPARING";
+        case "READY": return "ORDER_READY";
+        default: return null;
+      }
+    })();
+    if (triggerForStatus) {
+      this.printJobs
+        .createFromOrder({ orderId, trigger: triggerForStatus as any })
+        .catch((err: any) =>
+          this.logger.warn(
+            `createFromOrder(${triggerForStatus}) failed for ${orderId}: ${err.message}`,
+          ),
+        );
+    }
+
     if (newStatus === "ACCEPTED") {
-      // Best-effort — failures inside the print pipeline must NOT roll back
-      // the status change; staff can always reprint manually.
+      // Legacy POS print pipeline — kept until the Bull-queue path is
+      // fully drained. Best-effort, never rolls back the status change.
       this.printQueue.enqueueForNewOrder(orderId).catch((err: any) => {
         this.logger.warn(
           `enqueueForNewOrder failed for ${orderId}: ${err.message}`,

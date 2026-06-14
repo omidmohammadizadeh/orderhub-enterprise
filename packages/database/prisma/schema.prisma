@@ -1526,6 +1526,16 @@ model Printer {
   supportsCut        Boolean @default(true)
   supportsCashDrawer Boolean @default(false)
 
+  // Phase AS-2 — explicit capability columns so the Flutter / agent
+  // client doesn't have to parse JSON to know which transports + ESC/POS
+  // features this printer supports.
+  supportsBluetooth Boolean @default(false)
+  supportsUsb       Boolean @default(false)
+  supportsLan       Boolean @default(true)
+  supportsEscPos    Boolean @default(true)
+  supportsQrCode    Boolean @default(true)
+  supportsImages    Boolean @default(false)
+
   // Phase AS-1 — typed default render options:
   //   { copies, openCashDrawer, printLogo, largeFont, qrCode }
   defaults       Json @default("{}")
@@ -1587,6 +1597,18 @@ model PrintJob {
   routeKey         String?
   idempotencyKey   String?         @unique
   copies           Int             @default(1)
+
+  // Phase AS-2 — retry + dead-letter columns. nextRetryAt scheduled by
+  // markFailed() with exponential backoff; the cron picks up rows where
+  // nextRetryAt <= now() and flips them QUEUED. deadLetteredAt set when
+  // attempts >= maxRetries; those rows never auto-retry but still
+  // appear in the dashboard for manual reprint. failureReason is a
+  // short tag (`network`, `printer_offline`, `bad_payload`, …);
+  // lastError carries the verbose message.
+  nextRetryAt    DateTime?
+  failureReason  String?
+  deadLetteredAt DateTime?
+  lastError      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1652,6 +1674,13 @@ model PrintAgent {
   apiTokenHash  String
   capabilities  Json           @default("{}")
   versionString String?
+  // Phase AS-2 — telemetry the operator dashboard reads to spot a sick
+  // device without ssh-ing into it. osType: "macOS 14.5" / "Android 14"
+  // / "Windows 11 Pro". hostname: machine name as the user knows it.
+  // printerCount: how many printers the agent currently has handles to.
+  osType        String?
+  hostname      String?
+  printerCount  Int            @default(0)
   lastSeenAt    DateTime?
   isActive      Boolean        @default(true)
   deletedAt     DateTime?

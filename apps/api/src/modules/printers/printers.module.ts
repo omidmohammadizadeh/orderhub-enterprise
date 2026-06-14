@@ -18,6 +18,7 @@ import { PrintRoutingService } from "./print-routing.service";
 import { PrintAgentsService } from "./print-agents.service";
 import { PrintJobsService } from "./print-jobs.service";
 import { PrinterStationsService } from "./printer-stations.service";
+import { ServerDirectPrintCron } from "./server-direct.cron";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PrinterStationsService } from "./printer-stations.service";
     PrintAgentsService,
     PrintJobsService,
     PrinterStationsService,
+    ServerDirectPrintCron,
   ],
   exports: [
     PrintQueueService,

@@ -54976,6 +54976,12 @@ export namespace Prisma {
     supportsLabels: boolean | null
     supportsCut: boolean | null
     supportsCashDrawer: boolean | null
+    supportsBluetooth: boolean | null
+    supportsUsb: boolean | null
+    supportsLan: boolean | null
+    supportsEscPos: boolean | null
+    supportsQrCode: boolean | null
+    supportsImages: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -55002,6 +55008,12 @@ export namespace Prisma {
     supportsLabels: boolean | null
     supportsCut: boolean | null
     supportsCashDrawer: boolean | null
+    supportsBluetooth: boolean | null
+    supportsUsb: boolean | null
+    supportsLan: boolean | null
+    supportsEscPos: boolean | null
+    supportsQrCode: boolean | null
+    supportsImages: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -55028,6 +55040,12 @@ export namespace Prisma {
     supportsLabels: number
     supportsCut: number
     supportsCashDrawer: number
+    supportsBluetooth: number
+    supportsUsb: number
+    supportsLan: number
+    supportsEscPos: number
+    supportsQrCode: number
+    supportsImages: number
     defaults: number
     autoPrintRules: number
     settings: number
@@ -55070,6 +55088,12 @@ export namespace Prisma {
     supportsLabels?: true
     supportsCut?: true
     supportsCashDrawer?: true
+    supportsBluetooth?: true
+    supportsUsb?: true
+    supportsLan?: true
+    supportsEscPos?: true
+    supportsQrCode?: true
+    supportsImages?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -55096,6 +55120,12 @@ export namespace Prisma {
     supportsLabels?: true
     supportsCut?: true
     supportsCashDrawer?: true
+    supportsBluetooth?: true
+    supportsUsb?: true
+    supportsLan?: true
+    supportsEscPos?: true
+    supportsQrCode?: true
+    supportsImages?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -55122,6 +55152,12 @@ export namespace Prisma {
     supportsLabels?: true
     supportsCut?: true
     supportsCashDrawer?: true
+    supportsBluetooth?: true
+    supportsUsb?: true
+    supportsLan?: true
+    supportsEscPos?: true
+    supportsQrCode?: true
+    supportsImages?: true
     defaults?: true
     autoPrintRules?: true
     settings?: true
@@ -55239,6 +55275,12 @@ export namespace Prisma {
     supportsLabels: boolean
     supportsCut: boolean
     supportsCashDrawer: boolean
+    supportsBluetooth: boolean
+    supportsUsb: boolean
+    supportsLan: boolean
+    supportsEscPos: boolean
+    supportsQrCode: boolean
+    supportsImages: boolean
     defaults: JsonValue
     autoPrintRules: JsonValue
     settings: JsonValue
@@ -55288,6 +55330,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
@@ -55325,6 +55373,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
@@ -55357,6 +55411,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
@@ -55411,6 +55471,12 @@ export namespace Prisma {
       supportsLabels: boolean
       supportsCut: boolean
       supportsCashDrawer: boolean
+      supportsBluetooth: boolean
+      supportsUsb: boolean
+      supportsLan: boolean
+      supportsEscPos: boolean
+      supportsQrCode: boolean
+      supportsImages: boolean
       defaults: Prisma.JsonValue
       autoPrintRules: Prisma.JsonValue
       settings: Prisma.JsonValue
@@ -55837,6 +55903,12 @@ export namespace Prisma {
     readonly supportsLabels: FieldRef<"Printer", 'Boolean'>
     readonly supportsCut: FieldRef<"Printer", 'Boolean'>
     readonly supportsCashDrawer: FieldRef<"Printer", 'Boolean'>
+    readonly supportsBluetooth: FieldRef<"Printer", 'Boolean'>
+    readonly supportsUsb: FieldRef<"Printer", 'Boolean'>
+    readonly supportsLan: FieldRef<"Printer", 'Boolean'>
+    readonly supportsEscPos: FieldRef<"Printer", 'Boolean'>
+    readonly supportsQrCode: FieldRef<"Printer", 'Boolean'>
+    readonly supportsImages: FieldRef<"Printer", 'Boolean'>
     readonly defaults: FieldRef<"Printer", 'Json'>
     readonly autoPrintRules: FieldRef<"Printer", 'Json'>
     readonly settings: FieldRef<"Printer", 'Json'>
@@ -56313,6 +56385,10 @@ export namespace Prisma {
     routeKey: string | null
     idempotencyKey: string | null
     copies: number | null
+    nextRetryAt: Date | null
+    failureReason: string | null
+    deadLetteredAt: Date | null
+    lastError: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -56336,6 +56412,10 @@ export namespace Prisma {
     routeKey: string | null
     idempotencyKey: string | null
     copies: number | null
+    nextRetryAt: Date | null
+    failureReason: string | null
+    deadLetteredAt: Date | null
+    lastError: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -56361,6 +56441,10 @@ export namespace Prisma {
     routeKey: number
     idempotencyKey: number
     copies: number
+    nextRetryAt: number
+    failureReason: number
+    deadLetteredAt: number
+    lastError: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -56398,6 +56482,10 @@ export namespace Prisma {
     routeKey?: true
     idempotencyKey?: true
     copies?: true
+    nextRetryAt?: true
+    failureReason?: true
+    deadLetteredAt?: true
+    lastError?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -56421,6 +56509,10 @@ export namespace Prisma {
     routeKey?: true
     idempotencyKey?: true
     copies?: true
+    nextRetryAt?: true
+    failureReason?: true
+    deadLetteredAt?: true
+    lastError?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -56446,6 +56538,10 @@ export namespace Prisma {
     routeKey?: true
     idempotencyKey?: true
     copies?: true
+    nextRetryAt?: true
+    failureReason?: true
+    deadLetteredAt?: true
+    lastError?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -56558,6 +56654,10 @@ export namespace Prisma {
     routeKey: string | null
     idempotencyKey: string | null
     copies: number
+    nextRetryAt: Date | null
+    failureReason: string | null
+    deadLetteredAt: Date | null
+    lastError: string | null
     createdAt: Date
     updatedAt: Date
     _count: PrintJobCountAggregateOutputType | null
@@ -56602,6 +56702,10 @@ export namespace Prisma {
     routeKey?: boolean
     idempotencyKey?: boolean
     copies?: boolean
+    nextRetryAt?: boolean
+    failureReason?: boolean
+    deadLetteredAt?: boolean
+    lastError?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -56632,6 +56736,10 @@ export namespace Prisma {
     routeKey?: boolean
     idempotencyKey?: boolean
     copies?: boolean
+    nextRetryAt?: boolean
+    failureReason?: boolean
+    deadLetteredAt?: boolean
+    lastError?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -56662,6 +56770,10 @@ export namespace Prisma {
     routeKey?: boolean
     idempotencyKey?: boolean
     copies?: boolean
+    nextRetryAt?: boolean
+    failureReason?: boolean
+    deadLetteredAt?: boolean
+    lastError?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -56711,6 +56823,10 @@ export namespace Prisma {
       routeKey: string | null
       idempotencyKey: string | null
       copies: number
+      nextRetryAt: Date | null
+      failureReason: string | null
+      deadLetteredAt: Date | null
+      lastError: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["printJob"]>
@@ -57131,6 +57247,10 @@ export namespace Prisma {
     readonly routeKey: FieldRef<"PrintJob", 'String'>
     readonly idempotencyKey: FieldRef<"PrintJob", 'String'>
     readonly copies: FieldRef<"PrintJob", 'Int'>
+    readonly nextRetryAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly failureReason: FieldRef<"PrintJob", 'String'>
+    readonly deadLetteredAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly lastError: FieldRef<"PrintJob", 'String'>
     readonly createdAt: FieldRef<"PrintJob", 'DateTime'>
     readonly updatedAt: FieldRef<"PrintJob", 'DateTime'>
   }
@@ -58731,8 +58851,18 @@ export namespace Prisma {
 
   export type AggregatePrintAgent = {
     _count: PrintAgentCountAggregateOutputType | null
+    _avg: PrintAgentAvgAggregateOutputType | null
+    _sum: PrintAgentSumAggregateOutputType | null
     _min: PrintAgentMinAggregateOutputType | null
     _max: PrintAgentMaxAggregateOutputType | null
+  }
+
+  export type PrintAgentAvgAggregateOutputType = {
+    printerCount: number | null
+  }
+
+  export type PrintAgentSumAggregateOutputType = {
+    printerCount: number | null
   }
 
   export type PrintAgentMinAggregateOutputType = {
@@ -58743,6 +58873,9 @@ export namespace Prisma {
     kind: $Enums.PrintAgentKind | null
     apiTokenHash: string | null
     versionString: string | null
+    osType: string | null
+    hostname: string | null
+    printerCount: number | null
     lastSeenAt: Date | null
     isActive: boolean | null
     deletedAt: Date | null
@@ -58758,6 +58891,9 @@ export namespace Prisma {
     kind: $Enums.PrintAgentKind | null
     apiTokenHash: string | null
     versionString: string | null
+    osType: string | null
+    hostname: string | null
+    printerCount: number | null
     lastSeenAt: Date | null
     isActive: boolean | null
     deletedAt: Date | null
@@ -58774,6 +58910,9 @@ export namespace Prisma {
     apiTokenHash: number
     capabilities: number
     versionString: number
+    osType: number
+    hostname: number
+    printerCount: number
     lastSeenAt: number
     isActive: number
     deletedAt: number
@@ -58783,6 +58922,14 @@ export namespace Prisma {
   }
 
 
+  export type PrintAgentAvgAggregateInputType = {
+    printerCount?: true
+  }
+
+  export type PrintAgentSumAggregateInputType = {
+    printerCount?: true
+  }
+
   export type PrintAgentMinAggregateInputType = {
     id?: true
     tenantId?: true
@@ -58791,6 +58938,9 @@ export namespace Prisma {
     kind?: true
     apiTokenHash?: true
     versionString?: true
+    osType?: true
+    hostname?: true
+    printerCount?: true
     lastSeenAt?: true
     isActive?: true
     deletedAt?: true
@@ -58806,6 +58956,9 @@ export namespace Prisma {
     kind?: true
     apiTokenHash?: true
     versionString?: true
+    osType?: true
+    hostname?: true
+    printerCount?: true
     lastSeenAt?: true
     isActive?: true
     deletedAt?: true
@@ -58822,6 +58975,9 @@ export namespace Prisma {
     apiTokenHash?: true
     capabilities?: true
     versionString?: true
+    osType?: true
+    hostname?: true
+    printerCount?: true
     lastSeenAt?: true
     isActive?: true
     deletedAt?: true
@@ -58868,6 +59024,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: PrintAgentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PrintAgentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: PrintAgentMinAggregateInputType
@@ -58898,6 +59066,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: PrintAgentCountAggregateInputType | true
+    _avg?: PrintAgentAvgAggregateInputType
+    _sum?: PrintAgentSumAggregateInputType
     _min?: PrintAgentMinAggregateInputType
     _max?: PrintAgentMaxAggregateInputType
   }
@@ -58911,12 +59081,17 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities: JsonValue
     versionString: string | null
+    osType: string | null
+    hostname: string | null
+    printerCount: number
     lastSeenAt: Date | null
     isActive: boolean
     deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: PrintAgentCountAggregateOutputType | null
+    _avg: PrintAgentAvgAggregateOutputType | null
+    _sum: PrintAgentSumAggregateOutputType | null
     _min: PrintAgentMinAggregateOutputType | null
     _max: PrintAgentMaxAggregateOutputType | null
   }
@@ -58944,6 +59119,9 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    osType?: boolean
+    hostname?: boolean
+    printerCount?: boolean
     lastSeenAt?: boolean
     isActive?: boolean
     deletedAt?: boolean
@@ -58965,6 +59143,9 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    osType?: boolean
+    hostname?: boolean
+    printerCount?: boolean
     lastSeenAt?: boolean
     isActive?: boolean
     deletedAt?: boolean
@@ -58983,6 +59164,9 @@ export namespace Prisma {
     apiTokenHash?: boolean
     capabilities?: boolean
     versionString?: boolean
+    osType?: boolean
+    hostname?: boolean
+    printerCount?: boolean
     lastSeenAt?: boolean
     isActive?: boolean
     deletedAt?: boolean
@@ -59019,6 +59203,9 @@ export namespace Prisma {
       apiTokenHash: string
       capabilities: Prisma.JsonValue
       versionString: string | null
+      osType: string | null
+      hostname: string | null
+      printerCount: number
       lastSeenAt: Date | null
       isActive: boolean
       deletedAt: Date | null
@@ -59429,6 +59616,9 @@ export namespace Prisma {
     readonly apiTokenHash: FieldRef<"PrintAgent", 'String'>
     readonly capabilities: FieldRef<"PrintAgent", 'Json'>
     readonly versionString: FieldRef<"PrintAgent", 'String'>
+    readonly osType: FieldRef<"PrintAgent", 'String'>
+    readonly hostname: FieldRef<"PrintAgent", 'String'>
+    readonly printerCount: FieldRef<"PrintAgent", 'Int'>
     readonly lastSeenAt: FieldRef<"PrintAgent", 'DateTime'>
     readonly isActive: FieldRef<"PrintAgent", 'Boolean'>
     readonly deletedAt: FieldRef<"PrintAgent", 'DateTime'>
@@ -103249,6 +103439,12 @@ export namespace Prisma {
     supportsLabels: 'supportsLabels',
     supportsCut: 'supportsCut',
     supportsCashDrawer: 'supportsCashDrawer',
+    supportsBluetooth: 'supportsBluetooth',
+    supportsUsb: 'supportsUsb',
+    supportsLan: 'supportsLan',
+    supportsEscPos: 'supportsEscPos',
+    supportsQrCode: 'supportsQrCode',
+    supportsImages: 'supportsImages',
     defaults: 'defaults',
     autoPrintRules: 'autoPrintRules',
     settings: 'settings',
@@ -103281,6 +103477,10 @@ export namespace Prisma {
     routeKey: 'routeKey',
     idempotencyKey: 'idempotencyKey',
     copies: 'copies',
+    nextRetryAt: 'nextRetryAt',
+    failureReason: 'failureReason',
+    deadLetteredAt: 'deadLetteredAt',
+    lastError: 'lastError',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -103313,6 +103513,9 @@ export namespace Prisma {
     apiTokenHash: 'apiTokenHash',
     capabilities: 'capabilities',
     versionString: 'versionString',
+    osType: 'osType',
+    hostname: 'hostname',
+    printerCount: 'printerCount',
     lastSeenAt: 'lastSeenAt',
     isActive: 'isActive',
     deletedAt: 'deletedAt',
@@ -104626,7 +104829,9 @@ export namespace Prisma {
     stationId: 'stationId',
     claimedByAgentId: 'claimedByAgentId',
     routeKey: 'routeKey',
-    idempotencyKey: 'idempotencyKey'
+    idempotencyKey: 'idempotencyKey',
+    failureReason: 'failureReason',
+    lastError: 'lastError'
   };
 
   export type PrintJobOrderByRelevanceFieldEnum = (typeof PrintJobOrderByRelevanceFieldEnum)[keyof typeof PrintJobOrderByRelevanceFieldEnum]
@@ -104649,7 +104854,9 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     apiTokenHash: 'apiTokenHash',
-    versionString: 'versionString'
+    versionString: 'versionString',
+    osType: 'osType',
+    hostname: 'hostname'
   };
 
   export type PrintAgentOrderByRelevanceFieldEnum = (typeof PrintAgentOrderByRelevanceFieldEnum)[keyof typeof PrintAgentOrderByRelevanceFieldEnum]
@@ -110472,6 +110679,12 @@ export namespace Prisma {
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    supportsBluetooth?: BoolFilter<"Printer"> | boolean
+    supportsUsb?: BoolFilter<"Printer"> | boolean
+    supportsLan?: BoolFilter<"Printer"> | boolean
+    supportsEscPos?: BoolFilter<"Printer"> | boolean
+    supportsQrCode?: BoolFilter<"Printer"> | boolean
+    supportsImages?: BoolFilter<"Printer"> | boolean
     defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
@@ -110508,6 +110721,12 @@ export namespace Prisma {
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    supportsBluetooth?: SortOrder
+    supportsUsb?: SortOrder
+    supportsLan?: SortOrder
+    supportsEscPos?: SortOrder
+    supportsQrCode?: SortOrder
+    supportsImages?: SortOrder
     defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
@@ -110548,6 +110767,12 @@ export namespace Prisma {
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    supportsBluetooth?: BoolFilter<"Printer"> | boolean
+    supportsUsb?: BoolFilter<"Printer"> | boolean
+    supportsLan?: BoolFilter<"Printer"> | boolean
+    supportsEscPos?: BoolFilter<"Printer"> | boolean
+    supportsQrCode?: BoolFilter<"Printer"> | boolean
+    supportsImages?: BoolFilter<"Printer"> | boolean
     defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
@@ -110584,6 +110809,12 @@ export namespace Prisma {
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    supportsBluetooth?: SortOrder
+    supportsUsb?: SortOrder
+    supportsLan?: SortOrder
+    supportsEscPos?: SortOrder
+    supportsQrCode?: SortOrder
+    supportsImages?: SortOrder
     defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
@@ -110622,6 +110853,12 @@ export namespace Prisma {
     supportsLabels?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsCut?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsBluetooth?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsUsb?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsLan?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsEscPos?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsQrCode?: BoolWithAggregatesFilter<"Printer"> | boolean
+    supportsImages?: BoolWithAggregatesFilter<"Printer"> | boolean
     defaults?: JsonWithAggregatesFilter<"Printer">
     autoPrintRules?: JsonWithAggregatesFilter<"Printer">
     settings?: JsonWithAggregatesFilter<"Printer">
@@ -110654,6 +110891,10 @@ export namespace Prisma {
     routeKey?: StringNullableFilter<"PrintJob"> | string | null
     idempotencyKey?: StringNullableFilter<"PrintJob"> | string | null
     copies?: IntFilter<"PrintJob"> | number
+    nextRetryAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    failureReason?: StringNullableFilter<"PrintJob"> | string | null
+    deadLetteredAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lastError?: StringNullableFilter<"PrintJob"> | string | null
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -110684,6 +110925,10 @@ export namespace Prisma {
     routeKey?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     copies?: SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    failureReason?: SortOrderInput | SortOrder
+    deadLetteredAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -110718,6 +110963,10 @@ export namespace Prisma {
     claimedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
     routeKey?: StringNullableFilter<"PrintJob"> | string | null
     copies?: IntFilter<"PrintJob"> | number
+    nextRetryAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    failureReason?: StringNullableFilter<"PrintJob"> | string | null
+    deadLetteredAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lastError?: StringNullableFilter<"PrintJob"> | string | null
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -110748,6 +110997,10 @@ export namespace Prisma {
     routeKey?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
     copies?: SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    failureReason?: SortOrderInput | SortOrder
+    deadLetteredAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PrintJobCountOrderByAggregateInput
@@ -110781,6 +111034,10 @@ export namespace Prisma {
     routeKey?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
     copies?: IntWithAggregatesFilter<"PrintJob"> | number
+    nextRetryAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    failureReason?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    deadLetteredAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
   }
@@ -110905,6 +111162,9 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    osType?: StringNullableFilter<"PrintAgent"> | string | null
+    hostname?: StringNullableFilter<"PrintAgent"> | string | null
+    printerCount?: IntFilter<"PrintAgent"> | number
     lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
     isActive?: BoolFilter<"PrintAgent"> | boolean
     deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
@@ -110925,6 +111185,9 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrderInput | SortOrder
+    osType?: SortOrderInput | SortOrder
+    hostname?: SortOrderInput | SortOrder
+    printerCount?: SortOrder
     lastSeenAt?: SortOrderInput | SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -110949,6 +111212,9 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    osType?: StringNullableFilter<"PrintAgent"> | string | null
+    hostname?: StringNullableFilter<"PrintAgent"> | string | null
+    printerCount?: IntFilter<"PrintAgent"> | number
     lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
     isActive?: BoolFilter<"PrintAgent"> | boolean
     deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
@@ -110969,14 +111235,19 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrderInput | SortOrder
+    osType?: SortOrderInput | SortOrder
+    hostname?: SortOrderInput | SortOrder
+    printerCount?: SortOrder
     lastSeenAt?: SortOrderInput | SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PrintAgentCountOrderByAggregateInput
+    _avg?: PrintAgentAvgOrderByAggregateInput
     _max?: PrintAgentMaxOrderByAggregateInput
     _min?: PrintAgentMinOrderByAggregateInput
+    _sum?: PrintAgentSumOrderByAggregateInput
   }
 
   export type PrintAgentScalarWhereWithAggregatesInput = {
@@ -110991,6 +111262,9 @@ export namespace Prisma {
     apiTokenHash?: StringWithAggregatesFilter<"PrintAgent"> | string
     capabilities?: JsonWithAggregatesFilter<"PrintAgent">
     versionString?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    osType?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    hostname?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    printerCount?: IntWithAggregatesFilter<"PrintAgent"> | number
     lastSeenAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
     isActive?: BoolWithAggregatesFilter<"PrintAgent"> | boolean
     deletedAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
@@ -119910,6 +120184,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -119946,6 +120226,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -119978,6 +120264,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -120014,6 +120306,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -120048,6 +120346,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -120076,6 +120380,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -120106,6 +120416,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -120130,6 +120446,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
@@ -120160,6 +120480,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -120180,6 +120504,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
@@ -120210,6 +120538,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120235,6 +120567,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -120255,6 +120591,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120280,6 +120620,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -120403,6 +120747,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -120423,6 +120770,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -120439,6 +120789,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120459,6 +120812,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120477,6 +120833,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -120491,6 +120850,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -120507,6 +120869,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -128417,6 +128782,12 @@ export namespace Prisma {
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    supportsBluetooth?: SortOrder
+    supportsUsb?: SortOrder
+    supportsLan?: SortOrder
+    supportsEscPos?: SortOrder
+    supportsQrCode?: SortOrder
+    supportsImages?: SortOrder
     defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
@@ -128452,6 +128823,12 @@ export namespace Prisma {
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    supportsBluetooth?: SortOrder
+    supportsUsb?: SortOrder
+    supportsLan?: SortOrder
+    supportsEscPos?: SortOrder
+    supportsQrCode?: SortOrder
+    supportsImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -128478,6 +128855,12 @@ export namespace Prisma {
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    supportsBluetooth?: SortOrder
+    supportsUsb?: SortOrder
+    supportsLan?: SortOrder
+    supportsEscPos?: SortOrder
+    supportsQrCode?: SortOrder
+    supportsImages?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -128570,6 +128953,10 @@ export namespace Prisma {
     routeKey?: SortOrder
     idempotencyKey?: SortOrder
     copies?: SortOrder
+    nextRetryAt?: SortOrder
+    failureReason?: SortOrder
+    deadLetteredAt?: SortOrder
+    lastError?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -128599,6 +128986,10 @@ export namespace Prisma {
     routeKey?: SortOrder
     idempotencyKey?: SortOrder
     copies?: SortOrder
+    nextRetryAt?: SortOrder
+    failureReason?: SortOrder
+    deadLetteredAt?: SortOrder
+    lastError?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -128622,6 +129013,10 @@ export namespace Prisma {
     routeKey?: SortOrder
     idempotencyKey?: SortOrder
     copies?: SortOrder
+    nextRetryAt?: SortOrder
+    failureReason?: SortOrder
+    deadLetteredAt?: SortOrder
+    lastError?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -128742,11 +129137,18 @@ export namespace Prisma {
     apiTokenHash?: SortOrder
     capabilities?: SortOrder
     versionString?: SortOrder
+    osType?: SortOrder
+    hostname?: SortOrder
+    printerCount?: SortOrder
     lastSeenAt?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type PrintAgentAvgOrderByAggregateInput = {
+    printerCount?: SortOrder
   }
 
   export type PrintAgentMaxOrderByAggregateInput = {
@@ -128757,6 +129159,9 @@ export namespace Prisma {
     kind?: SortOrder
     apiTokenHash?: SortOrder
     versionString?: SortOrder
+    osType?: SortOrder
+    hostname?: SortOrder
+    printerCount?: SortOrder
     lastSeenAt?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
@@ -128772,11 +129177,18 @@ export namespace Prisma {
     kind?: SortOrder
     apiTokenHash?: SortOrder
     versionString?: SortOrder
+    osType?: SortOrder
+    hostname?: SortOrder
+    printerCount?: SortOrder
     lastSeenAt?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type PrintAgentSumOrderByAggregateInput = {
+    printerCount?: SortOrder
   }
 
   export type EnumPrintAgentKindWithAggregatesFilter<$PrismaModel = never> = {
@@ -139030,6 +139442,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     printer?: PrinterCreateNestedOneWithoutPrintJobsInput
@@ -139058,6 +139474,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -139505,6 +139925,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -139523,6 +139946,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -139768,6 +140194,10 @@ export namespace Prisma {
     routeKey?: StringNullableFilter<"PrintJob"> | string | null
     idempotencyKey?: StringNullableFilter<"PrintJob"> | string | null
     copies?: IntFilter<"PrintJob"> | number
+    nextRetryAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    failureReason?: StringNullableFilter<"PrintJob"> | string | null
+    deadLetteredAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    lastError?: StringNullableFilter<"PrintJob"> | string | null
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
   }
@@ -140179,6 +140609,9 @@ export namespace Prisma {
     apiTokenHash?: StringFilter<"PrintAgent"> | string
     capabilities?: JsonFilter<"PrintAgent">
     versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    osType?: StringNullableFilter<"PrintAgent"> | string | null
+    hostname?: StringNullableFilter<"PrintAgent"> | string | null
+    printerCount?: IntFilter<"PrintAgent"> | number
     lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
     isActive?: BoolFilter<"PrintAgent"> | boolean
     deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
@@ -143968,6 +144401,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144002,6 +144441,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144077,6 +144522,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -144095,6 +144543,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -144375,6 +144826,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144410,6 +144867,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144446,6 +144909,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144481,6 +144950,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144654,6 +145129,12 @@ export namespace Prisma {
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    supportsBluetooth?: BoolFilter<"Printer"> | boolean
+    supportsUsb?: BoolFilter<"Printer"> | boolean
+    supportsLan?: BoolFilter<"Printer"> | boolean
+    supportsEscPos?: BoolFilter<"Printer"> | boolean
+    supportsQrCode?: BoolFilter<"Printer"> | boolean
+    supportsImages?: BoolFilter<"Printer"> | boolean
     defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
@@ -144946,6 +145427,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -144981,6 +145468,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -145023,6 +145516,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -145058,6 +145557,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -150463,6 +150968,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
@@ -150491,6 +151000,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -152455,6 +152968,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -152474,6 +152990,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -152503,6 +153022,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
@@ -152531,6 +153054,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -153012,6 +153539,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -153031,6 +153561,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -153182,6 +153715,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -153217,6 +153756,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -153416,6 +153961,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -153435,6 +153983,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -153544,6 +154095,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -153579,6 +154136,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -153796,6 +154359,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -153815,6 +154381,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -154031,6 +154600,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -154066,6 +154641,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -154360,6 +154941,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
@@ -154388,6 +154973,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -154633,6 +155222,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -154668,6 +155263,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -154983,6 +155584,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -155017,6 +155624,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -155055,6 +155668,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
@@ -155083,6 +155700,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -161053,6 +161674,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -161174,6 +161799,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -161563,6 +162191,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
@@ -161591,6 +162223,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -161615,6 +162251,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -161983,6 +162623,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -162001,6 +162644,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -162018,6 +162664,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -163804,6 +164453,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -163832,6 +164487,9 @@ export namespace Prisma {
     apiTokenHash: string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: string | null
+    osType?: string | null
+    hostname?: string | null
+    printerCount?: number
     lastSeenAt?: Date | string | null
     isActive?: boolean
     deletedAt?: Date | string | null
@@ -164144,6 +164802,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -164178,6 +164842,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -164211,6 +164881,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -164274,6 +164950,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -164292,6 +164971,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -164309,6 +164991,9 @@ export namespace Prisma {
     apiTokenHash?: StringFieldUpdateOperationsInput | string
     capabilities?: JsonNullValueInput | InputJsonValue
     versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    osType?: NullableStringFieldUpdateOperationsInput | string | null
+    hostname?: NullableStringFieldUpdateOperationsInput | string | null
+    printerCount?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165442,6 +166127,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -165579,6 +166268,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
@@ -165607,6 +166300,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165631,6 +166328,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165745,6 +166446,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -165879,6 +166584,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
@@ -165907,6 +166616,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165931,6 +166644,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -166440,6 +167157,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -166759,6 +167480,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
@@ -166787,6 +167512,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -166811,6 +167540,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -166836,6 +167569,12 @@ export namespace Prisma {
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    supportsBluetooth?: boolean
+    supportsUsb?: boolean
+    supportsLan?: boolean
+    supportsEscPos?: boolean
+    supportsQrCode?: boolean
+    supportsImages?: boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -166864,6 +167603,10 @@ export namespace Prisma {
     routeKey?: string | null
     idempotencyKey?: string | null
     copies?: number
+    nextRetryAt?: Date | string | null
+    failureReason?: string | null
+    deadLetteredAt?: Date | string | null
+    lastError?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -166888,6 +167631,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -166922,6 +167671,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -166955,6 +167710,12 @@ export namespace Prisma {
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    supportsBluetooth?: BoolFieldUpdateOperationsInput | boolean
+    supportsUsb?: BoolFieldUpdateOperationsInput | boolean
+    supportsLan?: BoolFieldUpdateOperationsInput | boolean
+    supportsEscPos?: BoolFieldUpdateOperationsInput | boolean
+    supportsQrCode?: BoolFieldUpdateOperationsInput | boolean
+    supportsImages?: BoolFieldUpdateOperationsInput | boolean
     defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
@@ -166979,6 +167740,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
@@ -167007,6 +167772,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -167031,6 +167800,10 @@ export namespace Prisma {
     routeKey?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
     copies?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    deadLetteredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

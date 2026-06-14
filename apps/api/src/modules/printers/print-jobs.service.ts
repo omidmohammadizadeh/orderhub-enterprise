@@ -25,6 +25,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintRoutingService, type PrintTarget } from "./print-routing.service";
+import { SocketService } from "../../infrastructure/socket/socket.service";
 
 export interface CreateJobsFromOrderDto {
   orderId: string;
@@ -56,17 +57,65 @@ export class PrintJobsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly routing: PrintRoutingService,
+    private readonly socket: SocketService,
   ) {}
+
+  // ── Auto-print rule evaluator ───────────────────────────────────────
+  //
+  // Each printer carries `autoPrintRules: PrintAutoRule[]` JSON. This
+  // helper answers "should this printer print on this trigger?" and
+  // returns the configured copy count. Used by createFromOrder to
+  // narrow PrintRoutingService's targets to printers actually wired
+  // to react.
+  //
+  // Shape stored in the JSON column:
+  //   [
+  //     { trigger: "ORDER_ACCEPTED", copies: 1 },
+  //     { trigger: "ORDER_READY",    copies: 2 }
+  //   ]
+  //
+  // MANUAL_ONLY in the rules means "never auto-print on any trigger,
+  // only respond to operator reprint clicks". A printer with an empty
+  // array prints nothing automatically — same effect.
+  private matchAutoRule(
+    rules: unknown,
+    trigger: string,
+  ): { matches: boolean; copies: number } {
+    if (!Array.isArray(rules)) return { matches: false, copies: 1 };
+    for (const r of rules) {
+      if (r?.trigger === trigger) {
+        return { matches: true, copies: Math.max(1, Number(r.copies) || 1) };
+      }
+    }
+    return { matches: false, copies: 1 };
+  }
 
   // ── Create jobs from a routed order ─────────────────────────────────
 
   async createFromOrder(dto: CreateJobsFromOrderDto): Promise<string[]> {
     const order = await this.prisma.order.findUnique({
       where: { id: dto.orderId },
-      select: { id: true, tenantId: true, locationId: true },
+      select: {
+        id: true,
+        tenantId: true,
+        locationId: true,
+        scheduledFor: true,
+        scheduledAt: true,
+      },
     });
     if (!order || !order.locationId) {
       throw new NotFoundException("Order not found");
+    }
+
+    // Phase AS-2 — scheduled orders never auto-print on ORDER_RECEIVED.
+    // The operator clicks "Start preparing now" which routes through
+    // ORDER_ACCEPTED later. A future cron will pick the scheduled time
+    // up and synthesise the same trigger, but that's a separate job.
+    if (dto.trigger === "ORDER_RECEIVED" && this.isScheduledForFuture(order)) {
+      this.logger.log(
+        `Skipping ORDER_RECEIVED print for scheduled order ${dto.orderId}`,
+      );
+      return [];
     }
 
     const targets = await this.routing.resolveForOrder(dto.orderId, {
@@ -74,9 +123,17 @@ export class PrintJobsService {
     });
     if (!targets.length) return [];
 
+    // Phase AS-2 — apply each printer's autoPrintRules. A target whose
+    // printer doesn't have a matching rule is dropped (no auto-print
+    // for this trigger). Receipts/driver slips inherit the implicit
+    // rule "print on the first trigger after the order is real":
+    // ORDER_RECEIVED for marketplace orders, ORDER_ACCEPTED for POS.
+    const filtered = await this.filterTargetsByAutoRules(targets, dto.trigger);
+    if (!filtered.length) return [];
+
     const created: string[] = [];
-    for (let i = 0; i < targets.length; i++) {
-      const t = targets[i]!;
+    for (let i = 0; i < filtered.length; i++) {
+      const t = filtered[i]!;
       const idempotencyKey = dto.idempotencyKeyPrefix
         ? `${dto.idempotencyKeyPrefix}:${i}`
         : `order:${dto.orderId}:${dto.trigger}:${t.type}:${t.stationId ?? "-"}`;
@@ -99,6 +156,18 @@ export class PrintJobsService {
           },
         });
         created.push(row.id);
+        // Phase AS-2 — surface the new job to listening dashboards.
+        this.socket.emitToLocation(
+          order.locationId,
+          "printer:job:created" as any,
+          {
+            id: row.id,
+            type: row.type,
+            printerId: row.printerId,
+            stationId: row.stationId,
+            status: row.status,
+          } as any,
+        );
       } catch (err: any) {
         // Unique idempotencyKey collision — replay path. Fetch the
         // existing row and use that id so the caller can track it.
@@ -267,39 +336,96 @@ export class PrintJobsService {
 
   async markStarted(jobId: string, agentId: string) {
     const job = await this.requireClaimedBy(jobId, agentId);
-    return (this.prisma as any).printJob.update({
+    const updated = await (this.prisma as any).printJob.update({
       where: { id: jobId },
       data: { status: "PRINTING" },
     });
+    this.emitUpdated(updated);
+    return updated;
   }
 
   async markPrinted(jobId: string, agentId: string) {
-    await this.requireClaimedBy(jobId, agentId);
-    return (this.prisma as any).printJob.update({
+    const job = await this.requireClaimedBy(jobId, agentId);
+    const updated = await (this.prisma as any).printJob.update({
       where: { id: jobId },
-      data: { status: "PRINTED", printedAt: new Date() },
+      data: {
+        status: "PRINTED",
+        printedAt: new Date(),
+        nextRetryAt: null,
+        deadLetteredAt: null,
+      },
     });
+    this.emitUpdated(updated);
+    return updated;
   }
 
+  // Phase AS-2 — retry + dead-letter aware. retryable=false short-
+  // circuits straight to FAILED + dead-letter (no point hammering a
+  // bad payload). retryable=true escalates: attempts++ and either
+  // schedules nextRetryAt with exponential backoff (≤ maxRetries) or
+  // dead-letters. failureReason is the short tag the dashboard
+  // filters by (printer_offline / network / bad_payload / ...);
+  // lastError is the verbose detail.
   async markFailed(
     jobId: string,
     agentId: string,
-    error: string,
-    retryable: boolean,
+    args: { failureReason: string; lastError: string; retryable: boolean },
   ) {
     const job = await this.requireClaimedBy(jobId, agentId);
-    const attempts = job.attempts + 1;
-    const willRetry = retryable && attempts < (job.maxRetries ?? 3);
-    return (this.prisma as any).printJob.update({
+    const attempts = (job.attempts ?? 0) + 1;
+    const max = job.maxRetries ?? 3;
+    const willRetry = args.retryable && attempts < max;
+
+    const updated = await (this.prisma as any).printJob.update({
       where: { id: jobId },
       data: {
         attempts,
-        error,
-        status: willRetry ? "QUEUED" : "FAILED",
+        failureReason: args.failureReason,
+        lastError: args.lastError,
+        // Keep `error` populated for backwards-compat with the legacy
+        // dashboards that read that column.
+        error: args.lastError,
+        status: willRetry ? "RETRYING" : "FAILED",
+        nextRetryAt: willRetry
+          ? new Date(Date.now() + this.backoffMs(attempts))
+          : null,
+        deadLetteredAt: willRetry ? null : new Date(),
         claimedByAgentId: null,
         claimedAt: null,
       },
     });
+    this.emitUpdated(updated);
+    if (!willRetry) {
+      this.logger.warn(
+        `PrintJob ${jobId} dead-lettered after ${attempts} attempts: ${args.failureReason}`,
+      );
+    }
+    return updated;
+  }
+
+  // Cron-friendly: flips RETRYING rows whose nextRetryAt has elapsed
+  // back to QUEUED so an agent can re-claim. Called from the same
+  // 30-second cron that runs releaseStaleClaims().
+  async promoteRetries() {
+    const now = new Date();
+    const { count } = await (this.prisma as any).printJob.updateMany({
+      where: {
+        status: "RETRYING",
+        nextRetryAt: { lte: now },
+      },
+      data: {
+        status: "QUEUED",
+        nextRetryAt: null,
+      },
+    });
+    return { promoted: count };
+  }
+
+  // 1s, 4s, 9s, 16s … capped at 60s. Reasonable for a temporary
+  // network blip; long enough that a sick printer doesn't burn the
+  // attempts budget in the first second after going offline.
+  private backoffMs(attempt: number): number {
+    return Math.min(60_000, 1000 * attempt * attempt);
   }
 
   // ── Reaper ──────────────────────────────────────────────────────────
@@ -328,6 +454,68 @@ export class PrintJobsService {
   }
 
   // ── Internals ───────────────────────────────────────────────────────
+
+  private isScheduledForFuture(o: {
+    scheduledFor?: Date | null;
+    scheduledAt?: Date | null;
+  }): boolean {
+    const when = o.scheduledFor ?? o.scheduledAt;
+    if (!when) return false;
+    return new Date(when).getTime() > Date.now() + 5 * 60_000; // 5min grace
+  }
+
+  // Filter targets down to the printers actually wired to print on
+  // this trigger. Receipt / driver-slip targets pass through
+  // unconditionally because there's only ever one "natural" trigger
+  // for them and the operator has already opted in by configuring
+  // Location.receiptPrinterId / dispatchPrinterId.
+  private async filterTargetsByAutoRules(
+    targets: PrintTarget[],
+    trigger: string,
+  ): Promise<PrintTarget[]> {
+    const kitchenIds = new Set<string>();
+    for (const t of targets) {
+      if (t.type === "KITCHEN_TICKET" && t.printerId)
+        kitchenIds.add(t.printerId);
+    }
+    if (!kitchenIds.size) return targets;
+
+    const printers = await (this.prisma as any).printer.findMany({
+      where: { id: { in: Array.from(kitchenIds) } },
+      select: { id: true, autoPrintRules: true },
+    });
+    const ruleByPrinter = new Map(
+      printers.map((p: any) => [p.id, p.autoPrintRules]),
+    );
+
+    return targets.flatMap((t) => {
+      if (t.type !== "KITCHEN_TICKET") return [t]; // receipts/dispatch pass
+      if (!t.printerId) return [t]; // unrouted — let it through if includeUnrouted on
+      const rule = this.matchAutoRule(
+        ruleByPrinter.get(t.printerId),
+        trigger,
+      );
+      if (!rule.matches) return [];
+      return [{ ...t, copies: rule.copies }];
+    });
+  }
+
+  private emitUpdated(job: any) {
+    if (!job?.locationId) return;
+    this.socket.emitToLocation(
+      job.locationId,
+      "printer:job:updated" as any,
+      {
+        id: job.id,
+        status: job.status,
+        printerId: job.printerId,
+        stationId: job.stationId,
+        attempts: job.attempts,
+        failureReason: job.failureReason,
+        deadLetteredAt: job.deadLetteredAt,
+      } as any,
+    );
+  }
 
   private async requireClaimedBy(jobId: string, agentId: string) {
     const job = await (this.prisma as any).printJob.findUnique({
