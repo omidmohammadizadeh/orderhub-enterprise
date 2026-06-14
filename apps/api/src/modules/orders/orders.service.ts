@@ -94,6 +94,38 @@ export class OrdersService {
     return secondsAhead > SCHEDULED_FUTURE_THRESHOLD_SECONDS;
   }
 
+  /**
+   * Phase AS-5 — flip a freshly-ingested order from PENDING → ACCEPTED
+   * when the location has `settings.autoAcceptOrders` set. Runs in the
+   * background so a slow accept never blocks the ingest path. Failures
+   * are logged and swallowed; the operator can still tap Accept manually.
+   */
+  private async maybeAutoAccept(
+    orderId: string,
+    tenantId: string,
+    locationId: string,
+  ): Promise<void> {
+    try {
+      const location = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { settings: true },
+      });
+      const settings = (location?.settings ?? {}) as Record<string, unknown>;
+      if (settings.autoAcceptOrders !== true) return;
+      await this.updateStatus(
+        orderId,
+        tenantId,
+        { status: "ACCEPTED" } as UpdateOrderStatusDto,
+        "system:auto-accept",
+        "SYSTEM" as OrderStatusActorType,
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `Auto-accept failed for order ${orderId}: ${err?.message ?? err}`,
+      );
+    }
+  }
+
   // ── Ingest from adapter (webhook / public ordering) ───
 
   async ingestCanonical(
@@ -211,6 +243,20 @@ export class OrdersService {
 
       // Socket emit is best-effort and immediate — it does NOT affect downstream
       // processing which is guaranteed by the outbox.
+      // Phase AS-5 — location-level auto-accept. If the operator has
+      // ticked the toggle on the Printers → Automation tab, every
+      // incoming order skips PENDING and goes straight to ACCEPTED, which
+      // triggers the existing print pipeline + accepted-event socket.
+      // Skipped for:
+      //   - scheduled orders (operator decides when to start prep)
+      //   - unpaid CARD orders (must wait for Stripe authorization)
+      // Errors are swallowed deliberately — auto-accept is a convenience,
+      // never a hard requirement for ingest to succeed.
+      const isScheduledFuture = this.isFutureScheduled(canonical.scheduledFor);
+      if (!isUnpaidCard && !isScheduledFuture) {
+        void this.maybeAutoAccept(order.id, tenantId, locationId);
+      }
+
       if (!isUnpaidCard) this.socket.emitNewOrder(locationId, {
         orderId: order.id,
         tenantId,

@@ -10,8 +10,26 @@ import {
 } from "@/lib/api/printers.client";
 import { locationsClient } from "@/lib/api/locations.client";
 
-const DEFAULT_SOUND =
-  "https://orderhub-static.onrender.com/sounds/notification.mp3";
+// Operator-uploaded clips bundled with the web app (apps/web/public/sounds).
+// `value` is the URL we store on the AlertConfig row; `label` is shown in
+// the UI. Hiding the raw URL prevents operators from accidentally pasting
+// a broken link and breaking dashboard sounds.
+const SOUND_OPTIONS: { value: string; label: string }[] = [
+  { value: "/sounds/new_order.mp3", label: "New order chime" },
+  { value: "/sounds/canceled_order.mp3", label: "Cancellation alarm" },
+  { value: "/sounds/rider_arrived.mp3", label: "Rider arrived ping" },
+];
+
+// Per-trigger default — picked so a location with empty config still gets
+// sensible sounds out of the box.
+const DEFAULT_SOUND_BY_TRIGGER: Record<string, string> = {
+  NEW_ORDER: "/sounds/new_order.mp3",
+  ORDER_CANCELLED: "/sounds/canceled_order.mp3",
+  RIDER_ARRIVED: "/sounds/rider_arrived.mp3",
+  SCHEDULED_ORDER_READY: "/sounds/new_order.mp3",
+  PRINTER_OFFLINE: "/sounds/canceled_order.mp3",
+  FAILED_PRINT: "/sounds/canceled_order.mp3",
+};
 
 export function AlertsTab({ locationId }: { locationId?: string }) {
   const qc = useQueryClient();
@@ -76,6 +94,7 @@ export function AlertsTab({ locationId }: { locationId?: string }) {
               key={t.value}
               label={t.label}
               trigger={t.value}
+              defaultSound={DEFAULT_SOUND_BY_TRIGGER[t.value] ?? SOUND_OPTIONS[0]!.value}
               cur={cur}
               onSave={(patch) =>
                 upsert.mutate({
@@ -96,18 +115,27 @@ export function AlertsTab({ locationId }: { locationId?: string }) {
 function AlertCard({
   label,
   trigger,
+  defaultSound,
   cur,
   onSave,
   saving,
 }: {
   label: string;
   trigger: string;
+  defaultSound: string;
   cur?: AlertConfig;
   onSave: (patch: Partial<AlertConfig>) => void;
   saving: boolean;
 }) {
   const [enabled, setEnabled] = useState(cur?.enabled ?? true);
-  const [soundUrl, setSoundUrl] = useState(cur?.soundUrl ?? DEFAULT_SOUND);
+  // If the saved soundUrl doesn't match one of our bundled options
+  // (legacy onrender static URL, broken paste, etc.), fall back to the
+  // per-trigger default so the dropdown always reflects something playable.
+  const initialSound =
+    cur?.soundUrl && SOUND_OPTIONS.some((o) => o.value === cur.soundUrl)
+      ? cur.soundUrl
+      : defaultSound;
+  const [soundUrl, setSoundUrl] = useState(initialSound);
   const [volume, setVolume] = useState(cur?.volume ?? 1.0);
   const [repeatCount, setRepeatCount] = useState(cur?.repeatCount ?? 1);
   const [repeatIntervalMs, setRepeatInterval] = useState(
@@ -120,7 +148,16 @@ function AlertCard({
   const preview = () => {
     const audio = new Audio(soundUrl);
     audio.volume = volume;
-    audio.play().catch(() => {});
+    // Surface autoplay-blocked / 404 errors so the operator gets a real
+    // signal instead of silent failure — previously a missing static URL
+    // looked identical to "preview worked."
+    audio
+      .play()
+      .catch((err) =>
+        alert(
+          `Couldn't play preview: ${err?.message ?? err}. Click anywhere on the page first, then retry.`,
+        ),
+      );
   };
 
   return (
@@ -136,12 +173,20 @@ function AlertCard({
           enabled
         </label>
       </div>
-      <input
-        value={soundUrl}
-        onChange={(e) => setSoundUrl(e.target.value)}
-        placeholder="https://…/sound.mp3"
-        className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-xs"
-      />
+      <label className="block text-[11px] font-semibold text-zinc-600">
+        Sound
+        <select
+          value={soundUrl}
+          onChange={(e) => setSoundUrl(e.target.value)}
+          className="mt-0.5 w-full rounded-md border border-zinc-300 px-3 py-1.5 text-xs"
+        >
+          {SOUND_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="grid grid-cols-3 gap-2">
         <label className="text-[11px] font-semibold text-zinc-600">
           Volume

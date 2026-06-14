@@ -20,6 +20,7 @@ import {
   WifiOff,
   Layers,
   Loader2,
+  Zap,
 } from "lucide-react";
 import {
   printersClient,
@@ -30,8 +31,9 @@ import { PrintersTab } from "@/components/printers/printers-tab";
 import { StationsTab } from "@/components/printers/stations-tab";
 import { AgentsTab } from "@/components/printers/agents-tab";
 import { AlertsTab } from "@/components/printers/alerts-tab";
+import { AutomationTab } from "@/components/printers/automation-tab";
 
-type Tab = "printers" | "stations" | "agents" | "alerts";
+type Tab = "printers" | "stations" | "agents" | "alerts" | "automation";
 
 export default function PrintersPage() {
   const [tab, setTab] = useState<Tab>("printers");
@@ -102,12 +104,16 @@ export default function PrintersPage() {
         <TabBtn active={tab === "alerts"} onClick={() => setTab("alerts")} icon={Bell}>
           Alerts &amp; sounds
         </TabBtn>
+        <TabBtn active={tab === "automation"} onClick={() => setTab("automation")} icon={Zap}>
+          Automation
+        </TabBtn>
       </div>
 
       {tab === "printers" && <PrintersTab locationId={locationId ?? undefined} />}
       {tab === "stations" && <StationsTab locationId={locationId ?? undefined} />}
       {tab === "agents" && <AgentsTab locationId={locationId ?? undefined} />}
       {tab === "alerts" && <AlertsTab locationId={locationId ?? undefined} />}
+      {tab === "automation" && <AutomationTab locationId={locationId ?? undefined} />}
     </div>
   );
 }

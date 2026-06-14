@@ -48,6 +48,12 @@ export interface UpdateLocationDto {
   status?: "active" | "suspended" | "closed";
   timezone?: string;
   isActive?: boolean;
+  // Free-form Json blob persisted on Location.settings. Merged shallow
+  // into whatever is already stored so unrelated keys (set by other
+  // tabs) aren't clobbered. Currently used for:
+  //   - autoAcceptOrders: Boolean — when true, incoming orders skip
+  //     PENDING and go straight to ACCEPTED via OrdersService.
+  settings?: Record<string, unknown>;
 }
 
 export interface OpeningSlot {
@@ -378,6 +384,13 @@ export class LocationsService {
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.timezone !== undefined && { timezone: dto.timezone }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.settings !== undefined && {
+          // Shallow merge — preserve unrelated keys other tabs persisted.
+          settings: {
+            ...((current.settings as Record<string, unknown>) ?? {}),
+            ...dto.settings,
+          } as any,
+        }),
       },
     });
   }
