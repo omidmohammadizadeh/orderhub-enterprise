@@ -46,6 +46,15 @@ interface StatusPayload {
   estimatedReadyAt?: string | null;
   total?: number | null;
   location?: { name?: string | null } | null;
+  items?: Array<{
+    id: string;
+    menuItemId?: string | null;
+    name: string;
+    unitPrice: number | string;
+    quantity: number;
+    modifiers?: Array<{ name: string; price: number | string; quantity?: number }>;
+    notes?: string | null;
+  }>;
 }
 
 export default function OrderStatusPage() {
@@ -216,13 +225,46 @@ export default function OrderStatusPage() {
             )}
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-              <a
-                href={`/order/${params.slug}`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+              <button
+                type="button"
+                onClick={() => {
+                  // Phase AR — match the sessionStorage hand-off used
+                  // by My Orders. Without this the storefront opens
+                  // with an empty cart and the customer has to rebuild
+                  // their order from scratch.
+                  const items = (data?.items ?? []).map((it) => ({
+                    menuItemId: it.menuItemId ?? it.id,
+                    displayName: it.name,
+                    unitPrice: Number(it.unitPrice),
+                    quantity: it.quantity,
+                    modifiers: (it.modifiers ?? []).map((m) => ({
+                      name: m.name,
+                      price: Number(m.price),
+                      quantity: m.quantity ?? 1,
+                    })),
+                    notes: it.notes ?? undefined,
+                  }));
+                  try {
+                    window.sessionStorage.setItem(
+                      `orderhub.reorder.${params.slug}`,
+                      JSON.stringify({
+                        items,
+                        restoredFromOrderId: params.orderId,
+                        stashedAt: Date.now(),
+                      }),
+                    );
+                  } catch {
+                    /* private mode / quota — proceed anyway, the
+                       storefront just lands empty */
+                  }
+                  router.push(`/order/${params.slug}?reorder=1`);
+                }}
+                disabled={!data?.items?.length}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Bike className="h-4 w-4" />
                 Order again
-              </a>
+              </button>
               <button
                 onClick={() => router.push(`/order/${params.slug}/my-orders`)}
                 className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"

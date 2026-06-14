@@ -31,6 +31,7 @@ import {
 import { useEffect, useRef } from "react";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { OrderActions } from "./order-actions";
+import { PaymentBadge } from "./order-card";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
@@ -392,6 +393,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Customer</Th>
                 <Th>Items</Th>
                 <Th>Total</Th>
+                <Th>Payment</Th>
                 <Th>Status</Th>
                 <Th>Actions</Th>
               </tr>
@@ -515,6 +517,12 @@ function OrderRow({
         <span className="font-semibold text-zinc-900 tabular-nums">
           £{Number(order.total).toFixed(2)}
         </span>
+      </Td>
+      <Td>
+        <PaymentBadge
+          method={(order as any).paymentMethod}
+          status={(order as any).paymentStatus}
+        />
       </Td>
       <Td>
         <span

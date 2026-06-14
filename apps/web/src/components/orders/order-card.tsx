@@ -130,7 +130,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
  *                       safety net in case it ever does)
  *   • Marketplace pre-paid → green "Paid"
  */
-function PaymentBadge({
+export function PaymentBadge({
   method,
   status,
 }: {

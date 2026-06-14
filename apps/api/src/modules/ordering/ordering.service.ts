@@ -424,6 +424,19 @@ export class OrderingService {
         cancelReason: true,
         total: true,
         location: { select: { name: true } },
+        // Phase AR — surfaced so the standalone tracking page can
+        // drive the "Order again" hand-off without an extra fetch.
+        items: {
+          select: {
+            id: true,
+            menuItemId: true,
+            name: true,
+            unitPrice: true,
+            quantity: true,
+            modifiers: true,
+            notes: true,
+          },
+        },
       },
     });
     if (!order) throw new NotFoundException("Order not found");
