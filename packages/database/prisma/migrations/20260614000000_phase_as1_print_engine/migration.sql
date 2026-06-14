@@ -292,9 +292,15 @@ END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS "print_jobs_idempotencyKey_key"
   ON "print_jobs"("idempotencyKey") WHERE "idempotencyKey" IS NOT NULL;
 
+-- NB: this index intentionally omits a partial-WHERE clause. Postgres
+-- forbids referencing newly-added enum values (e.g. CLAIMED, added a
+-- few lines above) in the same transaction, and Prisma wraps each
+-- migration in one transaction. A plain compound index still serves
+-- the agent-claim hot path; if profiling later shows it costs too
+-- much disk, a follow-up migration can replace it with a partial
+-- index now that CLAIMED is committed.
 CREATE INDEX IF NOT EXISTS "print_jobs_status_routeKey_idx"
-  ON "print_jobs"("status", "routeKey")
-  WHERE "status" IN ('QUEUED','RETRYING','CLAIMED');
+  ON "print_jobs"("status", "routeKey");
 
 CREATE INDEX IF NOT EXISTS "print_jobs_claimedByAgentId_idx" ON "print_jobs"("claimedByAgentId");
 CREATE INDEX IF NOT EXISTS "print_jobs_stationId_idx"        ON "print_jobs"("stationId");
