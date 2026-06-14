@@ -26,7 +26,7 @@ export async function runPair(deviceName?: string) {
     .trim()
     .toUpperCase();
   const name =
-    deviceName ?? (await ask(`Device name [${os.hostname()}]: `)) || os.hostname();
+    deviceName ?? ((await ask(`Device name [${os.hostname()}]: `)) || os.hostname());
   rl.close();
 
   const api = new ApiClient(cfg);
