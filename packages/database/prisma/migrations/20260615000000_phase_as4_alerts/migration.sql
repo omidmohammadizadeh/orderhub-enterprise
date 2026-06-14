@@ -35,8 +35,12 @@ CREATE TABLE "alert_configs" (
 );
 CREATE INDEX "alert_configs_tenantId_idx"   ON "alert_configs"("tenantId");
 CREATE INDEX "alert_configs_locationId_idx" ON "alert_configs"("locationId");
-CREATE UNIQUE INDEX "alert_configs_loc_station_trigger_key"
-  ON "alert_configs"("locationId", COALESCE("stationId", ''), "trigger");
+-- Per (location, trigger, stationId) uniqueness is enforced at the
+-- service layer via findFirst + update/create rather than a functional
+-- unique index — Postgres expression indexes need expression syntax
+-- that confused prior versions and broke `prisma migrate deploy`.
+CREATE INDEX "alert_configs_loc_trigger_idx"
+  ON "alert_configs"("locationId", "trigger");
 
 ALTER TABLE "alert_configs"
   ADD CONSTRAINT "alert_configs_tenantId_fkey"
