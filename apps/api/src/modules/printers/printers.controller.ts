@@ -63,7 +63,7 @@ export class PrintersController {
         "locationId is required (in body or as ?locationId= query param)",
       );
     }
-    return this.printers.create(locationId, user.tenantId, rest);
+    return this.printers.create(locationId, user.tenantId, rest as any);
   }
 
   @Patch(":id")
