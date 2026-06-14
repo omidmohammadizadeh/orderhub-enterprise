@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Public } from "../../common/decorators/public.decorator";
@@ -48,10 +49,21 @@ export class PrintersController {
   @ApiOperation({ summary: "Register a printer" })
   create(
     @CurrentUser() user: AuthenticatedUser,
-    @Query("locationId") locationId: string,
-    @Body() body: any,
+    // Accept locationId from EITHER the body (AS-4 web wizard) or the
+    // query string (legacy Flutter app). The body wins when both are
+    // present. Splitting it out of `body` keeps locationId out of the
+    // Prisma data spread below so we don't double-set it.
+    @Query("locationId") queryLocationId: string | undefined,
+    @Body() body: { locationId?: string } & Record<string, unknown>,
   ) {
-    return this.printers.create(locationId, user.tenantId, body);
+    const { locationId: bodyLocationId, ...rest } = body;
+    const locationId = bodyLocationId ?? queryLocationId;
+    if (!locationId) {
+      throw new BadRequestException(
+        "locationId is required (in body or as ?locationId= query param)",
+      );
+    }
+    return this.printers.create(locationId, user.tenantId, rest);
   }
 
   @Patch(":id")
