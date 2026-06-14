@@ -35,6 +35,7 @@ import { BrandsModule } from "./modules/brands/brands.module";
 import { LocationsModule } from "./modules/locations/locations.module";
 import { TeamModule } from "./modules/team/team.module";
 import { LeadsModule } from "./modules/leads/leads.module";
+import { AlertsModule } from "./modules/alerts/alerts.module";
 import { UsersModule } from "./modules/users/users.module";
 import { MenusModule } from "./modules/menus/menus.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
@@ -165,6 +166,7 @@ import { QUEUES } from "@orderhub/shared";
     LocationsModule,
     TeamModule,
     LeadsModule,
+    AlertsModule,
     MenusModule,
     CatalogModule,
     OrdersModule,

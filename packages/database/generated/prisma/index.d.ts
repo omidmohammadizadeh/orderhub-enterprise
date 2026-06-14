@@ -234,6 +234,16 @@ export type PrinterStation = $Result.DefaultSelection<Prisma.$PrinterStationPayl
  */
 export type PrintAgent = $Result.DefaultSelection<Prisma.$PrintAgentPayload>
 /**
+ * Model AlertConfig
+ * 
+ */
+export type AlertConfig = $Result.DefaultSelection<Prisma.$AlertConfigPayload>
+/**
+ * Model AlertAck
+ * 
+ */
+export type AlertAck = $Result.DefaultSelection<Prisma.$AlertAckPayload>
+/**
  * Model AgentPairCode
  * 
  */
@@ -784,6 +794,18 @@ export const PrintAgentKind: {
 export type PrintAgentKind = (typeof PrintAgentKind)[keyof typeof PrintAgentKind]
 
 
+export const AlertTrigger: {
+  NEW_ORDER: 'NEW_ORDER',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  RIDER_ARRIVED: 'RIDER_ARRIVED',
+  SCHEDULED_ORDER_READY: 'SCHEDULED_ORDER_READY',
+  PRINTER_OFFLINE: 'PRINTER_OFFLINE',
+  FAILED_PRINT: 'FAILED_PRINT'
+};
+
+export type AlertTrigger = (typeof AlertTrigger)[keyof typeof AlertTrigger]
+
+
 export const DriverAssignmentStatus: {
   ASSIGNED: 'ASSIGNED',
   ACCEPTED: 'ACCEPTED',
@@ -1089,6 +1111,10 @@ export const PrintTrigger: typeof $Enums.PrintTrigger
 export type PrintAgentKind = $Enums.PrintAgentKind
 
 export const PrintAgentKind: typeof $Enums.PrintAgentKind
+
+export type AlertTrigger = $Enums.AlertTrigger
+
+export const AlertTrigger: typeof $Enums.AlertTrigger
 
 export type DriverAssignmentStatus = $Enums.DriverAssignmentStatus
 
@@ -1727,6 +1753,26 @@ export class PrismaClient<
     * ```
     */
   get printAgent(): Prisma.PrintAgentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.alertConfig`: Exposes CRUD operations for the **AlertConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AlertConfigs
+    * const alertConfigs = await prisma.alertConfig.findMany()
+    * ```
+    */
+  get alertConfig(): Prisma.AlertConfigDelegate<ExtArgs>;
+
+  /**
+   * `prisma.alertAck`: Exposes CRUD operations for the **AlertAck** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AlertAcks
+    * const alertAcks = await prisma.alertAck.findMany()
+    * ```
+    */
+  get alertAck(): Prisma.AlertAckDelegate<ExtArgs>;
 
   /**
    * `prisma.agentPairCode`: Exposes CRUD operations for the **AgentPairCode** model.
@@ -2642,6 +2688,8 @@ export namespace Prisma {
     PrintJob: 'PrintJob',
     PrinterStation: 'PrinterStation',
     PrintAgent: 'PrintAgent',
+    AlertConfig: 'AlertConfig',
+    AlertAck: 'AlertAck',
     AgentPairCode: 'AgentPairCode',
     MenuItemStation: 'MenuItemStation',
     ModifierGroupStation: 'ModifierGroupStation',
@@ -2700,7 +2748,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5781,6 +5829,146 @@ export namespace Prisma {
           count: {
             args: Prisma.PrintAgentCountArgs<ExtArgs>
             result: $Utils.Optional<PrintAgentCountAggregateOutputType> | number
+          }
+        }
+      }
+      AlertConfig: {
+        payload: Prisma.$AlertConfigPayload<ExtArgs>
+        fields: Prisma.AlertConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AlertConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AlertConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.AlertConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AlertConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          findMany: {
+            args: Prisma.AlertConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>[]
+          }
+          create: {
+            args: Prisma.AlertConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          createMany: {
+            args: Prisma.AlertConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AlertConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.AlertConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          update: {
+            args: Prisma.AlertConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.AlertConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AlertConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AlertConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.AlertConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAlertConfig>
+          }
+          groupBy: {
+            args: Prisma.AlertConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AlertConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AlertConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<AlertConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      AlertAck: {
+        payload: Prisma.$AlertAckPayload<ExtArgs>
+        fields: Prisma.AlertAckFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AlertAckFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AlertAckFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          findFirst: {
+            args: Prisma.AlertAckFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AlertAckFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          findMany: {
+            args: Prisma.AlertAckFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>[]
+          }
+          create: {
+            args: Prisma.AlertAckCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          createMany: {
+            args: Prisma.AlertAckCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AlertAckCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>[]
+          }
+          delete: {
+            args: Prisma.AlertAckDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          update: {
+            args: Prisma.AlertAckUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          deleteMany: {
+            args: Prisma.AlertAckDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AlertAckUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AlertAckUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertAckPayload>
+          }
+          aggregate: {
+            args: Prisma.AlertAckAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAlertAck>
+          }
+          groupBy: {
+            args: Prisma.AlertAckGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AlertAckGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AlertAckCountArgs<ExtArgs>
+            result: $Utils.Optional<AlertAckCountAggregateOutputType> | number
           }
         }
       }
@@ -60107,6 +60295,1940 @@ export namespace Prisma {
 
 
   /**
+   * Model AlertConfig
+   */
+
+  export type AggregateAlertConfig = {
+    _count: AlertConfigCountAggregateOutputType | null
+    _avg: AlertConfigAvgAggregateOutputType | null
+    _sum: AlertConfigSumAggregateOutputType | null
+    _min: AlertConfigMinAggregateOutputType | null
+    _max: AlertConfigMaxAggregateOutputType | null
+  }
+
+  export type AlertConfigAvgAggregateOutputType = {
+    volume: number | null
+    repeatCount: number | null
+    repeatIntervalMs: number | null
+    autoStopSeconds: number | null
+  }
+
+  export type AlertConfigSumAggregateOutputType = {
+    volume: number | null
+    repeatCount: number | null
+    repeatIntervalMs: number | null
+    autoStopSeconds: number | null
+  }
+
+  export type AlertConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    stationId: string | null
+    trigger: $Enums.AlertTrigger | null
+    enabled: boolean | null
+    soundUrl: string | null
+    volume: number | null
+    repeatCount: number | null
+    repeatIntervalMs: number | null
+    autoStopSeconds: number | null
+    requireAcknowledgement: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AlertConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    stationId: string | null
+    trigger: $Enums.AlertTrigger | null
+    enabled: boolean | null
+    soundUrl: string | null
+    volume: number | null
+    repeatCount: number | null
+    repeatIntervalMs: number | null
+    autoStopSeconds: number | null
+    requireAcknowledgement: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AlertConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    stationId: number
+    trigger: number
+    enabled: number
+    soundUrl: number
+    volume: number
+    repeatCount: number
+    repeatIntervalMs: number
+    autoStopSeconds: number
+    requireAcknowledgement: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AlertConfigAvgAggregateInputType = {
+    volume?: true
+    repeatCount?: true
+    repeatIntervalMs?: true
+    autoStopSeconds?: true
+  }
+
+  export type AlertConfigSumAggregateInputType = {
+    volume?: true
+    repeatCount?: true
+    repeatIntervalMs?: true
+    autoStopSeconds?: true
+  }
+
+  export type AlertConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stationId?: true
+    trigger?: true
+    enabled?: true
+    soundUrl?: true
+    volume?: true
+    repeatCount?: true
+    repeatIntervalMs?: true
+    autoStopSeconds?: true
+    requireAcknowledgement?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AlertConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stationId?: true
+    trigger?: true
+    enabled?: true
+    soundUrl?: true
+    volume?: true
+    repeatCount?: true
+    repeatIntervalMs?: true
+    autoStopSeconds?: true
+    requireAcknowledgement?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AlertConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stationId?: true
+    trigger?: true
+    enabled?: true
+    soundUrl?: true
+    volume?: true
+    repeatCount?: true
+    repeatIntervalMs?: true
+    autoStopSeconds?: true
+    requireAcknowledgement?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AlertConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertConfig to aggregate.
+     */
+    where?: AlertConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertConfigs to fetch.
+     */
+    orderBy?: AlertConfigOrderByWithRelationInput | AlertConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AlertConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AlertConfigs
+    **/
+    _count?: true | AlertConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AlertConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AlertConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AlertConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AlertConfigMaxAggregateInputType
+  }
+
+  export type GetAlertConfigAggregateType<T extends AlertConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateAlertConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAlertConfig[P]>
+      : GetScalarType<T[P], AggregateAlertConfig[P]>
+  }
+
+
+
+
+  export type AlertConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertConfigWhereInput
+    orderBy?: AlertConfigOrderByWithAggregationInput | AlertConfigOrderByWithAggregationInput[]
+    by: AlertConfigScalarFieldEnum[] | AlertConfigScalarFieldEnum
+    having?: AlertConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AlertConfigCountAggregateInputType | true
+    _avg?: AlertConfigAvgAggregateInputType
+    _sum?: AlertConfigSumAggregateInputType
+    _min?: AlertConfigMinAggregateInputType
+    _max?: AlertConfigMaxAggregateInputType
+  }
+
+  export type AlertConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    stationId: string | null
+    trigger: $Enums.AlertTrigger
+    enabled: boolean
+    soundUrl: string | null
+    volume: number
+    repeatCount: number
+    repeatIntervalMs: number
+    autoStopSeconds: number | null
+    requireAcknowledgement: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: AlertConfigCountAggregateOutputType | null
+    _avg: AlertConfigAvgAggregateOutputType | null
+    _sum: AlertConfigSumAggregateOutputType | null
+    _min: AlertConfigMinAggregateOutputType | null
+    _max: AlertConfigMaxAggregateOutputType | null
+  }
+
+  type GetAlertConfigGroupByPayload<T extends AlertConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AlertConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AlertConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AlertConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], AlertConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AlertConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    soundUrl?: boolean
+    volume?: boolean
+    repeatCount?: boolean
+    repeatIntervalMs?: boolean
+    autoStopSeconds?: boolean
+    requireAcknowledgement?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["alertConfig"]>
+
+  export type AlertConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    soundUrl?: boolean
+    volume?: boolean
+    repeatCount?: boolean
+    repeatIntervalMs?: boolean
+    autoStopSeconds?: boolean
+    requireAcknowledgement?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["alertConfig"]>
+
+  export type AlertConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    soundUrl?: boolean
+    volume?: boolean
+    repeatCount?: boolean
+    repeatIntervalMs?: boolean
+    autoStopSeconds?: boolean
+    requireAcknowledgement?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $AlertConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AlertConfig"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      stationId: string | null
+      trigger: $Enums.AlertTrigger
+      enabled: boolean
+      soundUrl: string | null
+      volume: number
+      repeatCount: number
+      repeatIntervalMs: number
+      autoStopSeconds: number | null
+      requireAcknowledgement: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["alertConfig"]>
+    composites: {}
+  }
+
+  type AlertConfigGetPayload<S extends boolean | null | undefined | AlertConfigDefaultArgs> = $Result.GetResult<Prisma.$AlertConfigPayload, S>
+
+  type AlertConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AlertConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AlertConfigCountAggregateInputType | true
+    }
+
+  export interface AlertConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AlertConfig'], meta: { name: 'AlertConfig' } }
+    /**
+     * Find zero or one AlertConfig that matches the filter.
+     * @param {AlertConfigFindUniqueArgs} args - Arguments to find a AlertConfig
+     * @example
+     * // Get one AlertConfig
+     * const alertConfig = await prisma.alertConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AlertConfigFindUniqueArgs>(args: SelectSubset<T, AlertConfigFindUniqueArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AlertConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AlertConfigFindUniqueOrThrowArgs} args - Arguments to find a AlertConfig
+     * @example
+     * // Get one AlertConfig
+     * const alertConfig = await prisma.alertConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AlertConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, AlertConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AlertConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigFindFirstArgs} args - Arguments to find a AlertConfig
+     * @example
+     * // Get one AlertConfig
+     * const alertConfig = await prisma.alertConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AlertConfigFindFirstArgs>(args?: SelectSubset<T, AlertConfigFindFirstArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AlertConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigFindFirstOrThrowArgs} args - Arguments to find a AlertConfig
+     * @example
+     * // Get one AlertConfig
+     * const alertConfig = await prisma.alertConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AlertConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, AlertConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AlertConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AlertConfigs
+     * const alertConfigs = await prisma.alertConfig.findMany()
+     * 
+     * // Get first 10 AlertConfigs
+     * const alertConfigs = await prisma.alertConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const alertConfigWithIdOnly = await prisma.alertConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AlertConfigFindManyArgs>(args?: SelectSubset<T, AlertConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AlertConfig.
+     * @param {AlertConfigCreateArgs} args - Arguments to create a AlertConfig.
+     * @example
+     * // Create one AlertConfig
+     * const AlertConfig = await prisma.alertConfig.create({
+     *   data: {
+     *     // ... data to create a AlertConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends AlertConfigCreateArgs>(args: SelectSubset<T, AlertConfigCreateArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AlertConfigs.
+     * @param {AlertConfigCreateManyArgs} args - Arguments to create many AlertConfigs.
+     * @example
+     * // Create many AlertConfigs
+     * const alertConfig = await prisma.alertConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AlertConfigCreateManyArgs>(args?: SelectSubset<T, AlertConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AlertConfigs and returns the data saved in the database.
+     * @param {AlertConfigCreateManyAndReturnArgs} args - Arguments to create many AlertConfigs.
+     * @example
+     * // Create many AlertConfigs
+     * const alertConfig = await prisma.alertConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AlertConfigs and only return the `id`
+     * const alertConfigWithIdOnly = await prisma.alertConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AlertConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, AlertConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AlertConfig.
+     * @param {AlertConfigDeleteArgs} args - Arguments to delete one AlertConfig.
+     * @example
+     * // Delete one AlertConfig
+     * const AlertConfig = await prisma.alertConfig.delete({
+     *   where: {
+     *     // ... filter to delete one AlertConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AlertConfigDeleteArgs>(args: SelectSubset<T, AlertConfigDeleteArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AlertConfig.
+     * @param {AlertConfigUpdateArgs} args - Arguments to update one AlertConfig.
+     * @example
+     * // Update one AlertConfig
+     * const alertConfig = await prisma.alertConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AlertConfigUpdateArgs>(args: SelectSubset<T, AlertConfigUpdateArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AlertConfigs.
+     * @param {AlertConfigDeleteManyArgs} args - Arguments to filter AlertConfigs to delete.
+     * @example
+     * // Delete a few AlertConfigs
+     * const { count } = await prisma.alertConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AlertConfigDeleteManyArgs>(args?: SelectSubset<T, AlertConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AlertConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AlertConfigs
+     * const alertConfig = await prisma.alertConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AlertConfigUpdateManyArgs>(args: SelectSubset<T, AlertConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AlertConfig.
+     * @param {AlertConfigUpsertArgs} args - Arguments to update or create a AlertConfig.
+     * @example
+     * // Update or create a AlertConfig
+     * const alertConfig = await prisma.alertConfig.upsert({
+     *   create: {
+     *     // ... data to create a AlertConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AlertConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AlertConfigUpsertArgs>(args: SelectSubset<T, AlertConfigUpsertArgs<ExtArgs>>): Prisma__AlertConfigClient<$Result.GetResult<Prisma.$AlertConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AlertConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigCountArgs} args - Arguments to filter AlertConfigs to count.
+     * @example
+     * // Count the number of AlertConfigs
+     * const count = await prisma.alertConfig.count({
+     *   where: {
+     *     // ... the filter for the AlertConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends AlertConfigCountArgs>(
+      args?: Subset<T, AlertConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AlertConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AlertConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AlertConfigAggregateArgs>(args: Subset<T, AlertConfigAggregateArgs>): Prisma.PrismaPromise<GetAlertConfigAggregateType<T>>
+
+    /**
+     * Group by AlertConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AlertConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AlertConfigGroupByArgs['orderBy'] }
+        : { orderBy?: AlertConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AlertConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAlertConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AlertConfig model
+   */
+  readonly fields: AlertConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AlertConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AlertConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AlertConfig model
+   */ 
+  interface AlertConfigFieldRefs {
+    readonly id: FieldRef<"AlertConfig", 'String'>
+    readonly tenantId: FieldRef<"AlertConfig", 'String'>
+    readonly locationId: FieldRef<"AlertConfig", 'String'>
+    readonly stationId: FieldRef<"AlertConfig", 'String'>
+    readonly trigger: FieldRef<"AlertConfig", 'AlertTrigger'>
+    readonly enabled: FieldRef<"AlertConfig", 'Boolean'>
+    readonly soundUrl: FieldRef<"AlertConfig", 'String'>
+    readonly volume: FieldRef<"AlertConfig", 'Float'>
+    readonly repeatCount: FieldRef<"AlertConfig", 'Int'>
+    readonly repeatIntervalMs: FieldRef<"AlertConfig", 'Int'>
+    readonly autoStopSeconds: FieldRef<"AlertConfig", 'Int'>
+    readonly requireAcknowledgement: FieldRef<"AlertConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"AlertConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"AlertConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AlertConfig findUnique
+   */
+  export type AlertConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertConfig to fetch.
+     */
+    where: AlertConfigWhereUniqueInput
+  }
+
+  /**
+   * AlertConfig findUniqueOrThrow
+   */
+  export type AlertConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertConfig to fetch.
+     */
+    where: AlertConfigWhereUniqueInput
+  }
+
+  /**
+   * AlertConfig findFirst
+   */
+  export type AlertConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertConfig to fetch.
+     */
+    where?: AlertConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertConfigs to fetch.
+     */
+    orderBy?: AlertConfigOrderByWithRelationInput | AlertConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertConfigs.
+     */
+    cursor?: AlertConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertConfigs.
+     */
+    distinct?: AlertConfigScalarFieldEnum | AlertConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AlertConfig findFirstOrThrow
+   */
+  export type AlertConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertConfig to fetch.
+     */
+    where?: AlertConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertConfigs to fetch.
+     */
+    orderBy?: AlertConfigOrderByWithRelationInput | AlertConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertConfigs.
+     */
+    cursor?: AlertConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertConfigs.
+     */
+    distinct?: AlertConfigScalarFieldEnum | AlertConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AlertConfig findMany
+   */
+  export type AlertConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertConfigs to fetch.
+     */
+    where?: AlertConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertConfigs to fetch.
+     */
+    orderBy?: AlertConfigOrderByWithRelationInput | AlertConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AlertConfigs.
+     */
+    cursor?: AlertConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertConfigs.
+     */
+    skip?: number
+    distinct?: AlertConfigScalarFieldEnum | AlertConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AlertConfig create
+   */
+  export type AlertConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * The data needed to create a AlertConfig.
+     */
+    data: XOR<AlertConfigCreateInput, AlertConfigUncheckedCreateInput>
+  }
+
+  /**
+   * AlertConfig createMany
+   */
+  export type AlertConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AlertConfigs.
+     */
+    data: AlertConfigCreateManyInput | AlertConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AlertConfig createManyAndReturn
+   */
+  export type AlertConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AlertConfigs.
+     */
+    data: AlertConfigCreateManyInput | AlertConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AlertConfig update
+   */
+  export type AlertConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * The data needed to update a AlertConfig.
+     */
+    data: XOR<AlertConfigUpdateInput, AlertConfigUncheckedUpdateInput>
+    /**
+     * Choose, which AlertConfig to update.
+     */
+    where: AlertConfigWhereUniqueInput
+  }
+
+  /**
+   * AlertConfig updateMany
+   */
+  export type AlertConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AlertConfigs.
+     */
+    data: XOR<AlertConfigUpdateManyMutationInput, AlertConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which AlertConfigs to update
+     */
+    where?: AlertConfigWhereInput
+  }
+
+  /**
+   * AlertConfig upsert
+   */
+  export type AlertConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * The filter to search for the AlertConfig to update in case it exists.
+     */
+    where: AlertConfigWhereUniqueInput
+    /**
+     * In case the AlertConfig found by the `where` argument doesn't exist, create a new AlertConfig with this data.
+     */
+    create: XOR<AlertConfigCreateInput, AlertConfigUncheckedCreateInput>
+    /**
+     * In case the AlertConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AlertConfigUpdateInput, AlertConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * AlertConfig delete
+   */
+  export type AlertConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+    /**
+     * Filter which AlertConfig to delete.
+     */
+    where: AlertConfigWhereUniqueInput
+  }
+
+  /**
+   * AlertConfig deleteMany
+   */
+  export type AlertConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertConfigs to delete
+     */
+    where?: AlertConfigWhereInput
+  }
+
+  /**
+   * AlertConfig without action
+   */
+  export type AlertConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertConfig
+     */
+    select?: AlertConfigSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AlertAck
+   */
+
+  export type AggregateAlertAck = {
+    _count: AlertAckCountAggregateOutputType | null
+    _min: AlertAckMinAggregateOutputType | null
+    _max: AlertAckMaxAggregateOutputType | null
+  }
+
+  export type AlertAckMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    trigger: $Enums.AlertTrigger | null
+    referenceKey: string | null
+    acknowledgedById: string | null
+    acknowledgedAt: Date | null
+  }
+
+  export type AlertAckMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    trigger: $Enums.AlertTrigger | null
+    referenceKey: string | null
+    acknowledgedById: string | null
+    acknowledgedAt: Date | null
+  }
+
+  export type AlertAckCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    trigger: number
+    referenceKey: number
+    acknowledgedById: number
+    acknowledgedAt: number
+    _all: number
+  }
+
+
+  export type AlertAckMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    trigger?: true
+    referenceKey?: true
+    acknowledgedById?: true
+    acknowledgedAt?: true
+  }
+
+  export type AlertAckMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    trigger?: true
+    referenceKey?: true
+    acknowledgedById?: true
+    acknowledgedAt?: true
+  }
+
+  export type AlertAckCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    trigger?: true
+    referenceKey?: true
+    acknowledgedById?: true
+    acknowledgedAt?: true
+    _all?: true
+  }
+
+  export type AlertAckAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertAck to aggregate.
+     */
+    where?: AlertAckWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertAcks to fetch.
+     */
+    orderBy?: AlertAckOrderByWithRelationInput | AlertAckOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AlertAckWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertAcks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertAcks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AlertAcks
+    **/
+    _count?: true | AlertAckCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AlertAckMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AlertAckMaxAggregateInputType
+  }
+
+  export type GetAlertAckAggregateType<T extends AlertAckAggregateArgs> = {
+        [P in keyof T & keyof AggregateAlertAck]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAlertAck[P]>
+      : GetScalarType<T[P], AggregateAlertAck[P]>
+  }
+
+
+
+
+  export type AlertAckGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertAckWhereInput
+    orderBy?: AlertAckOrderByWithAggregationInput | AlertAckOrderByWithAggregationInput[]
+    by: AlertAckScalarFieldEnum[] | AlertAckScalarFieldEnum
+    having?: AlertAckScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AlertAckCountAggregateInputType | true
+    _min?: AlertAckMinAggregateInputType
+    _max?: AlertAckMaxAggregateInputType
+  }
+
+  export type AlertAckGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    trigger: $Enums.AlertTrigger
+    referenceKey: string
+    acknowledgedById: string | null
+    acknowledgedAt: Date
+    _count: AlertAckCountAggregateOutputType | null
+    _min: AlertAckMinAggregateOutputType | null
+    _max: AlertAckMaxAggregateOutputType | null
+  }
+
+  type GetAlertAckGroupByPayload<T extends AlertAckGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AlertAckGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AlertAckGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AlertAckGroupByOutputType[P]>
+            : GetScalarType<T[P], AlertAckGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AlertAckSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    trigger?: boolean
+    referenceKey?: boolean
+    acknowledgedById?: boolean
+    acknowledgedAt?: boolean
+  }, ExtArgs["result"]["alertAck"]>
+
+  export type AlertAckSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    trigger?: boolean
+    referenceKey?: boolean
+    acknowledgedById?: boolean
+    acknowledgedAt?: boolean
+  }, ExtArgs["result"]["alertAck"]>
+
+  export type AlertAckSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    trigger?: boolean
+    referenceKey?: boolean
+    acknowledgedById?: boolean
+    acknowledgedAt?: boolean
+  }
+
+
+  export type $AlertAckPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AlertAck"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      trigger: $Enums.AlertTrigger
+      referenceKey: string
+      acknowledgedById: string | null
+      acknowledgedAt: Date
+    }, ExtArgs["result"]["alertAck"]>
+    composites: {}
+  }
+
+  type AlertAckGetPayload<S extends boolean | null | undefined | AlertAckDefaultArgs> = $Result.GetResult<Prisma.$AlertAckPayload, S>
+
+  type AlertAckCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AlertAckFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AlertAckCountAggregateInputType | true
+    }
+
+  export interface AlertAckDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AlertAck'], meta: { name: 'AlertAck' } }
+    /**
+     * Find zero or one AlertAck that matches the filter.
+     * @param {AlertAckFindUniqueArgs} args - Arguments to find a AlertAck
+     * @example
+     * // Get one AlertAck
+     * const alertAck = await prisma.alertAck.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AlertAckFindUniqueArgs>(args: SelectSubset<T, AlertAckFindUniqueArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AlertAck that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AlertAckFindUniqueOrThrowArgs} args - Arguments to find a AlertAck
+     * @example
+     * // Get one AlertAck
+     * const alertAck = await prisma.alertAck.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AlertAckFindUniqueOrThrowArgs>(args: SelectSubset<T, AlertAckFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AlertAck that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckFindFirstArgs} args - Arguments to find a AlertAck
+     * @example
+     * // Get one AlertAck
+     * const alertAck = await prisma.alertAck.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AlertAckFindFirstArgs>(args?: SelectSubset<T, AlertAckFindFirstArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AlertAck that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckFindFirstOrThrowArgs} args - Arguments to find a AlertAck
+     * @example
+     * // Get one AlertAck
+     * const alertAck = await prisma.alertAck.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AlertAckFindFirstOrThrowArgs>(args?: SelectSubset<T, AlertAckFindFirstOrThrowArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AlertAcks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AlertAcks
+     * const alertAcks = await prisma.alertAck.findMany()
+     * 
+     * // Get first 10 AlertAcks
+     * const alertAcks = await prisma.alertAck.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const alertAckWithIdOnly = await prisma.alertAck.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AlertAckFindManyArgs>(args?: SelectSubset<T, AlertAckFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AlertAck.
+     * @param {AlertAckCreateArgs} args - Arguments to create a AlertAck.
+     * @example
+     * // Create one AlertAck
+     * const AlertAck = await prisma.alertAck.create({
+     *   data: {
+     *     // ... data to create a AlertAck
+     *   }
+     * })
+     * 
+     */
+    create<T extends AlertAckCreateArgs>(args: SelectSubset<T, AlertAckCreateArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AlertAcks.
+     * @param {AlertAckCreateManyArgs} args - Arguments to create many AlertAcks.
+     * @example
+     * // Create many AlertAcks
+     * const alertAck = await prisma.alertAck.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AlertAckCreateManyArgs>(args?: SelectSubset<T, AlertAckCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AlertAcks and returns the data saved in the database.
+     * @param {AlertAckCreateManyAndReturnArgs} args - Arguments to create many AlertAcks.
+     * @example
+     * // Create many AlertAcks
+     * const alertAck = await prisma.alertAck.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AlertAcks and only return the `id`
+     * const alertAckWithIdOnly = await prisma.alertAck.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AlertAckCreateManyAndReturnArgs>(args?: SelectSubset<T, AlertAckCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AlertAck.
+     * @param {AlertAckDeleteArgs} args - Arguments to delete one AlertAck.
+     * @example
+     * // Delete one AlertAck
+     * const AlertAck = await prisma.alertAck.delete({
+     *   where: {
+     *     // ... filter to delete one AlertAck
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AlertAckDeleteArgs>(args: SelectSubset<T, AlertAckDeleteArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AlertAck.
+     * @param {AlertAckUpdateArgs} args - Arguments to update one AlertAck.
+     * @example
+     * // Update one AlertAck
+     * const alertAck = await prisma.alertAck.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AlertAckUpdateArgs>(args: SelectSubset<T, AlertAckUpdateArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AlertAcks.
+     * @param {AlertAckDeleteManyArgs} args - Arguments to filter AlertAcks to delete.
+     * @example
+     * // Delete a few AlertAcks
+     * const { count } = await prisma.alertAck.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AlertAckDeleteManyArgs>(args?: SelectSubset<T, AlertAckDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AlertAcks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AlertAcks
+     * const alertAck = await prisma.alertAck.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AlertAckUpdateManyArgs>(args: SelectSubset<T, AlertAckUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AlertAck.
+     * @param {AlertAckUpsertArgs} args - Arguments to update or create a AlertAck.
+     * @example
+     * // Update or create a AlertAck
+     * const alertAck = await prisma.alertAck.upsert({
+     *   create: {
+     *     // ... data to create a AlertAck
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AlertAck we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AlertAckUpsertArgs>(args: SelectSubset<T, AlertAckUpsertArgs<ExtArgs>>): Prisma__AlertAckClient<$Result.GetResult<Prisma.$AlertAckPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AlertAcks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckCountArgs} args - Arguments to filter AlertAcks to count.
+     * @example
+     * // Count the number of AlertAcks
+     * const count = await prisma.alertAck.count({
+     *   where: {
+     *     // ... the filter for the AlertAcks we want to count
+     *   }
+     * })
+    **/
+    count<T extends AlertAckCountArgs>(
+      args?: Subset<T, AlertAckCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AlertAckCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AlertAck.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AlertAckAggregateArgs>(args: Subset<T, AlertAckAggregateArgs>): Prisma.PrismaPromise<GetAlertAckAggregateType<T>>
+
+    /**
+     * Group by AlertAck.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAckGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AlertAckGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AlertAckGroupByArgs['orderBy'] }
+        : { orderBy?: AlertAckGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AlertAckGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAlertAckGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AlertAck model
+   */
+  readonly fields: AlertAckFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AlertAck.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AlertAckClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AlertAck model
+   */ 
+  interface AlertAckFieldRefs {
+    readonly id: FieldRef<"AlertAck", 'String'>
+    readonly tenantId: FieldRef<"AlertAck", 'String'>
+    readonly locationId: FieldRef<"AlertAck", 'String'>
+    readonly trigger: FieldRef<"AlertAck", 'AlertTrigger'>
+    readonly referenceKey: FieldRef<"AlertAck", 'String'>
+    readonly acknowledgedById: FieldRef<"AlertAck", 'String'>
+    readonly acknowledgedAt: FieldRef<"AlertAck", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AlertAck findUnique
+   */
+  export type AlertAckFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertAck to fetch.
+     */
+    where: AlertAckWhereUniqueInput
+  }
+
+  /**
+   * AlertAck findUniqueOrThrow
+   */
+  export type AlertAckFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertAck to fetch.
+     */
+    where: AlertAckWhereUniqueInput
+  }
+
+  /**
+   * AlertAck findFirst
+   */
+  export type AlertAckFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertAck to fetch.
+     */
+    where?: AlertAckWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertAcks to fetch.
+     */
+    orderBy?: AlertAckOrderByWithRelationInput | AlertAckOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertAcks.
+     */
+    cursor?: AlertAckWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertAcks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertAcks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertAcks.
+     */
+    distinct?: AlertAckScalarFieldEnum | AlertAckScalarFieldEnum[]
+  }
+
+  /**
+   * AlertAck findFirstOrThrow
+   */
+  export type AlertAckFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertAck to fetch.
+     */
+    where?: AlertAckWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertAcks to fetch.
+     */
+    orderBy?: AlertAckOrderByWithRelationInput | AlertAckOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertAcks.
+     */
+    cursor?: AlertAckWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertAcks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertAcks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertAcks.
+     */
+    distinct?: AlertAckScalarFieldEnum | AlertAckScalarFieldEnum[]
+  }
+
+  /**
+   * AlertAck findMany
+   */
+  export type AlertAckFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter, which AlertAcks to fetch.
+     */
+    where?: AlertAckWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertAcks to fetch.
+     */
+    orderBy?: AlertAckOrderByWithRelationInput | AlertAckOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AlertAcks.
+     */
+    cursor?: AlertAckWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertAcks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertAcks.
+     */
+    skip?: number
+    distinct?: AlertAckScalarFieldEnum | AlertAckScalarFieldEnum[]
+  }
+
+  /**
+   * AlertAck create
+   */
+  export type AlertAckCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * The data needed to create a AlertAck.
+     */
+    data: XOR<AlertAckCreateInput, AlertAckUncheckedCreateInput>
+  }
+
+  /**
+   * AlertAck createMany
+   */
+  export type AlertAckCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AlertAcks.
+     */
+    data: AlertAckCreateManyInput | AlertAckCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AlertAck createManyAndReturn
+   */
+  export type AlertAckCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AlertAcks.
+     */
+    data: AlertAckCreateManyInput | AlertAckCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AlertAck update
+   */
+  export type AlertAckUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * The data needed to update a AlertAck.
+     */
+    data: XOR<AlertAckUpdateInput, AlertAckUncheckedUpdateInput>
+    /**
+     * Choose, which AlertAck to update.
+     */
+    where: AlertAckWhereUniqueInput
+  }
+
+  /**
+   * AlertAck updateMany
+   */
+  export type AlertAckUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AlertAcks.
+     */
+    data: XOR<AlertAckUpdateManyMutationInput, AlertAckUncheckedUpdateManyInput>
+    /**
+     * Filter which AlertAcks to update
+     */
+    where?: AlertAckWhereInput
+  }
+
+  /**
+   * AlertAck upsert
+   */
+  export type AlertAckUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * The filter to search for the AlertAck to update in case it exists.
+     */
+    where: AlertAckWhereUniqueInput
+    /**
+     * In case the AlertAck found by the `where` argument doesn't exist, create a new AlertAck with this data.
+     */
+    create: XOR<AlertAckCreateInput, AlertAckUncheckedCreateInput>
+    /**
+     * In case the AlertAck was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AlertAckUpdateInput, AlertAckUncheckedUpdateInput>
+  }
+
+  /**
+   * AlertAck delete
+   */
+  export type AlertAckDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+    /**
+     * Filter which AlertAck to delete.
+     */
+    where: AlertAckWhereUniqueInput
+  }
+
+  /**
+   * AlertAck deleteMany
+   */
+  export type AlertAckDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertAcks to delete
+     */
+    where?: AlertAckWhereInput
+  }
+
+  /**
+   * AlertAck without action
+   */
+  export type AlertAckDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertAck
+     */
+    select?: AlertAckSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model AgentPairCode
    */
 
@@ -104564,6 +106686,39 @@ export namespace Prisma {
   export type PrintAgentScalarFieldEnum = (typeof PrintAgentScalarFieldEnum)[keyof typeof PrintAgentScalarFieldEnum]
 
 
+  export const AlertConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    stationId: 'stationId',
+    trigger: 'trigger',
+    enabled: 'enabled',
+    soundUrl: 'soundUrl',
+    volume: 'volume',
+    repeatCount: 'repeatCount',
+    repeatIntervalMs: 'repeatIntervalMs',
+    autoStopSeconds: 'autoStopSeconds',
+    requireAcknowledgement: 'requireAcknowledgement',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AlertConfigScalarFieldEnum = (typeof AlertConfigScalarFieldEnum)[keyof typeof AlertConfigScalarFieldEnum]
+
+
+  export const AlertAckScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    trigger: 'trigger',
+    referenceKey: 'referenceKey',
+    acknowledgedById: 'acknowledgedById',
+    acknowledgedAt: 'acknowledgedAt'
+  };
+
+  export type AlertAckScalarFieldEnum = (typeof AlertAckScalarFieldEnum)[keyof typeof AlertAckScalarFieldEnum]
+
+
   export const AgentPairCodeScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -105917,6 +108072,28 @@ export namespace Prisma {
   export type PrintAgentOrderByRelevanceFieldEnum = (typeof PrintAgentOrderByRelevanceFieldEnum)[keyof typeof PrintAgentOrderByRelevanceFieldEnum]
 
 
+  export const AlertConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    stationId: 'stationId',
+    soundUrl: 'soundUrl'
+  };
+
+  export type AlertConfigOrderByRelevanceFieldEnum = (typeof AlertConfigOrderByRelevanceFieldEnum)[keyof typeof AlertConfigOrderByRelevanceFieldEnum]
+
+
+  export const AlertAckOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    referenceKey: 'referenceKey',
+    acknowledgedById: 'acknowledgedById'
+  };
+
+  export type AlertAckOrderByRelevanceFieldEnum = (typeof AlertAckOrderByRelevanceFieldEnum)[keyof typeof AlertAckOrderByRelevanceFieldEnum]
+
+
   export const AgentPairCodeOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -106882,16 +109059,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'DriverAssignmentStatus'
+   * Reference to a field of type 'AlertTrigger'
    */
-  export type EnumDriverAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverAssignmentStatus'>
+  export type EnumAlertTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AlertTrigger'>
     
 
 
   /**
-   * Reference to a field of type 'DriverAssignmentStatus[]'
+   * Reference to a field of type 'AlertTrigger[]'
    */
-  export type ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverAssignmentStatus[]'>
+  export type ListEnumAlertTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AlertTrigger[]'>
     
 
 
@@ -106906,6 +109083,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DriverAssignmentStatus'
+   */
+  export type EnumDriverAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverAssignmentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'DriverAssignmentStatus[]'
+   */
+  export type ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverAssignmentStatus[]'>
     
 
 
@@ -112347,6 +114538,169 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
+  }
+
+  export type AlertConfigWhereInput = {
+    AND?: AlertConfigWhereInput | AlertConfigWhereInput[]
+    OR?: AlertConfigWhereInput[]
+    NOT?: AlertConfigWhereInput | AlertConfigWhereInput[]
+    id?: StringFilter<"AlertConfig"> | string
+    tenantId?: StringFilter<"AlertConfig"> | string
+    locationId?: StringFilter<"AlertConfig"> | string
+    stationId?: StringNullableFilter<"AlertConfig"> | string | null
+    trigger?: EnumAlertTriggerFilter<"AlertConfig"> | $Enums.AlertTrigger
+    enabled?: BoolFilter<"AlertConfig"> | boolean
+    soundUrl?: StringNullableFilter<"AlertConfig"> | string | null
+    volume?: FloatFilter<"AlertConfig"> | number
+    repeatCount?: IntFilter<"AlertConfig"> | number
+    repeatIntervalMs?: IntFilter<"AlertConfig"> | number
+    autoStopSeconds?: IntNullableFilter<"AlertConfig"> | number | null
+    requireAcknowledgement?: BoolFilter<"AlertConfig"> | boolean
+    createdAt?: DateTimeFilter<"AlertConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"AlertConfig"> | Date | string
+  }
+
+  export type AlertConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stationId?: SortOrderInput | SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    soundUrl?: SortOrderInput | SortOrder
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrderInput | SortOrder
+    requireAcknowledgement?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: AlertConfigOrderByRelevanceInput
+  }
+
+  export type AlertConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AlertConfigWhereInput | AlertConfigWhereInput[]
+    OR?: AlertConfigWhereInput[]
+    NOT?: AlertConfigWhereInput | AlertConfigWhereInput[]
+    tenantId?: StringFilter<"AlertConfig"> | string
+    locationId?: StringFilter<"AlertConfig"> | string
+    stationId?: StringNullableFilter<"AlertConfig"> | string | null
+    trigger?: EnumAlertTriggerFilter<"AlertConfig"> | $Enums.AlertTrigger
+    enabled?: BoolFilter<"AlertConfig"> | boolean
+    soundUrl?: StringNullableFilter<"AlertConfig"> | string | null
+    volume?: FloatFilter<"AlertConfig"> | number
+    repeatCount?: IntFilter<"AlertConfig"> | number
+    repeatIntervalMs?: IntFilter<"AlertConfig"> | number
+    autoStopSeconds?: IntNullableFilter<"AlertConfig"> | number | null
+    requireAcknowledgement?: BoolFilter<"AlertConfig"> | boolean
+    createdAt?: DateTimeFilter<"AlertConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"AlertConfig"> | Date | string
+  }, "id">
+
+  export type AlertConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stationId?: SortOrderInput | SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    soundUrl?: SortOrderInput | SortOrder
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrderInput | SortOrder
+    requireAcknowledgement?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AlertConfigCountOrderByAggregateInput
+    _avg?: AlertConfigAvgOrderByAggregateInput
+    _max?: AlertConfigMaxOrderByAggregateInput
+    _min?: AlertConfigMinOrderByAggregateInput
+    _sum?: AlertConfigSumOrderByAggregateInput
+  }
+
+  export type AlertConfigScalarWhereWithAggregatesInput = {
+    AND?: AlertConfigScalarWhereWithAggregatesInput | AlertConfigScalarWhereWithAggregatesInput[]
+    OR?: AlertConfigScalarWhereWithAggregatesInput[]
+    NOT?: AlertConfigScalarWhereWithAggregatesInput | AlertConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AlertConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"AlertConfig"> | string
+    locationId?: StringWithAggregatesFilter<"AlertConfig"> | string
+    stationId?: StringNullableWithAggregatesFilter<"AlertConfig"> | string | null
+    trigger?: EnumAlertTriggerWithAggregatesFilter<"AlertConfig"> | $Enums.AlertTrigger
+    enabled?: BoolWithAggregatesFilter<"AlertConfig"> | boolean
+    soundUrl?: StringNullableWithAggregatesFilter<"AlertConfig"> | string | null
+    volume?: FloatWithAggregatesFilter<"AlertConfig"> | number
+    repeatCount?: IntWithAggregatesFilter<"AlertConfig"> | number
+    repeatIntervalMs?: IntWithAggregatesFilter<"AlertConfig"> | number
+    autoStopSeconds?: IntNullableWithAggregatesFilter<"AlertConfig"> | number | null
+    requireAcknowledgement?: BoolWithAggregatesFilter<"AlertConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"AlertConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AlertConfig"> | Date | string
+  }
+
+  export type AlertAckWhereInput = {
+    AND?: AlertAckWhereInput | AlertAckWhereInput[]
+    OR?: AlertAckWhereInput[]
+    NOT?: AlertAckWhereInput | AlertAckWhereInput[]
+    id?: StringFilter<"AlertAck"> | string
+    tenantId?: StringFilter<"AlertAck"> | string
+    locationId?: StringFilter<"AlertAck"> | string
+    trigger?: EnumAlertTriggerFilter<"AlertAck"> | $Enums.AlertTrigger
+    referenceKey?: StringFilter<"AlertAck"> | string
+    acknowledgedById?: StringNullableFilter<"AlertAck"> | string | null
+    acknowledgedAt?: DateTimeFilter<"AlertAck"> | Date | string
+  }
+
+  export type AlertAckOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    trigger?: SortOrder
+    referenceKey?: SortOrder
+    acknowledgedById?: SortOrderInput | SortOrder
+    acknowledgedAt?: SortOrder
+    _relevance?: AlertAckOrderByRelevanceInput
+  }
+
+  export type AlertAckWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    referenceKey?: string
+    AND?: AlertAckWhereInput | AlertAckWhereInput[]
+    OR?: AlertAckWhereInput[]
+    NOT?: AlertAckWhereInput | AlertAckWhereInput[]
+    tenantId?: StringFilter<"AlertAck"> | string
+    locationId?: StringFilter<"AlertAck"> | string
+    trigger?: EnumAlertTriggerFilter<"AlertAck"> | $Enums.AlertTrigger
+    acknowledgedById?: StringNullableFilter<"AlertAck"> | string | null
+    acknowledgedAt?: DateTimeFilter<"AlertAck"> | Date | string
+  }, "id" | "referenceKey">
+
+  export type AlertAckOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    trigger?: SortOrder
+    referenceKey?: SortOrder
+    acknowledgedById?: SortOrderInput | SortOrder
+    acknowledgedAt?: SortOrder
+    _count?: AlertAckCountOrderByAggregateInput
+    _max?: AlertAckMaxOrderByAggregateInput
+    _min?: AlertAckMinOrderByAggregateInput
+  }
+
+  export type AlertAckScalarWhereWithAggregatesInput = {
+    AND?: AlertAckScalarWhereWithAggregatesInput | AlertAckScalarWhereWithAggregatesInput[]
+    OR?: AlertAckScalarWhereWithAggregatesInput[]
+    NOT?: AlertAckScalarWhereWithAggregatesInput | AlertAckScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AlertAck"> | string
+    tenantId?: StringWithAggregatesFilter<"AlertAck"> | string
+    locationId?: StringWithAggregatesFilter<"AlertAck"> | string
+    trigger?: EnumAlertTriggerWithAggregatesFilter<"AlertAck"> | $Enums.AlertTrigger
+    referenceKey?: StringWithAggregatesFilter<"AlertAck"> | string
+    acknowledgedById?: StringNullableWithAggregatesFilter<"AlertAck"> | string | null
+    acknowledgedAt?: DateTimeWithAggregatesFilter<"AlertAck"> | Date | string
   }
 
   export type AgentPairCodeWhereInput = {
@@ -122043,6 +124397,195 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AlertConfigCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    stationId?: string | null
+    trigger: $Enums.AlertTrigger
+    enabled?: boolean
+    soundUrl?: string | null
+    volume?: number
+    repeatCount?: number
+    repeatIntervalMs?: number
+    autoStopSeconds?: number | null
+    requireAcknowledgement?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AlertConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    stationId?: string | null
+    trigger: $Enums.AlertTrigger
+    enabled?: boolean
+    soundUrl?: string | null
+    volume?: number
+    repeatCount?: number
+    repeatIntervalMs?: number
+    autoStopSeconds?: number | null
+    requireAcknowledgement?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AlertConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    soundUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    volume?: FloatFieldUpdateOperationsInput | number
+    repeatCount?: IntFieldUpdateOperationsInput | number
+    repeatIntervalMs?: IntFieldUpdateOperationsInput | number
+    autoStopSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    requireAcknowledgement?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    soundUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    volume?: FloatFieldUpdateOperationsInput | number
+    repeatCount?: IntFieldUpdateOperationsInput | number
+    repeatIntervalMs?: IntFieldUpdateOperationsInput | number
+    autoStopSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    requireAcknowledgement?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    stationId?: string | null
+    trigger: $Enums.AlertTrigger
+    enabled?: boolean
+    soundUrl?: string | null
+    volume?: number
+    repeatCount?: number
+    repeatIntervalMs?: number
+    autoStopSeconds?: number | null
+    requireAcknowledgement?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AlertConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    soundUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    volume?: FloatFieldUpdateOperationsInput | number
+    repeatCount?: IntFieldUpdateOperationsInput | number
+    repeatIntervalMs?: IntFieldUpdateOperationsInput | number
+    autoStopSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    requireAcknowledgement?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    soundUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    volume?: FloatFieldUpdateOperationsInput | number
+    repeatCount?: IntFieldUpdateOperationsInput | number
+    repeatIntervalMs?: IntFieldUpdateOperationsInput | number
+    autoStopSeconds?: NullableIntFieldUpdateOperationsInput | number | null
+    requireAcknowledgement?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertAckCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    trigger: $Enums.AlertTrigger
+    referenceKey: string
+    acknowledgedById?: string | null
+    acknowledgedAt?: Date | string
+  }
+
+  export type AlertAckUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    trigger: $Enums.AlertTrigger
+    referenceKey: string
+    acknowledgedById?: string | null
+    acknowledgedAt?: Date | string
+  }
+
+  export type AlertAckUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    referenceKey?: StringFieldUpdateOperationsInput | string
+    acknowledgedById?: NullableStringFieldUpdateOperationsInput | string | null
+    acknowledgedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertAckUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    referenceKey?: StringFieldUpdateOperationsInput | string
+    acknowledgedById?: NullableStringFieldUpdateOperationsInput | string | null
+    acknowledgedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertAckCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    trigger: $Enums.AlertTrigger
+    referenceKey: string
+    acknowledgedById?: string | null
+    acknowledgedAt?: Date | string
+  }
+
+  export type AlertAckUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    referenceKey?: StringFieldUpdateOperationsInput | string
+    acknowledgedById?: NullableStringFieldUpdateOperationsInput | string | null
+    acknowledgedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertAckUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    trigger?: EnumAlertTriggerFieldUpdateOperationsInput | $Enums.AlertTrigger
+    referenceKey?: StringFieldUpdateOperationsInput | string
+    acknowledgedById?: NullableStringFieldUpdateOperationsInput | string | null
+    acknowledgedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AgentPairCodeCreateInput = {
     id?: string
     tenantId: string
@@ -130455,6 +132998,157 @@ export namespace Prisma {
     _max?: NestedEnumPrintAgentKindFilter<$PrismaModel>
   }
 
+  export type EnumAlertTriggerFilter<$PrismaModel = never> = {
+    equals?: $Enums.AlertTrigger | EnumAlertTriggerFieldRefInput<$PrismaModel>
+    in?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    not?: NestedEnumAlertTriggerFilter<$PrismaModel> | $Enums.AlertTrigger
+  }
+
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type AlertConfigOrderByRelevanceInput = {
+    fields: AlertConfigOrderByRelevanceFieldEnum | AlertConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AlertConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    soundUrl?: SortOrder
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrder
+    requireAcknowledgement?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AlertConfigAvgOrderByAggregateInput = {
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrder
+  }
+
+  export type AlertConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    soundUrl?: SortOrder
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrder
+    requireAcknowledgement?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AlertConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    soundUrl?: SortOrder
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrder
+    requireAcknowledgement?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AlertConfigSumOrderByAggregateInput = {
+    volume?: SortOrder
+    repeatCount?: SortOrder
+    repeatIntervalMs?: SortOrder
+    autoStopSeconds?: SortOrder
+  }
+
+  export type EnumAlertTriggerWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AlertTrigger | EnumAlertTriggerFieldRefInput<$PrismaModel>
+    in?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    not?: NestedEnumAlertTriggerWithAggregatesFilter<$PrismaModel> | $Enums.AlertTrigger
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAlertTriggerFilter<$PrismaModel>
+    _max?: NestedEnumAlertTriggerFilter<$PrismaModel>
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type AlertAckOrderByRelevanceInput = {
+    fields: AlertAckOrderByRelevanceFieldEnum | AlertAckOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AlertAckCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    trigger?: SortOrder
+    referenceKey?: SortOrder
+    acknowledgedById?: SortOrder
+    acknowledgedAt?: SortOrder
+  }
+
+  export type AlertAckMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    trigger?: SortOrder
+    referenceKey?: SortOrder
+    acknowledgedById?: SortOrder
+    acknowledgedAt?: SortOrder
+  }
+
+  export type AlertAckMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    trigger?: SortOrder
+    referenceKey?: SortOrder
+    acknowledgedById?: SortOrder
+    acknowledgedAt?: SortOrder
+  }
+
   export type AgentPairCodeOrderByRelevanceInput = {
     fields: AgentPairCodeOrderByRelevanceFieldEnum | AgentPairCodeOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -130771,17 +133465,6 @@ export namespace Prisma {
     _max?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
   }
 
-  export type FloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type FloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -130854,22 +133537,6 @@ export namespace Prisma {
     accuracy?: SortOrder
     heading?: SortOrder
     speed?: SortOrder
-  }
-
-  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -137846,6 +140513,18 @@ export namespace Prisma {
     deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
   }
 
+  export type EnumAlertTriggerFieldUpdateOperationsInput = {
+    set?: $Enums.AlertTrigger
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type MenuItemCreateNestedOneWithoutStationRoutesInput = {
     create?: XOR<MenuItemCreateWithoutStationRoutesInput, MenuItemUncheckedCreateWithoutStationRoutesInput>
     connectOrCreate?: MenuItemCreateOrConnectWithoutStationRoutesInput
@@ -138064,14 +140743,6 @@ export namespace Prisma {
     create?: XOR<DriverAssignmentCreateWithoutTrackingInput, DriverAssignmentUncheckedCreateWithoutTrackingInput>
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutTrackingInput
     connect?: DriverAssignmentWhereUniqueInput
-  }
-
-  export type FloatFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -140118,21 +142789,21 @@ export namespace Prisma {
     _max?: NestedEnumPrintAgentKindFilter<$PrismaModel>
   }
 
-  export type NestedEnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
+  export type NestedEnumAlertTriggerFilter<$PrismaModel = never> = {
+    equals?: $Enums.AlertTrigger | EnumAlertTriggerFieldRefInput<$PrismaModel>
+    in?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    not?: NestedEnumAlertTriggerFilter<$PrismaModel> | $Enums.AlertTrigger
   }
 
-  export type NestedEnumDriverAssignmentStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumDriverAssignmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
+  export type NestedEnumAlertTriggerWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AlertTrigger | EnumAlertTriggerFieldRefInput<$PrismaModel>
+    in?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AlertTrigger[] | ListEnumAlertTriggerFieldRefInput<$PrismaModel>
+    not?: NestedEnumAlertTriggerWithAggregatesFilter<$PrismaModel> | $Enums.AlertTrigger
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
-    _max?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
+    _min?: NestedEnumAlertTriggerFilter<$PrismaModel>
+    _max?: NestedEnumAlertTriggerFilter<$PrismaModel>
   }
 
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -140149,6 +142820,23 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
+  }
+
+  export type NestedEnumDriverAssignmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverAssignmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
+    _max?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
   }
 
   export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -170423,6 +173111,14 @@ export namespace Prisma {
      * @deprecated Use PrintAgentDefaultArgs instead
      */
     export type PrintAgentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintAgentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AlertConfigDefaultArgs instead
+     */
+    export type AlertConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AlertAckDefaultArgs instead
+     */
+    export type AlertAckArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertAckDefaultArgs<ExtArgs>
     /**
      * @deprecated Use AgentPairCodeDefaultArgs instead
      */

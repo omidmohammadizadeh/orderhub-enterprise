@@ -434,6 +434,70 @@ export class PrintJobsService {
   // completed (process crashed mid-print). 60s window matches a 15s
   // heartbeat × 4 missed beats.
 
+  // Phase AS-4 — dashboard widgets.
+  async widgets(tenantId: string, locationId?: string) {
+    const baseWhere: any = {
+      tenantId,
+      ...(locationId && { locationId }),
+    };
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [printers, queueDepth, failedJobs, lastPrint] = await Promise.all([
+      (this.prisma as any).printer.findMany({
+        where: { tenantId, ...(locationId && { locationId }) },
+        select: { isOnline: true },
+      }),
+      (this.prisma as any).printJob.count({
+        where: { ...baseWhere, status: { in: ["QUEUED", "CLAIMED"] } },
+      }),
+      (this.prisma as any).printJob.count({
+        where: { ...baseWhere, status: "FAILED", createdAt: { gte: dayAgo } },
+      }),
+      (this.prisma as any).printJob.findFirst({
+        where: { ...baseWhere, status: "PRINTED" },
+        orderBy: { printedAt: "desc" },
+        select: { printedAt: true },
+      }),
+    ]);
+    return {
+      online: printers.filter((p: any) => p.isOnline).length,
+      offline: printers.filter((p: any) => !p.isOnline).length,
+      queueDepth,
+      failedLast24h: failedJobs,
+      lastPrintedAt: lastPrint?.printedAt ?? null,
+    };
+  }
+
+  // Phase AS-4 — print job history (for the dashboard's "Recent
+  // activity" panel and per-printer logs).
+  async list(args: {
+    tenantId: string;
+    locationId?: string;
+    status?: string;
+    limit?: number;
+  }) {
+    return (this.prisma as any).printJob.findMany({
+      where: {
+        tenantId: args.tenantId,
+        ...(args.locationId && { locationId: args.locationId }),
+        ...(args.status && { status: args.status }),
+      },
+      orderBy: { createdAt: "desc" },
+      take: args.limit ?? 50,
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        printerId: true,
+        stationId: true,
+        copies: true,
+        attempts: true,
+        error: true,
+        createdAt: true,
+        printedAt: true,
+      },
+    });
+  }
+
   async releaseStaleClaims() {
     const cutoff = new Date(Date.now() - 60_000);
     const { count } = await (this.prisma as any).printJob.updateMany({

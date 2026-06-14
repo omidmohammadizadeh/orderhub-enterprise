@@ -953,6 +953,33 @@ exports.Prisma.PrintAgentScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AlertConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  stationId: 'stationId',
+  trigger: 'trigger',
+  enabled: 'enabled',
+  soundUrl: 'soundUrl',
+  volume: 'volume',
+  repeatCount: 'repeatCount',
+  repeatIntervalMs: 'repeatIntervalMs',
+  autoStopSeconds: 'autoStopSeconds',
+  requireAcknowledgement: 'requireAcknowledgement',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AlertAckScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  trigger: 'trigger',
+  referenceKey: 'referenceKey',
+  acknowledgedById: 'acknowledgedById',
+  acknowledgedAt: 'acknowledgedAt'
+};
+
 exports.Prisma.AgentPairCodeScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2027,6 +2054,22 @@ exports.Prisma.PrintAgentOrderByRelevanceFieldEnum = {
   hostname: 'hostname'
 };
 
+exports.Prisma.AlertConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  stationId: 'stationId',
+  soundUrl: 'soundUrl'
+};
+
+exports.Prisma.AlertAckOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  referenceKey: 'referenceKey',
+  acknowledgedById: 'acknowledgedById'
+};
+
 exports.Prisma.AgentPairCodeOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2641,6 +2684,15 @@ exports.PrintAgentKind = exports.$Enums.PrintAgentKind = {
   SERVER_DIRECT: 'SERVER_DIRECT'
 };
 
+exports.AlertTrigger = exports.$Enums.AlertTrigger = {
+  NEW_ORDER: 'NEW_ORDER',
+  ORDER_CANCELLED: 'ORDER_CANCELLED',
+  RIDER_ARRIVED: 'RIDER_ARRIVED',
+  SCHEDULED_ORDER_READY: 'SCHEDULED_ORDER_READY',
+  PRINTER_OFFLINE: 'PRINTER_OFFLINE',
+  FAILED_PRINT: 'FAILED_PRINT'
+};
+
 exports.DriverAssignmentStatus = exports.$Enums.DriverAssignmentStatus = {
   ASSIGNED: 'ASSIGNED',
   ACCEPTED: 'ACCEPTED',
@@ -2831,6 +2883,8 @@ exports.Prisma.ModelName = {
   PrintJob: 'PrintJob',
   PrinterStation: 'PrinterStation',
   PrintAgent: 'PrintAgent',
+  AlertConfig: 'AlertConfig',
+  AlertAck: 'AlertAck',
   AgentPairCode: 'AgentPairCode',
   MenuItemStation: 'MenuItemStation',
   ModifierGroupStation: 'ModifierGroupStation',

@@ -260,6 +260,34 @@ export class PrintJobsController {
     return this.jobs.reprint(dto);
   }
 
+  // Phase AS-4 — dashboard widget counters.
+  @Get("widgets")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES)
+  widgets(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.jobs.widgets(user.tenantId, locationId);
+  }
+
+  @Get()
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES)
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+    @Query("status") status?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.jobs.list({
+      tenantId: user.tenantId,
+      locationId,
+      status,
+      limit: limit ? parseInt(limit, 10) : 50,
+    });
+  }
+
   @Post("test-print")
   @ApiBearerAuth()
   @Roles(...MANAGE_PRINT_ROLES)

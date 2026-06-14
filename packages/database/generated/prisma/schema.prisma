@@ -1703,6 +1703,53 @@ model PrintAgent {
   @@map("print_agents")
 }
 
+// ── AlertConfig ──────────────────────────────────────────────────────
+// Phase AS-4. Per-(location, trigger) alert rule. Drives the dashboard
+// sound + visual notification pipeline. Optional stationId narrows the
+// rule to a single kitchen station.
+model AlertConfig {
+  id                     String       @id @default(cuid())
+  tenantId               String
+  locationId             String
+  stationId              String?
+  trigger                AlertTrigger
+  enabled                Boolean      @default(true)
+  soundUrl               String?
+  volume                 Float        @default(1.0)
+  repeatCount            Int          @default(1)
+  repeatIntervalMs       Int          @default(5000)
+  autoStopSeconds        Int?
+  requireAcknowledgement Boolean      @default(false)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("alert_configs")
+}
+
+model AlertAck {
+  id               String       @id @default(cuid())
+  tenantId         String
+  locationId       String
+  trigger          AlertTrigger
+  referenceKey     String       @unique
+  acknowledgedById String?
+  acknowledgedAt   DateTime     @default(now())
+
+  @@index([locationId])
+  @@map("alert_acks")
+}
+
+enum AlertTrigger {
+  NEW_ORDER
+  ORDER_CANCELLED
+  RIDER_ARRIVED
+  SCHEDULED_ORDER_READY
+  PRINTER_OFFLINE
+  FAILED_PRINT
+}
+
 // ── AgentPairCode ────────────────────────────────────────────────────
 // Phase AS-3. Short-lived pairing token. Operator generates one from
 // the dashboard; the agent binary scans the QR (or the operator types

@@ -24,6 +24,7 @@ import {
   Send,
   Truck,
   Building2,
+  Printer,
   Filter as FilterIcon,
   X as XIcon,
   Check,
@@ -535,15 +536,85 @@ function OrderRow({
       <Td>
         {/* OrderActions handles stopPropagation internally so clicks
             here don't reopen the drawer. */}
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
           <OrderActions
             orderId={order.id}
             status={order.status}
             fulfillmentType={order.fulfillmentType}
           />
+          <ReprintMenu orderId={order.id} fulfillmentType={order.fulfillmentType} />
         </div>
       </Td>
     </tr>
+  );
+}
+
+// Phase AS-4 — reprint dropdown. Hits POST /v1/print-jobs/reprint
+// which creates fresh PrintJob rows (audit-friendly).
+function ReprintMenu({
+  orderId,
+  fulfillmentType,
+}: {
+  orderId: string;
+  fulfillmentType: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const send = async (types: string[]) => {
+    setOpen(false);
+    try {
+      const { printersClient } = await import("@/lib/api/printers.client");
+      await printersClient.reprint(orderId, types);
+    } catch (err) {
+      console.error("reprint failed", err);
+    }
+  };
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        title="Reprint"
+        className="rounded-md p-1.5 text-zinc-400 hover:bg-violet-50 hover:text-violet-700"
+      >
+        <Printer className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-40 mt-1 w-48 rounded-md border border-zinc-200 bg-white py-1 text-xs shadow-lg">
+          <button
+            className="block w-full px-3 py-1.5 text-left hover:bg-zinc-50"
+            onClick={() => send(["KITCHEN_TICKET"])}
+          >
+            Kitchen ticket
+          </button>
+          <button
+            className="block w-full px-3 py-1.5 text-left hover:bg-zinc-50"
+            onClick={() => send(["CUSTOMER_RECEIPT"])}
+          >
+            Customer receipt
+          </button>
+          {fulfillmentType === "DELIVERY" && (
+            <button
+              className="block w-full px-3 py-1.5 text-left hover:bg-zinc-50"
+              onClick={() => send(["DRIVER_SLIP"])}
+            >
+              Driver slip
+            </button>
+          )}
+          <button
+            className="block w-full border-t border-zinc-100 px-3 py-1.5 text-left font-semibold text-violet-700 hover:bg-zinc-50"
+            onClick={() =>
+              send([
+                "KITCHEN_TICKET",
+                "CUSTOMER_RECEIPT",
+                ...(fulfillmentType === "DELIVERY" ? ["DRIVER_SLIP"] : []),
+              ])
+            }
+          >
+            Reprint everything
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
