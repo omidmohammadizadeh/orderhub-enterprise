@@ -33,7 +33,11 @@ export function AutomationTab({ locationId }: { locationId?: string }) {
     enabled: !!effectiveLoc,
   });
 
-  const settings: any = locationQuery.data?.settings ?? {};
+  // Location type in the web client doesn't surface `settings` yet —
+  // it's a free-form Json blob on the API. Cast through unknown to read.
+  const settings: any =
+    (locationQuery.data as unknown as { settings?: Record<string, unknown> } | undefined)
+      ?.settings ?? {};
   const [autoAccept, setAutoAccept] = useState<boolean>(
     !!settings.autoAcceptOrders,
   );
