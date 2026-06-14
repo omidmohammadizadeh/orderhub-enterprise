@@ -24,7 +24,11 @@ import {
   Send,
   Truck,
   Building2,
+  Filter as FilterIcon,
+  X as XIcon,
+  Check,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { OrderActions } from "./order-actions";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
@@ -42,6 +46,73 @@ type Bucket = {
 };
 
 const COLLECTION = new Set(["PICKUP", "DINE_IN"]);
+
+// Phase AR — channel catalog for the Filter popover. Lists every
+// platform we ship today plus the integrations on the roadmap so
+// operators can see what's planned. `enabled: false` channels render
+// as disabled "Coming soon" rows that can't be ticked.
+//
+// The `match` predicate maps the chip label to the platform string(s)
+// each adapter writes onto Order.platform. Some legacy orders came in
+// before the ONLINE marker existed and were tagged DIRECT, so the
+// "Direct online ordering" chip accepts both.
+type Channel = {
+  key: string;
+  label: string;
+  match: (platform: string) => boolean;
+  enabled: boolean;
+};
+
+const CHANNELS: Channel[] = [
+  {
+    key: "JUST_EAT",
+    label: "Just Eat",
+    match: (p) => p === "JUST_EAT" || p === "JUSTEAT",
+    enabled: true,
+  },
+  {
+    key: "UBER_EATS",
+    label: "Uber Eats",
+    match: (p) => p === "UBER_EATS" || p === "UBEREATS",
+    enabled: true,
+  },
+  {
+    key: "DELIVEROO",
+    label: "Deliveroo",
+    match: (p) => p === "DELIVEROO",
+    enabled: true,
+  },
+  {
+    key: "HUBRISE",
+    label: "HubRise",
+    match: (p) => p === "HUBRISE",
+    enabled: true,
+  },
+  {
+    key: "DIRECT",
+    label: "Direct online ordering",
+    match: (p) => p === "DIRECT" || p === "ONLINE",
+    enabled: true,
+  },
+  {
+    key: "WHATSAPP",
+    label: "WhatsApp",
+    match: () => false,
+    enabled: false,
+  },
+  {
+    key: "CAREEM",
+    label: "Careem",
+    match: () => false,
+    enabled: false,
+  },
+  {
+    key: "TALABAT",
+    label: "Talabat",
+    match: () => false,
+    enabled: false,
+  },
+];
 
 const BUCKETS: Bucket[] = [
   {
@@ -112,12 +183,21 @@ export function OrderList({ locationId }: Props) {
   const { orders, isLoading, error } = useLiveOrders(locationId);
   const [selected, setSelected] = useState<Order | null>(null);
   const [bucketFilter, setBucketFilter] = useState<string>("ALL");
-  const [platformFilter, setPlatformFilter] = useState<string>("ALL");
+  // Empty set = "all channels". The filter popover writes the
+  // selected channel keys here; live filter narrows orders by
+  // matching any selected channel's predicate.
+  const [channelFilter, setChannelFilter] = useState<Set<string>>(new Set());
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
-  const platforms = useMemo(() => {
-    const set = new Set(orders.map((o) => o.platform));
-    return ["ALL", ...Array.from(set)];
-  }, [orders]);
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!filterRef.current?.contains(e.target as Node)) setFilterOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [filterOpen]);
 
   // Pre-bucket every order so the filter chip counts stay accurate
   // even when a filter is already applied.
@@ -133,11 +213,14 @@ export function OrderList({ locationId }: Props) {
       const b = BUCKETS.find((x) => x.key === bucketFilter);
       if (b) list = list.filter(b.match);
     }
-    if (platformFilter !== "ALL") {
-      list = list.filter((o) => o.platform === platformFilter);
+    if (channelFilter.size > 0) {
+      const matchers = CHANNELS.filter((c) => channelFilter.has(c.key)).map(
+        (c) => c.match,
+      );
+      list = list.filter((o) => matchers.some((m) => m(o.platform)));
     }
     return list;
-  }, [orders, bucketFilter, platformFilter]);
+  }, [orders, bucketFilter, channelFilter]);
 
   if (isLoading) {
     return (
@@ -173,25 +256,124 @@ export function OrderList({ locationId }: Props) {
             onClick={() => setBucketFilter(b.key)}
           />
         ))}
-        {/* Platform filter (right side, secondary) */}
-        {platforms.length > 2 && (
-          <div className="ml-auto flex items-center gap-1.5">
-            {platforms.map((p) => (
-              <button
-                key={p}
-                onClick={() => setPlatformFilter(p)}
-                className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
-                  platformFilter === p
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"
-                }`}
-              >
-                {p === "ALL" ? "All platforms" : p.replace("_", " ")}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Channel filter — Filter button with popover */}
+        <div className="ml-auto relative" ref={filterRef}>
+          <button
+            type="button"
+            onClick={() => setFilterOpen((o) => !o)}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              channelFilter.size > 0
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+            }`}
+          >
+            <FilterIcon className="h-3.5 w-3.5" />
+            Filter
+            {channelFilter.size > 0 && (
+              <span className="rounded-full bg-white/15 px-1.5 py-0 text-[10px] tabular-nums">
+                {channelFilter.size}
+              </span>
+            )}
+          </button>
+
+          {filterOpen && (
+            <div className="absolute right-0 top-full z-40 mt-1 w-64 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Channels
+                </span>
+                {channelFilter.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setChannelFilter(new Set())}
+                    className="text-[11px] font-semibold text-violet-600 hover:text-violet-700"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="max-h-80 overflow-y-auto py-1">
+                {CHANNELS.map((c) => {
+                  const checked = channelFilter.has(c.key);
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      disabled={!c.enabled}
+                      onClick={() => {
+                        setChannelFilter((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(c.key)) next.delete(c.key);
+                          else next.add(c.key);
+                          return next;
+                        });
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
+                        c.enabled
+                          ? "text-zinc-800 hover:bg-zinc-50"
+                          : "cursor-not-allowed text-zinc-400"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          className={`grid h-4 w-4 place-items-center rounded border ${
+                            checked
+                              ? "border-zinc-900 bg-zinc-900"
+                              : c.enabled
+                                ? "border-zinc-300 bg-white"
+                                : "border-zinc-200 bg-zinc-50"
+                          }`}
+                        >
+                          {checked && <Check className="h-3 w-3 text-white" />}
+                        </span>
+                        {c.label}
+                      </span>
+                      {!c.enabled && (
+                        <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500">
+                          Coming soon
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Active channel chips — quick remove without re-opening popover */}
+      {channelFilter.size > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] text-zinc-500">Filtering by:</span>
+          {Array.from(channelFilter).map((key) => {
+            const c = CHANNELS.find((x) => x.key === key);
+            if (!c) return null;
+            return (
+              <span
+                key={key}
+                className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700"
+              >
+                {c.label}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setChannelFilter((prev) => {
+                      const next = new Set(prev);
+                      next.delete(key);
+                      return next;
+                    })
+                  }
+                  className="text-zinc-400 hover:text-zinc-700"
+                  aria-label={`Remove ${c.label} filter`}
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* The list */}
       {filteredOrders.length === 0 ? (
