@@ -288,6 +288,7 @@ exports.Prisma.BrandScalarFieldEnum = {
   cuisine: 'cuisine',
   isSuspended: 'isSuspended',
   primaryLocationId: 'primaryLocationId',
+  defaultStationId: 'defaultStationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -304,6 +305,9 @@ exports.Prisma.LocationScalarFieldEnum = {
   settings: 'settings',
   metadata: 'metadata',
   deletedAt: 'deletedAt',
+  defaultKitchenStationId: 'defaultKitchenStationId',
+  receiptPrinterId: 'receiptPrinterId',
+  dispatchPrinterId: 'dispatchPrinterId',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   city: 'city',
@@ -857,18 +861,22 @@ exports.Prisma.PrinterScalarFieldEnum = {
   name: 'name',
   type: 'type',
   connectionType: 'connectionType',
-  station: 'station',
+  kind: 'kind',
   ipAddress: 'ipAddress',
   port: 'port',
   isOnline: 'isOnline',
   isActive: 'isActive',
   deletedAt: 'deletedAt',
   failoverPrinterId: 'failoverPrinterId',
+  model: 'model',
+  paperWidth: 'paperWidth',
+  agentId: 'agentId',
   supportsReceipts: 'supportsReceipts',
   supportsKitchen: 'supportsKitchen',
   supportsLabels: 'supportsLabels',
   supportsCut: 'supportsCut',
   supportsCashDrawer: 'supportsCashDrawer',
+  defaults: 'defaults',
   autoPrintRules: 'autoPrintRules',
   settings: 'settings',
   metadata: 'metadata',
@@ -890,8 +898,65 @@ exports.Prisma.PrintJobScalarFieldEnum = {
   error: 'error',
   retryMetadata: 'retryMetadata',
   printedAt: 'printedAt',
+  stationId: 'stationId',
+  trigger: 'trigger',
+  claimedByAgentId: 'claimedByAgentId',
+  claimedAt: 'claimedAt',
+  routeKey: 'routeKey',
+  idempotencyKey: 'idempotencyKey',
+  copies: 'copies',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PrinterStationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  kind: 'kind',
+  defaultPrinterId: 'defaultPrinterId',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PrintAgentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  kind: 'kind',
+  apiTokenHash: 'apiTokenHash',
+  capabilities: 'capabilities',
+  versionString: 'versionString',
+  lastSeenAt: 'lastSeenAt',
+  isActive: 'isActive',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MenuItemStationScalarFieldEnum = {
+  id: 'id',
+  menuItemId: 'menuItemId',
+  stationId: 'stationId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ModifierGroupStationScalarFieldEnum = {
+  id: 'id',
+  modifierGroupId: 'modifierGroupId',
+  stationId: 'stationId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MenuCategoryStationScalarFieldEnum = {
+  id: 'id',
+  categoryId: 'categoryId',
+  stationId: 'stationId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.PrintTemplateScalarFieldEnum = {
@@ -1570,7 +1635,8 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   logoUrl: 'logoUrl',
   description: 'description',
   cuisine: 'cuisine',
-  primaryLocationId: 'primaryLocationId'
+  primaryLocationId: 'primaryLocationId',
+  defaultStationId: 'defaultStationId'
 };
 
 exports.Prisma.LocationOrderByRelevanceFieldEnum = {
@@ -1580,6 +1646,9 @@ exports.Prisma.LocationOrderByRelevanceFieldEnum = {
   externalRef: 'externalRef',
   phone: 'phone',
   timezone: 'timezone',
+  defaultKitchenStationId: 'defaultKitchenStationId',
+  receiptPrinterId: 'receiptPrinterId',
+  dispatchPrinterId: 'dispatchPrinterId',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   city: 'city',
@@ -1890,7 +1959,9 @@ exports.Prisma.PrinterOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   name: 'name',
   ipAddress: 'ipAddress',
-  failoverPrinterId: 'failoverPrinterId'
+  failoverPrinterId: 'failoverPrinterId',
+  model: 'model',
+  agentId: 'agentId'
 };
 
 exports.Prisma.PrintJobOrderByRelevanceFieldEnum = {
@@ -1899,7 +1970,46 @@ exports.Prisma.PrintJobOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   printerId: 'printerId',
   orderId: 'orderId',
-  error: 'error'
+  error: 'error',
+  stationId: 'stationId',
+  claimedByAgentId: 'claimedByAgentId',
+  routeKey: 'routeKey',
+  idempotencyKey: 'idempotencyKey'
+};
+
+exports.Prisma.PrinterStationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  defaultPrinterId: 'defaultPrinterId'
+};
+
+exports.Prisma.PrintAgentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  name: 'name',
+  apiTokenHash: 'apiTokenHash',
+  versionString: 'versionString'
+};
+
+exports.Prisma.MenuItemStationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  menuItemId: 'menuItemId',
+  stationId: 'stationId'
+};
+
+exports.Prisma.ModifierGroupStationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  modifierGroupId: 'modifierGroupId',
+  stationId: 'stationId'
+};
+
+exports.Prisma.MenuCategoryStationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  categoryId: 'categoryId',
+  stationId: 'stationId'
 };
 
 exports.Prisma.PrintTemplateOrderByRelevanceFieldEnum = {
@@ -2441,30 +2551,52 @@ exports.PrinterConnectionType = exports.$Enums.PrinterConnectionType = {
   CLOUD: 'CLOUD'
 };
 
-exports.PrinterStation = exports.$Enums.PrinterStation = {
+exports.PrinterStationKind = exports.$Enums.PrinterStationKind = {
   KITCHEN: 'KITCHEN',
   FRONT_COUNTER: 'FRONT_COUNTER',
   BAR: 'BAR',
   LABELS: 'LABELS',
-  DISPATCH: 'DISPATCH'
+  DISPATCH: 'DISPATCH',
+  EXPO: 'EXPO',
+  OTHER: 'OTHER'
 };
 
 exports.PrintJobType = exports.$Enums.PrintJobType = {
   RECEIPT: 'RECEIPT',
+  DRIVER_RECEIPT: 'DRIVER_RECEIPT',
   KITCHEN_TICKET: 'KITCHEN_TICKET',
   LABEL: 'LABEL',
-  DRIVER_RECEIPT: 'DRIVER_RECEIPT',
   CANCEL_TICKET: 'CANCEL_TICKET',
   REPRINT: 'REPRINT',
-  EOD_REPORT: 'EOD_REPORT'
+  EOD_REPORT: 'EOD_REPORT',
+  CUSTOMER_RECEIPT: 'CUSTOMER_RECEIPT',
+  DRIVER_SLIP: 'DRIVER_SLIP',
+  DISPATCH_TICKET: 'DISPATCH_TICKET',
+  TEST_PRINT: 'TEST_PRINT'
 };
 
 exports.PrintJobStatus = exports.$Enums.PrintJobStatus = {
   QUEUED: 'QUEUED',
+  CLAIMED: 'CLAIMED',
   PRINTING: 'PRINTING',
   PRINTED: 'PRINTED',
   FAILED: 'FAILED',
   RETRYING: 'RETRYING'
+};
+
+exports.PrintTrigger = exports.$Enums.PrintTrigger = {
+  ORDER_RECEIVED: 'ORDER_RECEIVED',
+  ORDER_ACCEPTED: 'ORDER_ACCEPTED',
+  ORDER_PREPARING: 'ORDER_PREPARING',
+  ORDER_READY: 'ORDER_READY',
+  MANUAL_ONLY: 'MANUAL_ONLY'
+};
+
+exports.PrintAgentKind = exports.$Enums.PrintAgentKind = {
+  WEB_BRIDGE: 'WEB_BRIDGE',
+  FLUTTER_MOBILE: 'FLUTTER_MOBILE',
+  FLUTTER_DESKTOP: 'FLUTTER_DESKTOP',
+  SERVER_DIRECT: 'SERVER_DIRECT'
 };
 
 exports.DriverAssignmentStatus = exports.$Enums.DriverAssignmentStatus = {
@@ -2655,6 +2787,11 @@ exports.Prisma.ModelName = {
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',
+  PrinterStation: 'PrinterStation',
+  PrintAgent: 'PrintAgent',
+  MenuItemStation: 'MenuItemStation',
+  ModifierGroupStation: 'ModifierGroupStation',
+  MenuCategoryStation: 'MenuCategoryStation',
   PrintTemplate: 'PrintTemplate',
   Driver: 'Driver',
   DriverAssignment: 'DriverAssignment',

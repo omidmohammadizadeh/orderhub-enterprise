@@ -224,6 +224,31 @@ export type Printer = $Result.DefaultSelection<Prisma.$PrinterPayload>
  */
 export type PrintJob = $Result.DefaultSelection<Prisma.$PrintJobPayload>
 /**
+ * Model PrinterStation
+ * 
+ */
+export type PrinterStation = $Result.DefaultSelection<Prisma.$PrinterStationPayload>
+/**
+ * Model PrintAgent
+ * 
+ */
+export type PrintAgent = $Result.DefaultSelection<Prisma.$PrintAgentPayload>
+/**
+ * Model MenuItemStation
+ * 
+ */
+export type MenuItemStation = $Result.DefaultSelection<Prisma.$MenuItemStationPayload>
+/**
+ * Model ModifierGroupStation
+ * 
+ */
+export type ModifierGroupStation = $Result.DefaultSelection<Prisma.$ModifierGroupStationPayload>
+/**
+ * Model MenuCategoryStation
+ * 
+ */
+export type MenuCategoryStation = $Result.DefaultSelection<Prisma.$MenuCategoryStationPayload>
+/**
  * Model PrintTemplate
  * 
  */
@@ -691,25 +716,31 @@ export const PrinterConnectionType: {
 export type PrinterConnectionType = (typeof PrinterConnectionType)[keyof typeof PrinterConnectionType]
 
 
-export const PrinterStation: {
+export const PrinterStationKind: {
   KITCHEN: 'KITCHEN',
   FRONT_COUNTER: 'FRONT_COUNTER',
   BAR: 'BAR',
   LABELS: 'LABELS',
-  DISPATCH: 'DISPATCH'
+  DISPATCH: 'DISPATCH',
+  EXPO: 'EXPO',
+  OTHER: 'OTHER'
 };
 
-export type PrinterStation = (typeof PrinterStation)[keyof typeof PrinterStation]
+export type PrinterStationKind = (typeof PrinterStationKind)[keyof typeof PrinterStationKind]
 
 
 export const PrintJobType: {
   RECEIPT: 'RECEIPT',
+  DRIVER_RECEIPT: 'DRIVER_RECEIPT',
   KITCHEN_TICKET: 'KITCHEN_TICKET',
   LABEL: 'LABEL',
-  DRIVER_RECEIPT: 'DRIVER_RECEIPT',
   CANCEL_TICKET: 'CANCEL_TICKET',
   REPRINT: 'REPRINT',
-  EOD_REPORT: 'EOD_REPORT'
+  EOD_REPORT: 'EOD_REPORT',
+  CUSTOMER_RECEIPT: 'CUSTOMER_RECEIPT',
+  DRIVER_SLIP: 'DRIVER_SLIP',
+  DISPATCH_TICKET: 'DISPATCH_TICKET',
+  TEST_PRINT: 'TEST_PRINT'
 };
 
 export type PrintJobType = (typeof PrintJobType)[keyof typeof PrintJobType]
@@ -717,6 +748,7 @@ export type PrintJobType = (typeof PrintJobType)[keyof typeof PrintJobType]
 
 export const PrintJobStatus: {
   QUEUED: 'QUEUED',
+  CLAIMED: 'CLAIMED',
   PRINTING: 'PRINTING',
   PRINTED: 'PRINTED',
   FAILED: 'FAILED',
@@ -724,6 +756,27 @@ export const PrintJobStatus: {
 };
 
 export type PrintJobStatus = (typeof PrintJobStatus)[keyof typeof PrintJobStatus]
+
+
+export const PrintTrigger: {
+  ORDER_RECEIVED: 'ORDER_RECEIVED',
+  ORDER_ACCEPTED: 'ORDER_ACCEPTED',
+  ORDER_PREPARING: 'ORDER_PREPARING',
+  ORDER_READY: 'ORDER_READY',
+  MANUAL_ONLY: 'MANUAL_ONLY'
+};
+
+export type PrintTrigger = (typeof PrintTrigger)[keyof typeof PrintTrigger]
+
+
+export const PrintAgentKind: {
+  WEB_BRIDGE: 'WEB_BRIDGE',
+  FLUTTER_MOBILE: 'FLUTTER_MOBILE',
+  FLUTTER_DESKTOP: 'FLUTTER_DESKTOP',
+  SERVER_DIRECT: 'SERVER_DIRECT'
+};
+
+export type PrintAgentKind = (typeof PrintAgentKind)[keyof typeof PrintAgentKind]
 
 
 export const DriverAssignmentStatus: {
@@ -1012,9 +1065,9 @@ export type PrinterConnectionType = $Enums.PrinterConnectionType
 
 export const PrinterConnectionType: typeof $Enums.PrinterConnectionType
 
-export type PrinterStation = $Enums.PrinterStation
+export type PrinterStationKind = $Enums.PrinterStationKind
 
-export const PrinterStation: typeof $Enums.PrinterStation
+export const PrinterStationKind: typeof $Enums.PrinterStationKind
 
 export type PrintJobType = $Enums.PrintJobType
 
@@ -1023,6 +1076,14 @@ export const PrintJobType: typeof $Enums.PrintJobType
 export type PrintJobStatus = $Enums.PrintJobStatus
 
 export const PrintJobStatus: typeof $Enums.PrintJobStatus
+
+export type PrintTrigger = $Enums.PrintTrigger
+
+export const PrintTrigger: typeof $Enums.PrintTrigger
+
+export type PrintAgentKind = $Enums.PrintAgentKind
+
+export const PrintAgentKind: typeof $Enums.PrintAgentKind
 
 export type DriverAssignmentStatus = $Enums.DriverAssignmentStatus
 
@@ -1641,6 +1702,56 @@ export class PrismaClient<
     * ```
     */
   get printJob(): Prisma.PrintJobDelegate<ExtArgs>;
+
+  /**
+   * `prisma.printerStation`: Exposes CRUD operations for the **PrinterStation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PrinterStations
+    * const printerStations = await prisma.printerStation.findMany()
+    * ```
+    */
+  get printerStation(): Prisma.PrinterStationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.printAgent`: Exposes CRUD operations for the **PrintAgent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PrintAgents
+    * const printAgents = await prisma.printAgent.findMany()
+    * ```
+    */
+  get printAgent(): Prisma.PrintAgentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.menuItemStation`: Exposes CRUD operations for the **MenuItemStation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuItemStations
+    * const menuItemStations = await prisma.menuItemStation.findMany()
+    * ```
+    */
+  get menuItemStation(): Prisma.MenuItemStationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.modifierGroupStation`: Exposes CRUD operations for the **ModifierGroupStation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ModifierGroupStations
+    * const modifierGroupStations = await prisma.modifierGroupStation.findMany()
+    * ```
+    */
+  get modifierGroupStation(): Prisma.ModifierGroupStationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.menuCategoryStation`: Exposes CRUD operations for the **MenuCategoryStation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuCategoryStations
+    * const menuCategoryStations = await prisma.menuCategoryStation.findMany()
+    * ```
+    */
+  get menuCategoryStation(): Prisma.MenuCategoryStationDelegate<ExtArgs>;
 
   /**
    * `prisma.printTemplate`: Exposes CRUD operations for the **PrintTemplate** model.
@@ -2514,6 +2625,11 @@ export namespace Prisma {
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
     PrintJob: 'PrintJob',
+    PrinterStation: 'PrinterStation',
+    PrintAgent: 'PrintAgent',
+    MenuItemStation: 'MenuItemStation',
+    ModifierGroupStation: 'ModifierGroupStation',
+    MenuCategoryStation: 'MenuCategoryStation',
     PrintTemplate: 'PrintTemplate',
     Driver: 'Driver',
     DriverAssignment: 'DriverAssignment',
@@ -2568,7 +2684,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5512,6 +5628,356 @@ export namespace Prisma {
           }
         }
       }
+      PrinterStation: {
+        payload: Prisma.$PrinterStationPayload<ExtArgs>
+        fields: Prisma.PrinterStationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PrinterStationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PrinterStationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          findFirst: {
+            args: Prisma.PrinterStationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PrinterStationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          findMany: {
+            args: Prisma.PrinterStationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>[]
+          }
+          create: {
+            args: Prisma.PrinterStationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          createMany: {
+            args: Prisma.PrinterStationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PrinterStationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>[]
+          }
+          delete: {
+            args: Prisma.PrinterStationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          update: {
+            args: Prisma.PrinterStationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          deleteMany: {
+            args: Prisma.PrinterStationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PrinterStationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PrinterStationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrinterStationPayload>
+          }
+          aggregate: {
+            args: Prisma.PrinterStationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePrinterStation>
+          }
+          groupBy: {
+            args: Prisma.PrinterStationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PrinterStationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PrinterStationCountArgs<ExtArgs>
+            result: $Utils.Optional<PrinterStationCountAggregateOutputType> | number
+          }
+        }
+      }
+      PrintAgent: {
+        payload: Prisma.$PrintAgentPayload<ExtArgs>
+        fields: Prisma.PrintAgentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PrintAgentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PrintAgentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          findFirst: {
+            args: Prisma.PrintAgentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PrintAgentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          findMany: {
+            args: Prisma.PrintAgentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>[]
+          }
+          create: {
+            args: Prisma.PrintAgentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          createMany: {
+            args: Prisma.PrintAgentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PrintAgentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>[]
+          }
+          delete: {
+            args: Prisma.PrintAgentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          update: {
+            args: Prisma.PrintAgentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          deleteMany: {
+            args: Prisma.PrintAgentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PrintAgentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PrintAgentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PrintAgentPayload>
+          }
+          aggregate: {
+            args: Prisma.PrintAgentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePrintAgent>
+          }
+          groupBy: {
+            args: Prisma.PrintAgentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PrintAgentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PrintAgentCountArgs<ExtArgs>
+            result: $Utils.Optional<PrintAgentCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuItemStation: {
+        payload: Prisma.$MenuItemStationPayload<ExtArgs>
+        fields: Prisma.MenuItemStationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuItemStationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuItemStationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuItemStationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuItemStationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          findMany: {
+            args: Prisma.MenuItemStationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>[]
+          }
+          create: {
+            args: Prisma.MenuItemStationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          createMany: {
+            args: Prisma.MenuItemStationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuItemStationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuItemStationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          update: {
+            args: Prisma.MenuItemStationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuItemStationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuItemStationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MenuItemStationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemStationPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuItemStationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuItemStation>
+          }
+          groupBy: {
+            args: Prisma.MenuItemStationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuItemStationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuItemStationCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuItemStationCountAggregateOutputType> | number
+          }
+        }
+      }
+      ModifierGroupStation: {
+        payload: Prisma.$ModifierGroupStationPayload<ExtArgs>
+        fields: Prisma.ModifierGroupStationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ModifierGroupStationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ModifierGroupStationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          findFirst: {
+            args: Prisma.ModifierGroupStationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ModifierGroupStationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          findMany: {
+            args: Prisma.ModifierGroupStationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>[]
+          }
+          create: {
+            args: Prisma.ModifierGroupStationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          createMany: {
+            args: Prisma.ModifierGroupStationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ModifierGroupStationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>[]
+          }
+          delete: {
+            args: Prisma.ModifierGroupStationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          update: {
+            args: Prisma.ModifierGroupStationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          deleteMany: {
+            args: Prisma.ModifierGroupStationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ModifierGroupStationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ModifierGroupStationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ModifierGroupStationPayload>
+          }
+          aggregate: {
+            args: Prisma.ModifierGroupStationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateModifierGroupStation>
+          }
+          groupBy: {
+            args: Prisma.ModifierGroupStationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ModifierGroupStationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ModifierGroupStationCountArgs<ExtArgs>
+            result: $Utils.Optional<ModifierGroupStationCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuCategoryStation: {
+        payload: Prisma.$MenuCategoryStationPayload<ExtArgs>
+        fields: Prisma.MenuCategoryStationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuCategoryStationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuCategoryStationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuCategoryStationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuCategoryStationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          findMany: {
+            args: Prisma.MenuCategoryStationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>[]
+          }
+          create: {
+            args: Prisma.MenuCategoryStationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          createMany: {
+            args: Prisma.MenuCategoryStationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuCategoryStationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuCategoryStationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          update: {
+            args: Prisma.MenuCategoryStationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuCategoryStationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuCategoryStationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MenuCategoryStationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuCategoryStationPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuCategoryStationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuCategoryStation>
+          }
+          groupBy: {
+            args: Prisma.MenuCategoryStationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuCategoryStationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuCategoryStationCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuCategoryStationCountAggregateOutputType> | number
+          }
+        }
+      }
       PrintTemplate: {
         payload: Prisma.$PrintTemplatePayload<ExtArgs>
         fields: Prisma.PrintTemplateFieldRefs
@@ -8415,6 +8881,8 @@ export namespace Prisma {
     ipAllowlists: number
     connectAccount: number
     invitations: number
+    printerStations: number
+    printAgents: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8430,6 +8898,8 @@ export namespace Prisma {
     ipAllowlists?: boolean | TenantCountOutputTypeCountIpAllowlistsArgs
     connectAccount?: boolean | TenantCountOutputTypeCountConnectAccountArgs
     invitations?: boolean | TenantCountOutputTypeCountInvitationsArgs
+    printerStations?: boolean | TenantCountOutputTypeCountPrinterStationsArgs
+    printAgents?: boolean | TenantCountOutputTypeCountPrintAgentsArgs
   }
 
   // Custom InputTypes
@@ -8525,6 +8995,20 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: InvitationWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountPrinterStationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountPrintAgentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintAgentWhereInput
   }
 
 
@@ -8764,6 +9248,8 @@ export namespace Prisma {
     integrations: number
     orders: number
     printers: number
+    printerStations: number
+    printAgents: number
     kdsScreens: number
     deliveryZones: number
     userLocations: number
@@ -8774,6 +9260,8 @@ export namespace Prisma {
     integrations?: boolean | LocationCountOutputTypeCountIntegrationsArgs
     orders?: boolean | LocationCountOutputTypeCountOrdersArgs
     printers?: boolean | LocationCountOutputTypeCountPrintersArgs
+    printerStations?: boolean | LocationCountOutputTypeCountPrinterStationsArgs
+    printAgents?: boolean | LocationCountOutputTypeCountPrintAgentsArgs
     kdsScreens?: boolean | LocationCountOutputTypeCountKdsScreensArgs
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
@@ -8810,6 +9298,20 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountPrintersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PrinterWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountPrinterStationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountPrintAgentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintAgentWhereInput
   }
 
   /**
@@ -8887,10 +9389,12 @@ export namespace Prisma {
 
   export type MenuCategoryCountOutputType = {
     items: number
+    stationRoutes: number
   }
 
   export type MenuCategoryCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     items?: boolean | MenuCategoryCountOutputTypeCountItemsArgs
+    stationRoutes?: boolean | MenuCategoryCountOutputTypeCountStationRoutesArgs
   }
 
   // Custom InputTypes
@@ -8911,6 +9415,13 @@ export namespace Prisma {
     where?: MenuItemOnCategoryWhereInput
   }
 
+  /**
+   * MenuCategoryCountOutputType without action
+   */
+  export type MenuCategoryCountOutputTypeCountStationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuCategoryStationWhereInput
+  }
+
 
   /**
    * Count Type MenuItemCountOutputType
@@ -8920,12 +9431,14 @@ export namespace Prisma {
     categories: number
     modifierGroupLinks: number
     variants: number
+    stationRoutes: number
   }
 
   export type MenuItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     categories?: boolean | MenuItemCountOutputTypeCountCategoriesArgs
     modifierGroupLinks?: boolean | MenuItemCountOutputTypeCountModifierGroupLinksArgs
     variants?: boolean | MenuItemCountOutputTypeCountVariantsArgs
+    stationRoutes?: boolean | MenuItemCountOutputTypeCountStationRoutesArgs
   }
 
   // Custom InputTypes
@@ -8960,6 +9473,13 @@ export namespace Prisma {
     where?: MenuItemVariantWhereInput
   }
 
+  /**
+   * MenuItemCountOutputType without action
+   */
+  export type MenuItemCountOutputTypeCountStationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemStationWhereInput
+  }
+
 
   /**
    * Count Type ModifierGroupCountOutputType
@@ -8969,12 +9489,14 @@ export namespace Prisma {
     options: number
     itemLinks: number
     nestedUnderOptions: number
+    stationRoutes: number
   }
 
   export type ModifierGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     options?: boolean | ModifierGroupCountOutputTypeCountOptionsArgs
     itemLinks?: boolean | ModifierGroupCountOutputTypeCountItemLinksArgs
     nestedUnderOptions?: boolean | ModifierGroupCountOutputTypeCountNestedUnderOptionsArgs
+    stationRoutes?: boolean | ModifierGroupCountOutputTypeCountStationRoutesArgs
   }
 
   // Custom InputTypes
@@ -9007,6 +9529,13 @@ export namespace Prisma {
    */
   export type ModifierGroupCountOutputTypeCountNestedUnderOptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ModifierOptionWhereInput
+  }
+
+  /**
+   * ModifierGroupCountOutputType without action
+   */
+  export type ModifierGroupCountOutputTypeCountStationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierGroupStationWhereInput
   }
 
 
@@ -9163,10 +9692,16 @@ export namespace Prisma {
 
   export type PrinterCountOutputType = {
     printJobs: number
+    stationsDefaultFor: number
+    locationsReceiptFor: number
+    locationsDispatchFor: number
   }
 
   export type PrinterCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     printJobs?: boolean | PrinterCountOutputTypeCountPrintJobsArgs
+    stationsDefaultFor?: boolean | PrinterCountOutputTypeCountStationsDefaultForArgs
+    locationsReceiptFor?: boolean | PrinterCountOutputTypeCountLocationsReceiptForArgs
+    locationsDispatchFor?: boolean | PrinterCountOutputTypeCountLocationsDispatchForArgs
   }
 
   // Custom InputTypes
@@ -9184,6 +9719,143 @@ export namespace Prisma {
    * PrinterCountOutputType without action
    */
   export type PrinterCountOutputTypeCountPrintJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
+  }
+
+  /**
+   * PrinterCountOutputType without action
+   */
+  export type PrinterCountOutputTypeCountStationsDefaultForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * PrinterCountOutputType without action
+   */
+  export type PrinterCountOutputTypeCountLocationsReceiptForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LocationWhereInput
+  }
+
+  /**
+   * PrinterCountOutputType without action
+   */
+  export type PrinterCountOutputTypeCountLocationsDispatchForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LocationWhereInput
+  }
+
+
+  /**
+   * Count Type PrinterStationCountOutputType
+   */
+
+  export type PrinterStationCountOutputType = {
+    menuItemRoutes: number
+    categoryRoutes: number
+    modifierGroupRoutes: number
+    brandDefaults: number
+    locationDefaults: number
+    printJobs: number
+  }
+
+  export type PrinterStationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menuItemRoutes?: boolean | PrinterStationCountOutputTypeCountMenuItemRoutesArgs
+    categoryRoutes?: boolean | PrinterStationCountOutputTypeCountCategoryRoutesArgs
+    modifierGroupRoutes?: boolean | PrinterStationCountOutputTypeCountModifierGroupRoutesArgs
+    brandDefaults?: boolean | PrinterStationCountOutputTypeCountBrandDefaultsArgs
+    locationDefaults?: boolean | PrinterStationCountOutputTypeCountLocationDefaultsArgs
+    printJobs?: boolean | PrinterStationCountOutputTypeCountPrintJobsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStationCountOutputType
+     */
+    select?: PrinterStationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountMenuItemRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemStationWhereInput
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountCategoryRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuCategoryStationWhereInput
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountModifierGroupRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierGroupStationWhereInput
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountBrandDefaultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandWhereInput
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountLocationDefaultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LocationWhereInput
+  }
+
+  /**
+   * PrinterStationCountOutputType without action
+   */
+  export type PrinterStationCountOutputTypeCountPrintJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintJobWhereInput
+  }
+
+
+  /**
+   * Count Type PrintAgentCountOutputType
+   */
+
+  export type PrintAgentCountOutputType = {
+    printers: number
+    claimedJobs: number
+  }
+
+  export type PrintAgentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    printers?: boolean | PrintAgentCountOutputTypeCountPrintersArgs
+    claimedJobs?: boolean | PrintAgentCountOutputTypeCountClaimedJobsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PrintAgentCountOutputType without action
+   */
+  export type PrintAgentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgentCountOutputType
+     */
+    select?: PrintAgentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PrintAgentCountOutputType without action
+   */
+  export type PrintAgentCountOutputTypeCountPrintersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * PrintAgentCountOutputType without action
+   */
+  export type PrintAgentCountOutputTypeCountClaimedJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PrintJobWhereInput
   }
 
@@ -9860,6 +10532,8 @@ export namespace Prisma {
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
+    printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
+    printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -9902,6 +10576,8 @@ export namespace Prisma {
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
+    printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
+    printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -9923,6 +10599,8 @@ export namespace Prisma {
       branding: Prisma.$TenantBrandingPayload<ExtArgs> | null
       subscription: Prisma.$TenantSubscriptionPayload<ExtArgs> | null
       invitations: Prisma.$InvitationPayload<ExtArgs>[]
+      printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
+      printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -10312,6 +10990,8 @@ export namespace Prisma {
     branding<T extends Tenant$brandingArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$brandingArgs<ExtArgs>>): Prisma__TenantBrandingClient<$Result.GetResult<Prisma.$TenantBrandingPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     subscription<T extends Tenant$subscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$subscriptionArgs<ExtArgs>>): Prisma__TenantSubscriptionClient<$Result.GetResult<Prisma.$TenantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     invitations<T extends Tenant$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
+    printerStations<T extends Tenant$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
+    printAgents<T extends Tenant$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10931,6 +11611,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: InvitationScalarFieldEnum | InvitationScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.printerStations
+   */
+  export type Tenant$printerStationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    cursor?: PrinterStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.printAgents
+   */
+  export type Tenant$printAgentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    where?: PrintAgentWhereInput
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    cursor?: PrintAgentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
   }
 
   /**
@@ -21303,6 +22023,7 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean | null
     primaryLocationId: string | null
+    defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -21319,6 +22040,7 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean | null
     primaryLocationId: string | null
+    defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -21337,6 +22059,7 @@ export namespace Prisma {
     cuisine: number
     isSuspended: number
     primaryLocationId: number
+    defaultStationId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -21355,6 +22078,7 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    defaultStationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -21371,6 +22095,7 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    defaultStationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -21389,6 +22114,7 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    defaultStationId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -21480,6 +22206,7 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean
     primaryLocationId: string | null
+    defaultStationId: string | null
     createdAt: Date
     updatedAt: Date
     _count: BrandCountAggregateOutputType | null
@@ -21515,6 +22242,7 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -21526,6 +22254,7 @@ export namespace Prisma {
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
+    defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
 
@@ -21543,9 +22272,11 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
 
   export type BrandSelectScalar = {
@@ -21562,6 +22293,7 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -21576,10 +22308,12 @@ export namespace Prisma {
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
+    defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
   }
 
   export type $BrandPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21594,6 +22328,7 @@ export namespace Prisma {
       upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       userBrands: Prisma.$UserBrandPayload<ExtArgs>[]
+      defaultStation: Prisma.$PrinterStationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -21609,6 +22344,7 @@ export namespace Prisma {
       cuisine: string | null
       isSuspended: boolean
       primaryLocationId: string | null
+      defaultStationId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["brand"]>
@@ -21984,6 +22720,7 @@ export namespace Prisma {
     upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Brand$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     userBrands<T extends Brand$userBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$userBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
+    defaultStation<T extends Brand$defaultStationArgs<ExtArgs> = {}>(args?: Subset<T, Brand$defaultStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -22026,6 +22763,7 @@ export namespace Prisma {
     readonly cuisine: FieldRef<"Brand", 'String'>
     readonly isSuspended: FieldRef<"Brand", 'Boolean'>
     readonly primaryLocationId: FieldRef<"Brand", 'String'>
+    readonly defaultStationId: FieldRef<"Brand", 'String'>
     readonly createdAt: FieldRef<"Brand", 'DateTime'>
     readonly updatedAt: FieldRef<"Brand", 'DateTime'>
   }
@@ -22506,6 +23244,21 @@ export namespace Prisma {
   }
 
   /**
+   * Brand.defaultStation
+   */
+  export type Brand$defaultStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+  }
+
+  /**
    * Brand without action
    */
   export type BrandDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -22557,6 +23310,9 @@ export namespace Prisma {
     timezone: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    defaultKitchenStationId: string | null
+    receiptPrinterId: string | null
+    dispatchPrinterId: string | null
     addressLine1: string | null
     addressLine2: string | null
     city: string | null
@@ -22600,6 +23356,9 @@ export namespace Prisma {
     timezone: string | null
     isActive: boolean | null
     deletedAt: Date | null
+    defaultKitchenStationId: string | null
+    receiptPrinterId: string | null
+    dispatchPrinterId: string | null
     addressLine1: string | null
     addressLine2: string | null
     city: string | null
@@ -22646,6 +23405,9 @@ export namespace Prisma {
     settings: number
     metadata: number
     deletedAt: number
+    defaultKitchenStationId: number
+    receiptPrinterId: number
+    dispatchPrinterId: number
     addressLine1: number
     addressLine2: number
     city: number
@@ -22710,6 +23472,9 @@ export namespace Prisma {
     timezone?: true
     isActive?: true
     deletedAt?: true
+    defaultKitchenStationId?: true
+    receiptPrinterId?: true
+    dispatchPrinterId?: true
     addressLine1?: true
     addressLine2?: true
     city?: true
@@ -22753,6 +23518,9 @@ export namespace Prisma {
     timezone?: true
     isActive?: true
     deletedAt?: true
+    defaultKitchenStationId?: true
+    receiptPrinterId?: true
+    dispatchPrinterId?: true
     addressLine1?: true
     addressLine2?: true
     city?: true
@@ -22799,6 +23567,9 @@ export namespace Prisma {
     settings?: true
     metadata?: true
     deletedAt?: true
+    defaultKitchenStationId?: true
+    receiptPrinterId?: true
+    dispatchPrinterId?: true
     addressLine1?: true
     addressLine2?: true
     city?: true
@@ -22935,6 +23706,9 @@ export namespace Prisma {
     settings: JsonValue
     metadata: JsonValue
     deletedAt: Date | null
+    defaultKitchenStationId: string | null
+    receiptPrinterId: string | null
+    dispatchPrinterId: string | null
     addressLine1: string | null
     addressLine2: string | null
     city: string | null
@@ -23003,6 +23777,9 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    defaultKitchenStationId?: boolean
+    receiptPrinterId?: boolean
+    dispatchPrinterId?: boolean
     addressLine1?: boolean
     addressLine2?: boolean
     city?: boolean
@@ -23042,12 +23819,17 @@ export namespace Prisma {
     integrations?: boolean | Location$integrationsArgs<ExtArgs>
     orders?: boolean | Location$ordersArgs<ExtArgs>
     printers?: boolean | Location$printersArgs<ExtArgs>
+    printerStations?: boolean | Location$printerStationsArgs<ExtArgs>
+    printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
+    defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
+    receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
+    dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
@@ -23063,6 +23845,9 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    defaultKitchenStationId?: boolean
+    receiptPrinterId?: boolean
+    dispatchPrinterId?: boolean
     addressLine1?: boolean
     addressLine2?: boolean
     city?: boolean
@@ -23099,6 +23884,9 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
+    defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
+    receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
+    dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
   }, ExtArgs["result"]["location"]>
 
   export type LocationSelectScalar = {
@@ -23113,6 +23901,9 @@ export namespace Prisma {
     settings?: boolean
     metadata?: boolean
     deletedAt?: boolean
+    defaultKitchenStationId?: boolean
+    receiptPrinterId?: boolean
+    dispatchPrinterId?: boolean
     addressLine1?: boolean
     addressLine2?: boolean
     city?: boolean
@@ -23155,16 +23946,24 @@ export namespace Prisma {
     integrations?: boolean | Location$integrationsArgs<ExtArgs>
     orders?: boolean | Location$ordersArgs<ExtArgs>
     printers?: boolean | Location$printersArgs<ExtArgs>
+    printerStations?: boolean | Location$printerStationsArgs<ExtArgs>
+    printAgents?: boolean | Location$printAgentsArgs<ExtArgs>
     kdsScreens?: boolean | Location$kdsScreensArgs<ExtArgs>
     deliveryZones?: boolean | Location$deliveryZonesArgs<ExtArgs>
     paymentConfig?: boolean | Location$paymentConfigArgs<ExtArgs>
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
+    defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
+    receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
+    dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     _count?: boolean | LocationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     brand?: boolean | BrandDefaultArgs<ExtArgs>
+    defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
+    receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
+    dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
   }
 
   export type $LocationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -23174,12 +23973,17 @@ export namespace Prisma {
       integrations: Prisma.$IntegrationPayload<ExtArgs>[]
       orders: Prisma.$OrderPayload<ExtArgs>[]
       printers: Prisma.$PrinterPayload<ExtArgs>[]
+      printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
+      printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
       kdsScreens: Prisma.$KdsScreenPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       paymentConfig: Prisma.$LocationPaymentConfigPayload<ExtArgs> | null
       userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
+      defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
+      receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
+      dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -23193,6 +23997,9 @@ export namespace Prisma {
       settings: Prisma.JsonValue
       metadata: Prisma.JsonValue
       deletedAt: Date | null
+      defaultKitchenStationId: string | null
+      receiptPrinterId: string | null
+      dispatchPrinterId: string | null
       addressLine1: string | null
       addressLine2: string | null
       city: string | null
@@ -23596,12 +24403,17 @@ export namespace Prisma {
     integrations<T extends Location$integrationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$integrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IntegrationPayload<ExtArgs>, T, "findMany"> | Null>
     orders<T extends Location$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Location$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     printers<T extends Location$printersArgs<ExtArgs> = {}>(args?: Subset<T, Location$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
+    printerStations<T extends Location$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
+    printAgents<T extends Location$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
     kdsScreens<T extends Location$kdsScreensArgs<ExtArgs> = {}>(args?: Subset<T, Location$kdsScreensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KdsScreenPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Location$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Location$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     paymentConfig<T extends Location$paymentConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$paymentConfigArgs<ExtArgs>>): Prisma__LocationPaymentConfigClient<$Result.GetResult<Prisma.$LocationPaymentConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -23642,6 +24454,9 @@ export namespace Prisma {
     readonly settings: FieldRef<"Location", 'Json'>
     readonly metadata: FieldRef<"Location", 'Json'>
     readonly deletedAt: FieldRef<"Location", 'DateTime'>
+    readonly defaultKitchenStationId: FieldRef<"Location", 'String'>
+    readonly receiptPrinterId: FieldRef<"Location", 'String'>
+    readonly dispatchPrinterId: FieldRef<"Location", 'String'>
     readonly addressLine1: FieldRef<"Location", 'String'>
     readonly addressLine2: FieldRef<"Location", 'String'>
     readonly city: FieldRef<"Location", 'String'>
@@ -24055,6 +24870,46 @@ export namespace Prisma {
   }
 
   /**
+   * Location.printerStations
+   */
+  export type Location$printerStationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    cursor?: PrinterStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * Location.printAgents
+   */
+  export type Location$printAgentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    where?: PrintAgentWhereInput
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    cursor?: PrintAgentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
+  }
+
+  /**
    * Location.kdsScreens
    */
   export type Location$kdsScreensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -24162,6 +25017,51 @@ export namespace Prisma {
      */
     include?: DirectOrderingConfigInclude<ExtArgs> | null
     where?: DirectOrderingConfigWhereInput
+  }
+
+  /**
+   * Location.defaultKitchenStation
+   */
+  export type Location$defaultKitchenStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * Location.receiptPrinter
+   */
+  export type Location$receiptPrinterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * Location.dispatchPrinter
+   */
+  export type Location$dispatchPrinterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
   }
 
   /**
@@ -27900,6 +28800,7 @@ export namespace Prisma {
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     items?: boolean | MenuCategory$itemsArgs<ExtArgs>
+    stationRoutes?: boolean | MenuCategory$stationRoutesArgs<ExtArgs>
     _count?: boolean | MenuCategoryCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menuCategory"]>
 
@@ -27949,6 +28850,7 @@ export namespace Prisma {
   export type MenuCategoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     items?: boolean | MenuCategory$itemsArgs<ExtArgs>
+    stationRoutes?: boolean | MenuCategory$stationRoutesArgs<ExtArgs>
     _count?: boolean | MenuCategoryCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuCategoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -27960,6 +28862,7 @@ export namespace Prisma {
     objects: {
       menu: Prisma.$MenuPayload<ExtArgs>
       items: Prisma.$MenuItemOnCategoryPayload<ExtArgs>[]
+      stationRoutes: Prisma.$MenuCategoryStationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -28346,6 +29249,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     menu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     items<T extends MenuCategory$itemsArgs<ExtArgs> = {}>(args?: Subset<T, MenuCategory$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemOnCategoryPayload<ExtArgs>, T, "findMany"> | Null>
+    stationRoutes<T extends MenuCategory$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, MenuCategory$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -28728,6 +29632,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MenuItemOnCategoryScalarFieldEnum | MenuItemOnCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * MenuCategory.stationRoutes
+   */
+  export type MenuCategory$stationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    where?: MenuCategoryStationWhereInput
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    cursor?: MenuCategoryStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuCategoryStationScalarFieldEnum | MenuCategoryStationScalarFieldEnum[]
   }
 
   /**
@@ -29211,6 +30135,7 @@ export namespace Prisma {
     modifierGroupLinks?: boolean | MenuItem$modifierGroupLinksArgs<ExtArgs>
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
+    stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menuItem"]>
 
@@ -29303,6 +30228,7 @@ export namespace Prisma {
     modifierGroupLinks?: boolean | MenuItem$modifierGroupLinksArgs<ExtArgs>
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
+    stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -29314,6 +30240,7 @@ export namespace Prisma {
       modifierGroupLinks: Prisma.$ModifierGroupOnItemPayload<ExtArgs>[]
       variants: Prisma.$MenuItemVariantPayload<ExtArgs>[]
       recipe: Prisma.$RecipePayload<ExtArgs> | null
+      stationRoutes: Prisma.$MenuItemStationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -29723,6 +30650,7 @@ export namespace Prisma {
     modifierGroupLinks<T extends MenuItem$modifierGroupLinksArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$modifierGroupLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupOnItemPayload<ExtArgs>, T, "findMany"> | Null>
     variants<T extends MenuItem$variantsArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$variantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemVariantPayload<ExtArgs>, T, "findMany"> | Null>
     recipe<T extends MenuItem$recipeArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$recipeArgs<ExtArgs>>): Prisma__RecipeClient<$Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    stationRoutes<T extends MenuItem$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -30177,6 +31105,26 @@ export namespace Prisma {
      */
     include?: RecipeInclude<ExtArgs> | null
     where?: RecipeWhereInput
+  }
+
+  /**
+   * MenuItem.stationRoutes
+   */
+  export type MenuItem$stationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    where?: MenuItemStationWhereInput
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    cursor?: MenuItemStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuItemStationScalarFieldEnum | MenuItemStationScalarFieldEnum[]
   }
 
   /**
@@ -31521,6 +32469,7 @@ export namespace Prisma {
     options?: boolean | ModifierGroup$optionsArgs<ExtArgs>
     itemLinks?: boolean | ModifierGroup$itemLinksArgs<ExtArgs>
     nestedUnderOptions?: boolean | ModifierGroup$nestedUnderOptionsArgs<ExtArgs>
+    stationRoutes?: boolean | ModifierGroup$stationRoutesArgs<ExtArgs>
     _count?: boolean | ModifierGroupCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["modifierGroup"]>
 
@@ -31584,6 +32533,7 @@ export namespace Prisma {
     options?: boolean | ModifierGroup$optionsArgs<ExtArgs>
     itemLinks?: boolean | ModifierGroup$itemLinksArgs<ExtArgs>
     nestedUnderOptions?: boolean | ModifierGroup$nestedUnderOptionsArgs<ExtArgs>
+    stationRoutes?: boolean | ModifierGroup$stationRoutesArgs<ExtArgs>
     _count?: boolean | ModifierGroupCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ModifierGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -31597,6 +32547,7 @@ export namespace Prisma {
       options: Prisma.$ModifierOptionPayload<ExtArgs>[]
       itemLinks: Prisma.$ModifierGroupOnItemPayload<ExtArgs>[]
       nestedUnderOptions: Prisma.$ModifierOptionPayload<ExtArgs>[]
+      stationRoutes: Prisma.$ModifierGroupStationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -31991,6 +32942,7 @@ export namespace Prisma {
     options<T extends ModifierGroup$optionsArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$optionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionPayload<ExtArgs>, T, "findMany"> | Null>
     itemLinks<T extends ModifierGroup$itemLinksArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$itemLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupOnItemPayload<ExtArgs>, T, "findMany"> | Null>
     nestedUnderOptions<T extends ModifierGroup$nestedUnderOptionsArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$nestedUnderOptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierOptionPayload<ExtArgs>, T, "findMany"> | Null>
+    stationRoutes<T extends ModifierGroup$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroup$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -32419,6 +33371,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ModifierOptionScalarFieldEnum | ModifierOptionScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierGroup.stationRoutes
+   */
+  export type ModifierGroup$stationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    where?: ModifierGroupStationWhereInput
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    cursor?: ModifierGroupStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ModifierGroupStationScalarFieldEnum | ModifierGroupStationScalarFieldEnum[]
   }
 
   /**
@@ -53974,10 +54946,12 @@ export namespace Prisma {
 
   export type PrinterAvgAggregateOutputType = {
     port: number | null
+    paperWidth: number | null
   }
 
   export type PrinterSumAggregateOutputType = {
     port: number | null
+    paperWidth: number | null
   }
 
   export type PrinterMinAggregateOutputType = {
@@ -53987,13 +54961,16 @@ export namespace Prisma {
     name: string | null
     type: $Enums.PrinterType | null
     connectionType: $Enums.PrinterConnectionType | null
-    station: $Enums.PrinterStation | null
+    kind: $Enums.PrinterStationKind | null
     ipAddress: string | null
     port: number | null
     isOnline: boolean | null
     isActive: boolean | null
     deletedAt: Date | null
     failoverPrinterId: string | null
+    model: string | null
+    paperWidth: number | null
+    agentId: string | null
     supportsReceipts: boolean | null
     supportsKitchen: boolean | null
     supportsLabels: boolean | null
@@ -54010,13 +54987,16 @@ export namespace Prisma {
     name: string | null
     type: $Enums.PrinterType | null
     connectionType: $Enums.PrinterConnectionType | null
-    station: $Enums.PrinterStation | null
+    kind: $Enums.PrinterStationKind | null
     ipAddress: string | null
     port: number | null
     isOnline: boolean | null
     isActive: boolean | null
     deletedAt: Date | null
     failoverPrinterId: string | null
+    model: string | null
+    paperWidth: number | null
+    agentId: string | null
     supportsReceipts: boolean | null
     supportsKitchen: boolean | null
     supportsLabels: boolean | null
@@ -54033,18 +55013,22 @@ export namespace Prisma {
     name: number
     type: number
     connectionType: number
-    station: number
+    kind: number
     ipAddress: number
     port: number
     isOnline: number
     isActive: number
     deletedAt: number
     failoverPrinterId: number
+    model: number
+    paperWidth: number
+    agentId: number
     supportsReceipts: number
     supportsKitchen: number
     supportsLabels: number
     supportsCut: number
     supportsCashDrawer: number
+    defaults: number
     autoPrintRules: number
     settings: number
     metadata: number
@@ -54056,10 +55040,12 @@ export namespace Prisma {
 
   export type PrinterAvgAggregateInputType = {
     port?: true
+    paperWidth?: true
   }
 
   export type PrinterSumAggregateInputType = {
     port?: true
+    paperWidth?: true
   }
 
   export type PrinterMinAggregateInputType = {
@@ -54069,13 +55055,16 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
-    station?: true
+    kind?: true
     ipAddress?: true
     port?: true
     isOnline?: true
     isActive?: true
     deletedAt?: true
     failoverPrinterId?: true
+    model?: true
+    paperWidth?: true
+    agentId?: true
     supportsReceipts?: true
     supportsKitchen?: true
     supportsLabels?: true
@@ -54092,13 +55081,16 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
-    station?: true
+    kind?: true
     ipAddress?: true
     port?: true
     isOnline?: true
     isActive?: true
     deletedAt?: true
     failoverPrinterId?: true
+    model?: true
+    paperWidth?: true
+    agentId?: true
     supportsReceipts?: true
     supportsKitchen?: true
     supportsLabels?: true
@@ -54115,18 +55107,22 @@ export namespace Prisma {
     name?: true
     type?: true
     connectionType?: true
-    station?: true
+    kind?: true
     ipAddress?: true
     port?: true
     isOnline?: true
     isActive?: true
     deletedAt?: true
     failoverPrinterId?: true
+    model?: true
+    paperWidth?: true
+    agentId?: true
     supportsReceipts?: true
     supportsKitchen?: true
     supportsLabels?: true
     supportsCut?: true
     supportsCashDrawer?: true
+    defaults?: true
     autoPrintRules?: true
     settings?: true
     metadata?: true
@@ -54228,18 +55224,22 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType: $Enums.PrinterConnectionType
-    station: $Enums.PrinterStation
+    kind: $Enums.PrinterStationKind
     ipAddress: string | null
     port: number | null
     isOnline: boolean
     isActive: boolean
     deletedAt: Date | null
     failoverPrinterId: string | null
+    model: string | null
+    paperWidth: number
+    agentId: string | null
     supportsReceipts: boolean
     supportsKitchen: boolean
     supportsLabels: boolean
     supportsCut: boolean
     supportsCashDrawer: boolean
+    defaults: JsonValue
     autoPrintRules: JsonValue
     settings: JsonValue
     metadata: JsonValue
@@ -54273,25 +55273,33 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
-    station?: boolean
+    kind?: boolean
     ipAddress?: boolean
     port?: boolean
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: boolean
     failoverPrinterId?: boolean
+    model?: boolean
+    paperWidth?: boolean
+    agentId?: boolean
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
     metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    agent?: boolean | Printer$agentArgs<ExtArgs>
     printJobs?: boolean | Printer$printJobsArgs<ExtArgs>
+    stationsDefaultFor?: boolean | Printer$stationsDefaultForArgs<ExtArgs>
+    locationsReceiptFor?: boolean | Printer$locationsReceiptForArgs<ExtArgs>
+    locationsDispatchFor?: boolean | Printer$locationsDispatchForArgs<ExtArgs>
     _count?: boolean | PrinterCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["printer"]>
 
@@ -54302,24 +55310,29 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
-    station?: boolean
+    kind?: boolean
     ipAddress?: boolean
     port?: boolean
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: boolean
     failoverPrinterId?: boolean
+    model?: boolean
+    paperWidth?: boolean
+    agentId?: boolean
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
     metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    agent?: boolean | Printer$agentArgs<ExtArgs>
   }, ExtArgs["result"]["printer"]>
 
   export type PrinterSelectScalar = {
@@ -54329,18 +55342,22 @@ export namespace Prisma {
     name?: boolean
     type?: boolean
     connectionType?: boolean
-    station?: boolean
+    kind?: boolean
     ipAddress?: boolean
     port?: boolean
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: boolean
     failoverPrinterId?: boolean
+    model?: boolean
+    paperWidth?: boolean
+    agentId?: boolean
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: boolean
     autoPrintRules?: boolean
     settings?: boolean
     metadata?: boolean
@@ -54350,18 +55367,27 @@ export namespace Prisma {
 
   export type PrinterInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    agent?: boolean | Printer$agentArgs<ExtArgs>
     printJobs?: boolean | Printer$printJobsArgs<ExtArgs>
+    stationsDefaultFor?: boolean | Printer$stationsDefaultForArgs<ExtArgs>
+    locationsReceiptFor?: boolean | Printer$locationsReceiptForArgs<ExtArgs>
+    locationsDispatchFor?: boolean | Printer$locationsDispatchForArgs<ExtArgs>
     _count?: boolean | PrinterCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PrinterIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    agent?: boolean | Printer$agentArgs<ExtArgs>
   }
 
   export type $PrinterPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Printer"
     objects: {
       location: Prisma.$LocationPayload<ExtArgs>
+      agent: Prisma.$PrintAgentPayload<ExtArgs> | null
       printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
+      stationsDefaultFor: Prisma.$PrinterStationPayload<ExtArgs>[]
+      locationsReceiptFor: Prisma.$LocationPayload<ExtArgs>[]
+      locationsDispatchFor: Prisma.$LocationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -54370,18 +55396,22 @@ export namespace Prisma {
       name: string
       type: $Enums.PrinterType
       connectionType: $Enums.PrinterConnectionType
-      station: $Enums.PrinterStation
+      kind: $Enums.PrinterStationKind
       ipAddress: string | null
       port: number | null
       isOnline: boolean
       isActive: boolean
       deletedAt: Date | null
       failoverPrinterId: string | null
+      model: string | null
+      paperWidth: number
+      agentId: string | null
       supportsReceipts: boolean
       supportsKitchen: boolean
       supportsLabels: boolean
       supportsCut: boolean
       supportsCashDrawer: boolean
+      defaults: Prisma.JsonValue
       autoPrintRules: Prisma.JsonValue
       settings: Prisma.JsonValue
       metadata: Prisma.JsonValue
@@ -54752,7 +55782,11 @@ export namespace Prisma {
   export interface Prisma__PrinterClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    agent<T extends Printer$agentArgs<ExtArgs> = {}>(args?: Subset<T, Printer$agentArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     printJobs<T extends Printer$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Printer$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
+    stationsDefaultFor<T extends Printer$stationsDefaultForArgs<ExtArgs> = {}>(args?: Subset<T, Printer$stationsDefaultForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
+    locationsReceiptFor<T extends Printer$locationsReceiptForArgs<ExtArgs> = {}>(args?: Subset<T, Printer$locationsReceiptForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
+    locationsDispatchFor<T extends Printer$locationsDispatchForArgs<ExtArgs> = {}>(args?: Subset<T, Printer$locationsDispatchForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -54788,18 +55822,22 @@ export namespace Prisma {
     readonly name: FieldRef<"Printer", 'String'>
     readonly type: FieldRef<"Printer", 'PrinterType'>
     readonly connectionType: FieldRef<"Printer", 'PrinterConnectionType'>
-    readonly station: FieldRef<"Printer", 'PrinterStation'>
+    readonly kind: FieldRef<"Printer", 'PrinterStationKind'>
     readonly ipAddress: FieldRef<"Printer", 'String'>
     readonly port: FieldRef<"Printer", 'Int'>
     readonly isOnline: FieldRef<"Printer", 'Boolean'>
     readonly isActive: FieldRef<"Printer", 'Boolean'>
     readonly deletedAt: FieldRef<"Printer", 'DateTime'>
     readonly failoverPrinterId: FieldRef<"Printer", 'String'>
+    readonly model: FieldRef<"Printer", 'String'>
+    readonly paperWidth: FieldRef<"Printer", 'Int'>
+    readonly agentId: FieldRef<"Printer", 'String'>
     readonly supportsReceipts: FieldRef<"Printer", 'Boolean'>
     readonly supportsKitchen: FieldRef<"Printer", 'Boolean'>
     readonly supportsLabels: FieldRef<"Printer", 'Boolean'>
     readonly supportsCut: FieldRef<"Printer", 'Boolean'>
     readonly supportsCashDrawer: FieldRef<"Printer", 'Boolean'>
+    readonly defaults: FieldRef<"Printer", 'Json'>
     readonly autoPrintRules: FieldRef<"Printer", 'Json'>
     readonly settings: FieldRef<"Printer", 'Json'>
     readonly metadata: FieldRef<"Printer", 'Json'>
@@ -55123,6 +56161,21 @@ export namespace Prisma {
   }
 
   /**
+   * Printer.agent
+   */
+  export type Printer$agentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    where?: PrintAgentWhereInput
+  }
+
+  /**
    * Printer.printJobs
    */
   export type Printer$printJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -55140,6 +56193,66 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * Printer.stationsDefaultFor
+   */
+  export type Printer$stationsDefaultForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    cursor?: PrinterStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * Printer.locationsReceiptFor
+   */
+  export type Printer$locationsReceiptForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+    orderBy?: LocationOrderByWithRelationInput | LocationOrderByWithRelationInput[]
+    cursor?: LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LocationScalarFieldEnum | LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Printer.locationsDispatchFor
+   */
+  export type Printer$locationsDispatchForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+    orderBy?: LocationOrderByWithRelationInput | LocationOrderByWithRelationInput[]
+    cursor?: LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LocationScalarFieldEnum | LocationScalarFieldEnum[]
   }
 
   /**
@@ -55172,11 +56285,13 @@ export namespace Prisma {
   export type PrintJobAvgAggregateOutputType = {
     attempts: number | null
     maxRetries: number | null
+    copies: number | null
   }
 
   export type PrintJobSumAggregateOutputType = {
     attempts: number | null
     maxRetries: number | null
+    copies: number | null
   }
 
   export type PrintJobMinAggregateOutputType = {
@@ -55191,6 +56306,13 @@ export namespace Prisma {
     maxRetries: number | null
     error: string | null
     printedAt: Date | null
+    stationId: string | null
+    trigger: $Enums.PrintTrigger | null
+    claimedByAgentId: string | null
+    claimedAt: Date | null
+    routeKey: string | null
+    idempotencyKey: string | null
+    copies: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -55207,6 +56329,13 @@ export namespace Prisma {
     maxRetries: number | null
     error: string | null
     printedAt: Date | null
+    stationId: string | null
+    trigger: $Enums.PrintTrigger | null
+    claimedByAgentId: string | null
+    claimedAt: Date | null
+    routeKey: string | null
+    idempotencyKey: string | null
+    copies: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -55225,6 +56354,13 @@ export namespace Prisma {
     error: number
     retryMetadata: number
     printedAt: number
+    stationId: number
+    trigger: number
+    claimedByAgentId: number
+    claimedAt: number
+    routeKey: number
+    idempotencyKey: number
+    copies: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -55234,11 +56370,13 @@ export namespace Prisma {
   export type PrintJobAvgAggregateInputType = {
     attempts?: true
     maxRetries?: true
+    copies?: true
   }
 
   export type PrintJobSumAggregateInputType = {
     attempts?: true
     maxRetries?: true
+    copies?: true
   }
 
   export type PrintJobMinAggregateInputType = {
@@ -55253,6 +56391,13 @@ export namespace Prisma {
     maxRetries?: true
     error?: true
     printedAt?: true
+    stationId?: true
+    trigger?: true
+    claimedByAgentId?: true
+    claimedAt?: true
+    routeKey?: true
+    idempotencyKey?: true
+    copies?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -55269,6 +56414,13 @@ export namespace Prisma {
     maxRetries?: true
     error?: true
     printedAt?: true
+    stationId?: true
+    trigger?: true
+    claimedByAgentId?: true
+    claimedAt?: true
+    routeKey?: true
+    idempotencyKey?: true
+    copies?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -55287,6 +56439,13 @@ export namespace Prisma {
     error?: true
     retryMetadata?: true
     printedAt?: true
+    stationId?: true
+    trigger?: true
+    claimedByAgentId?: true
+    claimedAt?: true
+    routeKey?: true
+    idempotencyKey?: true
+    copies?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -55392,6 +56551,13 @@ export namespace Prisma {
     error: string | null
     retryMetadata: JsonValue
     printedAt: Date | null
+    stationId: string | null
+    trigger: $Enums.PrintTrigger | null
+    claimedByAgentId: string | null
+    claimedAt: Date | null
+    routeKey: string | null
+    idempotencyKey: string | null
+    copies: number
     createdAt: Date
     updatedAt: Date
     _count: PrintJobCountAggregateOutputType | null
@@ -55429,11 +56595,20 @@ export namespace Prisma {
     error?: boolean
     retryMetadata?: boolean
     printedAt?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    claimedByAgentId?: boolean
+    claimedAt?: boolean
+    routeKey?: boolean
+    idempotencyKey?: boolean
+    copies?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     printer?: boolean | PrintJob$printerArgs<ExtArgs>
     order?: boolean | PrintJob$orderArgs<ExtArgs>
+    station?: boolean | PrintJob$stationArgs<ExtArgs>
+    claimedByAgent?: boolean | PrintJob$claimedByAgentArgs<ExtArgs>
   }, ExtArgs["result"]["printJob"]>
 
   export type PrintJobSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -55450,11 +56625,20 @@ export namespace Prisma {
     error?: boolean
     retryMetadata?: boolean
     printedAt?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    claimedByAgentId?: boolean
+    claimedAt?: boolean
+    routeKey?: boolean
+    idempotencyKey?: boolean
+    copies?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     printer?: boolean | PrintJob$printerArgs<ExtArgs>
     order?: boolean | PrintJob$orderArgs<ExtArgs>
+    station?: boolean | PrintJob$stationArgs<ExtArgs>
+    claimedByAgent?: boolean | PrintJob$claimedByAgentArgs<ExtArgs>
   }, ExtArgs["result"]["printJob"]>
 
   export type PrintJobSelectScalar = {
@@ -55471,6 +56655,13 @@ export namespace Prisma {
     error?: boolean
     retryMetadata?: boolean
     printedAt?: boolean
+    stationId?: boolean
+    trigger?: boolean
+    claimedByAgentId?: boolean
+    claimedAt?: boolean
+    routeKey?: boolean
+    idempotencyKey?: boolean
+    copies?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -55479,11 +56670,15 @@ export namespace Prisma {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     printer?: boolean | PrintJob$printerArgs<ExtArgs>
     order?: boolean | PrintJob$orderArgs<ExtArgs>
+    station?: boolean | PrintJob$stationArgs<ExtArgs>
+    claimedByAgent?: boolean | PrintJob$claimedByAgentArgs<ExtArgs>
   }
   export type PrintJobIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     printer?: boolean | PrintJob$printerArgs<ExtArgs>
     order?: boolean | PrintJob$orderArgs<ExtArgs>
+    station?: boolean | PrintJob$stationArgs<ExtArgs>
+    claimedByAgent?: boolean | PrintJob$claimedByAgentArgs<ExtArgs>
   }
 
   export type $PrintJobPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -55492,6 +56687,8 @@ export namespace Prisma {
       tenant: Prisma.$TenantPayload<ExtArgs>
       printer: Prisma.$PrinterPayload<ExtArgs> | null
       order: Prisma.$OrderPayload<ExtArgs> | null
+      station: Prisma.$PrinterStationPayload<ExtArgs> | null
+      claimedByAgent: Prisma.$PrintAgentPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -55507,6 +56704,13 @@ export namespace Prisma {
       error: string | null
       retryMetadata: Prisma.JsonValue
       printedAt: Date | null
+      stationId: string | null
+      trigger: $Enums.PrintTrigger | null
+      claimedByAgentId: string | null
+      claimedAt: Date | null
+      routeKey: string | null
+      idempotencyKey: string | null
+      copies: number
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["printJob"]>
@@ -55876,6 +57080,8 @@ export namespace Prisma {
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     printer<T extends PrintJob$printerArgs<ExtArgs> = {}>(args?: Subset<T, PrintJob$printerArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     order<T extends PrintJob$orderArgs<ExtArgs> = {}>(args?: Subset<T, PrintJob$orderArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    station<T extends PrintJob$stationArgs<ExtArgs> = {}>(args?: Subset<T, PrintJob$stationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    claimedByAgent<T extends PrintJob$claimedByAgentArgs<ExtArgs> = {}>(args?: Subset<T, PrintJob$claimedByAgentArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -55918,6 +57124,13 @@ export namespace Prisma {
     readonly error: FieldRef<"PrintJob", 'String'>
     readonly retryMetadata: FieldRef<"PrintJob", 'Json'>
     readonly printedAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly stationId: FieldRef<"PrintJob", 'String'>
+    readonly trigger: FieldRef<"PrintJob", 'PrintTrigger'>
+    readonly claimedByAgentId: FieldRef<"PrintJob", 'String'>
+    readonly claimedAt: FieldRef<"PrintJob", 'DateTime'>
+    readonly routeKey: FieldRef<"PrintJob", 'String'>
+    readonly idempotencyKey: FieldRef<"PrintJob", 'String'>
+    readonly copies: FieldRef<"PrintJob", 'Int'>
     readonly createdAt: FieldRef<"PrintJob", 'DateTime'>
     readonly updatedAt: FieldRef<"PrintJob", 'DateTime'>
   }
@@ -56268,6 +57481,36 @@ export namespace Prisma {
   }
 
   /**
+   * PrintJob.station
+   */
+  export type PrintJob$stationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * PrintJob.claimedByAgent
+   */
+  export type PrintJob$claimedByAgentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    where?: PrintAgentWhereInput
+  }
+
+  /**
    * PrintJob without action
    */
   export type PrintJobDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -56279,6 +57522,5068 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PrintJobInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PrinterStation
+   */
+
+  export type AggregatePrinterStation = {
+    _count: PrinterStationCountAggregateOutputType | null
+    _avg: PrinterStationAvgAggregateOutputType | null
+    _sum: PrinterStationSumAggregateOutputType | null
+    _min: PrinterStationMinAggregateOutputType | null
+    _max: PrinterStationMaxAggregateOutputType | null
+  }
+
+  export type PrinterStationAvgAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type PrinterStationSumAggregateOutputType = {
+    sortOrder: number | null
+  }
+
+  export type PrinterStationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    kind: $Enums.PrinterStationKind | null
+    defaultPrinterId: string | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PrinterStationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    kind: $Enums.PrinterStationKind | null
+    defaultPrinterId: string | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PrinterStationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    name: number
+    kind: number
+    defaultPrinterId: number
+    isActive: number
+    sortOrder: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PrinterStationAvgAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type PrinterStationSumAggregateInputType = {
+    sortOrder?: true
+  }
+
+  export type PrinterStationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    defaultPrinterId?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PrinterStationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    defaultPrinterId?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PrinterStationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    defaultPrinterId?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PrinterStationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrinterStation to aggregate.
+     */
+    where?: PrinterStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrinterStations to fetch.
+     */
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PrinterStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrinterStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrinterStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PrinterStations
+    **/
+    _count?: true | PrinterStationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PrinterStationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PrinterStationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PrinterStationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PrinterStationMaxAggregateInputType
+  }
+
+  export type GetPrinterStationAggregateType<T extends PrinterStationAggregateArgs> = {
+        [P in keyof T & keyof AggregatePrinterStation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePrinterStation[P]>
+      : GetScalarType<T[P], AggregatePrinterStation[P]>
+  }
+
+
+
+
+  export type PrinterStationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrinterStationWhereInput
+    orderBy?: PrinterStationOrderByWithAggregationInput | PrinterStationOrderByWithAggregationInput[]
+    by: PrinterStationScalarFieldEnum[] | PrinterStationScalarFieldEnum
+    having?: PrinterStationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PrinterStationCountAggregateInputType | true
+    _avg?: PrinterStationAvgAggregateInputType
+    _sum?: PrinterStationSumAggregateInputType
+    _min?: PrinterStationMinAggregateInputType
+    _max?: PrinterStationMaxAggregateInputType
+  }
+
+  export type PrinterStationGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind: $Enums.PrinterStationKind
+    defaultPrinterId: string | null
+    isActive: boolean
+    sortOrder: number
+    createdAt: Date
+    updatedAt: Date
+    _count: PrinterStationCountAggregateOutputType | null
+    _avg: PrinterStationAvgAggregateOutputType | null
+    _sum: PrinterStationSumAggregateOutputType | null
+    _min: PrinterStationMinAggregateOutputType | null
+    _max: PrinterStationMaxAggregateOutputType | null
+  }
+
+  type GetPrinterStationGroupByPayload<T extends PrinterStationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PrinterStationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PrinterStationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PrinterStationGroupByOutputType[P]>
+            : GetScalarType<T[P], PrinterStationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PrinterStationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    defaultPrinterId?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    defaultPrinter?: boolean | PrinterStation$defaultPrinterArgs<ExtArgs>
+    menuItemRoutes?: boolean | PrinterStation$menuItemRoutesArgs<ExtArgs>
+    categoryRoutes?: boolean | PrinterStation$categoryRoutesArgs<ExtArgs>
+    modifierGroupRoutes?: boolean | PrinterStation$modifierGroupRoutesArgs<ExtArgs>
+    brandDefaults?: boolean | PrinterStation$brandDefaultsArgs<ExtArgs>
+    locationDefaults?: boolean | PrinterStation$locationDefaultsArgs<ExtArgs>
+    printJobs?: boolean | PrinterStation$printJobsArgs<ExtArgs>
+    _count?: boolean | PrinterStationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["printerStation"]>
+
+  export type PrinterStationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    defaultPrinterId?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    defaultPrinter?: boolean | PrinterStation$defaultPrinterArgs<ExtArgs>
+  }, ExtArgs["result"]["printerStation"]>
+
+  export type PrinterStationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    defaultPrinterId?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PrinterStationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    defaultPrinter?: boolean | PrinterStation$defaultPrinterArgs<ExtArgs>
+    menuItemRoutes?: boolean | PrinterStation$menuItemRoutesArgs<ExtArgs>
+    categoryRoutes?: boolean | PrinterStation$categoryRoutesArgs<ExtArgs>
+    modifierGroupRoutes?: boolean | PrinterStation$modifierGroupRoutesArgs<ExtArgs>
+    brandDefaults?: boolean | PrinterStation$brandDefaultsArgs<ExtArgs>
+    locationDefaults?: boolean | PrinterStation$locationDefaultsArgs<ExtArgs>
+    printJobs?: boolean | PrinterStation$printJobsArgs<ExtArgs>
+    _count?: boolean | PrinterStationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PrinterStationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    defaultPrinter?: boolean | PrinterStation$defaultPrinterArgs<ExtArgs>
+  }
+
+  export type $PrinterStationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PrinterStation"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+      defaultPrinter: Prisma.$PrinterPayload<ExtArgs> | null
+      menuItemRoutes: Prisma.$MenuItemStationPayload<ExtArgs>[]
+      categoryRoutes: Prisma.$MenuCategoryStationPayload<ExtArgs>[]
+      modifierGroupRoutes: Prisma.$ModifierGroupStationPayload<ExtArgs>[]
+      brandDefaults: Prisma.$BrandPayload<ExtArgs>[]
+      locationDefaults: Prisma.$LocationPayload<ExtArgs>[]
+      printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      name: string
+      kind: $Enums.PrinterStationKind
+      defaultPrinterId: string | null
+      isActive: boolean
+      sortOrder: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["printerStation"]>
+    composites: {}
+  }
+
+  type PrinterStationGetPayload<S extends boolean | null | undefined | PrinterStationDefaultArgs> = $Result.GetResult<Prisma.$PrinterStationPayload, S>
+
+  type PrinterStationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PrinterStationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PrinterStationCountAggregateInputType | true
+    }
+
+  export interface PrinterStationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PrinterStation'], meta: { name: 'PrinterStation' } }
+    /**
+     * Find zero or one PrinterStation that matches the filter.
+     * @param {PrinterStationFindUniqueArgs} args - Arguments to find a PrinterStation
+     * @example
+     * // Get one PrinterStation
+     * const printerStation = await prisma.printerStation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PrinterStationFindUniqueArgs>(args: SelectSubset<T, PrinterStationFindUniqueArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PrinterStation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PrinterStationFindUniqueOrThrowArgs} args - Arguments to find a PrinterStation
+     * @example
+     * // Get one PrinterStation
+     * const printerStation = await prisma.printerStation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PrinterStationFindUniqueOrThrowArgs>(args: SelectSubset<T, PrinterStationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PrinterStation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationFindFirstArgs} args - Arguments to find a PrinterStation
+     * @example
+     * // Get one PrinterStation
+     * const printerStation = await prisma.printerStation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PrinterStationFindFirstArgs>(args?: SelectSubset<T, PrinterStationFindFirstArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PrinterStation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationFindFirstOrThrowArgs} args - Arguments to find a PrinterStation
+     * @example
+     * // Get one PrinterStation
+     * const printerStation = await prisma.printerStation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PrinterStationFindFirstOrThrowArgs>(args?: SelectSubset<T, PrinterStationFindFirstOrThrowArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PrinterStations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PrinterStations
+     * const printerStations = await prisma.printerStation.findMany()
+     * 
+     * // Get first 10 PrinterStations
+     * const printerStations = await prisma.printerStation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const printerStationWithIdOnly = await prisma.printerStation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PrinterStationFindManyArgs>(args?: SelectSubset<T, PrinterStationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PrinterStation.
+     * @param {PrinterStationCreateArgs} args - Arguments to create a PrinterStation.
+     * @example
+     * // Create one PrinterStation
+     * const PrinterStation = await prisma.printerStation.create({
+     *   data: {
+     *     // ... data to create a PrinterStation
+     *   }
+     * })
+     * 
+     */
+    create<T extends PrinterStationCreateArgs>(args: SelectSubset<T, PrinterStationCreateArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PrinterStations.
+     * @param {PrinterStationCreateManyArgs} args - Arguments to create many PrinterStations.
+     * @example
+     * // Create many PrinterStations
+     * const printerStation = await prisma.printerStation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PrinterStationCreateManyArgs>(args?: SelectSubset<T, PrinterStationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PrinterStations and returns the data saved in the database.
+     * @param {PrinterStationCreateManyAndReturnArgs} args - Arguments to create many PrinterStations.
+     * @example
+     * // Create many PrinterStations
+     * const printerStation = await prisma.printerStation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PrinterStations and only return the `id`
+     * const printerStationWithIdOnly = await prisma.printerStation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PrinterStationCreateManyAndReturnArgs>(args?: SelectSubset<T, PrinterStationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PrinterStation.
+     * @param {PrinterStationDeleteArgs} args - Arguments to delete one PrinterStation.
+     * @example
+     * // Delete one PrinterStation
+     * const PrinterStation = await prisma.printerStation.delete({
+     *   where: {
+     *     // ... filter to delete one PrinterStation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PrinterStationDeleteArgs>(args: SelectSubset<T, PrinterStationDeleteArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PrinterStation.
+     * @param {PrinterStationUpdateArgs} args - Arguments to update one PrinterStation.
+     * @example
+     * // Update one PrinterStation
+     * const printerStation = await prisma.printerStation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PrinterStationUpdateArgs>(args: SelectSubset<T, PrinterStationUpdateArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PrinterStations.
+     * @param {PrinterStationDeleteManyArgs} args - Arguments to filter PrinterStations to delete.
+     * @example
+     * // Delete a few PrinterStations
+     * const { count } = await prisma.printerStation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PrinterStationDeleteManyArgs>(args?: SelectSubset<T, PrinterStationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PrinterStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PrinterStations
+     * const printerStation = await prisma.printerStation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PrinterStationUpdateManyArgs>(args: SelectSubset<T, PrinterStationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PrinterStation.
+     * @param {PrinterStationUpsertArgs} args - Arguments to update or create a PrinterStation.
+     * @example
+     * // Update or create a PrinterStation
+     * const printerStation = await prisma.printerStation.upsert({
+     *   create: {
+     *     // ... data to create a PrinterStation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PrinterStation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PrinterStationUpsertArgs>(args: SelectSubset<T, PrinterStationUpsertArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PrinterStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationCountArgs} args - Arguments to filter PrinterStations to count.
+     * @example
+     * // Count the number of PrinterStations
+     * const count = await prisma.printerStation.count({
+     *   where: {
+     *     // ... the filter for the PrinterStations we want to count
+     *   }
+     * })
+    **/
+    count<T extends PrinterStationCountArgs>(
+      args?: Subset<T, PrinterStationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PrinterStationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PrinterStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PrinterStationAggregateArgs>(args: Subset<T, PrinterStationAggregateArgs>): Prisma.PrismaPromise<GetPrinterStationAggregateType<T>>
+
+    /**
+     * Group by PrinterStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrinterStationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PrinterStationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PrinterStationGroupByArgs['orderBy'] }
+        : { orderBy?: PrinterStationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PrinterStationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPrinterStationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PrinterStation model
+   */
+  readonly fields: PrinterStationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PrinterStation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PrinterStationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    defaultPrinter<T extends PrinterStation$defaultPrinterArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$defaultPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    menuItemRoutes<T extends PrinterStation$menuItemRoutesArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$menuItemRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany"> | Null>
+    categoryRoutes<T extends PrinterStation$categoryRoutesArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$categoryRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findMany"> | Null>
+    modifierGroupRoutes<T extends PrinterStation$modifierGroupRoutesArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$modifierGroupRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findMany"> | Null>
+    brandDefaults<T extends PrinterStation$brandDefaultsArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$brandDefaultsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findMany"> | Null>
+    locationDefaults<T extends PrinterStation$locationDefaultsArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$locationDefaultsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
+    printJobs<T extends PrinterStation$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStation$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PrinterStation model
+   */ 
+  interface PrinterStationFieldRefs {
+    readonly id: FieldRef<"PrinterStation", 'String'>
+    readonly tenantId: FieldRef<"PrinterStation", 'String'>
+    readonly locationId: FieldRef<"PrinterStation", 'String'>
+    readonly name: FieldRef<"PrinterStation", 'String'>
+    readonly kind: FieldRef<"PrinterStation", 'PrinterStationKind'>
+    readonly defaultPrinterId: FieldRef<"PrinterStation", 'String'>
+    readonly isActive: FieldRef<"PrinterStation", 'Boolean'>
+    readonly sortOrder: FieldRef<"PrinterStation", 'Int'>
+    readonly createdAt: FieldRef<"PrinterStation", 'DateTime'>
+    readonly updatedAt: FieldRef<"PrinterStation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PrinterStation findUnique
+   */
+  export type PrinterStationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter, which PrinterStation to fetch.
+     */
+    where: PrinterStationWhereUniqueInput
+  }
+
+  /**
+   * PrinterStation findUniqueOrThrow
+   */
+  export type PrinterStationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter, which PrinterStation to fetch.
+     */
+    where: PrinterStationWhereUniqueInput
+  }
+
+  /**
+   * PrinterStation findFirst
+   */
+  export type PrinterStationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter, which PrinterStation to fetch.
+     */
+    where?: PrinterStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrinterStations to fetch.
+     */
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrinterStations.
+     */
+    cursor?: PrinterStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrinterStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrinterStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrinterStations.
+     */
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation findFirstOrThrow
+   */
+  export type PrinterStationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter, which PrinterStation to fetch.
+     */
+    where?: PrinterStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrinterStations to fetch.
+     */
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrinterStations.
+     */
+    cursor?: PrinterStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrinterStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrinterStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrinterStations.
+     */
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation findMany
+   */
+  export type PrinterStationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter, which PrinterStations to fetch.
+     */
+    where?: PrinterStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrinterStations to fetch.
+     */
+    orderBy?: PrinterStationOrderByWithRelationInput | PrinterStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PrinterStations.
+     */
+    cursor?: PrinterStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrinterStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrinterStations.
+     */
+    skip?: number
+    distinct?: PrinterStationScalarFieldEnum | PrinterStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation create
+   */
+  export type PrinterStationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PrinterStation.
+     */
+    data: XOR<PrinterStationCreateInput, PrinterStationUncheckedCreateInput>
+  }
+
+  /**
+   * PrinterStation createMany
+   */
+  export type PrinterStationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PrinterStations.
+     */
+    data: PrinterStationCreateManyInput | PrinterStationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PrinterStation createManyAndReturn
+   */
+  export type PrinterStationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PrinterStations.
+     */
+    data: PrinterStationCreateManyInput | PrinterStationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PrinterStation update
+   */
+  export type PrinterStationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PrinterStation.
+     */
+    data: XOR<PrinterStationUpdateInput, PrinterStationUncheckedUpdateInput>
+    /**
+     * Choose, which PrinterStation to update.
+     */
+    where: PrinterStationWhereUniqueInput
+  }
+
+  /**
+   * PrinterStation updateMany
+   */
+  export type PrinterStationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PrinterStations.
+     */
+    data: XOR<PrinterStationUpdateManyMutationInput, PrinterStationUncheckedUpdateManyInput>
+    /**
+     * Filter which PrinterStations to update
+     */
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * PrinterStation upsert
+   */
+  export type PrinterStationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PrinterStation to update in case it exists.
+     */
+    where: PrinterStationWhereUniqueInput
+    /**
+     * In case the PrinterStation found by the `where` argument doesn't exist, create a new PrinterStation with this data.
+     */
+    create: XOR<PrinterStationCreateInput, PrinterStationUncheckedCreateInput>
+    /**
+     * In case the PrinterStation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PrinterStationUpdateInput, PrinterStationUncheckedUpdateInput>
+  }
+
+  /**
+   * PrinterStation delete
+   */
+  export type PrinterStationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+    /**
+     * Filter which PrinterStation to delete.
+     */
+    where: PrinterStationWhereUniqueInput
+  }
+
+  /**
+   * PrinterStation deleteMany
+   */
+  export type PrinterStationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrinterStations to delete
+     */
+    where?: PrinterStationWhereInput
+  }
+
+  /**
+   * PrinterStation.defaultPrinter
+   */
+  export type PrinterStation$defaultPrinterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+  }
+
+  /**
+   * PrinterStation.menuItemRoutes
+   */
+  export type PrinterStation$menuItemRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    where?: MenuItemStationWhereInput
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    cursor?: MenuItemStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuItemStationScalarFieldEnum | MenuItemStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation.categoryRoutes
+   */
+  export type PrinterStation$categoryRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    where?: MenuCategoryStationWhereInput
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    cursor?: MenuCategoryStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuCategoryStationScalarFieldEnum | MenuCategoryStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation.modifierGroupRoutes
+   */
+  export type PrinterStation$modifierGroupRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    where?: ModifierGroupStationWhereInput
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    cursor?: ModifierGroupStationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ModifierGroupStationScalarFieldEnum | ModifierGroupStationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation.brandDefaults
+   */
+  export type PrinterStation$brandDefaultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Brand
+     */
+    select?: BrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandInclude<ExtArgs> | null
+    where?: BrandWhereInput
+    orderBy?: BrandOrderByWithRelationInput | BrandOrderByWithRelationInput[]
+    cursor?: BrandWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BrandScalarFieldEnum | BrandScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation.locationDefaults
+   */
+  export type PrinterStation$locationDefaultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+    orderBy?: LocationOrderByWithRelationInput | LocationOrderByWithRelationInput[]
+    cursor?: LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LocationScalarFieldEnum | LocationScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation.printJobs
+   */
+  export type PrinterStation$printJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    cursor?: PrintJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * PrinterStation without action
+   */
+  export type PrinterStationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrinterStation
+     */
+    select?: PrinterStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterStationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PrintAgent
+   */
+
+  export type AggregatePrintAgent = {
+    _count: PrintAgentCountAggregateOutputType | null
+    _min: PrintAgentMinAggregateOutputType | null
+    _max: PrintAgentMaxAggregateOutputType | null
+  }
+
+  export type PrintAgentMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    kind: $Enums.PrintAgentKind | null
+    apiTokenHash: string | null
+    versionString: string | null
+    lastSeenAt: Date | null
+    isActive: boolean | null
+    deletedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PrintAgentMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    name: string | null
+    kind: $Enums.PrintAgentKind | null
+    apiTokenHash: string | null
+    versionString: string | null
+    lastSeenAt: Date | null
+    isActive: boolean | null
+    deletedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PrintAgentCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    name: number
+    kind: number
+    apiTokenHash: number
+    capabilities: number
+    versionString: number
+    lastSeenAt: number
+    isActive: number
+    deletedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PrintAgentMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    apiTokenHash?: true
+    versionString?: true
+    lastSeenAt?: true
+    isActive?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PrintAgentMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    apiTokenHash?: true
+    versionString?: true
+    lastSeenAt?: true
+    isActive?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PrintAgentCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    name?: true
+    kind?: true
+    apiTokenHash?: true
+    capabilities?: true
+    versionString?: true
+    lastSeenAt?: true
+    isActive?: true
+    deletedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PrintAgentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrintAgent to aggregate.
+     */
+    where?: PrintAgentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintAgents to fetch.
+     */
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PrintAgentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintAgents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintAgents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PrintAgents
+    **/
+    _count?: true | PrintAgentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PrintAgentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PrintAgentMaxAggregateInputType
+  }
+
+  export type GetPrintAgentAggregateType<T extends PrintAgentAggregateArgs> = {
+        [P in keyof T & keyof AggregatePrintAgent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePrintAgent[P]>
+      : GetScalarType<T[P], AggregatePrintAgent[P]>
+  }
+
+
+
+
+  export type PrintAgentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PrintAgentWhereInput
+    orderBy?: PrintAgentOrderByWithAggregationInput | PrintAgentOrderByWithAggregationInput[]
+    by: PrintAgentScalarFieldEnum[] | PrintAgentScalarFieldEnum
+    having?: PrintAgentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PrintAgentCountAggregateInputType | true
+    _min?: PrintAgentMinAggregateInputType
+    _max?: PrintAgentMaxAggregateInputType
+  }
+
+  export type PrintAgentGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities: JsonValue
+    versionString: string | null
+    lastSeenAt: Date | null
+    isActive: boolean
+    deletedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PrintAgentCountAggregateOutputType | null
+    _min: PrintAgentMinAggregateOutputType | null
+    _max: PrintAgentMaxAggregateOutputType | null
+  }
+
+  type GetPrintAgentGroupByPayload<T extends PrintAgentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PrintAgentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PrintAgentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PrintAgentGroupByOutputType[P]>
+            : GetScalarType<T[P], PrintAgentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PrintAgentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    apiTokenHash?: boolean
+    capabilities?: boolean
+    versionString?: boolean
+    lastSeenAt?: boolean
+    isActive?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    printers?: boolean | PrintAgent$printersArgs<ExtArgs>
+    claimedJobs?: boolean | PrintAgent$claimedJobsArgs<ExtArgs>
+    _count?: boolean | PrintAgentCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["printAgent"]>
+
+  export type PrintAgentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    apiTokenHash?: boolean
+    capabilities?: boolean
+    versionString?: boolean
+    lastSeenAt?: boolean
+    isActive?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["printAgent"]>
+
+  export type PrintAgentSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    name?: boolean
+    kind?: boolean
+    apiTokenHash?: boolean
+    capabilities?: boolean
+    versionString?: boolean
+    lastSeenAt?: boolean
+    isActive?: boolean
+    deletedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PrintAgentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    printers?: boolean | PrintAgent$printersArgs<ExtArgs>
+    claimedJobs?: boolean | PrintAgent$claimedJobsArgs<ExtArgs>
+    _count?: boolean | PrintAgentCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PrintAgentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $PrintAgentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PrintAgent"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+      printers: Prisma.$PrinterPayload<ExtArgs>[]
+      claimedJobs: Prisma.$PrintJobPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      name: string
+      kind: $Enums.PrintAgentKind
+      apiTokenHash: string
+      capabilities: Prisma.JsonValue
+      versionString: string | null
+      lastSeenAt: Date | null
+      isActive: boolean
+      deletedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["printAgent"]>
+    composites: {}
+  }
+
+  type PrintAgentGetPayload<S extends boolean | null | undefined | PrintAgentDefaultArgs> = $Result.GetResult<Prisma.$PrintAgentPayload, S>
+
+  type PrintAgentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PrintAgentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PrintAgentCountAggregateInputType | true
+    }
+
+  export interface PrintAgentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PrintAgent'], meta: { name: 'PrintAgent' } }
+    /**
+     * Find zero or one PrintAgent that matches the filter.
+     * @param {PrintAgentFindUniqueArgs} args - Arguments to find a PrintAgent
+     * @example
+     * // Get one PrintAgent
+     * const printAgent = await prisma.printAgent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PrintAgentFindUniqueArgs>(args: SelectSubset<T, PrintAgentFindUniqueArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PrintAgent that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PrintAgentFindUniqueOrThrowArgs} args - Arguments to find a PrintAgent
+     * @example
+     * // Get one PrintAgent
+     * const printAgent = await prisma.printAgent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PrintAgentFindUniqueOrThrowArgs>(args: SelectSubset<T, PrintAgentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PrintAgent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentFindFirstArgs} args - Arguments to find a PrintAgent
+     * @example
+     * // Get one PrintAgent
+     * const printAgent = await prisma.printAgent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PrintAgentFindFirstArgs>(args?: SelectSubset<T, PrintAgentFindFirstArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PrintAgent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentFindFirstOrThrowArgs} args - Arguments to find a PrintAgent
+     * @example
+     * // Get one PrintAgent
+     * const printAgent = await prisma.printAgent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PrintAgentFindFirstOrThrowArgs>(args?: SelectSubset<T, PrintAgentFindFirstOrThrowArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PrintAgents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PrintAgents
+     * const printAgents = await prisma.printAgent.findMany()
+     * 
+     * // Get first 10 PrintAgents
+     * const printAgents = await prisma.printAgent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const printAgentWithIdOnly = await prisma.printAgent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PrintAgentFindManyArgs>(args?: SelectSubset<T, PrintAgentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PrintAgent.
+     * @param {PrintAgentCreateArgs} args - Arguments to create a PrintAgent.
+     * @example
+     * // Create one PrintAgent
+     * const PrintAgent = await prisma.printAgent.create({
+     *   data: {
+     *     // ... data to create a PrintAgent
+     *   }
+     * })
+     * 
+     */
+    create<T extends PrintAgentCreateArgs>(args: SelectSubset<T, PrintAgentCreateArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PrintAgents.
+     * @param {PrintAgentCreateManyArgs} args - Arguments to create many PrintAgents.
+     * @example
+     * // Create many PrintAgents
+     * const printAgent = await prisma.printAgent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PrintAgentCreateManyArgs>(args?: SelectSubset<T, PrintAgentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PrintAgents and returns the data saved in the database.
+     * @param {PrintAgentCreateManyAndReturnArgs} args - Arguments to create many PrintAgents.
+     * @example
+     * // Create many PrintAgents
+     * const printAgent = await prisma.printAgent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PrintAgents and only return the `id`
+     * const printAgentWithIdOnly = await prisma.printAgent.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PrintAgentCreateManyAndReturnArgs>(args?: SelectSubset<T, PrintAgentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PrintAgent.
+     * @param {PrintAgentDeleteArgs} args - Arguments to delete one PrintAgent.
+     * @example
+     * // Delete one PrintAgent
+     * const PrintAgent = await prisma.printAgent.delete({
+     *   where: {
+     *     // ... filter to delete one PrintAgent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PrintAgentDeleteArgs>(args: SelectSubset<T, PrintAgentDeleteArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PrintAgent.
+     * @param {PrintAgentUpdateArgs} args - Arguments to update one PrintAgent.
+     * @example
+     * // Update one PrintAgent
+     * const printAgent = await prisma.printAgent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PrintAgentUpdateArgs>(args: SelectSubset<T, PrintAgentUpdateArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PrintAgents.
+     * @param {PrintAgentDeleteManyArgs} args - Arguments to filter PrintAgents to delete.
+     * @example
+     * // Delete a few PrintAgents
+     * const { count } = await prisma.printAgent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PrintAgentDeleteManyArgs>(args?: SelectSubset<T, PrintAgentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PrintAgents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PrintAgents
+     * const printAgent = await prisma.printAgent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PrintAgentUpdateManyArgs>(args: SelectSubset<T, PrintAgentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PrintAgent.
+     * @param {PrintAgentUpsertArgs} args - Arguments to update or create a PrintAgent.
+     * @example
+     * // Update or create a PrintAgent
+     * const printAgent = await prisma.printAgent.upsert({
+     *   create: {
+     *     // ... data to create a PrintAgent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PrintAgent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PrintAgentUpsertArgs>(args: SelectSubset<T, PrintAgentUpsertArgs<ExtArgs>>): Prisma__PrintAgentClient<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PrintAgents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentCountArgs} args - Arguments to filter PrintAgents to count.
+     * @example
+     * // Count the number of PrintAgents
+     * const count = await prisma.printAgent.count({
+     *   where: {
+     *     // ... the filter for the PrintAgents we want to count
+     *   }
+     * })
+    **/
+    count<T extends PrintAgentCountArgs>(
+      args?: Subset<T, PrintAgentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PrintAgentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PrintAgent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PrintAgentAggregateArgs>(args: Subset<T, PrintAgentAggregateArgs>): Prisma.PrismaPromise<GetPrintAgentAggregateType<T>>
+
+    /**
+     * Group by PrintAgent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PrintAgentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PrintAgentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PrintAgentGroupByArgs['orderBy'] }
+        : { orderBy?: PrintAgentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PrintAgentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPrintAgentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PrintAgent model
+   */
+  readonly fields: PrintAgentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PrintAgent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PrintAgentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    printers<T extends PrintAgent$printersArgs<ExtArgs> = {}>(args?: Subset<T, PrintAgent$printersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findMany"> | Null>
+    claimedJobs<T extends PrintAgent$claimedJobsArgs<ExtArgs> = {}>(args?: Subset<T, PrintAgent$claimedJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PrintAgent model
+   */ 
+  interface PrintAgentFieldRefs {
+    readonly id: FieldRef<"PrintAgent", 'String'>
+    readonly tenantId: FieldRef<"PrintAgent", 'String'>
+    readonly locationId: FieldRef<"PrintAgent", 'String'>
+    readonly name: FieldRef<"PrintAgent", 'String'>
+    readonly kind: FieldRef<"PrintAgent", 'PrintAgentKind'>
+    readonly apiTokenHash: FieldRef<"PrintAgent", 'String'>
+    readonly capabilities: FieldRef<"PrintAgent", 'Json'>
+    readonly versionString: FieldRef<"PrintAgent", 'String'>
+    readonly lastSeenAt: FieldRef<"PrintAgent", 'DateTime'>
+    readonly isActive: FieldRef<"PrintAgent", 'Boolean'>
+    readonly deletedAt: FieldRef<"PrintAgent", 'DateTime'>
+    readonly createdAt: FieldRef<"PrintAgent", 'DateTime'>
+    readonly updatedAt: FieldRef<"PrintAgent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PrintAgent findUnique
+   */
+  export type PrintAgentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintAgent to fetch.
+     */
+    where: PrintAgentWhereUniqueInput
+  }
+
+  /**
+   * PrintAgent findUniqueOrThrow
+   */
+  export type PrintAgentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintAgent to fetch.
+     */
+    where: PrintAgentWhereUniqueInput
+  }
+
+  /**
+   * PrintAgent findFirst
+   */
+  export type PrintAgentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintAgent to fetch.
+     */
+    where?: PrintAgentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintAgents to fetch.
+     */
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrintAgents.
+     */
+    cursor?: PrintAgentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintAgents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintAgents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrintAgents.
+     */
+    distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
+  }
+
+  /**
+   * PrintAgent findFirstOrThrow
+   */
+  export type PrintAgentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintAgent to fetch.
+     */
+    where?: PrintAgentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintAgents to fetch.
+     */
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PrintAgents.
+     */
+    cursor?: PrintAgentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintAgents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintAgents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PrintAgents.
+     */
+    distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
+  }
+
+  /**
+   * PrintAgent findMany
+   */
+  export type PrintAgentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter, which PrintAgents to fetch.
+     */
+    where?: PrintAgentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PrintAgents to fetch.
+     */
+    orderBy?: PrintAgentOrderByWithRelationInput | PrintAgentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PrintAgents.
+     */
+    cursor?: PrintAgentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PrintAgents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PrintAgents.
+     */
+    skip?: number
+    distinct?: PrintAgentScalarFieldEnum | PrintAgentScalarFieldEnum[]
+  }
+
+  /**
+   * PrintAgent create
+   */
+  export type PrintAgentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PrintAgent.
+     */
+    data: XOR<PrintAgentCreateInput, PrintAgentUncheckedCreateInput>
+  }
+
+  /**
+   * PrintAgent createMany
+   */
+  export type PrintAgentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PrintAgents.
+     */
+    data: PrintAgentCreateManyInput | PrintAgentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PrintAgent createManyAndReturn
+   */
+  export type PrintAgentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PrintAgents.
+     */
+    data: PrintAgentCreateManyInput | PrintAgentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PrintAgent update
+   */
+  export type PrintAgentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PrintAgent.
+     */
+    data: XOR<PrintAgentUpdateInput, PrintAgentUncheckedUpdateInput>
+    /**
+     * Choose, which PrintAgent to update.
+     */
+    where: PrintAgentWhereUniqueInput
+  }
+
+  /**
+   * PrintAgent updateMany
+   */
+  export type PrintAgentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PrintAgents.
+     */
+    data: XOR<PrintAgentUpdateManyMutationInput, PrintAgentUncheckedUpdateManyInput>
+    /**
+     * Filter which PrintAgents to update
+     */
+    where?: PrintAgentWhereInput
+  }
+
+  /**
+   * PrintAgent upsert
+   */
+  export type PrintAgentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PrintAgent to update in case it exists.
+     */
+    where: PrintAgentWhereUniqueInput
+    /**
+     * In case the PrintAgent found by the `where` argument doesn't exist, create a new PrintAgent with this data.
+     */
+    create: XOR<PrintAgentCreateInput, PrintAgentUncheckedCreateInput>
+    /**
+     * In case the PrintAgent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PrintAgentUpdateInput, PrintAgentUncheckedUpdateInput>
+  }
+
+  /**
+   * PrintAgent delete
+   */
+  export type PrintAgentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+    /**
+     * Filter which PrintAgent to delete.
+     */
+    where: PrintAgentWhereUniqueInput
+  }
+
+  /**
+   * PrintAgent deleteMany
+   */
+  export type PrintAgentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PrintAgents to delete
+     */
+    where?: PrintAgentWhereInput
+  }
+
+  /**
+   * PrintAgent.printers
+   */
+  export type PrintAgent$printersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Printer
+     */
+    select?: PrinterSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrinterInclude<ExtArgs> | null
+    where?: PrinterWhereInput
+    orderBy?: PrinterOrderByWithRelationInput | PrinterOrderByWithRelationInput[]
+    cursor?: PrinterWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrinterScalarFieldEnum | PrinterScalarFieldEnum[]
+  }
+
+  /**
+   * PrintAgent.claimedJobs
+   */
+  export type PrintAgent$claimedJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintJob
+     */
+    select?: PrintJobSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintJobInclude<ExtArgs> | null
+    where?: PrintJobWhereInput
+    orderBy?: PrintJobOrderByWithRelationInput | PrintJobOrderByWithRelationInput[]
+    cursor?: PrintJobWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PrintJobScalarFieldEnum | PrintJobScalarFieldEnum[]
+  }
+
+  /**
+   * PrintAgent without action
+   */
+  export type PrintAgentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PrintAgent
+     */
+    select?: PrintAgentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PrintAgentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuItemStation
+   */
+
+  export type AggregateMenuItemStation = {
+    _count: MenuItemStationCountAggregateOutputType | null
+    _min: MenuItemStationMinAggregateOutputType | null
+    _max: MenuItemStationMaxAggregateOutputType | null
+  }
+
+  export type MenuItemStationMinAggregateOutputType = {
+    id: string | null
+    menuItemId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuItemStationMaxAggregateOutputType = {
+    id: string | null
+    menuItemId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuItemStationCountAggregateOutputType = {
+    id: number
+    menuItemId: number
+    stationId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MenuItemStationMinAggregateInputType = {
+    id?: true
+    menuItemId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type MenuItemStationMaxAggregateInputType = {
+    id?: true
+    menuItemId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type MenuItemStationCountAggregateInputType = {
+    id?: true
+    menuItemId?: true
+    stationId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MenuItemStationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuItemStation to aggregate.
+     */
+    where?: MenuItemStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemStations to fetch.
+     */
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuItemStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuItemStations
+    **/
+    _count?: true | MenuItemStationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuItemStationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuItemStationMaxAggregateInputType
+  }
+
+  export type GetMenuItemStationAggregateType<T extends MenuItemStationAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuItemStation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuItemStation[P]>
+      : GetScalarType<T[P], AggregateMenuItemStation[P]>
+  }
+
+
+
+
+  export type MenuItemStationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemStationWhereInput
+    orderBy?: MenuItemStationOrderByWithAggregationInput | MenuItemStationOrderByWithAggregationInput[]
+    by: MenuItemStationScalarFieldEnum[] | MenuItemStationScalarFieldEnum
+    having?: MenuItemStationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuItemStationCountAggregateInputType | true
+    _min?: MenuItemStationMinAggregateInputType
+    _max?: MenuItemStationMaxAggregateInputType
+  }
+
+  export type MenuItemStationGroupByOutputType = {
+    id: string
+    menuItemId: string
+    stationId: string
+    createdAt: Date
+    _count: MenuItemStationCountAggregateOutputType | null
+    _min: MenuItemStationMinAggregateOutputType | null
+    _max: MenuItemStationMaxAggregateOutputType | null
+  }
+
+  type GetMenuItemStationGroupByPayload<T extends MenuItemStationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuItemStationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuItemStationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuItemStationGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuItemStationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuItemStationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    menuItemId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuItemStation"]>
+
+  export type MenuItemStationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    menuItemId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuItemStation"]>
+
+  export type MenuItemStationSelectScalar = {
+    id?: boolean
+    menuItemId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+  }
+
+  export type MenuItemStationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+  export type MenuItemStationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuItemStationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuItemStation"
+    objects: {
+      menuItem: Prisma.$MenuItemPayload<ExtArgs>
+      station: Prisma.$PrinterStationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      menuItemId: string
+      stationId: string
+      createdAt: Date
+    }, ExtArgs["result"]["menuItemStation"]>
+    composites: {}
+  }
+
+  type MenuItemStationGetPayload<S extends boolean | null | undefined | MenuItemStationDefaultArgs> = $Result.GetResult<Prisma.$MenuItemStationPayload, S>
+
+  type MenuItemStationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MenuItemStationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MenuItemStationCountAggregateInputType | true
+    }
+
+  export interface MenuItemStationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuItemStation'], meta: { name: 'MenuItemStation' } }
+    /**
+     * Find zero or one MenuItemStation that matches the filter.
+     * @param {MenuItemStationFindUniqueArgs} args - Arguments to find a MenuItemStation
+     * @example
+     * // Get one MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuItemStationFindUniqueArgs>(args: SelectSubset<T, MenuItemStationFindUniqueArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MenuItemStation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MenuItemStationFindUniqueOrThrowArgs} args - Arguments to find a MenuItemStation
+     * @example
+     * // Get one MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuItemStationFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuItemStationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MenuItemStation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationFindFirstArgs} args - Arguments to find a MenuItemStation
+     * @example
+     * // Get one MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuItemStationFindFirstArgs>(args?: SelectSubset<T, MenuItemStationFindFirstArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MenuItemStation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationFindFirstOrThrowArgs} args - Arguments to find a MenuItemStation
+     * @example
+     * // Get one MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuItemStationFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuItemStationFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MenuItemStations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuItemStations
+     * const menuItemStations = await prisma.menuItemStation.findMany()
+     * 
+     * // Get first 10 MenuItemStations
+     * const menuItemStations = await prisma.menuItemStation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuItemStationWithIdOnly = await prisma.menuItemStation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuItemStationFindManyArgs>(args?: SelectSubset<T, MenuItemStationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MenuItemStation.
+     * @param {MenuItemStationCreateArgs} args - Arguments to create a MenuItemStation.
+     * @example
+     * // Create one MenuItemStation
+     * const MenuItemStation = await prisma.menuItemStation.create({
+     *   data: {
+     *     // ... data to create a MenuItemStation
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuItemStationCreateArgs>(args: SelectSubset<T, MenuItemStationCreateArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MenuItemStations.
+     * @param {MenuItemStationCreateManyArgs} args - Arguments to create many MenuItemStations.
+     * @example
+     * // Create many MenuItemStations
+     * const menuItemStation = await prisma.menuItemStation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuItemStationCreateManyArgs>(args?: SelectSubset<T, MenuItemStationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuItemStations and returns the data saved in the database.
+     * @param {MenuItemStationCreateManyAndReturnArgs} args - Arguments to create many MenuItemStations.
+     * @example
+     * // Create many MenuItemStations
+     * const menuItemStation = await prisma.menuItemStation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuItemStations and only return the `id`
+     * const menuItemStationWithIdOnly = await prisma.menuItemStation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuItemStationCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuItemStationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MenuItemStation.
+     * @param {MenuItemStationDeleteArgs} args - Arguments to delete one MenuItemStation.
+     * @example
+     * // Delete one MenuItemStation
+     * const MenuItemStation = await prisma.menuItemStation.delete({
+     *   where: {
+     *     // ... filter to delete one MenuItemStation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuItemStationDeleteArgs>(args: SelectSubset<T, MenuItemStationDeleteArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MenuItemStation.
+     * @param {MenuItemStationUpdateArgs} args - Arguments to update one MenuItemStation.
+     * @example
+     * // Update one MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuItemStationUpdateArgs>(args: SelectSubset<T, MenuItemStationUpdateArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MenuItemStations.
+     * @param {MenuItemStationDeleteManyArgs} args - Arguments to filter MenuItemStations to delete.
+     * @example
+     * // Delete a few MenuItemStations
+     * const { count } = await prisma.menuItemStation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuItemStationDeleteManyArgs>(args?: SelectSubset<T, MenuItemStationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuItemStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuItemStations
+     * const menuItemStation = await prisma.menuItemStation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuItemStationUpdateManyArgs>(args: SelectSubset<T, MenuItemStationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MenuItemStation.
+     * @param {MenuItemStationUpsertArgs} args - Arguments to update or create a MenuItemStation.
+     * @example
+     * // Update or create a MenuItemStation
+     * const menuItemStation = await prisma.menuItemStation.upsert({
+     *   create: {
+     *     // ... data to create a MenuItemStation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuItemStation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuItemStationUpsertArgs>(args: SelectSubset<T, MenuItemStationUpsertArgs<ExtArgs>>): Prisma__MenuItemStationClient<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MenuItemStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationCountArgs} args - Arguments to filter MenuItemStations to count.
+     * @example
+     * // Count the number of MenuItemStations
+     * const count = await prisma.menuItemStation.count({
+     *   where: {
+     *     // ... the filter for the MenuItemStations we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuItemStationCountArgs>(
+      args?: Subset<T, MenuItemStationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuItemStationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuItemStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuItemStationAggregateArgs>(args: Subset<T, MenuItemStationAggregateArgs>): Prisma.PrismaPromise<GetMenuItemStationAggregateType<T>>
+
+    /**
+     * Group by MenuItemStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemStationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuItemStationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuItemStationGroupByArgs['orderBy'] }
+        : { orderBy?: MenuItemStationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuItemStationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuItemStationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuItemStation model
+   */
+  readonly fields: MenuItemStationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuItemStation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuItemStationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    menuItem<T extends MenuItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuItemDefaultArgs<ExtArgs>>): Prisma__MenuItemClient<$Result.GetResult<Prisma.$MenuItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    station<T extends PrinterStationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStationDefaultArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuItemStation model
+   */ 
+  interface MenuItemStationFieldRefs {
+    readonly id: FieldRef<"MenuItemStation", 'String'>
+    readonly menuItemId: FieldRef<"MenuItemStation", 'String'>
+    readonly stationId: FieldRef<"MenuItemStation", 'String'>
+    readonly createdAt: FieldRef<"MenuItemStation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuItemStation findUnique
+   */
+  export type MenuItemStationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemStation to fetch.
+     */
+    where: MenuItemStationWhereUniqueInput
+  }
+
+  /**
+   * MenuItemStation findUniqueOrThrow
+   */
+  export type MenuItemStationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemStation to fetch.
+     */
+    where: MenuItemStationWhereUniqueInput
+  }
+
+  /**
+   * MenuItemStation findFirst
+   */
+  export type MenuItemStationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemStation to fetch.
+     */
+    where?: MenuItemStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemStations to fetch.
+     */
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuItemStations.
+     */
+    cursor?: MenuItemStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuItemStations.
+     */
+    distinct?: MenuItemStationScalarFieldEnum | MenuItemStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemStation findFirstOrThrow
+   */
+  export type MenuItemStationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemStation to fetch.
+     */
+    where?: MenuItemStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemStations to fetch.
+     */
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuItemStations.
+     */
+    cursor?: MenuItemStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuItemStations.
+     */
+    distinct?: MenuItemStationScalarFieldEnum | MenuItemStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemStation findMany
+   */
+  export type MenuItemStationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemStations to fetch.
+     */
+    where?: MenuItemStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemStations to fetch.
+     */
+    orderBy?: MenuItemStationOrderByWithRelationInput | MenuItemStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuItemStations.
+     */
+    cursor?: MenuItemStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemStations.
+     */
+    skip?: number
+    distinct?: MenuItemStationScalarFieldEnum | MenuItemStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemStation create
+   */
+  export type MenuItemStationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuItemStation.
+     */
+    data: XOR<MenuItemStationCreateInput, MenuItemStationUncheckedCreateInput>
+  }
+
+  /**
+   * MenuItemStation createMany
+   */
+  export type MenuItemStationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuItemStations.
+     */
+    data: MenuItemStationCreateManyInput | MenuItemStationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuItemStation createManyAndReturn
+   */
+  export type MenuItemStationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MenuItemStations.
+     */
+    data: MenuItemStationCreateManyInput | MenuItemStationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuItemStation update
+   */
+  export type MenuItemStationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuItemStation.
+     */
+    data: XOR<MenuItemStationUpdateInput, MenuItemStationUncheckedUpdateInput>
+    /**
+     * Choose, which MenuItemStation to update.
+     */
+    where: MenuItemStationWhereUniqueInput
+  }
+
+  /**
+   * MenuItemStation updateMany
+   */
+  export type MenuItemStationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuItemStations.
+     */
+    data: XOR<MenuItemStationUpdateManyMutationInput, MenuItemStationUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuItemStations to update
+     */
+    where?: MenuItemStationWhereInput
+  }
+
+  /**
+   * MenuItemStation upsert
+   */
+  export type MenuItemStationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuItemStation to update in case it exists.
+     */
+    where: MenuItemStationWhereUniqueInput
+    /**
+     * In case the MenuItemStation found by the `where` argument doesn't exist, create a new MenuItemStation with this data.
+     */
+    create: XOR<MenuItemStationCreateInput, MenuItemStationUncheckedCreateInput>
+    /**
+     * In case the MenuItemStation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuItemStationUpdateInput, MenuItemStationUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuItemStation delete
+   */
+  export type MenuItemStationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+    /**
+     * Filter which MenuItemStation to delete.
+     */
+    where: MenuItemStationWhereUniqueInput
+  }
+
+  /**
+   * MenuItemStation deleteMany
+   */
+  export type MenuItemStationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuItemStations to delete
+     */
+    where?: MenuItemStationWhereInput
+  }
+
+  /**
+   * MenuItemStation without action
+   */
+  export type MenuItemStationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemStation
+     */
+    select?: MenuItemStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemStationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ModifierGroupStation
+   */
+
+  export type AggregateModifierGroupStation = {
+    _count: ModifierGroupStationCountAggregateOutputType | null
+    _min: ModifierGroupStationMinAggregateOutputType | null
+    _max: ModifierGroupStationMaxAggregateOutputType | null
+  }
+
+  export type ModifierGroupStationMinAggregateOutputType = {
+    id: string | null
+    modifierGroupId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type ModifierGroupStationMaxAggregateOutputType = {
+    id: string | null
+    modifierGroupId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type ModifierGroupStationCountAggregateOutputType = {
+    id: number
+    modifierGroupId: number
+    stationId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ModifierGroupStationMinAggregateInputType = {
+    id?: true
+    modifierGroupId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type ModifierGroupStationMaxAggregateInputType = {
+    id?: true
+    modifierGroupId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type ModifierGroupStationCountAggregateInputType = {
+    id?: true
+    modifierGroupId?: true
+    stationId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ModifierGroupStationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ModifierGroupStation to aggregate.
+     */
+    where?: ModifierGroupStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierGroupStations to fetch.
+     */
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ModifierGroupStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierGroupStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierGroupStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ModifierGroupStations
+    **/
+    _count?: true | ModifierGroupStationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ModifierGroupStationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ModifierGroupStationMaxAggregateInputType
+  }
+
+  export type GetModifierGroupStationAggregateType<T extends ModifierGroupStationAggregateArgs> = {
+        [P in keyof T & keyof AggregateModifierGroupStation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateModifierGroupStation[P]>
+      : GetScalarType<T[P], AggregateModifierGroupStation[P]>
+  }
+
+
+
+
+  export type ModifierGroupStationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModifierGroupStationWhereInput
+    orderBy?: ModifierGroupStationOrderByWithAggregationInput | ModifierGroupStationOrderByWithAggregationInput[]
+    by: ModifierGroupStationScalarFieldEnum[] | ModifierGroupStationScalarFieldEnum
+    having?: ModifierGroupStationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ModifierGroupStationCountAggregateInputType | true
+    _min?: ModifierGroupStationMinAggregateInputType
+    _max?: ModifierGroupStationMaxAggregateInputType
+  }
+
+  export type ModifierGroupStationGroupByOutputType = {
+    id: string
+    modifierGroupId: string
+    stationId: string
+    createdAt: Date
+    _count: ModifierGroupStationCountAggregateOutputType | null
+    _min: ModifierGroupStationMinAggregateOutputType | null
+    _max: ModifierGroupStationMaxAggregateOutputType | null
+  }
+
+  type GetModifierGroupStationGroupByPayload<T extends ModifierGroupStationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ModifierGroupStationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ModifierGroupStationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ModifierGroupStationGroupByOutputType[P]>
+            : GetScalarType<T[P], ModifierGroupStationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ModifierGroupStationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    modifierGroupId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    modifierGroup?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["modifierGroupStation"]>
+
+  export type ModifierGroupStationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    modifierGroupId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    modifierGroup?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["modifierGroupStation"]>
+
+  export type ModifierGroupStationSelectScalar = {
+    id?: boolean
+    modifierGroupId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+  }
+
+  export type ModifierGroupStationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    modifierGroup?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+  export type ModifierGroupStationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    modifierGroup?: boolean | ModifierGroupDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+
+  export type $ModifierGroupStationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ModifierGroupStation"
+    objects: {
+      modifierGroup: Prisma.$ModifierGroupPayload<ExtArgs>
+      station: Prisma.$PrinterStationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      modifierGroupId: string
+      stationId: string
+      createdAt: Date
+    }, ExtArgs["result"]["modifierGroupStation"]>
+    composites: {}
+  }
+
+  type ModifierGroupStationGetPayload<S extends boolean | null | undefined | ModifierGroupStationDefaultArgs> = $Result.GetResult<Prisma.$ModifierGroupStationPayload, S>
+
+  type ModifierGroupStationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ModifierGroupStationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ModifierGroupStationCountAggregateInputType | true
+    }
+
+  export interface ModifierGroupStationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ModifierGroupStation'], meta: { name: 'ModifierGroupStation' } }
+    /**
+     * Find zero or one ModifierGroupStation that matches the filter.
+     * @param {ModifierGroupStationFindUniqueArgs} args - Arguments to find a ModifierGroupStation
+     * @example
+     * // Get one ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ModifierGroupStationFindUniqueArgs>(args: SelectSubset<T, ModifierGroupStationFindUniqueArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ModifierGroupStation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ModifierGroupStationFindUniqueOrThrowArgs} args - Arguments to find a ModifierGroupStation
+     * @example
+     * // Get one ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ModifierGroupStationFindUniqueOrThrowArgs>(args: SelectSubset<T, ModifierGroupStationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ModifierGroupStation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationFindFirstArgs} args - Arguments to find a ModifierGroupStation
+     * @example
+     * // Get one ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ModifierGroupStationFindFirstArgs>(args?: SelectSubset<T, ModifierGroupStationFindFirstArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ModifierGroupStation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationFindFirstOrThrowArgs} args - Arguments to find a ModifierGroupStation
+     * @example
+     * // Get one ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ModifierGroupStationFindFirstOrThrowArgs>(args?: SelectSubset<T, ModifierGroupStationFindFirstOrThrowArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ModifierGroupStations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ModifierGroupStations
+     * const modifierGroupStations = await prisma.modifierGroupStation.findMany()
+     * 
+     * // Get first 10 ModifierGroupStations
+     * const modifierGroupStations = await prisma.modifierGroupStation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const modifierGroupStationWithIdOnly = await prisma.modifierGroupStation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ModifierGroupStationFindManyArgs>(args?: SelectSubset<T, ModifierGroupStationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ModifierGroupStation.
+     * @param {ModifierGroupStationCreateArgs} args - Arguments to create a ModifierGroupStation.
+     * @example
+     * // Create one ModifierGroupStation
+     * const ModifierGroupStation = await prisma.modifierGroupStation.create({
+     *   data: {
+     *     // ... data to create a ModifierGroupStation
+     *   }
+     * })
+     * 
+     */
+    create<T extends ModifierGroupStationCreateArgs>(args: SelectSubset<T, ModifierGroupStationCreateArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ModifierGroupStations.
+     * @param {ModifierGroupStationCreateManyArgs} args - Arguments to create many ModifierGroupStations.
+     * @example
+     * // Create many ModifierGroupStations
+     * const modifierGroupStation = await prisma.modifierGroupStation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ModifierGroupStationCreateManyArgs>(args?: SelectSubset<T, ModifierGroupStationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ModifierGroupStations and returns the data saved in the database.
+     * @param {ModifierGroupStationCreateManyAndReturnArgs} args - Arguments to create many ModifierGroupStations.
+     * @example
+     * // Create many ModifierGroupStations
+     * const modifierGroupStation = await prisma.modifierGroupStation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ModifierGroupStations and only return the `id`
+     * const modifierGroupStationWithIdOnly = await prisma.modifierGroupStation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ModifierGroupStationCreateManyAndReturnArgs>(args?: SelectSubset<T, ModifierGroupStationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ModifierGroupStation.
+     * @param {ModifierGroupStationDeleteArgs} args - Arguments to delete one ModifierGroupStation.
+     * @example
+     * // Delete one ModifierGroupStation
+     * const ModifierGroupStation = await prisma.modifierGroupStation.delete({
+     *   where: {
+     *     // ... filter to delete one ModifierGroupStation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ModifierGroupStationDeleteArgs>(args: SelectSubset<T, ModifierGroupStationDeleteArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ModifierGroupStation.
+     * @param {ModifierGroupStationUpdateArgs} args - Arguments to update one ModifierGroupStation.
+     * @example
+     * // Update one ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ModifierGroupStationUpdateArgs>(args: SelectSubset<T, ModifierGroupStationUpdateArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ModifierGroupStations.
+     * @param {ModifierGroupStationDeleteManyArgs} args - Arguments to filter ModifierGroupStations to delete.
+     * @example
+     * // Delete a few ModifierGroupStations
+     * const { count } = await prisma.modifierGroupStation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ModifierGroupStationDeleteManyArgs>(args?: SelectSubset<T, ModifierGroupStationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ModifierGroupStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ModifierGroupStations
+     * const modifierGroupStation = await prisma.modifierGroupStation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ModifierGroupStationUpdateManyArgs>(args: SelectSubset<T, ModifierGroupStationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ModifierGroupStation.
+     * @param {ModifierGroupStationUpsertArgs} args - Arguments to update or create a ModifierGroupStation.
+     * @example
+     * // Update or create a ModifierGroupStation
+     * const modifierGroupStation = await prisma.modifierGroupStation.upsert({
+     *   create: {
+     *     // ... data to create a ModifierGroupStation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ModifierGroupStation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ModifierGroupStationUpsertArgs>(args: SelectSubset<T, ModifierGroupStationUpsertArgs<ExtArgs>>): Prisma__ModifierGroupStationClient<$Result.GetResult<Prisma.$ModifierGroupStationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ModifierGroupStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationCountArgs} args - Arguments to filter ModifierGroupStations to count.
+     * @example
+     * // Count the number of ModifierGroupStations
+     * const count = await prisma.modifierGroupStation.count({
+     *   where: {
+     *     // ... the filter for the ModifierGroupStations we want to count
+     *   }
+     * })
+    **/
+    count<T extends ModifierGroupStationCountArgs>(
+      args?: Subset<T, ModifierGroupStationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ModifierGroupStationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ModifierGroupStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ModifierGroupStationAggregateArgs>(args: Subset<T, ModifierGroupStationAggregateArgs>): Prisma.PrismaPromise<GetModifierGroupStationAggregateType<T>>
+
+    /**
+     * Group by ModifierGroupStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ModifierGroupStationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ModifierGroupStationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ModifierGroupStationGroupByArgs['orderBy'] }
+        : { orderBy?: ModifierGroupStationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ModifierGroupStationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetModifierGroupStationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ModifierGroupStation model
+   */
+  readonly fields: ModifierGroupStationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ModifierGroupStation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ModifierGroupStationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    modifierGroup<T extends ModifierGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModifierGroupDefaultArgs<ExtArgs>>): Prisma__ModifierGroupClient<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    station<T extends PrinterStationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStationDefaultArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ModifierGroupStation model
+   */ 
+  interface ModifierGroupStationFieldRefs {
+    readonly id: FieldRef<"ModifierGroupStation", 'String'>
+    readonly modifierGroupId: FieldRef<"ModifierGroupStation", 'String'>
+    readonly stationId: FieldRef<"ModifierGroupStation", 'String'>
+    readonly createdAt: FieldRef<"ModifierGroupStation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ModifierGroupStation findUnique
+   */
+  export type ModifierGroupStationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierGroupStation to fetch.
+     */
+    where: ModifierGroupStationWhereUniqueInput
+  }
+
+  /**
+   * ModifierGroupStation findUniqueOrThrow
+   */
+  export type ModifierGroupStationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierGroupStation to fetch.
+     */
+    where: ModifierGroupStationWhereUniqueInput
+  }
+
+  /**
+   * ModifierGroupStation findFirst
+   */
+  export type ModifierGroupStationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierGroupStation to fetch.
+     */
+    where?: ModifierGroupStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierGroupStations to fetch.
+     */
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ModifierGroupStations.
+     */
+    cursor?: ModifierGroupStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierGroupStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierGroupStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ModifierGroupStations.
+     */
+    distinct?: ModifierGroupStationScalarFieldEnum | ModifierGroupStationScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierGroupStation findFirstOrThrow
+   */
+  export type ModifierGroupStationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierGroupStation to fetch.
+     */
+    where?: ModifierGroupStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierGroupStations to fetch.
+     */
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ModifierGroupStations.
+     */
+    cursor?: ModifierGroupStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierGroupStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierGroupStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ModifierGroupStations.
+     */
+    distinct?: ModifierGroupStationScalarFieldEnum | ModifierGroupStationScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierGroupStation findMany
+   */
+  export type ModifierGroupStationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter, which ModifierGroupStations to fetch.
+     */
+    where?: ModifierGroupStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ModifierGroupStations to fetch.
+     */
+    orderBy?: ModifierGroupStationOrderByWithRelationInput | ModifierGroupStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ModifierGroupStations.
+     */
+    cursor?: ModifierGroupStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ModifierGroupStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ModifierGroupStations.
+     */
+    skip?: number
+    distinct?: ModifierGroupStationScalarFieldEnum | ModifierGroupStationScalarFieldEnum[]
+  }
+
+  /**
+   * ModifierGroupStation create
+   */
+  export type ModifierGroupStationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ModifierGroupStation.
+     */
+    data: XOR<ModifierGroupStationCreateInput, ModifierGroupStationUncheckedCreateInput>
+  }
+
+  /**
+   * ModifierGroupStation createMany
+   */
+  export type ModifierGroupStationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ModifierGroupStations.
+     */
+    data: ModifierGroupStationCreateManyInput | ModifierGroupStationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ModifierGroupStation createManyAndReturn
+   */
+  export type ModifierGroupStationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ModifierGroupStations.
+     */
+    data: ModifierGroupStationCreateManyInput | ModifierGroupStationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ModifierGroupStation update
+   */
+  export type ModifierGroupStationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ModifierGroupStation.
+     */
+    data: XOR<ModifierGroupStationUpdateInput, ModifierGroupStationUncheckedUpdateInput>
+    /**
+     * Choose, which ModifierGroupStation to update.
+     */
+    where: ModifierGroupStationWhereUniqueInput
+  }
+
+  /**
+   * ModifierGroupStation updateMany
+   */
+  export type ModifierGroupStationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ModifierGroupStations.
+     */
+    data: XOR<ModifierGroupStationUpdateManyMutationInput, ModifierGroupStationUncheckedUpdateManyInput>
+    /**
+     * Filter which ModifierGroupStations to update
+     */
+    where?: ModifierGroupStationWhereInput
+  }
+
+  /**
+   * ModifierGroupStation upsert
+   */
+  export type ModifierGroupStationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ModifierGroupStation to update in case it exists.
+     */
+    where: ModifierGroupStationWhereUniqueInput
+    /**
+     * In case the ModifierGroupStation found by the `where` argument doesn't exist, create a new ModifierGroupStation with this data.
+     */
+    create: XOR<ModifierGroupStationCreateInput, ModifierGroupStationUncheckedCreateInput>
+    /**
+     * In case the ModifierGroupStation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ModifierGroupStationUpdateInput, ModifierGroupStationUncheckedUpdateInput>
+  }
+
+  /**
+   * ModifierGroupStation delete
+   */
+  export type ModifierGroupStationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+    /**
+     * Filter which ModifierGroupStation to delete.
+     */
+    where: ModifierGroupStationWhereUniqueInput
+  }
+
+  /**
+   * ModifierGroupStation deleteMany
+   */
+  export type ModifierGroupStationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ModifierGroupStations to delete
+     */
+    where?: ModifierGroupStationWhereInput
+  }
+
+  /**
+   * ModifierGroupStation without action
+   */
+  export type ModifierGroupStationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ModifierGroupStation
+     */
+    select?: ModifierGroupStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModifierGroupStationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuCategoryStation
+   */
+
+  export type AggregateMenuCategoryStation = {
+    _count: MenuCategoryStationCountAggregateOutputType | null
+    _min: MenuCategoryStationMinAggregateOutputType | null
+    _max: MenuCategoryStationMaxAggregateOutputType | null
+  }
+
+  export type MenuCategoryStationMinAggregateOutputType = {
+    id: string | null
+    categoryId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuCategoryStationMaxAggregateOutputType = {
+    id: string | null
+    categoryId: string | null
+    stationId: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuCategoryStationCountAggregateOutputType = {
+    id: number
+    categoryId: number
+    stationId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MenuCategoryStationMinAggregateInputType = {
+    id?: true
+    categoryId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type MenuCategoryStationMaxAggregateInputType = {
+    id?: true
+    categoryId?: true
+    stationId?: true
+    createdAt?: true
+  }
+
+  export type MenuCategoryStationCountAggregateInputType = {
+    id?: true
+    categoryId?: true
+    stationId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MenuCategoryStationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuCategoryStation to aggregate.
+     */
+    where?: MenuCategoryStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuCategoryStations to fetch.
+     */
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuCategoryStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuCategoryStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuCategoryStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuCategoryStations
+    **/
+    _count?: true | MenuCategoryStationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuCategoryStationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuCategoryStationMaxAggregateInputType
+  }
+
+  export type GetMenuCategoryStationAggregateType<T extends MenuCategoryStationAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuCategoryStation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuCategoryStation[P]>
+      : GetScalarType<T[P], AggregateMenuCategoryStation[P]>
+  }
+
+
+
+
+  export type MenuCategoryStationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuCategoryStationWhereInput
+    orderBy?: MenuCategoryStationOrderByWithAggregationInput | MenuCategoryStationOrderByWithAggregationInput[]
+    by: MenuCategoryStationScalarFieldEnum[] | MenuCategoryStationScalarFieldEnum
+    having?: MenuCategoryStationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuCategoryStationCountAggregateInputType | true
+    _min?: MenuCategoryStationMinAggregateInputType
+    _max?: MenuCategoryStationMaxAggregateInputType
+  }
+
+  export type MenuCategoryStationGroupByOutputType = {
+    id: string
+    categoryId: string
+    stationId: string
+    createdAt: Date
+    _count: MenuCategoryStationCountAggregateOutputType | null
+    _min: MenuCategoryStationMinAggregateOutputType | null
+    _max: MenuCategoryStationMaxAggregateOutputType | null
+  }
+
+  type GetMenuCategoryStationGroupByPayload<T extends MenuCategoryStationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuCategoryStationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuCategoryStationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuCategoryStationGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuCategoryStationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuCategoryStationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    categoryId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    category?: boolean | MenuCategoryDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuCategoryStation"]>
+
+  export type MenuCategoryStationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    categoryId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+    category?: boolean | MenuCategoryDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuCategoryStation"]>
+
+  export type MenuCategoryStationSelectScalar = {
+    id?: boolean
+    categoryId?: boolean
+    stationId?: boolean
+    createdAt?: boolean
+  }
+
+  export type MenuCategoryStationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    category?: boolean | MenuCategoryDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+  export type MenuCategoryStationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    category?: boolean | MenuCategoryDefaultArgs<ExtArgs>
+    station?: boolean | PrinterStationDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuCategoryStationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuCategoryStation"
+    objects: {
+      category: Prisma.$MenuCategoryPayload<ExtArgs>
+      station: Prisma.$PrinterStationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      categoryId: string
+      stationId: string
+      createdAt: Date
+    }, ExtArgs["result"]["menuCategoryStation"]>
+    composites: {}
+  }
+
+  type MenuCategoryStationGetPayload<S extends boolean | null | undefined | MenuCategoryStationDefaultArgs> = $Result.GetResult<Prisma.$MenuCategoryStationPayload, S>
+
+  type MenuCategoryStationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MenuCategoryStationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MenuCategoryStationCountAggregateInputType | true
+    }
+
+  export interface MenuCategoryStationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuCategoryStation'], meta: { name: 'MenuCategoryStation' } }
+    /**
+     * Find zero or one MenuCategoryStation that matches the filter.
+     * @param {MenuCategoryStationFindUniqueArgs} args - Arguments to find a MenuCategoryStation
+     * @example
+     * // Get one MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuCategoryStationFindUniqueArgs>(args: SelectSubset<T, MenuCategoryStationFindUniqueArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MenuCategoryStation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MenuCategoryStationFindUniqueOrThrowArgs} args - Arguments to find a MenuCategoryStation
+     * @example
+     * // Get one MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuCategoryStationFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuCategoryStationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MenuCategoryStation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationFindFirstArgs} args - Arguments to find a MenuCategoryStation
+     * @example
+     * // Get one MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuCategoryStationFindFirstArgs>(args?: SelectSubset<T, MenuCategoryStationFindFirstArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MenuCategoryStation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationFindFirstOrThrowArgs} args - Arguments to find a MenuCategoryStation
+     * @example
+     * // Get one MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuCategoryStationFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuCategoryStationFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MenuCategoryStations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuCategoryStations
+     * const menuCategoryStations = await prisma.menuCategoryStation.findMany()
+     * 
+     * // Get first 10 MenuCategoryStations
+     * const menuCategoryStations = await prisma.menuCategoryStation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuCategoryStationWithIdOnly = await prisma.menuCategoryStation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuCategoryStationFindManyArgs>(args?: SelectSubset<T, MenuCategoryStationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MenuCategoryStation.
+     * @param {MenuCategoryStationCreateArgs} args - Arguments to create a MenuCategoryStation.
+     * @example
+     * // Create one MenuCategoryStation
+     * const MenuCategoryStation = await prisma.menuCategoryStation.create({
+     *   data: {
+     *     // ... data to create a MenuCategoryStation
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuCategoryStationCreateArgs>(args: SelectSubset<T, MenuCategoryStationCreateArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MenuCategoryStations.
+     * @param {MenuCategoryStationCreateManyArgs} args - Arguments to create many MenuCategoryStations.
+     * @example
+     * // Create many MenuCategoryStations
+     * const menuCategoryStation = await prisma.menuCategoryStation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuCategoryStationCreateManyArgs>(args?: SelectSubset<T, MenuCategoryStationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuCategoryStations and returns the data saved in the database.
+     * @param {MenuCategoryStationCreateManyAndReturnArgs} args - Arguments to create many MenuCategoryStations.
+     * @example
+     * // Create many MenuCategoryStations
+     * const menuCategoryStation = await prisma.menuCategoryStation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuCategoryStations and only return the `id`
+     * const menuCategoryStationWithIdOnly = await prisma.menuCategoryStation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuCategoryStationCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuCategoryStationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MenuCategoryStation.
+     * @param {MenuCategoryStationDeleteArgs} args - Arguments to delete one MenuCategoryStation.
+     * @example
+     * // Delete one MenuCategoryStation
+     * const MenuCategoryStation = await prisma.menuCategoryStation.delete({
+     *   where: {
+     *     // ... filter to delete one MenuCategoryStation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuCategoryStationDeleteArgs>(args: SelectSubset<T, MenuCategoryStationDeleteArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MenuCategoryStation.
+     * @param {MenuCategoryStationUpdateArgs} args - Arguments to update one MenuCategoryStation.
+     * @example
+     * // Update one MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuCategoryStationUpdateArgs>(args: SelectSubset<T, MenuCategoryStationUpdateArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MenuCategoryStations.
+     * @param {MenuCategoryStationDeleteManyArgs} args - Arguments to filter MenuCategoryStations to delete.
+     * @example
+     * // Delete a few MenuCategoryStations
+     * const { count } = await prisma.menuCategoryStation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuCategoryStationDeleteManyArgs>(args?: SelectSubset<T, MenuCategoryStationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuCategoryStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuCategoryStations
+     * const menuCategoryStation = await prisma.menuCategoryStation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuCategoryStationUpdateManyArgs>(args: SelectSubset<T, MenuCategoryStationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MenuCategoryStation.
+     * @param {MenuCategoryStationUpsertArgs} args - Arguments to update or create a MenuCategoryStation.
+     * @example
+     * // Update or create a MenuCategoryStation
+     * const menuCategoryStation = await prisma.menuCategoryStation.upsert({
+     *   create: {
+     *     // ... data to create a MenuCategoryStation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuCategoryStation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuCategoryStationUpsertArgs>(args: SelectSubset<T, MenuCategoryStationUpsertArgs<ExtArgs>>): Prisma__MenuCategoryStationClient<$Result.GetResult<Prisma.$MenuCategoryStationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MenuCategoryStations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationCountArgs} args - Arguments to filter MenuCategoryStations to count.
+     * @example
+     * // Count the number of MenuCategoryStations
+     * const count = await prisma.menuCategoryStation.count({
+     *   where: {
+     *     // ... the filter for the MenuCategoryStations we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuCategoryStationCountArgs>(
+      args?: Subset<T, MenuCategoryStationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuCategoryStationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuCategoryStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuCategoryStationAggregateArgs>(args: Subset<T, MenuCategoryStationAggregateArgs>): Prisma.PrismaPromise<GetMenuCategoryStationAggregateType<T>>
+
+    /**
+     * Group by MenuCategoryStation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuCategoryStationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuCategoryStationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuCategoryStationGroupByArgs['orderBy'] }
+        : { orderBy?: MenuCategoryStationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuCategoryStationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuCategoryStationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuCategoryStation model
+   */
+  readonly fields: MenuCategoryStationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuCategoryStation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuCategoryStationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    category<T extends MenuCategoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuCategoryDefaultArgs<ExtArgs>>): Prisma__MenuCategoryClient<$Result.GetResult<Prisma.$MenuCategoryPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    station<T extends PrinterStationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PrinterStationDefaultArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuCategoryStation model
+   */ 
+  interface MenuCategoryStationFieldRefs {
+    readonly id: FieldRef<"MenuCategoryStation", 'String'>
+    readonly categoryId: FieldRef<"MenuCategoryStation", 'String'>
+    readonly stationId: FieldRef<"MenuCategoryStation", 'String'>
+    readonly createdAt: FieldRef<"MenuCategoryStation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuCategoryStation findUnique
+   */
+  export type MenuCategoryStationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuCategoryStation to fetch.
+     */
+    where: MenuCategoryStationWhereUniqueInput
+  }
+
+  /**
+   * MenuCategoryStation findUniqueOrThrow
+   */
+  export type MenuCategoryStationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuCategoryStation to fetch.
+     */
+    where: MenuCategoryStationWhereUniqueInput
+  }
+
+  /**
+   * MenuCategoryStation findFirst
+   */
+  export type MenuCategoryStationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuCategoryStation to fetch.
+     */
+    where?: MenuCategoryStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuCategoryStations to fetch.
+     */
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuCategoryStations.
+     */
+    cursor?: MenuCategoryStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuCategoryStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuCategoryStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuCategoryStations.
+     */
+    distinct?: MenuCategoryStationScalarFieldEnum | MenuCategoryStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuCategoryStation findFirstOrThrow
+   */
+  export type MenuCategoryStationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuCategoryStation to fetch.
+     */
+    where?: MenuCategoryStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuCategoryStations to fetch.
+     */
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuCategoryStations.
+     */
+    cursor?: MenuCategoryStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuCategoryStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuCategoryStations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuCategoryStations.
+     */
+    distinct?: MenuCategoryStationScalarFieldEnum | MenuCategoryStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuCategoryStation findMany
+   */
+  export type MenuCategoryStationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuCategoryStations to fetch.
+     */
+    where?: MenuCategoryStationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuCategoryStations to fetch.
+     */
+    orderBy?: MenuCategoryStationOrderByWithRelationInput | MenuCategoryStationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuCategoryStations.
+     */
+    cursor?: MenuCategoryStationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuCategoryStations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuCategoryStations.
+     */
+    skip?: number
+    distinct?: MenuCategoryStationScalarFieldEnum | MenuCategoryStationScalarFieldEnum[]
+  }
+
+  /**
+   * MenuCategoryStation create
+   */
+  export type MenuCategoryStationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuCategoryStation.
+     */
+    data: XOR<MenuCategoryStationCreateInput, MenuCategoryStationUncheckedCreateInput>
+  }
+
+  /**
+   * MenuCategoryStation createMany
+   */
+  export type MenuCategoryStationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuCategoryStations.
+     */
+    data: MenuCategoryStationCreateManyInput | MenuCategoryStationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuCategoryStation createManyAndReturn
+   */
+  export type MenuCategoryStationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MenuCategoryStations.
+     */
+    data: MenuCategoryStationCreateManyInput | MenuCategoryStationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuCategoryStation update
+   */
+  export type MenuCategoryStationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuCategoryStation.
+     */
+    data: XOR<MenuCategoryStationUpdateInput, MenuCategoryStationUncheckedUpdateInput>
+    /**
+     * Choose, which MenuCategoryStation to update.
+     */
+    where: MenuCategoryStationWhereUniqueInput
+  }
+
+  /**
+   * MenuCategoryStation updateMany
+   */
+  export type MenuCategoryStationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuCategoryStations.
+     */
+    data: XOR<MenuCategoryStationUpdateManyMutationInput, MenuCategoryStationUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuCategoryStations to update
+     */
+    where?: MenuCategoryStationWhereInput
+  }
+
+  /**
+   * MenuCategoryStation upsert
+   */
+  export type MenuCategoryStationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuCategoryStation to update in case it exists.
+     */
+    where: MenuCategoryStationWhereUniqueInput
+    /**
+     * In case the MenuCategoryStation found by the `where` argument doesn't exist, create a new MenuCategoryStation with this data.
+     */
+    create: XOR<MenuCategoryStationCreateInput, MenuCategoryStationUncheckedCreateInput>
+    /**
+     * In case the MenuCategoryStation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuCategoryStationUpdateInput, MenuCategoryStationUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuCategoryStation delete
+   */
+  export type MenuCategoryStationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
+    /**
+     * Filter which MenuCategoryStation to delete.
+     */
+    where: MenuCategoryStationWhereUniqueInput
+  }
+
+  /**
+   * MenuCategoryStation deleteMany
+   */
+  export type MenuCategoryStationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuCategoryStations to delete
+     */
+    where?: MenuCategoryStationWhereInput
+  }
+
+  /**
+   * MenuCategoryStation without action
+   */
+  export type MenuCategoryStationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuCategoryStation
+     */
+    select?: MenuCategoryStationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuCategoryStationInclude<ExtArgs> | null
   }
 
 
@@ -96269,6 +102574,7 @@ export namespace Prisma {
     cuisine: 'cuisine',
     isSuspended: 'isSuspended',
     primaryLocationId: 'primaryLocationId',
+    defaultStationId: 'defaultStationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -96288,6 +102594,9 @@ export namespace Prisma {
     settings: 'settings',
     metadata: 'metadata',
     deletedAt: 'deletedAt',
+    defaultKitchenStationId: 'defaultKitchenStationId',
+    receiptPrinterId: 'receiptPrinterId',
+    dispatchPrinterId: 'dispatchPrinterId',
     addressLine1: 'addressLine1',
     addressLine2: 'addressLine2',
     city: 'city',
@@ -96925,18 +103234,22 @@ export namespace Prisma {
     name: 'name',
     type: 'type',
     connectionType: 'connectionType',
-    station: 'station',
+    kind: 'kind',
     ipAddress: 'ipAddress',
     port: 'port',
     isOnline: 'isOnline',
     isActive: 'isActive',
     deletedAt: 'deletedAt',
     failoverPrinterId: 'failoverPrinterId',
+    model: 'model',
+    paperWidth: 'paperWidth',
+    agentId: 'agentId',
     supportsReceipts: 'supportsReceipts',
     supportsKitchen: 'supportsKitchen',
     supportsLabels: 'supportsLabels',
     supportsCut: 'supportsCut',
     supportsCashDrawer: 'supportsCashDrawer',
+    defaults: 'defaults',
     autoPrintRules: 'autoPrintRules',
     settings: 'settings',
     metadata: 'metadata',
@@ -96961,11 +103274,83 @@ export namespace Prisma {
     error: 'error',
     retryMetadata: 'retryMetadata',
     printedAt: 'printedAt',
+    stationId: 'stationId',
+    trigger: 'trigger',
+    claimedByAgentId: 'claimedByAgentId',
+    claimedAt: 'claimedAt',
+    routeKey: 'routeKey',
+    idempotencyKey: 'idempotencyKey',
+    copies: 'copies',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type PrintJobScalarFieldEnum = (typeof PrintJobScalarFieldEnum)[keyof typeof PrintJobScalarFieldEnum]
+
+
+  export const PrinterStationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    kind: 'kind',
+    defaultPrinterId: 'defaultPrinterId',
+    isActive: 'isActive',
+    sortOrder: 'sortOrder',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PrinterStationScalarFieldEnum = (typeof PrinterStationScalarFieldEnum)[keyof typeof PrinterStationScalarFieldEnum]
+
+
+  export const PrintAgentScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    kind: 'kind',
+    apiTokenHash: 'apiTokenHash',
+    capabilities: 'capabilities',
+    versionString: 'versionString',
+    lastSeenAt: 'lastSeenAt',
+    isActive: 'isActive',
+    deletedAt: 'deletedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PrintAgentScalarFieldEnum = (typeof PrintAgentScalarFieldEnum)[keyof typeof PrintAgentScalarFieldEnum]
+
+
+  export const MenuItemStationScalarFieldEnum: {
+    id: 'id',
+    menuItemId: 'menuItemId',
+    stationId: 'stationId',
+    createdAt: 'createdAt'
+  };
+
+  export type MenuItemStationScalarFieldEnum = (typeof MenuItemStationScalarFieldEnum)[keyof typeof MenuItemStationScalarFieldEnum]
+
+
+  export const ModifierGroupStationScalarFieldEnum: {
+    id: 'id',
+    modifierGroupId: 'modifierGroupId',
+    stationId: 'stationId',
+    createdAt: 'createdAt'
+  };
+
+  export type ModifierGroupStationScalarFieldEnum = (typeof ModifierGroupStationScalarFieldEnum)[keyof typeof ModifierGroupStationScalarFieldEnum]
+
+
+  export const MenuCategoryStationScalarFieldEnum: {
+    id: 'id',
+    categoryId: 'categoryId',
+    stationId: 'stationId',
+    createdAt: 'createdAt'
+  };
+
+  export type MenuCategoryStationScalarFieldEnum = (typeof MenuCategoryStationScalarFieldEnum)[keyof typeof MenuCategoryStationScalarFieldEnum]
 
 
   export const PrintTemplateScalarFieldEnum: {
@@ -97812,7 +104197,8 @@ export namespace Prisma {
     logoUrl: 'logoUrl',
     description: 'description',
     cuisine: 'cuisine',
-    primaryLocationId: 'primaryLocationId'
+    primaryLocationId: 'primaryLocationId',
+    defaultStationId: 'defaultStationId'
   };
 
   export type BrandOrderByRelevanceFieldEnum = (typeof BrandOrderByRelevanceFieldEnum)[keyof typeof BrandOrderByRelevanceFieldEnum]
@@ -97825,6 +104211,9 @@ export namespace Prisma {
     externalRef: 'externalRef',
     phone: 'phone',
     timezone: 'timezone',
+    defaultKitchenStationId: 'defaultKitchenStationId',
+    receiptPrinterId: 'receiptPrinterId',
+    dispatchPrinterId: 'dispatchPrinterId',
     addressLine1: 'addressLine1',
     addressLine2: 'addressLine2',
     city: 'city',
@@ -98219,7 +104608,9 @@ export namespace Prisma {
     locationId: 'locationId',
     name: 'name',
     ipAddress: 'ipAddress',
-    failoverPrinterId: 'failoverPrinterId'
+    failoverPrinterId: 'failoverPrinterId',
+    model: 'model',
+    agentId: 'agentId'
   };
 
   export type PrinterOrderByRelevanceFieldEnum = (typeof PrinterOrderByRelevanceFieldEnum)[keyof typeof PrinterOrderByRelevanceFieldEnum]
@@ -98231,10 +104622,64 @@ export namespace Prisma {
     locationId: 'locationId',
     printerId: 'printerId',
     orderId: 'orderId',
-    error: 'error'
+    error: 'error',
+    stationId: 'stationId',
+    claimedByAgentId: 'claimedByAgentId',
+    routeKey: 'routeKey',
+    idempotencyKey: 'idempotencyKey'
   };
 
   export type PrintJobOrderByRelevanceFieldEnum = (typeof PrintJobOrderByRelevanceFieldEnum)[keyof typeof PrintJobOrderByRelevanceFieldEnum]
+
+
+  export const PrinterStationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    defaultPrinterId: 'defaultPrinterId'
+  };
+
+  export type PrinterStationOrderByRelevanceFieldEnum = (typeof PrinterStationOrderByRelevanceFieldEnum)[keyof typeof PrinterStationOrderByRelevanceFieldEnum]
+
+
+  export const PrintAgentOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    name: 'name',
+    apiTokenHash: 'apiTokenHash',
+    versionString: 'versionString'
+  };
+
+  export type PrintAgentOrderByRelevanceFieldEnum = (typeof PrintAgentOrderByRelevanceFieldEnum)[keyof typeof PrintAgentOrderByRelevanceFieldEnum]
+
+
+  export const MenuItemStationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    menuItemId: 'menuItemId',
+    stationId: 'stationId'
+  };
+
+  export type MenuItemStationOrderByRelevanceFieldEnum = (typeof MenuItemStationOrderByRelevanceFieldEnum)[keyof typeof MenuItemStationOrderByRelevanceFieldEnum]
+
+
+  export const ModifierGroupStationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    modifierGroupId: 'modifierGroupId',
+    stationId: 'stationId'
+  };
+
+  export type ModifierGroupStationOrderByRelevanceFieldEnum = (typeof ModifierGroupStationOrderByRelevanceFieldEnum)[keyof typeof ModifierGroupStationOrderByRelevanceFieldEnum]
+
+
+  export const MenuCategoryStationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    categoryId: 'categoryId',
+    stationId: 'stationId'
+  };
+
+  export type MenuCategoryStationOrderByRelevanceFieldEnum = (typeof MenuCategoryStationOrderByRelevanceFieldEnum)[keyof typeof MenuCategoryStationOrderByRelevanceFieldEnum]
 
 
   export const PrintTemplateOrderByRelevanceFieldEnum: {
@@ -99093,16 +105538,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'PrinterStation'
+   * Reference to a field of type 'PrinterStationKind'
    */
-  export type EnumPrinterStationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterStation'>
+  export type EnumPrinterStationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterStationKind'>
     
 
 
   /**
-   * Reference to a field of type 'PrinterStation[]'
+   * Reference to a field of type 'PrinterStationKind[]'
    */
-  export type ListEnumPrinterStationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterStation[]'>
+  export type ListEnumPrinterStationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrinterStationKind[]'>
     
 
 
@@ -99131,6 +105576,34 @@ export namespace Prisma {
    * Reference to a field of type 'PrintJobStatus[]'
    */
   export type ListEnumPrintJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintJobStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrintTrigger'
+   */
+  export type EnumPrintTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintTrigger'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrintTrigger[]'
+   */
+  export type ListEnumPrintTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintTrigger[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrintAgentKind'
+   */
+  export type EnumPrintAgentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintAgentKind'>
+    
+
+
+  /**
+   * Reference to a field of type 'PrintAgentKind[]'
+   */
+  export type ListEnumPrintAgentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrintAgentKind[]'>
     
 
 
@@ -99402,6 +105875,8 @@ export namespace Prisma {
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
     invitations?: InvitationListRelationFilter
+    printerStations?: PrinterStationListRelationFilter
+    printAgents?: PrintAgentListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -99428,6 +105903,8 @@ export namespace Prisma {
     branding?: TenantBrandingOrderByWithRelationInput
     subscription?: TenantSubscriptionOrderByWithRelationInput
     invitations?: InvitationOrderByRelationAggregateInput
+    printerStations?: PrinterStationOrderByRelationAggregateInput
+    printAgents?: PrintAgentOrderByRelationAggregateInput
     _relevance?: TenantOrderByRelevanceInput
   }
 
@@ -99458,6 +105935,8 @@ export namespace Prisma {
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
     invitations?: InvitationListRelationFilter
+    printerStations?: PrinterStationListRelationFilter
+    printAgents?: PrintAgentListRelationFilter
   }, "id" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -100409,6 +106888,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -100420,6 +106900,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
+    defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }
 
   export type BrandOrderByWithRelationInput = {
@@ -100436,6 +106917,7 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -100447,6 +106929,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     userBrands?: UserBrandOrderByRelationAggregateInput
+    defaultStation?: PrinterStationOrderByWithRelationInput
     _relevance?: BrandOrderByRelevanceInput
   }
 
@@ -100468,6 +106951,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -100479,6 +106963,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
+    defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }, "id" | "tenantId_slug">
 
   export type BrandOrderByWithAggregationInput = {
@@ -100495,6 +106980,7 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BrandCountOrderByAggregateInput
@@ -100519,6 +107005,7 @@ export namespace Prisma {
     cuisine?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     isSuspended?: BoolWithAggregatesFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    defaultStationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
   }
@@ -100538,6 +107025,9 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    defaultKitchenStationId?: StringNullableFilter<"Location"> | string | null
+    receiptPrinterId?: StringNullableFilter<"Location"> | string | null
+    dispatchPrinterId?: StringNullableFilter<"Location"> | string | null
     addressLine1?: StringNullableFilter<"Location"> | string | null
     addressLine2?: StringNullableFilter<"Location"> | string | null
     city?: StringNullableFilter<"Location"> | string | null
@@ -100577,12 +107067,17 @@ export namespace Prisma {
     integrations?: IntegrationListRelationFilter
     orders?: OrderListRelationFilter
     printers?: PrinterListRelationFilter
+    printerStations?: PrinterStationListRelationFilter
+    printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
+    defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
+    receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
   }
 
   export type LocationOrderByWithRelationInput = {
@@ -100597,6 +107092,9 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    defaultKitchenStationId?: SortOrderInput | SortOrder
+    receiptPrinterId?: SortOrderInput | SortOrder
+    dispatchPrinterId?: SortOrderInput | SortOrder
     addressLine1?: SortOrderInput | SortOrder
     addressLine2?: SortOrderInput | SortOrder
     city?: SortOrderInput | SortOrder
@@ -100636,12 +107134,17 @@ export namespace Prisma {
     integrations?: IntegrationOrderByRelationAggregateInput
     orders?: OrderOrderByRelationAggregateInput
     printers?: PrinterOrderByRelationAggregateInput
+    printerStations?: PrinterStationOrderByRelationAggregateInput
+    printAgents?: PrintAgentOrderByRelationAggregateInput
     kdsScreens?: KdsScreenOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     paymentConfig?: LocationPaymentConfigOrderByWithRelationInput
     userLocations?: UserLocationOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
+    defaultKitchenStation?: PrinterStationOrderByWithRelationInput
+    receiptPrinter?: PrinterOrderByWithRelationInput
+    dispatchPrinter?: PrinterOrderByWithRelationInput
     _relevance?: LocationOrderByRelevanceInput
   }
 
@@ -100664,6 +107167,9 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    defaultKitchenStationId?: StringNullableFilter<"Location"> | string | null
+    receiptPrinterId?: StringNullableFilter<"Location"> | string | null
+    dispatchPrinterId?: StringNullableFilter<"Location"> | string | null
     addressLine1?: StringNullableFilter<"Location"> | string | null
     addressLine2?: StringNullableFilter<"Location"> | string | null
     city?: StringNullableFilter<"Location"> | string | null
@@ -100699,12 +107205,17 @@ export namespace Prisma {
     integrations?: IntegrationListRelationFilter
     orders?: OrderListRelationFilter
     printers?: PrinterListRelationFilter
+    printerStations?: PrinterStationListRelationFilter
+    printAgents?: PrintAgentListRelationFilter
     kdsScreens?: KdsScreenListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
     paymentConfig?: XOR<LocationPaymentConfigNullableRelationFilter, LocationPaymentConfigWhereInput> | null
     userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
+    defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
+    receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "shopCode" | "printToken" | "slug">
 
   export type LocationOrderByWithAggregationInput = {
@@ -100719,6 +107230,9 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    defaultKitchenStationId?: SortOrderInput | SortOrder
+    receiptPrinterId?: SortOrderInput | SortOrder
+    dispatchPrinterId?: SortOrderInput | SortOrder
     addressLine1?: SortOrderInput | SortOrder
     addressLine2?: SortOrderInput | SortOrder
     city?: SortOrderInput | SortOrder
@@ -100776,6 +107290,9 @@ export namespace Prisma {
     settings?: JsonWithAggregatesFilter<"Location">
     metadata?: JsonWithAggregatesFilter<"Location">
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
+    defaultKitchenStationId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    receiptPrinterId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    dispatchPrinterId?: StringNullableWithAggregatesFilter<"Location"> | string | null
     addressLine1?: StringNullableWithAggregatesFilter<"Location"> | string | null
     addressLine2?: StringNullableWithAggregatesFilter<"Location"> | string | null
     city?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -101258,6 +107775,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MenuCategory"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     items?: MenuItemOnCategoryListRelationFilter
+    stationRoutes?: MenuCategoryStationListRelationFilter
   }
 
   export type MenuCategoryOrderByWithRelationInput = {
@@ -101281,6 +107799,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     menu?: MenuOrderByWithRelationInput
     items?: MenuItemOnCategoryOrderByRelationAggregateInput
+    stationRoutes?: MenuCategoryStationOrderByRelationAggregateInput
     _relevance?: MenuCategoryOrderByRelevanceInput
   }
 
@@ -101308,6 +107827,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MenuCategory"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     items?: MenuItemOnCategoryListRelationFilter
+    stationRoutes?: MenuCategoryStationListRelationFilter
   }, "id">
 
   export type MenuCategoryOrderByWithAggregationInput = {
@@ -101407,6 +107927,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemListRelationFilter
     variants?: MenuItemVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
+    stationRoutes?: MenuItemStationListRelationFilter
   }
 
   export type MenuItemOrderByWithRelationInput = {
@@ -101453,6 +107974,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemOrderByRelationAggregateInput
     variants?: MenuItemVariantOrderByRelationAggregateInput
     recipe?: RecipeOrderByWithRelationInput
+    stationRoutes?: MenuItemStationOrderByRelationAggregateInput
     _relevance?: MenuItemOrderByRelevanceInput
   }
 
@@ -101503,6 +108025,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemListRelationFilter
     variants?: MenuItemVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
+    stationRoutes?: MenuItemStationListRelationFilter
   }, "id">
 
   export type MenuItemOrderByWithAggregationInput = {
@@ -101691,6 +108214,7 @@ export namespace Prisma {
     options?: ModifierOptionListRelationFilter
     itemLinks?: ModifierGroupOnItemListRelationFilter
     nestedUnderOptions?: ModifierOptionListRelationFilter
+    stationRoutes?: ModifierGroupStationListRelationFilter
   }
 
   export type ModifierGroupOrderByWithRelationInput = {
@@ -101722,6 +108246,7 @@ export namespace Prisma {
     options?: ModifierOptionOrderByRelationAggregateInput
     itemLinks?: ModifierGroupOnItemOrderByRelationAggregateInput
     nestedUnderOptions?: ModifierOptionOrderByRelationAggregateInput
+    stationRoutes?: ModifierGroupStationOrderByRelationAggregateInput
     _relevance?: ModifierGroupOrderByRelevanceInput
   }
 
@@ -101757,6 +108282,7 @@ export namespace Prisma {
     options?: ModifierOptionListRelationFilter
     itemLinks?: ModifierGroupOnItemListRelationFilter
     nestedUnderOptions?: ModifierOptionListRelationFilter
+    stationRoutes?: ModifierGroupStationListRelationFilter
   }, "id">
 
   export type ModifierGroupOrderByWithAggregationInput = {
@@ -103931,25 +110457,33 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFilter<"Printer"> | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
     isOnline?: BoolFilter<"Printer"> | boolean
     isActive?: BoolFilter<"Printer"> | boolean
     deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
     failoverPrinterId?: StringNullableFilter<"Printer"> | string | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    paperWidth?: IntFilter<"Printer"> | number
+    agentId?: StringNullableFilter<"Printer"> | string | null
     supportsReceipts?: BoolFilter<"Printer"> | boolean
     supportsKitchen?: BoolFilter<"Printer"> | boolean
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
     metadata?: JsonFilter<"Printer">
     createdAt?: DateTimeFilter<"Printer"> | Date | string
     updatedAt?: DateTimeFilter<"Printer"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    agent?: XOR<PrintAgentNullableRelationFilter, PrintAgentWhereInput> | null
     printJobs?: PrintJobListRelationFilter
+    stationsDefaultFor?: PrinterStationListRelationFilter
+    locationsReceiptFor?: LocationListRelationFilter
+    locationsDispatchFor?: LocationListRelationFilter
   }
 
   export type PrinterOrderByWithRelationInput = {
@@ -103959,25 +110493,33 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
-    station?: SortOrder
+    kind?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     port?: SortOrderInput | SortOrder
     isOnline?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     failoverPrinterId?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    paperWidth?: SortOrder
+    agentId?: SortOrderInput | SortOrder
     supportsReceipts?: SortOrder
     supportsKitchen?: SortOrder
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
     metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
+    agent?: PrintAgentOrderByWithRelationInput
     printJobs?: PrintJobOrderByRelationAggregateInput
+    stationsDefaultFor?: PrinterStationOrderByRelationAggregateInput
+    locationsReceiptFor?: LocationOrderByRelationAggregateInput
+    locationsDispatchFor?: LocationOrderByRelationAggregateInput
     _relevance?: PrinterOrderByRelevanceInput
   }
 
@@ -103991,25 +110533,33 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFilter<"Printer"> | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
     isOnline?: BoolFilter<"Printer"> | boolean
     isActive?: BoolFilter<"Printer"> | boolean
     deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
     failoverPrinterId?: StringNullableFilter<"Printer"> | string | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    paperWidth?: IntFilter<"Printer"> | number
+    agentId?: StringNullableFilter<"Printer"> | string | null
     supportsReceipts?: BoolFilter<"Printer"> | boolean
     supportsKitchen?: BoolFilter<"Printer"> | boolean
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
     metadata?: JsonFilter<"Printer">
     createdAt?: DateTimeFilter<"Printer"> | Date | string
     updatedAt?: DateTimeFilter<"Printer"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    agent?: XOR<PrintAgentNullableRelationFilter, PrintAgentWhereInput> | null
     printJobs?: PrintJobListRelationFilter
+    stationsDefaultFor?: PrinterStationListRelationFilter
+    locationsReceiptFor?: LocationListRelationFilter
+    locationsDispatchFor?: LocationListRelationFilter
   }, "id">
 
   export type PrinterOrderByWithAggregationInput = {
@@ -104019,18 +110569,22 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
-    station?: SortOrder
+    kind?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     port?: SortOrderInput | SortOrder
     isOnline?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     failoverPrinterId?: SortOrderInput | SortOrder
+    model?: SortOrderInput | SortOrder
+    paperWidth?: SortOrder
+    agentId?: SortOrderInput | SortOrder
     supportsReceipts?: SortOrder
     supportsKitchen?: SortOrder
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
     metadata?: SortOrder
@@ -104053,18 +110607,22 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Printer"> | string
     type?: EnumPrinterTypeWithAggregatesFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeWithAggregatesFilter<"Printer"> | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationWithAggregatesFilter<"Printer"> | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindWithAggregatesFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableWithAggregatesFilter<"Printer"> | string | null
     port?: IntNullableWithAggregatesFilter<"Printer"> | number | null
     isOnline?: BoolWithAggregatesFilter<"Printer"> | boolean
     isActive?: BoolWithAggregatesFilter<"Printer"> | boolean
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Printer"> | Date | string | null
     failoverPrinterId?: StringNullableWithAggregatesFilter<"Printer"> | string | null
+    model?: StringNullableWithAggregatesFilter<"Printer"> | string | null
+    paperWidth?: IntWithAggregatesFilter<"Printer"> | number
+    agentId?: StringNullableWithAggregatesFilter<"Printer"> | string | null
     supportsReceipts?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsKitchen?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsLabels?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsCut?: BoolWithAggregatesFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolWithAggregatesFilter<"Printer"> | boolean
+    defaults?: JsonWithAggregatesFilter<"Printer">
     autoPrintRules?: JsonWithAggregatesFilter<"Printer">
     settings?: JsonWithAggregatesFilter<"Printer">
     metadata?: JsonWithAggregatesFilter<"Printer">
@@ -104089,11 +110647,20 @@ export namespace Prisma {
     error?: StringNullableFilter<"PrintJob"> | string | null
     retryMetadata?: JsonFilter<"PrintJob">
     printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    stationId?: StringNullableFilter<"PrintJob"> | string | null
+    trigger?: EnumPrintTriggerNullableFilter<"PrintJob"> | $Enums.PrintTrigger | null
+    claimedByAgentId?: StringNullableFilter<"PrintJob"> | string | null
+    claimedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    routeKey?: StringNullableFilter<"PrintJob"> | string | null
+    idempotencyKey?: StringNullableFilter<"PrintJob"> | string | null
+    copies?: IntFilter<"PrintJob"> | number
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     printer?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
+    station?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
+    claimedByAgent?: XOR<PrintAgentNullableRelationFilter, PrintAgentWhereInput> | null
   }
 
   export type PrintJobOrderByWithRelationInput = {
@@ -104110,16 +110677,26 @@ export namespace Prisma {
     error?: SortOrderInput | SortOrder
     retryMetadata?: SortOrder
     printedAt?: SortOrderInput | SortOrder
+    stationId?: SortOrderInput | SortOrder
+    trigger?: SortOrderInput | SortOrder
+    claimedByAgentId?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    routeKey?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    copies?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
     printer?: PrinterOrderByWithRelationInput
     order?: OrderOrderByWithRelationInput
+    station?: PrinterStationOrderByWithRelationInput
+    claimedByAgent?: PrintAgentOrderByWithRelationInput
     _relevance?: PrintJobOrderByRelevanceInput
   }
 
   export type PrintJobWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    idempotencyKey?: string
     AND?: PrintJobWhereInput | PrintJobWhereInput[]
     OR?: PrintJobWhereInput[]
     NOT?: PrintJobWhereInput | PrintJobWhereInput[]
@@ -104135,12 +110712,20 @@ export namespace Prisma {
     error?: StringNullableFilter<"PrintJob"> | string | null
     retryMetadata?: JsonFilter<"PrintJob">
     printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    stationId?: StringNullableFilter<"PrintJob"> | string | null
+    trigger?: EnumPrintTriggerNullableFilter<"PrintJob"> | $Enums.PrintTrigger | null
+    claimedByAgentId?: StringNullableFilter<"PrintJob"> | string | null
+    claimedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    routeKey?: StringNullableFilter<"PrintJob"> | string | null
+    copies?: IntFilter<"PrintJob"> | number
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     printer?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
-  }, "id">
+    station?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
+    claimedByAgent?: XOR<PrintAgentNullableRelationFilter, PrintAgentWhereInput> | null
+  }, "id" | "idempotencyKey">
 
   export type PrintJobOrderByWithAggregationInput = {
     id?: SortOrder
@@ -104156,6 +110741,13 @@ export namespace Prisma {
     error?: SortOrderInput | SortOrder
     retryMetadata?: SortOrder
     printedAt?: SortOrderInput | SortOrder
+    stationId?: SortOrderInput | SortOrder
+    trigger?: SortOrderInput | SortOrder
+    claimedByAgentId?: SortOrderInput | SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    routeKey?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    copies?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PrintJobCountOrderByAggregateInput
@@ -104182,8 +110774,393 @@ export namespace Prisma {
     error?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
     retryMetadata?: JsonWithAggregatesFilter<"PrintJob">
     printedAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    stationId?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    trigger?: EnumPrintTriggerNullableWithAggregatesFilter<"PrintJob"> | $Enums.PrintTrigger | null
+    claimedByAgentId?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"PrintJob"> | Date | string | null
+    routeKey?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    idempotencyKey?: StringNullableWithAggregatesFilter<"PrintJob"> | string | null
+    copies?: IntWithAggregatesFilter<"PrintJob"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PrintJob"> | Date | string
+  }
+
+  export type PrinterStationWhereInput = {
+    AND?: PrinterStationWhereInput | PrinterStationWhereInput[]
+    OR?: PrinterStationWhereInput[]
+    NOT?: PrinterStationWhereInput | PrinterStationWhereInput[]
+    id?: StringFilter<"PrinterStation"> | string
+    tenantId?: StringFilter<"PrinterStation"> | string
+    locationId?: StringFilter<"PrinterStation"> | string
+    name?: StringFilter<"PrinterStation"> | string
+    kind?: EnumPrinterStationKindFilter<"PrinterStation"> | $Enums.PrinterStationKind
+    defaultPrinterId?: StringNullableFilter<"PrinterStation"> | string | null
+    isActive?: BoolFilter<"PrinterStation"> | boolean
+    sortOrder?: IntFilter<"PrinterStation"> | number
+    createdAt?: DateTimeFilter<"PrinterStation"> | Date | string
+    updatedAt?: DateTimeFilter<"PrinterStation"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    defaultPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    menuItemRoutes?: MenuItemStationListRelationFilter
+    categoryRoutes?: MenuCategoryStationListRelationFilter
+    modifierGroupRoutes?: ModifierGroupStationListRelationFilter
+    brandDefaults?: BrandListRelationFilter
+    locationDefaults?: LocationListRelationFilter
+    printJobs?: PrintJobListRelationFilter
+  }
+
+  export type PrinterStationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    defaultPrinterId?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    defaultPrinter?: PrinterOrderByWithRelationInput
+    menuItemRoutes?: MenuItemStationOrderByRelationAggregateInput
+    categoryRoutes?: MenuCategoryStationOrderByRelationAggregateInput
+    modifierGroupRoutes?: ModifierGroupStationOrderByRelationAggregateInput
+    brandDefaults?: BrandOrderByRelationAggregateInput
+    locationDefaults?: LocationOrderByRelationAggregateInput
+    printJobs?: PrintJobOrderByRelationAggregateInput
+    _relevance?: PrinterStationOrderByRelevanceInput
+  }
+
+  export type PrinterStationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId_name?: PrinterStationLocationIdNameCompoundUniqueInput
+    AND?: PrinterStationWhereInput | PrinterStationWhereInput[]
+    OR?: PrinterStationWhereInput[]
+    NOT?: PrinterStationWhereInput | PrinterStationWhereInput[]
+    tenantId?: StringFilter<"PrinterStation"> | string
+    locationId?: StringFilter<"PrinterStation"> | string
+    name?: StringFilter<"PrinterStation"> | string
+    kind?: EnumPrinterStationKindFilter<"PrinterStation"> | $Enums.PrinterStationKind
+    defaultPrinterId?: StringNullableFilter<"PrinterStation"> | string | null
+    isActive?: BoolFilter<"PrinterStation"> | boolean
+    sortOrder?: IntFilter<"PrinterStation"> | number
+    createdAt?: DateTimeFilter<"PrinterStation"> | Date | string
+    updatedAt?: DateTimeFilter<"PrinterStation"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    defaultPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
+    menuItemRoutes?: MenuItemStationListRelationFilter
+    categoryRoutes?: MenuCategoryStationListRelationFilter
+    modifierGroupRoutes?: ModifierGroupStationListRelationFilter
+    brandDefaults?: BrandListRelationFilter
+    locationDefaults?: LocationListRelationFilter
+    printJobs?: PrintJobListRelationFilter
+  }, "id" | "locationId_name">
+
+  export type PrinterStationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    defaultPrinterId?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PrinterStationCountOrderByAggregateInput
+    _avg?: PrinterStationAvgOrderByAggregateInput
+    _max?: PrinterStationMaxOrderByAggregateInput
+    _min?: PrinterStationMinOrderByAggregateInput
+    _sum?: PrinterStationSumOrderByAggregateInput
+  }
+
+  export type PrinterStationScalarWhereWithAggregatesInput = {
+    AND?: PrinterStationScalarWhereWithAggregatesInput | PrinterStationScalarWhereWithAggregatesInput[]
+    OR?: PrinterStationScalarWhereWithAggregatesInput[]
+    NOT?: PrinterStationScalarWhereWithAggregatesInput | PrinterStationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PrinterStation"> | string
+    tenantId?: StringWithAggregatesFilter<"PrinterStation"> | string
+    locationId?: StringWithAggregatesFilter<"PrinterStation"> | string
+    name?: StringWithAggregatesFilter<"PrinterStation"> | string
+    kind?: EnumPrinterStationKindWithAggregatesFilter<"PrinterStation"> | $Enums.PrinterStationKind
+    defaultPrinterId?: StringNullableWithAggregatesFilter<"PrinterStation"> | string | null
+    isActive?: BoolWithAggregatesFilter<"PrinterStation"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"PrinterStation"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"PrinterStation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PrinterStation"> | Date | string
+  }
+
+  export type PrintAgentWhereInput = {
+    AND?: PrintAgentWhereInput | PrintAgentWhereInput[]
+    OR?: PrintAgentWhereInput[]
+    NOT?: PrintAgentWhereInput | PrintAgentWhereInput[]
+    id?: StringFilter<"PrintAgent"> | string
+    tenantId?: StringFilter<"PrintAgent"> | string
+    locationId?: StringFilter<"PrintAgent"> | string
+    name?: StringFilter<"PrintAgent"> | string
+    kind?: EnumPrintAgentKindFilter<"PrintAgent"> | $Enums.PrintAgentKind
+    apiTokenHash?: StringFilter<"PrintAgent"> | string
+    capabilities?: JsonFilter<"PrintAgent">
+    versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    isActive?: BoolFilter<"PrintAgent"> | boolean
+    deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    createdAt?: DateTimeFilter<"PrintAgent"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintAgent"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    printers?: PrinterListRelationFilter
+    claimedJobs?: PrintJobListRelationFilter
+  }
+
+  export type PrintAgentOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    apiTokenHash?: SortOrder
+    capabilities?: SortOrder
+    versionString?: SortOrderInput | SortOrder
+    lastSeenAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    printers?: PrinterOrderByRelationAggregateInput
+    claimedJobs?: PrintJobOrderByRelationAggregateInput
+    _relevance?: PrintAgentOrderByRelevanceInput
+  }
+
+  export type PrintAgentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PrintAgentWhereInput | PrintAgentWhereInput[]
+    OR?: PrintAgentWhereInput[]
+    NOT?: PrintAgentWhereInput | PrintAgentWhereInput[]
+    tenantId?: StringFilter<"PrintAgent"> | string
+    locationId?: StringFilter<"PrintAgent"> | string
+    name?: StringFilter<"PrintAgent"> | string
+    kind?: EnumPrintAgentKindFilter<"PrintAgent"> | $Enums.PrintAgentKind
+    apiTokenHash?: StringFilter<"PrintAgent"> | string
+    capabilities?: JsonFilter<"PrintAgent">
+    versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    isActive?: BoolFilter<"PrintAgent"> | boolean
+    deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    createdAt?: DateTimeFilter<"PrintAgent"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintAgent"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    printers?: PrinterListRelationFilter
+    claimedJobs?: PrintJobListRelationFilter
+  }, "id">
+
+  export type PrintAgentOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    apiTokenHash?: SortOrder
+    capabilities?: SortOrder
+    versionString?: SortOrderInput | SortOrder
+    lastSeenAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PrintAgentCountOrderByAggregateInput
+    _max?: PrintAgentMaxOrderByAggregateInput
+    _min?: PrintAgentMinOrderByAggregateInput
+  }
+
+  export type PrintAgentScalarWhereWithAggregatesInput = {
+    AND?: PrintAgentScalarWhereWithAggregatesInput | PrintAgentScalarWhereWithAggregatesInput[]
+    OR?: PrintAgentScalarWhereWithAggregatesInput[]
+    NOT?: PrintAgentScalarWhereWithAggregatesInput | PrintAgentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PrintAgent"> | string
+    tenantId?: StringWithAggregatesFilter<"PrintAgent"> | string
+    locationId?: StringWithAggregatesFilter<"PrintAgent"> | string
+    name?: StringWithAggregatesFilter<"PrintAgent"> | string
+    kind?: EnumPrintAgentKindWithAggregatesFilter<"PrintAgent"> | $Enums.PrintAgentKind
+    apiTokenHash?: StringWithAggregatesFilter<"PrintAgent"> | string
+    capabilities?: JsonWithAggregatesFilter<"PrintAgent">
+    versionString?: StringNullableWithAggregatesFilter<"PrintAgent"> | string | null
+    lastSeenAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
+    isActive?: BoolWithAggregatesFilter<"PrintAgent"> | boolean
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"PrintAgent"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PrintAgent"> | Date | string
+  }
+
+  export type MenuItemStationWhereInput = {
+    AND?: MenuItemStationWhereInput | MenuItemStationWhereInput[]
+    OR?: MenuItemStationWhereInput[]
+    NOT?: MenuItemStationWhereInput | MenuItemStationWhereInput[]
+    id?: StringFilter<"MenuItemStation"> | string
+    menuItemId?: StringFilter<"MenuItemStation"> | string
+    stationId?: StringFilter<"MenuItemStation"> | string
+    createdAt?: DateTimeFilter<"MenuItemStation"> | Date | string
+    menuItem?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }
+
+  export type MenuItemStationOrderByWithRelationInput = {
+    id?: SortOrder
+    menuItemId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    menuItem?: MenuItemOrderByWithRelationInput
+    station?: PrinterStationOrderByWithRelationInput
+    _relevance?: MenuItemStationOrderByRelevanceInput
+  }
+
+  export type MenuItemStationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    menuItemId_stationId?: MenuItemStationMenuItemIdStationIdCompoundUniqueInput
+    AND?: MenuItemStationWhereInput | MenuItemStationWhereInput[]
+    OR?: MenuItemStationWhereInput[]
+    NOT?: MenuItemStationWhereInput | MenuItemStationWhereInput[]
+    menuItemId?: StringFilter<"MenuItemStation"> | string
+    stationId?: StringFilter<"MenuItemStation"> | string
+    createdAt?: DateTimeFilter<"MenuItemStation"> | Date | string
+    menuItem?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }, "id" | "menuItemId_stationId">
+
+  export type MenuItemStationOrderByWithAggregationInput = {
+    id?: SortOrder
+    menuItemId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    _count?: MenuItemStationCountOrderByAggregateInput
+    _max?: MenuItemStationMaxOrderByAggregateInput
+    _min?: MenuItemStationMinOrderByAggregateInput
+  }
+
+  export type MenuItemStationScalarWhereWithAggregatesInput = {
+    AND?: MenuItemStationScalarWhereWithAggregatesInput | MenuItemStationScalarWhereWithAggregatesInput[]
+    OR?: MenuItemStationScalarWhereWithAggregatesInput[]
+    NOT?: MenuItemStationScalarWhereWithAggregatesInput | MenuItemStationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MenuItemStation"> | string
+    menuItemId?: StringWithAggregatesFilter<"MenuItemStation"> | string
+    stationId?: StringWithAggregatesFilter<"MenuItemStation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MenuItemStation"> | Date | string
+  }
+
+  export type ModifierGroupStationWhereInput = {
+    AND?: ModifierGroupStationWhereInput | ModifierGroupStationWhereInput[]
+    OR?: ModifierGroupStationWhereInput[]
+    NOT?: ModifierGroupStationWhereInput | ModifierGroupStationWhereInput[]
+    id?: StringFilter<"ModifierGroupStation"> | string
+    modifierGroupId?: StringFilter<"ModifierGroupStation"> | string
+    stationId?: StringFilter<"ModifierGroupStation"> | string
+    createdAt?: DateTimeFilter<"ModifierGroupStation"> | Date | string
+    modifierGroup?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }
+
+  export type ModifierGroupStationOrderByWithRelationInput = {
+    id?: SortOrder
+    modifierGroupId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    modifierGroup?: ModifierGroupOrderByWithRelationInput
+    station?: PrinterStationOrderByWithRelationInput
+    _relevance?: ModifierGroupStationOrderByRelevanceInput
+  }
+
+  export type ModifierGroupStationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    modifierGroupId_stationId?: ModifierGroupStationModifierGroupIdStationIdCompoundUniqueInput
+    AND?: ModifierGroupStationWhereInput | ModifierGroupStationWhereInput[]
+    OR?: ModifierGroupStationWhereInput[]
+    NOT?: ModifierGroupStationWhereInput | ModifierGroupStationWhereInput[]
+    modifierGroupId?: StringFilter<"ModifierGroupStation"> | string
+    stationId?: StringFilter<"ModifierGroupStation"> | string
+    createdAt?: DateTimeFilter<"ModifierGroupStation"> | Date | string
+    modifierGroup?: XOR<ModifierGroupRelationFilter, ModifierGroupWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }, "id" | "modifierGroupId_stationId">
+
+  export type ModifierGroupStationOrderByWithAggregationInput = {
+    id?: SortOrder
+    modifierGroupId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    _count?: ModifierGroupStationCountOrderByAggregateInput
+    _max?: ModifierGroupStationMaxOrderByAggregateInput
+    _min?: ModifierGroupStationMinOrderByAggregateInput
+  }
+
+  export type ModifierGroupStationScalarWhereWithAggregatesInput = {
+    AND?: ModifierGroupStationScalarWhereWithAggregatesInput | ModifierGroupStationScalarWhereWithAggregatesInput[]
+    OR?: ModifierGroupStationScalarWhereWithAggregatesInput[]
+    NOT?: ModifierGroupStationScalarWhereWithAggregatesInput | ModifierGroupStationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ModifierGroupStation"> | string
+    modifierGroupId?: StringWithAggregatesFilter<"ModifierGroupStation"> | string
+    stationId?: StringWithAggregatesFilter<"ModifierGroupStation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ModifierGroupStation"> | Date | string
+  }
+
+  export type MenuCategoryStationWhereInput = {
+    AND?: MenuCategoryStationWhereInput | MenuCategoryStationWhereInput[]
+    OR?: MenuCategoryStationWhereInput[]
+    NOT?: MenuCategoryStationWhereInput | MenuCategoryStationWhereInput[]
+    id?: StringFilter<"MenuCategoryStation"> | string
+    categoryId?: StringFilter<"MenuCategoryStation"> | string
+    stationId?: StringFilter<"MenuCategoryStation"> | string
+    createdAt?: DateTimeFilter<"MenuCategoryStation"> | Date | string
+    category?: XOR<MenuCategoryRelationFilter, MenuCategoryWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }
+
+  export type MenuCategoryStationOrderByWithRelationInput = {
+    id?: SortOrder
+    categoryId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    category?: MenuCategoryOrderByWithRelationInput
+    station?: PrinterStationOrderByWithRelationInput
+    _relevance?: MenuCategoryStationOrderByRelevanceInput
+  }
+
+  export type MenuCategoryStationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    categoryId_stationId?: MenuCategoryStationCategoryIdStationIdCompoundUniqueInput
+    AND?: MenuCategoryStationWhereInput | MenuCategoryStationWhereInput[]
+    OR?: MenuCategoryStationWhereInput[]
+    NOT?: MenuCategoryStationWhereInput | MenuCategoryStationWhereInput[]
+    categoryId?: StringFilter<"MenuCategoryStation"> | string
+    stationId?: StringFilter<"MenuCategoryStation"> | string
+    createdAt?: DateTimeFilter<"MenuCategoryStation"> | Date | string
+    category?: XOR<MenuCategoryRelationFilter, MenuCategoryWhereInput>
+    station?: XOR<PrinterStationRelationFilter, PrinterStationWhereInput>
+  }, "id" | "categoryId_stationId">
+
+  export type MenuCategoryStationOrderByWithAggregationInput = {
+    id?: SortOrder
+    categoryId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+    _count?: MenuCategoryStationCountOrderByAggregateInput
+    _max?: MenuCategoryStationMaxOrderByAggregateInput
+    _min?: MenuCategoryStationMinOrderByAggregateInput
+  }
+
+  export type MenuCategoryStationScalarWhereWithAggregatesInput = {
+    AND?: MenuCategoryStationScalarWhereWithAggregatesInput | MenuCategoryStationScalarWhereWithAggregatesInput[]
+    OR?: MenuCategoryStationScalarWhereWithAggregatesInput[]
+    NOT?: MenuCategoryStationScalarWhereWithAggregatesInput | MenuCategoryStationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MenuCategoryStation"> | string
+    categoryId?: StringWithAggregatesFilter<"MenuCategoryStation"> | string
+    stationId?: StringWithAggregatesFilter<"MenuCategoryStation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MenuCategoryStation"> | Date | string
   }
 
   export type PrintTemplateWhereInput = {
@@ -107584,6 +114561,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -107610,6 +114589,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -107636,6 +114617,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -107662,6 +114645,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -108736,6 +115721,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateInput = {
@@ -108752,6 +115738,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -108788,6 +115775,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateInput = {
@@ -108804,6 +115792,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -108830,6 +115819,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -108865,6 +115855,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -108919,12 +115910,17 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateInput = {
@@ -108939,6 +115935,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -108977,6 +115976,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -109035,12 +116036,17 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateInput = {
@@ -109055,6 +116061,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -109093,6 +116102,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -109113,6 +116124,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -109210,6 +116224,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -109775,6 +116792,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutCategoriesInput
     items?: MenuItemOnCategoryCreateNestedManyWithoutCategoryInput
+    stationRoutes?: MenuCategoryStationCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryUncheckedCreateInput = {
@@ -109797,6 +116815,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput
+    stationRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryUpdateInput = {
@@ -109819,6 +116838,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutCategoriesNestedInput
     items?: MenuItemOnCategoryUpdateManyWithoutCategoryNestedInput
+    stationRoutes?: MenuCategoryStationUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuCategoryUncheckedUpdateInput = {
@@ -109841,6 +116861,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput
+    stationRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuCategoryCreateManyInput = {
@@ -109949,6 +116970,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUncheckedCreateInput = {
@@ -109995,6 +117017,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUpdateInput = {
@@ -110041,6 +117064,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateInput = {
@@ -110087,6 +117111,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemCreateManyInput = {
@@ -110297,6 +117322,7 @@ export namespace Prisma {
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUncheckedCreateInput = {
@@ -110327,6 +117353,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUpdateInput = {
@@ -110357,6 +117384,7 @@ export namespace Prisma {
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateInput = {
@@ -110387,6 +117415,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupCreateManyInput = {
@@ -112867,25 +119896,32 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutPrintersInput
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
     printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterUncheckedCreateInput = {
@@ -112895,24 +119931,31 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterUpdateInput = {
@@ -112921,25 +119964,32 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
     printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type PrinterUncheckedUpdateInput = {
@@ -112949,24 +119999,31 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type PrinterCreateManyInput = {
@@ -112976,18 +120033,22 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
@@ -113001,18 +120062,21 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
@@ -113027,18 +120091,22 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
@@ -113057,11 +120125,18 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
     printer?: PrinterCreateNestedOneWithoutPrintJobsInput
     order?: OrderCreateNestedOneWithoutPrintJobsInput
+    station?: PrinterStationCreateNestedOneWithoutPrintJobsInput
+    claimedByAgent?: PrintAgentCreateNestedOneWithoutClaimedJobsInput
   }
 
   export type PrintJobUncheckedCreateInput = {
@@ -113078,6 +120153,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -113093,11 +120175,18 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
     printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
     order?: OrderUpdateOneWithoutPrintJobsNestedInput
+    station?: PrinterStationUpdateOneWithoutPrintJobsNestedInput
+    claimedByAgent?: PrintAgentUpdateOneWithoutClaimedJobsNestedInput
   }
 
   export type PrintJobUncheckedUpdateInput = {
@@ -113114,6 +120203,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -113132,6 +120228,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -113147,6 +120250,11 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -113165,8 +120273,386 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterStationCreateInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrinterStationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterStationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintAgentCreateInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintAgentsInput
+    location: LocationCreateNestedOneWithoutPrintAgentsInput
+    printers?: PrinterCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printers?: PrinterUncheckedCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobUncheckedCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintAgentsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrintAgentsNestedInput
+    printers?: PrinterUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printers?: PrinterUncheckedUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUncheckedUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintAgentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintAgentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    menuItem: MenuItemCreateNestedOneWithoutStationRoutesInput
+    station: PrinterStationCreateNestedOneWithoutMenuItemRoutesInput
+  }
+
+  export type MenuItemStationUncheckedCreateInput = {
+    id?: string
+    menuItemId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuItemStationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItem?: MenuItemUpdateOneRequiredWithoutStationRoutesNestedInput
+    station?: PrinterStationUpdateOneRequiredWithoutMenuItemRoutesNestedInput
+  }
+
+  export type MenuItemStationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationCreateManyInput = {
+    id?: string
+    menuItemId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuItemStationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    modifierGroup: ModifierGroupCreateNestedOneWithoutStationRoutesInput
+    station: PrinterStationCreateNestedOneWithoutModifierGroupRoutesInput
+  }
+
+  export type ModifierGroupStationUncheckedCreateInput = {
+    id?: string
+    modifierGroupId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type ModifierGroupStationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    modifierGroup?: ModifierGroupUpdateOneRequiredWithoutStationRoutesNestedInput
+    station?: PrinterStationUpdateOneRequiredWithoutModifierGroupRoutesNestedInput
+  }
+
+  export type ModifierGroupStationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    modifierGroupId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationCreateManyInput = {
+    id?: string
+    modifierGroupId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type ModifierGroupStationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    modifierGroupId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    category: MenuCategoryCreateNestedOneWithoutStationRoutesInput
+    station: PrinterStationCreateNestedOneWithoutCategoryRoutesInput
+  }
+
+  export type MenuCategoryStationUncheckedCreateInput = {
+    id?: string
+    categoryId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuCategoryStationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: MenuCategoryUpdateOneRequiredWithoutStationRoutesNestedInput
+    station?: PrinterStationUpdateOneRequiredWithoutCategoryRoutesNestedInput
+  }
+
+  export type MenuCategoryStationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationCreateManyInput = {
+    id?: string
+    categoryId: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuCategoryStationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrintTemplateCreateInput = {
@@ -117085,6 +124571,18 @@ export namespace Prisma {
     none?: InvitationWhereInput
   }
 
+  export type PrinterStationListRelationFilter = {
+    every?: PrinterStationWhereInput
+    some?: PrinterStationWhereInput
+    none?: PrinterStationWhereInput
+  }
+
+  export type PrintAgentListRelationFilter = {
+    every?: PrintAgentWhereInput
+    some?: PrintAgentWhereInput
+    none?: PrintAgentWhereInput
+  }
+
   export type BrandOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -117130,6 +124628,14 @@ export namespace Prisma {
   }
 
   export type InvitationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PrinterStationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PrintAgentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -118075,6 +125581,11 @@ export namespace Prisma {
     none?: BrandPlatformConnectionWhereInput
   }
 
+  export type PrinterStationNullableRelationFilter = {
+    is?: PrinterStationWhereInput | null
+    isNot?: PrinterStationWhereInput | null
+  }
+
   export type LocationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -118124,6 +125635,7 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -118140,6 +125652,7 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -118156,6 +125669,7 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -118234,6 +125748,11 @@ export namespace Prisma {
     isNot?: DirectOrderingConfigWhereInput | null
   }
 
+  export type PrinterNullableRelationFilter = {
+    is?: PrinterWhereInput | null
+    isNot?: PrinterWhereInput | null
+  }
+
   export type IntegrationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -118268,6 +125787,9 @@ export namespace Prisma {
     settings?: SortOrder
     metadata?: SortOrder
     deletedAt?: SortOrder
+    defaultKitchenStationId?: SortOrder
+    receiptPrinterId?: SortOrder
+    dispatchPrinterId?: SortOrder
     addressLine1?: SortOrder
     addressLine2?: SortOrder
     city?: SortOrder
@@ -118322,6 +125844,9 @@ export namespace Prisma {
     timezone?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    defaultKitchenStationId?: SortOrder
+    receiptPrinterId?: SortOrder
+    dispatchPrinterId?: SortOrder
     addressLine1?: SortOrder
     addressLine2?: SortOrder
     city?: SortOrder
@@ -118365,6 +125890,9 @@ export namespace Prisma {
     timezone?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
+    defaultKitchenStationId?: SortOrder
+    receiptPrinterId?: SortOrder
+    dispatchPrinterId?: SortOrder
     addressLine1?: SortOrder
     addressLine2?: SortOrder
     city?: SortOrder
@@ -118812,7 +126340,17 @@ export namespace Prisma {
     none?: MenuItemOnCategoryWhereInput
   }
 
+  export type MenuCategoryStationListRelationFilter = {
+    every?: MenuCategoryStationWhereInput
+    some?: MenuCategoryStationWhereInput
+    none?: MenuCategoryStationWhereInput
+  }
+
   export type MenuItemOnCategoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuCategoryStationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -118919,11 +126457,21 @@ export namespace Prisma {
     isNot?: RecipeWhereInput | null
   }
 
+  export type MenuItemStationListRelationFilter = {
+    every?: MenuItemStationWhereInput
+    some?: MenuItemStationWhereInput
+    none?: MenuItemStationWhereInput
+  }
+
   export type ModifierGroupOnItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type MenuItemVariantOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuItemStationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -119147,7 +126695,17 @@ export namespace Prisma {
     none?: ModifierOptionWhereInput
   }
 
+  export type ModifierGroupStationListRelationFilter = {
+    every?: ModifierGroupStationWhereInput
+    some?: ModifierGroupStationWhereInput
+    none?: ModifierGroupStationWhereInput
+  }
+
   export type ModifierOptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ModifierGroupStationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -120819,11 +128377,16 @@ export namespace Prisma {
     not?: NestedEnumPrinterConnectionTypeFilter<$PrismaModel> | $Enums.PrinterConnectionType
   }
 
-  export type EnumPrinterStationFilter<$PrismaModel = never> = {
-    equals?: $Enums.PrinterStation | EnumPrinterStationFieldRefInput<$PrismaModel>
-    in?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    not?: NestedEnumPrinterStationFilter<$PrismaModel> | $Enums.PrinterStation
+  export type EnumPrinterStationKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterStationKind | EnumPrinterStationKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrinterStationKindFilter<$PrismaModel> | $Enums.PrinterStationKind
+  }
+
+  export type PrintAgentNullableRelationFilter = {
+    is?: PrintAgentWhereInput | null
+    isNot?: PrintAgentWhereInput | null
   }
 
   export type PrinterOrderByRelevanceInput = {
@@ -120839,18 +128402,22 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
-    station?: SortOrder
+    kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
     isOnline?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     failoverPrinterId?: SortOrder
+    model?: SortOrder
+    paperWidth?: SortOrder
+    agentId?: SortOrder
     supportsReceipts?: SortOrder
     supportsKitchen?: SortOrder
     supportsLabels?: SortOrder
     supportsCut?: SortOrder
     supportsCashDrawer?: SortOrder
+    defaults?: SortOrder
     autoPrintRules?: SortOrder
     settings?: SortOrder
     metadata?: SortOrder
@@ -120860,6 +128427,7 @@ export namespace Prisma {
 
   export type PrinterAvgOrderByAggregateInput = {
     port?: SortOrder
+    paperWidth?: SortOrder
   }
 
   export type PrinterMaxOrderByAggregateInput = {
@@ -120869,13 +128437,16 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
-    station?: SortOrder
+    kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
     isOnline?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     failoverPrinterId?: SortOrder
+    model?: SortOrder
+    paperWidth?: SortOrder
+    agentId?: SortOrder
     supportsReceipts?: SortOrder
     supportsKitchen?: SortOrder
     supportsLabels?: SortOrder
@@ -120892,13 +128463,16 @@ export namespace Prisma {
     name?: SortOrder
     type?: SortOrder
     connectionType?: SortOrder
-    station?: SortOrder
+    kind?: SortOrder
     ipAddress?: SortOrder
     port?: SortOrder
     isOnline?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     failoverPrinterId?: SortOrder
+    model?: SortOrder
+    paperWidth?: SortOrder
+    agentId?: SortOrder
     supportsReceipts?: SortOrder
     supportsKitchen?: SortOrder
     supportsLabels?: SortOrder
@@ -120910,6 +128484,7 @@ export namespace Prisma {
 
   export type PrinterSumOrderByAggregateInput = {
     port?: SortOrder
+    paperWidth?: SortOrder
   }
 
   export type EnumPrinterTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -120932,14 +128507,14 @@ export namespace Prisma {
     _max?: NestedEnumPrinterConnectionTypeFilter<$PrismaModel>
   }
 
-  export type EnumPrinterStationWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.PrinterStation | EnumPrinterStationFieldRefInput<$PrismaModel>
-    in?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    not?: NestedEnumPrinterStationWithAggregatesFilter<$PrismaModel> | $Enums.PrinterStation
+  export type EnumPrinterStationKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterStationKind | EnumPrinterStationKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrinterStationKindWithAggregatesFilter<$PrismaModel> | $Enums.PrinterStationKind
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumPrinterStationFilter<$PrismaModel>
-    _max?: NestedEnumPrinterStationFilter<$PrismaModel>
+    _min?: NestedEnumPrinterStationKindFilter<$PrismaModel>
+    _max?: NestedEnumPrinterStationKindFilter<$PrismaModel>
   }
 
   export type EnumPrintJobTypeFilter<$PrismaModel = never> = {
@@ -120956,9 +128531,11 @@ export namespace Prisma {
     not?: NestedEnumPrintJobStatusFilter<$PrismaModel> | $Enums.PrintJobStatus
   }
 
-  export type PrinterNullableRelationFilter = {
-    is?: PrinterWhereInput | null
-    isNot?: PrinterWhereInput | null
+  export type EnumPrintTriggerNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintTrigger | EnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPrintTriggerNullableFilter<$PrismaModel> | $Enums.PrintTrigger | null
   }
 
   export type OrderNullableRelationFilter = {
@@ -120986,6 +128563,13 @@ export namespace Prisma {
     error?: SortOrder
     retryMetadata?: SortOrder
     printedAt?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    claimedByAgentId?: SortOrder
+    claimedAt?: SortOrder
+    routeKey?: SortOrder
+    idempotencyKey?: SortOrder
+    copies?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -120993,6 +128577,7 @@ export namespace Prisma {
   export type PrintJobAvgOrderByAggregateInput = {
     attempts?: SortOrder
     maxRetries?: SortOrder
+    copies?: SortOrder
   }
 
   export type PrintJobMaxOrderByAggregateInput = {
@@ -121007,6 +128592,13 @@ export namespace Prisma {
     maxRetries?: SortOrder
     error?: SortOrder
     printedAt?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    claimedByAgentId?: SortOrder
+    claimedAt?: SortOrder
+    routeKey?: SortOrder
+    idempotencyKey?: SortOrder
+    copies?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -121023,6 +128615,13 @@ export namespace Prisma {
     maxRetries?: SortOrder
     error?: SortOrder
     printedAt?: SortOrder
+    stationId?: SortOrder
+    trigger?: SortOrder
+    claimedByAgentId?: SortOrder
+    claimedAt?: SortOrder
+    routeKey?: SortOrder
+    idempotencyKey?: SortOrder
+    copies?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -121030,6 +128629,7 @@ export namespace Prisma {
   export type PrintJobSumOrderByAggregateInput = {
     attempts?: SortOrder
     maxRetries?: SortOrder
+    copies?: SortOrder
   }
 
   export type EnumPrintJobTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -121050,6 +128650,244 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPrintJobStatusFilter<$PrismaModel>
     _max?: NestedEnumPrintJobStatusFilter<$PrismaModel>
+  }
+
+  export type EnumPrintTriggerNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintTrigger | EnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPrintTriggerNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrintTrigger | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumPrintTriggerNullableFilter<$PrismaModel>
+    _max?: NestedEnumPrintTriggerNullableFilter<$PrismaModel>
+  }
+
+  export type PrinterStationOrderByRelevanceInput = {
+    fields: PrinterStationOrderByRelevanceFieldEnum | PrinterStationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PrinterStationLocationIdNameCompoundUniqueInput = {
+    locationId: string
+    name: string
+  }
+
+  export type PrinterStationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    defaultPrinterId?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PrinterStationAvgOrderByAggregateInput = {
+    sortOrder?: SortOrder
+  }
+
+  export type PrinterStationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    defaultPrinterId?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PrinterStationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    defaultPrinterId?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PrinterStationSumOrderByAggregateInput = {
+    sortOrder?: SortOrder
+  }
+
+  export type EnumPrintAgentKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintAgentKind | EnumPrintAgentKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrintAgentKindFilter<$PrismaModel> | $Enums.PrintAgentKind
+  }
+
+  export type PrintAgentOrderByRelevanceInput = {
+    fields: PrintAgentOrderByRelevanceFieldEnum | PrintAgentOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PrintAgentCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    apiTokenHash?: SortOrder
+    capabilities?: SortOrder
+    versionString?: SortOrder
+    lastSeenAt?: SortOrder
+    isActive?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PrintAgentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    apiTokenHash?: SortOrder
+    versionString?: SortOrder
+    lastSeenAt?: SortOrder
+    isActive?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PrintAgentMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    name?: SortOrder
+    kind?: SortOrder
+    apiTokenHash?: SortOrder
+    versionString?: SortOrder
+    lastSeenAt?: SortOrder
+    isActive?: SortOrder
+    deletedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumPrintAgentKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintAgentKind | EnumPrintAgentKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrintAgentKindWithAggregatesFilter<$PrismaModel> | $Enums.PrintAgentKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrintAgentKindFilter<$PrismaModel>
+    _max?: NestedEnumPrintAgentKindFilter<$PrismaModel>
+  }
+
+  export type PrinterStationRelationFilter = {
+    is?: PrinterStationWhereInput
+    isNot?: PrinterStationWhereInput
+  }
+
+  export type MenuItemStationOrderByRelevanceInput = {
+    fields: MenuItemStationOrderByRelevanceFieldEnum | MenuItemStationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MenuItemStationMenuItemIdStationIdCompoundUniqueInput = {
+    menuItemId: string
+    stationId: string
+  }
+
+  export type MenuItemStationCountOrderByAggregateInput = {
+    id?: SortOrder
+    menuItemId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuItemStationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    menuItemId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuItemStationMinOrderByAggregateInput = {
+    id?: SortOrder
+    menuItemId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierGroupStationOrderByRelevanceInput = {
+    fields: ModifierGroupStationOrderByRelevanceFieldEnum | ModifierGroupStationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ModifierGroupStationModifierGroupIdStationIdCompoundUniqueInput = {
+    modifierGroupId: string
+    stationId: string
+  }
+
+  export type ModifierGroupStationCountOrderByAggregateInput = {
+    id?: SortOrder
+    modifierGroupId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierGroupStationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    modifierGroupId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ModifierGroupStationMinOrderByAggregateInput = {
+    id?: SortOrder
+    modifierGroupId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuCategoryStationOrderByRelevanceInput = {
+    fields: MenuCategoryStationOrderByRelevanceFieldEnum | MenuCategoryStationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MenuCategoryStationCategoryIdStationIdCompoundUniqueInput = {
+    categoryId: string
+    stationId: string
+  }
+
+  export type MenuCategoryStationCountOrderByAggregateInput = {
+    id?: SortOrder
+    categoryId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuCategoryStationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    categoryId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuCategoryStationMinOrderByAggregateInput = {
+    id?: SortOrder
+    categoryId?: SortOrder
+    stationId?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type PrintTemplateOrderByRelevanceInput = {
@@ -123759,6 +131597,20 @@ export namespace Prisma {
     connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
   }
 
+  export type PrinterStationCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput> | PrinterStationCreateWithoutTenantInput[] | PrinterStationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutTenantInput | PrinterStationCreateOrConnectWithoutTenantInput[]
+    createMany?: PrinterStationCreateManyTenantInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type PrintAgentCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput> | PrintAgentCreateWithoutTenantInput[] | PrintAgentUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutTenantInput | PrintAgentCreateOrConnectWithoutTenantInput[]
+    createMany?: PrintAgentCreateManyTenantInputEnvelope
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+  }
+
   export type BrandUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -123853,6 +131705,20 @@ export namespace Prisma {
     connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
     createMany?: InvitationCreateManyTenantInputEnvelope
     connect?: InvitationWhereUniqueInput | InvitationWhereUniqueInput[]
+  }
+
+  export type PrinterStationUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput> | PrinterStationCreateWithoutTenantInput[] | PrinterStationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutTenantInput | PrinterStationCreateOrConnectWithoutTenantInput[]
+    createMany?: PrinterStationCreateManyTenantInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type PrintAgentUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput> | PrintAgentCreateWithoutTenantInput[] | PrintAgentUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutTenantInput | PrintAgentCreateOrConnectWithoutTenantInput[]
+    createMany?: PrintAgentCreateManyTenantInputEnvelope
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -124059,6 +131925,34 @@ export namespace Prisma {
     deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
   }
 
+  export type PrinterStationUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput> | PrinterStationCreateWithoutTenantInput[] | PrinterStationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutTenantInput | PrinterStationCreateOrConnectWithoutTenantInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutTenantInput | PrinterStationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrinterStationCreateManyTenantInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutTenantInput | PrinterStationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutTenantInput | PrinterStationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type PrintAgentUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput> | PrintAgentCreateWithoutTenantInput[] | PrintAgentUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutTenantInput | PrintAgentCreateOrConnectWithoutTenantInput[]
+    upsert?: PrintAgentUpsertWithWhereUniqueWithoutTenantInput | PrintAgentUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrintAgentCreateManyTenantInputEnvelope
+    set?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    disconnect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    delete?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    update?: PrintAgentUpdateWithWhereUniqueWithoutTenantInput | PrintAgentUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrintAgentUpdateManyWithWhereWithoutTenantInput | PrintAgentUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
+  }
+
   export type BrandUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -124245,6 +132139,34 @@ export namespace Prisma {
     update?: InvitationUpdateWithWhereUniqueWithoutTenantInput | InvitationUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: InvitationUpdateManyWithWhereWithoutTenantInput | InvitationUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput> | PrinterStationCreateWithoutTenantInput[] | PrinterStationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutTenantInput | PrinterStationCreateOrConnectWithoutTenantInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutTenantInput | PrinterStationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrinterStationCreateManyTenantInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutTenantInput | PrinterStationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutTenantInput | PrinterStationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type PrintAgentUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput> | PrintAgentCreateWithoutTenantInput[] | PrintAgentUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutTenantInput | PrintAgentCreateOrConnectWithoutTenantInput[]
+    upsert?: PrintAgentUpsertWithWhereUniqueWithoutTenantInput | PrintAgentUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PrintAgentCreateManyTenantInputEnvelope
+    set?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    disconnect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    delete?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    update?: PrintAgentUpdateWithWhereUniqueWithoutTenantInput | PrintAgentUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PrintAgentUpdateManyWithWhereWithoutTenantInput | PrintAgentUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
   }
 
   export type UserCreatepermissionsInput = {
@@ -124999,6 +132921,12 @@ export namespace Prisma {
     connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
   }
 
+  export type PrinterStationCreateNestedOneWithoutBrandDefaultsInput = {
+    create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
   export type LocationUncheckedCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -125175,6 +133103,16 @@ export namespace Prisma {
     deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
   }
 
+  export type PrinterStationUpdateOneWithoutBrandDefaultsNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
+    upsert?: PrinterStationUpsertWithoutBrandDefaultsInput
+    disconnect?: PrinterStationWhereInput | boolean
+    delete?: PrinterStationWhereInput | boolean
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutBrandDefaultsInput, PrinterStationUpdateWithoutBrandDefaultsInput>, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
+  }
+
   export type LocationUncheckedUpdateManyWithoutBrandNestedInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -125314,6 +133252,20 @@ export namespace Prisma {
     connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
   }
 
+  export type PrinterStationCreateNestedManyWithoutLocationInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput> | PrinterStationCreateWithoutLocationInput[] | PrinterStationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationInput | PrinterStationCreateOrConnectWithoutLocationInput[]
+    createMany?: PrinterStationCreateManyLocationInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type PrintAgentCreateNestedManyWithoutLocationInput = {
+    create?: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput> | PrintAgentCreateWithoutLocationInput[] | PrintAgentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutLocationInput | PrintAgentCreateOrConnectWithoutLocationInput[]
+    createMany?: PrintAgentCreateManyLocationInputEnvelope
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+  }
+
   export type KdsScreenCreateNestedManyWithoutLocationInput = {
     create?: XOR<KdsScreenCreateWithoutLocationInput, KdsScreenUncheckedCreateWithoutLocationInput> | KdsScreenCreateWithoutLocationInput[] | KdsScreenUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: KdsScreenCreateOrConnectWithoutLocationInput | KdsScreenCreateOrConnectWithoutLocationInput[]
@@ -125354,6 +133306,24 @@ export namespace Prisma {
     connect?: DirectOrderingConfigWhereUniqueInput
   }
 
+  export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedOneWithoutLocationsReceiptForInput = {
+    create?: XOR<PrinterCreateWithoutLocationsReceiptForInput, PrinterUncheckedCreateWithoutLocationsReceiptForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutLocationsReceiptForInput
+    connect?: PrinterWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedOneWithoutLocationsDispatchForInput = {
+    create?: XOR<PrinterCreateWithoutLocationsDispatchForInput, PrinterUncheckedCreateWithoutLocationsDispatchForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutLocationsDispatchForInput
+    connect?: PrinterWhereUniqueInput
+  }
+
   export type IntegrationUncheckedCreateNestedManyWithoutLocationInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -125373,6 +133343,20 @@ export namespace Prisma {
     connectOrCreate?: PrinterCreateOrConnectWithoutLocationInput | PrinterCreateOrConnectWithoutLocationInput[]
     createMany?: PrinterCreateManyLocationInputEnvelope
     connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrinterStationUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput> | PrinterStationCreateWithoutLocationInput[] | PrinterStationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationInput | PrinterStationCreateOrConnectWithoutLocationInput[]
+    createMany?: PrinterStationCreateManyLocationInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type PrintAgentUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput> | PrintAgentCreateWithoutLocationInput[] | PrintAgentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutLocationInput | PrintAgentCreateOrConnectWithoutLocationInput[]
+    createMany?: PrintAgentCreateManyLocationInputEnvelope
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
   }
 
   export type KdsScreenUncheckedCreateNestedManyWithoutLocationInput = {
@@ -125493,6 +133477,34 @@ export namespace Prisma {
     deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
   }
 
+  export type PrinterStationUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput> | PrinterStationCreateWithoutLocationInput[] | PrinterStationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationInput | PrinterStationCreateOrConnectWithoutLocationInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutLocationInput | PrinterStationUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: PrinterStationCreateManyLocationInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutLocationInput | PrinterStationUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutLocationInput | PrinterStationUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type PrintAgentUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput> | PrintAgentCreateWithoutLocationInput[] | PrintAgentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutLocationInput | PrintAgentCreateOrConnectWithoutLocationInput[]
+    upsert?: PrintAgentUpsertWithWhereUniqueWithoutLocationInput | PrintAgentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: PrintAgentCreateManyLocationInputEnvelope
+    set?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    disconnect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    delete?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    update?: PrintAgentUpdateWithWhereUniqueWithoutLocationInput | PrintAgentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: PrintAgentUpdateManyWithWhereWithoutLocationInput | PrintAgentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
+  }
+
   export type KdsScreenUpdateManyWithoutLocationNestedInput = {
     create?: XOR<KdsScreenCreateWithoutLocationInput, KdsScreenUncheckedCreateWithoutLocationInput> | KdsScreenCreateWithoutLocationInput[] | KdsScreenUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: KdsScreenCreateOrConnectWithoutLocationInput | KdsScreenCreateOrConnectWithoutLocationInput[]
@@ -125569,6 +133581,36 @@ export namespace Prisma {
     update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput, DirectOrderingConfigUpdateWithoutLocationInput>, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
+    upsert?: PrinterStationUpsertWithoutLocationDefaultsInput
+    disconnect?: PrinterStationWhereInput | boolean
+    delete?: PrinterStationWhereInput | boolean
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutLocationDefaultsInput, PrinterStationUpdateWithoutLocationDefaultsInput>, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
+  }
+
+  export type PrinterUpdateOneWithoutLocationsReceiptForNestedInput = {
+    create?: XOR<PrinterCreateWithoutLocationsReceiptForInput, PrinterUncheckedCreateWithoutLocationsReceiptForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutLocationsReceiptForInput
+    upsert?: PrinterUpsertWithoutLocationsReceiptForInput
+    disconnect?: PrinterWhereInput | boolean
+    delete?: PrinterWhereInput | boolean
+    connect?: PrinterWhereUniqueInput
+    update?: XOR<XOR<PrinterUpdateToOneWithWhereWithoutLocationsReceiptForInput, PrinterUpdateWithoutLocationsReceiptForInput>, PrinterUncheckedUpdateWithoutLocationsReceiptForInput>
+  }
+
+  export type PrinterUpdateOneWithoutLocationsDispatchForNestedInput = {
+    create?: XOR<PrinterCreateWithoutLocationsDispatchForInput, PrinterUncheckedCreateWithoutLocationsDispatchForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutLocationsDispatchForInput
+    upsert?: PrinterUpsertWithoutLocationsDispatchForInput
+    disconnect?: PrinterWhereInput | boolean
+    delete?: PrinterWhereInput | boolean
+    connect?: PrinterWhereUniqueInput
+    update?: XOR<XOR<PrinterUpdateToOneWithWhereWithoutLocationsDispatchForInput, PrinterUpdateWithoutLocationsDispatchForInput>, PrinterUncheckedUpdateWithoutLocationsDispatchForInput>
+  }
+
   export type IntegrationUncheckedUpdateManyWithoutLocationNestedInput = {
     create?: XOR<IntegrationCreateWithoutLocationInput, IntegrationUncheckedCreateWithoutLocationInput> | IntegrationCreateWithoutLocationInput[] | IntegrationUncheckedCreateWithoutLocationInput[]
     connectOrCreate?: IntegrationCreateOrConnectWithoutLocationInput | IntegrationCreateOrConnectWithoutLocationInput[]
@@ -125609,6 +133651,34 @@ export namespace Prisma {
     update?: PrinterUpdateWithWhereUniqueWithoutLocationInput | PrinterUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: PrinterUpdateManyWithWhereWithoutLocationInput | PrinterUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput> | PrinterStationCreateWithoutLocationInput[] | PrinterStationUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationInput | PrinterStationCreateOrConnectWithoutLocationInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutLocationInput | PrinterStationUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: PrinterStationCreateManyLocationInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutLocationInput | PrinterStationUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutLocationInput | PrinterStationUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type PrintAgentUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput> | PrintAgentCreateWithoutLocationInput[] | PrintAgentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutLocationInput | PrintAgentCreateOrConnectWithoutLocationInput[]
+    upsert?: PrintAgentUpsertWithWhereUniqueWithoutLocationInput | PrintAgentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: PrintAgentCreateManyLocationInputEnvelope
+    set?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    disconnect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    delete?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    connect?: PrintAgentWhereUniqueInput | PrintAgentWhereUniqueInput[]
+    update?: PrintAgentUpdateWithWhereUniqueWithoutLocationInput | PrintAgentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: PrintAgentUpdateManyWithWhereWithoutLocationInput | PrintAgentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
   }
 
   export type KdsScreenUncheckedUpdateManyWithoutLocationNestedInput = {
@@ -125873,11 +133943,25 @@ export namespace Prisma {
     connect?: MenuItemOnCategoryWhereUniqueInput | MenuItemOnCategoryWhereUniqueInput[]
   }
 
+  export type MenuCategoryStationCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput> | MenuCategoryStationCreateWithoutCategoryInput[] | MenuCategoryStationUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutCategoryInput | MenuCategoryStationCreateOrConnectWithoutCategoryInput[]
+    createMany?: MenuCategoryStationCreateManyCategoryInputEnvelope
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutCategoryInput, MenuItemOnCategoryUncheckedCreateWithoutCategoryInput> | MenuItemOnCategoryCreateWithoutCategoryInput[] | MenuItemOnCategoryUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutCategoryInput | MenuItemOnCategoryCreateOrConnectWithoutCategoryInput[]
     createMany?: MenuItemOnCategoryCreateManyCategoryInputEnvelope
     connect?: MenuItemOnCategoryWhereUniqueInput | MenuItemOnCategoryWhereUniqueInput[]
+  }
+
+  export type MenuCategoryStationUncheckedCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput> | MenuCategoryStationCreateWithoutCategoryInput[] | MenuCategoryStationUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutCategoryInput | MenuCategoryStationCreateOrConnectWithoutCategoryInput[]
+    createMany?: MenuCategoryStationCreateManyCategoryInputEnvelope
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
   }
 
   export type MenuCategoryUpdatemenuIdsInput = {
@@ -125907,6 +133991,20 @@ export namespace Prisma {
     deleteMany?: MenuItemOnCategoryScalarWhereInput | MenuItemOnCategoryScalarWhereInput[]
   }
 
+  export type MenuCategoryStationUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput> | MenuCategoryStationCreateWithoutCategoryInput[] | MenuCategoryStationUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutCategoryInput | MenuCategoryStationCreateOrConnectWithoutCategoryInput[]
+    upsert?: MenuCategoryStationUpsertWithWhereUniqueWithoutCategoryInput | MenuCategoryStationUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: MenuCategoryStationCreateManyCategoryInputEnvelope
+    set?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    disconnect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    delete?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    update?: MenuCategoryStationUpdateWithWhereUniqueWithoutCategoryInput | MenuCategoryStationUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: MenuCategoryStationUpdateManyWithWhereWithoutCategoryInput | MenuCategoryStationUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutCategoryInput, MenuItemOnCategoryUncheckedCreateWithoutCategoryInput> | MenuItemOnCategoryCreateWithoutCategoryInput[] | MenuItemOnCategoryUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutCategoryInput | MenuItemOnCategoryCreateOrConnectWithoutCategoryInput[]
@@ -125919,6 +134017,20 @@ export namespace Prisma {
     update?: MenuItemOnCategoryUpdateWithWhereUniqueWithoutCategoryInput | MenuItemOnCategoryUpdateWithWhereUniqueWithoutCategoryInput[]
     updateMany?: MenuItemOnCategoryUpdateManyWithWhereWithoutCategoryInput | MenuItemOnCategoryUpdateManyWithWhereWithoutCategoryInput[]
     deleteMany?: MenuItemOnCategoryScalarWhereInput | MenuItemOnCategoryScalarWhereInput[]
+  }
+
+  export type MenuCategoryStationUncheckedUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput> | MenuCategoryStationCreateWithoutCategoryInput[] | MenuCategoryStationUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutCategoryInput | MenuCategoryStationCreateOrConnectWithoutCategoryInput[]
+    upsert?: MenuCategoryStationUpsertWithWhereUniqueWithoutCategoryInput | MenuCategoryStationUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: MenuCategoryStationCreateManyCategoryInputEnvelope
+    set?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    disconnect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    delete?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    update?: MenuCategoryStationUpdateWithWhereUniqueWithoutCategoryInput | MenuCategoryStationUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: MenuCategoryStationUpdateManyWithWhereWithoutCategoryInput | MenuCategoryStationUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
   }
 
   export type MenuItemCreateallergensInput = {
@@ -125964,6 +134076,13 @@ export namespace Prisma {
     connect?: RecipeWhereUniqueInput
   }
 
+  export type MenuItemStationCreateNestedManyWithoutMenuItemInput = {
+    create?: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput> | MenuItemStationCreateWithoutMenuItemInput[] | MenuItemStationUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutMenuItemInput | MenuItemStationCreateOrConnectWithoutMenuItemInput[]
+    createMany?: MenuItemStationCreateManyMenuItemInputEnvelope
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -125989,6 +134108,13 @@ export namespace Prisma {
     create?: XOR<RecipeCreateWithoutMenuItemInput, RecipeUncheckedCreateWithoutMenuItemInput>
     connectOrCreate?: RecipeCreateOrConnectWithoutMenuItemInput
     connect?: RecipeWhereUniqueInput
+  }
+
+  export type MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput = {
+    create?: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput> | MenuItemStationCreateWithoutMenuItemInput[] | MenuItemStationUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutMenuItemInput | MenuItemStationCreateOrConnectWithoutMenuItemInput[]
+    createMany?: MenuItemStationCreateManyMenuItemInputEnvelope
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -126071,6 +134197,20 @@ export namespace Prisma {
     update?: XOR<XOR<RecipeUpdateToOneWithWhereWithoutMenuItemInput, RecipeUpdateWithoutMenuItemInput>, RecipeUncheckedUpdateWithoutMenuItemInput>
   }
 
+  export type MenuItemStationUpdateManyWithoutMenuItemNestedInput = {
+    create?: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput> | MenuItemStationCreateWithoutMenuItemInput[] | MenuItemStationUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutMenuItemInput | MenuItemStationCreateOrConnectWithoutMenuItemInput[]
+    upsert?: MenuItemStationUpsertWithWhereUniqueWithoutMenuItemInput | MenuItemStationUpsertWithWhereUniqueWithoutMenuItemInput[]
+    createMany?: MenuItemStationCreateManyMenuItemInputEnvelope
+    set?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    disconnect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    delete?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    update?: MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput | MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput[]
+    updateMany?: MenuItemStationUpdateManyWithWhereWithoutMenuItemInput | MenuItemStationUpdateManyWithWhereWithoutMenuItemInput[]
+    deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -126121,6 +134261,20 @@ export namespace Prisma {
     delete?: RecipeWhereInput | boolean
     connect?: RecipeWhereUniqueInput
     update?: XOR<XOR<RecipeUpdateToOneWithWhereWithoutMenuItemInput, RecipeUpdateWithoutMenuItemInput>, RecipeUncheckedUpdateWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput = {
+    create?: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput> | MenuItemStationCreateWithoutMenuItemInput[] | MenuItemStationUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutMenuItemInput | MenuItemStationCreateOrConnectWithoutMenuItemInput[]
+    upsert?: MenuItemStationUpsertWithWhereUniqueWithoutMenuItemInput | MenuItemStationUpsertWithWhereUniqueWithoutMenuItemInput[]
+    createMany?: MenuItemStationCreateManyMenuItemInputEnvelope
+    set?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    disconnect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    delete?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    update?: MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput | MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput[]
+    updateMany?: MenuItemStationUpdateManyWithWhereWithoutMenuItemInput | MenuItemStationUpdateManyWithWhereWithoutMenuItemInput[]
+    deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
   }
 
   export type MenuCategoryCreateNestedOneWithoutItemsInput = {
@@ -126182,6 +134336,13 @@ export namespace Prisma {
     connect?: ModifierOptionWhereUniqueInput | ModifierOptionWhereUniqueInput[]
   }
 
+  export type ModifierGroupStationCreateNestedManyWithoutModifierGroupInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
+    createMany?: ModifierGroupStationCreateManyModifierGroupInputEnvelope
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+  }
+
   export type ModifierOptionUncheckedCreateNestedManyWithoutGroupInput = {
     create?: XOR<ModifierOptionCreateWithoutGroupInput, ModifierOptionUncheckedCreateWithoutGroupInput> | ModifierOptionCreateWithoutGroupInput[] | ModifierOptionUncheckedCreateWithoutGroupInput[]
     connectOrCreate?: ModifierOptionCreateOrConnectWithoutGroupInput | ModifierOptionCreateOrConnectWithoutGroupInput[]
@@ -126201,6 +134362,13 @@ export namespace Prisma {
     connectOrCreate?: ModifierOptionCreateOrConnectWithoutNestedGroupInput | ModifierOptionCreateOrConnectWithoutNestedGroupInput[]
     createMany?: ModifierOptionCreateManyNestedGroupInputEnvelope
     connect?: ModifierOptionWhereUniqueInput | ModifierOptionWhereUniqueInput[]
+  }
+
+  export type ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
+    createMany?: ModifierGroupStationCreateManyModifierGroupInputEnvelope
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
   }
 
   export type EnumSelectionTypeFieldUpdateOperationsInput = {
@@ -126262,6 +134430,20 @@ export namespace Prisma {
     deleteMany?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
   }
 
+  export type ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
+    upsert?: ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput | ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput[]
+    createMany?: ModifierGroupStationCreateManyModifierGroupInputEnvelope
+    set?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    disconnect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    delete?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    update?: ModifierGroupStationUpdateWithWhereUniqueWithoutModifierGroupInput | ModifierGroupStationUpdateWithWhereUniqueWithoutModifierGroupInput[]
+    updateMany?: ModifierGroupStationUpdateManyWithWhereWithoutModifierGroupInput | ModifierGroupStationUpdateManyWithWhereWithoutModifierGroupInput[]
+    deleteMany?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
+  }
+
   export type ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput = {
     create?: XOR<ModifierOptionCreateWithoutGroupInput, ModifierOptionUncheckedCreateWithoutGroupInput> | ModifierOptionCreateWithoutGroupInput[] | ModifierOptionUncheckedCreateWithoutGroupInput[]
     connectOrCreate?: ModifierOptionCreateOrConnectWithoutGroupInput | ModifierOptionCreateOrConnectWithoutGroupInput[]
@@ -126302,6 +134484,20 @@ export namespace Prisma {
     update?: ModifierOptionUpdateWithWhereUniqueWithoutNestedGroupInput | ModifierOptionUpdateWithWhereUniqueWithoutNestedGroupInput[]
     updateMany?: ModifierOptionUpdateManyWithWhereWithoutNestedGroupInput | ModifierOptionUpdateManyWithWhereWithoutNestedGroupInput[]
     deleteMany?: ModifierOptionScalarWhereInput | ModifierOptionScalarWhereInput[]
+  }
+
+  export type ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput> | ModifierGroupStationCreateWithoutModifierGroupInput[] | ModifierGroupStationUncheckedCreateWithoutModifierGroupInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutModifierGroupInput | ModifierGroupStationCreateOrConnectWithoutModifierGroupInput[]
+    upsert?: ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput | ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput[]
+    createMany?: ModifierGroupStationCreateManyModifierGroupInputEnvelope
+    set?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    disconnect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    delete?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    update?: ModifierGroupStationUpdateWithWhereUniqueWithoutModifierGroupInput | ModifierGroupStationUpdateWithWhereUniqueWithoutModifierGroupInput[]
+    updateMany?: ModifierGroupStationUpdateManyWithWhereWithoutModifierGroupInput | ModifierGroupStationUpdateManyWithWhereWithoutModifierGroupInput[]
+    deleteMany?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
   }
 
   export type ModifierOptionCreatemodifierGroupIdsInput = {
@@ -127236,6 +135432,12 @@ export namespace Prisma {
     connect?: LocationWhereUniqueInput
   }
 
+  export type PrintAgentCreateNestedOneWithoutPrintersInput = {
+    create?: XOR<PrintAgentCreateWithoutPrintersInput, PrintAgentUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutPrintersInput
+    connect?: PrintAgentWhereUniqueInput
+  }
+
   export type PrintJobCreateNestedManyWithoutPrinterInput = {
     create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
     connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
@@ -127243,11 +135445,53 @@ export namespace Prisma {
     connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
   }
 
+  export type PrinterStationCreateNestedManyWithoutDefaultPrinterInput = {
+    create?: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput> | PrinterStationCreateWithoutDefaultPrinterInput[] | PrinterStationUncheckedCreateWithoutDefaultPrinterInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutDefaultPrinterInput | PrinterStationCreateOrConnectWithoutDefaultPrinterInput[]
+    createMany?: PrinterStationCreateManyDefaultPrinterInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type LocationCreateNestedManyWithoutReceiptPrinterInput = {
+    create?: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput> | LocationCreateWithoutReceiptPrinterInput[] | LocationUncheckedCreateWithoutReceiptPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutReceiptPrinterInput | LocationCreateOrConnectWithoutReceiptPrinterInput[]
+    createMany?: LocationCreateManyReceiptPrinterInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type LocationCreateNestedManyWithoutDispatchPrinterInput = {
+    create?: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput> | LocationCreateWithoutDispatchPrinterInput[] | LocationUncheckedCreateWithoutDispatchPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDispatchPrinterInput | LocationCreateOrConnectWithoutDispatchPrinterInput[]
+    createMany?: LocationCreateManyDispatchPrinterInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
   export type PrintJobUncheckedCreateNestedManyWithoutPrinterInput = {
     create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
     connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
     createMany?: PrintJobCreateManyPrinterInputEnvelope
     connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput = {
+    create?: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput> | PrinterStationCreateWithoutDefaultPrinterInput[] | PrinterStationUncheckedCreateWithoutDefaultPrinterInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutDefaultPrinterInput | PrinterStationCreateOrConnectWithoutDefaultPrinterInput[]
+    createMany?: PrinterStationCreateManyDefaultPrinterInputEnvelope
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+  }
+
+  export type LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput = {
+    create?: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput> | LocationCreateWithoutReceiptPrinterInput[] | LocationUncheckedCreateWithoutReceiptPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutReceiptPrinterInput | LocationCreateOrConnectWithoutReceiptPrinterInput[]
+    createMany?: LocationCreateManyReceiptPrinterInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput = {
+    create?: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput> | LocationCreateWithoutDispatchPrinterInput[] | LocationUncheckedCreateWithoutDispatchPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDispatchPrinterInput | LocationCreateOrConnectWithoutDispatchPrinterInput[]
+    createMany?: LocationCreateManyDispatchPrinterInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
   }
 
   export type EnumPrinterTypeFieldUpdateOperationsInput = {
@@ -127258,8 +135502,8 @@ export namespace Prisma {
     set?: $Enums.PrinterConnectionType
   }
 
-  export type EnumPrinterStationFieldUpdateOperationsInput = {
-    set?: $Enums.PrinterStation
+  export type EnumPrinterStationKindFieldUpdateOperationsInput = {
+    set?: $Enums.PrinterStationKind
   }
 
   export type LocationUpdateOneRequiredWithoutPrintersNestedInput = {
@@ -127268,6 +135512,16 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutPrintersInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPrintersInput, LocationUpdateWithoutPrintersInput>, LocationUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type PrintAgentUpdateOneWithoutPrintersNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutPrintersInput, PrintAgentUncheckedCreateWithoutPrintersInput>
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutPrintersInput
+    upsert?: PrintAgentUpsertWithoutPrintersInput
+    disconnect?: PrintAgentWhereInput | boolean
+    delete?: PrintAgentWhereInput | boolean
+    connect?: PrintAgentWhereUniqueInput
+    update?: XOR<XOR<PrintAgentUpdateToOneWithWhereWithoutPrintersInput, PrintAgentUpdateWithoutPrintersInput>, PrintAgentUncheckedUpdateWithoutPrintersInput>
   }
 
   export type PrintJobUpdateManyWithoutPrinterNestedInput = {
@@ -127284,6 +135538,48 @@ export namespace Prisma {
     deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
   }
 
+  export type PrinterStationUpdateManyWithoutDefaultPrinterNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput> | PrinterStationCreateWithoutDefaultPrinterInput[] | PrinterStationUncheckedCreateWithoutDefaultPrinterInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutDefaultPrinterInput | PrinterStationCreateOrConnectWithoutDefaultPrinterInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutDefaultPrinterInput | PrinterStationUpsertWithWhereUniqueWithoutDefaultPrinterInput[]
+    createMany?: PrinterStationCreateManyDefaultPrinterInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutDefaultPrinterInput | PrinterStationUpdateWithWhereUniqueWithoutDefaultPrinterInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutDefaultPrinterInput | PrinterStationUpdateManyWithWhereWithoutDefaultPrinterInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type LocationUpdateManyWithoutReceiptPrinterNestedInput = {
+    create?: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput> | LocationCreateWithoutReceiptPrinterInput[] | LocationUncheckedCreateWithoutReceiptPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutReceiptPrinterInput | LocationCreateOrConnectWithoutReceiptPrinterInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutReceiptPrinterInput | LocationUpsertWithWhereUniqueWithoutReceiptPrinterInput[]
+    createMany?: LocationCreateManyReceiptPrinterInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutReceiptPrinterInput | LocationUpdateWithWhereUniqueWithoutReceiptPrinterInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutReceiptPrinterInput | LocationUpdateManyWithWhereWithoutReceiptPrinterInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type LocationUpdateManyWithoutDispatchPrinterNestedInput = {
+    create?: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput> | LocationCreateWithoutDispatchPrinterInput[] | LocationUncheckedCreateWithoutDispatchPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDispatchPrinterInput | LocationCreateOrConnectWithoutDispatchPrinterInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutDispatchPrinterInput | LocationUpsertWithWhereUniqueWithoutDispatchPrinterInput[]
+    createMany?: LocationCreateManyDispatchPrinterInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutDispatchPrinterInput | LocationUpdateWithWhereUniqueWithoutDispatchPrinterInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutDispatchPrinterInput | LocationUpdateManyWithWhereWithoutDispatchPrinterInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
   export type PrintJobUncheckedUpdateManyWithoutPrinterNestedInput = {
     create?: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput> | PrintJobCreateWithoutPrinterInput[] | PrintJobUncheckedCreateWithoutPrinterInput[]
     connectOrCreate?: PrintJobCreateOrConnectWithoutPrinterInput | PrintJobCreateOrConnectWithoutPrinterInput[]
@@ -127296,6 +135592,48 @@ export namespace Prisma {
     update?: PrintJobUpdateWithWhereUniqueWithoutPrinterInput | PrintJobUpdateWithWhereUniqueWithoutPrinterInput[]
     updateMany?: PrintJobUpdateManyWithWhereWithoutPrinterInput | PrintJobUpdateManyWithWhereWithoutPrinterInput[]
     deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput> | PrinterStationCreateWithoutDefaultPrinterInput[] | PrinterStationUncheckedCreateWithoutDefaultPrinterInput[]
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutDefaultPrinterInput | PrinterStationCreateOrConnectWithoutDefaultPrinterInput[]
+    upsert?: PrinterStationUpsertWithWhereUniqueWithoutDefaultPrinterInput | PrinterStationUpsertWithWhereUniqueWithoutDefaultPrinterInput[]
+    createMany?: PrinterStationCreateManyDefaultPrinterInputEnvelope
+    set?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    disconnect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    delete?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    connect?: PrinterStationWhereUniqueInput | PrinterStationWhereUniqueInput[]
+    update?: PrinterStationUpdateWithWhereUniqueWithoutDefaultPrinterInput | PrinterStationUpdateWithWhereUniqueWithoutDefaultPrinterInput[]
+    updateMany?: PrinterStationUpdateManyWithWhereWithoutDefaultPrinterInput | PrinterStationUpdateManyWithWhereWithoutDefaultPrinterInput[]
+    deleteMany?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+  }
+
+  export type LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput = {
+    create?: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput> | LocationCreateWithoutReceiptPrinterInput[] | LocationUncheckedCreateWithoutReceiptPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutReceiptPrinterInput | LocationCreateOrConnectWithoutReceiptPrinterInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutReceiptPrinterInput | LocationUpsertWithWhereUniqueWithoutReceiptPrinterInput[]
+    createMany?: LocationCreateManyReceiptPrinterInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutReceiptPrinterInput | LocationUpdateWithWhereUniqueWithoutReceiptPrinterInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutReceiptPrinterInput | LocationUpdateManyWithWhereWithoutReceiptPrinterInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput = {
+    create?: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput> | LocationCreateWithoutDispatchPrinterInput[] | LocationUncheckedCreateWithoutDispatchPrinterInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDispatchPrinterInput | LocationCreateOrConnectWithoutDispatchPrinterInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutDispatchPrinterInput | LocationUpsertWithWhereUniqueWithoutDispatchPrinterInput[]
+    createMany?: LocationCreateManyDispatchPrinterInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutDispatchPrinterInput | LocationUpdateWithWhereUniqueWithoutDispatchPrinterInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutDispatchPrinterInput | LocationUpdateManyWithWhereWithoutDispatchPrinterInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
   }
 
   export type TenantCreateNestedOneWithoutPrintJobsInput = {
@@ -127316,12 +135654,28 @@ export namespace Prisma {
     connect?: OrderWhereUniqueInput
   }
 
+  export type PrinterStationCreateNestedOneWithoutPrintJobsInput = {
+    create?: XOR<PrinterStationCreateWithoutPrintJobsInput, PrinterStationUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutPrintJobsInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
+  export type PrintAgentCreateNestedOneWithoutClaimedJobsInput = {
+    create?: XOR<PrintAgentCreateWithoutClaimedJobsInput, PrintAgentUncheckedCreateWithoutClaimedJobsInput>
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutClaimedJobsInput
+    connect?: PrintAgentWhereUniqueInput
+  }
+
   export type EnumPrintJobTypeFieldUpdateOperationsInput = {
     set?: $Enums.PrintJobType
   }
 
   export type EnumPrintJobStatusFieldUpdateOperationsInput = {
     set?: $Enums.PrintJobStatus
+  }
+
+  export type NullableEnumPrintTriggerFieldUpdateOperationsInput = {
+    set?: $Enums.PrintTrigger | null
   }
 
   export type TenantUpdateOneRequiredWithoutPrintJobsNestedInput = {
@@ -127350,6 +135704,522 @@ export namespace Prisma {
     delete?: OrderWhereInput | boolean
     connect?: OrderWhereUniqueInput
     update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutPrintJobsInput, OrderUpdateWithoutPrintJobsInput>, OrderUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type PrinterStationUpdateOneWithoutPrintJobsNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutPrintJobsInput, PrinterStationUncheckedCreateWithoutPrintJobsInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutPrintJobsInput
+    upsert?: PrinterStationUpsertWithoutPrintJobsInput
+    disconnect?: PrinterStationWhereInput | boolean
+    delete?: PrinterStationWhereInput | boolean
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutPrintJobsInput, PrinterStationUpdateWithoutPrintJobsInput>, PrinterStationUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type PrintAgentUpdateOneWithoutClaimedJobsNestedInput = {
+    create?: XOR<PrintAgentCreateWithoutClaimedJobsInput, PrintAgentUncheckedCreateWithoutClaimedJobsInput>
+    connectOrCreate?: PrintAgentCreateOrConnectWithoutClaimedJobsInput
+    upsert?: PrintAgentUpsertWithoutClaimedJobsInput
+    disconnect?: PrintAgentWhereInput | boolean
+    delete?: PrintAgentWhereInput | boolean
+    connect?: PrintAgentWhereUniqueInput
+    update?: XOR<XOR<PrintAgentUpdateToOneWithWhereWithoutClaimedJobsInput, PrintAgentUpdateWithoutClaimedJobsInput>, PrintAgentUncheckedUpdateWithoutClaimedJobsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutPrinterStationsInput = {
+    create?: XOR<TenantCreateWithoutPrinterStationsInput, TenantUncheckedCreateWithoutPrinterStationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrinterStationsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutPrinterStationsInput = {
+    create?: XOR<LocationCreateWithoutPrinterStationsInput, LocationUncheckedCreateWithoutPrinterStationsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPrinterStationsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedOneWithoutStationsDefaultForInput = {
+    create?: XOR<PrinterCreateWithoutStationsDefaultForInput, PrinterUncheckedCreateWithoutStationsDefaultForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutStationsDefaultForInput
+    connect?: PrinterWhereUniqueInput
+  }
+
+  export type MenuItemStationCreateNestedManyWithoutStationInput = {
+    create?: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput> | MenuItemStationCreateWithoutStationInput[] | MenuItemStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutStationInput | MenuItemStationCreateOrConnectWithoutStationInput[]
+    createMany?: MenuItemStationCreateManyStationInputEnvelope
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+  }
+
+  export type MenuCategoryStationCreateNestedManyWithoutStationInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput> | MenuCategoryStationCreateWithoutStationInput[] | MenuCategoryStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutStationInput | MenuCategoryStationCreateOrConnectWithoutStationInput[]
+    createMany?: MenuCategoryStationCreateManyStationInputEnvelope
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+  }
+
+  export type ModifierGroupStationCreateNestedManyWithoutStationInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput> | ModifierGroupStationCreateWithoutStationInput[] | ModifierGroupStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutStationInput | ModifierGroupStationCreateOrConnectWithoutStationInput[]
+    createMany?: ModifierGroupStationCreateManyStationInputEnvelope
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+  }
+
+  export type BrandCreateNestedManyWithoutDefaultStationInput = {
+    create?: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput> | BrandCreateWithoutDefaultStationInput[] | BrandUncheckedCreateWithoutDefaultStationInput[]
+    connectOrCreate?: BrandCreateOrConnectWithoutDefaultStationInput | BrandCreateOrConnectWithoutDefaultStationInput[]
+    createMany?: BrandCreateManyDefaultStationInputEnvelope
+    connect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+  }
+
+  export type LocationCreateNestedManyWithoutDefaultKitchenStationInput = {
+    create?: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput> | LocationCreateWithoutDefaultKitchenStationInput[] | LocationUncheckedCreateWithoutDefaultKitchenStationInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDefaultKitchenStationInput | LocationCreateOrConnectWithoutDefaultKitchenStationInput[]
+    createMany?: LocationCreateManyDefaultKitchenStationInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type PrintJobCreateNestedManyWithoutStationInput = {
+    create?: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput> | PrintJobCreateWithoutStationInput[] | PrintJobUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutStationInput | PrintJobCreateOrConnectWithoutStationInput[]
+    createMany?: PrintJobCreateManyStationInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type MenuItemStationUncheckedCreateNestedManyWithoutStationInput = {
+    create?: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput> | MenuItemStationCreateWithoutStationInput[] | MenuItemStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutStationInput | MenuItemStationCreateOrConnectWithoutStationInput[]
+    createMany?: MenuItemStationCreateManyStationInputEnvelope
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+  }
+
+  export type MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput> | MenuCategoryStationCreateWithoutStationInput[] | MenuCategoryStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutStationInput | MenuCategoryStationCreateOrConnectWithoutStationInput[]
+    createMany?: MenuCategoryStationCreateManyStationInputEnvelope
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+  }
+
+  export type ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput> | ModifierGroupStationCreateWithoutStationInput[] | ModifierGroupStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutStationInput | ModifierGroupStationCreateOrConnectWithoutStationInput[]
+    createMany?: ModifierGroupStationCreateManyStationInputEnvelope
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+  }
+
+  export type BrandUncheckedCreateNestedManyWithoutDefaultStationInput = {
+    create?: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput> | BrandCreateWithoutDefaultStationInput[] | BrandUncheckedCreateWithoutDefaultStationInput[]
+    connectOrCreate?: BrandCreateOrConnectWithoutDefaultStationInput | BrandCreateOrConnectWithoutDefaultStationInput[]
+    createMany?: BrandCreateManyDefaultStationInputEnvelope
+    connect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+  }
+
+  export type LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput = {
+    create?: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput> | LocationCreateWithoutDefaultKitchenStationInput[] | LocationUncheckedCreateWithoutDefaultKitchenStationInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDefaultKitchenStationInput | LocationCreateOrConnectWithoutDefaultKitchenStationInput[]
+    createMany?: LocationCreateManyDefaultKitchenStationInputEnvelope
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type PrintJobUncheckedCreateNestedManyWithoutStationInput = {
+    create?: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput> | PrintJobCreateWithoutStationInput[] | PrintJobUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutStationInput | PrintJobCreateOrConnectWithoutStationInput[]
+    createMany?: PrintJobCreateManyStationInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutPrinterStationsNestedInput = {
+    create?: XOR<TenantCreateWithoutPrinterStationsInput, TenantUncheckedCreateWithoutPrinterStationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrinterStationsInput
+    upsert?: TenantUpsertWithoutPrinterStationsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPrinterStationsInput, TenantUpdateWithoutPrinterStationsInput>, TenantUncheckedUpdateWithoutPrinterStationsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutPrinterStationsNestedInput = {
+    create?: XOR<LocationCreateWithoutPrinterStationsInput, LocationUncheckedCreateWithoutPrinterStationsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPrinterStationsInput
+    upsert?: LocationUpsertWithoutPrinterStationsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPrinterStationsInput, LocationUpdateWithoutPrinterStationsInput>, LocationUncheckedUpdateWithoutPrinterStationsInput>
+  }
+
+  export type PrinterUpdateOneWithoutStationsDefaultForNestedInput = {
+    create?: XOR<PrinterCreateWithoutStationsDefaultForInput, PrinterUncheckedCreateWithoutStationsDefaultForInput>
+    connectOrCreate?: PrinterCreateOrConnectWithoutStationsDefaultForInput
+    upsert?: PrinterUpsertWithoutStationsDefaultForInput
+    disconnect?: PrinterWhereInput | boolean
+    delete?: PrinterWhereInput | boolean
+    connect?: PrinterWhereUniqueInput
+    update?: XOR<XOR<PrinterUpdateToOneWithWhereWithoutStationsDefaultForInput, PrinterUpdateWithoutStationsDefaultForInput>, PrinterUncheckedUpdateWithoutStationsDefaultForInput>
+  }
+
+  export type MenuItemStationUpdateManyWithoutStationNestedInput = {
+    create?: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput> | MenuItemStationCreateWithoutStationInput[] | MenuItemStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutStationInput | MenuItemStationCreateOrConnectWithoutStationInput[]
+    upsert?: MenuItemStationUpsertWithWhereUniqueWithoutStationInput | MenuItemStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: MenuItemStationCreateManyStationInputEnvelope
+    set?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    disconnect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    delete?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    update?: MenuItemStationUpdateWithWhereUniqueWithoutStationInput | MenuItemStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: MenuItemStationUpdateManyWithWhereWithoutStationInput | MenuItemStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+  }
+
+  export type MenuCategoryStationUpdateManyWithoutStationNestedInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput> | MenuCategoryStationCreateWithoutStationInput[] | MenuCategoryStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutStationInput | MenuCategoryStationCreateOrConnectWithoutStationInput[]
+    upsert?: MenuCategoryStationUpsertWithWhereUniqueWithoutStationInput | MenuCategoryStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: MenuCategoryStationCreateManyStationInputEnvelope
+    set?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    disconnect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    delete?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    update?: MenuCategoryStationUpdateWithWhereUniqueWithoutStationInput | MenuCategoryStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: MenuCategoryStationUpdateManyWithWhereWithoutStationInput | MenuCategoryStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
+  }
+
+  export type ModifierGroupStationUpdateManyWithoutStationNestedInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput> | ModifierGroupStationCreateWithoutStationInput[] | ModifierGroupStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutStationInput | ModifierGroupStationCreateOrConnectWithoutStationInput[]
+    upsert?: ModifierGroupStationUpsertWithWhereUniqueWithoutStationInput | ModifierGroupStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: ModifierGroupStationCreateManyStationInputEnvelope
+    set?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    disconnect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    delete?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    update?: ModifierGroupStationUpdateWithWhereUniqueWithoutStationInput | ModifierGroupStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: ModifierGroupStationUpdateManyWithWhereWithoutStationInput | ModifierGroupStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
+  }
+
+  export type BrandUpdateManyWithoutDefaultStationNestedInput = {
+    create?: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput> | BrandCreateWithoutDefaultStationInput[] | BrandUncheckedCreateWithoutDefaultStationInput[]
+    connectOrCreate?: BrandCreateOrConnectWithoutDefaultStationInput | BrandCreateOrConnectWithoutDefaultStationInput[]
+    upsert?: BrandUpsertWithWhereUniqueWithoutDefaultStationInput | BrandUpsertWithWhereUniqueWithoutDefaultStationInput[]
+    createMany?: BrandCreateManyDefaultStationInputEnvelope
+    set?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    disconnect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    delete?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    connect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    update?: BrandUpdateWithWhereUniqueWithoutDefaultStationInput | BrandUpdateWithWhereUniqueWithoutDefaultStationInput[]
+    updateMany?: BrandUpdateManyWithWhereWithoutDefaultStationInput | BrandUpdateManyWithWhereWithoutDefaultStationInput[]
+    deleteMany?: BrandScalarWhereInput | BrandScalarWhereInput[]
+  }
+
+  export type LocationUpdateManyWithoutDefaultKitchenStationNestedInput = {
+    create?: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput> | LocationCreateWithoutDefaultKitchenStationInput[] | LocationUncheckedCreateWithoutDefaultKitchenStationInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDefaultKitchenStationInput | LocationCreateOrConnectWithoutDefaultKitchenStationInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutDefaultKitchenStationInput | LocationUpsertWithWhereUniqueWithoutDefaultKitchenStationInput[]
+    createMany?: LocationCreateManyDefaultKitchenStationInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutDefaultKitchenStationInput | LocationUpdateWithWhereUniqueWithoutDefaultKitchenStationInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutDefaultKitchenStationInput | LocationUpdateManyWithWhereWithoutDefaultKitchenStationInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type PrintJobUpdateManyWithoutStationNestedInput = {
+    create?: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput> | PrintJobCreateWithoutStationInput[] | PrintJobUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutStationInput | PrintJobCreateOrConnectWithoutStationInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutStationInput | PrintJobUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: PrintJobCreateManyStationInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutStationInput | PrintJobUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutStationInput | PrintJobUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type MenuItemStationUncheckedUpdateManyWithoutStationNestedInput = {
+    create?: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput> | MenuItemStationCreateWithoutStationInput[] | MenuItemStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuItemStationCreateOrConnectWithoutStationInput | MenuItemStationCreateOrConnectWithoutStationInput[]
+    upsert?: MenuItemStationUpsertWithWhereUniqueWithoutStationInput | MenuItemStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: MenuItemStationCreateManyStationInputEnvelope
+    set?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    disconnect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    delete?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+    update?: MenuItemStationUpdateWithWhereUniqueWithoutStationInput | MenuItemStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: MenuItemStationUpdateManyWithWhereWithoutStationInput | MenuItemStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+  }
+
+  export type MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput = {
+    create?: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput> | MenuCategoryStationCreateWithoutStationInput[] | MenuCategoryStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: MenuCategoryStationCreateOrConnectWithoutStationInput | MenuCategoryStationCreateOrConnectWithoutStationInput[]
+    upsert?: MenuCategoryStationUpsertWithWhereUniqueWithoutStationInput | MenuCategoryStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: MenuCategoryStationCreateManyStationInputEnvelope
+    set?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    disconnect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    delete?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    connect?: MenuCategoryStationWhereUniqueInput | MenuCategoryStationWhereUniqueInput[]
+    update?: MenuCategoryStationUpdateWithWhereUniqueWithoutStationInput | MenuCategoryStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: MenuCategoryStationUpdateManyWithWhereWithoutStationInput | MenuCategoryStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
+  }
+
+  export type ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput = {
+    create?: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput> | ModifierGroupStationCreateWithoutStationInput[] | ModifierGroupStationUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: ModifierGroupStationCreateOrConnectWithoutStationInput | ModifierGroupStationCreateOrConnectWithoutStationInput[]
+    upsert?: ModifierGroupStationUpsertWithWhereUniqueWithoutStationInput | ModifierGroupStationUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: ModifierGroupStationCreateManyStationInputEnvelope
+    set?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    disconnect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    delete?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    connect?: ModifierGroupStationWhereUniqueInput | ModifierGroupStationWhereUniqueInput[]
+    update?: ModifierGroupStationUpdateWithWhereUniqueWithoutStationInput | ModifierGroupStationUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: ModifierGroupStationUpdateManyWithWhereWithoutStationInput | ModifierGroupStationUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
+  }
+
+  export type BrandUncheckedUpdateManyWithoutDefaultStationNestedInput = {
+    create?: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput> | BrandCreateWithoutDefaultStationInput[] | BrandUncheckedCreateWithoutDefaultStationInput[]
+    connectOrCreate?: BrandCreateOrConnectWithoutDefaultStationInput | BrandCreateOrConnectWithoutDefaultStationInput[]
+    upsert?: BrandUpsertWithWhereUniqueWithoutDefaultStationInput | BrandUpsertWithWhereUniqueWithoutDefaultStationInput[]
+    createMany?: BrandCreateManyDefaultStationInputEnvelope
+    set?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    disconnect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    delete?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    connect?: BrandWhereUniqueInput | BrandWhereUniqueInput[]
+    update?: BrandUpdateWithWhereUniqueWithoutDefaultStationInput | BrandUpdateWithWhereUniqueWithoutDefaultStationInput[]
+    updateMany?: BrandUpdateManyWithWhereWithoutDefaultStationInput | BrandUpdateManyWithWhereWithoutDefaultStationInput[]
+    deleteMany?: BrandScalarWhereInput | BrandScalarWhereInput[]
+  }
+
+  export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput = {
+    create?: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput> | LocationCreateWithoutDefaultKitchenStationInput[] | LocationUncheckedCreateWithoutDefaultKitchenStationInput[]
+    connectOrCreate?: LocationCreateOrConnectWithoutDefaultKitchenStationInput | LocationCreateOrConnectWithoutDefaultKitchenStationInput[]
+    upsert?: LocationUpsertWithWhereUniqueWithoutDefaultKitchenStationInput | LocationUpsertWithWhereUniqueWithoutDefaultKitchenStationInput[]
+    createMany?: LocationCreateManyDefaultKitchenStationInputEnvelope
+    set?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    disconnect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    delete?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+    update?: LocationUpdateWithWhereUniqueWithoutDefaultKitchenStationInput | LocationUpdateWithWhereUniqueWithoutDefaultKitchenStationInput[]
+    updateMany?: LocationUpdateManyWithWhereWithoutDefaultKitchenStationInput | LocationUpdateManyWithWhereWithoutDefaultKitchenStationInput[]
+    deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutStationNestedInput = {
+    create?: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput> | PrintJobCreateWithoutStationInput[] | PrintJobUncheckedCreateWithoutStationInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutStationInput | PrintJobCreateOrConnectWithoutStationInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutStationInput | PrintJobUpsertWithWhereUniqueWithoutStationInput[]
+    createMany?: PrintJobCreateManyStationInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutStationInput | PrintJobUpdateWithWhereUniqueWithoutStationInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutStationInput | PrintJobUpdateManyWithWhereWithoutStationInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutPrintAgentsInput = {
+    create?: XOR<TenantCreateWithoutPrintAgentsInput, TenantUncheckedCreateWithoutPrintAgentsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintAgentsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutPrintAgentsInput = {
+    create?: XOR<LocationCreateWithoutPrintAgentsInput, LocationUncheckedCreateWithoutPrintAgentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPrintAgentsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type PrinterCreateNestedManyWithoutAgentInput = {
+    create?: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput> | PrinterCreateWithoutAgentInput[] | PrinterUncheckedCreateWithoutAgentInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutAgentInput | PrinterCreateOrConnectWithoutAgentInput[]
+    createMany?: PrinterCreateManyAgentInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobCreateNestedManyWithoutClaimedByAgentInput = {
+    create?: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput> | PrintJobCreateWithoutClaimedByAgentInput[] | PrintJobUncheckedCreateWithoutClaimedByAgentInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutClaimedByAgentInput | PrintJobCreateOrConnectWithoutClaimedByAgentInput[]
+    createMany?: PrintJobCreateManyClaimedByAgentInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type PrinterUncheckedCreateNestedManyWithoutAgentInput = {
+    create?: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput> | PrinterCreateWithoutAgentInput[] | PrinterUncheckedCreateWithoutAgentInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutAgentInput | PrinterCreateOrConnectWithoutAgentInput[]
+    createMany?: PrinterCreateManyAgentInputEnvelope
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+  }
+
+  export type PrintJobUncheckedCreateNestedManyWithoutClaimedByAgentInput = {
+    create?: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput> | PrintJobCreateWithoutClaimedByAgentInput[] | PrintJobUncheckedCreateWithoutClaimedByAgentInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutClaimedByAgentInput | PrintJobCreateOrConnectWithoutClaimedByAgentInput[]
+    createMany?: PrintJobCreateManyClaimedByAgentInputEnvelope
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+  }
+
+  export type EnumPrintAgentKindFieldUpdateOperationsInput = {
+    set?: $Enums.PrintAgentKind
+  }
+
+  export type TenantUpdateOneRequiredWithoutPrintAgentsNestedInput = {
+    create?: XOR<TenantCreateWithoutPrintAgentsInput, TenantUncheckedCreateWithoutPrintAgentsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPrintAgentsInput
+    upsert?: TenantUpsertWithoutPrintAgentsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPrintAgentsInput, TenantUpdateWithoutPrintAgentsInput>, TenantUncheckedUpdateWithoutPrintAgentsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutPrintAgentsNestedInput = {
+    create?: XOR<LocationCreateWithoutPrintAgentsInput, LocationUncheckedCreateWithoutPrintAgentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutPrintAgentsInput
+    upsert?: LocationUpsertWithoutPrintAgentsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutPrintAgentsInput, LocationUpdateWithoutPrintAgentsInput>, LocationUncheckedUpdateWithoutPrintAgentsInput>
+  }
+
+  export type PrinterUpdateManyWithoutAgentNestedInput = {
+    create?: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput> | PrinterCreateWithoutAgentInput[] | PrinterUncheckedCreateWithoutAgentInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutAgentInput | PrinterCreateOrConnectWithoutAgentInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutAgentInput | PrinterUpsertWithWhereUniqueWithoutAgentInput[]
+    createMany?: PrinterCreateManyAgentInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutAgentInput | PrinterUpdateWithWhereUniqueWithoutAgentInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutAgentInput | PrinterUpdateManyWithWhereWithoutAgentInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUpdateManyWithoutClaimedByAgentNestedInput = {
+    create?: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput> | PrintJobCreateWithoutClaimedByAgentInput[] | PrintJobUncheckedCreateWithoutClaimedByAgentInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutClaimedByAgentInput | PrintJobCreateOrConnectWithoutClaimedByAgentInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutClaimedByAgentInput | PrintJobUpsertWithWhereUniqueWithoutClaimedByAgentInput[]
+    createMany?: PrintJobCreateManyClaimedByAgentInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutClaimedByAgentInput | PrintJobUpdateWithWhereUniqueWithoutClaimedByAgentInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutClaimedByAgentInput | PrintJobUpdateManyWithWhereWithoutClaimedByAgentInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutAgentNestedInput = {
+    create?: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput> | PrinterCreateWithoutAgentInput[] | PrinterUncheckedCreateWithoutAgentInput[]
+    connectOrCreate?: PrinterCreateOrConnectWithoutAgentInput | PrinterCreateOrConnectWithoutAgentInput[]
+    upsert?: PrinterUpsertWithWhereUniqueWithoutAgentInput | PrinterUpsertWithWhereUniqueWithoutAgentInput[]
+    createMany?: PrinterCreateManyAgentInputEnvelope
+    set?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    disconnect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    delete?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    connect?: PrinterWhereUniqueInput | PrinterWhereUniqueInput[]
+    update?: PrinterUpdateWithWhereUniqueWithoutAgentInput | PrinterUpdateWithWhereUniqueWithoutAgentInput[]
+    updateMany?: PrinterUpdateManyWithWhereWithoutAgentInput | PrinterUpdateManyWithWhereWithoutAgentInput[]
+    deleteMany?: PrinterScalarWhereInput | PrinterScalarWhereInput[]
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutClaimedByAgentNestedInput = {
+    create?: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput> | PrintJobCreateWithoutClaimedByAgentInput[] | PrintJobUncheckedCreateWithoutClaimedByAgentInput[]
+    connectOrCreate?: PrintJobCreateOrConnectWithoutClaimedByAgentInput | PrintJobCreateOrConnectWithoutClaimedByAgentInput[]
+    upsert?: PrintJobUpsertWithWhereUniqueWithoutClaimedByAgentInput | PrintJobUpsertWithWhereUniqueWithoutClaimedByAgentInput[]
+    createMany?: PrintJobCreateManyClaimedByAgentInputEnvelope
+    set?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    disconnect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    delete?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    connect?: PrintJobWhereUniqueInput | PrintJobWhereUniqueInput[]
+    update?: PrintJobUpdateWithWhereUniqueWithoutClaimedByAgentInput | PrintJobUpdateWithWhereUniqueWithoutClaimedByAgentInput[]
+    updateMany?: PrintJobUpdateManyWithWhereWithoutClaimedByAgentInput | PrintJobUpdateManyWithWhereWithoutClaimedByAgentInput[]
+    deleteMany?: PrintJobScalarWhereInput | PrintJobScalarWhereInput[]
+  }
+
+  export type MenuItemCreateNestedOneWithoutStationRoutesInput = {
+    create?: XOR<MenuItemCreateWithoutStationRoutesInput, MenuItemUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutStationRoutesInput
+    connect?: MenuItemWhereUniqueInput
+  }
+
+  export type PrinterStationCreateNestedOneWithoutMenuItemRoutesInput = {
+    create?: XOR<PrinterStationCreateWithoutMenuItemRoutesInput, PrinterStationUncheckedCreateWithoutMenuItemRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutMenuItemRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
+  export type MenuItemUpdateOneRequiredWithoutStationRoutesNestedInput = {
+    create?: XOR<MenuItemCreateWithoutStationRoutesInput, MenuItemUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutStationRoutesInput
+    upsert?: MenuItemUpsertWithoutStationRoutesInput
+    connect?: MenuItemWhereUniqueInput
+    update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutStationRoutesInput, MenuItemUpdateWithoutStationRoutesInput>, MenuItemUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationUpdateOneRequiredWithoutMenuItemRoutesNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutMenuItemRoutesInput, PrinterStationUncheckedCreateWithoutMenuItemRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutMenuItemRoutesInput
+    upsert?: PrinterStationUpsertWithoutMenuItemRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutMenuItemRoutesInput, PrinterStationUpdateWithoutMenuItemRoutesInput>, PrinterStationUncheckedUpdateWithoutMenuItemRoutesInput>
+  }
+
+  export type ModifierGroupCreateNestedOneWithoutStationRoutesInput = {
+    create?: XOR<ModifierGroupCreateWithoutStationRoutesInput, ModifierGroupUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: ModifierGroupCreateOrConnectWithoutStationRoutesInput
+    connect?: ModifierGroupWhereUniqueInput
+  }
+
+  export type PrinterStationCreateNestedOneWithoutModifierGroupRoutesInput = {
+    create?: XOR<PrinterStationCreateWithoutModifierGroupRoutesInput, PrinterStationUncheckedCreateWithoutModifierGroupRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutModifierGroupRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
+  export type ModifierGroupUpdateOneRequiredWithoutStationRoutesNestedInput = {
+    create?: XOR<ModifierGroupCreateWithoutStationRoutesInput, ModifierGroupUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: ModifierGroupCreateOrConnectWithoutStationRoutesInput
+    upsert?: ModifierGroupUpsertWithoutStationRoutesInput
+    connect?: ModifierGroupWhereUniqueInput
+    update?: XOR<XOR<ModifierGroupUpdateToOneWithWhereWithoutStationRoutesInput, ModifierGroupUpdateWithoutStationRoutesInput>, ModifierGroupUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationUpdateOneRequiredWithoutModifierGroupRoutesNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutModifierGroupRoutesInput, PrinterStationUncheckedCreateWithoutModifierGroupRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutModifierGroupRoutesInput
+    upsert?: PrinterStationUpsertWithoutModifierGroupRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutModifierGroupRoutesInput, PrinterStationUpdateWithoutModifierGroupRoutesInput>, PrinterStationUncheckedUpdateWithoutModifierGroupRoutesInput>
+  }
+
+  export type MenuCategoryCreateNestedOneWithoutStationRoutesInput = {
+    create?: XOR<MenuCategoryCreateWithoutStationRoutesInput, MenuCategoryUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: MenuCategoryCreateOrConnectWithoutStationRoutesInput
+    connect?: MenuCategoryWhereUniqueInput
+  }
+
+  export type PrinterStationCreateNestedOneWithoutCategoryRoutesInput = {
+    create?: XOR<PrinterStationCreateWithoutCategoryRoutesInput, PrinterStationUncheckedCreateWithoutCategoryRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutCategoryRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+  }
+
+  export type MenuCategoryUpdateOneRequiredWithoutStationRoutesNestedInput = {
+    create?: XOR<MenuCategoryCreateWithoutStationRoutesInput, MenuCategoryUncheckedCreateWithoutStationRoutesInput>
+    connectOrCreate?: MenuCategoryCreateOrConnectWithoutStationRoutesInput
+    upsert?: MenuCategoryUpsertWithoutStationRoutesInput
+    connect?: MenuCategoryWhereUniqueInput
+    update?: XOR<XOR<MenuCategoryUpdateToOneWithWhereWithoutStationRoutesInput, MenuCategoryUpdateWithoutStationRoutesInput>, MenuCategoryUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationUpdateOneRequiredWithoutCategoryRoutesNestedInput = {
+    create?: XOR<PrinterStationCreateWithoutCategoryRoutesInput, PrinterStationUncheckedCreateWithoutCategoryRoutesInput>
+    connectOrCreate?: PrinterStationCreateOrConnectWithoutCategoryRoutesInput
+    upsert?: PrinterStationUpsertWithoutCategoryRoutesInput
+    connect?: PrinterStationWhereUniqueInput
+    update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutCategoryRoutesInput, PrinterStationUpdateWithoutCategoryRoutesInput>, PrinterStationUncheckedUpdateWithoutCategoryRoutesInput>
   }
 
   export type TenantCreateNestedOneWithoutDriversInput = {
@@ -129435,11 +138305,11 @@ export namespace Prisma {
     not?: NestedEnumPrinterConnectionTypeFilter<$PrismaModel> | $Enums.PrinterConnectionType
   }
 
-  export type NestedEnumPrinterStationFilter<$PrismaModel = never> = {
-    equals?: $Enums.PrinterStation | EnumPrinterStationFieldRefInput<$PrismaModel>
-    in?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    not?: NestedEnumPrinterStationFilter<$PrismaModel> | $Enums.PrinterStation
+  export type NestedEnumPrinterStationKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterStationKind | EnumPrinterStationKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrinterStationKindFilter<$PrismaModel> | $Enums.PrinterStationKind
   }
 
   export type NestedEnumPrinterTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -129462,14 +138332,14 @@ export namespace Prisma {
     _max?: NestedEnumPrinterConnectionTypeFilter<$PrismaModel>
   }
 
-  export type NestedEnumPrinterStationWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.PrinterStation | EnumPrinterStationFieldRefInput<$PrismaModel>
-    in?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PrinterStation[] | ListEnumPrinterStationFieldRefInput<$PrismaModel>
-    not?: NestedEnumPrinterStationWithAggregatesFilter<$PrismaModel> | $Enums.PrinterStation
+  export type NestedEnumPrinterStationKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrinterStationKind | EnumPrinterStationKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrinterStationKind[] | ListEnumPrinterStationKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrinterStationKindWithAggregatesFilter<$PrismaModel> | $Enums.PrinterStationKind
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumPrinterStationFilter<$PrismaModel>
-    _max?: NestedEnumPrinterStationFilter<$PrismaModel>
+    _min?: NestedEnumPrinterStationKindFilter<$PrismaModel>
+    _max?: NestedEnumPrinterStationKindFilter<$PrismaModel>
   }
 
   export type NestedEnumPrintJobTypeFilter<$PrismaModel = never> = {
@@ -129484,6 +138354,13 @@ export namespace Prisma {
     in?: $Enums.PrintJobStatus[] | ListEnumPrintJobStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.PrintJobStatus[] | ListEnumPrintJobStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumPrintJobStatusFilter<$PrismaModel> | $Enums.PrintJobStatus
+  }
+
+  export type NestedEnumPrintTriggerNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintTrigger | EnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPrintTriggerNullableFilter<$PrismaModel> | $Enums.PrintTrigger | null
   }
 
   export type NestedEnumPrintJobTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -129504,6 +138381,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPrintJobStatusFilter<$PrismaModel>
     _max?: NestedEnumPrintJobStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPrintTriggerNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintTrigger | EnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PrintTrigger[] | ListEnumPrintTriggerFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPrintTriggerNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrintTrigger | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumPrintTriggerNullableFilter<$PrismaModel>
+    _max?: NestedEnumPrintTriggerNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPrintAgentKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintAgentKind | EnumPrintAgentKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrintAgentKindFilter<$PrismaModel> | $Enums.PrintAgentKind
+  }
+
+  export type NestedEnumPrintAgentKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PrintAgentKind | EnumPrintAgentKindFieldRefInput<$PrismaModel>
+    in?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PrintAgentKind[] | ListEnumPrintAgentKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumPrintAgentKindWithAggregatesFilter<$PrismaModel> | $Enums.PrintAgentKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPrintAgentKindFilter<$PrismaModel>
+    _max?: NestedEnumPrintAgentKindFilter<$PrismaModel>
   }
 
   export type NestedEnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
@@ -129833,6 +138737,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutTenantInput = {
@@ -129848,6 +138753,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -130119,10 +139025,17 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     printer?: PrinterCreateNestedOneWithoutPrintJobsInput
     order?: OrderCreateNestedOneWithoutPrintJobsInput
+    station?: PrinterStationCreateNestedOneWithoutPrintJobsInput
+    claimedByAgent?: PrintAgentCreateNestedOneWithoutClaimedJobsInput
   }
 
   export type PrintJobUncheckedCreateWithoutTenantInput = {
@@ -130138,6 +139051,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -130532,6 +139452,96 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PrinterStationCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutTenantInput = {
+    id?: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutTenantInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrinterStationCreateManyTenantInputEnvelope = {
+    data: PrinterStationCreateManyTenantInput | PrinterStationCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintAgentCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrintAgentsInput
+    printers?: PrinterCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentUncheckedCreateWithoutTenantInput = {
+    id?: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printers?: PrinterUncheckedCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobUncheckedCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentCreateOrConnectWithoutTenantInput = {
+    where: PrintAgentWhereUniqueInput
+    create: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrintAgentCreateManyTenantInputEnvelope = {
+    data: PrintAgentCreateManyTenantInput | PrintAgentCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithWhereUniqueWithoutTenantInput = {
     where: BrandWhereUniqueInput
     update: XOR<BrandUpdateWithoutTenantInput, BrandUncheckedUpdateWithoutTenantInput>
@@ -130565,6 +139575,7 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
   }
@@ -130750,6 +139761,13 @@ export namespace Prisma {
     error?: StringNullableFilter<"PrintJob"> | string | null
     retryMetadata?: JsonFilter<"PrintJob">
     printedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    stationId?: StringNullableFilter<"PrintJob"> | string | null
+    trigger?: EnumPrintTriggerNullableFilter<"PrintJob"> | $Enums.PrintTrigger | null
+    claimedByAgentId?: StringNullableFilter<"PrintJob"> | string | null
+    claimedAt?: DateTimeNullableFilter<"PrintJob"> | Date | string | null
+    routeKey?: StringNullableFilter<"PrintJob"> | string | null
+    idempotencyKey?: StringNullableFilter<"PrintJob"> | string | null
+    copies?: IntFilter<"PrintJob"> | number
     createdAt?: DateTimeFilter<"PrintJob"> | Date | string
     updatedAt?: DateTimeFilter<"PrintJob"> | Date | string
   }
@@ -131101,6 +140119,73 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Invitation"> | Date | string
   }
 
+  export type PrinterStationUpsertWithWhereUniqueWithoutTenantInput = {
+    where: PrinterStationWhereUniqueInput
+    update: XOR<PrinterStationUpdateWithoutTenantInput, PrinterStationUncheckedUpdateWithoutTenantInput>
+    create: XOR<PrinterStationCreateWithoutTenantInput, PrinterStationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrinterStationUpdateWithWhereUniqueWithoutTenantInput = {
+    where: PrinterStationWhereUniqueInput
+    data: XOR<PrinterStationUpdateWithoutTenantInput, PrinterStationUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type PrinterStationUpdateManyWithWhereWithoutTenantInput = {
+    where: PrinterStationScalarWhereInput
+    data: XOR<PrinterStationUpdateManyMutationInput, PrinterStationUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type PrinterStationScalarWhereInput = {
+    AND?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+    OR?: PrinterStationScalarWhereInput[]
+    NOT?: PrinterStationScalarWhereInput | PrinterStationScalarWhereInput[]
+    id?: StringFilter<"PrinterStation"> | string
+    tenantId?: StringFilter<"PrinterStation"> | string
+    locationId?: StringFilter<"PrinterStation"> | string
+    name?: StringFilter<"PrinterStation"> | string
+    kind?: EnumPrinterStationKindFilter<"PrinterStation"> | $Enums.PrinterStationKind
+    defaultPrinterId?: StringNullableFilter<"PrinterStation"> | string | null
+    isActive?: BoolFilter<"PrinterStation"> | boolean
+    sortOrder?: IntFilter<"PrinterStation"> | number
+    createdAt?: DateTimeFilter<"PrinterStation"> | Date | string
+    updatedAt?: DateTimeFilter<"PrinterStation"> | Date | string
+  }
+
+  export type PrintAgentUpsertWithWhereUniqueWithoutTenantInput = {
+    where: PrintAgentWhereUniqueInput
+    update: XOR<PrintAgentUpdateWithoutTenantInput, PrintAgentUncheckedUpdateWithoutTenantInput>
+    create: XOR<PrintAgentCreateWithoutTenantInput, PrintAgentUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PrintAgentUpdateWithWhereUniqueWithoutTenantInput = {
+    where: PrintAgentWhereUniqueInput
+    data: XOR<PrintAgentUpdateWithoutTenantInput, PrintAgentUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type PrintAgentUpdateManyWithWhereWithoutTenantInput = {
+    where: PrintAgentScalarWhereInput
+    data: XOR<PrintAgentUpdateManyMutationInput, PrintAgentUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type PrintAgentScalarWhereInput = {
+    AND?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
+    OR?: PrintAgentScalarWhereInput[]
+    NOT?: PrintAgentScalarWhereInput | PrintAgentScalarWhereInput[]
+    id?: StringFilter<"PrintAgent"> | string
+    tenantId?: StringFilter<"PrintAgent"> | string
+    locationId?: StringFilter<"PrintAgent"> | string
+    name?: StringFilter<"PrintAgent"> | string
+    kind?: EnumPrintAgentKindFilter<"PrintAgent"> | $Enums.PrintAgentKind
+    apiTokenHash?: StringFilter<"PrintAgent"> | string
+    capabilities?: JsonFilter<"PrintAgent">
+    versionString?: StringNullableFilter<"PrintAgent"> | string | null
+    lastSeenAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    isActive?: BoolFilter<"PrintAgent"> | boolean
+    deletedAt?: DateTimeNullableFilter<"PrintAgent"> | Date | string | null
+    createdAt?: DateTimeFilter<"PrintAgent"> | Date | string
+    updatedAt?: DateTimeFilter<"PrintAgent"> | Date | string
+  }
+
   export type TenantCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -131124,6 +140209,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -131149,6 +140236,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -131527,6 +140616,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -131552,6 +140643,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type RefreshTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -131963,11 +141056,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutUserLocationsInput = {
@@ -131982,6 +141080,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -132020,6 +141121,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -132156,11 +141259,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutUserLocationsInput = {
@@ -132175,6 +141283,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -132213,6 +141324,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -132300,6 +141413,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutUserBrandsInput = {
@@ -132316,6 +141430,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -132429,6 +141544,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutUserBrandsInput = {
@@ -132445,6 +141561,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -132479,6 +141596,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutInvitationsInput = {
@@ -132504,6 +141623,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutInvitationsInput = {
@@ -132602,6 +141723,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutInvitationsInput = {
@@ -132627,6 +141750,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutInvitationsSentInput = {
@@ -133231,6 +142356,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutApiKeysInput = {
@@ -133256,6 +142383,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutApiKeysInput = {
@@ -133297,6 +142426,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutApiKeysInput = {
@@ -133322,6 +142453,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -133467,6 +142600,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandsInput = {
@@ -133492,6 +142627,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandsInput = {
@@ -133548,12 +142685,17 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutBrandInput = {
@@ -133567,6 +142709,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -133605,6 +142750,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -133734,6 +142881,7 @@ export namespace Prisma {
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUncheckedCreateWithoutBrandInput = {
@@ -133763,6 +142911,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutBrandInput = {
@@ -134083,6 +143232,47 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PrinterStationCreateWithoutBrandDefaultsInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutBrandDefaultsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutBrandDefaultsInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
+  }
+
   export type TenantUpsertWithoutBrandsInput = {
     update: XOR<TenantUpdateWithoutBrandsInput, TenantUncheckedUpdateWithoutBrandsInput>
     create: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
@@ -134117,6 +143307,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandsInput = {
@@ -134142,6 +143334,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithWhereUniqueWithoutBrandInput = {
@@ -134175,6 +143369,9 @@ export namespace Prisma {
     settings?: JsonFilter<"Location">
     metadata?: JsonFilter<"Location">
     deletedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
+    defaultKitchenStationId?: StringNullableFilter<"Location"> | string | null
+    receiptPrinterId?: StringNullableFilter<"Location"> | string | null
+    dispatchPrinterId?: StringNullableFilter<"Location"> | string | null
     addressLine1?: StringNullableFilter<"Location"> | string | null
     addressLine2?: StringNullableFilter<"Location"> | string | null
     city?: StringNullableFilter<"Location"> | string | null
@@ -134463,6 +143660,53 @@ export namespace Prisma {
     data: XOR<UserBrandUpdateManyMutationInput, UserBrandUncheckedUpdateManyWithoutBrandInput>
   }
 
+  export type PrinterStationUpsertWithoutBrandDefaultsInput = {
+    update: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
+    create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutBrandDefaultsInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
+  }
+
+  export type PrinterStationUpdateWithoutBrandDefaultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutBrandDefaultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
   export type BrandCreateWithoutLocationsInput = {
     id?: string
     name: string
@@ -134486,6 +143730,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutLocationsInput = {
@@ -134502,6 +143747,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
@@ -134708,24 +143954,31 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
     printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterUncheckedCreateWithoutLocationInput = {
@@ -134734,24 +143987,31 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterCreateOrConnectWithoutLocationInput = {
@@ -134761,6 +144021,96 @@ export namespace Prisma {
 
   export type PrinterCreateManyLocationInputEnvelope = {
     data: PrinterCreateManyLocationInput | PrinterCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrinterStationCreateWithoutLocationInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutLocationInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput>
+  }
+
+  export type PrinterStationCreateManyLocationInputEnvelope = {
+    data: PrinterStationCreateManyLocationInput | PrinterStationCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintAgentCreateWithoutLocationInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintAgentsInput
+    printers?: PrinterCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printers?: PrinterUncheckedCreateNestedManyWithoutAgentInput
+    claimedJobs?: PrintJobUncheckedCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentCreateOrConnectWithoutLocationInput = {
+    where: PrintAgentWhereUniqueInput
+    create: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type PrintAgentCreateManyLocationInputEnvelope = {
+    data: PrintAgentCreateManyLocationInput | PrintAgentCreateManyLocationInput[]
     skipDuplicates?: boolean
   }
 
@@ -134964,6 +144314,189 @@ export namespace Prisma {
     create: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type PrinterStationCreateWithoutLocationDefaultsInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutLocationDefaultsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutLocationDefaultsInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
+  }
+
+  export type PrinterCreateWithoutLocationsReceiptForInput = {
+    id?: string
+    tenantId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrintersInput
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutLocationsReceiptForInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutLocationsReceiptForInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutLocationsReceiptForInput, PrinterUncheckedCreateWithoutLocationsReceiptForInput>
+  }
+
+  export type PrinterCreateWithoutLocationsDispatchForInput = {
+    id?: string
+    tenantId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrintersInput
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutLocationsDispatchForInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutLocationsDispatchForInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutLocationsDispatchForInput, PrinterUncheckedCreateWithoutLocationsDispatchForInput>
+  }
+
   export type BrandUpsertWithoutLocationsInput = {
     update: XOR<BrandUpdateWithoutLocationsInput, BrandUncheckedUpdateWithoutLocationsInput>
     create: XOR<BrandCreateWithoutLocationsInput, BrandUncheckedCreateWithoutLocationsInput>
@@ -134998,6 +144531,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutLocationsInput = {
@@ -135014,6 +144548,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
@@ -135104,23 +144639,59 @@ export namespace Prisma {
     name?: StringFilter<"Printer"> | string
     type?: EnumPrinterTypeFilter<"Printer"> | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFilter<"Printer"> | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFilter<"Printer"> | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFilter<"Printer"> | $Enums.PrinterStationKind
     ipAddress?: StringNullableFilter<"Printer"> | string | null
     port?: IntNullableFilter<"Printer"> | number | null
     isOnline?: BoolFilter<"Printer"> | boolean
     isActive?: BoolFilter<"Printer"> | boolean
     deletedAt?: DateTimeNullableFilter<"Printer"> | Date | string | null
     failoverPrinterId?: StringNullableFilter<"Printer"> | string | null
+    model?: StringNullableFilter<"Printer"> | string | null
+    paperWidth?: IntFilter<"Printer"> | number
+    agentId?: StringNullableFilter<"Printer"> | string | null
     supportsReceipts?: BoolFilter<"Printer"> | boolean
     supportsKitchen?: BoolFilter<"Printer"> | boolean
     supportsLabels?: BoolFilter<"Printer"> | boolean
     supportsCut?: BoolFilter<"Printer"> | boolean
     supportsCashDrawer?: BoolFilter<"Printer"> | boolean
+    defaults?: JsonFilter<"Printer">
     autoPrintRules?: JsonFilter<"Printer">
     settings?: JsonFilter<"Printer">
     metadata?: JsonFilter<"Printer">
     createdAt?: DateTimeFilter<"Printer"> | Date | string
     updatedAt?: DateTimeFilter<"Printer"> | Date | string
+  }
+
+  export type PrinterStationUpsertWithWhereUniqueWithoutLocationInput = {
+    where: PrinterStationWhereUniqueInput
+    update: XOR<PrinterStationUpdateWithoutLocationInput, PrinterStationUncheckedUpdateWithoutLocationInput>
+    create: XOR<PrinterStationCreateWithoutLocationInput, PrinterStationUncheckedCreateWithoutLocationInput>
+  }
+
+  export type PrinterStationUpdateWithWhereUniqueWithoutLocationInput = {
+    where: PrinterStationWhereUniqueInput
+    data: XOR<PrinterStationUpdateWithoutLocationInput, PrinterStationUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type PrinterStationUpdateManyWithWhereWithoutLocationInput = {
+    where: PrinterStationScalarWhereInput
+    data: XOR<PrinterStationUpdateManyMutationInput, PrinterStationUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type PrintAgentUpsertWithWhereUniqueWithoutLocationInput = {
+    where: PrintAgentWhereUniqueInput
+    update: XOR<PrintAgentUpdateWithoutLocationInput, PrintAgentUncheckedUpdateWithoutLocationInput>
+    create: XOR<PrintAgentCreateWithoutLocationInput, PrintAgentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type PrintAgentUpdateWithWhereUniqueWithoutLocationInput = {
+    where: PrintAgentWhereUniqueInput
+    data: XOR<PrintAgentUpdateWithoutLocationInput, PrintAgentUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type PrintAgentUpdateManyWithWhereWithoutLocationInput = {
+    where: PrintAgentScalarWhereInput
+    data: XOR<PrintAgentUpdateManyMutationInput, PrintAgentUncheckedUpdateManyWithoutLocationInput>
   }
 
   export type KdsScreenUpsertWithWhereUniqueWithoutLocationInput = {
@@ -135297,6 +144868,207 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PrinterStationUpsertWithoutLocationDefaultsInput = {
+    update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
+    create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutLocationDefaultsInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
+  }
+
+  export type PrinterStationUpdateWithoutLocationDefaultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutLocationDefaultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterUpsertWithoutLocationsReceiptForInput = {
+    update: XOR<PrinterUpdateWithoutLocationsReceiptForInput, PrinterUncheckedUpdateWithoutLocationsReceiptForInput>
+    create: XOR<PrinterCreateWithoutLocationsReceiptForInput, PrinterUncheckedCreateWithoutLocationsReceiptForInput>
+    where?: PrinterWhereInput
+  }
+
+  export type PrinterUpdateToOneWithWhereWithoutLocationsReceiptForInput = {
+    where?: PrinterWhereInput
+    data: XOR<PrinterUpdateWithoutLocationsReceiptForInput, PrinterUncheckedUpdateWithoutLocationsReceiptForInput>
+  }
+
+  export type PrinterUpdateWithoutLocationsReceiptForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutLocationsReceiptForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type PrinterUpsertWithoutLocationsDispatchForInput = {
+    update: XOR<PrinterUpdateWithoutLocationsDispatchForInput, PrinterUncheckedUpdateWithoutLocationsDispatchForInput>
+    create: XOR<PrinterCreateWithoutLocationsDispatchForInput, PrinterUncheckedCreateWithoutLocationsDispatchForInput>
+    where?: PrinterWhereInput
+  }
+
+  export type PrinterUpdateToOneWithWhereWithoutLocationsDispatchForInput = {
+    where?: PrinterWhereInput
+    data: XOR<PrinterUpdateWithoutLocationsDispatchForInput, PrinterUncheckedUpdateWithoutLocationsDispatchForInput>
+  }
+
+  export type PrinterUpdateWithoutLocationsDispatchForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutLocationsDispatchForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+  }
+
   export type BrandCreateWithoutPlatformConnectionsInput = {
     id?: string
     name: string
@@ -135320,6 +145092,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -135336,6 +145109,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -135402,11 +145176,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutPlatformConnectionsInput = {
@@ -135421,6 +145200,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -135459,6 +145241,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -135505,6 +145289,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -135521,6 +145306,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -135593,11 +145379,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPlatformConnectionsInput = {
@@ -135612,6 +145403,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -135650,6 +145444,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -135706,12 +145502,17 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutLocationsInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutIntegrationsInput = {
@@ -135726,6 +145527,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -135763,6 +145567,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -135836,12 +145642,17 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutIntegrationsInput = {
@@ -135856,6 +145667,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -135893,6 +145707,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -135924,6 +145740,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutMenusInput = {
@@ -135940,6 +145757,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -135975,6 +145793,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryCreateNestedManyWithoutCategoryInput
+    stationRoutes?: MenuCategoryStationCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryUncheckedCreateWithoutMenuInput = {
@@ -135996,6 +145815,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput
+    stationRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryCreateOrConnectWithoutMenuInput = {
@@ -136070,6 +145890,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMenusInput = {
@@ -136086,6 +145907,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -136269,6 +146091,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MenuCategoryStationCreateWithoutCategoryInput = {
+    id?: string
+    createdAt?: Date | string
+    station: PrinterStationCreateNestedOneWithoutCategoryRoutesInput
+  }
+
+  export type MenuCategoryStationUncheckedCreateWithoutCategoryInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuCategoryStationCreateOrConnectWithoutCategoryInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    create: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type MenuCategoryStationCreateManyCategoryInputEnvelope = {
+    data: MenuCategoryStationCreateManyCategoryInput | MenuCategoryStationCreateManyCategoryInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MenuUpsertWithoutCategoriesInput = {
     update: XOR<MenuUpdateWithoutCategoriesInput, MenuUncheckedUpdateWithoutCategoriesInput>
     create: XOR<MenuCreateWithoutCategoriesInput, MenuUncheckedCreateWithoutCategoriesInput>
@@ -136381,6 +146225,32 @@ export namespace Prisma {
     isVisible?: BoolFilter<"MenuItemOnCategory"> | boolean
   }
 
+  export type MenuCategoryStationUpsertWithWhereUniqueWithoutCategoryInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    update: XOR<MenuCategoryStationUpdateWithoutCategoryInput, MenuCategoryStationUncheckedUpdateWithoutCategoryInput>
+    create: XOR<MenuCategoryStationCreateWithoutCategoryInput, MenuCategoryStationUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type MenuCategoryStationUpdateWithWhereUniqueWithoutCategoryInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    data: XOR<MenuCategoryStationUpdateWithoutCategoryInput, MenuCategoryStationUncheckedUpdateWithoutCategoryInput>
+  }
+
+  export type MenuCategoryStationUpdateManyWithWhereWithoutCategoryInput = {
+    where: MenuCategoryStationScalarWhereInput
+    data: XOR<MenuCategoryStationUpdateManyMutationInput, MenuCategoryStationUncheckedUpdateManyWithoutCategoryInput>
+  }
+
+  export type MenuCategoryStationScalarWhereInput = {
+    AND?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
+    OR?: MenuCategoryStationScalarWhereInput[]
+    NOT?: MenuCategoryStationScalarWhereInput | MenuCategoryStationScalarWhereInput[]
+    id?: StringFilter<"MenuCategoryStation"> | string
+    categoryId?: StringFilter<"MenuCategoryStation"> | string
+    stationId?: StringFilter<"MenuCategoryStation"> | string
+    createdAt?: DateTimeFilter<"MenuCategoryStation"> | Date | string
+  }
+
   export type MenuItemOnCategoryCreateWithoutItemInput = {
     sortOrder?: number
     priceOverride?: Decimal | DecimalJsLike | number | string | null
@@ -136478,6 +146348,28 @@ export namespace Prisma {
   export type RecipeCreateOrConnectWithoutMenuItemInput = {
     where: RecipeWhereUniqueInput
     create: XOR<RecipeCreateWithoutMenuItemInput, RecipeUncheckedCreateWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationCreateWithoutMenuItemInput = {
+    id?: string
+    createdAt?: Date | string
+    station: PrinterStationCreateNestedOneWithoutMenuItemRoutesInput
+  }
+
+  export type MenuItemStationUncheckedCreateWithoutMenuItemInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuItemStationCreateOrConnectWithoutMenuItemInput = {
+    where: MenuItemStationWhereUniqueInput
+    create: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationCreateManyMenuItemInputEnvelope = {
+    data: MenuItemStationCreateManyMenuItemInput | MenuItemStationCreateManyMenuItemInput[]
+    skipDuplicates?: boolean
   }
 
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutItemInput = {
@@ -136581,6 +146473,32 @@ export namespace Prisma {
     ingredients?: RecipeIngredientUncheckedUpdateManyWithoutRecipeNestedInput
   }
 
+  export type MenuItemStationUpsertWithWhereUniqueWithoutMenuItemInput = {
+    where: MenuItemStationWhereUniqueInput
+    update: XOR<MenuItemStationUpdateWithoutMenuItemInput, MenuItemStationUncheckedUpdateWithoutMenuItemInput>
+    create: XOR<MenuItemStationCreateWithoutMenuItemInput, MenuItemStationUncheckedCreateWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput = {
+    where: MenuItemStationWhereUniqueInput
+    data: XOR<MenuItemStationUpdateWithoutMenuItemInput, MenuItemStationUncheckedUpdateWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationUpdateManyWithWhereWithoutMenuItemInput = {
+    where: MenuItemStationScalarWhereInput
+    data: XOR<MenuItemStationUpdateManyMutationInput, MenuItemStationUncheckedUpdateManyWithoutMenuItemInput>
+  }
+
+  export type MenuItemStationScalarWhereInput = {
+    AND?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+    OR?: MenuItemStationScalarWhereInput[]
+    NOT?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+    id?: StringFilter<"MenuItemStation"> | string
+    menuItemId?: StringFilter<"MenuItemStation"> | string
+    stationId?: StringFilter<"MenuItemStation"> | string
+    createdAt?: DateTimeFilter<"MenuItemStation"> | Date | string
+  }
+
   export type MenuCategoryCreateWithoutItemsInput = {
     id?: string
     name: string
@@ -136600,6 +146518,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutCategoriesInput
+    stationRoutes?: MenuCategoryStationCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryUncheckedCreateWithoutItemsInput = {
@@ -136621,6 +146540,7 @@ export namespace Prisma {
     syncHash?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    stationRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type MenuCategoryCreateOrConnectWithoutItemsInput = {
@@ -136671,6 +146591,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutCategoriesInput = {
@@ -136716,6 +146637,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutCategoriesInput = {
@@ -136753,6 +146675,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutCategoriesNestedInput
+    stationRoutes?: MenuCategoryStationUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuCategoryUncheckedUpdateWithoutItemsInput = {
@@ -136774,6 +146697,7 @@ export namespace Prisma {
     syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stationRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuItemUpsertWithoutCategoriesInput = {
@@ -136830,6 +146754,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutCategoriesInput = {
@@ -136875,6 +146800,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
   }
 
   export type BrandCreateWithoutModifierGroupsInput = {
@@ -136900,6 +146826,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutModifierGroupsInput = {
@@ -136916,6 +146843,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -137100,6 +147028,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ModifierGroupStationCreateWithoutModifierGroupInput = {
+    id?: string
+    createdAt?: Date | string
+    station: PrinterStationCreateNestedOneWithoutModifierGroupRoutesInput
+  }
+
+  export type ModifierGroupStationUncheckedCreateWithoutModifierGroupInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
+  export type ModifierGroupStationCreateOrConnectWithoutModifierGroupInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    create: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput>
+  }
+
+  export type ModifierGroupStationCreateManyModifierGroupInputEnvelope = {
+    data: ModifierGroupStationCreateManyModifierGroupInput | ModifierGroupStationCreateManyModifierGroupInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithoutModifierGroupsInput = {
     update: XOR<BrandUpdateWithoutModifierGroupsInput, BrandUncheckedUpdateWithoutModifierGroupsInput>
     create: XOR<BrandCreateWithoutModifierGroupsInput, BrandUncheckedCreateWithoutModifierGroupsInput>
@@ -137134,6 +147084,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutModifierGroupsInput = {
@@ -137150,6 +147101,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -137245,6 +147197,32 @@ export namespace Prisma {
     data: XOR<ModifierOptionUpdateManyMutationInput, ModifierOptionUncheckedUpdateManyWithoutNestedGroupInput>
   }
 
+  export type ModifierGroupStationUpsertWithWhereUniqueWithoutModifierGroupInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    update: XOR<ModifierGroupStationUpdateWithoutModifierGroupInput, ModifierGroupStationUncheckedUpdateWithoutModifierGroupInput>
+    create: XOR<ModifierGroupStationCreateWithoutModifierGroupInput, ModifierGroupStationUncheckedCreateWithoutModifierGroupInput>
+  }
+
+  export type ModifierGroupStationUpdateWithWhereUniqueWithoutModifierGroupInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    data: XOR<ModifierGroupStationUpdateWithoutModifierGroupInput, ModifierGroupStationUncheckedUpdateWithoutModifierGroupInput>
+  }
+
+  export type ModifierGroupStationUpdateManyWithWhereWithoutModifierGroupInput = {
+    where: ModifierGroupStationScalarWhereInput
+    data: XOR<ModifierGroupStationUpdateManyMutationInput, ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupInput>
+  }
+
+  export type ModifierGroupStationScalarWhereInput = {
+    AND?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
+    OR?: ModifierGroupStationScalarWhereInput[]
+    NOT?: ModifierGroupStationScalarWhereInput | ModifierGroupStationScalarWhereInput[]
+    id?: StringFilter<"ModifierGroupStation"> | string
+    modifierGroupId?: StringFilter<"ModifierGroupStation"> | string
+    stationId?: StringFilter<"ModifierGroupStation"> | string
+    createdAt?: DateTimeFilter<"ModifierGroupStation"> | Date | string
+  }
+
   export type ModifierGroupCreateWithoutOptionsInput = {
     id?: string
     locationId?: string | null
@@ -137272,6 +147250,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUncheckedCreateWithoutOptionsInput = {
@@ -137301,6 +147280,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutOptionsInput = {
@@ -137335,6 +147315,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUncheckedCreateWithoutNestedUnderOptionsInput = {
@@ -137364,6 +147345,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutNestedUnderOptionsInput = {
@@ -137409,6 +147391,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateWithoutOptionsInput = {
@@ -137438,6 +147421,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUpsertWithoutNestedUnderOptionsInput = {
@@ -137478,6 +147462,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateWithoutNestedUnderOptionsInput = {
@@ -137507,6 +147492,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type MenuItemCreateWithoutModifierGroupLinksInput = {
@@ -137552,6 +147538,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutModifierGroupLinksInput = {
@@ -137597,6 +147584,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutModifierGroupLinksInput = {
@@ -137631,6 +147619,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutModifierGroupsInput
     options?: ModifierOptionCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupUncheckedCreateWithoutItemLinksInput = {
@@ -137660,6 +147649,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
     nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+    stationRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutModifierGroupInput
   }
 
   export type ModifierGroupCreateOrConnectWithoutItemLinksInput = {
@@ -137721,6 +147711,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutModifierGroupLinksInput = {
@@ -137766,6 +147757,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
   }
 
   export type ModifierGroupUpsertWithoutItemLinksInput = {
@@ -137806,6 +147798,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateWithoutItemLinksInput = {
@@ -137835,6 +147828,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type MenuItemCreateWithoutVariantsInput = {
@@ -137880,6 +147874,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutVariantsInput = {
@@ -137925,6 +147920,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutVariantsInput = {
@@ -137986,6 +147982,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutVariantsInput = {
@@ -138031,6 +148028,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
   }
 
   export type BrandCreateWithoutMealDealsInput = {
@@ -138056,6 +148054,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutMealDealsInput = {
@@ -138072,6 +148071,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -138122,6 +148122,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutMealDealsInput = {
@@ -138138,6 +148139,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -138172,6 +148174,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutUpsellGroupsInput = {
@@ -138188,6 +148191,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -138238,6 +148242,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutUpsellGroupsInput = {
@@ -138254,6 +148259,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -138452,6 +148458,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCustomersInput = {
@@ -138477,6 +148485,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCustomersInput = {
@@ -138757,6 +148767,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCustomersInput = {
@@ -138782,6 +148794,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomerAddressUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -138950,11 +148964,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutDirectOrderingConfigInput = {
@@ -138969,6 +148988,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -139007,6 +149029,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -139080,11 +149104,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDirectOrderingConfigInput = {
@@ -139099,6 +149128,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -139137,6 +149169,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -139359,6 +149393,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPromoCodesInput = {
@@ -139384,6 +149420,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPromoCodesInput = {
@@ -139425,6 +149463,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPromoCodesInput = {
@@ -139450,6 +149490,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -139502,11 +149544,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutDeliveryZonesInput = {
@@ -139521,6 +149568,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -139559,6 +149609,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -139632,11 +149684,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutDeliveryZonesInput = {
@@ -139651,6 +149708,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -139689,6 +149749,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -139746,11 +149808,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutPaymentConfigInput = {
@@ -139765,6 +149832,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -139803,6 +149873,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -139876,11 +149948,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPaymentConfigInput = {
@@ -139895,6 +149972,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -139933,6 +150013,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -139963,6 +150045,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrdersInput = {
@@ -139988,6 +150072,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrdersInput = {
@@ -140044,12 +150130,17 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutLocationsInput
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutOrdersInput = {
@@ -140064,6 +150155,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -140101,6 +150195,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -140221,6 +150317,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
   export type BrandUncheckedCreateWithoutOrdersInput = {
@@ -140237,6 +150334,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -140360,10 +150458,17 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPrintJobsInput
     printer?: PrinterCreateNestedOneWithoutPrintJobsInput
+    station?: PrinterStationCreateNestedOneWithoutPrintJobsInput
+    claimedByAgent?: PrintAgentCreateNestedOneWithoutClaimedJobsInput
   }
 
   export type PrintJobUncheckedCreateWithoutOrderInput = {
@@ -140379,6 +150484,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -140504,6 +150616,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrdersInput = {
@@ -140529,6 +150643,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type LocationUpsertWithoutOrdersInput = {
@@ -140591,12 +150707,17 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutOrdersInput = {
@@ -140611,6 +150732,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -140648,6 +150772,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -140786,6 +150912,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutOrdersInput = {
@@ -140802,6 +150929,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -141595,11 +151723,16 @@ export namespace Prisma {
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
     printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutKdsScreensInput = {
@@ -141614,6 +151747,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -141652,6 +151788,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
     printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
@@ -141751,11 +151889,16 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutKdsScreensInput = {
@@ -141770,6 +151913,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -141808,6 +151954,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
@@ -142220,17 +152368,231 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutLocationsInput
     integrations?: IntegrationCreateNestedManyWithoutLocationInput
     orders?: OrderCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
 
   export type LocationUncheckedCreateWithoutPrintersInput = {
     id?: string
     brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutPrintersInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutPrintersInput, LocationUncheckedCreateWithoutPrintersInput>
+  }
+
+  export type PrintAgentCreateWithoutPrintersInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintAgentsInput
+    location: LocationCreateNestedOneWithoutPrintAgentsInput
+    claimedJobs?: PrintJobCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentUncheckedCreateWithoutPrintersInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    claimedJobs?: PrintJobUncheckedCreateNestedManyWithoutClaimedByAgentInput
+  }
+
+  export type PrintAgentCreateOrConnectWithoutPrintersInput = {
+    where: PrintAgentWhereUniqueInput
+    create: XOR<PrintAgentCreateWithoutPrintersInput, PrintAgentUncheckedCreateWithoutPrintersInput>
+  }
+
+  export type PrintJobCreateWithoutPrinterInput = {
+    id?: string
+    locationId: string
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    order?: OrderCreateNestedOneWithoutPrintJobsInput
+    station?: PrinterStationCreateNestedOneWithoutPrintJobsInput
+    claimedByAgent?: PrintAgentCreateNestedOneWithoutClaimedJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutPrinterInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    orderId?: string | null
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintJobCreateOrConnectWithoutPrinterInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput>
+  }
+
+  export type PrintJobCreateManyPrinterInputEnvelope = {
+    data: PrintJobCreateManyPrinterInput | PrintJobCreateManyPrinterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrinterStationCreateWithoutDefaultPrinterInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutDefaultPrinterInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutDefaultPrinterInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput>
+  }
+
+  export type PrinterStationCreateManyDefaultPrinterInputEnvelope = {
+    data: PrinterStationCreateManyDefaultPrinterInput | PrinterStationCreateManyDefaultPrinterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationCreateWithoutReceiptPrinterInput = {
+    id?: string
     name: string
     externalRef?: string | null
     address: JsonNullValueInput | InputJsonValue
@@ -142275,8 +152637,76 @@ export namespace Prisma {
     storeStatusNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutReceiptPrinterInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
     integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
     orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
     kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -142285,52 +152715,147 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
-  export type LocationCreateOrConnectWithoutPrintersInput = {
+  export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
     where: LocationWhereUniqueInput
-    create: XOR<LocationCreateWithoutPrintersInput, LocationUncheckedCreateWithoutPrintersInput>
+    create: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput>
   }
 
-  export type PrintJobCreateWithoutPrinterInput = {
+  export type LocationCreateManyReceiptPrinterInputEnvelope = {
+    data: LocationCreateManyReceiptPrinterInput | LocationCreateManyReceiptPrinterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationCreateWithoutDispatchPrinterInput = {
     id?: string
-    locationId: string
-    type: $Enums.PrintJobType
-    status?: $Enums.PrintJobStatus
-    payload: JsonNullValueInput | InputJsonValue
-    attempts?: number
-    maxRetries?: number
-    error?: string | null
-    retryMetadata?: JsonNullValueInput | InputJsonValue
-    printedAt?: Date | string | null
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: TenantCreateNestedOneWithoutPrintJobsInput
-    order?: OrderCreateNestedOneWithoutPrintJobsInput
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
   }
 
-  export type PrintJobUncheckedCreateWithoutPrinterInput = {
+  export type LocationUncheckedCreateWithoutDispatchPrinterInput = {
     id?: string
-    tenantId: string
-    locationId: string
-    orderId?: string | null
-    type: $Enums.PrintJobType
-    status?: $Enums.PrintJobStatus
-    payload: JsonNullValueInput | InputJsonValue
-    attempts?: number
-    maxRetries?: number
-    error?: string | null
-    retryMetadata?: JsonNullValueInput | InputJsonValue
-    printedAt?: Date | string | null
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
   }
 
-  export type PrintJobCreateOrConnectWithoutPrinterInput = {
-    where: PrintJobWhereUniqueInput
-    create: XOR<PrintJobCreateWithoutPrinterInput, PrintJobUncheckedCreateWithoutPrinterInput>
+  export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput>
   }
 
-  export type PrintJobCreateManyPrinterInputEnvelope = {
-    data: PrintJobCreateManyPrinterInput | PrintJobCreateManyPrinterInput[]
+  export type LocationCreateManyDispatchPrinterInputEnvelope = {
+    data: LocationCreateManyDispatchPrinterInput | LocationCreateManyDispatchPrinterInput[]
     skipDuplicates?: boolean
   }
 
@@ -142394,12 +152919,17 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutPrintersInput = {
@@ -142414,6 +152944,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -142451,12 +152984,59 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type PrintAgentUpsertWithoutPrintersInput = {
+    update: XOR<PrintAgentUpdateWithoutPrintersInput, PrintAgentUncheckedUpdateWithoutPrintersInput>
+    create: XOR<PrintAgentCreateWithoutPrintersInput, PrintAgentUncheckedCreateWithoutPrintersInput>
+    where?: PrintAgentWhereInput
+  }
+
+  export type PrintAgentUpdateToOneWithWhereWithoutPrintersInput = {
+    where?: PrintAgentWhereInput
+    data: XOR<PrintAgentUpdateWithoutPrintersInput, PrintAgentUncheckedUpdateWithoutPrintersInput>
+  }
+
+  export type PrintAgentUpdateWithoutPrintersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintAgentsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrintAgentsNestedInput
+    claimedJobs?: PrintJobUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateWithoutPrintersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    claimedJobs?: PrintJobUncheckedUpdateManyWithoutClaimedByAgentNestedInput
   }
 
   export type PrintJobUpsertWithWhereUniqueWithoutPrinterInput = {
@@ -142473,6 +153053,54 @@ export namespace Prisma {
   export type PrintJobUpdateManyWithWhereWithoutPrinterInput = {
     where: PrintJobScalarWhereInput
     data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutPrinterInput>
+  }
+
+  export type PrinterStationUpsertWithWhereUniqueWithoutDefaultPrinterInput = {
+    where: PrinterStationWhereUniqueInput
+    update: XOR<PrinterStationUpdateWithoutDefaultPrinterInput, PrinterStationUncheckedUpdateWithoutDefaultPrinterInput>
+    create: XOR<PrinterStationCreateWithoutDefaultPrinterInput, PrinterStationUncheckedCreateWithoutDefaultPrinterInput>
+  }
+
+  export type PrinterStationUpdateWithWhereUniqueWithoutDefaultPrinterInput = {
+    where: PrinterStationWhereUniqueInput
+    data: XOR<PrinterStationUpdateWithoutDefaultPrinterInput, PrinterStationUncheckedUpdateWithoutDefaultPrinterInput>
+  }
+
+  export type PrinterStationUpdateManyWithWhereWithoutDefaultPrinterInput = {
+    where: PrinterStationScalarWhereInput
+    data: XOR<PrinterStationUpdateManyMutationInput, PrinterStationUncheckedUpdateManyWithoutDefaultPrinterInput>
+  }
+
+  export type LocationUpsertWithWhereUniqueWithoutReceiptPrinterInput = {
+    where: LocationWhereUniqueInput
+    update: XOR<LocationUpdateWithoutReceiptPrinterInput, LocationUncheckedUpdateWithoutReceiptPrinterInput>
+    create: XOR<LocationCreateWithoutReceiptPrinterInput, LocationUncheckedCreateWithoutReceiptPrinterInput>
+  }
+
+  export type LocationUpdateWithWhereUniqueWithoutReceiptPrinterInput = {
+    where: LocationWhereUniqueInput
+    data: XOR<LocationUpdateWithoutReceiptPrinterInput, LocationUncheckedUpdateWithoutReceiptPrinterInput>
+  }
+
+  export type LocationUpdateManyWithWhereWithoutReceiptPrinterInput = {
+    where: LocationScalarWhereInput
+    data: XOR<LocationUpdateManyMutationInput, LocationUncheckedUpdateManyWithoutReceiptPrinterInput>
+  }
+
+  export type LocationUpsertWithWhereUniqueWithoutDispatchPrinterInput = {
+    where: LocationWhereUniqueInput
+    update: XOR<LocationUpdateWithoutDispatchPrinterInput, LocationUncheckedUpdateWithoutDispatchPrinterInput>
+    create: XOR<LocationCreateWithoutDispatchPrinterInput, LocationUncheckedCreateWithoutDispatchPrinterInput>
+  }
+
+  export type LocationUpdateWithWhereUniqueWithoutDispatchPrinterInput = {
+    where: LocationWhereUniqueInput
+    data: XOR<LocationUpdateWithoutDispatchPrinterInput, LocationUncheckedUpdateWithoutDispatchPrinterInput>
+  }
+
+  export type LocationUpdateManyWithWhereWithoutDispatchPrinterInput = {
+    where: LocationScalarWhereInput
+    data: XOR<LocationUpdateManyMutationInput, LocationUncheckedUpdateManyWithoutDispatchPrinterInput>
   }
 
   export type TenantCreateWithoutPrintJobsInput = {
@@ -142498,6 +153126,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPrintJobsInput = {
@@ -142523,6 +153153,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPrintJobsInput = {
@@ -142536,24 +153168,31 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutPrintersInput
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterUncheckedCreateWithoutPrintJobsInput = {
@@ -142563,23 +153202,30 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
   }
 
   export type PrinterCreateOrConnectWithoutPrintJobsInput = {
@@ -142722,6 +153368,86 @@ export namespace Prisma {
     create: XOR<OrderCreateWithoutPrintJobsInput, OrderUncheckedCreateWithoutPrintJobsInput>
   }
 
+  export type PrinterStationCreateWithoutPrintJobsInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutPrintJobsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutPrintJobsInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutPrintJobsInput, PrinterStationUncheckedCreateWithoutPrintJobsInput>
+  }
+
+  export type PrintAgentCreateWithoutClaimedJobsInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintAgentsInput
+    location: LocationCreateNestedOneWithoutPrintAgentsInput
+    printers?: PrinterCreateNestedManyWithoutAgentInput
+  }
+
+  export type PrintAgentUncheckedCreateWithoutClaimedJobsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printers?: PrinterUncheckedCreateNestedManyWithoutAgentInput
+  }
+
+  export type PrintAgentCreateOrConnectWithoutClaimedJobsInput = {
+    where: PrintAgentWhereUniqueInput
+    create: XOR<PrintAgentCreateWithoutClaimedJobsInput, PrintAgentUncheckedCreateWithoutClaimedJobsInput>
+  }
+
   export type TenantUpsertWithoutPrintJobsInput = {
     update: XOR<TenantUpdateWithoutPrintJobsInput, TenantUncheckedUpdateWithoutPrintJobsInput>
     create: XOR<TenantCreateWithoutPrintJobsInput, TenantUncheckedCreateWithoutPrintJobsInput>
@@ -142756,6 +153482,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPrintJobsInput = {
@@ -142781,6 +153509,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PrinterUpsertWithoutPrintJobsInput = {
@@ -142800,24 +153530,31 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type PrinterUncheckedUpdateWithoutPrintJobsInput = {
@@ -142827,23 +153564,30 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type OrderUpsertWithoutPrintJobsInput = {
@@ -142987,6 +153731,2308 @@ export namespace Prisma {
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
   }
 
+  export type PrinterStationUpsertWithoutPrintJobsInput = {
+    update: XOR<PrinterStationUpdateWithoutPrintJobsInput, PrinterStationUncheckedUpdateWithoutPrintJobsInput>
+    create: XOR<PrinterStationCreateWithoutPrintJobsInput, PrinterStationUncheckedCreateWithoutPrintJobsInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutPrintJobsInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutPrintJobsInput, PrinterStationUncheckedUpdateWithoutPrintJobsInput>
+  }
+
+  export type PrinterStationUpdateWithoutPrintJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutPrintJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+  }
+
+  export type PrintAgentUpsertWithoutClaimedJobsInput = {
+    update: XOR<PrintAgentUpdateWithoutClaimedJobsInput, PrintAgentUncheckedUpdateWithoutClaimedJobsInput>
+    create: XOR<PrintAgentCreateWithoutClaimedJobsInput, PrintAgentUncheckedCreateWithoutClaimedJobsInput>
+    where?: PrintAgentWhereInput
+  }
+
+  export type PrintAgentUpdateToOneWithWhereWithoutClaimedJobsInput = {
+    where?: PrintAgentWhereInput
+    data: XOR<PrintAgentUpdateWithoutClaimedJobsInput, PrintAgentUncheckedUpdateWithoutClaimedJobsInput>
+  }
+
+  export type PrintAgentUpdateWithoutClaimedJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintAgentsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrintAgentsNestedInput
+    printers?: PrinterUpdateManyWithoutAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateWithoutClaimedJobsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printers?: PrinterUncheckedUpdateManyWithoutAgentNestedInput
+  }
+
+  export type TenantCreateWithoutPrinterStationsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutPrinterStationsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutPrinterStationsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutPrinterStationsInput, TenantUncheckedCreateWithoutPrinterStationsInput>
+  }
+
+  export type LocationCreateWithoutPrinterStationsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutPrinterStationsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutPrinterStationsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutPrinterStationsInput, LocationUncheckedCreateWithoutPrinterStationsInput>
+  }
+
+  export type PrinterCreateWithoutStationsDefaultForInput = {
+    id?: string
+    tenantId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrintersInput
+    agent?: PrintAgentCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutStationsDefaultForInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutStationsDefaultForInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutStationsDefaultForInput, PrinterUncheckedCreateWithoutStationsDefaultForInput>
+  }
+
+  export type MenuItemStationCreateWithoutStationInput = {
+    id?: string
+    createdAt?: Date | string
+    menuItem: MenuItemCreateNestedOneWithoutStationRoutesInput
+  }
+
+  export type MenuItemStationUncheckedCreateWithoutStationInput = {
+    id?: string
+    menuItemId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuItemStationCreateOrConnectWithoutStationInput = {
+    where: MenuItemStationWhereUniqueInput
+    create: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type MenuItemStationCreateManyStationInputEnvelope = {
+    data: MenuItemStationCreateManyStationInput | MenuItemStationCreateManyStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MenuCategoryStationCreateWithoutStationInput = {
+    id?: string
+    createdAt?: Date | string
+    category: MenuCategoryCreateNestedOneWithoutStationRoutesInput
+  }
+
+  export type MenuCategoryStationUncheckedCreateWithoutStationInput = {
+    id?: string
+    categoryId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuCategoryStationCreateOrConnectWithoutStationInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    create: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type MenuCategoryStationCreateManyStationInputEnvelope = {
+    data: MenuCategoryStationCreateManyStationInput | MenuCategoryStationCreateManyStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ModifierGroupStationCreateWithoutStationInput = {
+    id?: string
+    createdAt?: Date | string
+    modifierGroup: ModifierGroupCreateNestedOneWithoutStationRoutesInput
+  }
+
+  export type ModifierGroupStationUncheckedCreateWithoutStationInput = {
+    id?: string
+    modifierGroupId: string
+    createdAt?: Date | string
+  }
+
+  export type ModifierGroupStationCreateOrConnectWithoutStationInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    create: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type ModifierGroupStationCreateManyStationInputEnvelope = {
+    data: ModifierGroupStationCreateManyStationInput | ModifierGroupStationCreateManyStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BrandCreateWithoutDefaultStationInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandUncheckedCreateWithoutDefaultStationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutDefaultStationInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput>
+  }
+
+  export type BrandCreateManyDefaultStationInputEnvelope = {
+    data: BrandCreateManyDefaultStationInput | BrandCreateManyDefaultStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationCreateWithoutDefaultKitchenStationInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutDefaultKitchenStationInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput>
+  }
+
+  export type LocationCreateManyDefaultKitchenStationInputEnvelope = {
+    data: LocationCreateManyDefaultKitchenStationInput | LocationCreateManyDefaultKitchenStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintJobCreateWithoutStationInput = {
+    id?: string
+    locationId: string
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    printer?: PrinterCreateNestedOneWithoutPrintJobsInput
+    order?: OrderCreateNestedOneWithoutPrintJobsInput
+    claimedByAgent?: PrintAgentCreateNestedOneWithoutClaimedJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutStationInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    printerId?: string | null
+    orderId?: string | null
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintJobCreateOrConnectWithoutStationInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput>
+  }
+
+  export type PrintJobCreateManyStationInputEnvelope = {
+    data: PrintJobCreateManyStationInput | PrintJobCreateManyStationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutPrinterStationsInput = {
+    update: XOR<TenantUpdateWithoutPrinterStationsInput, TenantUncheckedUpdateWithoutPrinterStationsInput>
+    create: XOR<TenantCreateWithoutPrinterStationsInput, TenantUncheckedCreateWithoutPrinterStationsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutPrinterStationsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutPrinterStationsInput, TenantUncheckedUpdateWithoutPrinterStationsInput>
+  }
+
+  export type TenantUpdateWithoutPrinterStationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutPrinterStationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type LocationUpsertWithoutPrinterStationsInput = {
+    update: XOR<LocationUpdateWithoutPrinterStationsInput, LocationUncheckedUpdateWithoutPrinterStationsInput>
+    create: XOR<LocationCreateWithoutPrinterStationsInput, LocationUncheckedCreateWithoutPrinterStationsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutPrinterStationsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutPrinterStationsInput, LocationUncheckedUpdateWithoutPrinterStationsInput>
+  }
+
+  export type LocationUpdateWithoutPrinterStationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutPrinterStationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type PrinterUpsertWithoutStationsDefaultForInput = {
+    update: XOR<PrinterUpdateWithoutStationsDefaultForInput, PrinterUncheckedUpdateWithoutStationsDefaultForInput>
+    create: XOR<PrinterCreateWithoutStationsDefaultForInput, PrinterUncheckedCreateWithoutStationsDefaultForInput>
+    where?: PrinterWhereInput
+  }
+
+  export type PrinterUpdateToOneWithWhereWithoutStationsDefaultForInput = {
+    where?: PrinterWhereInput
+    data: XOR<PrinterUpdateWithoutStationsDefaultForInput, PrinterUncheckedUpdateWithoutStationsDefaultForInput>
+  }
+
+  export type PrinterUpdateWithoutStationsDefaultForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutStationsDefaultForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type MenuItemStationUpsertWithWhereUniqueWithoutStationInput = {
+    where: MenuItemStationWhereUniqueInput
+    update: XOR<MenuItemStationUpdateWithoutStationInput, MenuItemStationUncheckedUpdateWithoutStationInput>
+    create: XOR<MenuItemStationCreateWithoutStationInput, MenuItemStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type MenuItemStationUpdateWithWhereUniqueWithoutStationInput = {
+    where: MenuItemStationWhereUniqueInput
+    data: XOR<MenuItemStationUpdateWithoutStationInput, MenuItemStationUncheckedUpdateWithoutStationInput>
+  }
+
+  export type MenuItemStationUpdateManyWithWhereWithoutStationInput = {
+    where: MenuItemStationScalarWhereInput
+    data: XOR<MenuItemStationUpdateManyMutationInput, MenuItemStationUncheckedUpdateManyWithoutStationInput>
+  }
+
+  export type MenuCategoryStationUpsertWithWhereUniqueWithoutStationInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    update: XOR<MenuCategoryStationUpdateWithoutStationInput, MenuCategoryStationUncheckedUpdateWithoutStationInput>
+    create: XOR<MenuCategoryStationCreateWithoutStationInput, MenuCategoryStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type MenuCategoryStationUpdateWithWhereUniqueWithoutStationInput = {
+    where: MenuCategoryStationWhereUniqueInput
+    data: XOR<MenuCategoryStationUpdateWithoutStationInput, MenuCategoryStationUncheckedUpdateWithoutStationInput>
+  }
+
+  export type MenuCategoryStationUpdateManyWithWhereWithoutStationInput = {
+    where: MenuCategoryStationScalarWhereInput
+    data: XOR<MenuCategoryStationUpdateManyMutationInput, MenuCategoryStationUncheckedUpdateManyWithoutStationInput>
+  }
+
+  export type ModifierGroupStationUpsertWithWhereUniqueWithoutStationInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    update: XOR<ModifierGroupStationUpdateWithoutStationInput, ModifierGroupStationUncheckedUpdateWithoutStationInput>
+    create: XOR<ModifierGroupStationCreateWithoutStationInput, ModifierGroupStationUncheckedCreateWithoutStationInput>
+  }
+
+  export type ModifierGroupStationUpdateWithWhereUniqueWithoutStationInput = {
+    where: ModifierGroupStationWhereUniqueInput
+    data: XOR<ModifierGroupStationUpdateWithoutStationInput, ModifierGroupStationUncheckedUpdateWithoutStationInput>
+  }
+
+  export type ModifierGroupStationUpdateManyWithWhereWithoutStationInput = {
+    where: ModifierGroupStationScalarWhereInput
+    data: XOR<ModifierGroupStationUpdateManyMutationInput, ModifierGroupStationUncheckedUpdateManyWithoutStationInput>
+  }
+
+  export type BrandUpsertWithWhereUniqueWithoutDefaultStationInput = {
+    where: BrandWhereUniqueInput
+    update: XOR<BrandUpdateWithoutDefaultStationInput, BrandUncheckedUpdateWithoutDefaultStationInput>
+    create: XOR<BrandCreateWithoutDefaultStationInput, BrandUncheckedCreateWithoutDefaultStationInput>
+  }
+
+  export type BrandUpdateWithWhereUniqueWithoutDefaultStationInput = {
+    where: BrandWhereUniqueInput
+    data: XOR<BrandUpdateWithoutDefaultStationInput, BrandUncheckedUpdateWithoutDefaultStationInput>
+  }
+
+  export type BrandUpdateManyWithWhereWithoutDefaultStationInput = {
+    where: BrandScalarWhereInput
+    data: XOR<BrandUpdateManyMutationInput, BrandUncheckedUpdateManyWithoutDefaultStationInput>
+  }
+
+  export type LocationUpsertWithWhereUniqueWithoutDefaultKitchenStationInput = {
+    where: LocationWhereUniqueInput
+    update: XOR<LocationUpdateWithoutDefaultKitchenStationInput, LocationUncheckedUpdateWithoutDefaultKitchenStationInput>
+    create: XOR<LocationCreateWithoutDefaultKitchenStationInput, LocationUncheckedCreateWithoutDefaultKitchenStationInput>
+  }
+
+  export type LocationUpdateWithWhereUniqueWithoutDefaultKitchenStationInput = {
+    where: LocationWhereUniqueInput
+    data: XOR<LocationUpdateWithoutDefaultKitchenStationInput, LocationUncheckedUpdateWithoutDefaultKitchenStationInput>
+  }
+
+  export type LocationUpdateManyWithWhereWithoutDefaultKitchenStationInput = {
+    where: LocationScalarWhereInput
+    data: XOR<LocationUpdateManyMutationInput, LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput>
+  }
+
+  export type PrintJobUpsertWithWhereUniqueWithoutStationInput = {
+    where: PrintJobWhereUniqueInput
+    update: XOR<PrintJobUpdateWithoutStationInput, PrintJobUncheckedUpdateWithoutStationInput>
+    create: XOR<PrintJobCreateWithoutStationInput, PrintJobUncheckedCreateWithoutStationInput>
+  }
+
+  export type PrintJobUpdateWithWhereUniqueWithoutStationInput = {
+    where: PrintJobWhereUniqueInput
+    data: XOR<PrintJobUpdateWithoutStationInput, PrintJobUncheckedUpdateWithoutStationInput>
+  }
+
+  export type PrintJobUpdateManyWithWhereWithoutStationInput = {
+    where: PrintJobScalarWhereInput
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutStationInput>
+  }
+
+  export type TenantCreateWithoutPrintAgentsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutPrintAgentsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutPrintAgentsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutPrintAgentsInput, TenantUncheckedCreateWithoutPrintAgentsInput>
+  }
+
+  export type LocationCreateWithoutPrintAgentsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutPrintAgentsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutPrintAgentsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutPrintAgentsInput, LocationUncheckedCreateWithoutPrintAgentsInput>
+  }
+
+  export type PrinterCreateWithoutAgentInput = {
+    id?: string
+    tenantId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutPrintersInput
+    printJobs?: PrintJobCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterUncheckedCreateWithoutAgentInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutPrinterInput
+    stationsDefaultFor?: PrinterStationUncheckedCreateNestedManyWithoutDefaultPrinterInput
+    locationsReceiptFor?: LocationUncheckedCreateNestedManyWithoutReceiptPrinterInput
+    locationsDispatchFor?: LocationUncheckedCreateNestedManyWithoutDispatchPrinterInput
+  }
+
+  export type PrinterCreateOrConnectWithoutAgentInput = {
+    where: PrinterWhereUniqueInput
+    create: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput>
+  }
+
+  export type PrinterCreateManyAgentInputEnvelope = {
+    data: PrinterCreateManyAgentInput | PrinterCreateManyAgentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PrintJobCreateWithoutClaimedByAgentInput = {
+    id?: string
+    locationId: string
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrintJobsInput
+    printer?: PrinterCreateNestedOneWithoutPrintJobsInput
+    order?: OrderCreateNestedOneWithoutPrintJobsInput
+    station?: PrinterStationCreateNestedOneWithoutPrintJobsInput
+  }
+
+  export type PrintJobUncheckedCreateWithoutClaimedByAgentInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    printerId?: string | null
+    orderId?: string | null
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintJobCreateOrConnectWithoutClaimedByAgentInput = {
+    where: PrintJobWhereUniqueInput
+    create: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput>
+  }
+
+  export type PrintJobCreateManyClaimedByAgentInputEnvelope = {
+    data: PrintJobCreateManyClaimedByAgentInput | PrintJobCreateManyClaimedByAgentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutPrintAgentsInput = {
+    update: XOR<TenantUpdateWithoutPrintAgentsInput, TenantUncheckedUpdateWithoutPrintAgentsInput>
+    create: XOR<TenantCreateWithoutPrintAgentsInput, TenantUncheckedCreateWithoutPrintAgentsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutPrintAgentsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutPrintAgentsInput, TenantUncheckedUpdateWithoutPrintAgentsInput>
+  }
+
+  export type TenantUpdateWithoutPrintAgentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutPrintAgentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type LocationUpsertWithoutPrintAgentsInput = {
+    update: XOR<LocationUpdateWithoutPrintAgentsInput, LocationUncheckedUpdateWithoutPrintAgentsInput>
+    create: XOR<LocationCreateWithoutPrintAgentsInput, LocationUncheckedCreateWithoutPrintAgentsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutPrintAgentsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutPrintAgentsInput, LocationUncheckedUpdateWithoutPrintAgentsInput>
+  }
+
+  export type LocationUpdateWithoutPrintAgentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutPrintAgentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
+    where: PrinterWhereUniqueInput
+    update: XOR<PrinterUpdateWithoutAgentInput, PrinterUncheckedUpdateWithoutAgentInput>
+    create: XOR<PrinterCreateWithoutAgentInput, PrinterUncheckedCreateWithoutAgentInput>
+  }
+
+  export type PrinterUpdateWithWhereUniqueWithoutAgentInput = {
+    where: PrinterWhereUniqueInput
+    data: XOR<PrinterUpdateWithoutAgentInput, PrinterUncheckedUpdateWithoutAgentInput>
+  }
+
+  export type PrinterUpdateManyWithWhereWithoutAgentInput = {
+    where: PrinterScalarWhereInput
+    data: XOR<PrinterUpdateManyMutationInput, PrinterUncheckedUpdateManyWithoutAgentInput>
+  }
+
+  export type PrintJobUpsertWithWhereUniqueWithoutClaimedByAgentInput = {
+    where: PrintJobWhereUniqueInput
+    update: XOR<PrintJobUpdateWithoutClaimedByAgentInput, PrintJobUncheckedUpdateWithoutClaimedByAgentInput>
+    create: XOR<PrintJobCreateWithoutClaimedByAgentInput, PrintJobUncheckedCreateWithoutClaimedByAgentInput>
+  }
+
+  export type PrintJobUpdateWithWhereUniqueWithoutClaimedByAgentInput = {
+    where: PrintJobWhereUniqueInput
+    data: XOR<PrintJobUpdateWithoutClaimedByAgentInput, PrintJobUncheckedUpdateWithoutClaimedByAgentInput>
+  }
+
+  export type PrintJobUpdateManyWithWhereWithoutClaimedByAgentInput = {
+    where: PrintJobScalarWhereInput
+    data: XOR<PrintJobUpdateManyMutationInput, PrintJobUncheckedUpdateManyWithoutClaimedByAgentInput>
+  }
+
+  export type MenuItemCreateWithoutStationRoutesInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+  }
+
+  export type MenuItemUncheckedCreateWithoutStationRoutesInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+  }
+
+  export type MenuItemCreateOrConnectWithoutStationRoutesInput = {
+    where: MenuItemWhereUniqueInput
+    create: XOR<MenuItemCreateWithoutStationRoutesInput, MenuItemUncheckedCreateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationCreateWithoutMenuItemRoutesInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutMenuItemRoutesInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutMenuItemRoutesInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutMenuItemRoutesInput, PrinterStationUncheckedCreateWithoutMenuItemRoutesInput>
+  }
+
+  export type MenuItemUpsertWithoutStationRoutesInput = {
+    update: XOR<MenuItemUpdateWithoutStationRoutesInput, MenuItemUncheckedUpdateWithoutStationRoutesInput>
+    create: XOR<MenuItemCreateWithoutStationRoutesInput, MenuItemUncheckedCreateWithoutStationRoutesInput>
+    where?: MenuItemWhereInput
+  }
+
+  export type MenuItemUpdateToOneWithWhereWithoutStationRoutesInput = {
+    where?: MenuItemWhereInput
+    data: XOR<MenuItemUpdateWithoutStationRoutesInput, MenuItemUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type MenuItemUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+  }
+
+  export type MenuItemUncheckedUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+  }
+
+  export type PrinterStationUpsertWithoutMenuItemRoutesInput = {
+    update: XOR<PrinterStationUpdateWithoutMenuItemRoutesInput, PrinterStationUncheckedUpdateWithoutMenuItemRoutesInput>
+    create: XOR<PrinterStationCreateWithoutMenuItemRoutesInput, PrinterStationUncheckedCreateWithoutMenuItemRoutesInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutMenuItemRoutesInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutMenuItemRoutesInput, PrinterStationUncheckedUpdateWithoutMenuItemRoutesInput>
+  }
+
+  export type PrinterStationUpdateWithoutMenuItemRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutMenuItemRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type ModifierGroupCreateWithoutStationRoutesInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    plu?: string | null
+    minSelections?: number
+    maxSelections?: number | null
+    isRequired?: boolean
+    sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutModifierGroupsInput
+    options?: ModifierOptionCreateNestedManyWithoutGroupInput
+    itemLinks?: ModifierGroupOnItemCreateNestedManyWithoutGroupInput
+    nestedUnderOptions?: ModifierOptionCreateNestedManyWithoutNestedGroupInput
+  }
+
+  export type ModifierGroupUncheckedCreateWithoutStationRoutesInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    plu?: string | null
+    minSelections?: number
+    maxSelections?: number | null
+    isRequired?: boolean
+    sortOrder?: number
+    selectionType?: $Enums.SelectionType
+    allowDuplicateSelections?: boolean
+    visibleToCustomers?: boolean
+    menuIds?: ModifierGroupCreatemenuIdsInput | string[]
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    options?: ModifierOptionUncheckedCreateNestedManyWithoutGroupInput
+    itemLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutGroupInput
+    nestedUnderOptions?: ModifierOptionUncheckedCreateNestedManyWithoutNestedGroupInput
+  }
+
+  export type ModifierGroupCreateOrConnectWithoutStationRoutesInput = {
+    where: ModifierGroupWhereUniqueInput
+    create: XOR<ModifierGroupCreateWithoutStationRoutesInput, ModifierGroupUncheckedCreateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationCreateWithoutModifierGroupRoutesInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutModifierGroupRoutesInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    categoryRoutes?: MenuCategoryStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutModifierGroupRoutesInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutModifierGroupRoutesInput, PrinterStationUncheckedCreateWithoutModifierGroupRoutesInput>
+  }
+
+  export type ModifierGroupUpsertWithoutStationRoutesInput = {
+    update: XOR<ModifierGroupUpdateWithoutStationRoutesInput, ModifierGroupUncheckedUpdateWithoutStationRoutesInput>
+    create: XOR<ModifierGroupCreateWithoutStationRoutesInput, ModifierGroupUncheckedCreateWithoutStationRoutesInput>
+    where?: ModifierGroupWhereInput
+  }
+
+  export type ModifierGroupUpdateToOneWithWhereWithoutStationRoutesInput = {
+    where?: ModifierGroupWhereInput
+    data: XOR<ModifierGroupUpdateWithoutStationRoutesInput, ModifierGroupUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type ModifierGroupUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    minSelections?: IntFieldUpdateOperationsInput | number
+    maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
+    isRequired?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutModifierGroupsNestedInput
+    options?: ModifierOptionUpdateManyWithoutGroupNestedInput
+    itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
+    nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+  }
+
+  export type ModifierGroupUncheckedUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    minSelections?: IntFieldUpdateOperationsInput | number
+    maxSelections?: NullableIntFieldUpdateOperationsInput | number | null
+    isRequired?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    selectionType?: EnumSelectionTypeFieldUpdateOperationsInput | $Enums.SelectionType
+    allowDuplicateSelections?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: ModifierGroupUpdatemenuIdsInput | string[]
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierIds?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
+    itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
+    nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+  }
+
+  export type PrinterStationUpsertWithoutModifierGroupRoutesInput = {
+    update: XOR<PrinterStationUpdateWithoutModifierGroupRoutesInput, PrinterStationUncheckedUpdateWithoutModifierGroupRoutesInput>
+    create: XOR<PrinterStationCreateWithoutModifierGroupRoutesInput, PrinterStationUncheckedCreateWithoutModifierGroupRoutesInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutModifierGroupRoutesInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutModifierGroupRoutesInput, PrinterStationUncheckedUpdateWithoutModifierGroupRoutesInput>
+  }
+
+  export type PrinterStationUpdateWithoutModifierGroupRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutModifierGroupRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type MenuCategoryCreateWithoutStationRoutesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    sortOrder?: number
+    isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menu: MenuCreateNestedOneWithoutCategoriesInput
+    items?: MenuItemOnCategoryCreateNestedManyWithoutCategoryInput
+  }
+
+  export type MenuCategoryUncheckedCreateWithoutStationRoutesInput = {
+    id?: string
+    menuId: string
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    sortOrder?: number
+    isVisible?: boolean
+    menuIds?: MenuCategoryCreatemenuIdsInput | string[]
+    available?: boolean
+    visibleToCustomers?: boolean
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutCategoryInput
+  }
+
+  export type MenuCategoryCreateOrConnectWithoutStationRoutesInput = {
+    where: MenuCategoryWhereUniqueInput
+    create: XOR<MenuCategoryCreateWithoutStationRoutesInput, MenuCategoryUncheckedCreateWithoutStationRoutesInput>
+  }
+
+  export type PrinterStationCreateWithoutCategoryRoutesInput = {
+    id?: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPrinterStationsInput
+    location: LocationCreateNestedOneWithoutPrinterStationsInput
+    defaultPrinter?: PrinterCreateNestedOneWithoutStationsDefaultForInput
+    menuItemRoutes?: MenuItemStationCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationUncheckedCreateWithoutCategoryRoutesInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItemRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutStationInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedCreateNestedManyWithoutStationInput
+    brandDefaults?: BrandUncheckedCreateNestedManyWithoutDefaultStationInput
+    locationDefaults?: LocationUncheckedCreateNestedManyWithoutDefaultKitchenStationInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutStationInput
+  }
+
+  export type PrinterStationCreateOrConnectWithoutCategoryRoutesInput = {
+    where: PrinterStationWhereUniqueInput
+    create: XOR<PrinterStationCreateWithoutCategoryRoutesInput, PrinterStationUncheckedCreateWithoutCategoryRoutesInput>
+  }
+
+  export type MenuCategoryUpsertWithoutStationRoutesInput = {
+    update: XOR<MenuCategoryUpdateWithoutStationRoutesInput, MenuCategoryUncheckedUpdateWithoutStationRoutesInput>
+    create: XOR<MenuCategoryCreateWithoutStationRoutesInput, MenuCategoryUncheckedCreateWithoutStationRoutesInput>
+    where?: MenuCategoryWhereInput
+  }
+
+  export type MenuCategoryUpdateToOneWithWhereWithoutStationRoutesInput = {
+    where?: MenuCategoryWhereInput
+    data: XOR<MenuCategoryUpdateWithoutStationRoutesInput, MenuCategoryUncheckedUpdateWithoutStationRoutesInput>
+  }
+
+  export type MenuCategoryUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: MenuUpdateOneRequiredWithoutCategoriesNestedInput
+    items?: MenuItemOnCategoryUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type MenuCategoryUncheckedUpdateWithoutStationRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    menuIds?: MenuCategoryUpdatemenuIdsInput | string[]
+    available?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type PrinterStationUpsertWithoutCategoryRoutesInput = {
+    update: XOR<PrinterStationUpdateWithoutCategoryRoutesInput, PrinterStationUncheckedUpdateWithoutCategoryRoutesInput>
+    create: XOR<PrinterStationCreateWithoutCategoryRoutesInput, PrinterStationUncheckedCreateWithoutCategoryRoutesInput>
+    where?: PrinterStationWhereInput
+  }
+
+  export type PrinterStationUpdateToOneWithWhereWithoutCategoryRoutesInput = {
+    where?: PrinterStationWhereInput
+    data: XOR<PrinterStationUpdateWithoutCategoryRoutesInput, PrinterStationUncheckedUpdateWithoutCategoryRoutesInput>
+  }
+
+  export type PrinterStationUpdateWithoutCategoryRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutCategoryRoutesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
   export type TenantCreateWithoutDriversInput = {
     id?: string
     name: string
@@ -143010,6 +156056,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -143035,6 +156083,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -143108,6 +156158,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -143133,6 +156185,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverAssignmentUpsertWithWhereUniqueWithoutDriverInput = {
@@ -143663,6 +156717,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutConnectAccountInput = {
@@ -143688,6 +156744,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutConnectAccountInput = {
@@ -143815,6 +156873,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutConnectAccountInput = {
@@ -143840,6 +156900,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type PaymentUpsertWithWhereUniqueWithoutConnectAccountInput = {
@@ -144910,6 +157972,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSuppliersInput = {
@@ -144935,6 +157999,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSuppliersInput = {
@@ -145062,6 +158128,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSuppliersInput = {
@@ -145087,6 +158155,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type IngredientUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -145588,6 +158658,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutRecipeInput = {
@@ -145633,6 +158704,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutRecipeInput = {
@@ -145716,6 +158788,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutRecipeInput = {
@@ -145761,6 +158834,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
   }
 
   export type RecipeIngredientUpsertWithWhereUniqueWithoutRecipeInput = {
@@ -146430,6 +159504,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutBrandingInput = {
@@ -146455,6 +159531,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutBrandingInput = {
@@ -146530,6 +159608,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutBrandingInput = {
@@ -146555,6 +159635,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CustomDomainUpsertWithWhereUniqueWithoutBrandingInput = {
@@ -146810,6 +159892,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSubscriptionInput = {
@@ -146835,6 +159919,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSubscriptionInput = {
@@ -146993,6 +160079,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSubscriptionInput = {
@@ -147018,6 +160106,8 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SubscriptionPlanUpsertWithoutSubscriptionsInput = {
@@ -147616,6 +160706,8 @@ export namespace Prisma {
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutIpAllowlistsInput = {
@@ -147641,6 +160733,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutIpAllowlistsInput = {
@@ -147682,6 +160776,8 @@ export namespace Prisma {
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutIpAllowlistsInput = {
@@ -147707,6 +160803,8 @@ export namespace Prisma {
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutDeviceSessionsInput = {
@@ -147842,6 +160940,7 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -147947,6 +161046,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -148048,6 +161154,33 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type PrinterStationCreateManyTenantInput = {
+    id?: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintAgentCreateManyTenantInput = {
+    id?: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type BrandUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -148071,6 +161204,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutTenantInput = {
@@ -148086,6 +161220,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -148111,6 +161246,7 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -148422,10 +161558,17 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
     order?: OrderUpdateOneWithoutPrintJobsNestedInput
+    station?: PrinterStationUpdateOneWithoutPrintJobsNestedInput
+    claimedByAgent?: PrintAgentUpdateOneWithoutClaimedJobsNestedInput
   }
 
   export type PrintJobUncheckedUpdateWithoutTenantInput = {
@@ -148441,6 +161584,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -148458,6 +161608,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -148767,6 +161924,103 @@ export namespace Prisma {
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invitedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterStationUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintAgentUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrintAgentsNestedInput
+    printers?: PrinterUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printers?: PrinterUncheckedUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUncheckedUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -149478,6 +162732,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     city?: string | null
@@ -149748,12 +163005,17 @@ export namespace Prisma {
     integrations?: IntegrationUpdateManyWithoutLocationNestedInput
     orders?: OrderUpdateManyWithoutLocationNestedInput
     printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
 
   export type LocationUncheckedUpdateWithoutBrandInput = {
@@ -149767,6 +163029,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -149805,6 +163070,8 @@ export namespace Prisma {
     integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
     orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
     printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
     kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -149824,6 +163091,9 @@ export namespace Prisma {
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
     addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
@@ -149997,6 +163267,7 @@ export namespace Prisma {
     options?: ModifierOptionUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateWithoutBrandInput = {
@@ -150026,6 +163297,7 @@ export namespace Prisma {
     options?: ModifierOptionUncheckedUpdateManyWithoutGroupNestedInput
     itemLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutGroupNestedInput
     nestedUnderOptions?: ModifierOptionUncheckedUpdateManyWithoutNestedGroupNestedInput
+    stationRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupNestedInput
   }
 
   export type ModifierGroupUncheckedUpdateManyWithoutBrandInput = {
@@ -150517,21 +163789,52 @@ export namespace Prisma {
     name: string
     type: $Enums.PrinterType
     connectionType?: $Enums.PrinterConnectionType
-    station?: $Enums.PrinterStation
+    kind?: $Enums.PrinterStationKind
     ipAddress?: string | null
     port?: number | null
     isOnline?: boolean
     isActive?: boolean
     deletedAt?: Date | string | null
     failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    agentId?: string | null
     supportsReceipts?: boolean
     supportsKitchen?: boolean
     supportsLabels?: boolean
     supportsCut?: boolean
     supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrinterStationCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    defaultPrinterId?: string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintAgentCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    kind?: $Enums.PrintAgentKind
+    apiTokenHash: string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: string | null
+    lastSeenAt?: Date | string | null
+    isActive?: boolean
+    deletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -150827,24 +164130,31 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    agent?: PrintAgentUpdateOneWithoutPrintersNestedInput
     printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type PrinterUncheckedUpdateWithoutLocationInput = {
@@ -150853,24 +164163,31 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
   }
 
   export type PrinterUncheckedUpdateManyWithoutLocationInput = {
@@ -150879,21 +164196,122 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
     connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
-    station?: EnumPrinterStationFieldUpdateOperationsInput | $Enums.PrinterStation
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     port?: NullableIntFieldUpdateOperationsInput | number | null
     isOnline?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    agentId?: NullableStringFieldUpdateOperationsInput | string | null
     supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
     supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
     supportsLabels?: BoolFieldUpdateOperationsInput | boolean
     supportsCut?: BoolFieldUpdateOperationsInput | boolean
     supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
     autoPrintRules?: JsonNullValueInput | InputJsonValue
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterStationUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    defaultPrinter?: PrinterUpdateOneWithoutStationsDefaultForNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    defaultPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintAgentUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintAgentsNestedInput
+    printers?: PrinterUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printers?: PrinterUncheckedUpdateManyWithoutAgentNestedInput
+    claimedJobs?: PrintJobUncheckedUpdateManyWithoutClaimedByAgentNestedInput
+  }
+
+  export type PrintAgentUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrintAgentKindFieldUpdateOperationsInput | $Enums.PrintAgentKind
+    apiTokenHash?: StringFieldUpdateOperationsInput | string
+    capabilities?: JsonNullValueInput | InputJsonValue
+    versionString?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -151083,6 +164501,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUpdateManyWithoutCategoryNestedInput
+    stationRoutes?: MenuCategoryStationUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuCategoryUncheckedUpdateWithoutMenuInput = {
@@ -151104,6 +164523,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: MenuItemOnCategoryUncheckedUpdateManyWithoutCategoryNestedInput
+    stationRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type MenuCategoryUncheckedUpdateManyWithoutMenuInput = {
@@ -151160,6 +164580,12 @@ export namespace Prisma {
     isVisible?: boolean
   }
 
+  export type MenuCategoryStationCreateManyCategoryInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
+  }
+
   export type MenuItemOnCategoryUpdateWithoutCategoryInput = {
     sortOrder?: IntFieldUpdateOperationsInput | number
     priceOverride?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -151179,6 +164605,24 @@ export namespace Prisma {
     sortOrder?: IntFieldUpdateOperationsInput | number
     priceOverride?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type MenuCategoryStationUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    station?: PrinterStationUpdateOneRequiredWithoutCategoryRoutesNestedInput
+  }
+
+  export type MenuCategoryStationUncheckedUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationUncheckedUpdateManyWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MenuItemOnCategoryCreateManyItemInput = {
@@ -151202,6 +164646,12 @@ export namespace Prisma {
     isAvailable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type MenuItemStationCreateManyMenuItemInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
   }
 
   export type MenuItemOnCategoryUpdateWithoutItemInput = {
@@ -151273,6 +164723,24 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MenuItemStationUpdateWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    station?: PrinterStationUpdateOneRequiredWithoutMenuItemRoutesNestedInput
+  }
+
+  export type MenuItemStationUncheckedUpdateWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationUncheckedUpdateManyWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ModifierOptionCreateManyGroupInput = {
     id?: string
     modifierGroupIds?: ModifierOptionCreatemodifierGroupIdsInput | string[]
@@ -151340,6 +164808,12 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type ModifierGroupStationCreateManyModifierGroupInput = {
+    id?: string
+    stationId: string
+    createdAt?: Date | string
   }
 
   export type ModifierOptionUpdateWithoutGroupInput = {
@@ -151547,6 +165021,24 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationUpdateWithoutModifierGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    station?: PrinterStationUpdateOneRequiredWithoutModifierGroupRoutesNestedInput
+  }
+
+  export type ModifierGroupStationUncheckedUpdateWithoutModifierGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationUncheckedUpdateManyWithoutModifierGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomerAddressCreateManyCustomerInput = {
@@ -151943,6 +165435,13 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -152075,10 +165574,17 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
     printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
+    station?: PrinterStationUpdateOneWithoutPrintJobsNestedInput
+    claimedByAgent?: PrintAgentUpdateOneWithoutClaimedJobsNestedInput
   }
 
   export type PrintJobUncheckedUpdateWithoutOrderInput = {
@@ -152094,6 +165600,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -152111,6 +165624,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -152218,6 +165738,127 @@ export namespace Prisma {
     error?: string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrinterStationCreateManyDefaultPrinterInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    kind?: $Enums.PrinterStationKind
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationCreateManyReceiptPrinterInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationCreateManyDispatchPrinterInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -152233,10 +165874,17 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
     order?: OrderUpdateOneWithoutPrintJobsNestedInput
+    station?: PrinterStationUpdateOneWithoutPrintJobsNestedInput
+    claimedByAgent?: PrintAgentUpdateOneWithoutClaimedJobsNestedInput
   }
 
   export type PrintJobUncheckedUpdateWithoutPrinterInput = {
@@ -152252,6 +165900,13 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -152269,6 +165924,1113 @@ export namespace Prisma {
     error?: NullableStringFieldUpdateOperationsInput | string | null
     retryMetadata?: JsonNullValueInput | InputJsonValue
     printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterStationUpdateWithoutDefaultPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrinterStationsNestedInput
+    location?: LocationUpdateOneRequiredWithoutPrinterStationsNestedInput
+    menuItemRoutes?: MenuItemStationUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateWithoutDefaultPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItemRoutes?: MenuItemStationUncheckedUpdateManyWithoutStationNestedInput
+    categoryRoutes?: MenuCategoryStationUncheckedUpdateManyWithoutStationNestedInput
+    modifierGroupRoutes?: ModifierGroupStationUncheckedUpdateManyWithoutStationNestedInput
+    brandDefaults?: BrandUncheckedUpdateManyWithoutDefaultStationNestedInput
+    locationDefaults?: LocationUncheckedUpdateManyWithoutDefaultKitchenStationNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutStationNestedInput
+  }
+
+  export type PrinterStationUncheckedUpdateManyWithoutDefaultPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationUpdateWithoutReceiptPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutReceiptPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationUpdateWithoutDispatchPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutDispatchPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationCreateManyStationInput = {
+    id?: string
+    menuItemId: string
+    createdAt?: Date | string
+  }
+
+  export type MenuCategoryStationCreateManyStationInput = {
+    id?: string
+    categoryId: string
+    createdAt?: Date | string
+  }
+
+  export type ModifierGroupStationCreateManyStationInput = {
+    id?: string
+    modifierGroupId: string
+    createdAt?: Date | string
+  }
+
+  export type BrandCreateManyDefaultStationInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocationCreateManyDefaultKitchenStationInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintJobCreateManyStationInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    printerId?: string | null
+    orderId?: string | null
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedByAgentId?: string | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemStationUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItem?: MenuItemUpdateOneRequiredWithoutStationRoutesNestedInput
+  }
+
+  export type MenuItemStationUncheckedUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemStationUncheckedUpdateManyWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: MenuCategoryUpdateOneRequiredWithoutStationRoutesNestedInput
+  }
+
+  export type MenuCategoryStationUncheckedUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuCategoryStationUncheckedUpdateManyWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    modifierGroup?: ModifierGroupUpdateOneRequiredWithoutStationRoutesNestedInput
+  }
+
+  export type ModifierGroupStationUncheckedUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    modifierGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModifierGroupStationUncheckedUpdateManyWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    modifierGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandUpdateWithoutDefaultStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutDefaultStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BrandUncheckedUpdateManyWithoutDefaultStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationUpdateWithoutDefaultKitchenStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutDefaultKitchenStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintJobUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
+    printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
+    order?: OrderUpdateOneWithoutPrintJobsNestedInput
+    claimedByAgent?: PrintAgentUpdateOneWithoutClaimedJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    printerId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutStationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    printerId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedByAgentId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrinterCreateManyAgentInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    name: string
+    type: $Enums.PrinterType
+    connectionType?: $Enums.PrinterConnectionType
+    kind?: $Enums.PrinterStationKind
+    ipAddress?: string | null
+    port?: number | null
+    isOnline?: boolean
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    failoverPrinterId?: string | null
+    model?: string | null
+    paperWidth?: number
+    supportsReceipts?: boolean
+    supportsKitchen?: boolean
+    supportsLabels?: boolean
+    supportsCut?: boolean
+    supportsCashDrawer?: boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrintJobCreateManyClaimedByAgentInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    printerId?: string | null
+    orderId?: string | null
+    type: $Enums.PrintJobType
+    status?: $Enums.PrintJobStatus
+    payload: JsonNullValueInput | InputJsonValue
+    attempts?: number
+    maxRetries?: number
+    error?: string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: Date | string | null
+    stationId?: string | null
+    trigger?: $Enums.PrintTrigger | null
+    claimedAt?: Date | string | null
+    routeKey?: string | null
+    idempotencyKey?: string | null
+    copies?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PrinterUpdateWithoutAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutPrintersNestedInput
+    printJobs?: PrintJobUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateWithoutAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    printJobs?: PrintJobUncheckedUpdateManyWithoutPrinterNestedInput
+    stationsDefaultFor?: PrinterStationUncheckedUpdateManyWithoutDefaultPrinterNestedInput
+    locationsReceiptFor?: LocationUncheckedUpdateManyWithoutReceiptPrinterNestedInput
+    locationsDispatchFor?: LocationUncheckedUpdateManyWithoutDispatchPrinterNestedInput
+  }
+
+  export type PrinterUncheckedUpdateManyWithoutAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrinterTypeFieldUpdateOperationsInput | $Enums.PrinterType
+    connectionType?: EnumPrinterConnectionTypeFieldUpdateOperationsInput | $Enums.PrinterConnectionType
+    kind?: EnumPrinterStationKindFieldUpdateOperationsInput | $Enums.PrinterStationKind
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    port?: NullableIntFieldUpdateOperationsInput | number | null
+    isOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    failoverPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    paperWidth?: IntFieldUpdateOperationsInput | number
+    supportsReceipts?: BoolFieldUpdateOperationsInput | boolean
+    supportsKitchen?: BoolFieldUpdateOperationsInput | boolean
+    supportsLabels?: BoolFieldUpdateOperationsInput | boolean
+    supportsCut?: BoolFieldUpdateOperationsInput | boolean
+    supportsCashDrawer?: BoolFieldUpdateOperationsInput | boolean
+    defaults?: JsonNullValueInput | InputJsonValue
+    autoPrintRules?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintJobUpdateWithoutClaimedByAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPrintJobsNestedInput
+    printer?: PrinterUpdateOneWithoutPrintJobsNestedInput
+    order?: OrderUpdateOneWithoutPrintJobsNestedInput
+    station?: PrinterStationUpdateOneWithoutPrintJobsNestedInput
+  }
+
+  export type PrintJobUncheckedUpdateWithoutClaimedByAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    printerId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PrintJobUncheckedUpdateManyWithoutClaimedByAgentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    printerId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumPrintJobTypeFieldUpdateOperationsInput | $Enums.PrintJobType
+    status?: EnumPrintJobStatusFieldUpdateOperationsInput | $Enums.PrintJobStatus
+    payload?: JsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    retryMetadata?: JsonNullValueInput | InputJsonValue
+    printedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    trigger?: NullableEnumPrintTriggerFieldUpdateOperationsInput | $Enums.PrintTrigger | null
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    routeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    copies?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -153315,6 +168077,14 @@ export namespace Prisma {
      */
     export type PrinterCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use PrinterStationCountOutputTypeDefaultArgs instead
+     */
+    export type PrinterStationCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterStationCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PrintAgentCountOutputTypeDefaultArgs instead
+     */
+    export type PrintAgentCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintAgentCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use DriverCountOutputTypeDefaultArgs instead
      */
     export type DriverCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverCountOutputTypeDefaultArgs<ExtArgs>
@@ -153534,6 +168304,26 @@ export namespace Prisma {
      * @deprecated Use PrintJobDefaultArgs instead
      */
     export type PrintJobArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintJobDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PrinterStationDefaultArgs instead
+     */
+    export type PrinterStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterStationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PrintAgentDefaultArgs instead
+     */
+    export type PrintAgentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrintAgentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MenuItemStationDefaultArgs instead
+     */
+    export type MenuItemStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuItemStationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ModifierGroupStationDefaultArgs instead
+     */
+    export type ModifierGroupStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ModifierGroupStationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MenuCategoryStationDefaultArgs instead
+     */
+    export type MenuCategoryStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuCategoryStationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PrintTemplateDefaultArgs instead
      */

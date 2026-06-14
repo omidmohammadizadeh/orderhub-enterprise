@@ -7,6 +7,7 @@ import type { Queue } from "bull";
 import { QUEUES, PRINT_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintersService } from "./printers.service";
+import { PrintJobsService } from "./print-jobs.service";
 
 const PROBE_TIMEOUT_MS = 3_000;
 const EPOS_PROBE_TIMEOUT_MS = 4_000;
@@ -40,8 +41,21 @@ export class PrinterHeartbeatCron {
   constructor(
     private readonly prisma: PrismaService,
     private readonly printersService: PrintersService,
+    private readonly printJobs: PrintJobsService,
     @InjectQueue(QUEUES.PRINTING) private readonly printQueue: Queue,
   ) {}
+
+  // Phase AS-1 — un-claim stuck print jobs (agent crashed mid-print)
+  // every 30s so they go back to QUEUED and another agent can take
+  // them. Matches the 15s heartbeat × 4 missed beats grace.
+  @Cron("*/30 * * * * *")
+  async releaseStalePrintJobs() {
+    try {
+      await this.printJobs.releaseStaleClaims();
+    } catch (err: any) {
+      this.logger.warn(`reaper failed: ${err.message}`);
+    }
+  }
 
   // Probe every 30 seconds — fast enough to detect reboots, slow enough to not flood
   @Cron("*/30 * * * * *")

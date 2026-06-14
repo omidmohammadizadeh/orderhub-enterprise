@@ -8,13 +8,42 @@ import { PrintQueueService } from "./print-queue.service";
 import { PrinterHeartbeatCron } from "./printer-heartbeat.cron";
 import { SocketModule } from "../../infrastructure/socket/socket.module";
 
+// Phase AS-1 — print engine pieces.
+import {
+  PrinterStationsController,
+  PrintAgentsController,
+  PrintJobsController,
+} from "./print-engine.controller";
+import { PrintRoutingService } from "./print-routing.service";
+import { PrintAgentsService } from "./print-agents.service";
+import { PrintJobsService } from "./print-jobs.service";
+import { PrinterStationsService } from "./printer-stations.service";
+
 @Module({
   imports: [
     BullModule.registerQueue({ name: QUEUES.PRINTING }),
     SocketModule,
   ],
-  controllers: [PrintersController, PrinterJobsLegacyController],
-  providers: [PrintersService, PrintQueueService, PrinterHeartbeatCron],
-  exports: [PrintQueueService],
+  controllers: [
+    PrintersController,
+    PrinterJobsLegacyController,
+    PrinterStationsController,
+    PrintAgentsController,
+    PrintJobsController,
+  ],
+  providers: [
+    PrintersService,
+    PrintQueueService,
+    PrinterHeartbeatCron,
+    PrintRoutingService,
+    PrintAgentsService,
+    PrintJobsService,
+    PrinterStationsService,
+  ],
+  exports: [
+    PrintQueueService,
+    PrintRoutingService,
+    PrintJobsService,
+  ],
 })
 export class PrintersModule {}

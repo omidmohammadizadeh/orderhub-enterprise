@@ -66,6 +66,8 @@ model Tenant {
   branding       TenantBranding?
   subscription   TenantSubscription?
   invitations    Invitation[]
+  printerStations PrinterStation[]
+  printAgents     PrintAgent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -381,6 +383,11 @@ model Brand {
   platformConnections BrandPlatformConnection[]
   userBrands          UserBrand[]
 
+  // Phase AS-1 — fallback station for items at this brand when no
+  // more-specific routing rule fires.
+  defaultStationId String?
+  defaultStation   PrinterStation? @relation("BrandDefaultStation", fields: [defaultStationId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -409,12 +416,26 @@ model Location {
   integrations         Integration[]
   orders               Order[]
   printers             Printer[]
+  printerStations      PrinterStation[]
+  printAgents          PrintAgent[]
   kdsScreens           KdsScreen[]
   deliveryZones        DeliveryZone[]
   paymentConfig        LocationPaymentConfig?
   userLocations        UserLocation[]
   platformConnections  BrandPlatformConnection[]
   directOrderingConfig DirectOrderingConfig?
+
+  // Phase AS-1 — print routing defaults.
+  //   defaultKitchenStation — every kitchen ticket that doesn't match
+  //     a more-specific rule lands here.
+  //   receiptPrinter        — customer receipts.
+  //   dispatchPrinter       — driver / dispatch slips.
+  defaultKitchenStationId String?
+  defaultKitchenStation   PrinterStation? @relation("LocationDefaultKitchenStation", fields: [defaultKitchenStationId], references: [id], onDelete: SetNull)
+  receiptPrinterId        String?
+  receiptPrinter          Printer?        @relation("LocationReceiptPrinter", fields: [receiptPrinterId], references: [id], onDelete: SetNull)
+  dispatchPrinterId       String?
+  dispatchPrinter         Printer?        @relation("LocationDispatchPrinter", fields: [dispatchPrinterId], references: [id], onDelete: SetNull)
 
   // Phase AN — structured address columns (mirror of the address JSON
   // for query/index). Country defaults to GB.
@@ -659,7 +680,8 @@ model MenuCategory {
   syncStatus       String?
   syncHash         String?
 
-  items MenuItemOnCategory[]
+  items         MenuItemOnCategory[]
+  stationRoutes MenuCategoryStation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -768,6 +790,7 @@ model MenuItem {
   modifierGroupLinks ModifierGroupOnItem[]
   variants           MenuItemVariant[]
   recipe             Recipe?
+  stationRoutes      MenuItemStation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -833,6 +856,7 @@ model ModifierGroup {
   options            ModifierOption[]
   itemLinks          ModifierGroupOnItem[]
   nestedUnderOptions ModifierOption[] @relation("NestedModifier")
+  stationRoutes      ModifierGroupStation[]
 
   metadata Json @default("{}")
   createdAt DateTime @default(now())
@@ -1472,7 +1496,11 @@ model Printer {
   name           String
   type           PrinterType
   connectionType PrinterConnectionType @default(LAN)
-  station        PrinterStation        @default(KITCHEN)
+  // Phase AS-1 — used to be `station: PrinterStation` (enum). Now this
+  // is just a classification ("what kind of station is this printer
+  // associated with"); the row-shaped PrinterStation model owns real
+  // routing decisions via defaultPrinterId.
+  kind           PrinterStationKind    @default(KITCHEN)
   ipAddress      String?
   port           Int?
   isOnline       Boolean               @default(false)
@@ -1481,26 +1509,44 @@ model Printer {
 
   failoverPrinterId String?
 
+  // Phase AS-1 — physical-layer details for ESC/POS rendering. model
+  // disambiguates vendor quirks (Epson vs Star vs Sunmi); paperWidth
+  // drives column counts in the receipt template.
+  model      String?
+  paperWidth Int     @default(80)
+
+  // Phase AS-1 — which agent currently drives this printer. Null for
+  // SERVER_DIRECT printers (LAN printers the API can hit directly).
+  agentId String?
+  agent   PrintAgent? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
   supportsReceipts   Boolean @default(true)
   supportsKitchen    Boolean @default(false)
   supportsLabels     Boolean @default(false)
   supportsCut        Boolean @default(true)
   supportsCashDrawer Boolean @default(false)
 
+  // Phase AS-1 — typed default render options:
+  //   { copies, openCashDrawer, printLogo, largeFont, qrCode }
+  defaults       Json @default("{}")
   autoPrintRules Json @default("[]")
   settings       Json @default("{}")
   metadata       Json @default("{}")
 
-  printJobs PrintJob[]
+  printJobs              PrintJob[]
+  stationsDefaultFor     PrinterStation[] @relation("StationDefaultPrinter")
+  locationsReceiptFor    Location[]       @relation("LocationReceiptPrinter")
+  locationsDispatchFor   Location[]       @relation("LocationDispatchPrinter")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([tenantId])
   @@index([locationId])
-  @@index([locationId, station])
+  @@index([locationId, kind])
   @@index([locationId, type])
   @@index([locationId, isOnline])
+  @@index([agentId])
   @@map("printers")
 }
 
@@ -1522,6 +1568,26 @@ model PrintJob {
   retryMetadata Json           @default("{}")
   printedAt     DateTime?
 
+  // Phase AS-1 — routing + lifecycle additions.
+  // stationId: which station this ticket belongs to (null for receipts).
+  // trigger: which auto-print rule produced the job (or MANUAL_ONLY).
+  // claimedByAgentId + claimedAt: held during the print window so two
+  //   agents can't race the same job.
+  // routeKey: indexed point lookup for the agent claim query
+  //   ("locationId:abc|printerId:xyz").
+  // idempotencyKey: clients replay POSTs after a network blip; this
+  //   dedupes silently.
+  // copies: drives multi-copy printing without spawning N jobs.
+  stationId        String?
+  station          PrinterStation? @relation(fields: [stationId], references: [id], onDelete: SetNull)
+  trigger          PrintTrigger?
+  claimedByAgentId String?
+  claimedByAgent   PrintAgent?     @relation(fields: [claimedByAgentId], references: [id], onDelete: SetNull)
+  claimedAt        DateTime?
+  routeKey         String?
+  idempotencyKey   String?         @unique
+  copies           Int             @default(1)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1531,7 +1597,119 @@ model PrintJob {
   @@index([locationId, createdAt(sort: Desc)])
   @@index([printerId, status])
   @@index([orderId])
+  @@index([stationId])
+  @@index([claimedByAgentId])
   @@map("print_jobs")
+}
+
+// ── PrinterStation ─────────────────────────────────────────────────────
+// Phase AS-1. First-class station rows, scoped to a location. Each
+// station has a default printer that catches routed jobs. Routing
+// precedence at job-creation time:
+//   MenuItem → ModifierGroup → Category → Brand → Location → fallback
+// Most-specific override wins.
+model PrinterStation {
+  id               String              @id @default(cuid())
+  tenantId         String
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId       String
+  location         Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name             String
+  kind             PrinterStationKind  @default(KITCHEN)
+  defaultPrinterId String?
+  defaultPrinter   Printer?            @relation("StationDefaultPrinter", fields: [defaultPrinterId], references: [id], onDelete: SetNull)
+  isActive         Boolean             @default(true)
+  sortOrder        Int                 @default(0)
+
+  menuItemRoutes      MenuItemStation[]
+  categoryRoutes      MenuCategoryStation[]
+  modifierGroupRoutes ModifierGroupStation[]
+  brandDefaults       Brand[]             @relation("BrandDefaultStation")
+  locationDefaults    Location[]          @relation("LocationDefaultKitchenStation")
+  printJobs           PrintJob[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locationId, name])
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("printer_stations")
+}
+
+// ── PrintAgent ─────────────────────────────────────────────────────────
+// Phase AS-1. A device runtime that claims + executes PrintJobs. Web
+// bridge binary, Flutter mobile, Flutter desktop, or the API itself
+// (SERVER_DIRECT) for LAN printers the API can reach.
+model PrintAgent {
+  id            String         @id @default(cuid())
+  tenantId      String
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId    String
+  location      Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name          String
+  kind          PrintAgentKind @default(WEB_BRIDGE)
+  apiTokenHash  String
+  capabilities  Json           @default("{}")
+  versionString String?
+  lastSeenAt    DateTime?
+  isActive      Boolean        @default(true)
+  deletedAt     DateTime?
+
+  printers     Printer[]
+  claimedJobs  PrintJob[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@index([lastSeenAt])
+  @@map("print_agents")
+}
+
+// ── Routing join tables ────────────────────────────────────────────────
+// Phase AS-1. Most-specific-wins resolver walks these in order.
+model MenuItemStation {
+  id         String         @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  stationId  String
+  station    PrinterStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+
+  @@unique([menuItemId, stationId])
+  @@index([menuItemId])
+  @@index([stationId])
+  @@map("menu_item_stations")
+}
+
+model ModifierGroupStation {
+  id              String         @id @default(cuid())
+  modifierGroupId String
+  modifierGroup   ModifierGroup  @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  stationId       String
+  station         PrinterStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+
+  @@unique([modifierGroupId, stationId])
+  @@index([modifierGroupId])
+  @@index([stationId])
+  @@map("modifier_group_stations")
+}
+
+model MenuCategoryStation {
+  id         String         @id @default(cuid())
+  categoryId String
+  category   MenuCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  stationId  String
+  station    PrinterStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+
+  @@unique([categoryId, stationId])
+  @@index([categoryId])
+  @@index([stationId])
+  @@map("menu_category_stations")
 }
 
 model PrintTemplate {
@@ -2670,26 +2848,60 @@ enum PrinterConnectionType {
   CLOUD
 }
 
-enum PrinterStation {
+// Phase AS-1 — renamed from PrinterStation. The row-shaped
+// PrinterStation model now owns that name; this enum classifies a
+// station's purpose (drives icon + grouping in the UI).
+enum PrinterStationKind {
   KITCHEN
   FRONT_COUNTER
   BAR
   LABELS
   DISPATCH
+  EXPO
+  OTHER
+}
+
+// Phase AS-1 — drives auto-print rule timing on each printer.
+enum PrintTrigger {
+  ORDER_RECEIVED
+  ORDER_ACCEPTED
+  ORDER_PREPARING
+  ORDER_READY
+  MANUAL_ONLY
+}
+
+// Phase AS-1 — identifies which kind of runtime is connecting as a
+// PrintAgent. SERVER_DIRECT is reserved for the API's own direct-LAN
+// path (no client needed, server opens the TCP socket).
+enum PrintAgentKind {
+  WEB_BRIDGE
+  FLUTTER_MOBILE
+  FLUTTER_DESKTOP
+  SERVER_DIRECT
 }
 
 enum PrintJobType {
+  // Legacy names — kept so existing rows remain valid. New code uses
+  // CUSTOMER_RECEIPT and DRIVER_SLIP instead.
   RECEIPT
+  DRIVER_RECEIPT
+
   KITCHEN_TICKET
   LABEL
-  DRIVER_RECEIPT
   CANCEL_TICKET
   REPRINT
   EOD_REPORT
+
+  // Phase AS-1 additions.
+  CUSTOMER_RECEIPT
+  DRIVER_SLIP
+  DISPATCH_TICKET
+  TEST_PRINT
 }
 
 enum PrintJobStatus {
   QUEUED
+  CLAIMED // Phase AS-1 — an agent has reserved the job; not yet sending bytes.
   PRINTING
   PRINTED
   FAILED

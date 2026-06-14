@@ -24,8 +24,11 @@ export class PrintersService {
     data: Prisma.PrinterCreateWithoutLocationInput,
   ) {
     await this.assertLocationAccess(locationId, tenantId);
+    // Phase AS-1 — tenantId is now NOT NULL on printers (matches Prisma
+    // schema). Wire it from the authenticated caller rather than
+    // hoping the data blob carried it.
     return this.prisma.printer.create({
-      data: { ...data, locationId },
+      data: { ...data, locationId, tenantId } as any,
     });
   }
 

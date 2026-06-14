@@ -1,0 +1,189 @@
+// Phase AS-1 — PrintAgent registration + heartbeat.
+//
+// An agent is any client runtime that physically drives printers:
+// the Web Print Bridge binary, the Flutter mobile/desktop app, or
+// the API itself (SERVER_DIRECT, for LAN printers the API can hit).
+//
+// On register() we mint a bearer token and store its bcrypt hash.
+// Subsequent calls present the token via the X-Agent-Token header
+// and pass through verifyToken() before reaching the claim/start/
+// complete endpoints in PrintJobsService.
+
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import * as bcrypt from "bcryptjs";
+import * as crypto from "crypto";
+import { PrismaService } from "../../infrastructure/database/prisma.service";
+
+export interface RegisterAgentDto {
+  locationId: string;
+  name: string;
+  kind?: "WEB_BRIDGE" | "FLUTTER_MOBILE" | "FLUTTER_DESKTOP" | "SERVER_DIRECT";
+  capabilities?: Record<string, any>;
+  versionString?: string;
+}
+
+export interface HeartbeatDto {
+  versionString?: string;
+  printerStatuses?: { printerId: string; isOnline: boolean }[];
+}
+
+@Injectable()
+export class PrintAgentsService {
+  private readonly logger = new Logger(PrintAgentsService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  // ── Register ────────────────────────────────────────────────────────
+  //
+  // Caller is an authenticated platform/owner user wiring up a new
+  // agent. Returns the plaintext token ONCE — the operator copies it
+  // into the bridge config file or scans a QR code on the Flutter app.
+  async register(
+    tenantId: string,
+    dto: RegisterAgentDto,
+  ): Promise<{ id: string; apiToken: string }> {
+    const loc = await this.prisma.location.findFirst({
+      where: { id: dto.locationId, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!loc) throw new NotFoundException("Location not found");
+
+    const apiToken = `oha_${crypto.randomBytes(32).toString("hex")}`;
+    const apiTokenHash = await bcrypt.hash(apiToken, 10);
+
+    const agent = await (this.prisma as any).printAgent.create({
+      data: {
+        tenantId,
+        locationId: dto.locationId,
+        name: dto.name,
+        kind: dto.kind ?? "WEB_BRIDGE",
+        apiTokenHash,
+        capabilities: (dto.capabilities ?? {}) as any,
+        versionString: dto.versionString ?? null,
+      },
+    });
+
+    this.logger.log(`PrintAgent registered: ${agent.id} (${dto.name})`);
+    return { id: agent.id, apiToken };
+  }
+
+  // ── Token verification ─────────────────────────────────────────────
+  //
+  // Plain bcrypt compare — same shape as the user password path.
+  // Linear scan across this tenant's active agents is fine: typical
+  // restaurants run 1-5 agents per location. Cache hit-rate is high
+  // because every claim hits the same agentId.
+  async verifyToken(agentId: string, presentedToken: string) {
+    const agent = await (this.prisma as any).printAgent.findUnique({
+      where: { id: agentId },
+    });
+    if (!agent || !agent.isActive || agent.deletedAt) {
+      throw new UnauthorizedException("Unknown agent");
+    }
+    const ok = await bcrypt.compare(presentedToken, agent.apiTokenHash);
+    if (!ok) throw new UnauthorizedException("Bad agent token");
+    return agent;
+  }
+
+  // ── Heartbeat ──────────────────────────────────────────────────────
+  //
+  // Agents POST every 15s. We update lastSeenAt + propagate any
+  // per-printer online/offline status the agent reports (the agent
+  // knows because it has a TCP/Bluetooth handle to the device).
+  async heartbeat(agentId: string, dto: HeartbeatDto) {
+    const agent = await (this.prisma as any).printAgent.findUnique({
+      where: { id: agentId },
+      select: { id: true, locationId: true },
+    });
+    if (!agent) throw new NotFoundException("Agent not found");
+
+    await (this.prisma as any).printAgent.update({
+      where: { id: agentId },
+      data: {
+        lastSeenAt: new Date(),
+        versionString: dto.versionString ?? undefined,
+      },
+    });
+
+    if (dto.printerStatuses?.length) {
+      // Each row updated independently — small N, fine to fan out.
+      await Promise.all(
+        dto.printerStatuses.map((s) =>
+          (this.prisma as any).printer.updateMany({
+            where: { id: s.printerId, locationId: agent.locationId },
+            data: { isOnline: s.isOnline },
+          }),
+        ),
+      );
+    }
+    return { ok: true };
+  }
+
+  // ── Listing / management ───────────────────────────────────────────
+
+  async list(tenantId: string, locationId?: string) {
+    return (this.prisma as any).printAgent.findMany({
+      where: {
+        tenantId,
+        ...(locationId && { locationId }),
+        deletedAt: null,
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        kind: true,
+        locationId: true,
+        isActive: true,
+        capabilities: true,
+        versionString: true,
+        lastSeenAt: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async rotateToken(
+    tenantId: string,
+    agentId: string,
+  ): Promise<{ apiToken: string }> {
+    const agent = await (this.prisma as any).printAgent.findUnique({
+      where: { id: agentId },
+    });
+    if (!agent || agent.tenantId !== tenantId) {
+      throw new NotFoundException("Agent not found");
+    }
+    const apiToken = `oha_${crypto.randomBytes(32).toString("hex")}`;
+    const apiTokenHash = await bcrypt.hash(apiToken, 10);
+    await (this.prisma as any).printAgent.update({
+      where: { id: agentId },
+      data: { apiTokenHash },
+    });
+    return { apiToken };
+  }
+
+  async revoke(tenantId: string, agentId: string) {
+    const agent = await (this.prisma as any).printAgent.findUnique({
+      where: { id: agentId },
+    });
+    if (!agent || agent.tenantId !== tenantId) {
+      throw new NotFoundException("Agent not found");
+    }
+    await (this.prisma as any).printAgent.update({
+      where: { id: agentId },
+      data: { isActive: false, deletedAt: new Date() },
+    });
+    // Unbind any printers tied to this agent.
+    await (this.prisma as any).printer.updateMany({
+      where: { agentId },
+      data: { agentId: null, isOnline: false },
+    });
+    return { ok: true };
+  }
+}
