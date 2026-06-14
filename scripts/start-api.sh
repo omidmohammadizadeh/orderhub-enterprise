@@ -67,28 +67,6 @@ echo "[startup] Applying database migrations..."
 # an operator running `prisma migrate resolve` manually after diagnosing —
 # not silently retrying on every container restart.
 
-# ── ONE-SHOT RECOVERY: clear failed AS-1 migration row ───────────
-#
-# An earlier AS-1 deploy crashed midway and Prisma marked
-# 20260614000000_phase_as1_print_engine as failed in _prisma_migrations.
-# `migrate deploy` refuses to proceed until that row is resolved.
-#
-# The migration's SQL is now fully idempotent (every statement guarded
-# with IF NOT EXISTS / pg_constraint checks / DO blocks), so re-running
-# is safe even though parts already applied.
-#
-# `migrate resolve --rolled-back` clears the failed row; if the row is
-# already in `applied` state on a subsequent deploy this returns a
-# non-zero exit, so we `|| true` to make it a true no-op once recovery
-# is done.
-#
-# TODO: remove this block once production is past AS-1 cleanly. It's a
-# targeted patch for one specific failed migration, not a general policy.
-./packages/database/node_modules/.bin/prisma migrate resolve \
-  --rolled-back 20260614000000_phase_as1_print_engine \
-  --schema=packages/database/prisma/schema.prisma 2>&1 \
-  | grep -v "is not in a failed state" || true
-
 ./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 echo "[startup] Migrations complete."
 
