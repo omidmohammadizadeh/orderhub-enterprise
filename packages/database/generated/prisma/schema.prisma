@@ -476,9 +476,9 @@ model Location {
   // hubriseCatalogId is the menu the location syncs against — pasted
   // by the operator alongside the token. Not sensitive on its own so
   // it lives in plaintext for fast `WHERE` filtering when reconciling.
-  hubriseAccessTokenSecretId String?
-  hubriseCatalogId           String?
-  hubriseConnectedAt         DateTime?
+  hubriseCredentials Json? // encrypted envelope { accessToken } via CredentialEncryptionService
+  hubriseCatalogId   String?
+  hubriseConnectedAt DateTime?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?

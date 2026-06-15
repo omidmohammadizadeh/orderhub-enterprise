@@ -41,6 +41,7 @@ import { MenusModule } from "./modules/menus/menus.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 import { IntegrationsModule } from "./modules/integrations/integrations.module";
+import { HubRiseModule } from "./modules/integrations/hubrise/hubrise.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
@@ -171,6 +172,7 @@ import { QUEUES } from "@orderhub/shared";
     CatalogModule,
     OrdersModule,
     IntegrationsModule,
+    HubRiseModule,
     WebhooksModule,
     DispatchModule,
     AnalyticsModule,

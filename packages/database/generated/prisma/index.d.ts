@@ -23633,7 +23633,6 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     onlineOrderingSlug: string | null
-    hubriseAccessTokenSecretId: string | null
     hubriseCatalogId: string | null
     hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
@@ -23682,7 +23681,6 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     onlineOrderingSlug: string | null
-    hubriseAccessTokenSecretId: string | null
     hubriseCatalogId: string | null
     hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
@@ -23734,7 +23732,7 @@ export namespace Prisma {
     customDomain: number
     customDomainStatus: number
     onlineOrderingSlug: number
-    hubriseAccessTokenSecretId: number
+    hubriseCredentials: number
     hubriseCatalogId: number
     hubriseConnectedAt: number
     stripeConnectedAccountId: number
@@ -23804,7 +23802,6 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
-    hubriseAccessTokenSecretId?: true
     hubriseCatalogId?: true
     hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
@@ -23853,7 +23850,6 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
-    hubriseAccessTokenSecretId?: true
     hubriseCatalogId?: true
     hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
@@ -23905,7 +23901,7 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
-    hubriseAccessTokenSecretId?: true
+    hubriseCredentials?: true
     hubriseCatalogId?: true
     hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
@@ -24047,7 +24043,7 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string
     onlineOrderingSlug: string | null
-    hubriseAccessTokenSecretId: string | null
+    hubriseCredentials: JsonValue | null
     hubriseCatalogId: string | null
     hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
@@ -24121,7 +24117,7 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
-    hubriseAccessTokenSecretId?: boolean
+    hubriseCredentials?: boolean
     hubriseCatalogId?: boolean
     hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
@@ -24192,7 +24188,7 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
-    hubriseAccessTokenSecretId?: boolean
+    hubriseCredentials?: boolean
     hubriseCatalogId?: boolean
     hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
@@ -24251,7 +24247,7 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
-    hubriseAccessTokenSecretId?: boolean
+    hubriseCredentials?: boolean
     hubriseCatalogId?: boolean
     hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
@@ -24350,7 +24346,7 @@ export namespace Prisma {
       customDomain: string | null
       customDomainStatus: string
       onlineOrderingSlug: string | null
-      hubriseAccessTokenSecretId: string | null
+      hubriseCredentials: Prisma.JsonValue | null
       hubriseCatalogId: string | null
       hubriseConnectedAt: Date | null
       stripeConnectedAccountId: string | null
@@ -24810,7 +24806,7 @@ export namespace Prisma {
     readonly customDomain: FieldRef<"Location", 'String'>
     readonly customDomainStatus: FieldRef<"Location", 'String'>
     readonly onlineOrderingSlug: FieldRef<"Location", 'String'>
-    readonly hubriseAccessTokenSecretId: FieldRef<"Location", 'String'>
+    readonly hubriseCredentials: FieldRef<"Location", 'Json'>
     readonly hubriseCatalogId: FieldRef<"Location", 'String'>
     readonly hubriseConnectedAt: FieldRef<"Location", 'DateTime'>
     readonly stripeConnectedAccountId: FieldRef<"Location", 'String'>
@@ -106030,7 +106026,7 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     onlineOrderingSlug: 'onlineOrderingSlug',
-    hubriseAccessTokenSecretId: 'hubriseAccessTokenSecretId',
+    hubriseCredentials: 'hubriseCredentials',
     hubriseCatalogId: 'hubriseCatalogId',
     hubriseConnectedAt: 'hubriseConnectedAt',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
@@ -107715,7 +107711,6 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     onlineOrderingSlug: 'onlineOrderingSlug',
-    hubriseAccessTokenSecretId: 'hubriseAccessTokenSecretId',
     hubriseCatalogId: 'hubriseCatalogId',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
     applicationFeeMode: 'applicationFeeMode',
@@ -110600,7 +110595,7 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
-    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCredentials?: JsonNullableFilter<"Location">
     hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
     hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
@@ -110670,7 +110665,7 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
-    hubriseAccessTokenSecretId?: SortOrderInput | SortOrder
+    hubriseCredentials?: SortOrderInput | SortOrder
     hubriseCatalogId?: SortOrderInput | SortOrder
     hubriseConnectedAt?: SortOrderInput | SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
@@ -110747,7 +110742,7 @@ export namespace Prisma {
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
-    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCredentials?: JsonNullableFilter<"Location">
     hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
     hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
@@ -110814,7 +110809,7 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
-    hubriseAccessTokenSecretId?: SortOrderInput | SortOrder
+    hubriseCredentials?: SortOrderInput | SortOrder
     hubriseCatalogId?: SortOrderInput | SortOrder
     hubriseConnectedAt?: SortOrderInput | SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
@@ -110877,7 +110872,7 @@ export namespace Prisma {
     customDomain?: StringNullableWithAggregatesFilter<"Location"> | string | null
     customDomainStatus?: StringWithAggregatesFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Location"> | string | null
-    hubriseAccessTokenSecretId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    hubriseCredentials?: JsonNullableWithAggregatesFilter<"Location">
     hubriseCatalogId?: StringNullableWithAggregatesFilter<"Location"> | string | null
     hubriseConnectedAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -119792,7 +119787,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -119862,7 +119857,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -119924,7 +119919,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -119994,7 +119989,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120060,7 +120055,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -120111,7 +120106,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -120166,7 +120161,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -130119,7 +130114,7 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
-    hubriseAccessTokenSecretId?: SortOrder
+    hubriseCredentials?: SortOrder
     hubriseCatalogId?: SortOrder
     hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
@@ -130179,7 +130174,6 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
-    hubriseAccessTokenSecretId?: SortOrder
     hubriseCatalogId?: SortOrder
     hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
@@ -130228,7 +130222,6 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
-    hubriseAccessTokenSecretId?: SortOrder
     hubriseCatalogId?: SortOrder
     hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
@@ -145631,7 +145624,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -145700,7 +145693,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -145840,7 +145833,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -145909,7 +145902,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -147285,7 +147278,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -147353,7 +147346,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -148016,7 +148009,7 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
-    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCredentials?: JsonNullableFilter<"Location">
     hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
     hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
@@ -149878,7 +149871,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -149947,7 +149940,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -150093,7 +150086,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -150162,7 +150155,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -150223,7 +150216,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -150292,7 +150285,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -150369,7 +150362,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -150438,7 +150431,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -153744,7 +153737,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -153813,7 +153806,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -153890,7 +153883,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -153959,7 +153952,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -154336,7 +154329,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -154405,7 +154398,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -154482,7 +154475,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -154551,7 +154544,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -154612,7 +154605,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -154681,7 +154674,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -154758,7 +154751,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -154827,7 +154820,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -154947,7 +154940,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -155016,7 +155009,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -155544,7 +155537,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -155613,7 +155606,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -156571,7 +156564,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -156640,7 +156633,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -156743,7 +156736,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -156812,7 +156805,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -157229,7 +157222,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157298,7 +157291,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157525,7 +157518,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157593,7 +157586,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157665,7 +157658,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157733,7 +157726,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -157816,7 +157809,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -157885,7 +157878,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -158888,7 +158881,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -158957,7 +158950,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -159240,7 +159233,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -159308,7 +159301,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -159522,7 +159515,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159591,7 +159584,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -159896,7 +159889,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -159965,7 +159958,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -160261,7 +160254,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -160330,7 +160323,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -167866,7 +167859,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -168101,7 +168094,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -168169,7 +168162,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -168234,7 +168227,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -170982,7 +170975,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -171036,7 +171029,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -171219,7 +171212,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171287,7 +171280,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171352,7 +171345,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171403,7 +171396,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171471,7 +171464,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171536,7 +171529,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171629,7 +171622,7 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
-    hubriseAccessTokenSecretId?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: string | null
     hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
@@ -171841,7 +171834,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171909,7 +171902,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -171974,7 +171967,7 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
-    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
     hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
     hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null

@@ -444,10 +444,38 @@ function GeneralTab({
         </div>
         <p className="text-[11px] text-zinc-500">
           HubRise injects orders from Just Eat, Uber Eats, Deliveroo,
-          and other channels you've connected on their side. Generate
-          an access token for this location in HubRise, then paste it
-          and the Catalog ID below.
+          and other channels you've connected on their side. The
+          recommended setup is one-click: we'll send you to HubRise,
+          you approve, and the token + webhook are wired automatically.
         </p>
+        {location?.id && (
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const { hubriseClient } = await import("@/lib/api/hubrise.client");
+                const url = await hubriseClient.connect(location.id);
+                // Full-page navigation so we don't lose the OAuth
+                // flow in a popup that the browser might block.
+                window.location.href = url;
+              } catch (err: any) {
+                setError(
+                  err?.response?.data?.message ??
+                    err?.message ??
+                    "Could not open HubRise. Check the server logs.",
+                );
+              }
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            {hubriseConnected ? "Reconnect with HubRise" : "Connect with HubRise"}
+          </button>
+        )}
+        <details className="mt-2 rounded-md border border-zinc-200 bg-white p-2">
+          <summary className="cursor-pointer text-[11px] font-semibold text-zinc-700">
+            Advanced — paste token manually
+          </summary>
+          <div className="mt-2 space-y-3">
         <Field label="HubRise Access Token" help={
           hubriseConnected
             ? "A token is already stored. Paste a new one to rotate, or leave blank to keep it."
@@ -463,13 +491,15 @@ function GeneralTab({
             className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
           />
         </Field>
-        <Field label="HubRise Catalog ID" help="The menu HubRise will sync against.">
-          <Input
-            value={hubriseCatalogId}
-            onChange={setHubriseCatalogId}
-            placeholder="cat_…"
-          />
-        </Field>
+          <Field label="HubRise Catalog ID" help="The menu HubRise will sync against.">
+            <Input
+              value={hubriseCatalogId}
+              onChange={setHubriseCatalogId}
+              placeholder="cat_…"
+            />
+          </Field>
+          </div>
+        </details>
       </div>
 
       {/* Stripe Connect + fees */}
