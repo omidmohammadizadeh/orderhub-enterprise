@@ -288,6 +288,9 @@ exports.Prisma.BrandScalarFieldEnum = {
   cuisine: 'cuisine',
   isSuspended: 'isSuspended',
   primaryLocationId: 'primaryLocationId',
+  onlineOrderingSlug: 'onlineOrderingSlug',
+  directOrderingEnabled: 'directOrderingEnabled',
+  about: 'about',
   defaultStationId: 'defaultStationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1690,6 +1693,8 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   description: 'description',
   cuisine: 'cuisine',
   primaryLocationId: 'primaryLocationId',
+  onlineOrderingSlug: 'onlineOrderingSlug',
+  about: 'about',
   defaultStationId: 'defaultStationId'
 };
 

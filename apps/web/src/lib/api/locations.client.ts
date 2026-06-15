@@ -141,6 +141,10 @@ export interface Brand {
   isActive: boolean;
   isSuspended: boolean;
   primaryLocationId?: string | null;
+  // Phase AS-6 — brand-level public storefront
+  onlineOrderingSlug?: string | null;
+  directOrderingEnabled?: boolean;
+  about?: string | null;
   _count?: { platformConnections?: number; locations?: number };
 }
 

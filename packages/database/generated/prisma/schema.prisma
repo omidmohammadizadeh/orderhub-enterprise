@@ -374,6 +374,17 @@ model Brand {
   isSuspended       Boolean @default(false)
   primaryLocationId String?
 
+  // Phase AS-6 — brand-level public storefront. Mirrors the per-location
+  // pattern (Location.onlineOrderingSlug / directOrderingConfig) so a
+  // virtual brand running out of a shared kitchen can have its own
+  // customer-facing URL — /brand/<slug> — separate from the location
+  // page. The brand reuses its primary location's address/phone/postcode
+  // (no need to duplicate them); `about` is free-form marketing copy
+  // shown on the storefront header.
+  onlineOrderingSlug    String? @unique
+  directOrderingEnabled Boolean @default(false)
+  about                 String?
+
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]
@@ -566,7 +577,7 @@ model Integration {
   @@map("integrations")
 }
 
-// ── Menu / Category / Item ────────────────────────────────────────────────────
+// ── Menu / Category / Item ────────────────────────���───────────────────────────
 model Menu {
   id          String     @id @default(cuid())
   brandId     String

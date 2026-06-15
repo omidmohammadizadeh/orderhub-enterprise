@@ -22297,6 +22297,9 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean | null
     primaryLocationId: string | null
+    onlineOrderingSlug: string | null
+    directOrderingEnabled: boolean | null
+    about: string | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -22314,6 +22317,9 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean | null
     primaryLocationId: string | null
+    onlineOrderingSlug: string | null
+    directOrderingEnabled: boolean | null
+    about: string | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -22333,6 +22339,9 @@ export namespace Prisma {
     cuisine: number
     isSuspended: number
     primaryLocationId: number
+    onlineOrderingSlug: number
+    directOrderingEnabled: number
+    about: number
     defaultStationId: number
     createdAt: number
     updatedAt: number
@@ -22352,6 +22361,9 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    onlineOrderingSlug?: true
+    directOrderingEnabled?: true
+    about?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22369,6 +22381,9 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    onlineOrderingSlug?: true
+    directOrderingEnabled?: true
+    about?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22388,6 +22403,9 @@ export namespace Prisma {
     cuisine?: true
     isSuspended?: true
     primaryLocationId?: true
+    onlineOrderingSlug?: true
+    directOrderingEnabled?: true
+    about?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22480,6 +22498,9 @@ export namespace Prisma {
     cuisine: string | null
     isSuspended: boolean
     primaryLocationId: string | null
+    onlineOrderingSlug: string | null
+    directOrderingEnabled: boolean
+    about: string | null
     defaultStationId: string | null
     createdAt: Date
     updatedAt: Date
@@ -22516,6 +22537,9 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    onlineOrderingSlug?: boolean
+    directOrderingEnabled?: boolean
+    about?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -22546,6 +22570,9 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    onlineOrderingSlug?: boolean
+    directOrderingEnabled?: boolean
+    about?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -22567,6 +22594,9 @@ export namespace Prisma {
     cuisine?: boolean
     isSuspended?: boolean
     primaryLocationId?: boolean
+    onlineOrderingSlug?: boolean
+    directOrderingEnabled?: boolean
+    about?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -22618,6 +22648,9 @@ export namespace Prisma {
       cuisine: string | null
       isSuspended: boolean
       primaryLocationId: string | null
+      onlineOrderingSlug: string | null
+      directOrderingEnabled: boolean
+      about: string | null
       defaultStationId: string | null
       createdAt: Date
       updatedAt: Date
@@ -23037,6 +23070,9 @@ export namespace Prisma {
     readonly cuisine: FieldRef<"Brand", 'String'>
     readonly isSuspended: FieldRef<"Brand", 'Boolean'>
     readonly primaryLocationId: FieldRef<"Brand", 'String'>
+    readonly onlineOrderingSlug: FieldRef<"Brand", 'String'>
+    readonly directOrderingEnabled: FieldRef<"Brand", 'Boolean'>
+    readonly about: FieldRef<"Brand", 'String'>
     readonly defaultStationId: FieldRef<"Brand", 'String'>
     readonly createdAt: FieldRef<"Brand", 'DateTime'>
     readonly updatedAt: FieldRef<"Brand", 'DateTime'>
@@ -105922,6 +105958,9 @@ export namespace Prisma {
     cuisine: 'cuisine',
     isSuspended: 'isSuspended',
     primaryLocationId: 'primaryLocationId',
+    onlineOrderingSlug: 'onlineOrderingSlug',
+    directOrderingEnabled: 'directOrderingEnabled',
+    about: 'about',
     defaultStationId: 'defaultStationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -107609,6 +107648,8 @@ export namespace Prisma {
     description: 'description',
     cuisine: 'cuisine',
     primaryLocationId: 'primaryLocationId',
+    onlineOrderingSlug: 'onlineOrderingSlug',
+    about: 'about',
     defaultStationId: 'defaultStationId'
   };
 
@@ -110353,6 +110394,9 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
+    directOrderingEnabled?: BoolFilter<"Brand"> | boolean
+    about?: StringNullableFilter<"Brand"> | string | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -110382,6 +110426,9 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    onlineOrderingSlug?: SortOrderInput | SortOrder
+    directOrderingEnabled?: SortOrder
+    about?: SortOrderInput | SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -110400,6 +110447,7 @@ export namespace Prisma {
 
   export type BrandWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    onlineOrderingSlug?: string
     tenantId_slug?: BrandTenantIdSlugCompoundUniqueInput
     AND?: BrandWhereInput | BrandWhereInput[]
     OR?: BrandWhereInput[]
@@ -110416,6 +110464,8 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    directOrderingEnabled?: BoolFilter<"Brand"> | boolean
+    about?: StringNullableFilter<"Brand"> | string | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -110429,7 +110479,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
-  }, "id" | "tenantId_slug">
+  }, "id" | "onlineOrderingSlug" | "tenantId_slug">
 
   export type BrandOrderByWithAggregationInput = {
     id?: SortOrder
@@ -110445,6 +110495,9 @@ export namespace Prisma {
     cuisine?: SortOrderInput | SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrderInput | SortOrder
+    onlineOrderingSlug?: SortOrderInput | SortOrder
+    directOrderingEnabled?: SortOrder
+    about?: SortOrderInput | SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -110470,6 +110523,9 @@ export namespace Prisma {
     cuisine?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     isSuspended?: BoolWithAggregatesFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    directOrderingEnabled?: BoolWithAggregatesFilter<"Brand"> | boolean
+    about?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     defaultStationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
@@ -119488,6 +119544,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -119516,6 +119575,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -119542,6 +119604,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -119570,6 +119635,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -119597,6 +119665,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -119615,6 +119686,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -119633,6 +119707,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -129791,6 +129868,9 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    directOrderingEnabled?: SortOrder
+    about?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -129808,6 +129888,9 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    directOrderingEnabled?: SortOrder
+    about?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -129825,6 +129908,9 @@ export namespace Prisma {
     cuisine?: SortOrder
     isSuspended?: SortOrder
     primaryLocationId?: SortOrder
+    onlineOrderingSlug?: SortOrder
+    directOrderingEnabled?: SortOrder
+    about?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -143123,6 +143209,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationCreateNestedManyWithoutBrandInput
@@ -143149,6 +143238,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -143989,6 +144081,9 @@ export namespace Prisma {
     cuisine?: StringNullableFilter<"Brand"> | string | null
     isSuspended?: BoolFilter<"Brand"> | boolean
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
+    onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
+    directOrderingEnabled?: BoolFilter<"Brand"> | boolean
+    about?: StringNullableFilter<"Brand"> | string | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -145826,6 +145921,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -145853,6 +145951,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -145957,6 +146058,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -145984,6 +146088,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -148143,6 +148250,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -148170,6 +148280,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -148990,6 +149103,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -149017,6 +149133,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -149581,6 +149700,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -149608,6 +149730,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -149778,6 +149903,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -149805,6 +149933,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -150229,6 +150360,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -150256,6 +150390,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -150379,6 +150516,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -150406,6 +150546,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -151315,6 +151458,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -151342,6 +151488,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -151573,6 +151722,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -151600,6 +151752,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -152543,6 +152698,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -152570,6 +152728,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -152611,6 +152772,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -152638,6 +152802,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -152663,6 +152830,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -152690,6 +152860,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -152731,6 +152904,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -152758,6 +152934,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -154806,6 +154985,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -154833,6 +155015,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -155409,6 +155594,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -155436,6 +155624,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -158752,6 +158943,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -158779,6 +158973,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
@@ -165571,6 +165768,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -165834,6 +166034,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUpdateManyWithoutBrandNestedInput
@@ -165860,6 +166063,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -165886,6 +166092,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -171108,6 +171317,9 @@ export namespace Prisma {
     cuisine?: string | null
     isSuspended?: boolean
     primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -171258,6 +171470,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -171285,6 +171500,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
@@ -171311,6 +171529,9 @@ export namespace Prisma {
     cuisine?: NullableStringFieldUpdateOperationsInput | string | null
     isSuspended?: BoolFieldUpdateOperationsInput | boolean
     primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

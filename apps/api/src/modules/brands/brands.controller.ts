@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { BrandsService, CreateBrandDto, UpdateBrandDto } from "./brands.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("brands")
@@ -44,6 +45,17 @@ export class BrandsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.brands.findOne(brandId, user.tenantId);
+  }
+
+  // Phase AS-6 — public brand storefront resolver. Returns the brand
+  // info plus the parent location's address/phone so the
+  // /brand/<slug> page can render a header without exposing internal
+  // ids. Mounted under `public/` so the global JWT guard skips it.
+  @Public()
+  @Get("public/by-slug/:slug")
+  @ApiOperation({ summary: "Resolve public brand storefront by slug" })
+  publicBySlug(@Param("slug") slug: string) {
+    return this.brands.findBySlug(slug);
   }
 
   @Post()

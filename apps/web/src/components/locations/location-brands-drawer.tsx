@@ -180,7 +180,38 @@ function BrandEditModal({
   const [name, setName] = useState(brand.name);
   const [cuisine, setCuisine] = useState(brand.cuisine ?? "");
   const [logoUrl, setLogoUrl] = useState<string | null>(brand.logoUrl ?? null);
+  // Phase AS-6 — brand-level public storefront fields.
+  const [about, setAbout] = useState(brand.about ?? "");
+  const [orderingSlug, setOrderingSlug] = useState(
+    brand.onlineOrderingSlug ?? "",
+  );
+  const [directOrderingEnabled, setDirectOrderingEnabled] = useState<boolean>(
+    !!brand.directOrderingEnabled,
+  );
   const [saveErr, setSaveErr] = useState<string | null>(null);
+
+  // Auto-derive a URL-safe slug from the brand name on first toggle so
+  // operators don't have to hand-type one. They can always overwrite.
+  const generateSlug = () => {
+    const seed =
+      name
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 60) || "brand";
+    // Add a 4-char suffix so the slug is unlikely to collide with another
+    // brand that happens to share the same name.
+    const suffix = Math.random().toString(36).slice(2, 6);
+    setOrderingSlug(`${seed}-${suffix}`);
+  };
+
+  const publicUrl =
+    orderingSlug && typeof window !== "undefined"
+      ? `${window.location.origin}/brand/${orderingSlug}`
+      : "";
 
   const save = useMutation({
     mutationFn: () =>
@@ -188,6 +219,9 @@ function BrandEditModal({
         name,
         cuisine: cuisine || null,
         logoUrl: logoUrl ?? null,
+        about: about || null,
+        onlineOrderingSlug: orderingSlug || null,
+        directOrderingEnabled,
       }),
     onSuccess: onSaved,
     onError: (e: any) =>
@@ -249,6 +283,84 @@ function BrandEditModal({
               targetHeight={256}
             />
           </div>
+
+          {/* Phase AS-6 — Direct online ordering section. Same shape as
+              the per-location storefront: toggle, slug, about. Address /
+              phone always come from the brand's primary location so the
+              operator doesn't enter the same info twice. */}
+          <div className="rounded-md border border-zinc-200 bg-zinc-50/40 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
+                Direct online ordering
+              </label>
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={directOrderingEnabled}
+                  onChange={(e) => {
+                    setDirectOrderingEnabled(e.target.checked);
+                    if (e.target.checked && !orderingSlug) generateSlug();
+                  }}
+                />
+                Enable
+              </label>
+            </div>
+            <p className="mb-3 text-[11px] text-zinc-500">
+              Gives this brand its own public ordering page. Address and
+              phone are reused from the primary location.
+            </p>
+
+            {directOrderingEnabled && (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    Public URL slug
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      value={orderingSlug}
+                      onChange={(e) => setOrderingSlug(e.target.value)}
+                      placeholder="e.g. greek-gyros-pelton"
+                      className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateSlug}
+                      className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                    >
+                      Generate
+                    </button>
+                  </div>
+                  {publicUrl && (
+                    <p className="mt-1.5 truncate text-[11px] text-zinc-500">
+                      Will be available at{" "}
+                      <a
+                        href={publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-violet-600 hover:underline"
+                      >
+                        {publicUrl}
+                      </a>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    About
+                  </label>
+                  <textarea
+                    value={about}
+                    onChange={(e) => setAbout(e.target.value)}
+                    placeholder="Short pitch shown above the menu (cuisine, story, hours)…"
+                    rows={3}
+                    className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {saveErr && <p className="text-[12px] text-red-600">{saveErr}</p>}
         </div>
         <div className="flex justify-end gap-2 border-t border-zinc-200 px-5 py-3">

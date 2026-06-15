@@ -25,6 +25,10 @@ export interface UpdateBrandDto {
   isActive?: boolean;
   primaryLocationId?: string | null;
   metadata?: Record<string, unknown>;
+  // Phase AS-6 — brand-level storefront
+  onlineOrderingSlug?: string | null;
+  directOrderingEnabled?: boolean;
+  about?: string | null;
 }
 
 function slugify(name: string): string {
@@ -169,8 +173,61 @@ export class BrandsService {
           primaryLocationId: dto.primaryLocationId,
         }),
         ...(dto.metadata && { metadata: dto.metadata as any }),
+        // Phase AS-6 — brand-level storefront fields. Stored on the
+        // Brand row so the public /brand/<slug> route can resolve the
+        // brand without joining DirectOrderingConfig (that table is
+        // scoped per-location and would force a redundant row per
+        // brand). `onlineOrderingSlug` is unique across all brands.
+        ...(dto.onlineOrderingSlug !== undefined && {
+          onlineOrderingSlug: dto.onlineOrderingSlug,
+        }),
+        ...(dto.directOrderingEnabled !== undefined && {
+          directOrderingEnabled: dto.directOrderingEnabled,
+        }),
+        ...(dto.about !== undefined && { about: dto.about }),
       },
     });
+  }
+
+  // Phase AS-6 — public storefront resolver. Returns the brand + its
+  // primary location's address fields (the brand reuses them rather
+  // than carrying duplicate copies). No tenant context is checked
+  // because this endpoint is intentionally public; the route is
+  // mounted on /v1/public/brands/:slug and the slug itself is the
+  // bearer of authorization — knowing it is enough to view the
+  // storefront, just like /order/<location-slug>.
+  async findBySlug(slug: string) {
+    const brand = await this.prisma.brand.findUnique({
+      where: { onlineOrderingSlug: slug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        about: true,
+        logoUrl: true,
+        cuisine: true,
+        directOrderingEnabled: true,
+        primaryLocationId: true,
+      },
+    });
+    if (!brand || !brand.directOrderingEnabled) return null;
+    if (!brand.primaryLocationId) return null;
+    const location = await this.prisma.location.findUnique({
+      where: { id: brand.primaryLocationId },
+      select: {
+        id: true,
+        name: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        country: true,
+        phone: true,
+        onlineOrderingSlug: true,
+      },
+    });
+    if (!location) return null;
+    return { brand, location };
   }
 
   async remove(brandId: string, tenantId: string) {
