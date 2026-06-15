@@ -183,6 +183,10 @@ function GeneralTab({
     (location as any)?.hubriseCatalogId ?? "",
   );
   const hubriseConnected = !!(location as any)?.hubriseConnected;
+  // Inline state for the Connect button so the operator sees what's
+  // happening without having to scroll to the modal-level error toast.
+  const [hubriseBusy, setHubriseBusy] = useState(false);
+  const [hubriseError, setHubriseError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Live preview of the online ordering URL using the runtime origin.
@@ -449,27 +453,45 @@ function GeneralTab({
           you approve, and the token + webhook are wired automatically.
         </p>
         {location?.id && (
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const { hubriseClient } = await import("@/lib/api/hubrise.client");
-                const url = await hubriseClient.connect(location.id);
-                // Full-page navigation so we don't lose the OAuth
-                // flow in a popup that the browser might block.
-                window.location.href = url;
-              } catch (err: any) {
-                setError(
-                  err?.response?.data?.message ??
-                    err?.message ??
-                    "Could not open HubRise. Check the server logs.",
-                );
-              }
-            }}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
-          >
-            {hubriseConnected ? "Reconnect with HubRise" : "Connect with HubRise"}
-          </button>
+          <div className="space-y-1.5">
+            <button
+              type="button"
+              disabled={hubriseBusy}
+              onClick={async () => {
+                setHubriseError(null);
+                setHubriseBusy(true);
+                try {
+                  const { hubriseClient } = await import(
+                    "@/lib/api/hubrise.client"
+                  );
+                  const url = await hubriseClient.connect(location.id);
+                  if (!url) {
+                    throw new Error(
+                      "API returned no authorize URL — is the backend deployed?",
+                    );
+                  }
+                  window.location.href = url;
+                } catch (err: any) {
+                  setHubriseError(
+                    err?.response?.data?.message ??
+                      err?.message ??
+                      "Could not open HubRise. Check the server logs.",
+                  );
+                  setHubriseBusy(false);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {hubriseBusy
+                ? "Opening HubRise…"
+                : hubriseConnected
+                  ? "Reconnect with HubRise"
+                  : "Connect with HubRise"}
+            </button>
+            {hubriseError && (
+              <p className="text-[11px] text-red-600">{hubriseError}</p>
+            )}
+          </div>
         )}
         <details className="mt-2 rounded-md border border-zinc-200 bg-white p-2">
           <summary className="cursor-pointer text-[11px] font-semibold text-zinc-700">
