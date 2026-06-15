@@ -174,8 +174,6 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       deliveryFee: 0,
       discount: 0,
       total: total || subtotal,
-      paymentMethod: paymentMethod as any,
-      paymentStatus: paymentStatus as any,
       specialInstructions: order.customer_notes ?? undefined,
       scheduledFor: order.expected_time
         ? new Date(order.expected_time)
@@ -187,6 +185,11 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         hubriseConnection: order.connection_name,
         originPlatform,
         collectionCode: order.collection_code,
+        // Payment fields stay in metadata until CanonicalOrder gets
+        // first-class slots — OrdersService.ingestCanonical promotes
+        // them onto the Order row when present.
+        paymentMethod,
+        paymentStatus,
       },
     };
   }
