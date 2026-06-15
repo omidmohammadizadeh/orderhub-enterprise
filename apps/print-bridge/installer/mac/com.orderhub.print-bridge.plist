@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    launchd job that keeps the OrderHub Print Bridge running.
+    Loaded into the user's LaunchAgents (not LaunchDaemons) so the
+    bridge runs under the operator's UID — that matters because the
+    config file lives at ~/.orderhub-print-bridge/config.json and the
+    bcrypt-hashed agent token has to be readable.
+
+    RunAtLoad + KeepAlive means: start on login, restart if it crashes,
+    restart if the machine wakes from sleep. ProcessType=Adaptive lets
+    macOS suspend it when the laptop's on battery — receipts can wait
+    a few hundred ms during transitions.
+
+    StandardOutPath / StandardErrorPath redirect to a per-user log
+    rotated by launchd itself; investigators can `tail -F` it to see
+    the same lines they'd see if they ran `node dist/main.js` by hand.
+  -->
+  <key>Label</key>
+  <string>com.orderhub.print-bridge</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/orderhub-print-bridge</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ProcessType</key>
+  <string>Adaptive</string>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/orderhub-print-bridge.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/orderhub-print-bridge.err</string>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>

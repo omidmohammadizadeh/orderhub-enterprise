@@ -1,0 +1,158 @@
+# Builds the Print Bridge installers and attaches them to a GitHub
+# Release whenever a tag matching `bridge-v*` is pushed (e.g.
+# `bridge-v0.2.0`). The Locations dashboard's "Download bridge" buttons
+# pull from the latest release in this same repo so the artifacts URLs
+# never change shape.
+#
+# Three jobs run in parallel:
+#   * mac-arm64    — Apple Silicon .pkg
+#   * mac-x64      — Intel .pkg
+#   * windows-x64  — NSIS .exe installer
+#
+# Unsigned builds work today. To turn on signing, set these secrets in
+# the repo (Settings → Secrets and variables → Actions):
+#   * APPLE_CERT_P12         — base64-encoded Developer ID Installer .p12
+#   * APPLE_CERT_PASSWORD    — password for the .p12
+#   * APPLE_NOTARY_USER      — apple-id email
+#   * APPLE_NOTARY_TEAM_ID   — team id (XXXXXXXXXX)
+#   * APPLE_NOTARY_PASSWORD  — app-specific password
+#   * WINDOWS_CERT_THUMBPRINT — SHA1 thumbprint of the signing cert
+#                              already installed on the runner
+
+name: print-bridge release
+
+on:
+  push:
+    tags:
+      - "bridge-v*"
+  workflow_dispatch:
+    # Manual trigger lets us cut ad-hoc test builds without pushing a
+    # tag. Artifacts go to the workflow run, not a Release.
+
+jobs:
+  mac-arm64:
+    runs-on: macos-14   # Apple Silicon runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      # Optional: import the Developer ID Installer cert. Skipped when
+      # the secrets aren't set so PR/fork builds still produce an
+      # unsigned but functional .pkg.
+      - name: Import signing cert
+        if: env.APPLE_CERT_P12 != ''
+        env:
+          APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PASS=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASS" build.keychain
+          echo "$APPLE_CERT_P12" | base64 --decode > cert.p12
+          security import cert.p12 -k build.keychain \
+            -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASS" build.keychain
+
+      - name: Build .pkg
+        env:
+          DEVELOPER_ID_INSTALLER: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}
+          NOTARY_APPLE_ID: ${{ secrets.APPLE_NOTARY_USER }}
+          NOTARY_TEAM_ID: ${{ secrets.APPLE_NOTARY_TEAM_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+        run: bash apps/print-bridge/installer/mac/build-pkg.sh arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orderhub-print-bridge-macos-arm64
+          path: dist/print-bridge/orderhub-print-bridge-macos-arm64.pkg
+
+  mac-x64:
+    runs-on: macos-13   # Intel runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      - name: Import signing cert
+        if: env.APPLE_CERT_P12 != ''
+        env:
+          APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PASS=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASS" build.keychain
+          echo "$APPLE_CERT_P12" | base64 --decode > cert.p12
+          security import cert.p12 -k build.keychain \
+            -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASS" build.keychain
+
+      - name: Build .pkg
+        env:
+          DEVELOPER_ID_INSTALLER: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}
+          NOTARY_APPLE_ID: ${{ secrets.APPLE_NOTARY_USER }}
+          NOTARY_TEAM_ID: ${{ secrets.APPLE_NOTARY_TEAM_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+        run: bash apps/print-bridge/installer/mac/build-pkg.sh x86_64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orderhub-print-bridge-macos-x86_64
+          path: dist/print-bridge/orderhub-print-bridge-macos-x86_64.pkg
+
+  windows-x64:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      # NSIS isn't preinstalled on GitHub's Windows runners.
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Build installer
+        env:
+          # When this secret is set the .exe gets signed inside the
+          # PowerShell build script (signtool reads the local cert
+          # store by thumbprint). Unset = unsigned build.
+          WINDOWS_CERT_THUMBPRINT: ${{ secrets.WINDOWS_CERT_THUMBPRINT }}
+        run: |
+          if ($env:WINDOWS_CERT_THUMBPRINT) {
+            .\apps\print-bridge\installer\windows\build-installer.ps1 -SigningCertThumbprint $env:WINDOWS_CERT_THUMBPRINT
+          } else {
+            .\apps\print-bridge\installer\windows\build-installer.ps1
+          }
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orderhub-print-bridge-windows-x64
+          path: dist/print-bridge/orderhub-print-bridge-windows-x64.exe
+
+  release:
+    # Only on tag, not on manual dispatch. Attaches all three artifacts
+    # to the GitHub Release that the tag points at.
+    if: startsWith(github.ref, 'refs/tags/bridge-v')
+    needs: [mac-arm64, mac-x64, windows-x64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true

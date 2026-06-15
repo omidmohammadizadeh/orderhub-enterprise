@@ -9,6 +9,7 @@ import {
   Trash2,
   Loader2,
   Copy as CopyIcon,
+  Download,
   X,
 } from "lucide-react";
 import { printAgentsClient, type PrintAgent } from "@/lib/api/printers.client";
@@ -51,6 +52,14 @@ export function AgentsTab({ locationId }: { locationId?: string }) {
 
   return (
     <div className="space-y-4">
+      {/* Phase AS-6 — Print Bridge download card. Sits above the existing
+          pairing UI so operators see "download → install → pair" as one
+          sequence. Links point at the latest GitHub Release artifacts;
+          the URL pattern matches the workflow at
+          .github/workflows/print-bridge-release.yml so it never goes
+          stale when we cut a new bridge version. */}
+      <BridgeDownloadCard />
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">
           Devices running the Order Hub Print Bridge or Flutter app.
@@ -283,6 +292,78 @@ function TokenModal({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Phase AS-6 — Print Bridge download card. Links point at the latest
+// GitHub Release. The bridge release workflow (.github/workflows/
+// print-bridge-release.yml) attaches three artifacts to every
+// `bridge-v*` tag with predictable filenames so we can hot-link them
+// without an API roundtrip — if a release goes missing the operator
+// gets a clean GitHub 404 they can screenshot rather than a confusing
+// JSON error.
+function BridgeDownloadCard() {
+  const repo = "omidmohammadizadeh/orderhub-enterprise";
+  const base = `https://github.com/${repo}/releases/latest/download`;
+
+  const downloads = [
+    {
+      label: "macOS (Apple Silicon)",
+      sub: "M1 / M2 / M3 / M4 — most modern Macs",
+      href: `${base}/orderhub-print-bridge-macos-arm64.pkg`,
+    },
+    {
+      label: "macOS (Intel)",
+      sub: "Pre-2020 Macs",
+      href: `${base}/orderhub-print-bridge-macos-x86_64.pkg`,
+    },
+    {
+      label: "Windows 10 / 11",
+      sub: "64-bit installer (.exe)",
+      href: `${base}/orderhub-print-bridge-windows-x64.exe`,
+    },
+  ];
+
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-gradient-to-br from-white to-violet-50/30 p-5">
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Install the Print Bridge
+          </h3>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Download once per Mac or PC that prints. The installer
+            registers a background service so the bridge runs at startup
+            — no terminal, no manual restart. Then click{" "}
+            <span className="font-semibold text-zinc-700">
+              Pair new device
+            </span>{" "}
+            below to link it to a location.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {downloads.map((d) => (
+          <a
+            key={d.href}
+            href={d.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col rounded-md border border-zinc-200 bg-white px-3 py-2.5 text-xs hover:border-violet-300 hover:bg-violet-50/30"
+          >
+            <span className="flex items-center gap-1.5 font-semibold text-zinc-900">
+              <Download className="h-3.5 w-3.5 text-violet-600" />
+              {d.label}
+            </span>
+            <span className="mt-0.5 text-[11px] text-zinc-500">{d.sub}</span>
+          </a>
+        ))}
+      </div>
+      <p className="mt-3 text-[11px] text-zinc-400">
+        Tablets (Android / iPad) use the OrderHub mobile app instead —
+        coming soon.
+      </p>
     </div>
   );
 }
