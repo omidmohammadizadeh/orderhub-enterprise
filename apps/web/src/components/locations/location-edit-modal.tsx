@@ -174,6 +174,15 @@ function GeneralTab({
       : "",
   );
   const [status, setStatus] = useState<LocationStatus>(location?.status ?? "active");
+  // Phase AU — HubRise per-location settings. We never load the raw
+  // access token back from the server (it's encrypted and write-only).
+  // `hubriseConnected` is the boolean the API returns so we can show
+  // a "Connected" pill without exposing the secret.
+  const [hubriseAccessToken, setHubriseAccessToken] = useState("");
+  const [hubriseCatalogId, setHubriseCatalogId] = useState(
+    (location as any)?.hubriseCatalogId ?? "",
+  );
+  const hubriseConnected = !!(location as any)?.hubriseConnected;
   const [error, setError] = useState<string | null>(null);
 
   // Live preview of the online ordering URL using the runtime origin.
@@ -252,6 +261,14 @@ function GeneralTab({
         applicationFeeFixedAmount: fixedFee ? Number(fixedFee) : null,
         applicationFeePercentage: pctFee ? Number(pctFee) : null,
         status,
+        // Phase AU — HubRise. Only send the access token when the
+        // operator typed a new one (so we don't accidentally clobber
+        // a stored token with the empty input field). Catalog id is
+        // safe to round-trip on every save.
+        ...(hubriseAccessToken.trim()
+          ? { hubriseAccessToken: hubriseAccessToken.trim() }
+          : {}),
+        hubriseCatalogId: hubriseCatalogId || null,
       } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
@@ -408,6 +425,52 @@ function GeneralTab({
           </p>
         )}
       </Field>
+
+      {/* Phase AU — HubRise. Per-location because the access token is
+          generated against a specific HubRise location outside our app.
+          The token field is write-only — we never reload it from the
+          server, just show "Connected" when one is stored. Operator
+          must regenerate + paste again to rotate. */}
+      <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            HubRise integration
+          </h3>
+          {hubriseConnected && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              ● Connected
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-zinc-500">
+          HubRise injects orders from Just Eat, Uber Eats, Deliveroo,
+          and other channels you've connected on their side. Generate
+          an access token for this location in HubRise, then paste it
+          and the Catalog ID below.
+        </p>
+        <Field label="HubRise Access Token" help={
+          hubriseConnected
+            ? "A token is already stored. Paste a new one to rotate, or leave blank to keep it."
+            : "Generated against a HubRise location (terminal/curl). Stored encrypted."
+        }>
+          {/* The Input wrapper doesn't support type="password" yet —
+              use a raw input so token paste is masked. */}
+          <input
+            type="password"
+            value={hubriseAccessToken}
+            onChange={(e) => setHubriseAccessToken(e.target.value)}
+            placeholder={hubriseConnected ? "•••••••••• (paste to replace)" : "ohr_…"}
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <Field label="HubRise Catalog ID" help="The menu HubRise will sync against.">
+          <Input
+            value={hubriseCatalogId}
+            onChange={setHubriseCatalogId}
+            placeholder="cat_…"
+          />
+        </Field>
+      </div>
 
       {/* Stripe Connect + fees */}
       <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">

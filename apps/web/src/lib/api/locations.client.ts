@@ -40,6 +40,11 @@ export interface Location {
   customDomainStatus: CustomDomainStatus;
   onlineOrderingSlug?: string | null;
   stripeConnectedAccountId?: string | null;
+  // Phase AU — HubRise per-location storage. Token itself is never
+  // returned; `hubriseConnected` reflects whether one is on file.
+  hubriseCatalogId?: string | null;
+  hubriseConnected?: boolean;
+  hubriseConnectedAt?: string | null;
   applicationFeeFixedAmount?: string | number | null;
   applicationFeePercentage?: string | number | null;
   applicationFeeMode: AppFeeMode;

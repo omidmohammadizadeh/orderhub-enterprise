@@ -23633,6 +23633,9 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     onlineOrderingSlug: string | null
+    hubriseAccessTokenSecretId: string | null
+    hubriseCatalogId: string | null
+    hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
@@ -23679,6 +23682,9 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string | null
     onlineOrderingSlug: string | null
+    hubriseAccessTokenSecretId: string | null
+    hubriseCatalogId: string | null
+    hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
@@ -23728,6 +23734,9 @@ export namespace Prisma {
     customDomain: number
     customDomainStatus: number
     onlineOrderingSlug: number
+    hubriseAccessTokenSecretId: number
+    hubriseCatalogId: number
+    hubriseConnectedAt: number
     stripeConnectedAccountId: number
     applicationFeeFixedAmount: number
     applicationFeePercentage: number
@@ -23795,6 +23804,9 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
+    hubriseAccessTokenSecretId?: true
+    hubriseCatalogId?: true
+    hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
@@ -23841,6 +23853,9 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
+    hubriseAccessTokenSecretId?: true
+    hubriseCatalogId?: true
+    hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
@@ -23890,6 +23905,9 @@ export namespace Prisma {
     customDomain?: true
     customDomainStatus?: true
     onlineOrderingSlug?: true
+    hubriseAccessTokenSecretId?: true
+    hubriseCatalogId?: true
+    hubriseConnectedAt?: true
     stripeConnectedAccountId?: true
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
@@ -24029,6 +24047,9 @@ export namespace Prisma {
     customDomain: string | null
     customDomainStatus: string
     onlineOrderingSlug: string | null
+    hubriseAccessTokenSecretId: string | null
+    hubriseCatalogId: string | null
+    hubriseConnectedAt: Date | null
     stripeConnectedAccountId: string | null
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
@@ -24100,6 +24121,9 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
+    hubriseAccessTokenSecretId?: boolean
+    hubriseCatalogId?: boolean
+    hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
@@ -24168,6 +24192,9 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
+    hubriseAccessTokenSecretId?: boolean
+    hubriseCatalogId?: boolean
+    hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
@@ -24224,6 +24251,9 @@ export namespace Prisma {
     customDomain?: boolean
     customDomainStatus?: boolean
     onlineOrderingSlug?: boolean
+    hubriseAccessTokenSecretId?: boolean
+    hubriseCatalogId?: boolean
+    hubriseConnectedAt?: boolean
     stripeConnectedAccountId?: boolean
     applicationFeeFixedAmount?: boolean
     applicationFeePercentage?: boolean
@@ -24320,6 +24350,9 @@ export namespace Prisma {
       customDomain: string | null
       customDomainStatus: string
       onlineOrderingSlug: string | null
+      hubriseAccessTokenSecretId: string | null
+      hubriseCatalogId: string | null
+      hubriseConnectedAt: Date | null
       stripeConnectedAccountId: string | null
       applicationFeeFixedAmount: Prisma.Decimal | null
       applicationFeePercentage: Prisma.Decimal | null
@@ -24777,6 +24810,9 @@ export namespace Prisma {
     readonly customDomain: FieldRef<"Location", 'String'>
     readonly customDomainStatus: FieldRef<"Location", 'String'>
     readonly onlineOrderingSlug: FieldRef<"Location", 'String'>
+    readonly hubriseAccessTokenSecretId: FieldRef<"Location", 'String'>
+    readonly hubriseCatalogId: FieldRef<"Location", 'String'>
+    readonly hubriseConnectedAt: FieldRef<"Location", 'DateTime'>
     readonly stripeConnectedAccountId: FieldRef<"Location", 'String'>
     readonly applicationFeeFixedAmount: FieldRef<"Location", 'Decimal'>
     readonly applicationFeePercentage: FieldRef<"Location", 'Decimal'>
@@ -105994,6 +106030,9 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     onlineOrderingSlug: 'onlineOrderingSlug',
+    hubriseAccessTokenSecretId: 'hubriseAccessTokenSecretId',
+    hubriseCatalogId: 'hubriseCatalogId',
+    hubriseConnectedAt: 'hubriseConnectedAt',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
     applicationFeeFixedAmount: 'applicationFeeFixedAmount',
     applicationFeePercentage: 'applicationFeePercentage',
@@ -107676,6 +107715,8 @@ export namespace Prisma {
     customDomain: 'customDomain',
     customDomainStatus: 'customDomainStatus',
     onlineOrderingSlug: 'onlineOrderingSlug',
+    hubriseAccessTokenSecretId: 'hubriseAccessTokenSecretId',
+    hubriseCatalogId: 'hubriseCatalogId',
     stripeConnectedAccountId: 'stripeConnectedAccountId',
     applicationFeeMode: 'applicationFeeMode',
     status: 'status',
@@ -110559,6 +110600,9 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
+    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
+    hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
@@ -110626,6 +110670,9 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
+    hubriseAccessTokenSecretId?: SortOrderInput | SortOrder
+    hubriseCatalogId?: SortOrderInput | SortOrder
+    hubriseConnectedAt?: SortOrderInput | SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
@@ -110700,6 +110747,9 @@ export namespace Prisma {
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
+    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
+    hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
@@ -110764,6 +110814,9 @@ export namespace Prisma {
     customDomain?: SortOrderInput | SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrderInput | SortOrder
+    hubriseAccessTokenSecretId?: SortOrderInput | SortOrder
+    hubriseCatalogId?: SortOrderInput | SortOrder
+    hubriseConnectedAt?: SortOrderInput | SortOrder
     stripeConnectedAccountId?: SortOrderInput | SortOrder
     applicationFeeFixedAmount?: SortOrderInput | SortOrder
     applicationFeePercentage?: SortOrderInput | SortOrder
@@ -110824,6 +110877,9 @@ export namespace Prisma {
     customDomain?: StringNullableWithAggregatesFilter<"Location"> | string | null
     customDomainStatus?: StringWithAggregatesFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    hubriseAccessTokenSecretId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    hubriseCatalogId?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    hubriseConnectedAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableWithAggregatesFilter<"Location"> | string | null
     applicationFeeFixedAmount?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
@@ -119736,6 +119792,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -119803,6 +119862,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -119862,6 +119924,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -119929,6 +119994,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -119992,6 +120060,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -120040,6 +120111,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -120092,6 +120166,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -130042,6 +130119,9 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
+    hubriseAccessTokenSecretId?: SortOrder
+    hubriseCatalogId?: SortOrder
+    hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
@@ -130099,6 +130179,9 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
+    hubriseAccessTokenSecretId?: SortOrder
+    hubriseCatalogId?: SortOrder
+    hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
@@ -130145,6 +130228,9 @@ export namespace Prisma {
     customDomain?: SortOrder
     customDomainStatus?: SortOrder
     onlineOrderingSlug?: SortOrder
+    hubriseAccessTokenSecretId?: SortOrder
+    hubriseCatalogId?: SortOrder
+    hubriseConnectedAt?: SortOrder
     stripeConnectedAccountId?: SortOrder
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
@@ -145545,6 +145631,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -145611,6 +145700,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -145748,6 +145840,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -145814,6 +145909,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -147187,6 +147285,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -147252,6 +147353,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -147912,6 +148016,9 @@ export namespace Prisma {
     customDomain?: StringNullableFilter<"Location"> | string | null
     customDomainStatus?: StringFilter<"Location"> | string
     onlineOrderingSlug?: StringNullableFilter<"Location"> | string | null
+    hubriseAccessTokenSecretId?: StringNullableFilter<"Location"> | string | null
+    hubriseCatalogId?: StringNullableFilter<"Location"> | string | null
+    hubriseConnectedAt?: DateTimeNullableFilter<"Location"> | Date | string | null
     stripeConnectedAccountId?: StringNullableFilter<"Location"> | string | null
     applicationFeeFixedAmount?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: DecimalNullableFilter<"Location"> | Decimal | DecimalJsLike | number | string | null
@@ -149771,6 +149878,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -149837,6 +149947,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -149980,6 +150093,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -150046,6 +150162,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -150104,6 +150223,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -150170,6 +150292,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -150244,6 +150369,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -150310,6 +150438,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -153613,6 +153744,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -153679,6 +153813,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -153753,6 +153890,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -153819,6 +153959,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -154193,6 +154336,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -154259,6 +154405,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -154333,6 +154482,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -154399,6 +154551,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -154457,6 +154612,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -154523,6 +154681,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -154597,6 +154758,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -154663,6 +154827,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -154780,6 +154947,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -154846,6 +155016,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -155371,6 +155544,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -155437,6 +155613,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -156392,6 +156571,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -156458,6 +156640,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -156558,6 +156743,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -156624,6 +156812,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -157038,6 +157229,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157104,6 +157298,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157328,6 +157525,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157393,6 +157593,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157462,6 +157665,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157527,6 +157733,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -157607,6 +157816,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -157673,6 +157885,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -158673,6 +158888,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -158739,6 +158957,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -159019,6 +159240,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -159084,6 +159308,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -159295,6 +159522,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -159361,6 +159591,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -159663,6 +159896,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -159729,6 +159965,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -160022,6 +160261,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -160088,6 +160330,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -167621,6 +167866,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -167853,6 +168101,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -167918,6 +168169,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -167980,6 +168234,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -170725,6 +170982,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -170776,6 +171036,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -170956,6 +171219,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171021,6 +171287,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171083,6 +171352,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171131,6 +171403,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171196,6 +171471,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171258,6 +171536,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171348,6 +171629,9 @@ export namespace Prisma {
     customDomain?: string | null
     customDomainStatus?: string
     onlineOrderingSlug?: string | null
+    hubriseAccessTokenSecretId?: string | null
+    hubriseCatalogId?: string | null
+    hubriseConnectedAt?: Date | string | null
     stripeConnectedAccountId?: string | null
     applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
@@ -171557,6 +171841,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171622,6 +171909,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -171684,6 +171974,9 @@ export namespace Prisma {
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
     customDomainStatus?: StringFieldUpdateOperationsInput | string
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseAccessTokenSecretId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null

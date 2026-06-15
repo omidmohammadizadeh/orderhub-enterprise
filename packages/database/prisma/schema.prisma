@@ -463,6 +463,23 @@ model Location {
   customDomainStatus    String  @default("not_configured") // not_configured | pending | verified | failed
   onlineOrderingSlug    String? @unique
 
+  // Phase AU — HubRise integration. Per-location because HubRise
+  // access tokens are generated against a specific HubRise location
+  // (each shop registers its own callback URL + token outside our app).
+  //
+  // We deliberately don't store the raw token here. The operator
+  // pastes it into the Location settings form; the API hands it to the
+  // Secrets Vault (AES-256-GCM, master key only in env) and writes
+  // back the secret id below. Reads decrypt on the fly inside the
+  // HubRise client and never log the plaintext.
+  //
+  // hubriseCatalogId is the menu the location syncs against — pasted
+  // by the operator alongside the token. Not sensitive on its own so
+  // it lives in plaintext for fast `WHERE` filtering when reconciling.
+  hubriseCredentials Json?   // encrypted envelope { accessToken } via CredentialEncryptionService
+  hubriseCatalogId   String?
+  hubriseConnectedAt DateTime?
+
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
   applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)

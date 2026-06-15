@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 
 // Phase AN — Locations service: full general-tab CRUD + opening-hours +
 // busy-mode + Stripe-fee setters + slug generator. Brand and platform-
@@ -41,6 +42,16 @@ export interface UpdateLocationDto {
   customDomain?: string | null;
   customDomainStatus?: "not_configured" | "pending" | "verified" | "failed";
   onlineOrderingSlug?: string | null;
+  // Phase AU — HubRise. Operator pastes the access token they
+  // generated against this HubRise location; we encrypt it via
+  // CredentialEncryptionService and store the envelope in
+  // Location.hubriseCredentials. Passing `""` (empty string)
+  // explicitly clears the stored credentials so an operator can
+  // disconnect without going through a separate endpoint. Passing
+  // `undefined` leaves the existing credentials untouched (the
+  // normal "I only want to change other fields" path).
+  hubriseAccessToken?: string | null;
+  hubriseCatalogId?: string | null;
   stripeConnectedAccountId?: string | null;
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
@@ -205,7 +216,10 @@ export function isOpenAt(hours: OpeningHours | null | undefined, at: Date): bool
 
 @Injectable()
 export class LocationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly credentialEncryption: CredentialEncryptionService,
+  ) {}
 
   async findAll(
     tenantId: string,
@@ -232,7 +246,7 @@ export class LocationsService {
       if (allowedLocationIds!.length === 0) return [];
     }
 
-    return this.prisma.location.findMany({
+    const rows = await this.prisma.location.findMany({
       where: {
         deletedAt: null,
         brand: { tenantId, ...(brandId && { id: brandId }) },
@@ -244,6 +258,12 @@ export class LocationsService {
       },
       orderBy: { name: "asc" },
     });
+    // Same safety net as findOne — drop the encrypted HubRise blob,
+    // surface a boolean instead.
+    return rows.map(({ hubriseCredentials, ...rest }: any) => ({
+      ...rest,
+      hubriseConnected: !!hubriseCredentials,
+    }));
   }
 
   async findOne(locationId: string, tenantId: string) {
@@ -260,7 +280,14 @@ export class LocationsService {
       },
     });
     if (!location) throw new NotFoundException("Location not found");
-    return location;
+    // Phase AU — never return the encrypted HubRise credentials blob
+    // to the dashboard. The form only needs to know whether one is
+    // configured + when, plus the catalog id (which isn't sensitive).
+    const { hubriseCredentials, ...safe } = location as any;
+    return {
+      ...safe,
+      hubriseConnected: !!hubriseCredentials,
+    };
   }
 
   async create(tenantId: string, dto: CreateLocationDto) {
@@ -354,6 +381,29 @@ export class LocationsService {
         }
       : null;
 
+    // Phase AU — HubRise. If the operator supplied a non-empty token,
+    // encrypt it now and emit a "configured today" timestamp. Empty
+    // string clears the credentials (disconnect). `undefined` skips
+    // the field entirely so other unrelated updates work.
+    let hubriseCredentialsPatch:
+      | { hubriseCredentials: any; hubriseConnectedAt: Date | null }
+      | undefined;
+    if (dto.hubriseAccessToken !== undefined) {
+      if (dto.hubriseAccessToken && dto.hubriseAccessToken.trim().length > 0) {
+        hubriseCredentialsPatch = {
+          hubriseCredentials: this.credentialEncryption.encrypt({
+            accessToken: dto.hubriseAccessToken.trim(),
+          }) as any,
+          hubriseConnectedAt: new Date(),
+        };
+      } else {
+        hubriseCredentialsPatch = {
+          hubriseCredentials: null,
+          hubriseConnectedAt: null,
+        };
+      }
+    }
+
     return this.prisma.location.update({
       where: { id: locationId },
       data: {
@@ -384,6 +434,11 @@ export class LocationsService {
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.timezone !== undefined && { timezone: dto.timezone }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        // Phase AU — HubRise per-location credentials.
+        ...(hubriseCredentialsPatch ?? {}),
+        ...(dto.hubriseCatalogId !== undefined && {
+          hubriseCatalogId: dto.hubriseCatalogId || null,
+        }),
         ...(dto.settings !== undefined && {
           // Shallow merge — preserve unrelated keys other tabs persisted.
           settings: {

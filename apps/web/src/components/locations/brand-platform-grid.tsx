@@ -24,11 +24,15 @@ import {
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 
+// Phase AU — HubRise lives on Location (not Brand) because the access
+// token is generated against a HubRise location, not a brand. It's
+// configured in Location settings → Integrations and intentionally
+// removed from this brand-level grid to prevent the duplicate-setup
+// foot-gun.
 const PLATFORMS: PlatformId[] = [
   "JUST_EAT",
   "UBER_EATS",
   "DELIVEROO",
-  "HUBRISE",
   "STUART",
   "UBER_DIRECT",
 ];
