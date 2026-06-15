@@ -195,6 +195,45 @@ export class PrintAgentsService {
     return { ok: true };
   }
 
+  // ── Self-service printer binding (used by the Print Bridge CLI) ────
+
+  async listLocationPrinters(locationId: string) {
+    return this.prisma.printer.findMany({
+      where: { locationId, deletedAt: null },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        connectionType: true,
+        ipAddress: true,
+        port: true,
+        agentId: true,
+        paperWidth: true,
+        model: true,
+      },
+    });
+  }
+
+  async bindPrinter(agentId: string, agentLocationId: string, printerId: string) {
+    if (!printerId) throw new BadRequestException("printerId required");
+    const printer = await this.prisma.printer.findUnique({
+      where: { id: printerId },
+      select: { id: true, locationId: true },
+    });
+    if (!printer) throw new NotFoundException("Printer not found");
+    if (printer.locationId !== agentLocationId) {
+      throw new BadRequestException(
+        "Printer belongs to a different location than this agent",
+      );
+    }
+    await this.prisma.printer.update({
+      where: { id: printerId },
+      data: { agentId },
+    });
+    return { ok: true, printerId, agentId };
+  }
+
   // ── Listing / management ───────────────────────────────────────────
 
   async list(tenantId: string, locationId?: string) {

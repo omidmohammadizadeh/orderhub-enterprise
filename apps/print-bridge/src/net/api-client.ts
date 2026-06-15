@@ -77,6 +77,44 @@ export class ApiClient {
     });
   }
 
+  async listLocationPrinters(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      type: string;
+      connectionType: string;
+      ipAddress: string | null;
+      port: number | null;
+      agentId: string | null;
+      paperWidth: number;
+      model: string | null;
+    }>
+  > {
+    const res = await fetch(
+      `${this.cfg.apiUrl}/print-agents/${this.cfg.agentId}/printers`,
+      { headers: this.headers },
+    );
+    if (!res.ok) {
+      throw new Error(`listPrinters failed: ${res.status} ${await res.text()}`);
+    }
+    return res.json() as any;
+  }
+
+  async bindPrinter(printerId: string) {
+    const res = await fetch(
+      `${this.cfg.apiUrl}/print-agents/${this.cfg.agentId}/bind`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify({ printerId }),
+      },
+    );
+    if (!res.ok) {
+      throw new Error(`bind failed: ${res.status} ${await res.text()}`);
+    }
+    return res.json() as Promise<{ ok: true; printerId: string; agentId: string }>;
+  }
+
   async fail(
     jobId: string,
     body: { failureReason: string; lastError: string; retryable: boolean },

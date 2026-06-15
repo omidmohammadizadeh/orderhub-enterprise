@@ -237,6 +237,40 @@ export class PrintAgentsController {
     await this.agents.verifyToken(id, token);
     return this.agents.heartbeat(id, dto);
   }
+
+  // ── Self-service printer binding ───────────────────────────────────
+  //
+  // Lets the Print Bridge see + claim printers without operators
+  // having to use the dashboard. The bridge knows its own agentId and
+  // apiToken; it asks the API "what printers are at my location" and
+  // posts back "bind this one to me." Before this, the only way to
+  // attach Printer.agentId was a dashboard form that didn't exist yet.
+
+  @Public()
+  @Get(":id/printers")
+  @ApiOperation({ summary: "List printers at the agent's location (X-Agent-Token)" })
+  async listMyPrinters(
+    @Param("id") id: string,
+    @Headers("x-agent-token") token: string,
+  ) {
+    if (!token) throw new UnauthorizedException("Missing X-Agent-Token");
+    const agent = await this.agents.verifyToken(id, token);
+    return this.agents.listLocationPrinters(agent.locationId);
+  }
+
+  @Public()
+  @Post(":id/bind")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bind a printer to this agent (X-Agent-Token)" })
+  async bindPrinter(
+    @Param("id") id: string,
+    @Headers("x-agent-token") token: string,
+    @Body() body: { printerId: string },
+  ) {
+    if (!token) throw new UnauthorizedException("Missing X-Agent-Token");
+    const agent = await this.agents.verifyToken(id, token);
+    return this.agents.bindPrinter(agent.id, agent.locationId, body.printerId);
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────
