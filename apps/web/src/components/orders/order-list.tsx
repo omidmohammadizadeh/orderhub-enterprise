@@ -497,7 +497,13 @@ function OrderRow({
       </Td>
       <Td>
         <span className="font-semibold text-zinc-900">
-          #{order.displayId ?? order.id.slice(-6)}
+          {/* Match the printed ticket: prefer the human sequential
+              orderNumber (#34) over the cuid-derived displayId
+              (#8annpw). Falls back to displayId for marketplace orders
+              that carry the external platform reference but no internal
+              sequence yet, and finally to the cuid tail if neither
+              exists. */}
+          #{(order as any).orderNumber ?? order.displayId ?? order.id.slice(-6)}
         </span>
       </Td>
       <Td>
