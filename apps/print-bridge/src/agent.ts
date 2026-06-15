@@ -18,7 +18,7 @@ import { saveConfig } from "./config/config";
 import { ApiClient, type PrintJob } from "./net/api-client";
 import { JobSocket } from "./net/socket";
 import { Outbox } from "./queue/outbox";
-import { renderToEscPos } from "./renderer/escpos-renderer";
+import { renderToEscPosAsync } from "./renderer/escpos-renderer";
 import { pickTransport } from "./transport";
 
 const VERSION = "0.1.0";
@@ -109,7 +109,10 @@ export class Agent {
     // drops before we ack.
     this.outbox.rememberPrinted(job.id, job.payload);
 
-    const buf = renderToEscPos(job.payload, {
+    // renderToEscPosAsync awaits the brand logo fetch + raster, then
+    // delegates to the sync renderer. After first print the logo bytes
+    // are cached in-process so subsequent prints don't re-download.
+    const buf = await renderToEscPosAsync(job.payload, {
       paperWidth: (printer.paperWidth ?? 80) as 58 | 80,
       openCashDrawer: !!job.payload?.openCashDrawer,
       printLogo: !!job.payload?.printLogo,

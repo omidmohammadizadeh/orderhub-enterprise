@@ -7,9 +7,10 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, X } from "lucide-react";
-import { brandsClient } from "@/lib/api/locations.client";
+import { Loader2, Pencil, X } from "lucide-react";
+import { brandsClient, type Brand } from "@/lib/api/locations.client";
 import { BrandPlatformGrid } from "./brand-platform-grid";
+import { ImageUploader } from "@/components/products/image-uploader";
 
 interface Props {
   locationId: string;
@@ -26,6 +27,11 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
   const [newName, setNewName] = useState("");
   const [newCuisine, setNewCuisine] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  // Holds the brand the operator is currently editing. The pencil button
+  // on each row opens this; `null` keeps the modal closed. Edit fields
+  // are owned by the modal itself so cancelling doesn't dirty the drawer
+  // state.
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
 
   const create = useMutation({
     mutationFn: () =>
@@ -79,11 +85,30 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
                 className="overflow-hidden rounded-md border border-zinc-200"
                 open
               >
-                <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-50">
-                  {b.name}
-                  {b.cuisine && (
-                    <span className="ml-2 text-[10px] text-zinc-500">· {b.cuisine}</span>
+                <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-50">
+                  {b.logoUrl && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={b.logoUrl}
+                      alt=""
+                      className="h-6 w-6 rounded object-cover"
+                    />
                   )}
+                  <span className="flex-1">{b.name}</span>
+                  {b.cuisine && (
+                    <span className="text-[10px] text-zinc-500">· {b.cuisine}</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditingBrand(b);
+                    }}
+                    title="Edit brand"
+                    className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
                 </summary>
                 <div className="border-t border-zinc-200 p-3">
                   <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
@@ -123,6 +148,128 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
           </div>
           {err && <p className="text-[11px] text-red-600">{err}</p>}
         </footer>
+      </div>
+      {editingBrand && (
+        <BrandEditModal
+          brand={editingBrand}
+          onClose={() => setEditingBrand(null)}
+          onSaved={() => {
+            setEditingBrand(null);
+            qc.invalidateQueries({ queryKey: ["brands"] });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Phase AS-6 — brand edit modal. Owns its own field state so cancel
+// throws the changes away cleanly. Logo upload reuses the existing
+// ImageUploader (URL-paste path stores the URL as-is; file-upload path
+// stores a data: URL inline since the Supabase Storage backend isn't
+// wired yet — that's fine, the bridge accepts both).
+function BrandEditModal({
+  brand,
+  onClose,
+  onSaved,
+}: {
+  brand: Brand;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState(brand.name);
+  const [cuisine, setCuisine] = useState(brand.cuisine ?? "");
+  const [logoUrl, setLogoUrl] = useState<string | null>(brand.logoUrl ?? null);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: () =>
+      brandsClient.update(brand.id, {
+        name,
+        cuisine: cuisine || null,
+        logoUrl: logoUrl ?? null,
+      }),
+    onSuccess: onSaved,
+    onError: (e: any) =>
+      setSaveErr(e?.response?.data?.message ?? e.message ?? "Save failed"),
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-lg bg-white shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
+          <h2 className="text-base font-semibold text-zinc-900">Edit brand</h2>
+          <button
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="space-y-4 p-5">
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              Name
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              Cuisine
+            </label>
+            <input
+              value={cuisine}
+              onChange={(e) => setCuisine(e.target.value)}
+              placeholder="e.g. Pizza, Burgers"
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              Logo
+            </label>
+            <p className="mb-2 text-[11px] text-zinc-500">
+              Printed on the receipt header. 2:1 landscape works best —
+              colour images are converted to monochrome.
+            </p>
+            <ImageUploader
+              value={logoUrl}
+              onChange={setLogoUrl}
+              targetWidth={512}
+              targetHeight={256}
+            />
+          </div>
+          {saveErr && <p className="text-[12px] text-red-600">{saveErr}</p>}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-zinc-200 px-5 py-3">
+          <button
+            onClick={onClose}
+            className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => save.mutate()}
+            disabled={save.isPending || !name.trim()}
+            className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {save.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              "Save"
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

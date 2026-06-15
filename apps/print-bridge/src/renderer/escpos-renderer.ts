@@ -66,9 +66,28 @@ export interface RenderOptions {
   printLogo?: boolean;
 }
 
+import { renderLogo } from "./escpos-image";
+
+// Async wrapper that lets the renderer fetch + rasterize the brand logo
+// before assembling the buffer. The agent path that calls this already
+// awaits send(), so the extra await is cheap and the logo is cached
+// after the first print anyway. Kept renderToEscPos synchronous for
+// backwards compatibility with test-print and any caller that doesn't
+// have an async context — that path skips the logo entirely.
+export async function renderToEscPosAsync(
+  payload: any,
+  opts: RenderOptions,
+): Promise<Buffer> {
+  const logoBytes = payload?.brandLogoUrl
+    ? await renderLogo(String(payload.brandLogoUrl), opts.paperWidth)
+    : null;
+  return renderToEscPos(payload, opts, logoBytes ?? undefined);
+}
+
 export function renderToEscPos(
   payload: any,
   opts: RenderOptions,
+  logoBytes?: number[],
 ): Buffer {
   const width = colsForWidth(opts.paperWidth);
   const out: number[] = [];
@@ -105,6 +124,13 @@ export function renderToEscPos(
       .includes(String(payload.brandName).toLowerCase());
 
   out.push(...alignCenter());
+  // Brand logo (pre-rasterized by renderToEscPosAsync). Sits above the
+  // shop title so the receipt opens with the brand visual the way a
+  // proper restaurant ticket does.
+  if (logoBytes && logoBytes.length) {
+    out.push(...logoBytes);
+    out.push(LF);
+  }
   if (shopTitle) {
     out.push(...boldOn(), ...doubleSizeOn());
     write(String(shopTitle));
