@@ -234,10 +234,10 @@ function BrandEditModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white shadow-xl"
+        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-lg bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-5 py-3">
           <h2 className="text-base font-semibold text-zinc-900">Edit brand</h2>
           <button
             onClick={onClose}
@@ -246,7 +246,11 @@ function BrandEditModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="space-y-4 p-5">
+        {/* Body scrolls between the sticky header and footer. The whole
+            modal is height-capped at 90vh so the Save row never falls
+            below the fold — previously the logo upload + storefront
+            section pushed it off-screen. */}
+        <div className="flex-1 space-y-4 overflow-y-auto p-5">
           <div>
             <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
               Name
@@ -363,7 +367,7 @@ function BrandEditModal({
 
           {saveErr && <p className="text-[12px] text-red-600">{saveErr}</p>}
         </div>
-        <div className="flex justify-end gap-2 border-t border-zinc-200 px-5 py-3">
+        <div className="flex shrink-0 justify-end gap-2 border-t border-zinc-200 px-5 py-3">
           <button
             onClick={onClose}
             className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
