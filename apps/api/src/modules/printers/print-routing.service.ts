@@ -235,12 +235,34 @@ export class PrintRoutingService {
       });
       receiptPrinterId = fallback?.id ?? null;
     }
+    // The operator's "Copies" setting on the printer (Defaults section
+    // of the printer drawer) is stored as `printer.defaults.copies` and
+    // was previously ignored — every receipt was forced to 1 copy. Pull
+    // it once for the receipt + driver-slip printers below so the UI
+    // setting actually takes effect.
+    const copiesByPrinter = new Map<string, number>();
+    const printerIdsForCopies = [
+      receiptPrinterId,
+      order.location.dispatchPrinterId,
+    ].filter((x): x is string => !!x);
+    if (printerIdsForCopies.length) {
+      const rows = await this.prisma.printer.findMany({
+        where: { id: { in: printerIdsForCopies } },
+        select: { id: true, defaults: true },
+      });
+      for (const r of rows) {
+        const raw = (r.defaults as any)?.copies;
+        const n = Math.max(1, Math.min(10, Number(raw) || 1));
+        copiesByPrinter.set(r.id, n);
+      }
+    }
+
     if (receiptPrinterId) {
       targets.push({
         type: "CUSTOMER_RECEIPT",
         printerId: receiptPrinterId,
         stationId: null,
-        copies: 1,
+        copies: copiesByPrinter.get(receiptPrinterId) ?? 1,
         routeKey: this.makeRouteKey(
           order.location.id,
           receiptPrinterId,
@@ -259,7 +281,7 @@ export class PrintRoutingService {
         type: "DRIVER_SLIP",
         printerId: order.location.dispatchPrinterId,
         stationId: null,
-        copies: 1,
+        copies: copiesByPrinter.get(order.location.dispatchPrinterId) ?? 1,
         routeKey: this.makeRouteKey(
           order.location.id,
           order.location.dispatchPrinterId,

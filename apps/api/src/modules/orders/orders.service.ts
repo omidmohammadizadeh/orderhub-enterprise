@@ -637,13 +637,15 @@ export class OrdersService {
     }
 
     if (newStatus === "ACCEPTED") {
-      // Legacy POS print pipeline — kept until the Bull-queue path is
-      // fully drained. Best-effort, never rolls back the status change.
-      this.printQueue.enqueueForNewOrder(orderId).catch((err: any) => {
-        this.logger.warn(
-          `enqueueForNewOrder failed for ${orderId}: ${err.message}`,
-        );
-      });
+      // Phase AS-2 fully owns the print pipeline now. The legacy
+      // `printQueue.enqueueForNewOrder(orderId)` call used to fire here
+      // as well, which double-created PrintJob rows — one from the
+      // routing service (claimed by the Print Bridge) and a second
+      // identical row from the Bull-queue receipt formatter. Operators
+      // saw it as "first ticket is wrong, second is right" because the
+      // two pipelines used different payload field names and a stale
+      // renderer. Removed; the legacy pipeline stays available for
+      // CANCEL_TICKET (see below) until that flow is ported too.
       // Phase AP-8 — capture the held card authorization. No-op for
       // cash orders / orders without a held PI. Best-effort by design;
       // a capture failure is reported in logs and surfaced to ops, but
