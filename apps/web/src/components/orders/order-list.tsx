@@ -390,6 +390,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Time</Th>
                 <Th>Order #</Th>
                 <Th>Channel</Th>
+                <Th>Brand</Th>
                 <Th>Type</Th>
                 <Th>Customer</Th>
                 <Th>Items</Th>
@@ -508,6 +509,29 @@ function OrderRow({
       </Td>
       <Td>
         <PlatformBadge platform={order.platform} />
+      </Td>
+      <Td>
+        {/* Brand badge — pulls from order.brand which API includes since
+            AS-6. Shows the brand logo thumbnail + name if set, falls
+            back to a quiet em-dash so the column still aligns when an
+            order isn't tied to a specific virtual brand. */}
+        {(order as any).brand ? (
+          <div className="flex items-center gap-1.5">
+            {(order as any).brand.logoUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={(order as any).brand.logoUrl}
+                alt=""
+                className="h-4 w-4 rounded object-cover"
+              />
+            )}
+            <span className="max-w-[120px] truncate text-zinc-700">
+              {(order as any).brand.name}
+            </span>
+          </div>
+        ) : (
+          <span className="text-zinc-400">—</span>
+        )}
       </Td>
       <Td>
         <FulfillmentBadge type={order.fulfillmentType} />

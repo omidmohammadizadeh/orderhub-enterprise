@@ -30,6 +30,12 @@ const ORDER_INCLUDE = {
   items: true,
   statusHistory: { orderBy: { createdAt: "asc" as const } },
   location: { select: { id: true, name: true, brandId: true } },
+  // Surface the order's brand to the dashboard so the board can render
+  // a per-brand badge. Order.brandId is nullable (set when the cart
+  // resolves to a specific virtual brand, null for unattached orders),
+  // and onDelete: SetNull on the relation means the column may
+  // legitimately be present-but-null after a brand is deleted.
+  brand: { select: { id: true, name: true, logoUrl: true } },
 } satisfies Prisma.OrderInclude;
 
 type OrderWithRelations = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
