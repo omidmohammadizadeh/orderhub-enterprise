@@ -196,7 +196,7 @@ export class PrintRoutingService {
           ...header,
           stationName: stationRow?.name ?? null,
           items: bucket.items.map((i) => ({
-            name: i.name,
+            name: this.cleanItemName(i.name),
             quantity: i.quantity,
             modifiers: i.modifiers ?? [],
             notes: i.notes ?? null,
@@ -420,7 +420,7 @@ export class PrintRoutingService {
       receivedAt: order.receivedAt ?? order.createdAt,
       deliveryAddress: this.formatDeliveryAddress(order),
       items: items.map((i) => ({
-        name: i.name,
+        name: this.cleanItemName(i.name),
         quantity: i.quantity,
         modifiers: i.modifiers ?? [],
         notes: i.notes ?? null,
@@ -460,6 +460,25 @@ export class PrintRoutingService {
       paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
       specialInstructions: order.specialInstructions ?? null,
     };
+  }
+
+  // POS / storefront cart writes the OrderItem.name as
+  //   "10\" bolognese (salami, classic) - Note: thin base"
+  // so the KDS parser regex can pull modifiers + note back out without
+  // having to join three columns. The printer payload already carries
+  // modifiers and notes as STRUCTURED fields, so leaving the embedded
+  // suffix in the name causes them to print twice. Strip it here for
+  // print only — never touch the stored value, KDS still depends on
+  // it.
+  private cleanItemName(raw: string | null | undefined): string {
+    if (!raw) return "";
+    let s = String(raw);
+    // Drop trailing " - Note: ..." (case-sensitive, mirrors buildCartItemName).
+    const noteIdx = s.indexOf(" - Note: ");
+    if (noteIdx >= 0) s = s.slice(0, noteIdx);
+    // Drop the last "(...)" group which holds the modifier list.
+    s = s.replace(/\s*\([^()]*\)\s*$/, "");
+    return s.trim();
   }
 
   // Joins the order's address columns into one printable string. Uses
