@@ -308,10 +308,21 @@ export class OrdersService {
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
 
+    // Both POS and the storefront share this create path, but the
+    // Orders dashboard renders the "channel" pill from `platform`.
+    // Hard-coding platform=DIRECT here meant a POS order showed up as
+    // "Direct Online Ordering". Mirror the resolved orderSource into
+    // platform + externalId so POS, DIRECT, and any future PHONE
+    // source each get their own label and traceable ID prefix.
+    const resolvedSource = (dto.orderSource ?? "DIRECT") as
+      | "POS"
+      | "DIRECT"
+      | "PHONE";
+    const idPrefix = resolvedSource.toLowerCase();
     const canonical = {
-      externalId: `direct-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      platform: "DIRECT" as const,
-      orderSource: dto.orderSource ?? ("DIRECT" as const),
+      externalId: `${idPrefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      platform: resolvedSource as any,
+      orderSource: resolvedSource as any,
       integrationSource: "DIRECT" as const,
       viaHubrise: false,
       fulfillmentType: dto.fulfillmentType ?? ("DELIVERY" as const),
