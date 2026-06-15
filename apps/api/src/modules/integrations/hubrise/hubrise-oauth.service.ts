@@ -58,12 +58,12 @@ export class HubRiseOauthService {
     userId: string;
     locationId: string;
   }): string {
-    const clientId = this.config.get<string>("app.thirdParty.hubrise.appId");
+    const clientId = this.config.get<string>("app.platforms.hubrise.appId");
     const authorizeBase = this.config.get<string>(
-      "app.thirdParty.hubrise.oauthAuthorizeUrl",
+      "app.platforms.hubrise.oauthAuthorizeUrl",
     );
     const redirectUri = this.config.get<string>(
-      "app.thirdParty.hubrise.redirectUri",
+      "app.platforms.hubrise.redirectUri",
     );
     if (!clientId || !authorizeBase || !redirectUri) {
       throw new BadRequestException(
@@ -169,15 +169,15 @@ export class HubRiseOauthService {
   private async exchangeCodeForToken(
     code: string,
   ): Promise<HubRiseTokenResponse> {
-    const clientId = this.config.get<string>("app.thirdParty.hubrise.appId");
+    const clientId = this.config.get<string>("app.platforms.hubrise.appId");
     const clientSecret = this.config.get<string>(
-      "app.thirdParty.hubrise.appSecret",
+      "app.platforms.hubrise.appSecret",
     );
     const tokenUrl = this.config.get<string>(
-      "app.thirdParty.hubrise.oauthTokenUrl",
+      "app.platforms.hubrise.oauthTokenUrl",
     );
     const redirectUri = this.config.get<string>(
-      "app.thirdParty.hubrise.redirectUri",
+      "app.platforms.hubrise.redirectUri",
     );
 
     // HubRise wants Basic auth + form-encoded body, per the docs.
@@ -214,7 +214,7 @@ export class HubRiseOauthService {
     accessToken: string,
     webhookUrl: string,
   ): Promise<void> {
-    const baseUrl = this.config.get<string>("app.thirdParty.hubrise.baseUrl");
+    const baseUrl = this.config.get<string>("app.platforms.hubrise.baseUrl");
     const res = await fetch(`${baseUrl}/webhooks`, {
       method: "POST",
       headers: {
