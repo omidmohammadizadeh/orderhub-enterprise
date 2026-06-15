@@ -168,8 +168,18 @@ export class HubRiseOauthController {
       return { received: true, reason: "no_location_id" };
     }
 
+    // Match case-insensitively. HubRise sends lowercase ids in the
+    // webhook payload but the operator may have pasted the version they
+    // see in HubRise's dashboard (which is rendered uppercase). Either
+    // shape is the same id; we shouldn't drop the order over caps.
     const location = await this.prisma.location.findFirst({
-      where: { hubriseLocationId, deletedAt: null },
+      where: {
+        hubriseLocationId: {
+          equals: hubriseLocationId.trim(),
+          mode: "insensitive",
+        },
+        deletedAt: null,
+      },
       select: { id: true },
     });
     if (!location) {
