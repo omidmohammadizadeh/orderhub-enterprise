@@ -127,61 +127,103 @@ export function renderToEscPos(
   }
   hr();
 
-  // Totals (only on receipts).
+  // Totals (only on receipts). Field names below match the API's
+  // ReceiptPayload contract (apps/api/.../formatters/receipt.formatter.ts);
+  // earlier versions of this renderer used `delivery`/`tax`/`address`
+  // and silently dropped values because the keys never matched.
   if (typeof payload.total === "number") {
     if (payload.subtotal !== undefined) {
-      write(pad("Subtotal", width - 10) + padRight(payload.subtotal.toFixed(2), 10));
+      write(pad("Subtotal", width - 10) + padRight(Number(payload.subtotal).toFixed(2), 10));
       newline();
     }
-    if (payload.delivery > 0) {
-      write(pad("Delivery", width - 10) + padRight(payload.delivery.toFixed(2), 10));
+    if (Number(payload.deliveryFee ?? payload.delivery ?? 0) > 0) {
+      const fee = Number(payload.deliveryFee ?? payload.delivery);
+      write(pad("Delivery fee", width - 10) + padRight(fee.toFixed(2), 10));
       newline();
     }
-    if (payload.discount > 0) {
-      write(pad("Discount", width - 10) + padRight((-payload.discount).toFixed(2), 10));
+    if (Number(payload.discount ?? 0) > 0) {
+      write(pad("Discount", width - 10) + padRight((-Number(payload.discount)).toFixed(2), 10));
       newline();
     }
-    if (payload.tax > 0) {
-      write(pad("Tax", width - 10) + padRight(payload.tax.toFixed(2), 10));
+    if (Number(payload.taxAmount ?? payload.tax ?? 0) > 0) {
+      const tax = Number(payload.taxAmount ?? payload.tax);
+      write(pad("Tax", width - 10) + padRight(tax.toFixed(2), 10));
       newline();
     }
     out.push(...boldOn());
-    write(pad("TOTAL", width - 10) + padRight(payload.total.toFixed(2), 10));
+    write(pad("TOTAL", width - 10) + padRight(Number(payload.total).toFixed(2), 10));
     newline();
     out.push(...boldOff());
   }
 
-  // Delivery address (driver slip).
-  if (payload.address) {
+  // Customer contact + delivery address. The API sends
+  // `deliveryAddress` as a single pre-joined string for receipts/kitchen
+  // tickets; driver slips may also include a structured `address` object
+  // — both shapes are accepted so older payloads still print.
+  const addressString =
+    typeof payload.deliveryAddress === "string"
+      ? payload.deliveryAddress
+      : null;
+  const addressObject =
+    payload.address && typeof payload.address === "object"
+      ? payload.address
+      : null;
+  if (payload.customerPhone || addressString || addressObject) {
     hr();
     out.push(...boldOn());
-    write("DELIVER TO");
+    write(payload.fulfillmentType === "DELIVERY" ? "DELIVER TO" : "CUSTOMER");
     newline();
     out.push(...boldOff());
+    if (payload.customerName) {
+      write(payload.customerName);
+      newline();
+    }
     if (payload.customerPhone) {
       write(payload.customerPhone);
       newline();
     }
-    if (payload.address.line1) {
-      write(payload.address.line1);
+    if (addressString) {
+      write(addressString);
       newline();
-    }
-    if (payload.address.line2) {
-      write(payload.address.line2);
-      newline();
-    }
-    if (payload.address.city || payload.address.postcode) {
-      write(
-        [payload.address.city, payload.address.postcode]
-          .filter(Boolean)
-          .join(", "),
-      );
-      newline();
+    } else if (addressObject) {
+      if (addressObject.line1) {
+        write(addressObject.line1);
+        newline();
+      }
+      if (addressObject.line2) {
+        write(addressObject.line2);
+        newline();
+      }
+      const cityLine = [addressObject.city, addressObject.postcode]
+        .filter(Boolean)
+        .join(", ");
+      if (cityLine) {
+        write(cityLine);
+        newline();
+      }
     }
   }
 
-  // Payment status footer.
-  if (payload.paymentMethod) {
+  // Order-level note (POS "delivery instructions" / customer note).
+  if (payload.specialInstructions) {
+    hr();
+    out.push(...boldOn());
+    write("NOTE");
+    newline();
+    out.push(...boldOff());
+    write(String(payload.specialInstructions));
+    newline();
+  }
+
+  // Payment banner. Server pre-renders this as `paymentLabel` so every
+  // client gets identical wording (PAID/CASH ON HANDOVER/etc).
+  if (payload.paymentLabel) {
+    hr();
+    out.push(...alignCenter(), ...boldOn());
+    write(String(payload.paymentLabel));
+    newline();
+    out.push(...boldOff(), ...alignLeft());
+  } else if (payload.paymentMethod) {
     hr();
     write(`Payment: ${payload.paymentMethod} (${payload.paymentStatus ?? ""})`);
     newline();

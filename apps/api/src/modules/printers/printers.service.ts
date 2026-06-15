@@ -27,9 +27,36 @@ export class PrintersService {
     // Phase AS-1 — tenantId is now NOT NULL on printers (matches Prisma
     // schema). Wire it from the authenticated caller rather than
     // hoping the data blob carried it.
-    return this.prisma.printer.create({
+    const printer = await this.prisma.printer.create({
       data: { ...data, locationId, tenantId } as any,
     });
+
+    // Auto-bind empty location slots. A first-time setup typically has
+    // ONE printer per location; without this the operator has to dig
+    // into Location settings to nominate it as the receipt / dispatch
+    // printer, and the reprint flow silently does nothing because the
+    // routing engine has no target. Only fills slots that are still
+    // null — never steals a binding the operator already set.
+    const type = (data as any).type as string | undefined;
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { receiptPrinterId: true, dispatchPrinterId: true },
+    });
+    const patch: { receiptPrinterId?: string; dispatchPrinterId?: string } = {};
+    if (type === "RECEIPT" && !loc?.receiptPrinterId) {
+      patch.receiptPrinterId = printer.id;
+    }
+    if (type === "DISPATCH" && !loc?.dispatchPrinterId) {
+      patch.dispatchPrinterId = printer.id;
+    }
+    if (Object.keys(patch).length) {
+      await this.prisma.location.update({
+        where: { id: locationId },
+        data: patch,
+      });
+    }
+
+    return printer;
   }
 
   async update(

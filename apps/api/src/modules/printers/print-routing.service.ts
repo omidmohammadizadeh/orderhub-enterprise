@@ -187,16 +187,35 @@ export class PrintRoutingService {
       });
     }
 
-    // Customer receipt — one per order if a receipt printer is set.
-    if (order.location.receiptPrinterId) {
+    // Customer receipt — one per order. Prefer the explicit binding on
+    // Location; for first-time setups where the operator hasn't
+    // nominated one yet, fall back to any active receipt-capable
+    // printer at the location. Without this fallback a one-printer
+    // shop's reprint button silently produces zero targets and the
+    // operator has no way to know why.
+    let receiptPrinterId = order.location.receiptPrinterId;
+    if (!receiptPrinterId) {
+      const fallback = await this.prisma.printer.findFirst({
+        where: {
+          locationId: order.location.id,
+          isActive: true,
+          deletedAt: null,
+          supportsReceipts: true,
+        },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      });
+      receiptPrinterId = fallback?.id ?? null;
+    }
+    if (receiptPrinterId) {
       targets.push({
         type: "CUSTOMER_RECEIPT",
-        printerId: order.location.receiptPrinterId,
+        printerId: receiptPrinterId,
         stationId: null,
         copies: 1,
         routeKey: this.makeRouteKey(
           order.location.id,
-          order.location.receiptPrinterId,
+          receiptPrinterId,
           null,
         ),
         payload: this.buildReceiptPayload(order, items),
