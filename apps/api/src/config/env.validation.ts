@@ -87,8 +87,19 @@ const envSchema = z.object({
   JUST_EAT_WEBHOOK_SECRET: z.string().optional(),
   JUST_EAT_BASE_URL: z.string().url().default("https://uk.api.just-eat.io"),
 
+  // Phase AU — HubRise OAuth client credentials. Either the legacy
+  // HUBRISE_APP_* names or the new HUBRISE_CLIENT_* names work; the
+  // app config resolves whichever is set. Optional so deploys without
+  // HubRise enabled still boot.
   HUBRISE_APP_ID: z.string().optional(),
   HUBRISE_APP_SECRET: z.string().optional(),
+  HUBRISE_CLIENT_ID: z.string().optional(),
+  HUBRISE_CLIENT_SECRET: z.string().optional(),
+  HUBRISE_BASE_URL: z.string().url().optional(),
+  HUBRISE_OAUTH_AUTHORIZE_URL: z.string().url().optional(),
+  HUBRISE_OAUTH_TOKEN_URL: z.string().url().optional(),
+  HUBRISE_REDIRECT_URI: z.string().url().optional(),
+  HUBRISE_WEBHOOK_SECRET: z.string().optional(),
 
   // Email
   RESEND_API_KEY: z.string().optional(),

@@ -44,8 +44,40 @@ export const appConfig = registerAs("app", () => ({
       baseUrl: process.env.JUST_EAT_BASE_URL ?? "https://uk.api.just-eat.io",
     },
     hubrise: {
-      appId: process.env.HUBRISE_APP_ID ?? "",
-      appSecret: process.env.HUBRISE_APP_SECRET ?? "",
+      // Phase AU — HubRise OAuth client. HubRise's dashboard calls
+      // these "Application ID" and "Application Secret"; the OAuth
+      // spec calls them client_id / client_secret. Same values.
+      //
+      // appId / appSecret stay readable from either env var name so
+      // existing deploys with the older naming don't break.
+      appId:
+        process.env.HUBRISE_CLIENT_ID ??
+        process.env.HUBRISE_APP_ID ??
+        "",
+      appSecret:
+        process.env.HUBRISE_CLIENT_SECRET ??
+        process.env.HUBRISE_APP_SECRET ??
+        "",
+      // OAuth + REST endpoints. Defaulted so a fresh deploy doesn't
+      // need to set them — only override for sandbox / staging.
+      baseUrl: process.env.HUBRISE_BASE_URL ?? "https://api.hubrise.com/v1",
+      oauthAuthorizeUrl:
+        process.env.HUBRISE_OAUTH_AUTHORIZE_URL ??
+        "https://manager.hubrise.com/oauth2/v1/authorize",
+      oauthTokenUrl:
+        process.env.HUBRISE_OAUTH_TOKEN_URL ??
+        "https://manager.hubrise.com/oauth2/v1/token",
+      // Where HubRise redirects after the operator approves the
+      // OAuth consent. Must match what we registered in the HubRise
+      // app config. Defaulted to the prod API host; staging deploys
+      // override.
+      redirectUri:
+        process.env.HUBRISE_REDIRECT_URI ??
+        "https://orderhub-api-0re6.onrender.com/api/v1/integrations/hubrise/callback",
+      // Shared secret used to verify the X-Hubrise-Signature header
+      // on inbound webhooks. Optional — when blank we accept all
+      // signatures (dev convenience) but log a warning each time.
+      webhookSecret: process.env.HUBRISE_WEBHOOK_SECRET ?? "",
     },
   },
 
