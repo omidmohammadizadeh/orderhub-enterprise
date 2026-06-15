@@ -536,7 +536,16 @@ function OrderRow({
       <Td>
         {/* OrderActions handles stopPropagation internally so clicks
             here don't reopen the drawer. */}
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
+        {/* flex-nowrap + whitespace-nowrap so all action buttons + the
+            reprint icon stay on one row even when the row carries 3
+            status transitions (e.g. Out for delivery + Send to dispatch
+            + Cancel). The Td already overflows the table cell on small
+            viewports; we accept horizontal table scroll over a wrapped
+            broken-looking actions column. */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="flex flex-nowrap items-center gap-1.5 whitespace-nowrap"
+        >
           <OrderActions
             orderId={order.id}
             status={order.status}

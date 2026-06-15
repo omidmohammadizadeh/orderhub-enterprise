@@ -99,6 +99,27 @@ export class PrintRoutingService {
     });
     if (!order || !order.location) return [];
 
+    // Pull richer header context once so every payload (receipt, kitchen,
+    // driver slip) renders the brand banner + shop address consistently.
+    // Cheap: one indexed lookup per print, payload size is tiny.
+    const [brand, locationFull] = await Promise.all([
+      this.prisma.brand.findUnique({
+        where: { id: order.location.brandId },
+        select: { name: true, logoUrl: true },
+      }),
+      this.prisma.location.findUnique({
+        where: { id: order.location.id },
+        select: { name: true, address: true, phone: true },
+      }),
+    ]);
+    const header = {
+      brandName: brand?.name ?? null,
+      brandLogoUrl: brand?.logoUrl ?? null,
+      locationName: locationFull?.name ?? null,
+      locationAddress: this.formatAddressJson(locationFull?.address),
+      locationPhone: locationFull?.phone ?? null,
+    };
+
     const items: OrderItemForRouting[] = (order.items as any[]).map((i) => ({
       menuItemId: i.menuItemId,
       categoryId: null, // resolved per-item below
@@ -111,7 +132,7 @@ export class PrintRoutingService {
 
     // Pull all routing rows in three indexed lookups. Cheaper than
     // walking N items × N joins.
-    const [itemRoutes, categoryRoutes, groupRoutes, brand] = await Promise.all([
+    const [itemRoutes, categoryRoutes, groupRoutes, brandRouting] = await Promise.all([
       this.fetchItemRoutes(items),
       this.fetchCategoryRoutesForItems(items),
       this.fetchModifierGroupRoutes(items),
@@ -131,7 +152,7 @@ export class PrintRoutingService {
         itemRoutes,
         categoryRoutes,
         groupRoutes,
-        brandDefaultStationId: brand?.defaultStationId ?? null,
+        brandDefaultStationId: brandRouting?.defaultStationId ?? null,
         locationDefaultStationId: order.location.defaultKitchenStationId ?? null,
       });
       const key = stationId ?? "__unrouted__";
@@ -172,6 +193,7 @@ export class PrintRoutingService {
           bucket.stationId,
         ),
         payload: {
+          ...header,
           stationName: stationRow?.name ?? null,
           items: bucket.items.map((i) => ({
             name: i.name,
@@ -180,8 +202,14 @@ export class PrintRoutingService {
             notes: i.notes ?? null,
           })),
           orderNumber: order.orderNumber ?? order.displayId ?? null,
+          displayId: order.displayId ?? null,
+          platform: order.platform ?? null,
+          orderSource: order.orderSource ?? null,
           customerName: order.customerName ?? null,
+          customerPhone: order.customerPhone ?? null,
           fulfillmentType: order.fulfillmentType,
+          deliveryAddress: this.formatDeliveryAddress(order),
+          specialInstructions: order.specialInstructions ?? null,
           receivedAt: order.receivedAt ?? order.createdAt,
         },
       });
@@ -218,7 +246,7 @@ export class PrintRoutingService {
           receiptPrinterId,
           null,
         ),
-        payload: this.buildReceiptPayload(order, items),
+        payload: this.buildReceiptPayload(order, items, header),
       });
     }
 
@@ -237,7 +265,7 @@ export class PrintRoutingService {
           order.location.dispatchPrinterId,
           null,
         ),
-        payload: this.buildDriverSlipPayload(order),
+        payload: this.buildDriverSlipPayload(order, header),
       });
     }
 
@@ -371,32 +399,55 @@ export class PrintRoutingService {
     return `loc:${locationId}|printer:${printerId ?? "_"}|station:${stationId ?? "_"}`;
   }
 
-  private buildReceiptPayload(order: any, items: OrderItemForRouting[]) {
+  private buildReceiptPayload(
+    order: any,
+    items: OrderItemForRouting[],
+    header: HeaderContext = EMPTY_HEADER,
+  ) {
     return {
+      ...header,
       orderNumber: order.orderNumber ?? order.displayId ?? null,
+      displayId: order.displayId ?? null,
+      // Order origin shown above the items so the kitchen instantly knows
+      // whether to honour Uber's flow vs DIRECT etc. Both fields ship —
+      // platform is the cross-channel taxonomy, orderSource is the
+      // operational source (POS / DIRECT / PLATFORM).
+      platform: order.platform ?? null,
+      orderSource: order.orderSource ?? null,
       customerName: order.customerName ?? null,
+      customerPhone: order.customerPhone ?? null,
       fulfillmentType: order.fulfillmentType,
       receivedAt: order.receivedAt ?? order.createdAt,
+      deliveryAddress: this.formatDeliveryAddress(order),
       items: items.map((i) => ({
         name: i.name,
         quantity: i.quantity,
         modifiers: i.modifiers ?? [],
+        notes: i.notes ?? null,
       })),
       subtotal: Number(order.subtotal ?? 0),
-      tax: Number(order.taxAmount ?? 0),
-      delivery: Number(order.deliveryFee ?? 0),
+      taxAmount: Number(order.taxAmount ?? 0),
+      deliveryFee: Number(order.deliveryFee ?? 0),
       discount: Number(order.discount ?? 0),
       total: Number(order.total ?? 0),
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
+      paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
+      specialInstructions: order.specialInstructions ?? null,
     };
   }
 
-  private buildDriverSlipPayload(order: any) {
+  private buildDriverSlipPayload(order: any, header: HeaderContext = EMPTY_HEADER) {
     return {
+      ...header,
       orderNumber: order.orderNumber ?? order.displayId ?? null,
+      displayId: order.displayId ?? null,
+      platform: order.platform ?? null,
+      orderSource: order.orderSource ?? null,
       customerName: order.customerName ?? null,
       customerPhone: order.customerPhone ?? null,
+      fulfillmentType: order.fulfillmentType,
+      deliveryAddress: this.formatDeliveryAddress(order),
       address: {
         line1: order.addressLine1 ?? null,
         line2: order.addressLine2 ?? null,
@@ -406,6 +457,75 @@ export class PrintRoutingService {
       total: Number(order.total ?? 0),
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
+      paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
+      specialInstructions: order.specialInstructions ?? null,
     };
   }
+
+  // Joins the order's address columns into one printable string. Uses
+  // `addressLine1` / `addressLine2` / `city` / `postcode` from the Order
+  // row (POS path) and falls back to the legacy `deliveryAddress` JSON
+  // blob (older platform imports).
+  private formatDeliveryAddress(order: any): string | null {
+    const parts = [
+      order.addressLine1,
+      order.addressLine2,
+      order.city,
+      order.postcode,
+    ].filter((s) => typeof s === "string" && s.trim().length > 0);
+    if (parts.length) return parts.join(", ");
+    const blob = order.deliveryAddress as Record<string, any> | null;
+    if (blob) {
+      const more = [blob.line1, blob.line2, blob.city, blob.postcode].filter(
+        (s) => typeof s === "string" && s.trim().length > 0,
+      );
+      if (more.length) return more.join(", ");
+    }
+    return null;
+  }
+
+  // Location.address is free-form JSON. Most rows store
+  // { line1, line2, city, postcode } but older imports may differ.
+  formatAddressJson(addr: any): string | null {
+    if (!addr || typeof addr !== "object") return null;
+    const parts = [addr.line1, addr.line2, addr.city, addr.postcode].filter(
+      (s) => typeof s === "string" && s.trim().length > 0,
+    );
+    return parts.length ? parts.join(", ") : null;
+  }
+}
+
+type HeaderContext = {
+  brandName: string | null;
+  brandLogoUrl: string | null;
+  locationName: string | null;
+  locationAddress: string | null;
+  locationPhone: string | null;
+};
+const EMPTY_HEADER: HeaderContext = {
+  brandName: null,
+  brandLogoUrl: null,
+  locationName: null,
+  locationAddress: null,
+  locationPhone: null,
+};
+
+// Mirrors apps/api/.../formatters/receipt.formatter.ts:paymentLabelFor.
+// Keeps the kitchen-banner wording identical across every print client.
+function paymentLabelFor(
+  method: string | null | undefined,
+  status: string | null | undefined,
+): string {
+  if (method === "CARD") {
+    if (status === "PAID" || status === "AUTHORIZED") return "*** PAID (CARD) ***";
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+      return "*** REFUNDED ***";
+    return "*** CARD NOT PAID ***";
+  }
+  if (method === "CASH") {
+    if (status === "PAID") return "*** PAID (CASH) ***";
+    return "*** CASH ON HANDOVER ***";
+  }
+  if (status === "PAID") return "*** PAID ***";
+  return "*** UNPAID ***";
 }

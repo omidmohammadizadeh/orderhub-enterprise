@@ -86,11 +86,53 @@ export function renderToEscPos(
     return renderTestPrint(payload, opts);
   }
 
-  // Header.
+  // ── Restaurant header ────────────────────────────────────────────
+  // Brand name in double-size bold at the very top, then a small line
+  // for the location address + phone. This is what a real receipt
+  // looks like — the kitchen instantly knows which brand the ticket
+  // belongs to when running multiple brands out of one shop.
+  out.push(...alignCenter());
+  if (payload.brandName) {
+    out.push(...boldOn(), ...doubleSizeOn());
+    write(String(payload.brandName));
+    newline();
+    out.push(...doubleSizeOff(), ...boldOff());
+  }
+  if (payload.locationName && payload.locationName !== payload.brandName) {
+    write(String(payload.locationName));
+    newline();
+  }
+  if (payload.locationAddress) {
+    write(String(payload.locationAddress));
+    newline();
+  }
+  if (payload.locationPhone) {
+    write(`Tel: ${payload.locationPhone}`);
+    newline();
+  }
+  out.push(...alignLeft());
+  if (payload.brandName || payload.locationName || payload.locationAddress) {
+    hr();
+  }
+
+  // Order source banner (DIRECT / UBER_EATS / DELIVEROO / JUST_EAT / POS).
+  const sourceLabel = friendlySource(payload.orderSource, payload.platform);
+  if (sourceLabel) {
+    out.push(...alignCenter(), ...boldOn());
+    write(sourceLabel);
+    newline();
+    out.push(...boldOff(), ...alignLeft());
+  }
+
+  // Big order number — always shown, even if the payload only carries
+  // a displayId.
+  const orderRef =
+    payload.orderNumber ?? payload.displayId ?? payload.orderId ?? null;
   out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn());
-  write(payload.orderNumber ? `#${payload.orderNumber}` : "ORDER");
+  write(orderRef ? `#${orderRef}` : "ORDER");
   newline();
   out.push(...doubleSizeOff(), ...boldOff(), ...alignLeft());
+
   if (payload.customerName) {
     write(`Customer: ${payload.customerName}`);
     newline();
@@ -236,6 +278,25 @@ export function renderToEscPos(
   if (opts.openCashDrawer) out.push(...openCashDrawer());
 
   return Buffer.from(out);
+}
+
+// Maps OrderSource / OrderPlatform enums to a human-readable banner.
+// Returns null if neither field is known so we don't print "UNKNOWN".
+function friendlySource(
+  source: string | null | undefined,
+  platform: string | null | undefined,
+): string | null {
+  const s = source ?? platform;
+  if (!s) return null;
+  const map: Record<string, string> = {
+    DIRECT: "DIRECT ONLINE ORDER",
+    POS: "POS",
+    PLATFORM: "MARKETPLACE",
+    UBER_EATS: "UBER EATS",
+    DELIVEROO: "DELIVEROO",
+    JUST_EAT: "JUST EAT",
+  };
+  return map[s] ?? s.replace(/_/g, " ");
 }
 
 function renderTestPrint(payload: any, opts: RenderOptions): Buffer {
