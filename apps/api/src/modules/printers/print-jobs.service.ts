@@ -156,6 +156,18 @@ export class PrintJobsService {
           },
         });
         created.push(row.id);
+        // TEMP DEBUG (remove once receipt template is confirmed correct
+        // in production). Dumps every field the print bridge will see
+        // for this job — lets us tell at a glance whether the routing
+        // is shipping the brand banner, delivery address, fee, notes,
+        // etc., or whether the renderer is dropping them.
+        this.logger.log(
+          `PrintJob ${row.id} type=${row.type} payload-keys=[${Object.keys(
+            t.payload ?? {},
+          ).join(",")}] payload-preview=${JSON.stringify(
+            scrubPayloadForLog(t.payload),
+          )}`,
+        );
         // Phase AS-2 — surface the new job to listening dashboards.
         this.socket.emitToLocation(
           order.locationId,
@@ -593,4 +605,23 @@ export class PrintJobsService {
     }
     return job;
   }
+}
+
+// TEMP DEBUG helper — drops verbose fields (items array, full address
+// blobs) and limits everything else so the log line stays readable.
+// Remove when receipt content is confirmed correct.
+function scrubPayloadForLog(p: any): any {
+  if (!p || typeof p !== "object") return p;
+  const out: any = {};
+  for (const k of Object.keys(p)) {
+    const v = (p as any)[k];
+    if (k === "items" && Array.isArray(v)) {
+      out.items = `[${v.length} items]`;
+    } else if (typeof v === "string" && v.length > 80) {
+      out[k] = v.slice(0, 80) + "…";
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
 }
