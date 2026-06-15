@@ -21,5 +21,9 @@ import { OrdersModule } from "../orders/orders.module";
     JustEatAdapter,
     HubRiseAdapter,
   ],
+  // Export ingestion so the HubRise module's global webhook receiver
+  // can dispatch into it without duplicating the adapter + signature
+  // + idempotency chain.
+  exports: [WebhookIngestionService],
 })
 export class WebhooksModule {}

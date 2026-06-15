@@ -10,28 +10,40 @@
 //       then 302-redirects the operator back into the dashboard.
 
 import {
+  BadRequestException,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Post,
   Query,
+  RawBodyRequest,
+  Req,
   Res,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Public } from "../../../common/decorators/public.decorator";
+import { BillingExempt } from "../../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { WebhookIngestionService } from "../../webhooks/webhook-ingestion.service";
 import { HubRiseOauthService } from "./hubrise-oauth.service";
 
 @ApiTags("hubrise")
 @Controller({ path: "integrations/hubrise", version: "1" })
 export class HubRiseOauthController {
+  private readonly logger = new Logger(HubRiseOauthController.name);
+
   constructor(
     private readonly oauth: HubRiseOauthService,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly ingestion: WebhookIngestionService,
   ) {}
 
   @Get("connect")
@@ -101,6 +113,93 @@ export class HubRiseOauthController {
         err?.message ?? "Unknown error",
       );
       return res.redirect(back.toString());
+    }
+  }
+
+  // ── Global webhook receiver ────────────────────────────────────────
+  //
+  // HubRise sends EVERY order/catalog event to a single URL registered
+  // in the partner app. The payload carries `location_id` (HubRise's
+  // id), which we resolve to our internal Location via the
+  // `hubriseLocationId` column. From there the event flows through the
+  // same WebhookIngestionService chain as the per-location URLs.
+  //
+  // Two paths land on the same logic so we don't have to ask the
+  // operator to re-register a URL they've already pasted into HubRise:
+  //
+  //   POST /v1/integrations/hubrise/webhook   ← preferred
+  //   POST /v1/integrations/hubrise/callback  ← backward compat
+  //
+  // The GET version of /callback (just above) is the OAuth redirect
+  // landing — completely separate flow.
+
+  @Public()
+  @BillingExempt()
+  @Post(["webhook", "callback"])
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "HubRise global webhook receiver" })
+  async receiveWebhook(@Req() req: RawBodyRequest<Request>) {
+    const rawBody = req.rawBody;
+    if (!rawBody) {
+      throw new BadRequestException(
+        "Raw body unavailable — webhook bridge misconfigured",
+      );
+    }
+
+    // Parse only enough to figure out which Location this belongs to.
+    // The full payload goes through the existing ingestion path which
+    // re-parses internally; we let it do the canonical work so a
+    // single bug here can't desync the two interpretations.
+    let parsed: Record<string, any>;
+    try {
+      parsed = JSON.parse(rawBody.toString("utf8"));
+    } catch {
+      throw new BadRequestException("Webhook body is not valid JSON");
+    }
+    const hubriseLocationId: string | undefined =
+      parsed?.location_id ?? parsed?.resource?.location_id;
+    if (!hubriseLocationId) {
+      this.logger.warn(
+        "HubRise webhook arrived without a location_id field — ignoring",
+      );
+      // 200 so HubRise stops retrying. Any non-2xx triggers their
+      // exponential-backoff retry queue, which would just keep
+      // pinging this same bad payload.
+      return { received: true, reason: "no_location_id" };
+    }
+
+    const location = await this.prisma.location.findFirst({
+      where: { hubriseLocationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!location) {
+      this.logger.warn(
+        `HubRise webhook for hubriseLocationId=${hubriseLocationId} but no Location is connected — ignoring`,
+      );
+      // Same as above: 200 to stop retries. If the operator connects
+      // later, they can replay from HubRise's webhook log.
+      return { received: true, reason: "location_not_connected" };
+    }
+
+    try {
+      const result = await this.ingestion.ingest({
+        platform: "HUBRISE",
+        locationId: location.id,
+        rawBody,
+        headers: req.headers as Record<string, string | string[] | undefined>,
+      });
+      this.logger.log(
+        `HubRise webhook → location ${location.id} → ${JSON.stringify(result)}`,
+      );
+      return { received: true, ...result };
+    } catch (err: any) {
+      this.logger.error(
+        `HubRise webhook ingestion failed: ${err?.message}`,
+      );
+      // Rethrow only for genuine 5xx; auth/signature failures already
+      // bubble up as 401/403 with a meaningful body so HubRise's log
+      // tab tells the operator what went wrong.
+      throw err;
     }
   }
 }
