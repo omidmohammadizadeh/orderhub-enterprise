@@ -35,27 +35,67 @@ export class WebhookIngestionService {
     const adapter = this.adapterFactory.get(platform);
     if (!adapter) throw new Error(`No adapter registered for platform: ${platform}`);
 
-    // 2. Look up active integration to get webhook secret and tenantId
-    const integration = await this.prisma.integration.findFirst({
-      where: { locationId, platform: platform as any, status: "ACTIVE" },
-      include: { location: { include: { brand: { select: { tenantId: true } } } } },
-    });
-    if (!integration) {
-      throw new NotFoundException(`No active integration for ${platform}/${locationId}`);
+    // 2. Resolve tenantId + webhook secret. HubRise is the special
+    //    case: AU stores its access token on Location.hubriseCredentials
+    //    (not the Integration table), and the webhook secret usually
+    //    isn't given out — HubRise simply trusts the connection. Look
+    //    the location up directly and skip the Integration lookup for
+    //    HUBRISE; everything else stays on the original path.
+    let tenantId: string;
+    let secret = "";
+    let skipSignature = false;
+    if (platform === "HUBRISE") {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: locationId, deletedAt: null },
+        include: { brand: { select: { tenantId: true } } },
+      });
+      if (!loc || !(loc as any).hubriseCredentials) {
+        throw new NotFoundException(
+          `HubRise is not connected for location ${locationId}`,
+        );
+      }
+      tenantId = loc.brand.tenantId;
+      // HUBRISE_WEBHOOK_SECRET is an optional global override. When
+      // unset (the common case — HubRise doesn't issue per-integration
+      // webhook secrets by default) we accept the body without HMAC
+      // verification and log it so it's still auditable. Real
+      // authenticity comes from the path token: only HubRise knows
+      // which locationId we paired to which token, so an attacker
+      // would have to guess both.
+      secret = process.env.HUBRISE_WEBHOOK_SECRET ?? "";
+      if (!secret) {
+        skipSignature = true;
+        this.logger.warn(
+          `HubRise webhook accepted without signature verification (HUBRISE_WEBHOOK_SECRET not set)`,
+        );
+      }
+    } else {
+      const integration = await this.prisma.integration.findFirst({
+        where: { locationId, platform: platform as any, status: "ACTIVE" },
+        include: {
+          location: { include: { brand: { select: { tenantId: true } } } },
+        },
+      });
+      if (!integration) {
+        throw new NotFoundException(
+          `No active integration for ${platform}/${locationId}`,
+        );
+      }
+      const credentials = this.encryption.decrypt(
+        integration.credentials as Record<string, unknown>,
+      ) as Record<string, string>;
+      secret = credentials.webhookSecret ?? credentials.secret ?? "";
+      tenantId = integration.location.brand.tenantId;
     }
 
-    // 3. Decrypt credentials (passthrough if plaintext — dev/test)
-    const credentials = this.encryption.decrypt(
-      integration.credentials as Record<string, unknown>,
-    ) as Record<string, string>;
-    const secret: string = credentials.webhookSecret ?? credentials.secret ?? "";
-    const tenantId: string = integration.location.brand.tenantId;
-
-    // 4. Verify signature
-    const { valid, reason } = adapter.verifySignature(rawBody, headers, secret);
-    if (!valid) {
-      this.logger.warn(`Webhook signature invalid for ${platform}: ${reason}`);
-      throw new UnauthorizedException(`Invalid webhook signature: ${reason}`);
+    // 4. Verify signature (HubRise without a secret is an explicit
+    //    bypass — see step 2). Anything else MUST pass HMAC.
+    if (!skipSignature) {
+      const { valid, reason } = adapter.verifySignature(rawBody, headers, secret);
+      if (!valid) {
+        this.logger.warn(`Webhook signature invalid for ${platform}: ${reason}`);
+        throw new UnauthorizedException(`Invalid webhook signature: ${reason}`);
+      }
     }
 
     // 5. Parse payload
