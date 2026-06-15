@@ -182,6 +182,9 @@ function GeneralTab({
   const [hubriseCatalogId, setHubriseCatalogId] = useState(
     (location as any)?.hubriseCatalogId ?? "",
   );
+  const [hubriseLocationId, setHubriseLocationId] = useState(
+    (location as any)?.hubriseLocationId ?? "",
+  );
   const hubriseConnected = !!(location as any)?.hubriseConnected;
   // Inline state for the Connect button so the operator sees what's
   // happening without having to scroll to the modal-level error toast.
@@ -273,6 +276,7 @@ function GeneralTab({
           ? { hubriseAccessToken: hubriseAccessToken.trim() }
           : {}),
         hubriseCatalogId: hubriseCatalogId || null,
+        hubriseLocationId: hubriseLocationId || null,
       } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["locations"] });
@@ -518,6 +522,16 @@ function GeneralTab({
               value={hubriseCatalogId}
               onChange={setHubriseCatalogId}
               placeholder="cat_…"
+            />
+          </Field>
+          <Field
+            label="HubRise Location ID"
+            help="HubRise's own location identifier — required for menu publish, order status update, inventory 86, and pause/resume. Auto-filled when you Connect with HubRise."
+          >
+            <Input
+              value={hubriseLocationId}
+              onChange={setHubriseLocationId}
+              placeholder="loc_…"
             />
           </Field>
           </div>

@@ -52,6 +52,11 @@ export interface UpdateLocationDto {
   // normal "I only want to change other fields" path).
   hubriseAccessToken?: string | null;
   hubriseCatalogId?: string | null;
+  // HubRise's own location id — needed for menu publish, order status
+  // PATCH, inventory 86, and pause/resume. Distinct from our internal
+  // `locationId`. Manual paste users get a field; OAuth populates it
+  // automatically.
+  hubriseLocationId?: string | null;
   stripeConnectedAccountId?: string | null;
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
@@ -438,6 +443,9 @@ export class LocationsService {
         ...(hubriseCredentialsPatch ?? {}),
         ...(dto.hubriseCatalogId !== undefined && {
           hubriseCatalogId: dto.hubriseCatalogId || null,
+        }),
+        ...(dto.hubriseLocationId !== undefined && {
+          hubriseLocationId: dto.hubriseLocationId || null,
         }),
         ...(dto.settings !== undefined && {
           // Shallow merge — preserve unrelated keys other tabs persisted.

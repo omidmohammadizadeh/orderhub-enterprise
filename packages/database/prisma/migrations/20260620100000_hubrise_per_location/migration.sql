@@ -10,4 +10,5 @@
 ALTER TABLE "locations"
   ADD COLUMN IF NOT EXISTS "hubriseCredentials" JSONB,
   ADD COLUMN IF NOT EXISTS "hubriseCatalogId"   TEXT,
+  ADD COLUMN IF NOT EXISTS "hubriseLocationId"  TEXT,
   ADD COLUMN IF NOT EXISTS "hubriseConnectedAt" TIMESTAMP(3);

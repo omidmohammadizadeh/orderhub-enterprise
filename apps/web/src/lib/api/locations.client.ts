@@ -43,6 +43,7 @@ export interface Location {
   // Phase AU — HubRise per-location storage. Token itself is never
   // returned; `hubriseConnected` reflects whether one is on file.
   hubriseCatalogId?: string | null;
+  hubriseLocationId?: string | null;
   hubriseConnected?: boolean;
   hubriseConnectedAt?: string | null;
   applicationFeeFixedAmount?: string | number | null;

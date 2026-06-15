@@ -478,6 +478,12 @@ model Location {
   // it lives in plaintext for fast `WHERE` filtering when reconciling.
   hubriseCredentials Json?   // encrypted envelope { accessToken } via CredentialEncryptionService
   hubriseCatalogId   String?
+  // HubRise's own location id — distinct from our internal id. Needed
+  // for catalog publish, order status PATCH, inventory 86, and
+  // pause/resume calls. Auto-populated by the OAuth callback; can
+  // also be pasted manually for operators who got their token via
+  // the curl flow.
+  hubriseLocationId  String?
   hubriseConnectedAt DateTime?
 
   // Phase AN — Stripe Connect + application fee config

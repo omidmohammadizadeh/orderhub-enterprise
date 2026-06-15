@@ -478,6 +478,12 @@ model Location {
   // it lives in plaintext for fast `WHERE` filtering when reconciling.
   hubriseCredentials Json? // encrypted envelope { accessToken } via CredentialEncryptionService
   hubriseCatalogId   String?
+  // HubRise's own location id — distinct from our internal id. Needed
+  // for catalog publish, order status PATCH, inventory 86, and
+  // pause/resume calls. Auto-populated by the OAuth callback; can
+  // also be pasted manually for operators who got their token via
+  // the curl flow.
+  hubriseLocationId  String?
   hubriseConnectedAt DateTime?
 
   // Phase AN — Stripe Connect + application fee config
@@ -914,7 +920,7 @@ model ModifierOption {
   priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
   // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
   plu                String?
-  // ── Per-size pricing + PLU ─────────────────────────────────────────
+  // ── Per-size pricing + PLU ───────────────────────────��─────────────
   // Used when the parent product is a multi-SKU pizza-style item. Keys
   // are size strings (e.g. "10", "12", "14") extracted from the size
   // modifier's name. Values are the per-size price / PLU.

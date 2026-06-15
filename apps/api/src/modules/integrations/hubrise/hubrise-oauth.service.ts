@@ -140,6 +140,10 @@ export class HubRiseOauthService {
           customerListId: tokenResponse.customer_list_id ?? null,
         }) as any,
         hubriseCatalogId: catalogId,
+        // HubRise's own location id, lifted out of the encrypted blob
+        // and into its own column so menu/publish/inventory/pause
+        // services can `WHERE hubriseLocationId = …` without decrypting.
+        hubriseLocationId: tokenResponse.location_id ?? null,
         hubriseConnectedAt: new Date(),
       },
     });
