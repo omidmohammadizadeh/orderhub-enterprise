@@ -87,19 +87,32 @@ export function renderToEscPos(
   }
 
   // ── Restaurant header ────────────────────────────────────────────
-  // Brand name in double-size bold at the very top, then a small line
-  // for the location address + phone. This is what a real receipt
-  // looks like — the kitchen instantly knows which brand the ticket
-  // belongs to when running multiple brands out of one shop.
+  // What the customer sees on the receipt is the SHOP they're buying
+  // from, not the SaaS account name. So locationName (e.g.
+  // "pizza uno pelton") goes in big bold at the top; brandName only
+  // appears as a small subtitle when the operator runs multiple
+  // distinct brands out of one location (e.g. brand="Pizza Uno",
+  // location="Pelton High Street"). When the brand is just the tenant
+  // umbrella (matches/contains the SaaS account name), it adds nothing
+  // useful and we hide it.
+  const shopTitle = payload.locationName ?? payload.brandName ?? null;
+  const showBrandSubtitle =
+    payload.brandName &&
+    payload.locationName &&
+    payload.brandName !== payload.locationName &&
+    !payload.locationName
+      .toLowerCase()
+      .includes(String(payload.brandName).toLowerCase());
+
   out.push(...alignCenter());
-  if (payload.brandName) {
+  if (shopTitle) {
     out.push(...boldOn(), ...doubleSizeOn());
-    write(String(payload.brandName));
+    write(String(shopTitle));
     newline();
     out.push(...doubleSizeOff(), ...boldOff());
   }
-  if (payload.locationName && payload.locationName !== payload.brandName) {
-    write(String(payload.locationName));
+  if (showBrandSubtitle) {
+    write(`by ${payload.brandName}`);
     newline();
   }
   if (payload.locationAddress) {
@@ -111,7 +124,7 @@ export function renderToEscPos(
     newline();
   }
   out.push(...alignLeft());
-  if (payload.brandName || payload.locationName || payload.locationAddress) {
+  if (shopTitle || payload.locationAddress) {
     hr();
   }
 
