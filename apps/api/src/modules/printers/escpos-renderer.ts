@@ -1,34 +1,28 @@
 // Phase AS-2 — ESC/POS renderer (server-side, transport-agnostic input).
 //
-// The DB stores PrintJob.payload as structured JSON — never raw bytes.
-// This renderer is one of many possible adapters; the Flutter app, the
-// macOS bridge, and the future cloud-print service all implement the
-// same JSON → transport translation. Keeping the spec JSON-shaped is
-// what makes "one API for every client" possible.
-//
-// The ESC/POS dialect targeted here is the subset that works across
-// Epson TM-m30, Star TSP100/143, Sunmi, XPrinter, and generic 80mm
-// thermal printers. We deliberately don't use vendor-specific extras
-// — no Star-only commands, no logo download. The bridge / Flutter
-// app can layer those on if needed (printer.model can be checked).
+// NOTE: this file MUST stay byte-identical (modulo TypeScript syntax) to
+// apps/print-bridge/src/renderer/escpos-renderer.ts. They render the
+// same PrintJob payload — one from inside the API (ServerDirectPrintCron
+// hot path for LAN printers without a paired agent), one from the
+// installed Print Bridge. When the two diverged, the same job rendered
+// from each side produced visibly different tickets, which looked to
+// operators like "two copies, one is wrong." If you change one, change
+// both.
 
 const ESC = 0x1b;
 const GS = 0x1d;
 const LF = 0x0a;
 
-// Command builders → number arrays so they concat cleanly.
 const init = () => [ESC, 0x40];
 const alignLeft = () => [ESC, 0x61, 0x00];
 const alignCenter = () => [ESC, 0x61, 0x01];
-const alignRight = () => [ESC, 0x61, 0x02];
 const boldOn = () => [ESC, 0x45, 0x01];
 const boldOff = () => [ESC, 0x45, 0x00];
 const doubleSizeOn = () => [GS, 0x21, 0x11];
 const doubleSizeOff = () => [GS, 0x21, 0x00];
-const cut = () => [GS, 0x56, 0x42, 0x00]; // partial cut
-const openCashDrawer = () => [ESC, 0x70, 0x00, 0x40, 0xc8]; // kick pin 2
+const cut = () => [GS, 0x56, 0x42, 0x00];
+const openCashDrawer = () => [ESC, 0x70, 0x00, 0x40, 0xc8];
 
-// QR code: model 2, error correction L, module size 6.
 function qrCode(text: string): number[] {
   const data = Buffer.from(text, "utf8");
   const length = data.length + 3;
@@ -44,8 +38,6 @@ function qrCode(text: string): number[] {
   ];
 }
 
-// Pad a string to `width` chars with spaces. ESC/POS thermal printers
-// are monospace, so column math just works.
 function pad(s: string, width: number): string {
   if (s.length >= width) return s.slice(0, width);
   return s + " ".repeat(width - s.length);
@@ -56,7 +48,6 @@ function padRight(s: string, width: number): string {
 }
 
 function colsForWidth(paperWidth: number): number {
-  // 80mm ≈ 42 cols at font A, 58mm ≈ 32 cols.
   return paperWidth === 58 ? 32 : 42;
 }
 
@@ -81,16 +72,58 @@ export function renderToEscPos(
 
   out.push(...init());
 
-  // Test print has its own shape — handle first.
   if (payload?.kind === "TEST_PRINT") {
     return renderTestPrint(payload, opts);
   }
 
-  // Header.
+  const shopTitle = payload.locationName ?? payload.brandName ?? null;
+  const showBrandSubtitle =
+    payload.brandName &&
+    payload.locationName &&
+    payload.brandName !== payload.locationName &&
+    !payload.locationName
+      .toLowerCase()
+      .includes(String(payload.brandName).toLowerCase());
+
+  out.push(...alignCenter());
+  if (shopTitle) {
+    out.push(...boldOn(), ...doubleSizeOn());
+    write(String(shopTitle));
+    newline();
+    out.push(...doubleSizeOff(), ...boldOff());
+  }
+  if (showBrandSubtitle) {
+    write(`by ${payload.brandName}`);
+    newline();
+  }
+  if (payload.locationAddress) {
+    write(String(payload.locationAddress));
+    newline();
+  }
+  if (payload.locationPhone) {
+    write(`Tel: ${payload.locationPhone}`);
+    newline();
+  }
+  out.push(...alignLeft());
+  if (shopTitle || payload.locationAddress) {
+    hr();
+  }
+
+  const sourceLabel = friendlySource(payload.orderSource, payload.platform);
+  if (sourceLabel) {
+    out.push(...alignCenter(), ...boldOn());
+    write(sourceLabel);
+    newline();
+    out.push(...boldOff(), ...alignLeft());
+  }
+
+  const orderRef =
+    payload.orderNumber ?? payload.displayId ?? payload.orderId ?? null;
   out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn());
-  write(payload.orderNumber ? `#${payload.orderNumber}` : "ORDER");
+  write(orderRef ? `#${orderRef}` : "ORDER");
   newline();
   out.push(...doubleSizeOff(), ...boldOff(), ...alignLeft());
+
   if (payload.customerName) {
     write(`Customer: ${payload.customerName}`);
     newline();
@@ -110,7 +143,6 @@ export function renderToEscPos(
   }
   hr();
 
-  // Items.
   for (const it of payload.items ?? []) {
     out.push(...boldOn());
     write(`${it.quantity}x ${it.name}`);
@@ -127,61 +159,92 @@ export function renderToEscPos(
   }
   hr();
 
-  // Totals (only on receipts).
   if (typeof payload.total === "number") {
     if (payload.subtotal !== undefined) {
-      write(pad("Subtotal", width - 10) + padRight(payload.subtotal.toFixed(2), 10));
+      write(pad("Subtotal", width - 10) + padRight(Number(payload.subtotal).toFixed(2), 10));
       newline();
     }
-    if (payload.delivery > 0) {
-      write(pad("Delivery", width - 10) + padRight(payload.delivery.toFixed(2), 10));
+    if (Number(payload.deliveryFee ?? payload.delivery ?? 0) > 0) {
+      const fee = Number(payload.deliveryFee ?? payload.delivery);
+      write(pad("Delivery fee", width - 10) + padRight(fee.toFixed(2), 10));
       newline();
     }
-    if (payload.discount > 0) {
-      write(pad("Discount", width - 10) + padRight((-payload.discount).toFixed(2), 10));
+    if (Number(payload.discount ?? 0) > 0) {
+      write(pad("Discount", width - 10) + padRight((-Number(payload.discount)).toFixed(2), 10));
       newline();
     }
-    if (payload.tax > 0) {
-      write(pad("Tax", width - 10) + padRight(payload.tax.toFixed(2), 10));
+    if (Number(payload.taxAmount ?? payload.tax ?? 0) > 0) {
+      const tax = Number(payload.taxAmount ?? payload.tax);
+      write(pad("Tax", width - 10) + padRight(tax.toFixed(2), 10));
       newline();
     }
     out.push(...boldOn());
-    write(pad("TOTAL", width - 10) + padRight(payload.total.toFixed(2), 10));
+    write(pad("TOTAL", width - 10) + padRight(Number(payload.total).toFixed(2), 10));
     newline();
     out.push(...boldOff());
   }
 
-  // Delivery address (driver slip).
-  if (payload.address) {
+  const addressString =
+    typeof payload.deliveryAddress === "string"
+      ? payload.deliveryAddress
+      : null;
+  const addressObject =
+    payload.address && typeof payload.address === "object"
+      ? payload.address
+      : null;
+  if (payload.customerPhone || addressString || addressObject) {
     hr();
     out.push(...boldOn());
-    write("DELIVER TO");
+    write(payload.fulfillmentType === "DELIVERY" ? "DELIVER TO" : "CUSTOMER");
     newline();
     out.push(...boldOff());
+    if (payload.customerName) {
+      write(payload.customerName);
+      newline();
+    }
     if (payload.customerPhone) {
       write(payload.customerPhone);
       newline();
     }
-    if (payload.address.line1) {
-      write(payload.address.line1);
+    if (addressString) {
+      write(addressString);
       newline();
-    }
-    if (payload.address.line2) {
-      write(payload.address.line2);
-      newline();
-    }
-    if (payload.address.city || payload.address.postcode) {
-      write(
-        [payload.address.city, payload.address.postcode]
-          .filter(Boolean)
-          .join(", "),
-      );
-      newline();
+    } else if (addressObject) {
+      if (addressObject.line1) {
+        write(addressObject.line1);
+        newline();
+      }
+      if (addressObject.line2) {
+        write(addressObject.line2);
+        newline();
+      }
+      const cityLine = [addressObject.city, addressObject.postcode]
+        .filter(Boolean)
+        .join(", ");
+      if (cityLine) {
+        write(cityLine);
+        newline();
+      }
     }
   }
 
-  // Payment status footer.
-  if (payload.paymentMethod) {
+  if (payload.specialInstructions) {
+    hr();
+    out.push(...boldOn());
+    write("NOTE");
+    newline();
+    out.push(...boldOff());
+    write(String(payload.specialInstructions));
+    newline();
+  }
+
+  if (payload.paymentLabel) {
+    hr();
+    out.push(...alignCenter(), ...boldOn());
+    write(String(payload.paymentLabel));
+    newline();
+    out.push(...boldOff(), ...alignLeft());
+  } else if (payload.paymentMethod) {
     hr();
     write(`Payment: ${payload.paymentMethod} (${payload.paymentStatus ?? ""})`);
     newline();
@@ -194,6 +257,23 @@ export function renderToEscPos(
   if (opts.openCashDrawer) out.push(...openCashDrawer());
 
   return Buffer.from(out);
+}
+
+function friendlySource(
+  source: string | null | undefined,
+  platform: string | null | undefined,
+): string | null {
+  const s = source ?? platform;
+  if (!s) return null;
+  const map: Record<string, string> = {
+    DIRECT: "DIRECT ONLINE ORDER",
+    POS: "POS",
+    PLATFORM: "MARKETPLACE",
+    UBER_EATS: "UBER EATS",
+    DELIVEROO: "DELIVEROO",
+    JUST_EAT: "JUST EAT",
+  };
+  return map[s] ?? s.replace(/_/g, " ");
 }
 
 function renderTestPrint(payload: any, opts: RenderOptions): Buffer {

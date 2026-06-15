@@ -67,10 +67,23 @@ export class ServerDirectPrintCron {
 
     const printerById = new Map(printers.map((p: any) => [p.id, p]));
 
+    // ── Defensive filters ────────────────────────────────────────────
+    // 1. Only touch jobs created in the last 10 minutes. A printer that
+    //    was unbound at order-creation time and then bound to an agent
+    //    leaves stale QUEUED rows behind; without a TTL the cron would
+    //    pick them up after redeploys and print yesterday's tickets
+    //    next to today's, which looked to operators like a phantom
+    //    "first copy is wrong" duplicate. Anything older is rolled
+    //    over to DEAD_LETTERED on a separate sweep, not reprinted.
+    // 2. Skip anything an agent has already claimed (claimedByAgentId
+    //    set) — defensive against agentId-on-printer races.
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60_000);
     const claimable = await (this.prisma as any).printJob.findMany({
       where: {
         status: { in: ["QUEUED"] },
         printerId: { in: printers.map((p: any) => p.id) },
+        createdAt: { gte: tenMinutesAgo },
+        claimedByAgentId: null,
       },
       orderBy: { createdAt: "asc" },
       take: BATCH_LIMIT,
