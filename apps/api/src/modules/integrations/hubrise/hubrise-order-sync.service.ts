@@ -34,9 +34,20 @@ const STATIC_MAP: Record<string, string> = {
   DISPATCHED: "in_delivery",
   COMPLETED: "completed",
   DELIVERED: "completed",
+  COLLECTED: "completed",
   CANCELLED: "cancelled",
   REJECTED: "rejected",
 };
+
+// Transitions that exist in our internal flow but don't have a HubRise
+// equivalent and shouldn't trigger a push. Driver-tracking transitions
+// are kept local — HubRise only cares about kitchen + courier state.
+const SKIP_STATUSES = new Set([
+  "ASSIGNED_DRIVER",
+  "ACCEPTED_BY_DRIVER",
+  "PENDING",
+  "NEW",
+]);
 
 @Injectable()
 export class HubRiseOrderSyncService {
@@ -75,6 +86,31 @@ export class HubRiseOrderSyncService {
     }
     if (!order.viaHubrise || !order.externalId || !order.locationId) {
       // Not a HubRise order — nothing to do.
+      return;
+    }
+
+    // Skip driver-stage transitions — HubRise doesn't model them.
+    // Base44 confirms ASSIGNED_DRIVER / ACCEPTED_BY_DRIVER are local-
+    // only; pushing them would either 400 or be ignored, and either
+    // way the log noise isn't worth it.
+    if (SKIP_STATUSES.has(args.newStatus)) {
+      this.logger.debug(
+        `Skipping HubRise push for ${args.newStatus} on order ${order.id} (driver/local-only)`,
+      );
+      return;
+    }
+
+    // Block native-platform orders. HubRise routes Uber Eats / Deliveroo /
+    // Just Eat via prefixed externalIds; status changes for those must go
+    // through the platform's own API or HubRise replies 403. This isn't
+    // wired yet — the platform-specific status push lives in those
+    // adapters and is a separate phase.
+    if (
+      /^(ubereats|deliveroo|justeat)_/i.test(order.externalId)
+    ) {
+      this.logger.debug(
+        `Skipping HubRise push for native-platform order ${order.externalId} — use platform adapter`,
+      );
       return;
     }
 
@@ -138,7 +174,11 @@ export class HubRiseOrderSyncService {
           "X-Access-Token": accessToken,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ new_state: hubriseState }),
+        // Per Base44's working implementation the body field is
+        // `status`, not `new_state` — that's the field HubRise's
+        // routing engine inspects. Anything else returns 400
+        // validation_error.
+        body: JSON.stringify({ status: hubriseState }),
       });
       if (!res.ok) {
         const body = await res.text();
