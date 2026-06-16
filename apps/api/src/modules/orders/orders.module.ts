@@ -7,6 +7,7 @@ import { OutboxModule } from "../outbox/outbox.module";
 import { PrintersModule } from "../printers/printers.module";
 import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
+import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 
 @Module({
   imports: [
@@ -20,6 +21,11 @@ import { PaymentsModule } from "../payments/payments.module";
     // pulls in the Stripe SDK and Connect-account lookups. forwardRef in
     // case a circular ever arises down the line (none today).
     forwardRef(() => PaymentsModule),
+    // Phase AU — OrdersService pushes status transitions back to
+    // HubRise. forwardRef because HubRiseModule transitively imports
+    // WebhooksModule which currently has its own OrdersModule
+    // dependency (for canonical ingestion).
+    forwardRef(() => HubRiseModule),
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

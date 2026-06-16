@@ -5,6 +5,8 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
@@ -14,6 +16,7 @@ import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
 import { PrintQueueService } from "../printers/print-queue.service";
 import { PrintJobsService } from "../printers/print-jobs.service";
+import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { assertTransition, getTimestampField } from "./order-state-machine";
@@ -64,6 +67,10 @@ export class OrdersService {
     private readonly printJobs: PrintJobsService, // Phase AS-2
     private readonly promoCodes: PromoCodesService, // Phase AM
     private readonly payments: PaymentsService, // Phase AP-8 — Stripe manual-capture lifecycle hooks
+    // Phase AU — push status back to HubRise. forwardRef needed because
+    // HubRiseModule transitively imports OrdersModule (via WebhooksModule).
+    @Inject(forwardRef(() => HubRiseOrderSyncService))
+    private readonly hubriseSync: HubRiseOrderSyncService,
   ) {}
 
   /**
@@ -680,6 +687,18 @@ export class OrdersService {
           this.logger.error(`Stripe refund/cancel failed for ${orderId}: ${err.message}`),
         );
     }
+
+    // Phase AU — push the new status back to HubRise so every
+    // connected aggregator (Uber Eats, Deliveroo, Just Eat) walks the
+    // same lifecycle the operator sees here. No-op for non-HubRise
+    // orders; failures are logged but never roll back the transition
+    // (the bag has to leave the kitchen regardless of what HubRise's
+    // API does).
+    void this.hubriseSync.pushStatus({
+      orderId,
+      newStatus,
+      fulfillmentType: order.fulfillmentType,
+    });
 
     // Broadcast update — best-effort, immediate
     if (newStatus === "CANCELLED") {
