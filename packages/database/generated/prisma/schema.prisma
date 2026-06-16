@@ -385,6 +385,30 @@ model Brand {
   directOrderingEnabled Boolean @default(false)
   about                 String?
 
+  // Phase AW — customer-facing storefront identity. Lives on the brand
+  // (not the location) so a single kitchen running three virtual brands
+  // can publish three distinct storefronts, each with its own address /
+  // phone / custom domain / Stripe Connect account / receipt header.
+  // The Location keeps its own structured address for ops (where the
+  // kitchen actually is) — these are what the customer sees on the
+  // online ordering page and the printed receipt.
+  phone                     String?
+  addressLine1              String?
+  addressLine2              String?
+  city                      String?
+  postcode                  String?
+  country                   String   @default("GB")
+  customDomain              String?
+  customDomainStatus        String   @default("not_configured") // not_configured | pending | verified | failed
+  stripeConnectedAccountId  String?
+  applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
+  applicationFeePercentage  Decimal? @db.Decimal(5, 2)
+  applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
+
+  // Phase AW — DirectOrderingConfig now keys off the brand, not the
+  // location. One config per brand drives that brand's storefront.
+  directOrderingConfig DirectOrderingConfig?
+
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]
@@ -920,7 +944,7 @@ model ModifierOption {
   priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
   // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
   plu                String?
-  // ── Per-size pricing + PLU ───────────────────────────��─────────────
+  // ── Per-size pricing + PLU ─────────────────────────────────────────
   // Used when the parent product is a multi-SKU pizza-style item. Keys
   // are size strings (e.g. "10", "12", "14") extracted from the size
   // modifier's name. Values are the per-size price / PLU.
@@ -1143,10 +1167,15 @@ model Customer {
 // Drives what the storefront displays + what it accepts. Operators
 // edit this from a new "Direct online ordering" tab in the POS top bar.
 model DirectOrderingConfig {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   tenantId   String
-  locationId String   @unique
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  // Phase AW — keyed by brand. locationId stays for legacy reads + the
+  // backfill window; AW-2 API writes only touch brandId. Both are
+  // nullable-unique so a row in flight has exactly one of them set.
+  locationId String?   @unique
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId    String?   @unique
+  brand      Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
   deliveryPrepMinutes   Int @default(45)
   collectionPrepMinutes Int @default(20)
@@ -1309,6 +1338,34 @@ model Order {
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
   viaHubrise        Boolean           @default(false)
+
+  // Phase AV — who actually drives the delivery on this order.
+  //   MERCHANT  — restaurant's own driver. Operator walks the order
+  //               all the way through OUT_FOR_DELIVERY → DELIVERED on
+  //               our dashboard.
+  //   PLATFORM  — marketplace courier (Uber Eats / Deliveroo / Just
+  //               Eat). Operator can only mark ACCEPTED → PREPARING →
+  //               READY; the post-READY transitions are driven by
+  //               HubRise's delivery.update webhooks. null for orders
+  //               where the model isn't applicable (POS pickup, etc.).
+  deliveryType String? // MERCHANT | PLATFORM | null
+
+  // Courier tracking — populated from HubRise delivery.* webhooks for
+  // PLATFORM orders. Stored as flat columns so the dashboard can render
+  // them without parsing metadata JSON.
+  courierName            String?
+  courierPhone           String?
+  // Phase AV-3 — anonymised-call PIN HubRise routes through the
+  // marketplace's masking number. Without it the operator can dial
+  // courierPhone but the call won't connect (the carrier looks up
+  // which active delivery uses that PIN). Same shape exists customer-
+  // side (customerInfo.phoneAccessCode in the JSON blob).
+  courierPhoneAccessCode String?
+  courierTrackingUrl     String?
+  courierStatus          String? // HubRise delivery status enum verbatim
+  courierAssignedAt      DateTime?
+  courierPickedUpAt      DateTime?
+  courierDeliveredAt     DateTime?
 
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)

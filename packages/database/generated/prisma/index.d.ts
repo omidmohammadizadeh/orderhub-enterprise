@@ -22281,8 +22281,20 @@ export namespace Prisma {
 
   export type AggregateBrand = {
     _count: BrandCountAggregateOutputType | null
+    _avg: BrandAvgAggregateOutputType | null
+    _sum: BrandSumAggregateOutputType | null
     _min: BrandMinAggregateOutputType | null
     _max: BrandMaxAggregateOutputType | null
+  }
+
+  export type BrandAvgAggregateOutputType = {
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+  }
+
+  export type BrandSumAggregateOutputType = {
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
   }
 
   export type BrandMinAggregateOutputType = {
@@ -22300,6 +22312,18 @@ export namespace Prisma {
     onlineOrderingSlug: string | null
     directOrderingEnabled: boolean | null
     about: string | null
+    phone: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string | null
+    customDomain: string | null
+    customDomainStatus: string | null
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -22320,6 +22344,18 @@ export namespace Prisma {
     onlineOrderingSlug: string | null
     directOrderingEnabled: boolean | null
     about: string | null
+    phone: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string | null
+    customDomain: string | null
+    customDomainStatus: string | null
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -22342,12 +22378,34 @@ export namespace Prisma {
     onlineOrderingSlug: number
     directOrderingEnabled: number
     about: number
+    phone: number
+    addressLine1: number
+    addressLine2: number
+    city: number
+    postcode: number
+    country: number
+    customDomain: number
+    customDomainStatus: number
+    stripeConnectedAccountId: number
+    applicationFeeFixedAmount: number
+    applicationFeePercentage: number
+    applicationFeeMode: number
     defaultStationId: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type BrandAvgAggregateInputType = {
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+  }
+
+  export type BrandSumAggregateInputType = {
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+  }
 
   export type BrandMinAggregateInputType = {
     id?: true
@@ -22364,6 +22422,18 @@ export namespace Prisma {
     onlineOrderingSlug?: true
     directOrderingEnabled?: true
     about?: true
+    phone?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    customDomain?: true
+    customDomainStatus?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22384,6 +22454,18 @@ export namespace Prisma {
     onlineOrderingSlug?: true
     directOrderingEnabled?: true
     about?: true
+    phone?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    customDomain?: true
+    customDomainStatus?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22406,6 +22488,18 @@ export namespace Prisma {
     onlineOrderingSlug?: true
     directOrderingEnabled?: true
     about?: true
+    phone?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    postcode?: true
+    country?: true
+    customDomain?: true
+    customDomainStatus?: true
+    stripeConnectedAccountId?: true
+    applicationFeeFixedAmount?: true
+    applicationFeePercentage?: true
+    applicationFeeMode?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -22450,6 +22544,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: BrandAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BrandSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: BrandMinAggregateInputType
@@ -22480,6 +22586,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: BrandCountAggregateInputType | true
+    _avg?: BrandAvgAggregateInputType
+    _sum?: BrandSumAggregateInputType
     _min?: BrandMinAggregateInputType
     _max?: BrandMaxAggregateInputType
   }
@@ -22501,10 +22609,24 @@ export namespace Prisma {
     onlineOrderingSlug: string | null
     directOrderingEnabled: boolean
     about: string | null
+    phone: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    postcode: string | null
+    country: string
+    customDomain: string | null
+    customDomainStatus: string
+    stripeConnectedAccountId: string | null
+    applicationFeeFixedAmount: Decimal | null
+    applicationFeePercentage: Decimal | null
+    applicationFeeMode: string
     defaultStationId: string | null
     createdAt: Date
     updatedAt: Date
     _count: BrandCountAggregateOutputType | null
+    _avg: BrandAvgAggregateOutputType | null
+    _sum: BrandSumAggregateOutputType | null
     _min: BrandMinAggregateOutputType | null
     _max: BrandMaxAggregateOutputType | null
   }
@@ -22540,10 +22662,23 @@ export namespace Prisma {
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
+    phone?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    directOrderingConfig?: boolean | Brand$directOrderingConfigArgs<ExtArgs>
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
@@ -22573,6 +22708,18 @@ export namespace Prisma {
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
+    phone?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -22597,6 +22744,18 @@ export namespace Prisma {
     onlineOrderingSlug?: boolean
     directOrderingEnabled?: boolean
     about?: boolean
+    phone?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    postcode?: boolean
+    country?: boolean
+    customDomain?: boolean
+    customDomainStatus?: boolean
+    stripeConnectedAccountId?: boolean
+    applicationFeeFixedAmount?: boolean
+    applicationFeePercentage?: boolean
+    applicationFeeMode?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -22604,6 +22763,7 @@ export namespace Prisma {
 
   export type BrandInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    directOrderingConfig?: boolean | Brand$directOrderingConfigArgs<ExtArgs>
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
@@ -22624,6 +22784,7 @@ export namespace Prisma {
     name: "Brand"
     objects: {
       tenant: Prisma.$TenantPayload<ExtArgs>
+      directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
       locations: Prisma.$LocationPayload<ExtArgs>[]
       menus: Prisma.$MenuPayload<ExtArgs>[]
       modifierGroups: Prisma.$ModifierGroupPayload<ExtArgs>[]
@@ -22651,6 +22812,18 @@ export namespace Prisma {
       onlineOrderingSlug: string | null
       directOrderingEnabled: boolean
       about: string | null
+      phone: string | null
+      addressLine1: string | null
+      addressLine2: string | null
+      city: string | null
+      postcode: string | null
+      country: string
+      customDomain: string | null
+      customDomainStatus: string
+      stripeConnectedAccountId: string | null
+      applicationFeeFixedAmount: Prisma.Decimal | null
+      applicationFeePercentage: Prisma.Decimal | null
+      applicationFeeMode: string
       defaultStationId: string | null
       createdAt: Date
       updatedAt: Date
@@ -23019,6 +23192,7 @@ export namespace Prisma {
   export interface Prisma__BrandClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    directOrderingConfig<T extends Brand$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Brand$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     locations<T extends Brand$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
     menus<T extends Brand$menusArgs<ExtArgs> = {}>(args?: Subset<T, Brand$menusArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findMany"> | Null>
     modifierGroups<T extends Brand$modifierGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$modifierGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findMany"> | Null>
@@ -23073,6 +23247,18 @@ export namespace Prisma {
     readonly onlineOrderingSlug: FieldRef<"Brand", 'String'>
     readonly directOrderingEnabled: FieldRef<"Brand", 'Boolean'>
     readonly about: FieldRef<"Brand", 'String'>
+    readonly phone: FieldRef<"Brand", 'String'>
+    readonly addressLine1: FieldRef<"Brand", 'String'>
+    readonly addressLine2: FieldRef<"Brand", 'String'>
+    readonly city: FieldRef<"Brand", 'String'>
+    readonly postcode: FieldRef<"Brand", 'String'>
+    readonly country: FieldRef<"Brand", 'String'>
+    readonly customDomain: FieldRef<"Brand", 'String'>
+    readonly customDomainStatus: FieldRef<"Brand", 'String'>
+    readonly stripeConnectedAccountId: FieldRef<"Brand", 'String'>
+    readonly applicationFeeFixedAmount: FieldRef<"Brand", 'Decimal'>
+    readonly applicationFeePercentage: FieldRef<"Brand", 'Decimal'>
+    readonly applicationFeeMode: FieldRef<"Brand", 'String'>
     readonly defaultStationId: FieldRef<"Brand", 'String'>
     readonly createdAt: FieldRef<"Brand", 'DateTime'>
     readonly updatedAt: FieldRef<"Brand", 'DateTime'>
@@ -23391,6 +23577,21 @@ export namespace Prisma {
      * Filter which Brands to delete
      */
     where?: BrandWhereInput
+  }
+
+  /**
+   * Brand.directOrderingConfig
+   */
+  export type Brand$directOrderingConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DirectOrderingConfig
+     */
+    select?: DirectOrderingConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DirectOrderingConfigInclude<ExtArgs> | null
+    where?: DirectOrderingConfigWhereInput
   }
 
   /**
@@ -41393,6 +41594,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     deliveryPrepMinutes: number | null
     collectionPrepMinutes: number | null
     acceptsCash: boolean | null
@@ -41411,6 +41613,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     deliveryPrepMinutes: number | null
     collectionPrepMinutes: number | null
     acceptsCash: boolean | null
@@ -41429,6 +41632,7 @@ export namespace Prisma {
     id: number
     tenantId: number
     locationId: number
+    brandId: number
     deliveryPrepMinutes: number
     collectionPrepMinutes: number
     acceptsCash: number
@@ -41465,6 +41669,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     deliveryPrepMinutes?: true
     collectionPrepMinutes?: true
     acceptsCash?: true
@@ -41483,6 +41688,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     deliveryPrepMinutes?: true
     collectionPrepMinutes?: true
     acceptsCash?: true
@@ -41501,6 +41707,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     deliveryPrepMinutes?: true
     collectionPrepMinutes?: true
     acceptsCash?: true
@@ -41605,7 +41812,8 @@ export namespace Prisma {
   export type DirectOrderingConfigGroupByOutputType = {
     id: string
     tenantId: string
-    locationId: string
+    locationId: string | null
+    brandId: string | null
     deliveryPrepMinutes: number
     collectionPrepMinutes: number
     acceptsCash: boolean
@@ -41643,6 +41851,7 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     deliveryPrepMinutes?: boolean
     collectionPrepMinutes?: boolean
     acceptsCash?: boolean
@@ -41655,13 +41864,15 @@ export namespace Prisma {
     heroImageUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
+    brand?: boolean | DirectOrderingConfig$brandArgs<ExtArgs>
   }, ExtArgs["result"]["directOrderingConfig"]>
 
   export type DirectOrderingConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     deliveryPrepMinutes?: boolean
     collectionPrepMinutes?: boolean
     acceptsCash?: boolean
@@ -41674,13 +41885,15 @@ export namespace Prisma {
     heroImageUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
+    brand?: boolean | DirectOrderingConfig$brandArgs<ExtArgs>
   }, ExtArgs["result"]["directOrderingConfig"]>
 
   export type DirectOrderingConfigSelectScalar = {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     deliveryPrepMinutes?: boolean
     collectionPrepMinutes?: boolean
     acceptsCash?: boolean
@@ -41696,21 +41909,25 @@ export namespace Prisma {
   }
 
   export type DirectOrderingConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
+    brand?: boolean | DirectOrderingConfig$brandArgs<ExtArgs>
   }
   export type DirectOrderingConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DirectOrderingConfig$locationArgs<ExtArgs>
+    brand?: boolean | DirectOrderingConfig$brandArgs<ExtArgs>
   }
 
   export type $DirectOrderingConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "DirectOrderingConfig"
     objects: {
-      location: Prisma.$LocationPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs> | null
+      brand: Prisma.$BrandPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       tenantId: string
-      locationId: string
+      locationId: string | null
+      brandId: string | null
       deliveryPrepMinutes: number
       collectionPrepMinutes: number
       acceptsCash: boolean
@@ -42087,7 +42304,8 @@ export namespace Prisma {
    */
   export interface Prisma__DirectOrderingConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends DirectOrderingConfig$locationArgs<ExtArgs> = {}>(args?: Subset<T, DirectOrderingConfig$locationArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    brand<T extends DirectOrderingConfig$brandArgs<ExtArgs> = {}>(args?: Subset<T, DirectOrderingConfig$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -42120,6 +42338,7 @@ export namespace Prisma {
     readonly id: FieldRef<"DirectOrderingConfig", 'String'>
     readonly tenantId: FieldRef<"DirectOrderingConfig", 'String'>
     readonly locationId: FieldRef<"DirectOrderingConfig", 'String'>
+    readonly brandId: FieldRef<"DirectOrderingConfig", 'String'>
     readonly deliveryPrepMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
     readonly collectionPrepMinutes: FieldRef<"DirectOrderingConfig", 'Int'>
     readonly acceptsCash: FieldRef<"DirectOrderingConfig", 'Boolean'>
@@ -42447,6 +42666,36 @@ export namespace Prisma {
      * Filter which DirectOrderingConfigs to delete
      */
     where?: DirectOrderingConfigWhereInput
+  }
+
+  /**
+   * DirectOrderingConfig.location
+   */
+  export type DirectOrderingConfig$locationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+  }
+
+  /**
+   * DirectOrderingConfig.brand
+   */
+  export type DirectOrderingConfig$brandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Brand
+     */
+    select?: BrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandInclude<ExtArgs> | null
+    where?: BrandWhereInput
   }
 
   /**
@@ -47649,6 +47898,15 @@ export namespace Prisma {
     orderSource: $Enums.OrderSource | null
     integrationSource: $Enums.IntegrationSource | null
     viaHubrise: boolean | null
+    deliveryType: string | null
+    courierName: string | null
+    courierPhone: string | null
+    courierPhoneAccessCode: string | null
+    courierTrackingUrl: string | null
+    courierStatus: string | null
+    courierAssignedAt: Date | null
+    courierPickedUpAt: Date | null
+    courierDeliveredAt: Date | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
@@ -47705,6 +47963,15 @@ export namespace Prisma {
     orderSource: $Enums.OrderSource | null
     integrationSource: $Enums.IntegrationSource | null
     viaHubrise: boolean | null
+    deliveryType: string | null
+    courierName: string | null
+    courierPhone: string | null
+    courierPhoneAccessCode: string | null
+    courierTrackingUrl: string | null
+    courierStatus: string | null
+    courierAssignedAt: Date | null
+    courierPickedUpAt: Date | null
+    courierDeliveredAt: Date | null
     status: $Enums.OrderStatus | null
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
@@ -47761,6 +48028,15 @@ export namespace Prisma {
     orderSource: number
     integrationSource: number
     viaHubrise: number
+    deliveryType: number
+    courierName: number
+    courierPhone: number
+    courierPhoneAccessCode: number
+    courierTrackingUrl: number
+    courierStatus: number
+    courierAssignedAt: number
+    courierPickedUpAt: number
+    courierDeliveredAt: number
     status: number
     fulfillmentType: number
     customerInfo: number
@@ -47847,6 +48123,15 @@ export namespace Prisma {
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
+    deliveryType?: true
+    courierName?: true
+    courierPhone?: true
+    courierPhoneAccessCode?: true
+    courierTrackingUrl?: true
+    courierStatus?: true
+    courierAssignedAt?: true
+    courierPickedUpAt?: true
+    courierDeliveredAt?: true
     status?: true
     fulfillmentType?: true
     customerName?: true
@@ -47903,6 +48188,15 @@ export namespace Prisma {
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
+    deliveryType?: true
+    courierName?: true
+    courierPhone?: true
+    courierPhoneAccessCode?: true
+    courierTrackingUrl?: true
+    courierStatus?: true
+    courierAssignedAt?: true
+    courierPickedUpAt?: true
+    courierDeliveredAt?: true
     status?: true
     fulfillmentType?: true
     customerName?: true
@@ -47959,6 +48253,15 @@ export namespace Prisma {
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
+    deliveryType?: true
+    courierName?: true
+    courierPhone?: true
+    courierPhoneAccessCode?: true
+    courierTrackingUrl?: true
+    courierStatus?: true
+    courierAssignedAt?: true
+    courierPickedUpAt?: true
+    courierDeliveredAt?: true
     status?: true
     fulfillmentType?: true
     customerInfo?: true
@@ -48106,6 +48409,15 @@ export namespace Prisma {
     orderSource: $Enums.OrderSource
     integrationSource: $Enums.IntegrationSource
     viaHubrise: boolean
+    deliveryType: string | null
+    courierName: string | null
+    courierPhone: string | null
+    courierPhoneAccessCode: string | null
+    courierTrackingUrl: string | null
+    courierStatus: string | null
+    courierAssignedAt: Date | null
+    courierPickedUpAt: Date | null
+    courierDeliveredAt: Date | null
     status: $Enums.OrderStatus
     fulfillmentType: $Enums.FulfillmentType
     customerInfo: JsonValue
@@ -48185,6 +48497,15 @@ export namespace Prisma {
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
+    deliveryType?: boolean
+    courierName?: boolean
+    courierPhone?: boolean
+    courierPhoneAccessCode?: boolean
+    courierTrackingUrl?: boolean
+    courierStatus?: boolean
+    courierAssignedAt?: boolean
+    courierPickedUpAt?: boolean
+    courierDeliveredAt?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -48257,6 +48578,15 @@ export namespace Prisma {
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
+    deliveryType?: boolean
+    courierName?: boolean
+    courierPhone?: boolean
+    courierPhoneAccessCode?: boolean
+    courierTrackingUrl?: boolean
+    courierStatus?: boolean
+    courierAssignedAt?: boolean
+    courierPickedUpAt?: boolean
+    courierDeliveredAt?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -48322,6 +48652,15 @@ export namespace Prisma {
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
+    deliveryType?: boolean
+    courierName?: boolean
+    courierPhone?: boolean
+    courierPhoneAccessCode?: boolean
+    courierTrackingUrl?: boolean
+    courierStatus?: boolean
+    courierAssignedAt?: boolean
+    courierPickedUpAt?: boolean
+    courierDeliveredAt?: boolean
     status?: boolean
     fulfillmentType?: boolean
     customerInfo?: boolean
@@ -48419,6 +48758,15 @@ export namespace Prisma {
       orderSource: $Enums.OrderSource
       integrationSource: $Enums.IntegrationSource
       viaHubrise: boolean
+      deliveryType: string | null
+      courierName: string | null
+      courierPhone: string | null
+      courierPhoneAccessCode: string | null
+      courierTrackingUrl: string | null
+      courierStatus: string | null
+      courierAssignedAt: Date | null
+      courierPickedUpAt: Date | null
+      courierDeliveredAt: Date | null
       status: $Enums.OrderStatus
       fulfillmentType: $Enums.FulfillmentType
       customerInfo: Prisma.JsonValue
@@ -48880,6 +49228,15 @@ export namespace Prisma {
     readonly orderSource: FieldRef<"Order", 'OrderSource'>
     readonly integrationSource: FieldRef<"Order", 'IntegrationSource'>
     readonly viaHubrise: FieldRef<"Order", 'Boolean'>
+    readonly deliveryType: FieldRef<"Order", 'String'>
+    readonly courierName: FieldRef<"Order", 'String'>
+    readonly courierPhone: FieldRef<"Order", 'String'>
+    readonly courierPhoneAccessCode: FieldRef<"Order", 'String'>
+    readonly courierTrackingUrl: FieldRef<"Order", 'String'>
+    readonly courierStatus: FieldRef<"Order", 'String'>
+    readonly courierAssignedAt: FieldRef<"Order", 'DateTime'>
+    readonly courierPickedUpAt: FieldRef<"Order", 'DateTime'>
+    readonly courierDeliveredAt: FieldRef<"Order", 'DateTime'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
     readonly fulfillmentType: FieldRef<"Order", 'FulfillmentType'>
     readonly customerInfo: FieldRef<"Order", 'Json'>
@@ -106005,6 +106362,18 @@ export namespace Prisma {
     onlineOrderingSlug: 'onlineOrderingSlug',
     directOrderingEnabled: 'directOrderingEnabled',
     about: 'about',
+    phone: 'phone',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    country: 'country',
+    customDomain: 'customDomain',
+    customDomainStatus: 'customDomainStatus',
+    stripeConnectedAccountId: 'stripeConnectedAccountId',
+    applicationFeeFixedAmount: 'applicationFeeFixedAmount',
+    applicationFeePercentage: 'applicationFeePercentage',
+    applicationFeeMode: 'applicationFeeMode',
     defaultStationId: 'defaultStationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -106409,6 +106778,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     deliveryPrepMinutes: 'deliveryPrepMinutes',
     collectionPrepMinutes: 'collectionPrepMinutes',
     acceptsCash: 'acceptsCash',
@@ -106525,6 +106895,15 @@ export namespace Prisma {
     orderSource: 'orderSource',
     integrationSource: 'integrationSource',
     viaHubrise: 'viaHubrise',
+    deliveryType: 'deliveryType',
+    courierName: 'courierName',
+    courierPhone: 'courierPhone',
+    courierPhoneAccessCode: 'courierPhoneAccessCode',
+    courierTrackingUrl: 'courierTrackingUrl',
+    courierStatus: 'courierStatus',
+    courierAssignedAt: 'courierAssignedAt',
+    courierPickedUpAt: 'courierPickedUpAt',
+    courierDeliveredAt: 'courierDeliveredAt',
     status: 'status',
     fulfillmentType: 'fulfillmentType',
     customerInfo: 'customerInfo',
@@ -107698,6 +108077,16 @@ export namespace Prisma {
     primaryLocationId: 'primaryLocationId',
     onlineOrderingSlug: 'onlineOrderingSlug',
     about: 'about',
+    phone: 'phone',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    postcode: 'postcode',
+    country: 'country',
+    customDomain: 'customDomain',
+    customDomainStatus: 'customDomainStatus',
+    stripeConnectedAccountId: 'stripeConnectedAccountId',
+    applicationFeeMode: 'applicationFeeMode',
     defaultStationId: 'defaultStationId'
   };
 
@@ -107950,6 +108339,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     heroImageUrl: 'heroImageUrl'
   };
 
@@ -108020,6 +108410,12 @@ export namespace Prisma {
     brandId: 'brandId',
     externalId: 'externalId',
     displayId: 'displayId',
+    deliveryType: 'deliveryType',
+    courierName: 'courierName',
+    courierPhone: 'courierPhone',
+    courierPhoneAccessCode: 'courierPhoneAccessCode',
+    courierTrackingUrl: 'courierTrackingUrl',
+    courierStatus: 'courierStatus',
     customerName: 'customerName',
     customerPhone: 'customerPhone',
     paymentMethod: 'paymentMethod',
@@ -110447,10 +110843,23 @@ export namespace Prisma {
     onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
+    phone?: StringNullableFilter<"Brand"> | string | null
+    addressLine1?: StringNullableFilter<"Brand"> | string | null
+    addressLine2?: StringNullableFilter<"Brand"> | string | null
+    city?: StringNullableFilter<"Brand"> | string | null
+    postcode?: StringNullableFilter<"Brand"> | string | null
+    country?: StringFilter<"Brand"> | string
+    customDomain?: StringNullableFilter<"Brand"> | string | null
+    customDomainStatus?: StringFilter<"Brand"> | string
+    stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Brand"> | string
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
@@ -110479,10 +110888,23 @@ export namespace Prisma {
     onlineOrderingSlug?: SortOrderInput | SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    country?: SortOrder
+    customDomain?: SortOrderInput | SortOrder
+    customDomainStatus?: SortOrder
+    stripeConnectedAccountId?: SortOrderInput | SortOrder
+    applicationFeeFixedAmount?: SortOrderInput | SortOrder
+    applicationFeePercentage?: SortOrderInput | SortOrder
+    applicationFeeMode?: SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
+    directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     locations?: LocationOrderByRelationAggregateInput
     menus?: MenuOrderByRelationAggregateInput
     modifierGroups?: ModifierGroupOrderByRelationAggregateInput
@@ -110516,10 +110938,23 @@ export namespace Prisma {
     primaryLocationId?: StringNullableFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
+    phone?: StringNullableFilter<"Brand"> | string | null
+    addressLine1?: StringNullableFilter<"Brand"> | string | null
+    addressLine2?: StringNullableFilter<"Brand"> | string | null
+    city?: StringNullableFilter<"Brand"> | string | null
+    postcode?: StringNullableFilter<"Brand"> | string | null
+    country?: StringFilter<"Brand"> | string
+    customDomain?: StringNullableFilter<"Brand"> | string | null
+    customDomainStatus?: StringFilter<"Brand"> | string
+    stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Brand"> | string
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
@@ -110548,12 +110983,26 @@ export namespace Prisma {
     onlineOrderingSlug?: SortOrderInput | SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    country?: SortOrder
+    customDomain?: SortOrderInput | SortOrder
+    customDomainStatus?: SortOrder
+    stripeConnectedAccountId?: SortOrderInput | SortOrder
+    applicationFeeFixedAmount?: SortOrderInput | SortOrder
+    applicationFeePercentage?: SortOrderInput | SortOrder
+    applicationFeeMode?: SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BrandCountOrderByAggregateInput
+    _avg?: BrandAvgOrderByAggregateInput
     _max?: BrandMaxOrderByAggregateInput
     _min?: BrandMinOrderByAggregateInput
+    _sum?: BrandSumOrderByAggregateInput
   }
 
   export type BrandScalarWhereWithAggregatesInput = {
@@ -110576,6 +111025,18 @@ export namespace Prisma {
     onlineOrderingSlug?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolWithAggregatesFilter<"Brand"> | boolean
     about?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    addressLine1?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    addressLine2?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    city?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    postcode?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    country?: StringWithAggregatesFilter<"Brand"> | string
+    customDomain?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    customDomainStatus?: StringWithAggregatesFilter<"Brand"> | string
+    stripeConnectedAccountId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableWithAggregatesFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringWithAggregatesFilter<"Brand"> | string
     defaultStationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
@@ -112695,7 +113156,8 @@ export namespace Prisma {
     NOT?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
     id?: StringFilter<"DirectOrderingConfig"> | string
     tenantId?: StringFilter<"DirectOrderingConfig"> | string
-    locationId?: StringFilter<"DirectOrderingConfig"> | string
+    locationId?: StringNullableFilter<"DirectOrderingConfig"> | string | null
+    brandId?: StringNullableFilter<"DirectOrderingConfig"> | string | null
     deliveryPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
     collectionPrepMinutes?: IntFilter<"DirectOrderingConfig"> | number
     acceptsCash?: BoolFilter<"DirectOrderingConfig"> | boolean
@@ -112708,13 +113170,15 @@ export namespace Prisma {
     heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
     createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
-    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
   }
 
   export type DirectOrderingConfigOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    locationId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     deliveryPrepMinutes?: SortOrder
     collectionPrepMinutes?: SortOrder
     acceptsCash?: SortOrder
@@ -112728,12 +113192,14 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
     _relevance?: DirectOrderingConfigOrderByRelevanceInput
   }
 
   export type DirectOrderingConfigWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     locationId?: string
+    brandId?: string
     AND?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
     OR?: DirectOrderingConfigWhereInput[]
     NOT?: DirectOrderingConfigWhereInput | DirectOrderingConfigWhereInput[]
@@ -112750,13 +113216,15 @@ export namespace Prisma {
     heroImageUrl?: StringNullableFilter<"DirectOrderingConfig"> | string | null
     createdAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
     updatedAt?: DateTimeFilter<"DirectOrderingConfig"> | Date | string
-    location?: XOR<LocationRelationFilter, LocationWhereInput>
-  }, "id" | "locationId">
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
+  }, "id" | "locationId" | "brandId">
 
   export type DirectOrderingConfigOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    locationId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     deliveryPrepMinutes?: SortOrder
     collectionPrepMinutes?: SortOrder
     acceptsCash?: SortOrder
@@ -112782,7 +113250,8 @@ export namespace Prisma {
     NOT?: DirectOrderingConfigScalarWhereWithAggregatesInput | DirectOrderingConfigScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
     tenantId?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
-    locationId?: StringWithAggregatesFilter<"DirectOrderingConfig"> | string
+    locationId?: StringNullableWithAggregatesFilter<"DirectOrderingConfig"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"DirectOrderingConfig"> | string | null
     deliveryPrepMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
     collectionPrepMinutes?: IntWithAggregatesFilter<"DirectOrderingConfig"> | number
     acceptsCash?: BoolWithAggregatesFilter<"DirectOrderingConfig"> | boolean
@@ -113252,6 +113721,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
+    deliveryType?: StringNullableFilter<"Order"> | string | null
+    courierName?: StringNullableFilter<"Order"> | string | null
+    courierPhone?: StringNullableFilter<"Order"> | string | null
+    courierPhoneAccessCode?: StringNullableFilter<"Order"> | string | null
+    courierTrackingUrl?: StringNullableFilter<"Order"> | string | null
+    courierStatus?: StringNullableFilter<"Order"> | string | null
+    courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -113323,6 +113801,15 @@ export namespace Prisma {
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
+    deliveryType?: SortOrderInput | SortOrder
+    courierName?: SortOrderInput | SortOrder
+    courierPhone?: SortOrderInput | SortOrder
+    courierPhoneAccessCode?: SortOrderInput | SortOrder
+    courierTrackingUrl?: SortOrderInput | SortOrder
+    courierStatus?: SortOrderInput | SortOrder
+    courierAssignedAt?: SortOrderInput | SortOrder
+    courierPickedUpAt?: SortOrderInput | SortOrder
+    courierDeliveredAt?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -113400,6 +113887,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
+    deliveryType?: StringNullableFilter<"Order"> | string | null
+    courierName?: StringNullableFilter<"Order"> | string | null
+    courierPhone?: StringNullableFilter<"Order"> | string | null
+    courierPhoneAccessCode?: StringNullableFilter<"Order"> | string | null
+    courierTrackingUrl?: StringNullableFilter<"Order"> | string | null
+    courierStatus?: StringNullableFilter<"Order"> | string | null
+    courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -113470,6 +113966,15 @@ export namespace Prisma {
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
+    deliveryType?: SortOrderInput | SortOrder
+    courierName?: SortOrderInput | SortOrder
+    courierPhone?: SortOrderInput | SortOrder
+    courierPhoneAccessCode?: SortOrderInput | SortOrder
+    courierTrackingUrl?: SortOrderInput | SortOrder
+    courierStatus?: SortOrderInput | SortOrder
+    courierAssignedAt?: SortOrderInput | SortOrder
+    courierPickedUpAt?: SortOrderInput | SortOrder
+    courierDeliveredAt?: SortOrderInput | SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -113538,6 +114043,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceWithAggregatesFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceWithAggregatesFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolWithAggregatesFilter<"Order"> | boolean
+    deliveryType?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierName?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierPhoneAccessCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierTrackingUrl?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierStatus?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    courierAssignedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    courierPickedUpAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    courierDeliveredAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeWithAggregatesFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonWithAggregatesFilter<"Order">
@@ -119617,9 +120131,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -119648,9 +120175,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -119677,9 +120217,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -119708,9 +120261,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -119738,6 +120304,18 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -119759,6 +120337,18 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -119780,6 +120370,18 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -122320,13 +122922,15 @@ export namespace Prisma {
     heroImageUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    location: LocationCreateNestedOneWithoutDirectOrderingConfigInput
+    location?: LocationCreateNestedOneWithoutDirectOrderingConfigInput
+    brand?: BrandCreateNestedOneWithoutDirectOrderingConfigInput
   }
 
   export type DirectOrderingConfigUncheckedCreateInput = {
     id?: string
     tenantId: string
-    locationId: string
+    locationId?: string | null
+    brandId?: string | null
     deliveryPrepMinutes?: number
     collectionPrepMinutes?: number
     acceptsCash?: boolean
@@ -122356,13 +122960,15 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    location?: LocationUpdateOneRequiredWithoutDirectOrderingConfigNestedInput
+    location?: LocationUpdateOneWithoutDirectOrderingConfigNestedInput
+    brand?: BrandUpdateOneWithoutDirectOrderingConfigNestedInput
   }
 
   export type DirectOrderingConfigUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
     collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
     acceptsCash?: BoolFieldUpdateOperationsInput | boolean
@@ -122380,7 +122986,8 @@ export namespace Prisma {
   export type DirectOrderingConfigCreateManyInput = {
     id?: string
     tenantId: string
-    locationId: string
+    locationId?: string | null
+    brandId?: string | null
     deliveryPrepMinutes?: number
     collectionPrepMinutes?: number
     acceptsCash?: boolean
@@ -122415,7 +123022,8 @@ export namespace Prisma {
   export type DirectOrderingConfigUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
     collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
     acceptsCash?: BoolFieldUpdateOperationsInput | boolean
@@ -122924,6 +123532,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -122995,6 +123612,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -123056,6 +123682,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -123127,6 +123762,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -123193,6 +123837,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -123248,6 +123901,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -123308,6 +123970,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -129876,6 +130547,22 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type DecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type DirectOrderingConfigNullableRelationFilter = {
+    is?: DirectOrderingConfigWhereInput | null
+    isNot?: DirectOrderingConfigWhereInput | null
+  }
+
   export type LocationListRelationFilter = {
     every?: LocationWhereInput
     some?: LocationWhereInput
@@ -129969,9 +130656,26 @@ export namespace Prisma {
     onlineOrderingSlug?: SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrder
+    phone?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type BrandAvgOrderByAggregateInput = {
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
   }
 
   export type BrandMaxOrderByAggregateInput = {
@@ -129989,6 +130693,18 @@ export namespace Prisma {
     onlineOrderingSlug?: SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrder
+    phone?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -130009,12 +130725,29 @@ export namespace Prisma {
     onlineOrderingSlug?: SortOrder
     directOrderingEnabled?: SortOrder
     about?: SortOrder
+    phone?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    country?: SortOrder
+    customDomain?: SortOrder
+    customDomainStatus?: SortOrder
+    stripeConnectedAccountId?: SortOrder
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+    applicationFeeMode?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type DecimalNullableFilter<$PrismaModel = never> = {
+  export type BrandSumOrderByAggregateInput = {
+    applicationFeeFixedAmount?: SortOrder
+    applicationFeePercentage?: SortOrder
+  }
+
+  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
     notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
@@ -130022,7 +130755,12 @@ export namespace Prisma {
     lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -130081,11 +130819,6 @@ export namespace Prisma {
   export type LocationPaymentConfigNullableRelationFilter = {
     is?: LocationPaymentConfigWhereInput | null
     isNot?: LocationPaymentConfigWhereInput | null
-  }
-
-  export type DirectOrderingConfigNullableRelationFilter = {
-    is?: DirectOrderingConfigWhereInput | null
-    isNot?: DirectOrderingConfigWhereInput | null
   }
 
   export type PrinterNullableRelationFilter = {
@@ -130283,22 +131016,6 @@ export namespace Prisma {
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
-  }
-
-  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedDecimalNullableFilter<$PrismaModel>
-    _sum?: NestedDecimalNullableFilter<$PrismaModel>
-    _min?: NestedDecimalNullableFilter<$PrismaModel>
-    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -131652,6 +132369,16 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type LocationNullableRelationFilter = {
+    is?: LocationWhereInput | null
+    isNot?: LocationWhereInput | null
+  }
+
+  export type BrandNullableRelationFilter = {
+    is?: BrandWhereInput | null
+    isNot?: BrandWhereInput | null
+  }
+
   export type DirectOrderingConfigOrderByRelevanceInput = {
     fields: DirectOrderingConfigOrderByRelevanceFieldEnum | DirectOrderingConfigOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -131662,6 +132389,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     deliveryPrepMinutes?: SortOrder
     collectionPrepMinutes?: SortOrder
     acceptsCash?: SortOrder
@@ -131688,6 +132416,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     deliveryPrepMinutes?: SortOrder
     collectionPrepMinutes?: SortOrder
     acceptsCash?: SortOrder
@@ -131706,6 +132435,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     deliveryPrepMinutes?: SortOrder
     collectionPrepMinutes?: SortOrder
     acceptsCash?: SortOrder
@@ -132080,11 +132810,6 @@ export namespace Prisma {
     isNot?: CustomerAccountWhereInput | null
   }
 
-  export type BrandNullableRelationFilter = {
-    is?: BrandWhereInput | null
-    isNot?: BrandWhereInput | null
-  }
-
   export type OrderItemListRelationFilter = {
     every?: OrderItemWhereInput
     some?: OrderItemWhereInput
@@ -132155,6 +132880,15 @@ export namespace Prisma {
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
+    deliveryType?: SortOrder
+    courierName?: SortOrder
+    courierPhone?: SortOrder
+    courierPhoneAccessCode?: SortOrder
+    courierTrackingUrl?: SortOrder
+    courierStatus?: SortOrder
+    courierAssignedAt?: SortOrder
+    courierPickedUpAt?: SortOrder
+    courierDeliveredAt?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerInfo?: SortOrder
@@ -132227,6 +132961,15 @@ export namespace Prisma {
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
+    deliveryType?: SortOrder
+    courierName?: SortOrder
+    courierPhone?: SortOrder
+    courierPhoneAccessCode?: SortOrder
+    courierTrackingUrl?: SortOrder
+    courierStatus?: SortOrder
+    courierAssignedAt?: SortOrder
+    courierPickedUpAt?: SortOrder
+    courierDeliveredAt?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerName?: SortOrder
@@ -132283,6 +133026,15 @@ export namespace Prisma {
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
+    deliveryType?: SortOrder
+    courierName?: SortOrder
+    courierPhone?: SortOrder
+    courierPhoneAccessCode?: SortOrder
+    courierTrackingUrl?: SortOrder
+    courierStatus?: SortOrder
+    courierAssignedAt?: SortOrder
+    courierPickedUpAt?: SortOrder
+    courierDeliveredAt?: SortOrder
     status?: SortOrder
     fulfillmentType?: SortOrder
     customerName?: SortOrder
@@ -137434,6 +138186,12 @@ export namespace Prisma {
     connect?: TenantWhereUniqueInput
   }
 
+  export type DirectOrderingConfigCreateNestedOneWithoutBrandInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutBrandInput
+    connect?: DirectOrderingConfigWhereUniqueInput
+  }
+
   export type LocationCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -137496,6 +138254,12 @@ export namespace Prisma {
     connect?: PrinterStationWhereUniqueInput
   }
 
+  export type DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutBrandInput
+    connect?: DirectOrderingConfigWhereUniqueInput
+  }
+
   export type LocationUncheckedCreateNestedManyWithoutBrandInput = {
     create?: XOR<LocationCreateWithoutBrandInput, LocationUncheckedCreateWithoutBrandInput> | LocationCreateWithoutBrandInput[] | LocationUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: LocationCreateOrConnectWithoutBrandInput | LocationCreateOrConnectWithoutBrandInput[]
@@ -137552,12 +138316,30 @@ export namespace Prisma {
     connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
   }
 
+  export type NullableDecimalFieldUpdateOperationsInput = {
+    set?: Decimal | DecimalJsLike | number | string | null
+    increment?: Decimal | DecimalJsLike | number | string
+    decrement?: Decimal | DecimalJsLike | number | string
+    multiply?: Decimal | DecimalJsLike | number | string
+    divide?: Decimal | DecimalJsLike | number | string
+  }
+
   export type TenantUpdateOneRequiredWithoutBrandsNestedInput = {
     create?: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
     connectOrCreate?: TenantCreateOrConnectWithoutBrandsInput
     upsert?: TenantUpsertWithoutBrandsInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutBrandsInput, TenantUpdateWithoutBrandsInput>, TenantUncheckedUpdateWithoutBrandsInput>
+  }
+
+  export type DirectOrderingConfigUpdateOneWithoutBrandNestedInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutBrandInput
+    upsert?: DirectOrderingConfigUpsertWithoutBrandInput
+    disconnect?: DirectOrderingConfigWhereInput | boolean
+    delete?: DirectOrderingConfigWhereInput | boolean
+    connect?: DirectOrderingConfigWhereUniqueInput
+    update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutBrandInput, DirectOrderingConfigUpdateWithoutBrandInput>, DirectOrderingConfigUncheckedUpdateWithoutBrandInput>
   }
 
   export type LocationUpdateManyWithoutBrandNestedInput = {
@@ -137680,6 +138462,16 @@ export namespace Prisma {
     delete?: PrinterStationWhereInput | boolean
     connect?: PrinterStationWhereUniqueInput
     update?: XOR<XOR<PrinterStationUpdateToOneWithWhereWithoutBrandDefaultsInput, PrinterStationUpdateWithoutBrandDefaultsInput>, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput = {
+    create?: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+    connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutBrandInput
+    upsert?: DirectOrderingConfigUpsertWithoutBrandInput
+    disconnect?: DirectOrderingConfigWhereInput | boolean
+    delete?: DirectOrderingConfigWhereInput | boolean
+    connect?: DirectOrderingConfigWhereUniqueInput
+    update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutBrandInput, DirectOrderingConfigUpdateWithoutBrandInput>, DirectOrderingConfigUncheckedUpdateWithoutBrandInput>
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandNestedInput = {
@@ -137966,14 +138758,6 @@ export namespace Prisma {
     create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
     connect?: DirectOrderingConfigWhereUniqueInput
-  }
-
-  export type NullableDecimalFieldUpdateOperationsInput = {
-    set?: Decimal | DecimalJsLike | number | string | null
-    increment?: Decimal | DecimalJsLike | number | string
-    decrement?: Decimal | DecimalJsLike | number | string
-    multiply?: Decimal | DecimalJsLike | number | string
-    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -139442,12 +140226,30 @@ export namespace Prisma {
     connect?: LocationWhereUniqueInput
   }
 
-  export type LocationUpdateOneRequiredWithoutDirectOrderingConfigNestedInput = {
+  export type BrandCreateNestedOneWithoutDirectOrderingConfigInput = {
+    create?: XOR<BrandCreateWithoutDirectOrderingConfigInput, BrandUncheckedCreateWithoutDirectOrderingConfigInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutDirectOrderingConfigInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type LocationUpdateOneWithoutDirectOrderingConfigNestedInput = {
     create?: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
     connectOrCreate?: LocationCreateOrConnectWithoutDirectOrderingConfigInput
     upsert?: LocationUpsertWithoutDirectOrderingConfigInput
+    disconnect?: LocationWhereInput | boolean
+    delete?: LocationWhereInput | boolean
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDirectOrderingConfigInput, LocationUpdateWithoutDirectOrderingConfigInput>, LocationUncheckedUpdateWithoutDirectOrderingConfigInput>
+  }
+
+  export type BrandUpdateOneWithoutDirectOrderingConfigNestedInput = {
+    create?: XOR<BrandCreateWithoutDirectOrderingConfigInput, BrandUncheckedCreateWithoutDirectOrderingConfigInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutDirectOrderingConfigInput
+    upsert?: BrandUpsertWithoutDirectOrderingConfigInput
+    disconnect?: BrandWhereInput | boolean
+    delete?: BrandWhereInput | boolean
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutDirectOrderingConfigInput, BrandUpdateWithoutDirectOrderingConfigInput>, BrandUncheckedUpdateWithoutDirectOrderingConfigInput>
   }
 
   export type CustomerCreateNestedOneWithoutAddressesInput = {
@@ -142495,13 +143297,6 @@ export namespace Prisma {
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
   }
 
-  export type NestedEnumLocationGoLiveStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.LocationGoLiveStatus | EnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel> | $Enums.LocationGoLiveStatus
-  }
-
   export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
@@ -142516,6 +143311,13 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumLocationGoLiveStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.LocationGoLiveStatus | EnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel> | $Enums.LocationGoLiveStatus
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -143320,8 +144122,21 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -143349,9 +144164,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -143479,6 +144307,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -143548,6 +144385,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -144192,6 +145038,18 @@ export namespace Prisma {
     onlineOrderingSlug?: StringNullableFilter<"Brand"> | string | null
     directOrderingEnabled?: BoolFilter<"Brand"> | boolean
     about?: StringNullableFilter<"Brand"> | string | null
+    phone?: StringNullableFilter<"Brand"> | string | null
+    addressLine1?: StringNullableFilter<"Brand"> | string | null
+    addressLine2?: StringNullableFilter<"Brand"> | string | null
+    city?: StringNullableFilter<"Brand"> | string | null
+    postcode?: StringNullableFilter<"Brand"> | string | null
+    country?: StringFilter<"Brand"> | string
+    customDomain?: StringNullableFilter<"Brand"> | string | null
+    customDomainStatus?: StringFilter<"Brand"> | string
+    stripeConnectedAccountId?: StringNullableFilter<"Brand"> | string | null
+    applicationFeeFixedAmount?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: DecimalNullableFilter<"Brand"> | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFilter<"Brand"> | string
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -144299,6 +145157,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
+    deliveryType?: StringNullableFilter<"Order"> | string | null
+    courierName?: StringNullableFilter<"Order"> | string | null
+    courierPhone?: StringNullableFilter<"Order"> | string | null
+    courierPhoneAccessCode?: StringNullableFilter<"Order"> | string | null
+    courierTrackingUrl?: StringNullableFilter<"Order"> | string | null
+    courierStatus?: StringNullableFilter<"Order"> | string | null
+    courierAssignedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierPickedUpAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    courierDeliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFilter<"Order"> | $Enums.FulfillmentType
     customerInfo?: JsonFilter<"Order">
@@ -146048,9 +146915,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -146078,9 +146958,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -146185,9 +147078,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -146215,9 +147121,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -146600,6 +147519,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -146669,6 +147597,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -147290,6 +148227,47 @@ export namespace Prisma {
     create: XOR<TenantCreateWithoutBrandsInput, TenantUncheckedCreateWithoutBrandsInput>
   }
 
+  export type DirectOrderingConfigCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location?: LocationCreateNestedOneWithoutDirectOrderingConfigInput
+  }
+
+  export type DirectOrderingConfigUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    deliveryPrepMinutes?: number
+    collectionPrepMinutes?: number
+    acceptsCash?: boolean
+    acceptsCard?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    scheduleMaxDaysAhead?: number
+    scheduleSlotMinutes?: number
+    minOrderForDelivery?: Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DirectOrderingConfigCreateOrConnectWithoutBrandInput = {
+    where: DirectOrderingConfigWhereUniqueInput
+    create: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+  }
+
   export type LocationCreateWithoutBrandInput = {
     id?: string
     name: string
@@ -147595,6 +148573,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -147664,6 +148651,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -147998,6 +148994,53 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type DirectOrderingConfigUpsertWithoutBrandInput = {
+    update: XOR<DirectOrderingConfigUpdateWithoutBrandInput, DirectOrderingConfigUncheckedUpdateWithoutBrandInput>
+    create: XOR<DirectOrderingConfigCreateWithoutBrandInput, DirectOrderingConfigUncheckedCreateWithoutBrandInput>
+    where?: DirectOrderingConfigWhereInput
+  }
+
+  export type DirectOrderingConfigUpdateToOneWithWhereWithoutBrandInput = {
+    where?: DirectOrderingConfigWhereInput
+    data: XOR<DirectOrderingConfigUpdateWithoutBrandInput, DirectOrderingConfigUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type DirectOrderingConfigUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneWithoutDirectOrderingConfigNestedInput
+  }
+
+  export type DirectOrderingConfigUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
+    collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
+    acceptsCash?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCard?: BoolFieldUpdateOperationsInput | boolean
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    scheduleMaxDaysAhead?: IntFieldUpdateOperationsInput | number
+    scheduleSlotMinutes?: IntFieldUpdateOperationsInput | number
+    minOrderForDelivery?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LocationUpsertWithWhereUniqueWithoutBrandInput = {
@@ -148389,9 +149432,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
@@ -148419,9 +149475,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
@@ -148489,6 +149558,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -148558,6 +149636,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -148984,11 +150071,13 @@ export namespace Prisma {
     heroImageUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    brand?: BrandCreateNestedOneWithoutDirectOrderingConfigInput
   }
 
   export type DirectOrderingConfigUncheckedCreateWithoutLocationInput = {
     id?: string
     tenantId: string
+    brandId?: string | null
     deliveryPrepMinutes?: number
     collectionPrepMinutes?: number
     acceptsCash?: boolean
@@ -149242,9 +150331,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
@@ -149272,9 +150374,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
@@ -149579,11 +150694,13 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneWithoutDirectOrderingConfigNestedInput
   }
 
   export type DirectOrderingConfigUncheckedUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPrepMinutes?: IntFieldUpdateOperationsInput | number
     collectionPrepMinutes?: IntFieldUpdateOperationsInput | number
     acceptsCash?: BoolFieldUpdateOperationsInput | boolean
@@ -149839,9 +150956,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -149869,9 +150999,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -150050,9 +151193,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -150080,9 +151236,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -150531,9 +151700,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
@@ -150561,9 +151743,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
@@ -150687,9 +151882,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
@@ -150717,9 +151925,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
@@ -151629,9 +152850,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
@@ -151659,9 +152893,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
@@ -151893,9 +153140,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
@@ -151923,9 +153183,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
@@ -152869,9 +154142,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -152899,9 +154185,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -152943,9 +154242,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -152973,9 +154285,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -153001,9 +154326,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -153031,9 +154369,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -153075,9 +154426,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -153105,9 +154469,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -153385,6 +154762,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -153454,6 +154840,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -153897,6 +155292,95 @@ export namespace Prisma {
     create: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
   }
 
+  export type BrandCreateWithoutDirectOrderingConfigInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutDirectOrderingConfigInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutDirectOrderingConfigInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutDirectOrderingConfigInput, BrandUncheckedCreateWithoutDirectOrderingConfigInput>
+  }
+
   export type LocationUpsertWithoutDirectOrderingConfigInput = {
     update: XOR<LocationUpdateWithoutDirectOrderingConfigInput, LocationUncheckedUpdateWithoutDirectOrderingConfigInput>
     create: XOR<LocationCreateWithoutDirectOrderingConfigInput, LocationUncheckedCreateWithoutDirectOrderingConfigInput>
@@ -154038,6 +155522,101 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type BrandUpsertWithoutDirectOrderingConfigInput = {
+    update: XOR<BrandUpdateWithoutDirectOrderingConfigInput, BrandUncheckedUpdateWithoutDirectOrderingConfigInput>
+    create: XOR<BrandCreateWithoutDirectOrderingConfigInput, BrandUncheckedCreateWithoutDirectOrderingConfigInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutDirectOrderingConfigInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutDirectOrderingConfigInput, BrandUncheckedUpdateWithoutDirectOrderingConfigInput>
+  }
+
+  export type BrandUpdateWithoutDirectOrderingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutDirectOrderingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CustomerCreateWithoutAddressesInput = {
@@ -155212,9 +156791,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -155242,9 +156834,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -155829,9 +157434,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -155859,9 +157477,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -156060,6 +157691,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -156130,6 +157770,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -156206,6 +157855,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -156276,6 +157934,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -156336,6 +158003,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -156406,6 +158082,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -156482,6 +158167,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -156552,6 +158246,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -156963,6 +158666,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -157033,6 +158745,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -157144,6 +158865,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -157214,6 +158944,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -158260,6 +159999,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -158330,6 +160078,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -158650,6 +160407,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -158720,6 +160486,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -159234,9 +161009,22 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
@@ -159264,8 +161052,21 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -161376,6 +163177,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -161446,6 +163256,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -161589,6 +163408,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -161659,6 +163487,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -162110,6 +163947,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -162180,6 +164026,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -162369,6 +164224,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -162439,6 +164303,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -166091,6 +167964,18 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -166138,6 +168023,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -166357,8 +168251,21 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -166386,9 +168293,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -166415,6 +168335,18 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -166536,6 +168468,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -166605,6 +168546,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -166670,6 +168620,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -167682,6 +169641,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -167737,6 +169705,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -167806,6 +169783,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -167871,6 +169857,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -168046,6 +170041,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -168547,6 +170551,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -168616,6 +170629,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -168681,6 +170703,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -168949,6 +170980,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -169167,6 +171207,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -169236,6 +171285,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -169301,6 +171359,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -170323,6 +172390,15 @@ export namespace Prisma {
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
     status?: $Enums.OrderStatus
     fulfillmentType?: $Enums.FulfillmentType
     customerInfo: JsonNullValueInput | InputJsonValue
@@ -170429,6 +172505,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -170498,6 +172583,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -170563,6 +172657,15 @@ export namespace Prisma {
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
     customerInfo?: JsonNullValueInput | InputJsonValue
@@ -171688,6 +173791,18 @@ export namespace Prisma {
     onlineOrderingSlug?: string | null
     directOrderingEnabled?: boolean
     about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -171845,9 +173960,22 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
@@ -171875,8 +174003,21 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -171904,6 +174045,18 @@ export namespace Prisma {
     onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
     directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
     about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

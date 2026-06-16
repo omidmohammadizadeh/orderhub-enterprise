@@ -52,20 +52,20 @@ model Tenant {
   settings Json         @default("{}")
   metadata Json         @default("{}")
 
-  brands         Brand[]
-  users          User[]
-  apiKeys        ApiKey[]
-  orders         Order[]
-  printJobs      PrintJob[]
-  customers      Customer[]
-  promoCodes     PromoCode[]
-  drivers        Driver[]
-  suppliers      Supplier[]
-  ipAllowlists   IpAllowlist[]
-  connectAccount StripeConnectAccount[]
-  branding       TenantBranding?
-  subscription   TenantSubscription?
-  invitations    Invitation[]
+  brands          Brand[]
+  users           User[]
+  apiKeys         ApiKey[]
+  orders          Order[]
+  printJobs       PrintJob[]
+  customers       Customer[]
+  promoCodes      PromoCode[]
+  drivers         Driver[]
+  suppliers       Supplier[]
+  ipAllowlists    IpAllowlist[]
+  connectAccount  StripeConnectAccount[]
+  branding        TenantBranding?
+  subscription    TenantSubscription?
+  invitations     Invitation[]
   printerStations PrinterStation[]
   printAgents     PrintAgent[]
 
@@ -100,10 +100,10 @@ model User {
 
   // Phase AR — Team Roles. Per-user scoping to a subset of the
   // tenant's locations / brands.
-  locations         UserLocation[]
-  brands            UserBrand[]
-  invitationsSent   Invitation[]   @relation("InvitationInvitedBy")
-  leadsSubmitted    Lead[]         @relation("LeadSubmittedBy")
+  locations       UserLocation[]
+  brands          UserBrand[]
+  invitationsSent Invitation[]   @relation("InvitationInvitedBy")
+  leadsSubmitted  Lead[]         @relation("LeadSubmittedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -157,21 +157,21 @@ model UserBrand {
 // cancelledAt flips if the inviter revokes. Tokens are single-use
 // (we look the row up by token, then require acceptedAt == null).
 model Invitation {
-  id          String     @id @default(cuid())
+  id          String    @id @default(cuid())
   tenantId    String
-  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   email       String
   role        UserRole
-  locationIds String[]   @default([])
-  brandIds    String[]   @default([])
-  token       String     @unique
+  locationIds String[]  @default([])
+  brandIds    String[]  @default([])
+  token       String    @unique
   expiresAt   DateTime
   acceptedAt  DateTime?
   cancelledAt DateTime?
   invitedById String?
-  invitedBy   User?      @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  invitedBy   User?     @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([email])
@@ -245,20 +245,20 @@ enum LeadSource {
 model CustomerAccount {
   id                     String    @id @default(cuid())
   email                  String    @unique
-  password               String?   // null for Google-only signups
+  password               String? // null for Google-only signups
   firstName              String
   lastName               String
   phone                  String?
   googleId               String?   @unique
   avatarUrl              String?
   isVerified             Boolean   @default(false)
-  emailVerificationToken String?   // set during signup, cleared on verify
+  emailVerificationToken String? // set during signup, cleared on verify
   marketingOptIn         Boolean   @default(false)
   lastLoginAt            DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  orders                 Order[]   // Phase AP-5 — back-relation for "My Orders"
+  orders Order[] // Phase AP-5 — back-relation for "My Orders"
 
   @@index([email])
   @@index([googleId])
@@ -381,9 +381,33 @@ model Brand {
   // page. The brand reuses its primary location's address/phone/postcode
   // (no need to duplicate them); `about` is free-form marketing copy
   // shown on the storefront header.
-  onlineOrderingSlug     String?  @unique
-  directOrderingEnabled  Boolean  @default(false)
-  about                  String?
+  onlineOrderingSlug    String? @unique
+  directOrderingEnabled Boolean @default(false)
+  about                 String?
+
+  // Phase AW — customer-facing storefront identity. Lives on the brand
+  // (not the location) so a single kitchen running three virtual brands
+  // can publish three distinct storefronts, each with its own address /
+  // phone / custom domain / Stripe Connect account / receipt header.
+  // The Location keeps its own structured address for ops (where the
+  // kitchen actually is) — these are what the customer sees on the
+  // online ordering page and the printed receipt.
+  phone                     String?
+  addressLine1              String?
+  addressLine2              String?
+  city                      String?
+  postcode                  String?
+  country                   String   @default("GB")
+  customDomain              String?
+  customDomainStatus        String   @default("not_configured") // not_configured | pending | verified | failed
+  stripeConnectedAccountId  String?
+  applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
+  applicationFeePercentage  Decimal? @db.Decimal(5, 2)
+  applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
+
+  // Phase AW — DirectOrderingConfig now keys off the brand, not the
+  // location. One config per brand drives that brand's storefront.
+  directOrderingConfig DirectOrderingConfig?
 
   locations           Location[]
   menus               Menu[]
@@ -459,9 +483,9 @@ model Location {
   logoUrl      String?
 
   // Phase AN — online ordering presentation
-  customDomain          String?
-  customDomainStatus    String  @default("not_configured") // not_configured | pending | verified | failed
-  onlineOrderingSlug    String? @unique
+  customDomain       String?
+  customDomainStatus String  @default("not_configured") // not_configured | pending | verified | failed
+  onlineOrderingSlug String? @unique
 
   // Phase AU — HubRise integration. Per-location because HubRise
   // access tokens are generated against a specific HubRise location
@@ -476,7 +500,7 @@ model Location {
   // hubriseCatalogId is the menu the location syncs against — pasted
   // by the operator alongside the token. Not sensitive on its own so
   // it lives in plaintext for fast `WHERE` filtering when reconciling.
-  hubriseCredentials Json?   // encrypted envelope { accessToken } via CredentialEncryptionService
+  hubriseCredentials Json? // encrypted envelope { accessToken } via CredentialEncryptionService
   hubriseCatalogId   String?
   // HubRise's own location id — distinct from our internal id. Needed
   // for catalog publish, order status PATCH, inventory 86, and
@@ -506,12 +530,12 @@ model Location {
   // (used by AM); this carries reason + until + affected platforms.
   busyModeJson Json @default("{}")
 
-  shopCode       String? @unique
+  shopCode   String? @unique
   // Bearer token presented by the legacy Flutter printer app as
   // `X-Print-Token` when polling /v1/printer-jobs. Nullable so existing
   // locations stay backwards-compatible; once set, the new endpoint
   // requires a match. Rotated via the locations admin UI.
-  printToken     String? @unique
+  printToken String? @unique
 
   // Online ordering
   slug           String? @unique
@@ -547,21 +571,21 @@ model Location {
 // connection flow per platform (Just Eat, Uber Eats, Deliveroo,
 // HubRise, Stuart, Uber Direct) ships in a later phase.
 model BrandPlatformConnection {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   tenantId        String
   brandId         String
-  brand           Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brand           Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
   locationId      String
-  location        Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  platform        String   // JUST_EAT | UBER_EATS | DELIVEROO | HUBRISE | STUART | UBER_DIRECT
-  status          String   @default("not_connected") // not_connected | pending | connected | suspended | error
+  location        Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  platform        String // JUST_EAT | UBER_EATS | DELIVEROO | HUBRISE | STUART | UBER_DIRECT
+  status          String    @default("not_connected") // not_connected | pending | connected | suspended | error
   externalStoreId String?
   externalBrandId String?
   integrationId   String?
   lastSyncAt      DateTime?
   lastWebhookAt   DateTime?
   lastError       String?
-  metadata        Json     @default("{}")
+  metadata        Json      @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -628,22 +652,22 @@ model Menu {
   // Per-platform import state. importLock prevents two concurrent imports
   // from racing on the same menu. importStatus surfaces the result to the
   // Menu Manager UI. Reset in finally{} blocks even when the import throws.
-  importStatus MenuImportStatus @default(IDLE)
-  importLock   Boolean          @default(false)
-  importedAt   DateTime?
+  importStatus               MenuImportStatus @default(IDLE)
+  importLock                 Boolean          @default(false)
+  importedAt                 DateTime?
   // Incremented on every successful import so the UI can show "version 3"
   // and downstream caches know to bust.
-  syncVersion  Int              @default(0)
+  syncVersion                Int              @default(0)
   // The raw response we got back from the platform. Stored for debugging
   // failed imports and for replay during a backfill.
-  rawImportPayload Json @default("{}")
+  rawImportPayload           Json             @default("{}")
   // Whatever menu-level metadata the platform sent (e.g. menu name, type).
-  menuData         Json @default("{}")
+  menuData                   Json             @default("{}")
   // Two link tables flattened to JSON so import + render stays cheap.
   // productModifierGroupLinks: [{product_id, modifier_group_id, ...}]
   // modifierGroupModifierLinks: [{modifier_group_id, modifier_id, ...}]
-  productModifierGroupLinks  Json @default("[]")
-  modifierGroupModifierLinks Json @default("[]")
+  productModifierGroupLinks  Json             @default("[]")
+  modifierGroupModifierLinks Json             @default("[]")
 
   // ── External platform refs ─────────────────────────────────────────────
   // Source / dedup keys used by import. platformSource = uber / deliveroo /
@@ -661,8 +685,8 @@ model Menu {
   // ── Publish targets ────────────────────────────────────────────────────
   // Slugs of platforms this menu has been pushed to (e.g. ["ubereats_uk",
   // "deliveroo_uk"]). Distinct from importStatus — these are outbound.
-  publishedTo      String[] @default([])
-  lastPublishedAt  DateTime?
+  publishedTo     String[]  @default([])
+  lastPublishedAt DateTime?
 
   // ── Auto-schedule ──────────────────────────────────────────────────────
   // When true, a scheduled worker activates / deactivates the menu based
@@ -687,24 +711,24 @@ model Menu {
 }
 
 model MenuCategory {
-  id          String  @id @default(cuid())
-  menuId      String
-  menu        Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  imageUrl    String?
-  sortOrder   Int     @default(0)
-  isVisible   Boolean @default(true)
+  id                 String   @id @default(cuid())
+  menuId             String
+  menu               Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  imageUrl           String?
+  sortOrder          Int      @default(0)
+  isVisible          Boolean  @default(true)
   // Phase AK: many-to-many across menus. menuIds[] mirrors Base44's
   // pattern of letting a single category appear in multiple menus
   // without duplicating it. menuId above stays as the "primary" menu
   // (matches the existing service layer); menuIds is the authoritative
   // membership list used by Menu Manager filters and POS lookups.
-  menuIds     String[] @default([])
+  menuIds            String[] @default([])
   // available = staff toggle (hide everywhere). visibleToCustomers =
   // visibility on the customer storefront only; POS still sees it.
-  available           Boolean @default(true)
-  visibleToCustomers  Boolean @default(true)
+  available          Boolean  @default(true)
+  visibleToCustomers Boolean  @default(true)
 
   // Import / sync (same pattern as Menu).
   platformSource   String?
@@ -726,44 +750,44 @@ model MenuCategory {
 }
 
 model MenuItem {
-  id          String   @id @default(cuid())
-  brandId     String
+  id                 String    @id @default(cuid())
+  brandId            String
   // Phase AP — Products section is location-scoped. When set, this
   // product only appears in the Products tab for that location.
   // Backfilled from "Pizza Uno Pelton" by the AP migration; rows that
   // didn't match keep this null until the operator reassigns them.
-  locationId  String?
-  name        String
-  description String?
-  basePrice   Decimal  @db.Decimal(10, 2)
-  imageUrl    String?
+  locationId         String?
+  name               String
+  description        String?
+  basePrice          Decimal   @db.Decimal(10, 2)
+  imageUrl           String?
   // Pre-Phase-AK had `sku` as a generic product code. Base44 calls this
   // the PLU and uses it across all integration imports (Deliveroo
   // pos_item_id, HubRise ref, Uber external_data). We keep `sku` for
   // backward compatibility but `plu` is the authoritative field going
   // forward. Both default to null; PLU service backfills via the
   // "Generate missing PLUs" action in Menu Manager.
-  sku         String?
-  plu         String?
-  isAvailable Boolean  @default(true)
+  sku                String?
+  plu                String?
+  isAvailable        Boolean   @default(true)
   // Hide from customer storefront only. POS still sees it. Separate
   // from isAvailable (which hides everywhere) and outOfStock (which
   // shows POS staff a "tap to restore" overlay).
-  visibleToCustomers Boolean @default(true)
-  outOfStock         Boolean @default(false)
+  visibleToCustomers Boolean   @default(true)
+  outOfStock         Boolean   @default(false)
   // When set, the autoProgressOrders cron flips outOfStock back to false
   // at this time. Used for "out for an hour" scheduling.
   availableRestoreAt DateTime?
-  allergens   String[]
-  dietaryTags String[]
+  allergens          String[]
+  dietaryTags        String[]
   // Base44 had a separate `dietary` JSON field with platform-specific
   // dietary metadata (e.g. is_vegetarian, is_vegan as separate keys).
   // dietaryTags above stays for storefront filtering; this JSON carries
   // anything platform-flavoured we don't want to flatten.
-  dietary     Json     @default("[]")
-  calories    Int?
-  prepTime    Int?
-  metadata    Json     @default("{}")
+  dietary            Json      @default("[]")
+  calories           Int?
+  prepTime           Int?
+  metadata           Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
   // Base44's signature feature: a single product with multiple sizes,
@@ -786,21 +810,21 @@ model MenuItem {
   productSkus     Json    @default("[]")
 
   // Per-channel tax. Stored as percentage points (20.00 = 20%).
-  deliveryTax Decimal @db.Decimal(5, 2) @default(0)
-  takeawayTax Decimal @db.Decimal(5, 2) @default(0)
-  eatInTax    Decimal @db.Decimal(5, 2) @default(0)
+  deliveryTax Decimal @default(0) @db.Decimal(5, 2)
+  takeawayTax Decimal @default(0) @db.Decimal(5, 2)
+  eatInTax    Decimal @default(0) @db.Decimal(5, 2)
 
   // Membership in many menus. Base44 stores menu IDs as a plain array
   // because a single product can appear in the Lunch menu AND the
   // Dinner menu AND a Deliveroo-only menu.
-  menuIds  String[] @default([])
+  menuIds   String[] @default([])
   // Same idea for brands — supports dark-kitchen scenarios where one
   // product is sold under multiple virtual brands.
-  brandIds String[] @default([])
+  brandIds  String[] @default([])
   // sortOrder is preserved at the Category↔Item link level
   // (MenuItemOnCategory.sortOrder). This top-level sortOrder is the
   // default ordering when the item isn't in a category.
-  sortOrder Int @default(0)
+  sortOrder Int      @default(0)
 
   // Inventory tracking
   isInventoryTracked Boolean @default(false)
@@ -810,15 +834,15 @@ model MenuItem {
   platformPricingOverrides Json @default("{}")
 
   // ── Import / sync ──────────────────────────────────────────────────────
-  platformSource   String?
-  externalId       String?
-  externalParentId String?
-  lastSyncedAt     DateTime?
-  syncStatus       String?
-  syncHash         String?
+  platformSource      String?
+  externalId          String?
+  externalParentId    String?
+  lastSyncedAt        DateTime?
+  syncStatus          String?
+  syncHash            String?
   // Raw modifier-group IDs from the source platform. Kept as JSON so the
   // importer can re-link after creating local ModifierGroup rows.
-  rawModifierGroupIds Json @default("[]")
+  rawModifierGroupIds Json      @default("[]")
 
   categories         MenuItemOnCategory[]
   modifierGroupLinks ModifierGroupOnItem[]
@@ -851,19 +875,19 @@ model MenuItemOnCategory {
 
 // ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
-  id            String  @id @default(cuid())
-  brandId       String
-  brand         Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  id                       String        @id @default(cuid())
+  brandId                  String
+  brand                    Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
   // Phase AP — Products section is location-scoped. Same backfill rule
   // as MenuItem.locationId.
-  locationId    String?
-  name          String
-  description   String?
-  plu           String?
-  minSelections Int     @default(0)
-  maxSelections Int?
-  isRequired    Boolean @default(false)
-  sortOrder     Int     @default(0)
+  locationId               String?
+  name                     String
+  description              String?
+  plu                      String?
+  minSelections            Int           @default(0)
+  maxSelections            Int?
+  isRequired               Boolean       @default(false)
+  sortOrder                Int           @default(0)
   // VARIANT = pick-one (radio); ADDON = pick-many (checkbox).
   // Mapped from Uber's quantity_info.max_permitted (1 = variant, >1 = addon)
   // and from Deliveroo's min/max_selection fields.
@@ -877,22 +901,22 @@ model ModifierGroup {
   menuIds String[] @default([])
 
   // ── Import / sync ──────────────────────────────────────────────────────
-  platformSource    String?
-  externalId        String?
-  externalParentId  String?
-  lastSyncedAt      DateTime?
-  syncStatus        String?
-  syncHash          String?
+  platformSource   String?
+  externalId       String?
+  externalParentId String?
+  lastSyncedAt     DateTime?
+  syncStatus       String?
+  syncHash         String?
   // Raw modifier (option) IDs from the source platform — re-linked after
   // ModifierOption rows are created.
-  rawModifierIds    Json @default("[]")
+  rawModifierIds   Json      @default("[]")
 
   options            ModifierOption[]
   itemLinks          ModifierGroupOnItem[]
-  nestedUnderOptions ModifierOption[] @relation("NestedModifier")
+  nestedUnderOptions ModifierOption[]       @relation("NestedModifier")
   stationRoutes      ModifierGroupStation[]
 
-  metadata Json @default("{}")
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -903,23 +927,23 @@ model ModifierGroup {
 }
 
 model ModifierOption {
-  id              String        @id @default(cuid())
-  groupId         String
-  group           ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                 String        @id @default(cuid())
+  groupId            String
+  group              ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   // Phase AK — Base44 lets the same modifier (e.g. "Extra cheese")
   // belong to multiple groups. We keep groupId above as the "primary"
   // group (so existing service code keeps working) and add a parallel
   // array of additional group memberships. Imports populate both;
   // POS lookups can match either.
-  modifierGroupIds String[]     @default([])
-  name            String
-  description     String?
+  modifierGroupIds   String[]      @default([])
+  name               String
+  description        String?
   // Base price for this modifier when no size key matches. Already
   // existed; renamed conceptually to "default price". pricesBySize
   // below is the authoritative per-size table.
-  priceAdjustment Decimal       @db.Decimal(10, 2) @default(0)
+  priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
   // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
-  plu             String?
+  plu                String?
   // ── Per-size pricing + PLU ─────────────────────────────────────────
   // Used when the parent product is a multi-SKU pizza-style item. Keys
   // are size strings (e.g. "10", "12", "14") extracted from the size
@@ -932,23 +956,23 @@ model ModifierOption {
   //     key here, the option is HIDDEN (not just disabled).
   //   - if pricesBySize is empty, the option is always visible at
   //     priceAdjustment.
-  pricesBySize    Json @default("{}")
-  skuPlus         Json @default("{}")
-  imageUrl        String?
-  allergens       String[]
-  isDefault       Boolean       @default(false)
-  isAvailable     Boolean       @default(true)
-  visibleToCustomers Boolean    @default(true)
+  pricesBySize       Json          @default("{}")
+  skuPlus            Json          @default("{}")
+  imageUrl           String?
+  allergens          String[]
+  isDefault          Boolean       @default(false)
+  isAvailable        Boolean       @default(true)
+  visibleToCustomers Boolean       @default(true)
   // Scheduled restore — same pattern as MenuItem.availableRestoreAt.
   availableRestoreAt DateTime?
-  sortOrder       Int           @default(0)
+  sortOrder          Int           @default(0)
   // Membership in many menus. Same rationale as MenuCategory.menuIds.
-  menuIds         String[] @default([])
+  menuIds            String[]      @default([])
 
   // Per-channel tax — % points, matches MenuItem.
-  deliveryTax Decimal @db.Decimal(5, 2) @default(0)
-  takeawayTax Decimal @db.Decimal(5, 2) @default(0)
-  eatInTax    Decimal @db.Decimal(5, 2) @default(0)
+  deliveryTax Decimal @default(0) @db.Decimal(5, 2)
+  takeawayTax Decimal @default(0) @db.Decimal(5, 2)
+  eatInTax    Decimal @default(0) @db.Decimal(5, 2)
 
   // ── Import / sync ──────────────────────────────────────────────────
   platformSource   String?
@@ -961,7 +985,7 @@ model ModifierOption {
   nestedGroupId String?
   nestedGroup   ModifierGroup? @relation("NestedModifier", fields: [nestedGroupId], references: [id], onDelete: SetNull)
 
-  metadata Json @default("{}")
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1006,46 +1030,46 @@ model MenuItemVariant {
 // Stored as JSON to match the variable structure platforms expect and to
 // keep iteration cheap while we figure out the editor UX.
 model MealDeal {
-  id          String   @id @default(cuid())
-  brandId     String
-  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  id                       String   @id @default(cuid())
+  brandId                  String
+  brand                    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   // Locations this meal deal is available at. Empty array = all locations
   // of the brand. Stored as a Postgres text array — matches Base44's
   // membership pattern.
-  locationIds String[] @default([])
-  name        String
-  description String?
-  imageUrl    String?
+  locationIds              String[] @default([])
+  name                     String
+  description              String?
+  imageUrl                 String?
   // PLU/ref used by integrations.
-  plu         String?
+  plu                      String?
   // Total bundle price. When null, the deal is computed from
   // sum(selected product prices) at order time.
-  price       Decimal? @db.Decimal(10, 2)
+  price                    Decimal? @db.Decimal(10, 2)
   // sections[] = each pick step in the deal. Shape:
   //   [{
   //     name: "Choose your burger",
   //     minChoices: 1, maxChoices: 1,
   //     options: [{ menuItemId, priceOverride?, defaultModifierGroupIds[] }]
   //   }, ...]
-  sections    Json     @default("[]")
+  sections                 Json     @default("[]")
   // Per-channel tax — same format as MenuItem (percentage points).
-  deliveryTax Decimal  @db.Decimal(5, 2) @default(0)
-  takeawayTax Decimal  @db.Decimal(5, 2) @default(0)
-  eatInTax    Decimal  @db.Decimal(5, 2) @default(0)
+  deliveryTax              Decimal  @default(0) @db.Decimal(5, 2)
+  takeawayTax              Decimal  @default(0) @db.Decimal(5, 2)
+  eatInTax                 Decimal  @default(0) @db.Decimal(5, 2)
   // Platform price overrides — { POS: 8.99, UBER_EATS: 9.49, ... }
-  platformPricingOverrides Json @default("{}")
-  isAvailable Boolean  @default(true)
-  visibleToCustomers Boolean @default(true)
-  sortOrder   Int      @default(0)
+  platformPricingOverrides Json     @default("{}")
+  isAvailable              Boolean  @default(true)
+  visibleToCustomers       Boolean  @default(true)
+  sortOrder                Int      @default(0)
 
   // Import / sync — same pattern as MenuItem.
-  platformSource   String?
-  externalId       String?
-  lastSyncedAt     DateTime?
-  syncStatus       String?
-  syncHash         String?
+  platformSource String?
+  externalId     String?
+  lastSyncedAt   DateTime?
+  syncStatus     String?
+  syncHash       String?
 
-  metadata Json @default("{}")
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1060,26 +1084,26 @@ model MealDeal {
 // the customer storefront. Trigger products are what makes the upsell fire;
 // suggested products are what gets shown.
 model UpsellGroup {
-  id   String @id @default(cuid())
-  brandId String
-  brand   Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  name String
-  description String?
+  id                  String   @id @default(cuid())
+  brandId             String
+  brand               Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
   // When ANY of these products / categories are in the cart, the upsell
   // surfaces the `suggestedProductIds`. IDs are MenuItem.id or
   // MenuCategory.id depending on which array they appear in.
-  triggerProductIds  String[] @default([])
-  triggerCategoryIds String[] @default([])
+  triggerProductIds   String[] @default([])
+  triggerCategoryIds  String[] @default([])
   // What to show. Storefront shows them as a "you might also like" row.
   suggestedProductIds String[] @default([])
   // Sort order between competing upsells (e.g. show dessert before drinks).
-  sortOrder Int @default(0)
+  sortOrder           Int      @default(0)
   // Platforms that should surface this upsell. Empty = all platforms.
   // Values are OrderSource enum strings: ONLINE, POS, UBER_EATS, ...
-  platformVisibility String[] @default([])
-  isActive Boolean @default(true)
+  platformVisibility  String[] @default([])
+  isActive            Boolean  @default(true)
 
-  metadata Json @default("{}")
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1143,23 +1167,28 @@ model Customer {
 // Drives what the storefront displays + what it accepts. Operators
 // edit this from a new "Direct online ordering" tab in the POS top bar.
 model DirectOrderingConfig {
-  id                       String   @id @default(cuid())
-  tenantId                 String
-  locationId               String   @unique
-  location                 Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  id         String    @id @default(cuid())
+  tenantId   String
+  // Phase AW — keyed by brand. locationId stays for legacy reads + the
+  // backfill window; AW-2 API writes only touch brandId. Both are
+  // nullable-unique so a row in flight has exactly one of them set.
+  locationId String?   @unique
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId    String?   @unique
+  brand      Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
-  deliveryPrepMinutes      Int      @default(45)
-  collectionPrepMinutes    Int      @default(20)
+  deliveryPrepMinutes   Int @default(45)
+  collectionPrepMinutes Int @default(20)
 
-  acceptsCash              Boolean  @default(true)
-  acceptsCard              Boolean  @default(true)
-  acceptsDelivery          Boolean  @default(true)
-  acceptsCollection        Boolean  @default(true)
+  acceptsCash       Boolean @default(true)
+  acceptsCard       Boolean @default(true)
+  acceptsDelivery   Boolean @default(true)
+  acceptsCollection Boolean @default(true)
 
-  scheduleMaxDaysAhead     Int      @default(7)
-  scheduleSlotMinutes      Int      @default(15)
-  minOrderForDelivery      Decimal? @db.Decimal(10, 2)
-  heroImageUrl             String?
+  scheduleMaxDaysAhead Int      @default(7)
+  scheduleSlotMinutes  Int      @default(15)
+  minOrderForDelivery  Decimal? @db.Decimal(10, 2)
+  heroImageUrl         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1194,7 +1223,7 @@ model LoyaltyAccount {
   tenantId    String
   points      Int      @default(0)
   tier        String   @default("BRONZE")
-  totalSpend  Decimal  @db.Decimal(10, 2) @default(0)
+  totalSpend  Decimal  @default(0) @db.Decimal(10, 2)
   totalOrders Int      @default(0)
   metadata    Json     @default("{}")
 
@@ -1259,15 +1288,15 @@ model DeliveryZone {
 // Secrets/credentials stay in the existing `integrations` row — this only
 // tracks selection + which methods (cash/card terminal/online) are enabled.
 model LocationPaymentConfig {
-  id                    String   @id @default(cuid())
-  tenantId              String
-  locationId            String   @unique
-  location              Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  provider              String   @default("MANUAL") // MANUAL | STRIPE | DOJO | ADYEN | WORLDPAY
-  cashEnabled           Boolean  @default(true)
-  cardTerminalEnabled   Boolean  @default(true)
-  onlinePaymentEnabled  Boolean  @default(false)
-  config                Json     @default("{}")
+  id                   String   @id @default(cuid())
+  tenantId             String
+  locationId           String   @unique
+  location             Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  provider             String   @default("MANUAL") // MANUAL | STRIPE | DOJO | ADYEN | WORLDPAY
+  cashEnabled          Boolean  @default(true)
+  cardTerminalEnabled  Boolean  @default(true)
+  onlinePaymentEnabled Boolean  @default(false)
+  config               Json     @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1278,13 +1307,13 @@ model LocationPaymentConfig {
 
 // ── Order ─────────────────────────────────────────────────────────────────────
 model Order {
-  id                String            @id @default(cuid())
+  id                String           @id @default(cuid())
   tenantId          String
-  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   locationId        String
-  location          Location          @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  location          Location         @relation(fields: [locationId], references: [id], onDelete: Restrict)
   customerId        String?
-  customer          Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer          Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
   // Phase AP-5 — link to the authenticated CustomerAccount (the
   // identity that signed in via Google / email-password). Distinct
   // from `customerId` which is the per-tenant CRM record. Used to
@@ -1295,12 +1324,12 @@ model Order {
   // Optional brand reference. A single location can serve multiple virtual
   // brands (e.g. "Greek Gyros" and "crunchy chikin" run from the same kitchen).
   // Used to badge orders on the board and scope per-brand reporting.
-  brandId           String?
-  brand             Brand?            @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: SetNull)
 
-  externalId String?
-  platform   OrderPlatform
-  displayId  String?
+  externalId  String?
+  platform    OrderPlatform
+  displayId   String?
   // Phase AM — sequential per-tenant POS/DIRECT order number ("#1").
   // External-platform orders keep their own displayId (Just Eat order
   // ref, Uber Eats display_id, etc.) and leave this null.
@@ -1319,24 +1348,24 @@ model Order {
   //               READY; the post-READY transitions are driven by
   //               HubRise's delivery.update webhooks. null for orders
   //               where the model isn't applicable (POS pickup, etc.).
-  deliveryType      String?           // MERCHANT | PLATFORM | null
+  deliveryType String? // MERCHANT | PLATFORM | null
 
   // Courier tracking — populated from HubRise delivery.* webhooks for
   // PLATFORM orders. Stored as flat columns so the dashboard can render
   // them without parsing metadata JSON.
-  courierName       String?
-  courierPhone      String?
+  courierName            String?
+  courierPhone           String?
   // Phase AV-3 — anonymised-call PIN HubRise routes through the
   // marketplace's masking number. Without it the operator can dial
   // courierPhone but the call won't connect (the carrier looks up
   // which active delivery uses that PIN). Same shape exists customer-
   // side (customerInfo.phoneAccessCode in the JSON blob).
   courierPhoneAccessCode String?
-  courierTrackingUrl String?
-  courierStatus     String?           // HubRise delivery status enum verbatim
-  courierAssignedAt DateTime?
-  courierPickedUpAt DateTime?
-  courierDeliveredAt DateTime?
+  courierTrackingUrl     String?
+  courierStatus          String? // HubRise delivery status enum verbatim
+  courierAssignedAt      DateTime?
+  courierPickedUpAt      DateTime?
+  courierDeliveredAt     DateTime?
 
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
@@ -1348,13 +1377,13 @@ model Order {
   deliveryAddress Json?
 
   subtotal      Decimal @db.Decimal(10, 2)
-  taxAmount     Decimal @db.Decimal(10, 2) @default(0)
-  serviceCharge Decimal @db.Decimal(10, 2) @default(0)
-  deliveryFee   Decimal @db.Decimal(10, 2) @default(0)
-  discount      Decimal @db.Decimal(10, 2) @default(0)
+  taxAmount     Decimal @default(0) @db.Decimal(10, 2)
+  serviceCharge Decimal @default(0) @db.Decimal(10, 2)
+  deliveryFee   Decimal @default(0) @db.Decimal(10, 2)
+  discount      Decimal @default(0) @db.Decimal(10, 2)
   total         Decimal @db.Decimal(10, 2)
 
-  isSandbox     Boolean       @default(false)
+  isSandbox Boolean @default(false)
 
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod String?
@@ -1371,9 +1400,9 @@ model Order {
   // Phase AJ — Base44 parity fields surfaced in UI / printer payload.
   // Other Base44 fields (courier_*, food_photo_url, stripe_*, hubrise_*, etc.)
   // continue to live in `metadata` JSONB until they need to be queryable.
-  collectionCode      String?   // shown on customer receipt + driver handoff
-  preparationMinutes  Int?      // overrides default prep time for this order
-  failureReason       String?   // populated when status transitions to FAILED
+  collectionCode     String? // shown on customer receipt + driver handoff
+  preparationMinutes Int? // overrides default prep time for this order
+  failureReason      String? // populated when status transitions to FAILED
 
   // Phase AM — POS operational fields. addressLine1/2/city/postcode are the
   // structured mirror of deliveryAddress JSON (we keep both for backwards-
@@ -1383,13 +1412,13 @@ model Order {
   // PERCENT_20 / FREE_DELIVERY / PROMO_CODE) — the actual amount lives in
   // `discount`. paymentProvider records which provider handled the charge
   // (e.g. STRIPE / DOJO / ADYEN / CASH) when one was wired up.
-  addressLine1        String?
-  addressLine2        String?
-  city                String?
-  postcode            String?
-  callerId            String?
-  discountType        String?
-  paymentProvider     String?
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  postcode        String?
+  callerId        String?
+  discountType    String?
+  paymentProvider String?
 
   receivedAt       DateTime  @default(now())
   acceptedAt       DateTime?
@@ -1605,10 +1634,10 @@ model Printer {
   settings       Json @default("{}")
   metadata       Json @default("{}")
 
-  printJobs              PrintJob[]
-  stationsDefaultFor     PrinterStation[] @relation("StationDefaultPrinter")
-  locationsReceiptFor    Location[]       @relation("LocationReceiptPrinter")
-  locationsDispatchFor   Location[]       @relation("LocationDispatchPrinter")
+  printJobs            PrintJob[]
+  stationsDefaultFor   PrinterStation[] @relation("StationDefaultPrinter")
+  locationsReceiptFor  Location[]       @relation("LocationReceiptPrinter")
+  locationsDispatchFor Location[]       @relation("LocationDispatchPrinter")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1693,23 +1722,23 @@ model PrintJob {
 //   MenuItem → ModifierGroup → Category → Brand → Location → fallback
 // Most-specific override wins.
 model PrinterStation {
-  id               String              @id @default(cuid())
+  id               String             @id @default(cuid())
   tenantId         String
-  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   locationId       String
-  location         Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location         Location           @relation(fields: [locationId], references: [id], onDelete: Cascade)
   name             String
-  kind             PrinterStationKind  @default(KITCHEN)
+  kind             PrinterStationKind @default(KITCHEN)
   defaultPrinterId String?
-  defaultPrinter   Printer?            @relation("StationDefaultPrinter", fields: [defaultPrinterId], references: [id], onDelete: SetNull)
-  isActive         Boolean             @default(true)
-  sortOrder        Int                 @default(0)
+  defaultPrinter   Printer?           @relation("StationDefaultPrinter", fields: [defaultPrinterId], references: [id], onDelete: SetNull)
+  isActive         Boolean            @default(true)
+  sortOrder        Int                @default(0)
 
   menuItemRoutes      MenuItemStation[]
   categoryRoutes      MenuCategoryStation[]
   modifierGroupRoutes ModifierGroupStation[]
-  brandDefaults       Brand[]             @relation("BrandDefaultStation")
-  locationDefaults    Location[]          @relation("LocationDefaultKitchenStation")
+  brandDefaults       Brand[]                @relation("BrandDefaultStation")
+  locationDefaults    Location[]             @relation("LocationDefaultKitchenStation")
   printJobs           PrintJob[]
 
   createdAt DateTime @default(now())
@@ -1753,8 +1782,8 @@ model PrintAgent {
   isActive      Boolean        @default(true)
   deletedAt     DateTime?
 
-  printers     Printer[]
-  claimedJobs  PrintJob[]
+  printers    Printer[]
+  claimedJobs PrintJob[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1770,20 +1799,20 @@ model PrintAgent {
 // sound + visual notification pipeline. Optional stationId narrows the
 // rule to a single kitchen station.
 model AlertConfig {
-  id                     String          @id @default(cuid())
+  id                     String       @id @default(cuid())
   tenantId               String
   locationId             String
   stationId              String?
   trigger                AlertTrigger
-  enabled                Boolean         @default(true)
+  enabled                Boolean      @default(true)
   soundUrl               String?
-  volume                 Float           @default(1.0)
-  repeatCount            Int             @default(1)
-  repeatIntervalMs       Int             @default(5000)
+  volume                 Float        @default(1.0)
+  repeatCount            Int          @default(1)
+  repeatIntervalMs       Int          @default(5000)
   autoStopSeconds        Int?
-  requireAcknowledgement Boolean         @default(false)
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
+  requireAcknowledgement Boolean      @default(false)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
   @@index([tenantId])
   @@index([locationId])
@@ -1818,15 +1847,15 @@ enum AlertTrigger {
 // the code) and POSTs it back to /v1/print-agents/pair to receive a
 // permanent agent id + token.
 model AgentPairCode {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   tenantId    String
   locationId  String
-  code        String   @unique
+  code        String    @unique
   createdById String?
   expiresAt   DateTime
   usedAt      DateTime?
   agentId     String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   @@index([tenantId])
   @@index([expiresAt])
@@ -1986,23 +2015,23 @@ model StripeConnectAccount {
 
 // Immutable payment record — one per payment attempt
 model Payment {
-  id                     String              @id @default(cuid())
+  id                     String                @id @default(cuid())
   tenantId               String
   orderId                String
-  order                  Order               @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  order                  Order                 @relation(fields: [orderId], references: [id], onDelete: Restrict)
   stripeConnectAccountId String?
   connectAccount         StripeConnectAccount? @relation(fields: [stripeConnectAccountId], references: [id], onDelete: SetNull)
-  stripePaymentIntentId  String?             @unique
-  stripeChargeId         String?             @unique
-  amount                 Decimal             @db.Decimal(10, 2)
-  currency               String              @default("gbp")
+  stripePaymentIntentId  String?               @unique
+  stripeChargeId         String?               @unique
+  amount                 Decimal               @db.Decimal(10, 2)
+  currency               String                @default("gbp")
   status                 PaymentRecordStatus
   method                 PaymentMethodType
-  tipAmount              Decimal             @db.Decimal(10, 2) @default(0)
-  platformFee            Decimal             @db.Decimal(10, 2) @default(0)
-  processingFee          Decimal             @db.Decimal(10, 2) @default(0)
-  netAmount              Decimal             @db.Decimal(10, 2)
-  metadata               Json                @default("{}")
+  tipAmount              Decimal               @default(0) @db.Decimal(10, 2)
+  platformFee            Decimal               @default(0) @db.Decimal(10, 2)
+  processingFee          Decimal               @default(0) @db.Decimal(10, 2)
+  netAmount              Decimal               @db.Decimal(10, 2)
+  metadata               Json                  @default("{}")
 
   refunds       Refund[]
   ledgerEntries LedgerEntry[]
@@ -2016,16 +2045,16 @@ model Payment {
 
 // Saved customer payment methods (Stripe PaymentMethod objects)
 model PaymentMethod {
-  id                    String   @id @default(cuid())
+  id                    String            @id @default(cuid())
   customerId            String
-  customer              Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  stripePaymentMethodId String   @unique
+  customer              Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  stripePaymentMethodId String            @unique
   type                  PaymentMethodType
   last4                 String?
   brand                 String?
   expMonth              Int?
   expYear               Int?
-  isDefault             Boolean  @default(false)
+  isDefault             Boolean           @default(false)
 
   createdAt DateTime @default(now())
 
@@ -2124,17 +2153,17 @@ model Supplier {
 }
 
 model Ingredient {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   tenantId      String
   locationId    String
   supplierId    String?
-  supplier      Supplier?  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  supplier      Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   name          String
-  unit          String     // "g", "ml", "each", "kg", "L"
-  costPerUnit   Decimal    @db.Decimal(10, 4)
+  unit          String // "g", "ml", "each", "kg", "L"
+  costPerUnit   Decimal   @db.Decimal(10, 4)
   lowStockAlert Int?
-  isActive      Boolean    @default(true)
-  metadata      Json       @default("{}")
+  isActive      Boolean   @default(true)
+  metadata      Json      @default("{}")
 
   stockLevels  StockLevel[]
   recipeUsages RecipeIngredient[]
@@ -2170,7 +2199,7 @@ model Recipe {
   tenantId   String
   menuItemId String   @unique
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-  yields     Decimal  @db.Decimal(6, 2) @default(1) // portions per recipe batch
+  yields     Decimal  @default(1) @db.Decimal(6, 2) // portions per recipe batch
 
   ingredients RecipeIngredient[]
 
@@ -2225,7 +2254,7 @@ model PurchaseOrder {
   orderedAt  DateTime?
   expectedAt DateTime?
   receivedAt DateTime?
-  totalCost  Decimal             @db.Decimal(10, 2) @default(0)
+  totalCost  Decimal             @default(0) @db.Decimal(10, 2)
   notes      String?
 
   lines PurchaseOrderLine[]
@@ -2266,7 +2295,7 @@ model DeviceToken {
   token    String         @unique
   platform DevicePlatform
   deviceId String?
-  appId    String?        // "driver", "kds", "pos", "manager"
+  appId    String? // "driver", "kds", "pos", "manager"
   isActive Boolean        @default(true)
 
   createdAt DateTime @default(now())
@@ -2278,16 +2307,16 @@ model DeviceToken {
 }
 
 model NotificationLog {
-  id         String              @id @default(cuid())
-  tenantId   String
-  userId     String?
-  type       NotificationType
-  channel    NotificationChannel
-  title      String
-  body       String
-  data       Json                @default("{}")
-  status     String              @default("SENT")
-  errorMsg   String?
+  id       String              @id @default(cuid())
+  tenantId String
+  userId   String?
+  type     NotificationType
+  channel  NotificationChannel
+  title    String
+  body     String
+  data     Json                @default("{}")
+  status   String              @default("SENT")
+  errorMsg String?
 
   createdAt DateTime @default(now())
 
@@ -2356,7 +2385,7 @@ model SubscriptionPlan {
   displayName      String
   stripePriceId    String? @unique
   pricePerMonth    Decimal @db.Decimal(10, 2)
-  pricePerLocation Decimal @db.Decimal(10, 2) @default(0)
+  pricePerLocation Decimal @default(0) @db.Decimal(10, 2)
   maxLocations     Int?
   maxUsers         Int?
   features         Json    @default("[]") // feature flag keys
@@ -2371,26 +2400,26 @@ model SubscriptionPlan {
 }
 
 model TenantSubscription {
-  id               String             @id @default(cuid())
-  tenantId         String             @unique
-  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  planId           String
-  plan             SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
-  stripeSubId      String?            @unique
-  stripeCustomerId String?
-  status           SubscriptionStatus
+  id                 String             @id @default(cuid())
+  tenantId           String             @unique
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  stripeSubId        String?            @unique
+  stripeCustomerId   String?
+  status             SubscriptionStatus
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean          @default(false)
+  cancelAtPeriodEnd  Boolean            @default(false)
   trialEndsAt        DateTime?
-  locationCount      Int              @default(1)
-  metadata           Json             @default("{}")
+  locationCount      Int                @default(1)
+  metadata           Json               @default("{}")
 
   // Phase R billing fields
-  billingEmail          String?   // billing contact — may differ from owner email
-  paymentMethodStatus   String?   // "ok" | "expiring_soon" | "expired" | "missing"
-  lastInvoiceStatus     String?   // mirrors InvoiceStatus of last invoice
-  gracePeriodEndsAt     DateTime? // set when payment fails; UNPAID after this date
+  billingEmail        String? // billing contact — may differ from owner email
+  paymentMethodStatus String? // "ok" | "expiring_soon" | "expired" | "missing"
+  lastInvoiceStatus   String? // mirrors InvoiceStatus of last invoice
+  gracePeriodEndsAt   DateTime? // set when payment fails; UNPAID after this date
 
   invoices     Invoice[]
   usageRecords UsageRecord[]
@@ -2412,7 +2441,7 @@ model Invoice {
   number          String             @unique
   status          InvoiceStatus
   amountDue       Decimal            @db.Decimal(10, 2)
-  amountPaid      Decimal            @db.Decimal(10, 2) @default(0)
+  amountPaid      Decimal            @default(0) @db.Decimal(10, 2)
   currency        String             @default("gbp")
   dueDate         DateTime?
   paidAt          DateTime?
@@ -2444,18 +2473,18 @@ model InvoiceLineItem {
 // Monthly aggregate of billable events per tenant per location.
 // Written by a nightly cron — never in the order hot path.
 model UsageRecord {
-  id             String             @id @default(cuid())
-  tenantId       String
-  subscriptionId String
-  subscription   TenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  locationId     String
-  billingMonth   DateTime           @db.Date // first day of the month
-  orderCount     Int                @default(0)
-  printJobCount  Int                @default(0)
-  activeProviders Int               @default(0)
-  reportedToStripe Boolean          @default(false)
-  reportedAt     DateTime?
-  metadata       Json               @default("{}")
+  id               String             @id @default(cuid())
+  tenantId         String
+  subscriptionId   String
+  subscription     TenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  locationId       String
+  billingMonth     DateTime           @db.Date // first day of the month
+  orderCount       Int                @default(0)
+  printJobCount    Int                @default(0)
+  activeProviders  Int                @default(0)
+  reportedToStripe Boolean            @default(false)
+  reportedAt       DateTime?
+  metadata         Json               @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2470,8 +2499,8 @@ model UsageRecord {
 // Every Stripe event we receive is stored here before processing.
 // If stripeEventId already exists → skip (idempotent).
 model StripeWebhookEvent {
-  id            String   @id @default(cuid())
-  stripeEventId String   @unique // stripe evt_xxx
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique // stripe evt_xxx
   type          String
   processedAt   DateTime?
   error         String?
@@ -2492,7 +2521,7 @@ model MfaConfig {
   id          String  @id @default(cuid())
   userId      String  @unique
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  secret      String  // TOTP secret (AES-256 encrypted at rest)
+  secret      String // TOTP secret (AES-256 encrypted at rest)
   isEnabled   Boolean @default(false)
   backupCodes Json    @default("[]") // bcrypt-hashed one-time codes
 
@@ -2506,7 +2535,7 @@ model IpAllowlist {
   id       String  @id @default(cuid())
   tenantId String
   tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  cidr     String  // CIDR notation e.g. "192.168.1.0/24" or "1.2.3.4/32"
+  cidr     String // CIDR notation e.g. "192.168.1.0/24" or "1.2.3.4/32"
   label    String?
   isActive Boolean @default(true)
 
@@ -2523,7 +2552,7 @@ model DeviceSession {
   tenantId     String
   sessionToken String    @unique
   deviceName   String?
-  deviceType   String?   // WEB, IOS, ANDROID, POS, KDS
+  deviceType   String? // WEB, IOS, ANDROID, POS, KDS
   appVersion   String?
   ipAddress    String?
   userAgent    String?
@@ -2544,19 +2573,19 @@ model DeviceSession {
 
 // Pre-computed daily sales rollup — feeds dashboards without scanning orders
 model DailySalesSnapshot {
-  id            String   @id @default(cuid())
-  tenantId      String
-  locationId    String
-  date          DateTime @db.Date
-  platform      String?  // null = all-platform aggregate
-  totalRevenue  Decimal  @db.Decimal(12, 2)
-  totalOrders   Int
-  avgOrderValue Decimal  @db.Decimal(10, 2)
-  newCustomers  Int      @default(0)
-  repeatCustomers Int    @default(0)
-  cancelledOrders Int    @default(0)
-  avgPrepTimeMin  Decimal @db.Decimal(6, 2) @default(0)
-  metadata      Json     @default("{}")
+  id              String   @id @default(cuid())
+  tenantId        String
+  locationId      String
+  date            DateTime @db.Date
+  platform        String? // null = all-platform aggregate
+  totalRevenue    Decimal  @db.Decimal(12, 2)
+  totalOrders     Int
+  avgOrderValue   Decimal  @db.Decimal(10, 2)
+  newCustomers    Int      @default(0)
+  repeatCustomers Int      @default(0)
+  cancelledOrders Int      @default(0)
+  avgPrepTimeMin  Decimal  @default(0) @db.Decimal(6, 2)
+  metadata        Json     @default("{}")
 
   @@unique([tenantId, locationId, date, platform])
   @@index([tenantId, date(sort: Desc)])
@@ -2566,14 +2595,14 @@ model DailySalesSnapshot {
 
 // Item-level performance snapshot — daily rollup per menu item
 model ItemPerformanceSnapshot {
-  id            String   @id @default(cuid())
-  tenantId      String
-  menuItemId    String
-  locationId    String
-  date          DateTime @db.Date
-  totalSold     Int
-  totalRevenue  Decimal  @db.Decimal(12, 2)
-  cancelledQty  Int      @default(0)
+  id           String   @id @default(cuid())
+  tenantId     String
+  menuItemId   String
+  locationId   String
+  date         DateTime @db.Date
+  totalSold    Int
+  totalRevenue Decimal  @db.Decimal(12, 2)
+  cancelledQty Int      @default(0)
 
   @@unique([tenantId, menuItemId, locationId, date])
   @@index([tenantId, date(sort: Desc)])
@@ -2587,17 +2616,17 @@ model ItemPerformanceSnapshot {
 
 // Registry of all supported integration providers
 model ProviderDefinition {
-  id           String  @id @default(cuid())
-  key          String  @unique // "UBER_EATS", "DELIVEROO", "TALABAT", "DOORDASH", etc.
+  id           String           @id @default(cuid())
+  key          String           @unique // "UBER_EATS", "DELIVEROO", "TALABAT", "DOORDASH", etc.
   name         String
   category     ProviderCategory
-  capabilities Json    @default("[]") // ["order_sync", "menu_push", "availability", "dispatch", "accounting"]
+  capabilities Json             @default("[]") // ["order_sync", "menu_push", "availability", "dispatch", "accounting"]
   webhookPath  String?
   logoUrl      String?
   docsUrl      String?
-  isEnabled    Boolean @default(true)
-  isBeta       Boolean @default(false)
-  metadata     Json    @default("{}")
+  isEnabled    Boolean          @default(true)
+  isBeta       Boolean          @default(false)
+  metadata     Json             @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2607,13 +2636,13 @@ model ProviderDefinition {
 
 // Routing rules: which tenant/location receives webhooks from which provider
 model WebhookRoute {
-  id         String  @id @default(cuid())
-  tenantId   String
-  locationId String?
+  id          String  @id @default(cuid())
+  tenantId    String
+  locationId  String?
   providerKey String
-  pathPattern String  // glob/regex pattern matched against incoming URL path
-  isActive   Boolean @default(true)
-  metadata   Json    @default("{}")
+  pathPattern String // glob/regex pattern matched against incoming URL path
+  isActive    Boolean @default(true)
+  metadata    Json    @default("{}")
 
   createdAt DateTime @default(now())
 
@@ -2628,16 +2657,16 @@ model WebhookRoute {
 
 // Mobile/POS app sessions — separate from web DeviceSession
 model MobileSession {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   tenantId    String
-  appId       String  // "driver", "kds", "pos", "manager"
+  appId       String // "driver", "kds", "pos", "manager"
   deviceId    String
   deviceModel String?
   osVersion   String?
   appVersion  String
   fcmToken    String? // current FCM token for this session
-  isActive    Boolean @default(true)
+  isActive    Boolean  @default(true)
   lastSyncAt  DateTime @default(now())
 
   createdAt DateTime @default(now())
@@ -2651,10 +2680,10 @@ model MobileSession {
 
 // Web push subscriptions (Web Push API)
 model WebPushSubscription {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   userId   String
   tenantId String
-  endpoint String @unique
+  endpoint String  @unique
   p256dh   String // Public key
   auth     String // Auth secret
   isActive Boolean @default(true)
@@ -2682,8 +2711,8 @@ model SystemSecret {
   key            String   @unique // e.g. STRIPE_SECRET_KEY
   label          String?
   description    String?
-  category       String?  // grouping for the admin UI: stripe / google / supabase / delivery / etc.
-  encryptedValue String   // base64(iv || authTag || ciphertext)
+  category       String? // grouping for the admin UI: stripe / google / supabase / delivery / etc.
+  encryptedValue String // base64(iv || authTag || ciphertext)
   lastFourChars  String?
   createdBy      String?
   updatedBy      String?
@@ -2727,13 +2756,13 @@ model OutboxEvent {
 // ══════════════════════════════════════════════════════════════════════════════
 
 enum LocationGoLiveStatus {
-  DRAFT              // not yet started
-  CONFIGURING        // setup in progress
-  TESTING            // test orders/prints being run
-  READY_FOR_GO_LIVE  // all critical checks pass
-  LIVE               // actively taking real orders
-  PAUSED             // temporarily disabled
-  BLOCKED            // critical check failure prevents go-live
+  DRAFT // not yet started
+  CONFIGURING // setup in progress
+  TESTING // test orders/prints being run
+  READY_FOR_GO_LIVE // all critical checks pass
+  LIVE // actively taking real orders
+  PAUSED // temporarily disabled
+  BLOCKED // critical check failure prevents go-live
 }
 
 enum OutboxEventStatus {
@@ -2849,10 +2878,10 @@ enum OrderStatus {
   ACCEPTED
   PREPARING
   READY
-  PENDING_DISPATCH    // order has been pushed to a third-party dispatcher (Uber Direct, Stuart, JET, etc.) but no driver has accepted yet
+  PENDING_DISPATCH // order has been pushed to a third-party dispatcher (Uber Direct, Stuart, JET, etc.) but no driver has accepted yet
   ASSIGNED_DRIVER
   ACCEPTED_BY_DRIVER
-  RIDER_ARRIVED       // platform rider (UE / JET / Deliveroo / Stuart / Uber Direct) physically at the shop, ready to collect — staff hands the bag over and marks Out for delivery
+  RIDER_ARRIVED // platform rider (UE / JET / Deliveroo / Stuart / Uber Direct) physically at the shop, ready to collect — staff hands the bag over and marks Out for delivery
   OUT_FOR_DELIVERY
   DISPATCHED // legacy alias for OUT_FOR_DELIVERY — kept for backward compatibility with older outbox events and integration adapters
   COMPLETED
@@ -2871,7 +2900,7 @@ enum OrderStatusActorType {
 
 enum PaymentStatus {
   PENDING
-  AUTHORIZED         // Phase AP-8 — Stripe authorization succeeded, money is held on the card but NOT yet captured. Captured when the restaurant clicks Accept; released (no charge) when they reject.
+  AUTHORIZED // Phase AP-8 — Stripe authorization succeeded, money is held on the card but NOT yet captured. Captured when the restaurant clicks Accept; released (no charge) when they reject.
   PAID
   REFUNDED
   PARTIALLY_REFUNDED
@@ -2985,8 +3014,8 @@ enum SubscriptionStatus {
   CANCELLED
   PAUSED
   INCOMPLETE
-  FREE_PILOT  // existing pilot shops — free until trialEndsAt, then auto-migrate to TRIALING
-  UNPAID      // payment failed and grace period expired; read-only access only
+  FREE_PILOT // existing pilot shops — free until trialEndsAt, then auto-migrate to TRIALING
+  UNPAID // payment failed and grace period expired; read-only access only
 }
 
 enum InvoiceStatus {
