@@ -569,7 +569,7 @@ function OrderRow({
         <DeliveryTypeBadge type={(order as any).deliveryType} />
       </Td>
       <Td>
-        <div className="max-w-[160px] truncate text-zinc-700">
+        <div className="max-w-[110px] truncate text-zinc-700">
           {order.customerInfo?.name ?? "—"}
         </div>
       </Td>
@@ -692,13 +692,13 @@ function ReprintMenu({
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-3 py-2.5 text-left font-semibold whitespace-nowrap">
+    <th className="px-2 py-2.5 text-left font-semibold whitespace-nowrap">
       {children}
     </th>
   );
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-3 py-2.5 align-middle">{children}</td>;
+  return <td className="px-2 py-2.5 align-middle">{children}</td>;
 }
 
 // Phase AV — small badge for the new Delivery column. We deliberately
