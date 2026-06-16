@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { WebhooksController } from "./webhooks.controller";
 import { WebhookIngestionService } from "./webhook-ingestion.service";
 import { WebhookAdapterFactory } from "./webhook-adapter.factory";
@@ -10,7 +10,13 @@ import { CredentialEncryptionService } from "../integrations/credential-encrypti
 import { OrdersModule } from "../orders/orders.module";
 
 @Module({
-  imports: [OrdersModule],
+  // Phase AU — OrdersModule now imports HubRiseModule (for status
+  // push-back), and HubRiseModule imports WebhooksModule (for
+  // canonical ingestion). That introduces a 3-hop cycle:
+  //   OrdersModule → HubRiseModule → WebhooksModule → OrdersModule
+  // Nest's module scanner can't resolve it without forwardRef on both
+  // sides of the cycle, so wrap OrdersModule here too.
+  imports: [forwardRef(() => OrdersModule)],
   controllers: [WebhooksController],
   providers: [
     WebhookIngestionService,
