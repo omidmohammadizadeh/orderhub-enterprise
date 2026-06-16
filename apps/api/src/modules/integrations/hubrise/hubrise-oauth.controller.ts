@@ -296,8 +296,14 @@ export class HubRiseOauthController {
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
+    // HubRise's REST API is case-sensitive on the location segment —
+    // it stores ids lowercase server-side and returns 404
+    // "Location does not exist" if we send the uppercase variant some
+    // operators paste from the dashboard. Our DB lookup is
+    // case-insensitive so we already matched the location; just
+    // normalise on the way out to keep the API happy.
     const url = `${baseUrl}/locations/${encodeURIComponent(
-      hubriseLocationId,
+      hubriseLocationId.toLowerCase(),
     )}/orders/${encodeURIComponent(orderId)}`;
     const res = await fetch(url, {
       headers: { "X-Access-Token": accessToken },
