@@ -118,7 +118,10 @@ export class HubRiseOrderSyncService {
 
     try {
       const res = await fetch(url, {
-        method: "POST",
+        // HubRise uses PATCH /v1/orders/{id} for status updates, not
+        // POST. Per their docs the body is { new_state: "..." }; older
+        // examples on the web sometimes show POST which 404s on prod.
+        method: "PATCH",
         headers: {
           "X-Access-Token": accessToken,
           "Content-Type": "application/json",
