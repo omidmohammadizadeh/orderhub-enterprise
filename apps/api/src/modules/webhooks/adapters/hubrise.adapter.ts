@@ -141,18 +141,28 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       0,
     );
 
-    // Payment hint — HubRise's `payments[].type` is "online" |
-    // "cash_on_delivery" | "house_account" etc. Anything that
-    // settled at the channel side (Uber Eats / Deliveroo) shows as
-    // online and is fully PAID by the time we see it.
+    // Payment hint — HubRise sends payment as either:
+    //   { type: "online" | "cash_on_delivery", amount: "..." }      ← spec
+    //   { name: "Paid online" | "Cash on delivery", amount: "..." } ← Uber/Deliveroo
+    // The `name` is set by the marketplace; HubRise's typed `type` is
+    // optional, so we fall through to a name match. Anything that
+    // settled at the channel side (Uber Eats / Deliveroo) is fully
+    // PAID by the time we see it.
     const firstPayment = (order.payments ?? [])[0] ?? null;
-    const paymentMethod =
-      firstPayment?.type === "cash_on_delivery"
+    const payHint =
+      `${firstPayment?.type ?? ""} ${firstPayment?.name ?? ""}`.toLowerCase();
+    const paymentMethod = firstPayment
+      ? /cash/.test(payHint)
         ? "CASH"
-        : firstPayment?.type === "online"
+        : /online|card|paid/.test(payHint)
           ? "CARD"
-          : null;
-    const paymentStatus = firstPayment ? "PAID" : "PENDING";
+          : null
+      : null;
+    const paymentStatus = firstPayment
+      ? /cash on delivery|cash_on_delivery/.test(payHint)
+        ? "PENDING"
+        : "PAID"
+      : "PENDING";
 
     return {
       externalId,

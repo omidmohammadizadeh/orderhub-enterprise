@@ -508,7 +508,19 @@ function OrderRow({
         </span>
       </Td>
       <Td>
-        <PlatformBadge platform={order.platform} />
+        {/* Phase AU — HubRise orders carry the original marketplace
+            in `orderSource` (UBER_EATS / DELIVEROO / JUST_EAT). The
+            operator wants to see "Uber Eats" on the board, not the
+            transport. Fall back to platform for non-HubRise orders. */}
+        <PlatformBadge
+          platform={
+            order.platform === "HUBRISE" &&
+            (order as any).orderSource &&
+            (order as any).orderSource !== "HUBRISE"
+              ? (order as any).orderSource
+              : order.platform
+          }
+        />
       </Td>
       <Td>
         {/* Brand badge — pulls from order.brand which API includes since

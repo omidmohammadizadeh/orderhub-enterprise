@@ -185,6 +185,20 @@ export class OrdersService {
             scheduledFor: canonical.scheduledFor,
             idempotencyKey: canonical.idempotencyKey,
             metadata: canonical.metadata as Prisma.InputJsonValue,
+            // Phase AU — HubRise (and earlier webhook flows) carry the
+            // payment method + status inside `metadata` rather than on
+            // the canonical envelope. Promote them onto the Order row
+            // so the dashboard payment chip reads "CARD / PAID" instead
+            // of "UNPAID" and the receipt formatter doesn't print
+            // "*** UNPAID ***" on a card-prepaid Uber Eats order.
+            paymentMethod:
+              (canonical as any).paymentMethod ??
+              (canonical.metadata as any)?.paymentMethod ??
+              undefined,
+            paymentStatus:
+              (canonical as any).paymentStatus ??
+              (canonical.metadata as any)?.paymentStatus ??
+              undefined,
             statusHistory: {
               create: {
                 tenantId,
@@ -226,7 +240,7 @@ export class OrdersService {
       });
 
       this.logger.log(
-        `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId})`,
+        `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId}) items=${canonical.items?.length ?? 0} pay=${(canonical as any).paymentMethod ?? (canonical.metadata as any)?.paymentMethod ?? "null"}/${(canonical as any).paymentStatus ?? (canonical.metadata as any)?.paymentStatus ?? "null"}`,
       );
 
       void this.audit.log({
@@ -856,9 +870,21 @@ export class OrdersService {
         // customer's authorization webhook lands and we flip paymentStatus
         // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
         // start preparing food the customer hasn't successfully paid for.
+        // Phase AP-8 — card orders aren't real to the kitchen until
+        // the authorize webhook lands. But this filter ONLY applies to
+        // direct/storefront orders that go through Stripe Connect —
+        // marketplace orders (HubRise, Uber Eats, Deliveroo) settle on
+        // the channel side and arrive already paid, so they should
+        // never be hidden here even if their paymentStatus briefly
+        // shows PENDING during ingestion. Restricting by orderSource
+        // keeps the kitchen-safety check intact for DIRECT while
+        // letting HubRise/marketplace orders through.
         NOT: {
-          paymentMethod: "CARD",
-          paymentStatus: "PENDING",
+          AND: [
+            { paymentMethod: "CARD" },
+            { paymentStatus: "PENDING" },
+            { orderSource: "DIRECT" },
+          ],
         },
         OR: [
           {
