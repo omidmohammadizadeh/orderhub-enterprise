@@ -188,17 +188,19 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       integrationSource: "HUBRISE",
       viaHubrise: true,
       fulfillmentType: fulfillmentType as any,
+      // Phase AV-3 — anonymised-call PIN (phoneAccessCode). HubRise's
+      // marketplace partners (Uber Eats, Deliveroo) mask the
+      // customer's phone through a routing number that needs this
+      // code to dial out. Cast through `as any` because the shared
+      // CanonicalOrder.customerInfo type doesn't include the field
+      // yet; flowing through as JSON to Order.customerInfo lets the
+      // drawer read it without churning the cross-package type.
       customerInfo: {
-        // Phase AV-3 — anonymised-call PIN. HubRise's marketplace
-        // partners (Uber Eats, Deliveroo) mask the customer's phone
-        // through a routing number that needs this code to dial out.
-        // Operator without the PIN can read the number but the
-        // carrier won't connect the call.
-        phoneAccessCode: customer.phone_access_code ?? undefined,
         name: customerName,
         phone: customer.phone ?? undefined,
         email: customer.email ?? undefined,
-      },
+        phoneAccessCode: customer.phone_access_code ?? undefined,
+      } as any,
       deliveryAddress,
       items,
       subtotal,
