@@ -91,6 +91,53 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           )}
         </div>
 
+        {/* Phase AV-2 — Courier panel for PLATFORM orders. Populated
+            from HubRise delivery.* webhooks. The phone number is a
+            tel: link so the operator can call the driver in one tap
+            from a phone/tablet; the tracking URL opens HubRise's
+            live courier map. Status is the raw HubRise enum
+            translated to something operators read at a glance. */}
+        {((order as any).courierName ||
+          (order as any).courierPhone ||
+          (order as any).courierTrackingUrl ||
+          (order as any).courierStatus) && (
+          <div className="px-5 py-4 border-b border-zinc-100">
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-2">
+              Courier
+            </p>
+            {(order as any).courierName && (
+              <p className="text-sm font-semibold text-zinc-900">
+                {(order as any).courierName}
+              </p>
+            )}
+            {(order as any).courierPhone && (
+              <p className="text-xs text-zinc-500 mt-0.5">
+                <a
+                  href={`tel:${(order as any).courierPhone}`}
+                  className="hover:text-violet-700"
+                >
+                  {(order as any).courierPhone}
+                </a>
+              </p>
+            )}
+            {(order as any).courierStatus && (
+              <p className="text-[11px] text-zinc-500 mt-1">
+                {humanCourierStatus((order as any).courierStatus)}
+              </p>
+            )}
+            {(order as any).courierTrackingUrl && (
+              <a
+                href={(order as any).courierTrackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:text-violet-900"
+              >
+                Track live →
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Items */}
         <div className="px-5 py-4 border-b border-zinc-100">
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-3">
@@ -210,4 +257,23 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       )}
     </div>
   );
+}
+
+// Phase AV-2 — translate HubRise's delivery status enum into
+// something a human reads at a glance. We never hide the raw value
+// (operators can still see it in the audit log) but the drawer
+// shouldn't make them parse "pickup_enroute".
+function humanCourierStatus(s: string): string {
+  const map: Record<string, string> = {
+    pending: "Awaiting driver",
+    pickup_enroute: "Driver on the way to collect",
+    pickup_approaching: "Driver arriving at restaurant",
+    pickup_waiting: "Driver at restaurant",
+    dropoff_enroute: "Driver on the way to customer",
+    dropoff_approaching: "Driver arriving at customer",
+    dropoff_waiting: "Driver at customer",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+  };
+  return map[s] ?? s.replace(/_/g, " ");
 }

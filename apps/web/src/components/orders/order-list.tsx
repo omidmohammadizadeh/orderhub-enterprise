@@ -145,16 +145,27 @@ const BUCKETS: Bucket[] = [
     pill: "bg-emerald-50 text-emerald-700",
     icon: CheckCircle2,
   },
+  // Phase AV-2 follow-up — split the old single "Dispatch" bucket
+  // into two so operators can see at a glance which orders just got
+  // a driver assigned vs which are actually on the way. The platform
+  // courier flow (HubRise → us) walks through both states; lumping
+  // them under "Dispatch" hid the intermediate driver assignment.
   {
-    key: "DISPATCH",
-    label: "Dispatch",
+    key: "DRIVER_ASSIGNED",
+    label: "Driver assigned",
     match: (o) =>
       o.status === "PENDING_DISPATCH" ||
       o.status === "ASSIGNED_DRIVER" ||
       o.status === "ACCEPTED_BY_DRIVER" ||
-      o.status === "RIDER_ARRIVED" ||
-      o.status === "OUT_FOR_DELIVERY" ||
-      o.status === "DISPATCHED",
+      o.status === "RIDER_ARRIVED",
+    pill: "bg-violet-50 text-violet-700",
+    icon: Truck,
+  },
+  {
+    key: "OUT_FOR_DELIVERY",
+    label: "Out for delivery",
+    match: (o) =>
+      o.status === "OUT_FOR_DELIVERY" || o.status === "DISPATCHED",
     pill: "bg-orange-50 text-orange-700",
     icon: Truck,
   },
