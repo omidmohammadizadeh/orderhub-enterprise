@@ -164,20 +164,25 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         : "PAID"
       : "PENDING";
 
-    // Phase AV — derive delivery type from channel. Marketplace
-    // channels (Uber Eats / Deliveroo / Just Eat) run their own
-    // couriers, so the operator can only walk the order up to READY;
-    // post-READY transitions arrive via HubRise's delivery.update
-    // webhook. Anything else (direct online, walk-in) is on the
-    // restaurant — they drive the full chain. We only set this for
-    // DELIVERY orders; PICKUP / DINE_IN don't need it.
+    // Phase AV-4 — derive delivery type from the presence of a real
+    // address. The signal that the marketplace is handling delivery
+    // itself is that it withholds the customer's address from the
+    // restaurant (the courier knows where to go, the kitchen doesn't
+    // need to). So: address present → restaurant is delivering
+    // (MERCHANT), operator walks the order all the way to delivered.
+    // Address absent → marketplace courier (PLATFORM), operator is
+    // gated at READY and post-READY transitions arrive via the
+    // HubRise delivery.* webhook. Channel alone isn't reliable —
+    // Uber Eats / Deliveroo can both be used for "merchant delivery"
+    // contracts where the restaurant runs its own riders.
+    const hasRealAddress =
+      !!deliveryAddress &&
+      !!(deliveryAddress.line1 || deliveryAddress.postcode);
     const deliveryType =
       fulfillmentType === "DELIVERY"
-        ? originPlatform === "UBER_EATS" ||
-          originPlatform === "DELIVEROO" ||
-          originPlatform === "JUST_EAT"
-          ? "PLATFORM"
-          : "MERCHANT"
+        ? hasRealAddress
+          ? "MERCHANT"
+          : "PLATFORM"
         : null;
 
     return {
