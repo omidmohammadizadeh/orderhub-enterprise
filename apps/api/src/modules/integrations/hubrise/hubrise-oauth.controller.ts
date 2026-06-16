@@ -32,6 +32,7 @@ import { BillingExempt } from "../../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { WebhookIngestionService } from "../../webhooks/webhook-ingestion.service";
+import { CredentialEncryptionService } from "../credential-encryption.service";
 import { HubRiseOauthService } from "./hubrise-oauth.service";
 
 @ApiTags("hubrise")
@@ -44,6 +45,7 @@ export class HubRiseOauthController {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly ingestion: WebhookIngestionService,
+    private readonly credentialEncryption: CredentialEncryptionService,
   ) {}
 
   @Get("connect")
@@ -180,7 +182,11 @@ export class HubRiseOauthController {
         },
         deletedAt: null,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        hubriseCredentials: true,
+        hubriseLocationId: true,
+      },
     });
     if (!location) {
       this.logger.warn(
@@ -191,11 +197,65 @@ export class HubRiseOauthController {
       return { received: true, reason: "location_not_connected" };
     }
 
+    // HubRise webhook payloads for order events carry only the event
+    // metadata + order_id, NOT the full order body. We have to fetch
+    // the order ourselves via GET /locations/<hubriseLocationId>/orders/<orderId>
+    // before passing it to the ingestion service — the HubRise adapter
+    // expects items[], payments[], customer{} etc. at the top level.
+    //
+    // If the operator-supplied payload already contains items (e.g.
+    // some webhook configurations DO inline them, or a test replay
+    // pasted the full body), we skip the fetch and use what we have.
+    let enrichedPayload: Record<string, any> = parsed;
+    const isOrderEvent =
+      parsed?.resource_type === "order" &&
+      (parsed?.event_type === "create" || parsed?.event_type === "update");
+    const hasItems = Array.isArray(parsed?.items);
+    const orderId: string | undefined = parsed?.order_id ?? parsed?.id;
+
+    if (isOrderEvent && !hasItems && orderId) {
+      try {
+        const fetched = await this.fetchOrderFromHubRise(
+          location.hubriseLocationId!,
+          orderId,
+          location.hubriseCredentials,
+        );
+        // Merge event metadata + the fetched order body. The adapter
+        // reads from one flat object so this is the easiest shape.
+        // Order body fields win over event metadata where they overlap
+        // (status, channel, etc. on the actual order, not the event).
+        enrichedPayload = {
+          ...parsed,
+          ...fetched,
+          // Preserve the HubRise event id so extractEventId still has
+          // a stable idempotency key per webhook delivery.
+          event_id: parsed?.id,
+          order_id: orderId,
+        };
+        this.logger.log(
+          `HubRise webhook order ${orderId} hydrated from API (${
+            (fetched.items ?? []).length
+          } items)`,
+        );
+      } catch (err: any) {
+        // Bubble up to HubRise with 5xx so they retry. A common cause
+        // is the access token being revoked; the operator needs to
+        // reconnect, and HubRise's retry queue will replay once they do.
+        this.logger.error(
+          `Failed to fetch HubRise order ${orderId}: ${err?.message}`,
+        );
+        throw new BadRequestException(
+          `Could not fetch order ${orderId} from HubRise: ${err?.message}`,
+        );
+      }
+    }
+
     try {
       const result = await this.ingestion.ingest({
         platform: "HUBRISE",
         locationId: location.id,
         rawBody,
+        payload: enrichedPayload,
         headers: req.headers as Record<string, string | string[] | undefined>,
       });
       this.logger.log(
@@ -211,5 +271,41 @@ export class HubRiseOauthController {
       // tab tells the operator what went wrong.
       throw err;
     }
+  }
+
+  /**
+   * GET /v1/locations/{hubriseLocationId}/orders/{orderId} on HubRise's
+   * REST API. Requires the location's saved access token (decrypted
+   * from the encrypted credentials envelope).
+   */
+  private async fetchOrderFromHubRise(
+    hubriseLocationId: string,
+    orderId: string,
+    credentialsBlob: unknown,
+  ): Promise<Record<string, any>> {
+    if (!credentialsBlob) {
+      throw new Error("No HubRise credentials saved for this location");
+    }
+    const decrypted = this.credentialEncryption.decrypt(
+      credentialsBlob as Record<string, unknown>,
+    ) as Record<string, string>;
+    const accessToken = decrypted.accessToken;
+    if (!accessToken) {
+      throw new Error("HubRise access token missing from credentials envelope");
+    }
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const url = `${baseUrl}/locations/${encodeURIComponent(
+      hubriseLocationId,
+    )}/orders/${encodeURIComponent(orderId)}`;
+    const res = await fetch(url, {
+      headers: { "X-Access-Token": accessToken },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HubRise GET ${url} → ${res.status}: ${text}`);
+    }
+    return (await res.json()) as Record<string, any>;
   }
 }
