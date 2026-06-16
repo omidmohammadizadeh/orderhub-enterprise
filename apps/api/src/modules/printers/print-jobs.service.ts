@@ -131,9 +131,35 @@ export class PrintJobsService {
     const filtered = await this.filterTargetsByAutoRules(targets, dto.trigger);
     if (!filtered.length) return [];
 
+    // Phase AU follow-up — every status transition (ACCEPTED →
+    // PREPARING → READY) used to re-fire the full target list, which
+    // meant the customer receipt and driver slip printed three times.
+    // Receipts and slips are "print once per order" by nature; only
+    // KITCHEN_TICKET legitimately benefits from re-firing because
+    // different stations may opt-in via autoPrintRules at different
+    // triggers. Look up any existing CUSTOMER_RECEIPT / DRIVER_SLIP
+    // PrintJobs for this order and drop those types from the new
+    // batch. KITCHEN_TICKET stays subject to its per-printer
+    // autoPrintRules.
+    const existing = await (this.prisma as any).printJob.findMany({
+      where: {
+        orderId: dto.orderId,
+        type: { in: ["CUSTOMER_RECEIPT", "DRIVER_SLIP"] },
+      },
+      select: { type: true },
+    });
+    const alreadyPrinted = new Set<string>(existing.map((r: any) => r.type));
+    const deduped = filtered.filter((t) => {
+      if (t.type === "CUSTOMER_RECEIPT" || t.type === "DRIVER_SLIP") {
+        return !alreadyPrinted.has(t.type);
+      }
+      return true;
+    });
+    if (!deduped.length) return [];
+
     const created: string[] = [];
-    for (let i = 0; i < filtered.length; i++) {
-      const t = filtered[i]!;
+    for (let i = 0; i < deduped.length; i++) {
+      const t = deduped[i]!;
       const idempotencyKey = dto.idempotencyKeyPrefix
         ? `${dto.idempotencyKeyPrefix}:${i}`
         : `order:${dto.orderId}:${dto.trigger}:${t.type}:${t.stationId ?? "-"}`;
