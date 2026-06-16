@@ -80,7 +80,26 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         <div className="px-5 py-4 border-b border-zinc-100">
           <p className="text-sm font-semibold text-zinc-900">{order.customerInfo.name}</p>
           {order.customerInfo.phone && (
-            <p className="text-xs text-zinc-500 mt-0.5">{order.customerInfo.phone}</p>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              <a
+                href={`tel:${order.customerInfo.phone}${
+                  (order.customerInfo as any).phoneAccessCode
+                    ? `,${String((order.customerInfo as any).phoneAccessCode).replace(/\s+/g, "")}`
+                    : ""
+                }`}
+                className="hover:text-violet-700"
+              >
+                {order.customerInfo.phone}
+              </a>
+              {(order.customerInfo as any).phoneAccessCode && (
+                <>
+                  {" · PIN "}
+                  <span className="font-mono tracking-wider">
+                    {(order.customerInfo as any).phoneAccessCode}
+                  </span>
+                </>
+              )}
+            </p>
           )}
           {order.deliveryAddress && (
             <p className="text-xs text-zinc-500 mt-1">
@@ -112,12 +131,29 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             )}
             {(order as any).courierPhone && (
               <p className="text-xs text-zinc-500 mt-0.5">
+                {/* Marketplace partners route courier calls through a
+                    masking number. The PIN goes in the DTMF post-dial
+                    string (`,` = 2s pause) so a single tap dials,
+                    waits, then sends the code. Falls back to a plain
+                    number if no PIN is present. */}
                 <a
-                  href={`tel:${(order as any).courierPhone}`}
+                  href={`tel:${(order as any).courierPhone}${
+                    (order as any).courierPhoneAccessCode
+                      ? `,${String((order as any).courierPhoneAccessCode).replace(/\s+/g, "")}`
+                      : ""
+                  }`}
                   className="hover:text-violet-700"
                 >
                   {(order as any).courierPhone}
                 </a>
+                {(order as any).courierPhoneAccessCode && (
+                  <>
+                    {" · PIN "}
+                    <span className="font-mono tracking-wider">
+                      {(order as any).courierPhoneAccessCode}
+                    </span>
+                  </>
+                )}
               </p>
             )}
             {(order as any).courierStatus && (

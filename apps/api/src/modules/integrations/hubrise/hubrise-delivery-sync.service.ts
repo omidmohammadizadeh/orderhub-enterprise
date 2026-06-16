@@ -43,6 +43,11 @@ interface HubRiseDelivery {
   carrier?: string;
   driver_name?: string;
   driver_phone?: string;
+  // HubRise's anonymised-call PIN for the courier. The marketplace
+  // routes outgoing calls through a masking number; without this
+  // code the carrier doesn't know which active delivery the call
+  // belongs to and the call fails.
+  driver_phone_access_code?: string;
   tracking_url?: string;
   assigned_at?: string;
   pickup_at?: string;
@@ -124,6 +129,9 @@ export class HubRiseDeliverySyncService {
     const updates: Record<string, any> = {};
     if (delivery.driver_name) updates.courierName = delivery.driver_name;
     if (delivery.driver_phone) updates.courierPhone = delivery.driver_phone;
+    if (delivery.driver_phone_access_code) {
+      updates.courierPhoneAccessCode = delivery.driver_phone_access_code;
+    }
     if (delivery.tracking_url) updates.courierTrackingUrl = delivery.tracking_url;
     if (delivery.status) updates.courierStatus = delivery.status;
     if (delivery.assigned_at && !(order as any).courierAssignedAt) {

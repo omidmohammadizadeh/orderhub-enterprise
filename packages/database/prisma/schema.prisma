@@ -1326,6 +1326,12 @@ model Order {
   // them without parsing metadata JSON.
   courierName       String?
   courierPhone      String?
+  // Phase AV-3 — anonymised-call PIN HubRise routes through the
+  // marketplace's masking number. Without it the operator can dial
+  // courierPhone but the call won't connect (the carrier looks up
+  // which active delivery uses that PIN). Same shape exists customer-
+  // side (customerInfo.phoneAccessCode in the JSON blob).
+  courierPhoneAccessCode String?
   courierTrackingUrl String?
   courierStatus     String?           // HubRise delivery status enum verbatim
   courierAssignedAt DateTime?
