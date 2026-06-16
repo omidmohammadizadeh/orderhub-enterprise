@@ -75,17 +75,13 @@ export class HubRiseDeliverySyncService {
 
     // Match the matching Order by externalId. HubRise's order_id is
     // exactly what the order-create webhook stored as externalId.
-    const order = await this.prisma.order.findFirst({
+    // findFirst returns the full Order; we cast to `any` further down
+    // to read the courier-timestamp columns the generated Prisma
+    // client doesn't know about yet (added in migration AV-1).
+    const orderRow = await this.prisma.order.findFirst({
       where: { externalId: args.hubriseOrderId, viaHubrise: true },
-      select: {
-        id: true,
-        tenantId: true,
-        status: true,
-        // Cast for fields that may not be in the generated client yet —
-        // safe because the SELECT only requests these names and Prisma
-        // will return them as strings.
-      } as any,
     });
+    const order = orderRow as any;
     if (!order) {
       // Order hasn't landed yet (HubRise sometimes sends delivery
       // before order in fast flows) or it's for a different tenant.
