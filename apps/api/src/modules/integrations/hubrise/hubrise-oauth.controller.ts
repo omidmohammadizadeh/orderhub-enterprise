@@ -294,6 +294,41 @@ export class HubRiseOauthController {
       this.logger.log(
         `HubRise webhook → location ${location.id} → ${JSON.stringify(result)}`,
       );
+
+      // Phase AV-2 follow-up — Base44-style. HubRise embeds the
+      // delivery state inside the order body's `delivery` field on
+      // every order.update event. Most accounts never see standalone
+      // `delivery.*` events at all (they require a webhook
+      // subscription change), but every account DOES see
+      // `order.update` events. Pulling courier stage from the inline
+      // block here means we transition PLATFORM orders without the
+      // operator having to touch HubRise's webhook subscription
+      // config.
+      const inlineDelivery = enrichedPayload?.delivery;
+      if (
+        inlineDelivery &&
+        typeof inlineDelivery === "object" &&
+        inlineDelivery.status
+      ) {
+        try {
+          await this.deliverySync.handleDeliveryWebhook({
+            hubriseOrderId: enrichedPayload.order_id ?? enrichedPayload.id,
+            hubriseDeliveryId: inlineDelivery.id,
+            ourLocationId: location.id,
+            hubriseLocationId: location.hubriseLocationId!,
+            credentialsBlob: location.hubriseCredentials,
+            inlineDelivery,
+          });
+        } catch (err: any) {
+          // Never let the embedded-delivery side path fail the main
+          // ingest — order.update has already saved the order
+          // changes. Log and continue.
+          this.logger.warn(
+            `Inline-delivery sync failed for ${enrichedPayload.order_id}: ${err?.message}`,
+          );
+        }
+      }
+
       return { received: true, ...result };
     } catch (err: any) {
       this.logger.error(
