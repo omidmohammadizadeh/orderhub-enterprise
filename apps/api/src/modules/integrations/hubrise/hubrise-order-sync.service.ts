@@ -94,6 +94,9 @@ export class HubRiseOrderSyncService {
       select: { hubriseCredentials: true, hubriseLocationId: true },
     });
     if (!location?.hubriseCredentials || !location?.hubriseLocationId) {
+      // Operator paste-saved nothing and never connected via OAuth.
+      // Without the hubriseLocationId we can't address the order on
+      // HubRise's API, so skip rather than hammer.
       this.logger.warn(
         `HubRise order ${order.externalId} has no saved credentials at location ${order.locationId} — cannot push status`,
       );
@@ -114,7 +117,16 @@ export class HubRiseOrderSyncService {
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
-    const url = `${baseUrl}/orders/${encodeURIComponent(order.externalId)}`;
+    // HubRise's order endpoints live UNDER the location scope. The
+    // earlier `/v1/orders/{id}` URL returned 404 routing_error — the
+    // resource id alone isn't a valid route. Mirror the GET path used
+    // by the webhook hydration step:
+    //   PATCH /v1/locations/{locationId}/orders/{orderId}
+    // Lowercase the location id for the same reason as the GET path:
+    // HubRise's API is case-sensitive on this segment.
+    const url = `${baseUrl}/locations/${encodeURIComponent(
+      location.hubriseLocationId.toLowerCase(),
+    )}/orders/${encodeURIComponent(order.externalId)}`;
 
     try {
       const res = await fetch(url, {
