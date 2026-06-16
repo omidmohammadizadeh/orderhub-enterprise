@@ -608,13 +608,13 @@ function OrderRow({
           onClick={(e) => e.stopPropagation()}
           className="flex flex-nowrap items-center gap-1.5 whitespace-nowrap"
         >
+          <ReprintMenu orderId={order.id} fulfillmentType={order.fulfillmentType} />
           <OrderActions
             orderId={order.id}
             status={order.status}
             fulfillmentType={order.fulfillmentType}
             deliveryType={(order as any).deliveryType}
           />
-          <ReprintMenu orderId={order.id} fulfillmentType={order.fulfillmentType} />
         </div>
       </Td>
     </tr>
