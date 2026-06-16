@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
   Logger,
   HttpException,
   HttpStatus,
@@ -204,10 +205,15 @@ export class OrdersService {
             // MERCHANT/PLATFORM badge + gate post-READY transitions
             // for PLATFORM orders without re-parsing JSON on every
             // render.
-            deliveryType:
-              (canonical as any).deliveryType ??
-              (canonical.metadata as any)?.deliveryType ??
-              undefined,
+            // `as any` until prisma generate picks up the new column
+            // (workspace builds in CI regen the client; locally the
+            // type lags by one push).
+            ...(((canonical as any).deliveryType ??
+              (canonical.metadata as any)?.deliveryType) && {
+              deliveryType:
+                ((canonical as any).deliveryType ??
+                  (canonical.metadata as any)?.deliveryType) as any,
+            }),
             statusHistory: {
               create: {
                 tenantId,
@@ -585,13 +591,17 @@ export class OrdersService {
     // by the HubRise delivery.update handler). CANCELLED stays
     // operator-allowed — the restaurant can always reject an order
     // they no longer want to make.
+    // Anything after READY in the kitchen → courier → handover chain.
+    // Note: there's no "DELIVERED" enum value — COMPLETED is the end
+    // state; the courier-side statuses (ASSIGNED_DRIVER, OUT_FOR_DELIVERY,
+    // RIDER_ARRIVED, DISPATCHED) are intermediate.
     const POST_READY: OrderStatus[] = [
       "PENDING_DISPATCH",
       "ASSIGNED_DRIVER",
       "ACCEPTED_BY_DRIVER",
+      "RIDER_ARRIVED",
       "OUT_FOR_DELIVERY",
       "DISPATCHED",
-      "DELIVERED",
       "COMPLETED",
     ];
     if (
