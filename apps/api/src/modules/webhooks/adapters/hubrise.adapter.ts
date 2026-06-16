@@ -164,6 +164,22 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         : "PAID"
       : "PENDING";
 
+    // Phase AV — derive delivery type from channel. Marketplace
+    // channels (Uber Eats / Deliveroo / Just Eat) run their own
+    // couriers, so the operator can only walk the order up to READY;
+    // post-READY transitions arrive via HubRise's delivery.update
+    // webhook. Anything else (direct online, walk-in) is on the
+    // restaurant — they drive the full chain. We only set this for
+    // DELIVERY orders; PICKUP / DINE_IN don't need it.
+    const deliveryType =
+      fulfillmentType === "DELIVERY"
+        ? originPlatform === "UBER_EATS" ||
+          originPlatform === "DELIVEROO" ||
+          originPlatform === "JUST_EAT"
+          ? "PLATFORM"
+          : "MERCHANT"
+        : null;
+
     return {
       externalId,
       platform: "HUBRISE",
@@ -194,6 +210,7 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         hubriseChannel: order.channel,
         hubriseConnection: order.connection_name,
         originPlatform,
+        deliveryType,
         collectionCode: order.collection_code,
         // Payment fields stay in metadata until CanonicalOrder gets
         // first-class slots — OrdersService.ingestCanonical promotes

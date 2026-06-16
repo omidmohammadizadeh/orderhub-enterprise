@@ -1310,6 +1310,28 @@ model Order {
   integrationSource IntegrationSource @default(DIRECT)
   viaHubrise        Boolean           @default(false)
 
+  // Phase AV — who actually drives the delivery on this order.
+  //   MERCHANT  — restaurant's own driver. Operator walks the order
+  //               all the way through OUT_FOR_DELIVERY → DELIVERED on
+  //               our dashboard.
+  //   PLATFORM  — marketplace courier (Uber Eats / Deliveroo / Just
+  //               Eat). Operator can only mark ACCEPTED → PREPARING →
+  //               READY; the post-READY transitions are driven by
+  //               HubRise's delivery.update webhooks. null for orders
+  //               where the model isn't applicable (POS pickup, etc.).
+  deliveryType      String?           // MERCHANT | PLATFORM | null
+
+  // Courier tracking — populated from HubRise delivery.* webhooks for
+  // PLATFORM orders. Stored as flat columns so the dashboard can render
+  // them without parsing metadata JSON.
+  courierName       String?
+  courierPhone      String?
+  courierTrackingUrl String?
+  courierStatus     String?           // HubRise delivery status enum verbatim
+  courierAssignedAt DateTime?
+  courierPickedUpAt DateTime?
+  courierDeliveredAt DateTime?
+
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
 

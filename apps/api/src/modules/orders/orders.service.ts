@@ -199,6 +199,15 @@ export class OrdersService {
               (canonical as any).paymentStatus ??
               (canonical.metadata as any)?.paymentStatus ??
               undefined,
+            // Phase AV — promote deliveryType from canonical metadata
+            // onto the Order row so the dashboard can render the
+            // MERCHANT/PLATFORM badge + gate post-READY transitions
+            // for PLATFORM orders without re-parsing JSON on every
+            // render.
+            deliveryType:
+              (canonical as any).deliveryType ??
+              (canonical.metadata as any)?.deliveryType ??
+              undefined,
             statusHistory: {
               create: {
                 tenantId,
@@ -568,6 +577,32 @@ export class OrdersService {
 
     const newStatus = dto.status as OrderStatus;
     assertTransition(order.status, newStatus);
+
+    // Phase AV — operator gate. For PLATFORM-delivered orders (Uber
+    // Eats / Deliveroo / Just Eat couriers) HubRise owns the post-
+    // READY lifecycle. Block the dashboard from advancing past READY
+    // unless the call is system-driven (the WEBHOOK actor type is set
+    // by the HubRise delivery.update handler). CANCELLED stays
+    // operator-allowed — the restaurant can always reject an order
+    // they no longer want to make.
+    const POST_READY: OrderStatus[] = [
+      "PENDING_DISPATCH",
+      "ASSIGNED_DRIVER",
+      "ACCEPTED_BY_DRIVER",
+      "OUT_FOR_DELIVERY",
+      "DISPATCHED",
+      "DELIVERED",
+      "COMPLETED",
+    ];
+    if (
+      (order as any).deliveryType === "PLATFORM" &&
+      actorType === "STAFF" &&
+      POST_READY.includes(newStatus)
+    ) {
+      throw new BadRequestException(
+        "This order is delivered by the marketplace courier — the platform updates this stage automatically. You can only mark up to Ready.",
+      );
+    }
 
     const timestampField = getTimestampField(newStatus);
     const timestampData = timestampField ? { [timestampField]: new Date() } : {};

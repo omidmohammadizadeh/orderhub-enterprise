@@ -23,6 +23,11 @@ interface Props {
   orderId: string;
   status: string;
   fulfillmentType?: string;
+  // Phase AV — when "PLATFORM" the marketplace's own courier drives
+  // post-READY transitions. We hide the Mark out / Mark delivered
+  // buttons so staff can't accidentally lie to HubRise about the
+  // driver state.
+  deliveryType?: string | null;
 }
 
 interface ButtonSpec {
@@ -205,8 +210,34 @@ const VARIANT_CLASSES: Record<ButtonSpec["variant"], string> = {
     "bg-white text-red-600 border border-red-200 hover:border-red-300 hover:bg-red-50",
 };
 
-export function OrderActions({ orderId, status, fulfillmentType }: Props) {
-  const buttons = buttonsForStatus(status, fulfillmentType);
+export function OrderActions({
+  orderId,
+  status,
+  fulfillmentType,
+  deliveryType,
+}: Props) {
+  const allButtons = buttonsForStatus(status, fulfillmentType);
+  // Phase AV — for PLATFORM-courier orders, drop transitions past
+  // READY. The courier will push us those states via the HubRise
+  // delivery.update webhook; the operator just confirms the kitchen
+  // is done. CANCEL stays in (danger variant) — restaurant can still
+  // reject. Server enforces this too; the UI filter is a kindness so
+  // the buttons don't appear-then-fail.
+  const PLATFORM_BLOCKED = new Set([
+    "PENDING_DISPATCH",
+    "ASSIGNED_DRIVER",
+    "ACCEPTED_BY_DRIVER",
+    "OUT_FOR_DELIVERY",
+    "DISPATCHED",
+    "DELIVERED",
+    "COMPLETED",
+  ]);
+  const buttons =
+    deliveryType === "PLATFORM"
+      ? allButtons.filter(
+          (b) => b.variant === "danger" || !PLATFORM_BLOCKED.has(b.toStatus),
+        )
+      : allButtons;
   const mutation = useUpdateOrderStatus();
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 

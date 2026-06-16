@@ -392,6 +392,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Channel</Th>
                 <Th>Brand</Th>
                 <Th>Type</Th>
+                <Th>Delivery</Th>
                 <Th>Customer</Th>
                 <Th>Items</Th>
                 <Th>Total</Th>
@@ -549,6 +550,14 @@ function OrderRow({
         <FulfillmentBadge type={order.fulfillmentType} />
       </Td>
       <Td>
+        {/* Phase AV — Delivery type pill. PLATFORM = marketplace
+            courier (Uber/Deliveroo/Just Eat) drives the post-READY
+            chain; MERCHANT = restaurant's own driver, operator walks
+            it all the way to delivered. Null when not applicable
+            (PICKUP / DINE_IN). */}
+        <DeliveryTypeBadge type={(order as any).deliveryType} />
+      </Td>
+      <Td>
         <div className="max-w-[160px] truncate text-zinc-700">
           {order.customerInfo?.name ?? "—"}
         </div>
@@ -592,6 +601,7 @@ function OrderRow({
             orderId={order.id}
             status={order.status}
             fulfillmentType={order.fulfillmentType}
+            deliveryType={(order as any).deliveryType}
           />
           <ReprintMenu orderId={order.id} fulfillmentType={order.fulfillmentType} />
         </div>
@@ -678,4 +688,29 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-3 py-2.5 align-middle">{children}</td>;
+}
+
+// Phase AV — small badge for the new Delivery column. We deliberately
+// use two distinct colour families (amber for PLATFORM, emerald for
+// MERCHANT) instead of a generic neutral so operators triaging the
+// board can scan the column in one glance.
+function DeliveryTypeBadge({ type }: { type?: string | null }) {
+  if (!type) return <span className="text-zinc-400">—</span>;
+  const cfg =
+    type === "PLATFORM"
+      ? {
+          label: "Platform",
+          cls: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+        }
+      : {
+          label: "Merchant",
+          cls: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+        };
+  return (
+    <span
+      className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.cls}`}
+    >
+      {cfg.label}
+    </span>
+  );
 }
