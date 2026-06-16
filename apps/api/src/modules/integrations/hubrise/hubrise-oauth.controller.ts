@@ -34,6 +34,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { WebhookIngestionService } from "../../webhooks/webhook-ingestion.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
 import { HubRiseOauthService } from "./hubrise-oauth.service";
+import { HubRiseDeliverySyncService } from "./hubrise-delivery-sync.service";
 
 @ApiTags("hubrise")
 @Controller({ path: "integrations/hubrise", version: "1" })
@@ -46,6 +47,7 @@ export class HubRiseOauthController {
     private readonly config: ConfigService,
     private readonly ingestion: WebhookIngestionService,
     private readonly credentialEncryption: CredentialEncryptionService,
+    private readonly deliverySync: HubRiseDeliverySyncService,
   ) {}
 
   @Get("connect")
@@ -195,6 +197,37 @@ export class HubRiseOauthController {
       // Same as above: 200 to stop retries. If the operator connects
       // later, they can replay from HubRise's webhook log.
       return { received: true, reason: "location_not_connected" };
+    }
+
+    // Phase AV-2 — delivery events. HubRise emits `delivery.create`
+    // and `delivery.update` when the marketplace courier assigns,
+    // picks up, or drops off the order. These are independent of the
+    // order webhook and arrive at the same global URL. Dispatch them
+    // to the courier-update handler before falling through to the
+    // order ingestion path.
+    if (
+      parsed?.resource_type === "delivery" &&
+      (parsed?.event_type === "create" || parsed?.event_type === "update")
+    ) {
+      try {
+        const result = await this.deliverySync.handleDeliveryWebhook({
+          hubriseOrderId: parsed?.order_id,
+          hubriseDeliveryId: parsed?.delivery_id ?? parsed?.id,
+          ourLocationId: location.id,
+          hubriseLocationId: location.hubriseLocationId!,
+          credentialsBlob: location.hubriseCredentials,
+          inlineDelivery: parsed?.new_state ?? parsed, // event payloads may inline the new state
+        });
+        return { received: true, ...result };
+      } catch (err: any) {
+        this.logger.error(
+          `HubRise delivery webhook failed: ${err?.message}`,
+        );
+        // 200 OK with reason so HubRise doesn't retry forever on a
+        // malformed event we can't process anyway. The error is in
+        // our logs for the operator to chase.
+        return { received: true, ignored: true, reason: err?.message };
+      }
     }
 
     // HubRise webhook payloads for order events carry only the event

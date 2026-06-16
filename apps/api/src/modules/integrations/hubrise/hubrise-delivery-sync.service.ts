@@ -1,0 +1,251 @@
+// Phase AV-2 — HubRise delivery.create / delivery.update handler.
+//
+// When the marketplace courier (Uber Eats / Deliveroo / Just Eat)
+// assigns, picks up, or drops off the order, HubRise emits a
+// `resource_type: "delivery"` webhook. This service:
+//
+//   1. Resolves the matching local Order by `externalId = hubriseOrderId`.
+//   2. Hydrates the full delivery resource from HubRise's REST API
+//      if the event payload only ships the new_state stub.
+//   3. Writes the courier-tracking columns onto the Order row.
+//   4. Bumps Order.status to the equivalent of the courier's stage
+//      (ASSIGNED_DRIVER / OUT_FOR_DELIVERY / COMPLETED / CANCELLED)
+//      via OrdersService.updateStatus(actorType="WEBHOOK") so the
+//      PLATFORM-gate the operator UI enforces is bypassed cleanly.
+//
+// We never write to HubRise from here — the courier flow is
+// inbound-only. The kitchen flow (Accept / Mark preparing / Mark
+// ready) still pushes to HubRise via the existing order-status-sync
+// service.
+
+import { Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { CredentialEncryptionService } from "../credential-encryption.service";
+import { OrdersService } from "../../orders/orders.service";
+
+interface DeliveryWebhookArgs {
+  hubriseOrderId: string | undefined;
+  hubriseDeliveryId: string | undefined;
+  ourLocationId: string;
+  hubriseLocationId: string;
+  credentialsBlob: unknown;
+  // Some webhook configurations inline the delivery shape under
+  // `new_state`. When present we use it; otherwise we hydrate via
+  // GET /locations/{loc}/deliveries/{id}.
+  inlineDelivery: Record<string, any> | null | undefined;
+}
+
+interface HubRiseDelivery {
+  id?: string;
+  order_id?: string;
+  status?: string;
+  carrier?: string;
+  driver_name?: string;
+  driver_phone?: string;
+  tracking_url?: string;
+  assigned_at?: string;
+  pickup_at?: string;
+  delivered_at?: string;
+  cancelled_at?: string;
+}
+
+@Injectable()
+export class HubRiseDeliverySyncService {
+  private readonly logger = new Logger(HubRiseDeliverySyncService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+    private readonly credentialEncryption: CredentialEncryptionService,
+    // OrdersService is forwardRef'd at the module level — same module
+    // imports OrdersModule via forwardRef, OrdersModule imports
+    // HubRiseModule via forwardRef. Nest needs the matching token
+    // here too.
+    @Inject(forwardRef(() => OrdersService))
+    private readonly orders: OrdersService,
+  ) {}
+
+  async handleDeliveryWebhook(
+    args: DeliveryWebhookArgs,
+  ): Promise<{ orderId?: string; updated?: boolean; ignored?: boolean; reason?: string }> {
+    if (!args.hubriseOrderId) {
+      return { ignored: true, reason: "no_order_id_on_event" };
+    }
+
+    // Match the matching Order by externalId. HubRise's order_id is
+    // exactly what the order-create webhook stored as externalId.
+    const order = await this.prisma.order.findFirst({
+      where: { externalId: args.hubriseOrderId, viaHubrise: true },
+      select: {
+        id: true,
+        tenantId: true,
+        status: true,
+        // Cast for fields that may not be in the generated client yet —
+        // safe because the SELECT only requests these names and Prisma
+        // will return them as strings.
+      } as any,
+    });
+    if (!order) {
+      // Order hasn't landed yet (HubRise sometimes sends delivery
+      // before order in fast flows) or it's for a different tenant.
+      // 200 OK, ignore — next replay will find it.
+      this.logger.warn(
+        `Delivery webhook for unknown HubRise order ${args.hubriseOrderId} — ignoring`,
+      );
+      return { ignored: true, reason: "order_not_found" };
+    }
+
+    // Hydrate the full delivery if the payload doesn't include the
+    // courier fields we need (driver name, tracking, status).
+    let delivery: HubRiseDelivery = args.inlineDelivery ?? {};
+    const haveCourierFields =
+      delivery.status &&
+      (delivery.driver_name || delivery.tracking_url || delivery.assigned_at);
+    if (!haveCourierFields && args.hubriseDeliveryId) {
+      try {
+        delivery = await this.fetchDeliveryFromHubRise(
+          args.hubriseLocationId,
+          args.hubriseDeliveryId,
+          args.credentialsBlob,
+        );
+      } catch (err: any) {
+        this.logger.error(
+          `Failed to hydrate delivery ${args.hubriseDeliveryId}: ${err?.message}`,
+        );
+        // Continue with what we have — at minimum the status from the
+        // event still lets us nudge the Order.status forward.
+      }
+    }
+
+    const newOrderStatus = this.mapStatusToOrderStatus(delivery.status);
+
+    // Write courier-tracking columns. Use a single update so a partial
+    // failure can't leave half-populated rows. Timestamp fields are
+    // only set when we don't already have them — HubRise sometimes
+    // resends update events and we don't want to overwrite the
+    // first-pickup timestamp with a later re-pickup event.
+    const updates: Record<string, any> = {};
+    if (delivery.driver_name) updates.courierName = delivery.driver_name;
+    if (delivery.driver_phone) updates.courierPhone = delivery.driver_phone;
+    if (delivery.tracking_url) updates.courierTrackingUrl = delivery.tracking_url;
+    if (delivery.status) updates.courierStatus = delivery.status;
+    if (delivery.assigned_at && !(order as any).courierAssignedAt) {
+      updates.courierAssignedAt = new Date(delivery.assigned_at);
+    }
+    if (delivery.pickup_at && !(order as any).courierPickedUpAt) {
+      updates.courierPickedUpAt = new Date(delivery.pickup_at);
+    }
+    if (delivery.delivered_at && !(order as any).courierDeliveredAt) {
+      updates.courierDeliveredAt = new Date(delivery.delivered_at);
+    }
+
+    if (Object.keys(updates).length) {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: updates as any,
+      });
+    }
+
+    // Transition Order.status if the courier moved into a new stage
+    // we care about.
+    let statusChanged = false;
+    if (newOrderStatus && newOrderStatus !== order.status) {
+      try {
+        await this.orders.updateStatus(
+          order.id,
+          order.tenantId,
+          {
+            status: newOrderStatus as any,
+            cancelReason:
+              newOrderStatus === "CANCELLED"
+                ? "Courier cancelled the delivery"
+                : undefined,
+          } as any,
+          "hubrise-delivery-webhook",
+          "WEBHOOK",
+        );
+        statusChanged = true;
+      } catch (err: any) {
+        // If the transition is illegal for the current state (e.g.
+        // courier_status arrived before order_status caught up),
+        // log + swallow. We still wrote the courier columns above so
+        // the dashboard renders the tracking info correctly.
+        this.logger.warn(
+          `Order ${order.id} transition to ${newOrderStatus} rejected: ${err?.message}`,
+        );
+      }
+    }
+
+    this.logger.log(
+      `HubRise delivery → order ${order.id}: courier_status=${delivery.status ?? "?"} order_status=${newOrderStatus ?? "(unchanged)"} fields=${Object.keys(updates).length}`,
+    );
+
+    return {
+      orderId: order.id,
+      updated: Object.keys(updates).length > 0 || statusChanged,
+    };
+  }
+
+  /**
+   * GET /v1/locations/{hubriseLocationId}/deliveries/{deliveryId}.
+   * Same auth pattern as the order fetch path — decrypt the envelope
+   * once per call (no token cache yet, the volume doesn't warrant it).
+   */
+  private async fetchDeliveryFromHubRise(
+    hubriseLocationId: string,
+    deliveryId: string,
+    credentialsBlob: unknown,
+  ): Promise<HubRiseDelivery> {
+    if (!credentialsBlob) {
+      throw new Error("No HubRise credentials saved for this location");
+    }
+    const decrypted = this.credentialEncryption.decrypt(
+      credentialsBlob as Record<string, unknown>,
+    ) as Record<string, string>;
+    const accessToken = decrypted.accessToken;
+    if (!accessToken) {
+      throw new Error("HubRise access token missing from credentials envelope");
+    }
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const url = `${baseUrl}/locations/${hubriseLocationId.toLowerCase()}/deliveries/${deliveryId}`;
+    const res = await fetch(url, {
+      headers: {
+        "X-Access-Token": accessToken,
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) {
+      throw new Error(
+        `HubRise GET ${url} → ${res.status}: ${await res.text()}`,
+      );
+    }
+    return (await res.json()) as HubRiseDelivery;
+  }
+
+  /**
+   * Map HubRise delivery status → our OrderStatus. Returns null when
+   * we don't want to move the Order (e.g. `pending` — courier was
+   * created but hasn't been assigned yet; status doesn't change).
+   *
+   * Mapping (per AV-1 plan + HubRise docs):
+   *   pending             → no change
+   *   pickup_*            → ASSIGNED_DRIVER
+   *   dropoff_*           → OUT_FOR_DELIVERY
+   *   delivered           → COMPLETED
+   *   cancelled           → CANCELLED
+   */
+  private mapStatusToOrderStatus(
+    courierStatus: string | undefined,
+  ): string | null {
+    if (!courierStatus) return null;
+    if (courierStatus === "pending") return null;
+    if (courierStatus.startsWith("pickup_")) return "ASSIGNED_DRIVER";
+    if (courierStatus.startsWith("dropoff_")) return "OUT_FOR_DELIVERY";
+    if (courierStatus === "delivered") return "COMPLETED";
+    if (courierStatus === "cancelled") return "CANCELLED";
+    return null;
+  }
+}

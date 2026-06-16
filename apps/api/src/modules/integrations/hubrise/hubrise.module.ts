@@ -6,6 +6,9 @@ import { IntegrationsModule } from "../integrations.module";
 import { HubRiseOauthController } from "./hubrise-oauth.controller";
 import { HubRiseOauthService } from "./hubrise-oauth.service";
 import { HubRiseOrderSyncService } from "./hubrise-order-sync.service";
+import { HubRiseDeliverySyncService } from "./hubrise-delivery-sync.service";
+import { OrdersModule } from "../../orders/orders.module";
+import { forwardRef } from "@nestjs/common";
 
 @Module({
   // ConfigModule for app config, AuthModule for the JwtService used to
@@ -13,9 +16,25 @@ import { HubRiseOrderSyncService } from "./hubrise-order-sync.service";
   // CredentialEncryptionService that writes the token envelope, and
   // WebhooksModule for the WebhookIngestionService that the global
   // HubRise webhook handler dispatches into.
-  imports: [ConfigModule, AuthModule, IntegrationsModule, WebhooksModule],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    IntegrationsModule,
+    WebhooksModule,
+    // OrdersModule provides OrdersService for the delivery-sync
+    // handler to call updateStatus(actorType="WEBHOOK"). It's a
+    // circular dep — OrdersService → HubRiseOrderSyncService for
+    // the outbound push, and HubRiseDeliverySyncService → OrdersService
+    // for the inbound courier-driven transitions. forwardRef breaks
+    // the loop the same way it does for WebhooksModule above.
+    forwardRef(() => OrdersModule),
+  ],
   controllers: [HubRiseOauthController],
-  providers: [HubRiseOauthService, HubRiseOrderSyncService],
+  providers: [
+    HubRiseOauthService,
+    HubRiseOrderSyncService,
+    HubRiseDeliverySyncService,
+  ],
   // HubRiseOrderSyncService is consumed by OrdersService to push our
   // status transitions back to HubRise so every connected channel
   // (Uber Eats, Deliveroo, Just Eat) sees the same lifecycle.
