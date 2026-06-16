@@ -272,7 +272,7 @@ export function OrderActions({
   };
 
   return (
-    <div className="flex flex-wrap gap-2 pt-1">
+    <div className="flex flex-nowrap items-center gap-2 pt-1 whitespace-nowrap">
       {buttons.map((b) => {
         const isPending = pendingStatus === b.toStatus;
         return (
