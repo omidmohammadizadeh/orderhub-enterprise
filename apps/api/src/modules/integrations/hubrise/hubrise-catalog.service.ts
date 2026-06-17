@@ -52,6 +52,11 @@ interface HubRiseCategory {
   description?: string | null;
   tags?: string[];
   image_ids?: string[];
+  // Some HubRise responses (and older catalog snapshots) nest the
+  // products inside the category rather than at data.products. We
+  // accept both shapes — the import collapses them into one flat
+  // list before walking.
+  products?: HubRiseProduct[];
 }
 
 interface HubRiseProduct {
@@ -158,18 +163,52 @@ export class HubRiseCatalogService {
   ): Promise<{ menuId: string; counts: ImportCounts }> {
     const data = catalog.data ?? {};
     const optionLists = data.options_lists ?? data.option_lists ?? [];
-    // Phase AW-11.1 — surface what we parsed so a "categories landed but
-    // products didn't" failure mode points straight at the data shape
-    // mismatch instead of looking like a transformer bug. These show up
-    // in Render's API logs.
+
+    // Phase AW-11.2 — products can live in two places depending on the
+    // HubRise account / catalog version: flat at `data.products` OR
+    // nested inside each category at `data.categories[].products`.
+    // Collapse both into a single flat array; whichever path has rows
+    // wins, and we log both counts so the source is obvious.
+    const flatProducts = data.products ?? [];
+    const nestedProducts: HubRiseProduct[] = [];
+    for (const cat of data.categories ?? []) {
+      for (const p of cat.products ?? []) {
+        // Inject the category ref if the embedded product doesn't carry
+        // its own (the nested shape relies on positional ownership).
+        nestedProducts.push({ ...p, category_ref: p.category_ref ?? cat.ref });
+      }
+    }
+    const allProducts =
+      flatProducts.length > 0 ? flatProducts : nestedProducts;
+
     this.logger.log(
       `HubRise catalog ${catalog.id} parsed: ` +
         `categories=${(data.categories ?? []).length} ` +
-        `products=${(data.products ?? []).length} ` +
+        `flatProducts=${flatProducts.length} ` +
+        `nestedProducts=${nestedProducts.length} ` +
+        `productsUsed=${allProducts.length} ` +
         `optionLists=${optionLists.length} ` +
         `variants=${(data.variants ?? []).length} ` +
         `top-level-keys=[${Object.keys(data).join(",")}]`,
     );
+
+    // First-product preview so we can see field shape at a glance the
+    // very next time something looks off (price suffix mismatch,
+    // category_ref vs categoryRef, etc.).
+    if (allProducts.length > 0) {
+      const sample = allProducts[0];
+      this.logger.log(
+        `HubRise catalog ${catalog.id} first product preview: name="${sample?.name}" ` +
+          `category_ref="${sample?.category_ref}" ` +
+          `skus=${(sample?.skus ?? []).length} ` +
+          `keys=[${Object.keys(sample ?? {}).join(",")}]`,
+      );
+    } else {
+      this.logger.warn(
+        `HubRise catalog ${catalog.id}: NO products in either flat or nested path. ` +
+          `Inspect rawImportPayload on Menu row for the unfiltered response.`,
+      );
+    }
     const counts: ImportCounts = {
       categories: 0,
       products: 0,
@@ -358,7 +397,7 @@ export class HubRiseCatalogService {
     //    (the multi-size pizza pattern). Single-SKU products use basePrice
     //    + plu from the single sku.
     let skippedNoCategory = 0;
-    for (const product of data.products ?? []) {
+    for (const product of allProducts) {
       const categoryId = categoryByRef.get(product.category_ref);
       if (!categoryId) {
         skippedNoCategory++;
