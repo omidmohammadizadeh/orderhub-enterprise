@@ -118,18 +118,28 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
   const pauseMutation = useMutation({
     mutationFn: () => {
       const reason = reasonPreset === null ? reasonOther : reasonPreset;
+      // Busy mode doesn't auto-resume — operator restores normal hours
+      // manually via the "Reset to normal hours" button on the active
+      // row. Mirrors HubRise's behaviour (resume_at: null for busy).
+      const isBusy = mode === "busy";
       return pausesClient.pause({
         locationId,
         brandId: scope === "brand" && brandId ? brandId : undefined,
         channel: scope === "brand" && channel ? channel : undefined,
         mode,
-        duration: duration === "custom" ? undefined : duration,
+        duration: isBusy
+          ? undefined
+          : duration === "custom"
+            ? undefined
+            : duration,
         customResumeAt:
-          duration === "custom"
-            ? new Date(customResumeAt).toISOString()
-            : undefined,
+          isBusy
+            ? undefined
+            : duration === "custom"
+              ? new Date(customResumeAt).toISOString()
+              : undefined,
         reason: reason || undefined,
-        extraPrepTime: mode === "busy" ? extraPrepTime : undefined,
+        extraPrepTime: isBusy ? extraPrepTime : undefined,
       });
     },
     onSuccess: () => {
@@ -165,7 +175,8 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
   const canSubmit =
     !pauseMutation.isPending &&
     (scope === "location" || !!brandId) &&
-    (duration !== "custom" || !!customResumeAt) &&
+    // Duration only applies to pause — busy mode is until-reset.
+    (mode === "busy" || duration !== "custom" || !!customResumeAt) &&
     (mode !== "busy" || extraPrepTime > 0);
 
   if (!open) return null;
@@ -215,11 +226,10 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
                       </p>
                       <p className="mt-0.5 text-[10px] text-zinc-500">
                         {row.mode === "busy"
-                          ? `Busy +${row.extraPrepTime ?? "?"}m · `
-                          : "Paused · "}
-                        {row.resumeAt
-                          ? `until ${new Date(row.resumeAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} on ${new Date(row.resumeAt).toLocaleDateString([], { day: "numeric", month: "short" })}`
-                          : "until you resume"}
+                          ? `Busy +${row.extraPrepTime ?? "?"}m · until you reset`
+                          : row.resumeAt
+                            ? `Paused until ${new Date(row.resumeAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} on ${new Date(row.resumeAt).toLocaleDateString([], { day: "numeric", month: "short" })}`
+                            : "Paused until you resume"}
                       </p>
                       {row.reason && (
                         <p className="mt-0.5 text-[10px] italic text-zinc-500">
@@ -231,9 +241,12 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
                       type="button"
                       onClick={() => resumeMutation.mutate(row.id)}
                       disabled={resumeMutation.isPending}
-                      className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap"
                     >
-                      <Play className="h-3 w-3" /> Resume
+                      <Play className="h-3 w-3" />
+                      {row.mode === "busy"
+                        ? "Reset to normal hours"
+                        : "Resume"}
                     </button>
                   </li>
                 ))}
@@ -313,7 +326,8 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
             )}
           </Section>
 
-          {/* ── Duration ──────────────────────────────────────────── */}
+          {/* ── Duration (pause-only — busy mode runs until reset) ── */}
+          {mode === "paused" && (
           <Section title="Duration">
             <div className="grid grid-cols-2 gap-2">
               {DURATIONS.map((d) => (
@@ -351,6 +365,7 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
               />
             )}
           </Section>
+          )}
 
           {/* ── Busy: extra prep minutes ─────────────────────────── */}
           {mode === "busy" && (
