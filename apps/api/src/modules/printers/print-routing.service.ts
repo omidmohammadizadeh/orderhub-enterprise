@@ -82,7 +82,7 @@ export class PrintRoutingService {
     orderId: string,
     opts: ResolveOptions,
   ): Promise<PrintTarget[]> {
-    const order = await this.prisma.order.findUnique({
+    const order = await (this.prisma.order as any).findUnique({
       where: { id: orderId },
       include: {
         items: true,
@@ -99,12 +99,19 @@ export class PrintRoutingService {
     });
     if (!order || !order.location) return [];
 
+    // Phase AW — receipts must reflect the BRAND the customer ordered
+    // from, not the kitchen's primary brand. When the storefront pinned
+    // a virtual brand via ?brand=<id>, Order.brandId is set and wins;
+    // otherwise we fall back to the location's primary brand so POS
+    // walk-ins and manual orders still get a brand-name header.
+    const headerBrandId = order.brandId ?? order.location.brandId;
+
     // Pull richer header context once so every payload (receipt, kitchen,
     // driver slip) renders the brand banner + shop address consistently.
     // Cheap: one indexed lookup per print, payload size is tiny.
     const [brand, locationFull] = await Promise.all([
       this.prisma.brand.findUnique({
-        where: { id: order.location.brandId },
+        where: { id: headerBrandId },
         select: {
           name: true,
           logoUrl: true,
@@ -164,7 +171,7 @@ export class PrintRoutingService {
       this.fetchCategoryRoutesForItems(items),
       this.fetchModifierGroupRoutes(items),
       this.prisma.brand.findUnique({
-        where: { id: order.location.brandId },
+        where: { id: headerBrandId },
         select: { defaultStationId: true },
       }),
     ]);

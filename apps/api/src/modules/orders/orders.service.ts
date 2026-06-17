@@ -33,7 +33,18 @@ const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
 const ORDER_INCLUDE = {
   items: true,
   statusHistory: { orderBy: { createdAt: "asc" as const } },
-  location: { select: { id: true, name: true, brandId: true } },
+  // Phase AW — include the location's primary brand too so the
+  // dashboard board + receipt renderer have a brand-name fallback
+  // when Order.brandId is null (POS walk-in, manual order, anything
+  // that didn't come through a brand-pinned storefront URL).
+  location: {
+    select: {
+      id: true,
+      name: true,
+      brandId: true,
+      brand: { select: { id: true, name: true, logoUrl: true } },
+    },
+  },
   // Surface the order's brand to the dashboard so the board can render
   // a per-brand badge. Order.brandId is nullable (set when the cart
   // resolves to a specific virtual brand, null for unattached orders),
