@@ -37,7 +37,12 @@ interface HubRiseCatalogData {
   variants?: Array<{ ref: string; name: string }>;
   categories?: HubRiseCategory[];
   products?: HubRiseProduct[];
+  // HubRise's response field name for option lists drifts between
+  // `option_lists` (URL path + docs intro) and `options_lists` (the
+  // catalog `data` field as actually shipped). Accept both — readers
+  // in this file normalise via `getOptionLists()` below.
   option_lists?: HubRiseOptionList[];
+  options_lists?: HubRiseOptionList[];
 }
 
 interface HubRiseCategory {
@@ -152,6 +157,19 @@ export class HubRiseCatalogService {
     target: { brandId: string; locationId: string },
   ): Promise<{ menuId: string; counts: ImportCounts }> {
     const data = catalog.data ?? {};
+    const optionLists = data.options_lists ?? data.option_lists ?? [];
+    // Phase AW-11.1 — surface what we parsed so a "categories landed but
+    // products didn't" failure mode points straight at the data shape
+    // mismatch instead of looking like a transformer bug. These show up
+    // in Render's API logs.
+    this.logger.log(
+      `HubRise catalog ${catalog.id} parsed: ` +
+        `categories=${(data.categories ?? []).length} ` +
+        `products=${(data.products ?? []).length} ` +
+        `optionLists=${optionLists.length} ` +
+        `variants=${(data.variants ?? []).length} ` +
+        `top-level-keys=[${Object.keys(data).join(",")}]`,
+    );
     const counts: ImportCounts = {
       categories: 0,
       products: 0,
@@ -205,7 +223,7 @@ export class HubRiseCatalogService {
 
     // 2. ModifierGroups + Options (upsert first so SKUs can link).
     const groupByRef = new Map<string, string>(); // hubrise ref → our group id
-    for (const list of data.option_lists ?? []) {
+    for (const list of optionLists) {
       const existing = await (this.prisma as any).modifierGroup.findFirst({
         where: {
           brandId: target.brandId,
@@ -339,9 +357,21 @@ export class HubRiseCatalogService {
     // 4. Products + SKUs. Multi-SKU products land in MenuItem.productSkus
     //    (the multi-size pizza pattern). Single-SKU products use basePrice
     //    + plu from the single sku.
+    let skippedNoCategory = 0;
     for (const product of data.products ?? []) {
       const categoryId = categoryByRef.get(product.category_ref);
-      if (!categoryId) continue;
+      if (!categoryId) {
+        skippedNoCategory++;
+        // First few only — don't flood the log if the catalog has
+        // hundreds of orphans.
+        if (skippedNoCategory <= 3) {
+          this.logger.warn(
+            `HubRise product "${product.name}" skipped: category_ref="${product.category_ref}" not in catalog. ` +
+              `Known refs: [${Array.from(categoryByRef.keys()).slice(0, 5).join(",")}${categoryByRef.size > 5 ? ",…" : ""}]`,
+          );
+        }
+        continue;
+      }
       const skus = product.skus ?? [];
       const isMulti = skus.length > 1;
       const firstSku = skus[0];
@@ -364,6 +394,19 @@ export class HubRiseCatalogService {
           }))
         : [];
 
+      // Phase AW-11.1 — first HubRise image becomes the product's
+      // imageUrl, routed through our proxy so the browser doesn't need
+      // a HubRise access token to render it. Stored as the URL pattern
+      // /v1/menus/hubrise-image/:catalogId/:imageId — resolved by the
+      // public proxy endpoint that streams the binary back.
+      const firstImageId =
+        Array.isArray(product.image_ids) && product.image_ids.length > 0
+          ? product.image_ids[0]
+          : null;
+      const imageUrl = firstImageId
+        ? `/api/v1/menus/hubrise-image/${catalog.id}/${firstImageId}`
+        : null;
+
       const existing = await (this.prisma as any).menuItem.findFirst({
         where: {
           brandId: target.brandId,
@@ -382,6 +425,7 @@ export class HubRiseCatalogService {
               plu: firstSku?.ref ?? null,
               hasMultipleSkus: isMulti,
               productSkus: productSkus as any,
+              ...(imageUrl && { imageUrl }),
               lastSyncedAt: new Date(),
               syncStatus: "ok",
             },
@@ -397,6 +441,7 @@ export class HubRiseCatalogService {
               isAvailable: true,
               hasMultipleSkus: isMulti,
               productSkus: productSkus as any,
+              imageUrl,
               menuIds: [menu.id],
               platformSource: "HUBRISE",
               externalId: productExternal,
@@ -435,10 +480,69 @@ export class HubRiseCatalogService {
       counts.products++;
     }
 
+    if (skippedNoCategory > 0) {
+      this.logger.warn(
+        `HubRise import: ${skippedNoCategory} product(s) skipped because their category_ref didn't match any imported category.`,
+      );
+    }
     this.logger.log(
       `HubRise import: menu=${menu.id} brand=${target.brandId} location=${target.locationId} ${JSON.stringify(counts)}`,
     );
     return { menuId: menu.id, counts };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // IMAGE PROXY
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * Phase AW-11.1 — stream a HubRise image's binary back to the browser.
+   * Imported menu items have imageUrl set to /v1/menus/hubrise-image/
+   * <catalogId>/<imageId>; the controller calls this with the catalog's
+   * location's credentials. Returns the raw bytes + content-type so the
+   * controller can pipe straight through.
+   *
+   * Cache: HubRise images don't have a public URL, so every render hits
+   * us. The Cache-Control header on the controller side leans on
+   * HubRise's image immutability to let browsers + edge cache it
+   * aggressively.
+   */
+  async fetchHubRiseImage(
+    catalogId: string,
+    imageId: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    // Find any location that has this catalogId — the import path saved
+    // it onto Location.hubriseCatalogId on first publish or it matches
+    // what the operator pasted at HubRise connect time. We don't need
+    // the brand/tenant context because the public proxy is read-only
+    // and the image ids are already opaque random tokens.
+    const location = await (this.prisma as any).location.findFirst({
+      where: { hubriseCatalogId: catalogId },
+      select: { hubriseCredentials: true },
+    });
+    if (!location) {
+      throw new NotFoundException("HubRise catalog not found");
+    }
+    const decrypted = this.credentialEncryption.decrypt(
+      (location.hubriseCredentials ?? {}) as Record<string, unknown>,
+    ) as Record<string, string>;
+    const accessToken = decrypted.accessToken;
+    if (!accessToken) throw new BadRequestException("No HubRise token");
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const res = await fetch(
+      `${baseUrl}/catalogs/${catalogId}/images/${imageId}/data`,
+      {
+        headers: { "X-Access-Token": accessToken },
+      },
+    );
+    if (!res.ok) {
+      throw new NotFoundException(`HubRise image ${imageId} → ${res.status}`);
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    return { buffer, contentType };
   }
 
   // ─────────────────────────────────────────────────────────────────────

@@ -7,10 +7,13 @@ import {
   Body,
   Param,
   Query,
+  Res,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
 } from "@nestjs/common";
+import type { Response } from "express";
+import { Public } from "../../common/decorators/public.decorator";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { MenusService } from "./menus.service";
 import { PluService } from "./plu.service";
@@ -90,6 +93,32 @@ export class MenusController {
       locationId: body.locationId,
       catalogId: body.catalogId,
     });
+  }
+
+  // Phase AW-11.1 — public image proxy. Menu items imported from
+  // HubRise carry imageUrl=/v1/menus/hubrise-image/<catalogId>/<imgId>;
+  // this endpoint streams the image binary back so customers + POS
+  // can render it without exposing the HubRise access token to the
+  // browser. Public so unauthenticated storefront customers can see
+  // the image; the catalog id + image id are opaque random tokens so
+  // there's no enumeration risk.
+  @Public()
+  @Get("menus/hubrise-image/:catalogId/:imageId")
+  @ApiOperation({ summary: "Proxy a HubRise image to the browser" })
+  async hubriseImage(
+    @Param("catalogId") catalogId: string,
+    @Param("imageId") imageId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, contentType } = await this.hubriseCatalog.fetchHubRiseImage(
+      catalogId,
+      imageId,
+    );
+    res.setHeader("Content-Type", contentType);
+    // HubRise images are immutable per id, so let browsers + edge cache
+    // hard. 30 days.
+    res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    res.send(buffer);
   }
 
   @Post("menus/:menuId/publish/hubrise")
