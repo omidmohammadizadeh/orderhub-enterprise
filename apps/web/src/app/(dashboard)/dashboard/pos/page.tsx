@@ -124,6 +124,14 @@ export default function PosPage() {
 
       const body = {
         locationId: selectedLocationId,
+        // Phase AW — tag the order with the brand the active POS menu
+        // is published under. Without this, Order.brandId stayed null
+        // and every POS ticket fell back to location.brand (the "Order
+        // Hub" tenant default) on the Orders board AND the printed
+        // receipt. menuQuery.data is the menu we just walked the
+        // operator through to build this basket, so its brandId is the
+        // right one — no extra lookup needed.
+        ...(brandId && { brandId }),
         orderSource: "POS" as const,
         fulfillmentType: payload.fulfillmentType,
         customerInfo: {

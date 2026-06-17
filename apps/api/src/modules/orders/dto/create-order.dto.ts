@@ -52,6 +52,13 @@ export class DeliveryAddressDto {
 export class CreateOrderDto {
   @ApiProperty() @IsString() locationId!: string;
 
+  // Phase AW — pin the order to a specific virtual brand at this
+  // location. POS sends the brandId of the active menu so the
+  // Orders board column + the printed receipt header pick up the
+  // right brand. Storefront orders use the same field via the
+  // /ordering/store/:slug?brand=<id> pinning path.
+  @ApiPropertyOptional() @IsOptional() @IsString() brandId?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsEnum(["ONLINE", "POS", "UBER_EATS", "DELIVEROO", "JUST_EAT", "HUBRISE", "DIRECT"])
