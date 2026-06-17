@@ -61,8 +61,33 @@ export class MenuAvailabilityService {
     });
     if (!brand) throw new NotFoundException("Brand not found");
 
+    // Phase AW-14 fix — items can live on this brand via two paths:
+    //   (a) MenuItem.brandId === brand.id  (created directly under it)
+    //   (b) reachable via Menu.brandId === brand.id → MenuCategory →
+    //       MenuItemOnCategory → MenuItem  (a menu the operator
+    //       reassigned to this brand at publish time, whose items still
+    //       carry their original brandId).
+    // Path (b) is what's happening for HubRise-imported menus that get
+    // republished under a virtual brand — the items keep their import-
+    // time brandId, but the operator expects them on the inventory
+    // board for the brand they published the menu under.
+    const menuItemIds = await this.prisma.menuItem.findMany({
+      where: {
+        OR: [
+          { brandId },
+          {
+            categories: {
+              some: { category: { menu: { brandId } } },
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+    if (menuItemIds.length === 0) return { items: [] };
+
     const items = await this.prisma.menuItem.findMany({
-      where: { brandId },
+      where: { id: { in: menuItemIds.map((r) => r.id) } },
       select: {
         id: true,
         name: true,
