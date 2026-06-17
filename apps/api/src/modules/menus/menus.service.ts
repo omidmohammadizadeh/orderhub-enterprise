@@ -4,12 +4,15 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PluService } from "./plu.service";
+import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { QUEUES, MENU_JOBS } from "@orderhub/shared";
 import type {
   CreateMenuDto,
@@ -52,6 +55,10 @@ export class MenusService {
     private readonly prisma: PrismaService,
     @InjectQueue(QUEUES.MENU_SYNC) private readonly menuSyncQueue: Queue,
     private readonly plu: PluService,
+    // Phase AW-14 — strip items snoozed for POS from the active-menu
+    // response so the till never offers an out-of-stock product.
+    @Inject(forwardRef(() => MenuAvailabilityService))
+    private readonly menuAvailability: MenuAvailabilityService,
   ) {}
 
   // ── Menu CRUD ─────────────────────────────────────────────────────────────
@@ -1048,7 +1055,34 @@ export class MenusService {
     });
     if (!menu) return null;
 
-    return this.findOne(menu.id, tenantId);
+    const full = await this.findOne(menu.id, tenantId);
+
+    // Phase AW-14 — strip items currently snoozed for POS so the till
+    // never offers an out-of-stock item. Same read-time pattern used by
+    // the storefront in OrderingService.getStorefrontBySlug. Single
+    // index hit, then in-memory filter.
+    if (full?.categories?.length) {
+      const itemIds: string[] = [];
+      for (const cat of full.categories) {
+        for (const link of (cat as any).items ?? []) {
+          if (link?.item?.id) itemIds.push(link.item.id);
+        }
+      }
+      const snoozed =
+        await this.menuAvailability.getSnoozedItemIdsForChannel(
+          "POS",
+          itemIds,
+        );
+      if (snoozed.size > 0) {
+        for (const cat of full.categories) {
+          (cat as any).items = ((cat as any).items ?? []).filter(
+            (link: any) => !snoozed.has(link?.item?.id),
+          );
+        }
+      }
+    }
+
+    return full;
   }
 
   // ── Public menu (for online ordering) ────────────────────────────────────

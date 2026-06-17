@@ -499,6 +499,19 @@ exports.Prisma.MenuItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MenuItemChannelAvailabilityScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  channel: 'channel',
+  isAvailable: 'isAvailable',
+  expiresAt: 'expiresAt',
+  snoozeReason: 'snoozeReason',
+  snoozedAt: 'snoozedAt',
+  snoozedBy: 'snoozedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.MenuItemOnCategoryScalarFieldEnum = {
   categoryId: 'categoryId',
   itemId: 'itemId',
@@ -1838,6 +1851,14 @@ exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
   syncHash: 'syncHash'
 };
 
+exports.Prisma.MenuItemChannelAvailabilityOrderByRelevanceFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  channel: 'channel',
+  snoozeReason: 'snoozeReason',
+  snoozedBy: 'snoozedBy'
+};
+
 exports.Prisma.MenuItemOnCategoryOrderByRelevanceFieldEnum = {
   categoryId: 'categoryId',
   itemId: 'itemId'
@@ -2907,6 +2928,7 @@ exports.Prisma.ModelName = {
   Menu: 'Menu',
   MenuCategory: 'MenuCategory',
   MenuItem: 'MenuItem',
+  MenuItemChannelAvailability: 'MenuItemChannelAvailability',
   MenuItemOnCategory: 'MenuItemOnCategory',
   ModifierGroup: 'ModifierGroup',
   ModifierOption: 'ModifierOption',

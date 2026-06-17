@@ -8,6 +8,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
+import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -54,6 +55,9 @@ export class OrderingService {
     // optionally so the module doesn't blow up at boot if Stripe creds
     // aren't set yet on a fresh deploy.
     private readonly payments: PaymentsService,
+    // Phase AW-14 — strip items snoozed for ONLINE from the menu before
+    // returning. Single round-trip per storefront load.
+    private readonly menuAvailability: MenuAvailabilityService,
   ) {}
 
   /**
@@ -286,6 +290,28 @@ export class OrderingService {
         ...((menu as any).categories ?? []),
         ...extraCategories,
       ];
+    }
+
+    // Phase AW-14 — drop items snoozed for ONLINE. Single query
+    // covering every item across every category, then filter in-memory.
+    if (menu) {
+      const itemIds: string[] = [];
+      for (const cat of (menu as any).categories ?? []) {
+        for (const link of cat.items ?? []) {
+          if (link?.item?.id) itemIds.push(link.item.id);
+        }
+      }
+      const snoozed = await this.menuAvailability.getSnoozedItemIdsForChannel(
+        "ONLINE",
+        itemIds,
+      );
+      if (snoozed.size > 0) {
+        for (const cat of (menu as any).categories ?? []) {
+          cat.items = (cat.items ?? []).filter(
+            (link: any) => !snoozed.has(link?.item?.id),
+          );
+        }
+      }
     }
 
     // Phase AP fix #4 — also surface the brand's full modifier-group

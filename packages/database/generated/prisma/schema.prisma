@@ -844,11 +844,14 @@ model MenuItem {
   // importer can re-link after creating local ModifierGroup rows.
   rawModifierGroupIds Json      @default("[]")
 
-  categories         MenuItemOnCategory[]
-  modifierGroupLinks ModifierGroupOnItem[]
-  variants           MenuItemVariant[]
-  recipe             Recipe?
-  stationRoutes      MenuItemStation[]
+  categories          MenuItemOnCategory[]
+  modifierGroupLinks  ModifierGroupOnItem[]
+  variants            MenuItemVariant[]
+  recipe              Recipe?
+  stationRoutes       MenuItemStation[]
+  // Phase AW-14 — per-channel snooze records ("86" board). One row
+  // per (item, channel) currently snoozed; absence = available.
+  channelAvailability MenuItemChannelAvailability[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -858,6 +861,47 @@ model MenuItem {
   @@index([plu])
   @@index([platformSource, externalId])
   @@map("menu_items")
+}
+
+// Phase AW-14 — Menu Availability ("86 board").
+//
+// Operators flip a single product off for one channel at a time
+// (e.g. "out of stock on Online ordering for 2 hours"). One row
+// per (itemId, channel) pair; presence with isAvailable=false and
+// expiresAt > now() means the storefront / POS / marketplace hides
+// the item. Cleared by either: expiresAt elapsing (read-time check,
+// no cron needed) or an explicit unsnooze row delete.
+//
+// `channel` is a free-form string matching the publishedTo[] enum:
+// ONLINE, POS, JUST_EAT, UBER_EATS, DELIVEROO, WHATSAPP, HUBRISE.
+// Per-channel intentionally — operators want to 86 a pizza on Uber
+// Eats only without taking it off the in-store POS.
+model MenuItemChannelAvailability {
+  id           String    @id @default(cuid())
+  itemId       String
+  item         MenuItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  channel      String
+  // Always false in current rows — the row's existence IS the snooze.
+  // Kept on the model so a future "explicit in-stock with count"
+  // record can ride the same table without an enum change.
+  isAvailable  Boolean   @default(false)
+  // ISO timestamp. Read-time filter compares against now(); past
+  // values are treated as expired (auto-unsnooze).
+  expiresAt    DateTime?
+  // Operator-supplied reason, free text. Surfaced on the inventory
+  // board so the next shift knows why a product is out.
+  snoozeReason String?
+  // For audit + the inventory board's "snoozed N minutes ago" label.
+  snoozedAt    DateTime  @default(now())
+  snoozedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([itemId, channel])
+  @@index([itemId])
+  @@index([channel, expiresAt])
+  @@map("menu_item_channel_availability")
 }
 
 model MenuItemOnCategory {

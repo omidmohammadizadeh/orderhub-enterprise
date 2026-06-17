@@ -788,6 +788,44 @@ export class HubRiseCatalogService {
     return { catalogId: created.id, created: true };
   }
 
+  // ─────────────────────────────────────────────────────────────────────
+  // INVENTORY PATCH (Phase AW-14)
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * PATCH /catalogs/:id/locations/:locId/inventory
+   *
+   * Used by MenuAvailabilityService when an operator 86s a product.
+   * Body is a thin array of inventory entries — HubRise merges; entries
+   * NOT in the request are left unchanged.
+   *
+   *   { sku_ref, stock: "0", expires_at: "ISO" }   ← out of stock
+   *   { sku_ref, stock: null }                     ← back to unlimited
+   *
+   * `option_ref` is also supported (for modifier 86) but the inventory
+   * page only flips items in AW-14; we'll wire option-level snooze in
+   * a follow-up phase.
+   */
+  async patchInventory(args: {
+    catalogId: string;
+    hubriseLocationId: string;
+    credentialsBlob: unknown;
+    entries: Array<{
+      sku_ref?: string;
+      option_ref?: string;
+      stock: string | null;
+      expires_at?: string | null;
+    }>;
+  }): Promise<void> {
+    if (!args.entries.length) return;
+    await this.callHubRise(
+      "PATCH",
+      `/catalogs/${args.catalogId}/locations/${args.hubriseLocationId.toLowerCase()}/inventory`,
+      args.credentialsBlob,
+      args.entries,
+    );
+  }
+
   private async markPublished(menuId: string, hubriseCatalogId: string) {
     await (this.prisma as any).menu.update({
       where: { id: menuId },

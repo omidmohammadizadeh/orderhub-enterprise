@@ -104,6 +104,11 @@ export type MenuCategory = $Result.DefaultSelection<Prisma.$MenuCategoryPayload>
  */
 export type MenuItem = $Result.DefaultSelection<Prisma.$MenuItemPayload>
 /**
+ * Model MenuItemChannelAvailability
+ * 
+ */
+export type MenuItemChannelAvailability = $Result.DefaultSelection<Prisma.$MenuItemChannelAvailabilityPayload>
+/**
  * Model MenuItemOnCategory
  * 
  */
@@ -1495,6 +1500,16 @@ export class PrismaClient<
   get menuItem(): Prisma.MenuItemDelegate<ExtArgs>;
 
   /**
+   * `prisma.menuItemChannelAvailability`: Exposes CRUD operations for the **MenuItemChannelAvailability** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuItemChannelAvailabilities
+    * const menuItemChannelAvailabilities = await prisma.menuItemChannelAvailability.findMany()
+    * ```
+    */
+  get menuItemChannelAvailability(): Prisma.MenuItemChannelAvailabilityDelegate<ExtArgs>;
+
+  /**
    * `prisma.menuItemOnCategory`: Exposes CRUD operations for the **MenuItemOnCategory** model.
     * Example usage:
     * ```ts
@@ -2662,6 +2677,7 @@ export namespace Prisma {
     Menu: 'Menu',
     MenuCategory: 'MenuCategory',
     MenuItem: 'MenuItem',
+    MenuItemChannelAvailability: 'MenuItemChannelAvailability',
     MenuItemOnCategory: 'MenuItemOnCategory',
     ModifierGroup: 'ModifierGroup',
     ModifierOption: 'ModifierOption',
@@ -2748,7 +2764,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4009,6 +4025,76 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuItemCountArgs<ExtArgs>
             result: $Utils.Optional<MenuItemCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuItemChannelAvailability: {
+        payload: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>
+        fields: Prisma.MenuItemChannelAvailabilityFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuItemChannelAvailabilityFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuItemChannelAvailabilityFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuItemChannelAvailabilityFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuItemChannelAvailabilityFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          findMany: {
+            args: Prisma.MenuItemChannelAvailabilityFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>[]
+          }
+          create: {
+            args: Prisma.MenuItemChannelAvailabilityCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          createMany: {
+            args: Prisma.MenuItemChannelAvailabilityCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuItemChannelAvailabilityCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuItemChannelAvailabilityDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          update: {
+            args: Prisma.MenuItemChannelAvailabilityUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuItemChannelAvailabilityDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuItemChannelAvailabilityUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MenuItemChannelAvailabilityUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuItemChannelAvailabilityPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuItemChannelAvailabilityAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuItemChannelAvailability>
+          }
+          groupBy: {
+            args: Prisma.MenuItemChannelAvailabilityGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuItemChannelAvailabilityGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuItemChannelAvailabilityCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuItemChannelAvailabilityCountAggregateOutputType> | number
           }
         }
       }
@@ -9706,6 +9792,7 @@ export namespace Prisma {
     modifierGroupLinks: number
     variants: number
     stationRoutes: number
+    channelAvailability: number
   }
 
   export type MenuItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9713,6 +9800,7 @@ export namespace Prisma {
     modifierGroupLinks?: boolean | MenuItemCountOutputTypeCountModifierGroupLinksArgs
     variants?: boolean | MenuItemCountOutputTypeCountVariantsArgs
     stationRoutes?: boolean | MenuItemCountOutputTypeCountStationRoutesArgs
+    channelAvailability?: boolean | MenuItemCountOutputTypeCountChannelAvailabilityArgs
   }
 
   // Custom InputTypes
@@ -9752,6 +9840,13 @@ export namespace Prisma {
    */
   export type MenuItemCountOutputTypeCountStationRoutesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuItemStationWhereInput
+  }
+
+  /**
+   * MenuItemCountOutputType without action
+   */
+  export type MenuItemCountOutputTypeCountChannelAvailabilityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemChannelAvailabilityWhereInput
   }
 
 
@@ -30691,6 +30786,7 @@ export namespace Prisma {
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
+    channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menuItem"]>
 
@@ -30784,6 +30880,7 @@ export namespace Prisma {
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
+    channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
     _count?: boolean | MenuItemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -30796,6 +30893,7 @@ export namespace Prisma {
       variants: Prisma.$MenuItemVariantPayload<ExtArgs>[]
       recipe: Prisma.$RecipePayload<ExtArgs> | null
       stationRoutes: Prisma.$MenuItemStationPayload<ExtArgs>[]
+      channelAvailability: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -31206,6 +31304,7 @@ export namespace Prisma {
     variants<T extends MenuItem$variantsArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$variantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemVariantPayload<ExtArgs>, T, "findMany"> | Null>
     recipe<T extends MenuItem$recipeArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$recipeArgs<ExtArgs>>): Prisma__RecipeClient<$Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stationRoutes<T extends MenuItem$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany"> | Null>
+    channelAvailability<T extends MenuItem$channelAvailabilityArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$channelAvailabilityArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -31683,6 +31782,26 @@ export namespace Prisma {
   }
 
   /**
+   * MenuItem.channelAvailability
+   */
+  export type MenuItem$channelAvailabilityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    where?: MenuItemChannelAvailabilityWhereInput
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
    * MenuItem without action
    */
   export type MenuItemDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -31694,6 +31813,999 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MenuItemInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuItemChannelAvailability
+   */
+
+  export type AggregateMenuItemChannelAvailability = {
+    _count: MenuItemChannelAvailabilityCountAggregateOutputType | null
+    _min: MenuItemChannelAvailabilityMinAggregateOutputType | null
+    _max: MenuItemChannelAvailabilityMaxAggregateOutputType | null
+  }
+
+  export type MenuItemChannelAvailabilityMinAggregateOutputType = {
+    id: string | null
+    itemId: string | null
+    channel: string | null
+    isAvailable: boolean | null
+    expiresAt: Date | null
+    snoozeReason: string | null
+    snoozedAt: Date | null
+    snoozedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuItemChannelAvailabilityMaxAggregateOutputType = {
+    id: string | null
+    itemId: string | null
+    channel: string | null
+    isAvailable: boolean | null
+    expiresAt: Date | null
+    snoozeReason: string | null
+    snoozedAt: Date | null
+    snoozedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuItemChannelAvailabilityCountAggregateOutputType = {
+    id: number
+    itemId: number
+    channel: number
+    isAvailable: number
+    expiresAt: number
+    snoozeReason: number
+    snoozedAt: number
+    snoozedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MenuItemChannelAvailabilityMinAggregateInputType = {
+    id?: true
+    itemId?: true
+    channel?: true
+    isAvailable?: true
+    expiresAt?: true
+    snoozeReason?: true
+    snoozedAt?: true
+    snoozedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuItemChannelAvailabilityMaxAggregateInputType = {
+    id?: true
+    itemId?: true
+    channel?: true
+    isAvailable?: true
+    expiresAt?: true
+    snoozeReason?: true
+    snoozedAt?: true
+    snoozedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuItemChannelAvailabilityCountAggregateInputType = {
+    id?: true
+    itemId?: true
+    channel?: true
+    isAvailable?: true
+    expiresAt?: true
+    snoozeReason?: true
+    snoozedAt?: true
+    snoozedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MenuItemChannelAvailabilityAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuItemChannelAvailability to aggregate.
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemChannelAvailabilities to fetch.
+     */
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemChannelAvailabilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemChannelAvailabilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuItemChannelAvailabilities
+    **/
+    _count?: true | MenuItemChannelAvailabilityCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuItemChannelAvailabilityMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuItemChannelAvailabilityMaxAggregateInputType
+  }
+
+  export type GetMenuItemChannelAvailabilityAggregateType<T extends MenuItemChannelAvailabilityAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuItemChannelAvailability]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuItemChannelAvailability[P]>
+      : GetScalarType<T[P], AggregateMenuItemChannelAvailability[P]>
+  }
+
+
+
+
+  export type MenuItemChannelAvailabilityGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemChannelAvailabilityWhereInput
+    orderBy?: MenuItemChannelAvailabilityOrderByWithAggregationInput | MenuItemChannelAvailabilityOrderByWithAggregationInput[]
+    by: MenuItemChannelAvailabilityScalarFieldEnum[] | MenuItemChannelAvailabilityScalarFieldEnum
+    having?: MenuItemChannelAvailabilityScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuItemChannelAvailabilityCountAggregateInputType | true
+    _min?: MenuItemChannelAvailabilityMinAggregateInputType
+    _max?: MenuItemChannelAvailabilityMaxAggregateInputType
+  }
+
+  export type MenuItemChannelAvailabilityGroupByOutputType = {
+    id: string
+    itemId: string
+    channel: string
+    isAvailable: boolean
+    expiresAt: Date | null
+    snoozeReason: string | null
+    snoozedAt: Date
+    snoozedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MenuItemChannelAvailabilityCountAggregateOutputType | null
+    _min: MenuItemChannelAvailabilityMinAggregateOutputType | null
+    _max: MenuItemChannelAvailabilityMaxAggregateOutputType | null
+  }
+
+  type GetMenuItemChannelAvailabilityGroupByPayload<T extends MenuItemChannelAvailabilityGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuItemChannelAvailabilityGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuItemChannelAvailabilityGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuItemChannelAvailabilityGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuItemChannelAvailabilityGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuItemChannelAvailabilitySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    itemId?: boolean
+    channel?: boolean
+    isAvailable?: boolean
+    expiresAt?: boolean
+    snoozeReason?: boolean
+    snoozedAt?: boolean
+    snoozedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    item?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuItemChannelAvailability"]>
+
+  export type MenuItemChannelAvailabilitySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    itemId?: boolean
+    channel?: boolean
+    isAvailable?: boolean
+    expiresAt?: boolean
+    snoozeReason?: boolean
+    snoozedAt?: boolean
+    snoozedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    item?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuItemChannelAvailability"]>
+
+  export type MenuItemChannelAvailabilitySelectScalar = {
+    id?: boolean
+    itemId?: boolean
+    channel?: boolean
+    isAvailable?: boolean
+    expiresAt?: boolean
+    snoozeReason?: boolean
+    snoozedAt?: boolean
+    snoozedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MenuItemChannelAvailabilityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    item?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }
+  export type MenuItemChannelAvailabilityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    item?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuItemChannelAvailabilityPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuItemChannelAvailability"
+    objects: {
+      item: Prisma.$MenuItemPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      itemId: string
+      channel: string
+      isAvailable: boolean
+      expiresAt: Date | null
+      snoozeReason: string | null
+      snoozedAt: Date
+      snoozedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["menuItemChannelAvailability"]>
+    composites: {}
+  }
+
+  type MenuItemChannelAvailabilityGetPayload<S extends boolean | null | undefined | MenuItemChannelAvailabilityDefaultArgs> = $Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload, S>
+
+  type MenuItemChannelAvailabilityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MenuItemChannelAvailabilityFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MenuItemChannelAvailabilityCountAggregateInputType | true
+    }
+
+  export interface MenuItemChannelAvailabilityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuItemChannelAvailability'], meta: { name: 'MenuItemChannelAvailability' } }
+    /**
+     * Find zero or one MenuItemChannelAvailability that matches the filter.
+     * @param {MenuItemChannelAvailabilityFindUniqueArgs} args - Arguments to find a MenuItemChannelAvailability
+     * @example
+     * // Get one MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuItemChannelAvailabilityFindUniqueArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityFindUniqueArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MenuItemChannelAvailability that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MenuItemChannelAvailabilityFindUniqueOrThrowArgs} args - Arguments to find a MenuItemChannelAvailability
+     * @example
+     * // Get one MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuItemChannelAvailabilityFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MenuItemChannelAvailability that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityFindFirstArgs} args - Arguments to find a MenuItemChannelAvailability
+     * @example
+     * // Get one MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuItemChannelAvailabilityFindFirstArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityFindFirstArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MenuItemChannelAvailability that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityFindFirstOrThrowArgs} args - Arguments to find a MenuItemChannelAvailability
+     * @example
+     * // Get one MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuItemChannelAvailabilityFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MenuItemChannelAvailabilities that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuItemChannelAvailabilities
+     * const menuItemChannelAvailabilities = await prisma.menuItemChannelAvailability.findMany()
+     * 
+     * // Get first 10 MenuItemChannelAvailabilities
+     * const menuItemChannelAvailabilities = await prisma.menuItemChannelAvailability.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuItemChannelAvailabilityWithIdOnly = await prisma.menuItemChannelAvailability.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuItemChannelAvailabilityFindManyArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MenuItemChannelAvailability.
+     * @param {MenuItemChannelAvailabilityCreateArgs} args - Arguments to create a MenuItemChannelAvailability.
+     * @example
+     * // Create one MenuItemChannelAvailability
+     * const MenuItemChannelAvailability = await prisma.menuItemChannelAvailability.create({
+     *   data: {
+     *     // ... data to create a MenuItemChannelAvailability
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuItemChannelAvailabilityCreateArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityCreateArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MenuItemChannelAvailabilities.
+     * @param {MenuItemChannelAvailabilityCreateManyArgs} args - Arguments to create many MenuItemChannelAvailabilities.
+     * @example
+     * // Create many MenuItemChannelAvailabilities
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuItemChannelAvailabilityCreateManyArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuItemChannelAvailabilities and returns the data saved in the database.
+     * @param {MenuItemChannelAvailabilityCreateManyAndReturnArgs} args - Arguments to create many MenuItemChannelAvailabilities.
+     * @example
+     * // Create many MenuItemChannelAvailabilities
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuItemChannelAvailabilities and only return the `id`
+     * const menuItemChannelAvailabilityWithIdOnly = await prisma.menuItemChannelAvailability.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuItemChannelAvailabilityCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MenuItemChannelAvailability.
+     * @param {MenuItemChannelAvailabilityDeleteArgs} args - Arguments to delete one MenuItemChannelAvailability.
+     * @example
+     * // Delete one MenuItemChannelAvailability
+     * const MenuItemChannelAvailability = await prisma.menuItemChannelAvailability.delete({
+     *   where: {
+     *     // ... filter to delete one MenuItemChannelAvailability
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuItemChannelAvailabilityDeleteArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityDeleteArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MenuItemChannelAvailability.
+     * @param {MenuItemChannelAvailabilityUpdateArgs} args - Arguments to update one MenuItemChannelAvailability.
+     * @example
+     * // Update one MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuItemChannelAvailabilityUpdateArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityUpdateArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MenuItemChannelAvailabilities.
+     * @param {MenuItemChannelAvailabilityDeleteManyArgs} args - Arguments to filter MenuItemChannelAvailabilities to delete.
+     * @example
+     * // Delete a few MenuItemChannelAvailabilities
+     * const { count } = await prisma.menuItemChannelAvailability.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuItemChannelAvailabilityDeleteManyArgs>(args?: SelectSubset<T, MenuItemChannelAvailabilityDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuItemChannelAvailabilities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuItemChannelAvailabilities
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuItemChannelAvailabilityUpdateManyArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MenuItemChannelAvailability.
+     * @param {MenuItemChannelAvailabilityUpsertArgs} args - Arguments to update or create a MenuItemChannelAvailability.
+     * @example
+     * // Update or create a MenuItemChannelAvailability
+     * const menuItemChannelAvailability = await prisma.menuItemChannelAvailability.upsert({
+     *   create: {
+     *     // ... data to create a MenuItemChannelAvailability
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuItemChannelAvailability we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuItemChannelAvailabilityUpsertArgs>(args: SelectSubset<T, MenuItemChannelAvailabilityUpsertArgs<ExtArgs>>): Prisma__MenuItemChannelAvailabilityClient<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MenuItemChannelAvailabilities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityCountArgs} args - Arguments to filter MenuItemChannelAvailabilities to count.
+     * @example
+     * // Count the number of MenuItemChannelAvailabilities
+     * const count = await prisma.menuItemChannelAvailability.count({
+     *   where: {
+     *     // ... the filter for the MenuItemChannelAvailabilities we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuItemChannelAvailabilityCountArgs>(
+      args?: Subset<T, MenuItemChannelAvailabilityCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuItemChannelAvailabilityCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuItemChannelAvailability.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuItemChannelAvailabilityAggregateArgs>(args: Subset<T, MenuItemChannelAvailabilityAggregateArgs>): Prisma.PrismaPromise<GetMenuItemChannelAvailabilityAggregateType<T>>
+
+    /**
+     * Group by MenuItemChannelAvailability.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuItemChannelAvailabilityGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuItemChannelAvailabilityGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuItemChannelAvailabilityGroupByArgs['orderBy'] }
+        : { orderBy?: MenuItemChannelAvailabilityGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuItemChannelAvailabilityGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuItemChannelAvailabilityGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuItemChannelAvailability model
+   */
+  readonly fields: MenuItemChannelAvailabilityFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuItemChannelAvailability.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuItemChannelAvailabilityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    item<T extends MenuItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuItemDefaultArgs<ExtArgs>>): Prisma__MenuItemClient<$Result.GetResult<Prisma.$MenuItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuItemChannelAvailability model
+   */ 
+  interface MenuItemChannelAvailabilityFieldRefs {
+    readonly id: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly itemId: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly channel: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly isAvailable: FieldRef<"MenuItemChannelAvailability", 'Boolean'>
+    readonly expiresAt: FieldRef<"MenuItemChannelAvailability", 'DateTime'>
+    readonly snoozeReason: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly snoozedAt: FieldRef<"MenuItemChannelAvailability", 'DateTime'>
+    readonly snoozedBy: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly createdAt: FieldRef<"MenuItemChannelAvailability", 'DateTime'>
+    readonly updatedAt: FieldRef<"MenuItemChannelAvailability", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuItemChannelAvailability findUnique
+   */
+  export type MenuItemChannelAvailabilityFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemChannelAvailability to fetch.
+     */
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+  }
+
+  /**
+   * MenuItemChannelAvailability findUniqueOrThrow
+   */
+  export type MenuItemChannelAvailabilityFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemChannelAvailability to fetch.
+     */
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+  }
+
+  /**
+   * MenuItemChannelAvailability findFirst
+   */
+  export type MenuItemChannelAvailabilityFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemChannelAvailability to fetch.
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemChannelAvailabilities to fetch.
+     */
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuItemChannelAvailabilities.
+     */
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemChannelAvailabilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemChannelAvailabilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuItemChannelAvailabilities.
+     */
+    distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemChannelAvailability findFirstOrThrow
+   */
+  export type MenuItemChannelAvailabilityFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemChannelAvailability to fetch.
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemChannelAvailabilities to fetch.
+     */
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuItemChannelAvailabilities.
+     */
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemChannelAvailabilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemChannelAvailabilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuItemChannelAvailabilities.
+     */
+    distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemChannelAvailability findMany
+   */
+  export type MenuItemChannelAvailabilityFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuItemChannelAvailabilities to fetch.
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuItemChannelAvailabilities to fetch.
+     */
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuItemChannelAvailabilities.
+     */
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuItemChannelAvailabilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuItemChannelAvailabilities.
+     */
+    skip?: number
+    distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItemChannelAvailability create
+   */
+  export type MenuItemChannelAvailabilityCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuItemChannelAvailability.
+     */
+    data: XOR<MenuItemChannelAvailabilityCreateInput, MenuItemChannelAvailabilityUncheckedCreateInput>
+  }
+
+  /**
+   * MenuItemChannelAvailability createMany
+   */
+  export type MenuItemChannelAvailabilityCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuItemChannelAvailabilities.
+     */
+    data: MenuItemChannelAvailabilityCreateManyInput | MenuItemChannelAvailabilityCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuItemChannelAvailability createManyAndReturn
+   */
+  export type MenuItemChannelAvailabilityCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MenuItemChannelAvailabilities.
+     */
+    data: MenuItemChannelAvailabilityCreateManyInput | MenuItemChannelAvailabilityCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuItemChannelAvailability update
+   */
+  export type MenuItemChannelAvailabilityUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuItemChannelAvailability.
+     */
+    data: XOR<MenuItemChannelAvailabilityUpdateInput, MenuItemChannelAvailabilityUncheckedUpdateInput>
+    /**
+     * Choose, which MenuItemChannelAvailability to update.
+     */
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+  }
+
+  /**
+   * MenuItemChannelAvailability updateMany
+   */
+  export type MenuItemChannelAvailabilityUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuItemChannelAvailabilities.
+     */
+    data: XOR<MenuItemChannelAvailabilityUpdateManyMutationInput, MenuItemChannelAvailabilityUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuItemChannelAvailabilities to update
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+  }
+
+  /**
+   * MenuItemChannelAvailability upsert
+   */
+  export type MenuItemChannelAvailabilityUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuItemChannelAvailability to update in case it exists.
+     */
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    /**
+     * In case the MenuItemChannelAvailability found by the `where` argument doesn't exist, create a new MenuItemChannelAvailability with this data.
+     */
+    create: XOR<MenuItemChannelAvailabilityCreateInput, MenuItemChannelAvailabilityUncheckedCreateInput>
+    /**
+     * In case the MenuItemChannelAvailability was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuItemChannelAvailabilityUpdateInput, MenuItemChannelAvailabilityUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuItemChannelAvailability delete
+   */
+  export type MenuItemChannelAvailabilityDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    /**
+     * Filter which MenuItemChannelAvailability to delete.
+     */
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+  }
+
+  /**
+   * MenuItemChannelAvailability deleteMany
+   */
+  export type MenuItemChannelAvailabilityDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuItemChannelAvailabilities to delete
+     */
+    where?: MenuItemChannelAvailabilityWhereInput
+  }
+
+  /**
+   * MenuItemChannelAvailability without action
+   */
+  export type MenuItemChannelAvailabilityDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
   }
 
 
@@ -106591,6 +107703,22 @@ export namespace Prisma {
   export type MenuItemScalarFieldEnum = (typeof MenuItemScalarFieldEnum)[keyof typeof MenuItemScalarFieldEnum]
 
 
+  export const MenuItemChannelAvailabilityScalarFieldEnum: {
+    id: 'id',
+    itemId: 'itemId',
+    channel: 'channel',
+    isAvailable: 'isAvailable',
+    expiresAt: 'expiresAt',
+    snoozeReason: 'snoozeReason',
+    snoozedAt: 'snoozedAt',
+    snoozedBy: 'snoozedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MenuItemChannelAvailabilityScalarFieldEnum = (typeof MenuItemChannelAvailabilityScalarFieldEnum)[keyof typeof MenuItemChannelAvailabilityScalarFieldEnum]
+
+
   export const MenuItemOnCategoryScalarFieldEnum: {
     categoryId: 'categoryId',
     itemId: 'itemId',
@@ -108213,6 +109341,17 @@ export namespace Prisma {
   };
 
   export type MenuItemOrderByRelevanceFieldEnum = (typeof MenuItemOrderByRelevanceFieldEnum)[keyof typeof MenuItemOrderByRelevanceFieldEnum]
+
+
+  export const MenuItemChannelAvailabilityOrderByRelevanceFieldEnum: {
+    id: 'id',
+    itemId: 'itemId',
+    channel: 'channel',
+    snoozeReason: 'snoozeReason',
+    snoozedBy: 'snoozedBy'
+  };
+
+  export type MenuItemChannelAvailabilityOrderByRelevanceFieldEnum = (typeof MenuItemChannelAvailabilityOrderByRelevanceFieldEnum)[keyof typeof MenuItemChannelAvailabilityOrderByRelevanceFieldEnum]
 
 
   export const MenuItemOnCategoryOrderByRelevanceFieldEnum: {
@@ -111980,6 +113119,7 @@ export namespace Prisma {
     variants?: MenuItemVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
+    channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
   }
 
   export type MenuItemOrderByWithRelationInput = {
@@ -112027,6 +113167,7 @@ export namespace Prisma {
     variants?: MenuItemVariantOrderByRelationAggregateInput
     recipe?: RecipeOrderByWithRelationInput
     stationRoutes?: MenuItemStationOrderByRelationAggregateInput
+    channelAvailability?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
     _relevance?: MenuItemOrderByRelevanceInput
   }
 
@@ -112078,6 +113219,7 @@ export namespace Prisma {
     variants?: MenuItemVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
+    channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
   }, "id">
 
   export type MenuItemOrderByWithAggregationInput = {
@@ -112170,6 +113312,88 @@ export namespace Prisma {
     rawModifierGroupIds?: JsonWithAggregatesFilter<"MenuItem">
     createdAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityWhereInput = {
+    AND?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
+    OR?: MenuItemChannelAvailabilityWhereInput[]
+    NOT?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
+    id?: StringFilter<"MenuItemChannelAvailability"> | string
+    itemId?: StringFilter<"MenuItemChannelAvailability"> | string
+    channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
+    expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
+    snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    snoozedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    item?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+  }
+
+  export type MenuItemChannelAvailabilityOrderByWithRelationInput = {
+    id?: SortOrder
+    itemId?: SortOrder
+    channel?: SortOrder
+    isAvailable?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    snoozeReason?: SortOrderInput | SortOrder
+    snoozedAt?: SortOrder
+    snoozedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    item?: MenuItemOrderByWithRelationInput
+    _relevance?: MenuItemChannelAvailabilityOrderByRelevanceInput
+  }
+
+  export type MenuItemChannelAvailabilityWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    itemId_channel?: MenuItemChannelAvailabilityItemIdChannelCompoundUniqueInput
+    AND?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
+    OR?: MenuItemChannelAvailabilityWhereInput[]
+    NOT?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
+    itemId?: StringFilter<"MenuItemChannelAvailability"> | string
+    channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
+    expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
+    snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    snoozedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    item?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+  }, "id" | "itemId_channel">
+
+  export type MenuItemChannelAvailabilityOrderByWithAggregationInput = {
+    id?: SortOrder
+    itemId?: SortOrder
+    channel?: SortOrder
+    isAvailable?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    snoozeReason?: SortOrderInput | SortOrder
+    snoozedAt?: SortOrder
+    snoozedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MenuItemChannelAvailabilityCountOrderByAggregateInput
+    _max?: MenuItemChannelAvailabilityMaxOrderByAggregateInput
+    _min?: MenuItemChannelAvailabilityMinOrderByAggregateInput
+  }
+
+  export type MenuItemChannelAvailabilityScalarWhereWithAggregatesInput = {
+    AND?: MenuItemChannelAvailabilityScalarWhereWithAggregatesInput | MenuItemChannelAvailabilityScalarWhereWithAggregatesInput[]
+    OR?: MenuItemChannelAvailabilityScalarWhereWithAggregatesInput[]
+    NOT?: MenuItemChannelAvailabilityScalarWhereWithAggregatesInput | MenuItemChannelAvailabilityScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
+    itemId?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
+    channel?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
+    isAvailable?: BoolWithAggregatesFilter<"MenuItemChannelAvailability"> | boolean
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | Date | string | null
+    snoozeReason?: StringNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | string | null
+    snoozedAt?: DateTimeWithAggregatesFilter<"MenuItemChannelAvailability"> | Date | string
+    snoozedBy?: StringNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MenuItemChannelAvailability"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MenuItemChannelAvailability"> | Date | string
   }
 
   export type MenuItemOnCategoryWhereInput = {
@@ -121526,6 +122750,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateInput = {
@@ -121573,6 +122798,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUpdateInput = {
@@ -121620,6 +122846,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateInput = {
@@ -121667,6 +122894,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemCreateManyInput = {
@@ -121791,6 +123019,96 @@ export namespace Prisma {
     syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
     syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityCreateInput = {
+    id?: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    item: MenuItemCreateNestedOneWithoutChannelAvailabilityInput
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedCreateInput = {
+    id?: string
+    itemId: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    item?: MenuItemUpdateOneRequiredWithoutChannelAvailabilityNestedInput
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityCreateManyInput = {
+    id?: string
+    itemId: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -131530,6 +132848,12 @@ export namespace Prisma {
     none?: MenuItemStationWhereInput
   }
 
+  export type MenuItemChannelAvailabilityListRelationFilter = {
+    every?: MenuItemChannelAvailabilityWhereInput
+    some?: MenuItemChannelAvailabilityWhereInput
+    none?: MenuItemChannelAvailabilityWhereInput
+  }
+
   export type ModifierGroupOnItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -131539,6 +132863,10 @@ export namespace Prisma {
   }
 
   export type MenuItemStationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuItemChannelAvailabilityOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -131694,14 +133022,64 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
-  export type MenuCategoryRelationFilter = {
-    is?: MenuCategoryWhereInput
-    isNot?: MenuCategoryWhereInput
-  }
-
   export type MenuItemRelationFilter = {
     is?: MenuItemWhereInput
     isNot?: MenuItemWhereInput
+  }
+
+  export type MenuItemChannelAvailabilityOrderByRelevanceInput = {
+    fields: MenuItemChannelAvailabilityOrderByRelevanceFieldEnum | MenuItemChannelAvailabilityOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MenuItemChannelAvailabilityItemIdChannelCompoundUniqueInput = {
+    itemId: string
+    channel: string
+  }
+
+  export type MenuItemChannelAvailabilityCountOrderByAggregateInput = {
+    id?: SortOrder
+    itemId?: SortOrder
+    channel?: SortOrder
+    isAvailable?: SortOrder
+    expiresAt?: SortOrder
+    snoozeReason?: SortOrder
+    snoozedAt?: SortOrder
+    snoozedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuItemChannelAvailabilityMaxOrderByAggregateInput = {
+    id?: SortOrder
+    itemId?: SortOrder
+    channel?: SortOrder
+    isAvailable?: SortOrder
+    expiresAt?: SortOrder
+    snoozeReason?: SortOrder
+    snoozedAt?: SortOrder
+    snoozedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuItemChannelAvailabilityMinOrderByAggregateInput = {
+    id?: SortOrder
+    itemId?: SortOrder
+    channel?: SortOrder
+    isAvailable?: SortOrder
+    expiresAt?: SortOrder
+    snoozeReason?: SortOrder
+    snoozedAt?: SortOrder
+    snoozedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuCategoryRelationFilter = {
+    is?: MenuCategoryWhereInput
+    isNot?: MenuCategoryWhereInput
   }
 
   export type MenuItemOnCategoryOrderByRelevanceInput = {
@@ -139436,6 +140814,13 @@ export namespace Prisma {
     connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
   }
 
+  export type MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput> | MenuItemChannelAvailabilityCreateWithoutItemInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput | MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyItemInputEnvelope
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -139468,6 +140853,13 @@ export namespace Prisma {
     connectOrCreate?: MenuItemStationCreateOrConnectWithoutMenuItemInput | MenuItemStationCreateOrConnectWithoutMenuItemInput[]
     createMany?: MenuItemStationCreateManyMenuItemInputEnvelope
     connect?: MenuItemStationWhereUniqueInput | MenuItemStationWhereUniqueInput[]
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput> | MenuItemChannelAvailabilityCreateWithoutItemInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput | MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyItemInputEnvelope
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -139564,6 +140956,20 @@ export namespace Prisma {
     deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
   }
 
+  export type MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput> | MenuItemChannelAvailabilityCreateWithoutItemInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput | MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput[]
+    upsert?: MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutItemInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyItemInputEnvelope
+    set?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    disconnect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    delete?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput[]
+    updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput[]
+    deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
   export type MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput = {
     create?: XOR<MenuItemOnCategoryCreateWithoutItemInput, MenuItemOnCategoryUncheckedCreateWithoutItemInput> | MenuItemOnCategoryCreateWithoutItemInput[] | MenuItemOnCategoryUncheckedCreateWithoutItemInput[]
     connectOrCreate?: MenuItemOnCategoryCreateOrConnectWithoutItemInput | MenuItemOnCategoryCreateOrConnectWithoutItemInput[]
@@ -139628,6 +141034,34 @@ export namespace Prisma {
     update?: MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput | MenuItemStationUpdateWithWhereUniqueWithoutMenuItemInput[]
     updateMany?: MenuItemStationUpdateManyWithWhereWithoutMenuItemInput | MenuItemStationUpdateManyWithWhereWithoutMenuItemInput[]
     deleteMany?: MenuItemStationScalarWhereInput | MenuItemStationScalarWhereInput[]
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput> | MenuItemChannelAvailabilityCreateWithoutItemInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput | MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput[]
+    upsert?: MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutItemInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyItemInputEnvelope
+    set?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    disconnect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    delete?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput[]
+    updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput[]
+    deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
+  export type MenuItemCreateNestedOneWithoutChannelAvailabilityInput = {
+    create?: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutChannelAvailabilityInput
+    connect?: MenuItemWhereUniqueInput
+  }
+
+  export type MenuItemUpdateOneRequiredWithoutChannelAvailabilityNestedInput = {
+    create?: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutChannelAvailabilityInput
+    upsert?: MenuItemUpsertWithoutChannelAvailabilityInput
+    connect?: MenuItemWhereUniqueInput
+    update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutChannelAvailabilityInput, MenuItemUpdateWithoutChannelAvailabilityInput>, MenuItemUncheckedUpdateWithoutChannelAvailabilityInput>
   }
 
   export type MenuCategoryCreateNestedOneWithoutItemsInput = {
@@ -152403,6 +153837,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MenuItemChannelAvailabilityCreateWithoutItemInput = {
+    id?: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput = {
+    id?: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityCreateOrConnectWithoutItemInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    create: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput>
+  }
+
+  export type MenuItemChannelAvailabilityCreateManyItemInputEnvelope = {
+    data: MenuItemChannelAvailabilityCreateManyItemInput | MenuItemChannelAvailabilityCreateManyItemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutItemInput = {
     where: MenuItemOnCategoryWhereUniqueInput
     update: XOR<MenuItemOnCategoryUpdateWithoutItemInput, MenuItemOnCategoryUncheckedUpdateWithoutItemInput>
@@ -152530,6 +153998,242 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MenuItemStation"> | Date | string
   }
 
+  export type MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutItemInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    update: XOR<MenuItemChannelAvailabilityUpdateWithoutItemInput, MenuItemChannelAvailabilityUncheckedUpdateWithoutItemInput>
+    create: XOR<MenuItemChannelAvailabilityCreateWithoutItemInput, MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput>
+  }
+
+  export type MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    data: XOR<MenuItemChannelAvailabilityUpdateWithoutItemInput, MenuItemChannelAvailabilityUncheckedUpdateWithoutItemInput>
+  }
+
+  export type MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput = {
+    where: MenuItemChannelAvailabilityScalarWhereInput
+    data: XOR<MenuItemChannelAvailabilityUpdateManyMutationInput, MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemInput>
+  }
+
+  export type MenuItemChannelAvailabilityScalarWhereInput = {
+    AND?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+    OR?: MenuItemChannelAvailabilityScalarWhereInput[]
+    NOT?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+    id?: StringFilter<"MenuItemChannelAvailability"> | string
+    itemId?: StringFilter<"MenuItemChannelAvailability"> | string
+    channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
+    expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
+    snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    snoozedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+  }
+
+  export type MenuItemCreateWithoutChannelAvailabilityInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+  }
+
+  export type MenuItemUncheckedCreateWithoutChannelAvailabilityInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+  }
+
+  export type MenuItemCreateOrConnectWithoutChannelAvailabilityInput = {
+    where: MenuItemWhereUniqueInput
+    create: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
+  }
+
+  export type MenuItemUpsertWithoutChannelAvailabilityInput = {
+    update: XOR<MenuItemUpdateWithoutChannelAvailabilityInput, MenuItemUncheckedUpdateWithoutChannelAvailabilityInput>
+    create: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
+    where?: MenuItemWhereInput
+  }
+
+  export type MenuItemUpdateToOneWithWhereWithoutChannelAvailabilityInput = {
+    where?: MenuItemWhereInput
+    data: XOR<MenuItemUpdateWithoutChannelAvailabilityInput, MenuItemUncheckedUpdateWithoutChannelAvailabilityInput>
+  }
+
+  export type MenuItemUpdateWithoutChannelAvailabilityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+  }
+
+  export type MenuItemUncheckedUpdateWithoutChannelAvailabilityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+  }
+
   export type MenuCategoryCreateWithoutItemsInput = {
     id?: string
     name: string
@@ -152623,6 +154327,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutCategoriesInput = {
@@ -152669,6 +154374,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutCategoriesInput = {
@@ -152786,6 +154492,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutCategoriesInput = {
@@ -152832,6 +154539,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type BrandCreateWithoutModifierGroupsInput = {
@@ -153634,6 +155342,7 @@ export namespace Prisma {
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutModifierGroupLinksInput = {
@@ -153680,6 +155389,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutModifierGroupLinksInput = {
@@ -153807,6 +155517,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutModifierGroupLinksInput = {
@@ -153853,6 +155564,7 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type ModifierGroupUpsertWithoutItemLinksInput = {
@@ -153970,6 +155682,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutVariantsInput = {
@@ -154016,6 +155729,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutVariantsInput = {
@@ -154078,6 +155792,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutVariantsInput = {
@@ -154124,6 +155839,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type BrandCreateWithoutMealDealsInput = {
@@ -162322,6 +164038,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutStationRoutesInput = {
@@ -162368,6 +164085,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutStationRoutesInput = {
@@ -162471,6 +164189,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutStationRoutesInput = {
@@ -162517,6 +164236,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type PrinterStationUpsertWithoutMenuItemRoutesInput = {
@@ -165680,6 +167400,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemUncheckedCreateWithoutRecipeInput = {
@@ -165726,6 +167447,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
   }
 
   export type MenuItemCreateOrConnectWithoutRecipeInput = {
@@ -165810,6 +167532,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
   }
 
   export type MenuItemUncheckedUpdateWithoutRecipeInput = {
@@ -165856,6 +167579,7 @@ export namespace Prisma {
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
   }
 
   export type RecipeIngredientUpsertWithWhereUniqueWithoutRecipeInput = {
@@ -171977,6 +173701,18 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type MenuItemChannelAvailabilityCreateManyItemInput = {
+    id?: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MenuItemOnCategoryUpdateWithoutItemInput = {
     sortOrder?: IntFieldUpdateOperationsInput | number
     priceOverride?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -172062,6 +173798,42 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     stationId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUpdateWithoutItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateWithoutItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ModifierOptionCreateManyGroupInput = {
@@ -175765,6 +177537,10 @@ export namespace Prisma {
      * @deprecated Use MenuItemDefaultArgs instead
      */
     export type MenuItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuItemDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MenuItemChannelAvailabilityDefaultArgs instead
+     */
+    export type MenuItemChannelAvailabilityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuItemChannelAvailabilityDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuItemOnCategoryDefaultArgs instead
      */
