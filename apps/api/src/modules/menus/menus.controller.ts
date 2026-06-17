@@ -16,6 +16,7 @@ import { MenusService } from "./menus.service";
 import { PluService } from "./plu.service";
 import { UberMenuImporter } from "./importers/uber-menu.importer";
 import { DeliverooMenuImporter } from "./importers/deliveroo-menu.importer";
+import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import {
   CreateMenuDto,
   UpdateMenuDto,
@@ -39,6 +40,7 @@ export class MenusController {
     private readonly plu: PluService,
     private readonly uberImporter: UberMenuImporter,
     private readonly deliverooImporter: DeliverooMenuImporter,
+    private readonly hubriseCatalog: HubRiseCatalogService,
   ) {}
 
   // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
@@ -66,6 +68,43 @@ export class MenusController {
       payload: body.payload,
       storeId: body.storeId,
       accessToken: body.accessToken,
+    });
+  }
+
+  // ── Phase AW-11 — HubRise catalog import + publish ────────────────────
+
+  @Post("brands/:brandId/menus/import/hubrise")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Import the location's HubRise catalog into a new (or existing) menu under this brand",
+  })
+  importHubRise(
+    @Param("brandId") brandId: string,
+    @Body() body: { locationId: string; catalogId?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.hubriseCatalog.importToMenu({
+      tenantId: user.tenantId,
+      brandId,
+      locationId: body.locationId,
+      catalogId: body.catalogId,
+    });
+  }
+
+  @Post("menus/:menuId/publish/hubrise")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Push this menu to HubRise as a catalog. Overwrites the location's existing catalog when one is already configured.",
+  })
+  publishHubRise(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.hubriseCatalog.publishMenu({
+      tenantId: user.tenantId,
+      menuId,
     });
   }
 

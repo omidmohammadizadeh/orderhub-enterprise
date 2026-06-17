@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import toast from "react-hot-toast";
 import { menusClient, brandsClient, type Menu, type Brand } from "@/lib/api/menus.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,31 @@ export default function MenuPage() {
   const deleteMutation = useMutation({
     mutationFn: (menuId: string) => menusClient.deleteMenu(menuId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["menus"] }),
+  });
+
+  // Phase AW-11 — HubRise catalog import. Pulls the location's
+  // configured catalog into a new (or existing, matched by HubRise
+  // catalog id) menu under the active brand. Toast surfaces row counts
+  // so the operator sees what landed.
+  const importHubRiseMutation = useMutation({
+    mutationFn: () =>
+      menusClient.importFromHubRise(brandId!, {
+        locationId: selectedLocationId!,
+      }),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["menus"] });
+      toast.success(
+        `Imported from HubRise: ${r.counts.categories} categories, ${r.counts.products} products, ${r.counts.modifierGroups} modifier groups.`,
+      );
+      router.push(`/dashboard/menu/${r.menuId}`);
+    },
+    onError: (err: any) => {
+      toast.error(
+        `HubRise import failed: ${
+          err?.response?.data?.message ?? err?.message ?? "Unknown error"
+        }`,
+      );
+    },
   });
 
   // Phase AK — bulk PLU backfill. MUST stay above the early-return branches
@@ -242,6 +268,29 @@ export default function MenuPage() {
             title="Backfill PLUs on any product, modifier group, or modifier missing one. Existing PLUs are left untouched."
           >
             Generate missing PLUs
+          </Button>
+          {/* Phase AW-11 — pull the brand's HubRise catalog into a new
+              (or existing) Menu in one click. The button is enabled
+              whenever a location is selected; the backend rejects if
+              the location hasn't connected HubRise yet, surfaced as a
+              red toast. */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (!brandId || !selectedLocationId) return;
+              importHubRiseMutation.mutate();
+            }}
+            disabled={
+              !brandId ||
+              !selectedLocationId ||
+              importHubRiseMutation.isPending
+            }
+            title="Pull the location's HubRise catalog into a menu"
+          >
+            {importHubRiseMutation.isPending
+              ? "Importing…"
+              : "Import from HubRise"}
           </Button>
           <Button
             size="sm"

@@ -57,21 +57,28 @@ const TARGETS: Target[] = [
     wired: true,
   },
   {
+    id: "HUBRISE",
+    title: "HubRise",
+    description:
+      "Push to HubRise as a catalog. Fan-out to Just Eat, Uber Eats, Deliveroo follows from HubRise.",
+    wired: true,
+  },
+  {
     id: "JUST_EAT",
     title: "Just Eat",
-    description: "Push to Just Eat marketplace listings.",
+    description: "Direct Just Eat push (skip via HubRise).",
     wired: false,
   },
   {
     id: "UBER_EATS",
     title: "Uber Eats",
-    description: "Push to Uber Eats marketplace listings.",
+    description: "Direct Uber Eats push (skip via HubRise).",
     wired: false,
   },
   {
     id: "DELIVEROO",
     title: "Deliveroo",
-    description: "Push to Deliveroo marketplace listings.",
+    description: "Direct Deliveroo push (skip via HubRise).",
     wired: false,
   },
 ];
@@ -108,21 +115,25 @@ export function PublishMenuModal({
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const next = Array.from(selected);
       const anyWired = next.some((id) =>
         TARGETS.find((t) => t.id === id)?.wired,
       );
-      return menusClient.updateMenu(menuId, {
+      // Step 1 — persist channel + brand selection on the menu row.
+      await menusClient.updateMenu(menuId, {
         publishedTo: next,
         brandId,
         ...(anyWired && { status: "PUBLISHED" as const, isActive: true }),
       } as any);
+      // Step 2 — if HubRise is ticked, do the actual catalog push.
+      // POS / Online ordering need no external call — they read straight
+      // off the publishedTo array on every storefront / POS load.
+      if (next.includes("HUBRISE")) {
+        await menusClient.publishToHubRise(menuId);
+      }
     },
     onSuccess: () => {
-      // Phase AW — toast feedback. Green slide-in confirms the publish
-      // landed; auto-dismisses after a few seconds per the global Toaster
-      // config in app/layout.tsx.
       const brandName =
         (brandsQuery.data ?? []).find((b: Brand) => b.id === brandId)?.name ??
         "brand";
@@ -366,6 +377,7 @@ function describeSelection(s: Set<string>): string {
   const labels: Record<string, string> = {
     ONLINE: "Online ordering",
     POS: "POS",
+    HUBRISE: "HubRise",
     JUST_EAT: "Just Eat",
     UBER_EATS: "Uber Eats",
     DELIVEROO: "Deliveroo",

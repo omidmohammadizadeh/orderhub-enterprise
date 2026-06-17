@@ -7,6 +7,7 @@ import { HubRiseOauthController } from "./hubrise-oauth.controller";
 import { HubRiseOauthService } from "./hubrise-oauth.service";
 import { HubRiseOrderSyncService } from "./hubrise-order-sync.service";
 import { HubRiseDeliverySyncService } from "./hubrise-delivery-sync.service";
+import { HubRiseCatalogService } from "./hubrise-catalog.service";
 import { OrdersModule } from "../../orders/orders.module";
 import { forwardRef } from "@nestjs/common";
 
@@ -34,10 +35,17 @@ import { forwardRef } from "@nestjs/common";
     HubRiseOauthService,
     HubRiseOrderSyncService,
     HubRiseDeliverySyncService,
+    HubRiseCatalogService,
   ],
   // HubRiseOrderSyncService is consumed by OrdersService to push our
   // status transitions back to HubRise so every connected channel
   // (Uber Eats, Deliveroo, Just Eat) sees the same lifecycle.
-  exports: [HubRiseOauthService, HubRiseOrderSyncService],
+  // HubRiseCatalogService is consumed by MenusService for the Phase
+  // AW-11 import + publish endpoints exposed on /v1/menus.
+  exports: [
+    HubRiseOauthService,
+    HubRiseOrderSyncService,
+    HubRiseCatalogService,
+  ],
 })
 export class HubRiseModule {}

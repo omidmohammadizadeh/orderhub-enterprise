@@ -186,6 +186,26 @@ export const menusClient = {
   publishMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/publish`, {}).then((r) => r.data),
 
+  // Phase AW-11 — HubRise catalog hooks.
+  importFromHubRise: (
+    brandId: string,
+    body: { locationId: string; catalogId?: string },
+  ) =>
+    apiClient
+      .post<{ menuId: string; counts: Record<string, number> }>(
+        `/v1/brands/${brandId}/menus/import/hubrise`,
+        body,
+      )
+      .then((r) => r.data),
+
+  publishToHubRise: (menuId: string) =>
+    apiClient
+      .post<{ catalogId: string; created: boolean }>(
+        `/v1/menus/${menuId}/publish/hubrise`,
+        {},
+      )
+      .then((r) => r.data),
+
   archiveMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/archive`, {}).then((r) => r.data),
 
