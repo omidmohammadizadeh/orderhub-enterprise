@@ -161,6 +161,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 export default function OrderPage() {
   const { slug } = useParams<{ slug: string }>();
+  // Phase AW — brand context. /brand/<slug> redirects here with
+  // ?brand=<id>; we forward that to the API so the storefront returns
+  // the brand's identity (name, logo, address, about, Stripe Connect)
+  // instead of the underlying physical location's. Read once at mount
+  // so the React Query key stays stable across renders.
+  const brandId = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("brand");
+  }, []);
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -305,9 +314,13 @@ export default function OrderPage() {
   const [postcodeLookupLoading, setPostcodeLookupLoading] = useState(false);
 
   const storefrontQuery = useQuery<Storefront>({
-    queryKey: ["storefront", slug],
+    queryKey: ["storefront", slug, brandId],
     queryFn: () =>
-      axios.get(`${API_BASE}/v1/ordering/store/${slug}`).then((r) => r.data),
+      axios
+        .get(`${API_BASE}/v1/ordering/store/${slug}`, {
+          params: brandId ? { brand: brandId } : undefined,
+        })
+        .then((r) => r.data),
   });
 
   const storefront = storefrontQuery.data;
@@ -478,7 +491,9 @@ export default function OrderPage() {
         customerAccountId: authCustomer?.id,
       };
       return axios
-        .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload)
+        .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload, {
+          params: brandId ? { brand: brandId } : undefined,
+        })
         .then((r) => r.data);
     },
     onSuccess: (order) => {

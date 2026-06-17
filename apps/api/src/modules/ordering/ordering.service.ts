@@ -79,10 +79,17 @@ export class OrderingService {
     });
   }
 
-  async getStorefrontBySlug(slug: string) {
+  async getStorefrontBySlug(slug: string, brandIdOverride?: string) {
     // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
     // older locations may still only have the legacy `slug`. Resolve
     // either so old printed flyers and QR codes keep working.
+    //
+    // Phase AW — when `brandIdOverride` is set (because the customer
+    // arrived via /brand/<slug> → /order/<slug>?brand=<id>), we
+    // re-fetch the full brand row to overlay its storefront identity
+    // onto the location's. The brand wins on every customer-facing
+    // field; the location still drives ops fields (timezone, opening
+    // hours, delivery zones, prep config).
     const location = await this.prisma.location.findFirst({
       where: {
         OR: [{ onlineOrderingSlug: slug }, { slug }],
@@ -97,6 +104,38 @@ export class OrderingService {
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
     }
+
+    // Phase AW — load the brand row in full when the URL pinned one.
+    // Falls back to the location.brand (light shape from include above)
+    // if the override id doesn't belong to this location's brand or
+    // can't be resolved, so a malformed URL never strands the customer
+    // with no storefront at all.
+    const overrideBrand = brandIdOverride
+      ? await (this.prisma as any).brand.findUnique({
+          where: { id: brandIdOverride },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            about: true,
+            phone: true,
+            addressLine1: true,
+            addressLine2: true,
+            city: true,
+            postcode: true,
+            country: true,
+            cuisine: true,
+            onlineOrderingSlug: true,
+            customDomain: true,
+            stripeConnectedAccountId: true,
+            applicationFeeMode: true,
+            applicationFeeFixedAmount: true,
+            directOrderingEnabled: true,
+            isSuspended: true,
+          },
+        })
+      : null;
 
     // Phase AP fix #2 — mirror POS's findActiveMenuForLocation exactly.
     // A single OR-then-orderBy(updatedAt) was racing the location-scoped
@@ -240,46 +279,74 @@ export class OrderingService {
       },
     });
 
+    // Phase AW — apply the brand identity overlay. When a brand is
+    // pinned via ?brand=<id>, every customer-facing field on the
+    // storefront prefers brand-level data; the location keeps the
+    // fields the customer doesn't see (timezone, opening hours, etc.).
+    // Fall back to location-level when a brand field is null so a
+    // half-configured brand doesn't strand the customer with blank
+    // address / phone — the original location data is still better
+    // than nothing.
+    const b = overrideBrand;
+    const locationView = {
+      id: location.id,
+      name: b?.name ?? location.name,
+      slug: location.onlineOrderingSlug ?? location.slug,
+      phone: b?.phone ?? location.phone,
+      about: b?.about ?? location.about,
+      logoUrl: b?.logoUrl ?? location.logoUrl,
+      addressLine1: b?.addressLine1 ?? location.addressLine1,
+      addressLine2: b?.addressLine2 ?? location.addressLine2,
+      city: b?.city ?? location.city,
+      postcode: b?.postcode ?? location.postcode,
+      country: b?.country ?? location.country,
+      // The raw `address` JSON column is location-only — no brand
+      // equivalent — so we pass it through unchanged for any old
+      // storefront code paths still reading from it.
+      address: location.address,
+      timezone: location.timezone,
+      openingHours: location.openingHours,
+      deliveryConfig: location.deliveryConfig,
+      status: location.status,
+      busyMode: location.busyMode,
+      currentPrepTime: location.currentPrepTime,
+      // Phase AP-8 / AW — application-fee config. Brand-level wins
+      // when set (brand has its own Stripe Connect account); falls
+      // through to location otherwise. The storefront cart's
+      // "Service charge" line reads from here.
+      applicationFeeMode: b?.applicationFeeMode ?? location.applicationFeeMode,
+      applicationFeeFixedAmount:
+        b?.applicationFeeFixedAmount != null
+          ? Number(b.applicationFeeFixedAmount)
+          : location.applicationFeeFixedAmount
+            ? Number(location.applicationFeeFixedAmount)
+            : null,
+    };
+
     return {
       directConfig,
       deliveryZones,
       brandModifierGroups,
-      location: {
-        id: location.id,
-        name: location.name,
-        slug: location.onlineOrderingSlug ?? location.slug,
-        phone: location.phone,
-        about: location.about,
-        logoUrl: location.logoUrl,
-        addressLine1: location.addressLine1,
-        addressLine2: location.addressLine2,
-        city: location.city,
-        postcode: location.postcode,
-        country: location.country,
-        address: location.address,
-        timezone: location.timezone,
-        openingHours: location.openingHours,
-        deliveryConfig: location.deliveryConfig,
-        status: location.status,
-        busyMode: location.busyMode,
-        currentPrepTime: location.currentPrepTime,
-        // Phase AP-8 — application fee config so the storefront cart
-        // can show a "Service charge" line when the customer picks
-        // CARD and the location has a fixed-fee component. Percent-
-        // only fees stay silent (taken from the restaurant's payout,
-        // not shown to the customer).
-        applicationFeeMode: location.applicationFeeMode,
-        applicationFeeFixedAmount: location.applicationFeeFixedAmount
-          ? Number(location.applicationFeeFixedAmount)
-          : null,
-      },
-      brand: location.brand,
+      location: locationView,
+      brand: b
+        ? {
+            id: b.id,
+            name: b.name,
+            slug: b.slug,
+            logoUrl: b.logoUrl,
+            cuisine: b.cuisine,
+            about: b.about,
+            // Surface the brand identity here too so existing code
+            // paths that read `storefront.brand.logoUrl` still work
+            // for the brand-pinned case.
+          }
+        : location.brand,
       menu,
       isOpen: this.isCurrentlyOpen(location.openingHours as any, location.timezone),
     };
   }
 
-  async checkout(slug: string, dto: CheckoutDto) {
+  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }] },
       include: { brand: { select: { tenantId: true } } },
@@ -287,6 +354,28 @@ export class OrderingService {
 
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
+    }
+
+    // Phase AW — when a brand is pinned via /brand/<slug>?brand=<id>,
+    // resolve it so the Order gets tagged to the brand (drives the
+    // brand column on the Orders board, brand logo + name on the
+    // receipt header, and brand-level Stripe Connect resolution).
+    // Skip if the override doesn't belong to this location — we'd
+    // rather drop a malformed query param than create an order under
+    // someone else's brand.
+    let pinnedBrandId: string | null = null;
+    if (brandIdOverride) {
+      const brandRow = await (this.prisma as any).brand.findUnique({
+        where: { id: brandIdOverride },
+        select: { id: true, tenantId: true, isSuspended: true },
+      });
+      if (
+        brandRow &&
+        !brandRow.isSuspended &&
+        brandRow.tenantId === location.brand.tenantId
+      ) {
+        pinnedBrandId = brandRow.id;
+      }
     }
 
     if (!this.isCurrentlyOpen(location.openingHours as any[], location.timezone)) {
@@ -324,6 +413,10 @@ export class OrderingService {
     const order = await this.ordersService.create(
       {
         locationId: location.id,
+        // Phase AW — pin the brand when the storefront URL carried
+        // one. Falls through to whatever OrdersService.create derives
+        // from the location's primary brand otherwise.
+        brandId: pinnedBrandId ?? undefined,
         orderSource: "ONLINE",
         fulfillmentType: dto.fulfillmentType,
         customerInfo: dto.customerInfo,
