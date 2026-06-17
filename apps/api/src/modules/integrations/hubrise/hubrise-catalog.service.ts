@@ -894,25 +894,6 @@ function formatHubRisePrice(amount: number, currency: string): string {
  * uses it as the single source of truth for option_list emission +
  * SKU↔group ref resolution, so multi-SKU products whose groups only
  * live in productSkus JSON still link correctly.
- *
- * Phase AW-13 — Ref strategy.
- *
- * HubRise's catalog uses two distinct keys per entity: a HubRise-
- * generated `id` (e.g. "g6ekby3") and an operator-set `ref` (e.g.
- * "mg_extras"). The import path stores the id in our externalId
- * column so re-imports match cleanly. But the publish path can NOT
- * reuse that id-shaped string as the outbound ref — when we PUT a
- * catalog with option_lists keyed by ref="g6ekby3" and SKUs linking
- * via option_list_refs=["g6ekby3"], HubRise does accept the payload
- * but appears to silently drop the SKU↔option-list links (operators
- * see modifier groups + options on the catalog tree but no products
- * attached to them).
- *
- * Fix: always derive refs from PLU + name + a short suffix of our
- * cuid. Always prefixed (`mg_`, `opt_`, `prod_`, `sku_`, `cat_`) so
- * the format clearly isn't a HubRise id. Refs match between
- * definition (option_lists[].ref) and usage (skus[].option_list_refs)
- * because both call the same helper for the same row.
  */
 function transformMenuToCatalog(
   menu: any,
@@ -924,52 +905,29 @@ function transformMenuToCatalog(
 } {
   const currency = "GBP";
 
-  // Build a deterministic, human-readable ref from an entity's PLU
-  // (if set), otherwise from its name. Always prefixed + always
-  // suffixed with a short slice of our cuid so refs stay unique even
-  // when two entities share a name. Sanitised to HubRise's expected
-  // character set (alnum + underscore).
-  const slug = (s: string): string =>
-    (s ?? "")
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .slice(0, 40) || "x";
-  const refFor = (
-    prefix: string,
-    plu: string | null | undefined,
-    name: string | null | undefined,
-    id: string | null | undefined,
-  ): string => {
-    const base = (plu ?? "").trim() || slug(name ?? "");
-    const suffix = (id ?? "").slice(-6) || "0";
-    return `${prefix}_${slug(base)}_${suffix}`.slice(0, 100);
-  };
-
   // Categories
   const categories: HubRiseCategory[] = (menu.categories ?? []).map(
-    (c: any) => ({
-      ref: refFor("cat", null, c.name, c.id),
+    (c: any, idx: number) => ({
+      // Prefer the original HubRise ref so a round-trip stays stable;
+      // otherwise mint a deterministic ref from the row id so future
+      // re-publishes match the same category.
+      ref: c.externalId ?? `cat_${c.id}`,
       name: c.name,
       description: c.description ?? null,
     }),
   );
-  const categoryRefById = new Map<string, string>(
-    (menu.categories ?? []).map((c: any) => [
-      c.id,
-      refFor("cat", null, c.name, c.id),
-    ]),
-  );
 
-  // Stable ref for any modifier group, used by both the option_lists
-  // emission and every SKU's option_list_refs. Same helper, same input
-  // → same string, so SKU↔option-list links are guaranteed to match.
-  const groupRefFor = (g: any): string =>
-    refFor("mg", g?.plu, g?.name, g?.id);
+  // Stable ref for any modifier group: HubRise externalId from the
+  // import path, or grp_<cuid> if it was created locally and never
+  // round-tripped. Same shape we use to emit option_lists below, so
+  // every SKU's option_list_refs lines up with a defined option_list.
+  const groupRefFor = (g: any): string => g?.externalId ?? `grp_${g?.id}`;
 
   // ModifierGroups + options — emit every group referenced by any
-  // product in this menu, deduplicated.
+  // product in this menu, deduplicated. Iterate the pre-fetched
+  // groupById map (which already covers BOTH modifierGroupLinks and
+  // productSkus[].modifierGroups paths) so multi-SKU products' groups
+  // are not silently dropped.
   const optionLists: HubRiseOptionList[] = [];
   for (const g of groupById.values()) {
     optionLists.push({
@@ -979,7 +937,7 @@ function transformMenuToCatalog(
       max_selections: g.maxSelections ?? null,
       multiple_selection: g.selectionType === "ADDON",
       options: (g.options ?? []).map((o: any) => ({
-        ref: refFor("opt", o.plu, o.name, o.id),
+        ref: o.externalId ?? `opt_${o.id}`,
         name: o.name,
         price: formatHubRisePrice(Number(o.priceAdjustment ?? 0), currency),
         default: o.isDefault === true,
@@ -990,13 +948,13 @@ function transformMenuToCatalog(
   // Products
   const products: HubRiseProduct[] = [];
   for (const cat of menu.categories ?? []) {
-    const catRef = categoryRefById.get(cat.id) ?? refFor("cat", null, cat.name, cat.id);
+    const catRef = cat.externalId ?? `cat_${cat.id}`;
     for (const link of cat.items ?? []) {
       const item = link.item;
       const multi = !!item.hasMultipleSkus && Array.isArray(item.productSkus);
       const skus: HubRiseSku[] = multi
         ? (item.productSkus as any[]).map((s, i) => ({
-            ref: refFor("sku", s.plu, s.name ?? item.name, `${item.id}_${i}`),
+            ref: s.plu ?? `${item.id}_sku_${i}`,
             name: s.name,
             price: formatHubRisePrice(Number(s.price ?? 0), currency),
             option_list_refs: (s.modifierGroups ?? [])
@@ -1006,7 +964,7 @@ function transformMenuToCatalog(
           }))
         : [
             {
-              ref: refFor("sku", item.plu, item.name, item.id),
+              ref: item.plu ?? item.externalId ?? `${item.id}_sku`,
               name: null,
               price: formatHubRisePrice(Number(item.basePrice ?? 0), currency),
               option_list_refs: (item.modifierGroupLinks ?? [])
@@ -1028,7 +986,7 @@ function transformMenuToCatalog(
       const image_ids = hubriseImageMatch ? [hubriseImageMatch[1]] : undefined;
 
       products.push({
-        ref: refFor("prod", item.plu, item.name, item.id),
+        ref: item.externalId ?? `prod_${item.id}`,
         category_ref: catRef,
         name: item.name,
         description: item.description ?? null,
