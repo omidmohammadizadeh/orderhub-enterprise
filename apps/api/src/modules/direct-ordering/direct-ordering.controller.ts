@@ -46,4 +46,42 @@ export class DirectOrderingController {
   publicGet(@Param("locationId") locationId: string) {
     return this.service.getPublic(locationId);
   }
+
+  // ── Phase AW — brand-keyed variants ───────────────────────────────────
+  //
+  // The storefront, settings drawer, and admin tab move onto these
+  // endpoints. Same shape, brandId where the older flow used
+  // locationId. Both endpoints accept the brand as a query param so the
+  // route path doesn't have to disambiguate between the two ids.
+
+  @ApiBearerAuth()
+  @Get("brand-config")
+  @ApiOperation({ summary: "Get direct ordering config for a brand" })
+  getByBrand(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("brandId") brandId: string,
+  ) {
+    return this.service.getByBrand(user.tenantId, brandId);
+  }
+
+  @ApiBearerAuth()
+  @Patch("brand-config")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Update direct ordering config for a brand" })
+  updateByBrand(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("brandId") brandId: string,
+    @Body() dto: UpdateDirectOrderingConfigDto,
+  ) {
+    return this.service.updateByBrand(user.tenantId, brandId, dto);
+  }
+
+  @Public()
+  @Get("public-brand/:brandId")
+  @ApiOperation({
+    summary: "Public storefront read keyed by brand — no tenant secrets",
+  })
+  publicGetByBrand(@Param("brandId") brandId: string) {
+    return this.service.getPublicByBrand(brandId);
+  }
 }

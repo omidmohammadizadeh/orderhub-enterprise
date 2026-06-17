@@ -79,6 +79,22 @@ export class BrandsController {
     return this.brands.update(brandId, user.tenantId, dto);
   }
 
+  // Phase AW — generate or set the brand's online-ordering slug. Admin
+  // only because the slug becomes the brand's public URL and changing
+  // it breaks any existing QR / link the operator already printed. With
+  // no body the service derives a fresh unique slug from the name and
+  // flips directOrderingEnabled to true so the brand becomes reachable.
+  @Post(":brandId/online-ordering-slug")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Generate or set brand online-ordering slug" })
+  setSlug(
+    @Param("brandId") brandId: string,
+    @Body() body: { slug?: string | null },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.setSlug(brandId, user.tenantId, body?.slug);
+  }
+
   @Delete(":brandId")
   @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)

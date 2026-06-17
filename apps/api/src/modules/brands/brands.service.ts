@@ -29,6 +29,23 @@ export interface UpdateBrandDto {
   onlineOrderingSlug?: string | null;
   directOrderingEnabled?: boolean;
   about?: string | null;
+  // Phase AW — customer-facing storefront identity on the brand. Each
+  // virtual brand running out of a kitchen carries its own address /
+  // phone / custom domain / Stripe payout account so receipts, the
+  // storefront header, and platform payouts all reflect the brand
+  // the customer ordered from — not the kitchen.
+  phone?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  country?: string;
+  customDomain?: string | null;
+  customDomainStatus?: string;
+  stripeConnectedAccountId?: string | null;
+  applicationFeeFixedAmount?: number | null;
+  applicationFeePercentage?: number | null;
+  applicationFeeMode?: string;
 }
 
 function slugify(name: string): string {
@@ -185,7 +202,83 @@ export class BrandsService {
           directOrderingEnabled: dto.directOrderingEnabled,
         }),
         ...(dto.about !== undefined && { about: dto.about }),
+        // Phase AW — brand-level storefront identity. Every field is
+        // optional so partial PATCHes from the settings drawer don't
+        // wipe out unrelated columns; explicit nulls clear a value.
+        ...(dto.phone !== undefined && { phone: dto.phone }),
+        ...(dto.addressLine1 !== undefined && { addressLine1: dto.addressLine1 }),
+        ...(dto.addressLine2 !== undefined && { addressLine2: dto.addressLine2 }),
+        ...(dto.city !== undefined && { city: dto.city }),
+        ...(dto.postcode !== undefined && { postcode: dto.postcode }),
+        ...(dto.country !== undefined && { country: dto.country }),
+        ...(dto.customDomain !== undefined && { customDomain: dto.customDomain }),
+        ...(dto.customDomainStatus !== undefined && {
+          customDomainStatus: dto.customDomainStatus,
+        }),
+        ...(dto.stripeConnectedAccountId !== undefined && {
+          stripeConnectedAccountId: dto.stripeConnectedAccountId,
+        }),
+        ...(dto.applicationFeeFixedAmount !== undefined && {
+          applicationFeeFixedAmount: dto.applicationFeeFixedAmount as any,
+        }),
+        ...(dto.applicationFeePercentage !== undefined && {
+          applicationFeePercentage: dto.applicationFeePercentage as any,
+        }),
+        ...(dto.applicationFeeMode !== undefined && {
+          applicationFeeMode: dto.applicationFeeMode,
+        }),
       },
+    });
+  }
+
+  // Phase AW — unique slug generator for the brand storefront URL.
+  // Same shape as locations.generateUniqueSlug: derive a base from the
+  // name, suffix -2/-3 until a free one exists. Scoped per-tenant
+  // because onlineOrderingSlug is globally unique.
+  async generateUniqueSlug(
+    name: string,
+    ignoreBrandId?: string,
+  ): Promise<string> {
+    const base = slugify(name);
+    let candidate = base;
+    let counter = 1;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const clash = await this.prisma.brand.findFirst({
+        where: {
+          onlineOrderingSlug: candidate,
+          deletedAt: null,
+          ...(ignoreBrandId && { NOT: { id: ignoreBrandId } }),
+        },
+        select: { id: true },
+      });
+      if (!clash) return candidate;
+      counter += 1;
+      candidate = `${base}-${counter}`;
+    }
+  }
+
+  /** Set or auto-generate the brand's online-ordering slug. Returns the
+   *  resolved slug — the controller decorates it with the public URL. */
+  async setSlug(brandId: string, tenantId: string, requestedSlug?: string | null) {
+    const brand = await this.assertAccess(brandId, tenantId);
+    const slug = requestedSlug
+      ? slugify(requestedSlug)
+      : await this.generateUniqueSlug(brand.name, brandId);
+    if (requestedSlug) {
+      const clash = await this.prisma.brand.findFirst({
+        where: {
+          onlineOrderingSlug: slug,
+          deletedAt: null,
+          NOT: { id: brandId },
+        },
+        select: { id: true },
+      });
+      if (clash) throw new ConflictException("Slug already taken");
+    }
+    return this.prisma.brand.update({
+      where: { id: brandId },
+      data: { onlineOrderingSlug: slug, directOrderingEnabled: true },
     });
   }
 
@@ -197,6 +290,12 @@ export class BrandsService {
   // bearer of authorization — knowing it is enough to view the
   // storefront, just like /order/<location-slug>.
   async findBySlug(slug: string) {
+    // Phase AW — prefer brand-level address/phone (the customer-facing
+    // identity). Fall back to the brand's primary location for any
+    // brand that hasn't filled the new fields yet, so existing
+    // single-brand-per-location setups keep rendering. The storefront
+    // never sees the location id directly; everything customer-facing
+    // is keyed off the brand from here on.
     const brand = await this.prisma.brand.findUnique({
       where: { onlineOrderingSlug: slug },
       select: {
@@ -208,26 +307,56 @@ export class BrandsService {
         cuisine: true,
         directOrderingEnabled: true,
         primaryLocationId: true,
-      },
-    });
-    if (!brand || !brand.directOrderingEnabled) return null;
-    if (!brand.primaryLocationId) return null;
-    const location = await this.prisma.location.findUnique({
-      where: { id: brand.primaryLocationId },
-      select: {
-        id: true,
-        name: true,
+        phone: true,
         addressLine1: true,
         addressLine2: true,
         city: true,
         postcode: true,
         country: true,
-        phone: true,
-        onlineOrderingSlug: true,
+        customDomain: true,
       },
     });
-    if (!location) return null;
-    return { brand, location };
+    if (!brand || !brand.directOrderingEnabled) return null;
+
+    const fallbackLocation = brand.primaryLocationId
+      ? await this.prisma.location.findUnique({
+          where: { id: brand.primaryLocationId },
+          select: {
+            id: true,
+            name: true,
+            addressLine1: true,
+            addressLine2: true,
+            city: true,
+            postcode: true,
+            country: true,
+            phone: true,
+            onlineOrderingSlug: true,
+            timezone: true,
+            openingHours: true,
+            isOpen: true,
+            busyMode: true,
+            currentPrepTime: true,
+            googleReviewUrl: true,
+            status: true,
+          },
+        })
+      : null;
+    if (!fallbackLocation) return null;
+
+    return {
+      brand,
+      // Public storefront read shape: brand fields win when set,
+      // otherwise the location backstops them.
+      location: {
+        ...fallbackLocation,
+        addressLine1: brand.addressLine1 ?? fallbackLocation.addressLine1,
+        addressLine2: brand.addressLine2 ?? fallbackLocation.addressLine2,
+        city: brand.city ?? fallbackLocation.city,
+        postcode: brand.postcode ?? fallbackLocation.postcode,
+        country: brand.country ?? fallbackLocation.country,
+        phone: brand.phone ?? fallbackLocation.phone,
+      },
+    };
   }
 
   async remove(brandId: string, tenantId: string) {

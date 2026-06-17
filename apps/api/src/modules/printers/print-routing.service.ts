@@ -105,19 +105,46 @@ export class PrintRoutingService {
     const [brand, locationFull] = await Promise.all([
       this.prisma.brand.findUnique({
         where: { id: order.location.brandId },
-        select: { name: true, logoUrl: true },
-      }),
+        select: {
+          name: true,
+          logoUrl: true,
+          // Phase AW — brand-level customer-facing identity. When the
+          // operator filled these in (Brand → Settings → Address /
+          // Phone), they take precedence on the receipt so the
+          // customer sees the brand's address, not the kitchen's.
+          phone: true,
+          addressLine1: true,
+          addressLine2: true,
+          city: true,
+          postcode: true,
+          country: true,
+        } as any,
+      }) as any,
       this.prisma.location.findUnique({
         where: { id: order.location.id },
         select: { name: true, address: true, phone: true },
       }),
     ]);
+    const brandAddressLines = [
+      brand?.addressLine1,
+      brand?.addressLine2,
+      [brand?.city, brand?.postcode].filter(Boolean).join(" "),
+    ]
+      .map((s) => (s ?? "").trim())
+      .filter(Boolean);
+    const brandAddress = brandAddressLines.length
+      ? brandAddressLines.join(", ")
+      : null;
     const header = {
       brandName: brand?.name ?? null,
       brandLogoUrl: brand?.logoUrl ?? null,
-      locationName: locationFull?.name ?? null,
-      locationAddress: this.formatAddressJson(locationFull?.address),
-      locationPhone: locationFull?.phone ?? null,
+      // Brand-name only on the receipt banner. Operators called this
+      // out as a hard requirement: ghost-kitchen brands must not leak
+      // the kitchen's trading name onto the customer's printout.
+      locationName: brand?.name ?? locationFull?.name ?? null,
+      locationAddress:
+        brandAddress ?? this.formatAddressJson(locationFull?.address),
+      locationPhone: brand?.phone ?? locationFull?.phone ?? null,
     };
 
     const items: OrderItemForRouting[] = (order.items as any[]).map((i) => ({

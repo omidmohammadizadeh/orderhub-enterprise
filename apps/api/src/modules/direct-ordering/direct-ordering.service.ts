@@ -109,4 +109,77 @@ export class DirectOrderingService {
     });
     if (!loc) throw new NotFoundException("Location not found");
   }
+
+  // ── Phase AW: brand-keyed variant ─────────────────────────────────────
+  //
+  // Same shape as the location-keyed methods above, but the row is
+  // keyed by brandId. The Brand model carries customer-facing identity
+  // (address, phone, logo, custom domain, Stripe Connect) so the
+  // storefront is fully self-contained per brand. Storefront reads
+  // resolve config by brand from AW-3 onwards; the location variants
+  // stay for the old admin tab until AW-4 retires them.
+
+  async getByBrand(tenantId: string, brandId: string) {
+    await this.assertBrand(tenantId, brandId);
+    const existing = await (this.prisma as any).directOrderingConfig.findUnique({
+      where: { brandId },
+    });
+    if (existing) return existing;
+    return (this.prisma as any).directOrderingConfig.create({
+      data: { tenantId, brandId },
+    });
+  }
+
+  /** Public read for the storefront — no tenant context. Returns
+   *  ephemeral defaults if the brand never visited the admin tab so
+   *  the page still renders. Never writes. */
+  async getPublicByBrand(brandId: string) {
+    const existing = await (this.prisma as any).directOrderingConfig.findUnique({
+      where: { brandId },
+    });
+    if (existing) return existing;
+    return {
+      id: "default",
+      tenantId: "",
+      brandId,
+      locationId: null,
+      deliveryPrepMinutes: 45,
+      collectionPrepMinutes: 20,
+      acceptsCash: true,
+      acceptsCard: true,
+      acceptsDelivery: true,
+      acceptsCollection: true,
+      scheduleMaxDaysAhead: 7,
+      scheduleSlotMinutes: 15,
+      minOrderForDelivery: null,
+      heroImageUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  async updateByBrand(
+    tenantId: string,
+    brandId: string,
+    dto: UpdateDirectOrderingConfigDto,
+  ) {
+    await this.assertBrand(tenantId, brandId);
+    return (this.prisma as any).directOrderingConfig.upsert({
+      where: { brandId },
+      create: {
+        tenantId,
+        brandId,
+        ...this.cleanWriteDto(dto),
+      },
+      update: this.cleanWriteDto(dto),
+    });
+  }
+
+  private async assertBrand(tenantId: string, brandId: string) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+  }
 }
