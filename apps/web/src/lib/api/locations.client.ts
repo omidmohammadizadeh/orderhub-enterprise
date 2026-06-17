@@ -151,6 +151,22 @@ export interface Brand {
   onlineOrderingSlug?: string | null;
   directOrderingEnabled?: boolean;
   about?: string | null;
+  // Phase AW — customer-facing identity. Each brand has its own
+  // address, phone, custom domain, and Stripe Connect account so a
+  // single kitchen running multiple virtual brands can publish
+  // independent storefronts + receive payouts to separate accounts.
+  phone?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  country?: string;
+  customDomain?: string | null;
+  customDomainStatus?: string;
+  stripeConnectedAccountId?: string | null;
+  applicationFeeFixedAmount?: number | string | null;
+  applicationFeePercentage?: number | string | null;
+  applicationFeeMode?: string;
   _count?: { platformConnections?: number; locations?: number };
 }
 
@@ -159,6 +175,8 @@ export const brandsClient = {
     apiClient
       .get<Brand[]>("/v1/brands", { params: locationId ? { locationId } : undefined })
       .then((r) => r.data),
+  get: (id: string) =>
+    apiClient.get<Brand>(`/v1/brands/${id}`).then((r) => r.data),
   create: (body: {
     name: string;
     slug?: string;
@@ -169,17 +187,32 @@ export const brandsClient = {
   }) => apiClient.post<Brand>("/v1/brands", body).then((r) => r.data),
   update: (id: string, body: Partial<Brand>) =>
     apiClient.patch<Brand>(`/v1/brands/${id}`, body).then((r) => r.data),
+  // Phase AW — server-side slug generator. Empty body asks the API to
+  // mint a unique slug from the brand name; a value sets that exact
+  // slug after a uniqueness check.
+  setSlug: (id: string, slug?: string | null) =>
+    apiClient
+      .post<Brand>(`/v1/brands/${id}/online-ordering-slug`, { slug: slug ?? null })
+      .then((r) => r.data),
   remove: (id: string) => apiClient.delete(`/v1/brands/${id}`),
 };
 
 // ── Brand-platform connections ──
+//
+// Phase AW — DIRECT_ONLINE is the brand's own /brand/<slug> storefront.
+// Not stored on BrandPlatformConnection (no external store id); its
+// connection state is the brand's directOrderingEnabled flag. Lives in
+// this enum so it shows up as a card in the grid alongside the
+// marketplace channels — the spec says clicking Connect should open
+// the brand's storefront settings drawer.
 export type PlatformId =
   | "JUST_EAT"
   | "UBER_EATS"
   | "DELIVEROO"
   | "HUBRISE"
   | "STUART"
-  | "UBER_DIRECT";
+  | "UBER_DIRECT"
+  | "DIRECT_ONLINE";
 
 export type ConnectionStatus =
   | "not_connected"

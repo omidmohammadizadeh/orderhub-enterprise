@@ -180,6 +180,10 @@ const PLATFORM_META: Record<
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   ONLINE:      { slug: "online",     bg: "#f97316", svg: (p) => <OnlineLogo {...p} /> },
+  // Phase AW — brand-level direct online ordering. Same wordmark as
+  // DIRECT/POS so the Order Hub identity stays consistent across the
+  // three sister channels.
+  DIRECT_ONLINE: { slug: "orderhub", bg: "#7c3aed", svg: (p) => <OrderHubLogo {...p} /> },
 };
 
 const LABELS: Record<string, string> = {
@@ -192,6 +196,7 @@ const LABELS: Record<string, string> = {
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
+  DIRECT_ONLINE: "Direct online ordering",
 };
 
 interface Props {

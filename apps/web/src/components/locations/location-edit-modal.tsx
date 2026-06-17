@@ -693,7 +693,7 @@ function BrandsTab({ locationId }: { locationId: string }) {
             <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
               Channel connections for {b.name}
             </p>
-            <BrandPlatformGrid brandId={b.id} locationId={locationId} />
+            <BrandPlatformGrid brand={b} locationId={locationId} />
           </div>
         </details>
       ))}

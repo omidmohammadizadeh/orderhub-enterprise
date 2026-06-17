@@ -15,21 +15,30 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Settings, Trash2 } from "lucide-react";
 import {
   brandConnectionsClient,
+  brandsClient,
+  type Brand,
   type BrandPlatformConnection,
   type ConnectionStatus,
   type PlatformId,
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
+import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
 // token is generated against a HubRise location, not a brand. It's
 // configured in Location settings → Integrations and intentionally
 // removed from this brand-level grid to prevent the duplicate-setup
 // foot-gun.
+//
+// Phase AW — DIRECT_ONLINE leads the list. It's the brand's own
+// /brand/<slug> storefront, configured via the BrandSettingsDrawer
+// rather than the inline external-store-id input the marketplace
+// channels use.
 const PLATFORMS: PlatformId[] = [
+  "DIRECT_ONLINE",
   "JUST_EAT",
   "UBER_EATS",
   "DELIVEROO",
@@ -38,16 +47,28 @@ const PLATFORMS: PlatformId[] = [
 ];
 
 interface Props {
-  brandId: string;
+  brand: Brand;
   locationId: string;
 }
 
-export function BrandPlatformGrid({ brandId, locationId }: Props) {
+export function BrandPlatformGrid({ brand, locationId }: Props) {
   const qc = useQueryClient();
+  const brandId = brand.id;
   const connsQuery = useQuery({
     queryKey: ["brand-connections", brandId],
     queryFn: () => brandConnectionsClient.listForBrand(brandId),
   });
+
+  // Phase AW — keep a live brand snapshot so the DIRECT_ONLINE row's
+  // status (connected ↔ not_connected) updates immediately after the
+  // settings drawer saves. The parent already has `brand` but it
+  // doesn't refetch when the drawer mutates — refetch here.
+  const brandQuery = useQuery({
+    queryKey: ["brand", brandId],
+    queryFn: () => brandsClient.get(brandId),
+    initialData: brand,
+  });
+  const currentBrand = brandQuery.data ?? brand;
 
   const conns = connsQuery.data ?? [];
 
@@ -60,40 +81,124 @@ export function BrandPlatformGrid({ brandId, locationId }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["brand-connections", brandId] }),
   });
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
-    <ul className="space-y-1.5">
-      {PLATFORMS.map((platform) => {
-        const conn = conns.find((c) => c.platform === platform);
-        return (
-          <ConnectionRow
-            key={platform}
-            platform={platform}
-            connection={conn ?? null}
-            onConnect={(externalStoreId) =>
-              upsert.mutate({
-                brandId,
-                locationId,
-                platform,
-                status: "pending",
-                externalStoreId,
-              })
-            }
-            onUpdate={(patch) =>
-              upsert.mutate({
-                brandId,
-                locationId,
-                platform,
-                ...patch,
-              })
-            }
-            onDisconnect={() => {
-              if (conn?.id) disconnect.mutate(conn.id);
-            }}
-            busy={upsert.isPending || disconnect.isPending}
-          />
-        );
-      })}
-    </ul>
+    <>
+      <ul className="space-y-1.5">
+        {PLATFORMS.map((platform) => {
+          // DIRECT_ONLINE is special: its connection state lives on the
+          // Brand row itself (directOrderingEnabled + onlineOrderingSlug),
+          // not on BrandPlatformConnection. Clicking Connect/Edit opens
+          // the BrandSettingsDrawer instead of the inline store-id input.
+          if (platform === "DIRECT_ONLINE") {
+            const isConnected =
+              !!currentBrand.directOrderingEnabled &&
+              !!currentBrand.onlineOrderingSlug;
+            return (
+              <DirectOnlineRow
+                key={platform}
+                brand={currentBrand}
+                connected={isConnected}
+                onOpen={() => setSettingsOpen(true)}
+              />
+            );
+          }
+          const conn = conns.find((c) => c.platform === platform);
+          return (
+            <ConnectionRow
+              key={platform}
+              platform={platform}
+              connection={conn ?? null}
+              onConnect={(externalStoreId) =>
+                upsert.mutate({
+                  brandId,
+                  locationId,
+                  platform,
+                  status: "pending",
+                  externalStoreId,
+                })
+              }
+              onUpdate={(patch) =>
+                upsert.mutate({
+                  brandId,
+                  locationId,
+                  platform,
+                  ...patch,
+                })
+              }
+              onDisconnect={() => {
+                if (conn?.id) disconnect.mutate(conn.id);
+              }}
+              busy={upsert.isPending || disconnect.isPending}
+            />
+          );
+        })}
+      </ul>
+
+      <BrandSettingsDrawer
+        brand={currentBrand}
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["brand", brandId] });
+          qc.invalidateQueries({ queryKey: ["brands"] });
+        }}
+      />
+    </>
+  );
+}
+
+function DirectOnlineRow({
+  brand,
+  connected,
+  onOpen,
+}: {
+  brand: Brand;
+  connected: boolean;
+  onOpen: () => void;
+}) {
+  const publicUrl =
+    brand.onlineOrderingSlug && typeof window !== "undefined"
+      ? `${window.location.origin}/brand/${brand.onlineOrderingSlug}`
+      : null;
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-center gap-3">
+        <PlatformLogo platform="DIRECT_ONLINE" size={44} />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">
+              Direct online ordering
+            </span>
+            <StatusChip status={connected ? "connected" : "not_connected"} />
+          </div>
+          {connected && publicUrl ? (
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate font-mono text-[10px] text-violet-600 hover:underline"
+            >
+              {publicUrl}
+            </a>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              Brand's own storefront — set a URL, address, and Stripe Connect
+              account.
+            </p>
+          )}
+        </div>
+        <button
+          onClick={onOpen}
+          className="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"
+        >
+          <Settings className="h-3 w-3" />
+          {connected ? "Settings" : "Connect"}
+        </button>
+      </div>
+    </li>
   );
 }
 
