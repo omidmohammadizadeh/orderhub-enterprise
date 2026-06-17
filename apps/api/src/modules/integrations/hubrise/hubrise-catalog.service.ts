@@ -45,51 +45,69 @@ interface HubRiseCatalogData {
   options_lists?: HubRiseOptionList[];
 }
 
+// HubRise's catalog GET response gives every entity TWO keys:
+//   id  — internal opaque key (e.g. "7xdnep"). Used as the link target
+//         from every reference (category_id, option_list_id,
+//         option_list_ids[]). Stable across operator edits.
+//   ref — operator-set human key (e.g. "0", "TESLA_S"). May be null,
+//         duplicated, or changed over time.
+// We index lookups by id (always present, stable) and fall back to
+// ref for back-compat with the documented examples. Both fields are
+// modelled as optional so payloads built by the publish path (which
+// doesn't have HubRise ids until after the create round-trip) still
+// fit the type.
 interface HubRiseCategory {
-  ref: string;
+  id?: string;
+  ref?: string | null;
+  parent_id?: string | null;
   parent_ref?: string | null;
   name: string;
   description?: string | null;
   tags?: string[];
   image_ids?: string[];
-  // Some HubRise responses (and older catalog snapshots) nest the
-  // products inside the category rather than at data.products. We
-  // accept both shapes — the import collapses them into one flat
-  // list before walking.
   products?: HubRiseProduct[];
 }
 
 interface HubRiseProduct {
+  id?: string;
   ref?: string | null;
-  category_ref: string;
+  category_id?: string;
+  category_ref?: string;
   name: string;
   description?: string | null;
   tags?: string[];
   image_ids?: string[];
   skus?: HubRiseSku[];
-  tax_rate?: { delivery?: string; collection?: string; eat_in?: string };
+  tax_rate?: { delivery?: string; collection?: string; eat_in?: string } | null;
 }
 
 interface HubRiseSku {
+  id?: string;
   ref?: string | null;
+  product_id?: string;
   name?: string | null;
   price: string; // "10.30 GBP"
+  option_list_ids?: string[];
   option_list_refs?: string[];
   tags?: string[];
 }
 
 interface HubRiseOptionList {
-  ref: string;
+  id?: string;
+  ref?: string | null;
   name: string;
   min_selections?: number;
   max_selections?: number | null;
   multiple_selection?: boolean;
+  type?: "single" | "multiple";
   tags?: string[];
   options?: HubRiseOption[];
 }
 
 interface HubRiseOption {
+  id?: string;
   ref?: string | null;
+  option_list_id?: string;
   name: string;
   price: string;
   default?: boolean;
@@ -175,7 +193,11 @@ export class HubRiseCatalogService {
       for (const p of cat.products ?? []) {
         // Inject the category ref if the embedded product doesn't carry
         // its own (the nested shape relies on positional ownership).
-        nestedProducts.push({ ...p, category_ref: p.category_ref ?? cat.ref });
+        nestedProducts.push({
+          ...p,
+          category_id: p.category_id ?? cat.id,
+          category_ref: p.category_ref ?? cat.ref ?? undefined,
+        });
       }
     }
     const allProducts =
@@ -261,16 +283,24 @@ export class HubRiseCatalogService {
         });
 
     // 2. ModifierGroups + Options (upsert first so SKUs can link).
-    const groupByRef = new Map<string, string>(); // hubrise ref → our group id
+    // Index by both HubRise id (the canonical link key) and ref so the
+    // downstream SKU walk can resolve whichever the response uses.
+    const groupByHubriseId = new Map<string, string>();
+    const groupByRef = new Map<string, string>();
     for (const list of optionLists) {
+      const groupExternalId = list.id ?? list.ref;
       const existing = await (this.prisma as any).modifierGroup.findFirst({
         where: {
           brandId: target.brandId,
           platformSource: "HUBRISE",
-          externalId: list.ref,
+          externalId: groupExternalId,
         },
         select: { id: true },
       });
+      // HubRise has both `multiple_selection: bool` and `type: "single"|"multiple"`.
+      // Use either when present.
+      const isAddon =
+        list.multiple_selection === true || list.type === "multiple";
       const groupId = existing
         ? (
             await (this.prisma as any).modifierGroup.update({
@@ -280,7 +310,7 @@ export class HubRiseCatalogService {
                 minSelections: list.min_selections ?? 0,
                 maxSelections: list.max_selections ?? null,
                 isRequired: (list.min_selections ?? 0) > 0,
-                selectionType: list.multiple_selection ? "ADDON" : "VARIANT",
+                selectionType: isAddon ? "ADDON" : "VARIANT",
                 lastSyncedAt: new Date(),
                 syncStatus: "ok",
               },
@@ -295,20 +325,21 @@ export class HubRiseCatalogService {
                 minSelections: list.min_selections ?? 0,
                 maxSelections: list.max_selections ?? null,
                 isRequired: (list.min_selections ?? 0) > 0,
-                selectionType: list.multiple_selection ? "ADDON" : "VARIANT",
+                selectionType: isAddon ? "ADDON" : "VARIANT",
                 platformSource: "HUBRISE",
-                externalId: list.ref,
+                externalId: groupExternalId,
                 lastSyncedAt: new Date(),
                 syncStatus: "ok",
               },
             })
           ).id;
-      groupByRef.set(list.ref, groupId);
+      if (list.id) groupByHubriseId.set(list.id, groupId);
+      if (list.ref) groupByRef.set(list.ref, groupId);
       counts.modifierGroups++;
 
       for (const opt of list.options ?? []) {
         const priceAdj = parseHubRisePrice(opt.price);
-        const optExternal = opt.ref ?? `${list.ref}__${opt.name}`;
+        const optExternal = opt.id ?? opt.ref ?? `${groupExternalId}__${opt.name}`;
         const existingOpt = await (this.prisma as any).modifierOption.findFirst(
           {
             where: {
@@ -339,7 +370,7 @@ export class HubRiseCatalogService {
               isDefault: opt.default === true,
               platformSource: "HUBRISE",
               externalId: optExternal,
-              externalParentId: list.ref,
+              externalParentId: groupExternalId,
               lastSyncedAt: new Date(),
               syncStatus: "ok",
             },
@@ -349,15 +380,18 @@ export class HubRiseCatalogService {
       }
     }
 
-    // 3. Categories.
-    const categoryByRef = new Map<string, string>(); // ref → MenuCategory.id
+    // 3. Categories. Index by HubRise id (canonical link key from
+    //    products.category_id) AND ref so older catalogs still match.
+    const categoryByHubriseId = new Map<string, string>();
+    const categoryByRef = new Map<string, string>();
     for (let i = 0; i < (data.categories ?? []).length; i++) {
       const cat = data.categories![i]!;
+      const catExternalId = cat.id ?? cat.ref ?? `cat_${i}`;
       const existing = await (this.prisma as any).menuCategory.findFirst({
         where: {
           menuId: menu.id,
           platformSource: "HUBRISE",
-          externalId: cat.ref,
+          externalId: catExternalId,
         },
         select: { id: true },
       });
@@ -382,14 +416,15 @@ export class HubRiseCatalogService {
                 description: cat.description ?? null,
                 sortOrder: i,
                 platformSource: "HUBRISE",
-                externalId: cat.ref,
-                externalParentId: cat.parent_ref ?? null,
+                externalId: catExternalId,
+                externalParentId: cat.parent_id ?? cat.parent_ref ?? null,
                 lastSyncedAt: new Date(),
                 syncStatus: "ok",
               },
             })
           ).id;
-      categoryByRef.set(cat.ref, categoryId);
+      if (cat.id) categoryByHubriseId.set(cat.id, categoryId);
+      if (cat.ref) categoryByRef.set(cat.ref, categoryId);
       counts.categories++;
     }
 
@@ -398,15 +433,18 @@ export class HubRiseCatalogService {
     //    + plu from the single sku.
     let skippedNoCategory = 0;
     for (const product of allProducts) {
-      const categoryId = categoryByRef.get(product.category_ref);
+      // Product → category lookup: HubRise's response links by
+      // category_id (internal opaque key); we fall through to
+      // category_ref for catalogs using the documented shape.
+      const categoryId =
+        (product.category_id && categoryByHubriseId.get(product.category_id)) ||
+        (product.category_ref && categoryByRef.get(product.category_ref));
       if (!categoryId) {
         skippedNoCategory++;
-        // First few only — don't flood the log if the catalog has
-        // hundreds of orphans.
         if (skippedNoCategory <= 3) {
           this.logger.warn(
-            `HubRise product "${product.name}" skipped: category_ref="${product.category_ref}" not in catalog. ` +
-              `Known refs: [${Array.from(categoryByRef.keys()).slice(0, 5).join(",")}${categoryByRef.size > 5 ? ",…" : ""}]`,
+            `HubRise product "${product.name}" skipped: category_id="${product.category_id}" category_ref="${product.category_ref}" not found. ` +
+              `Known ids: [${Array.from(categoryByHubriseId.keys()).slice(0, 5).join(",")}${categoryByHubriseId.size > 5 ? ",…" : ""}]`,
           );
         }
         continue;
@@ -416,20 +454,37 @@ export class HubRiseCatalogService {
       const firstSku = skus[0];
       const basePrice = firstSku ? parseHubRisePrice(firstSku.price) : 0;
 
-      // External ref for the MenuItem: the product.ref if present,
-      // otherwise the first sku.ref, otherwise a stable hash so a
-      // re-import still matches.
+      // External key for the MenuItem: HubRise's product.id is the
+      // canonical, stable choice. ref + sku fallbacks keep older
+      // imports lining up.
       const productExternal =
-        product.ref ?? firstSku?.ref ?? `${product.category_ref}__${product.name}`;
+        product.id ??
+        product.ref ??
+        firstSku?.ref ??
+        `${product.category_id ?? product.category_ref}__${product.name}`;
+
+      // Resolve a SKU's option_list refs into local modifier-group ids.
+      // HubRise's response uses option_list_ids (by id); the docs also
+      // describe option_list_refs (by ref). Accept both.
+      const resolveGroupIds = (s: HubRiseSku): string[] => {
+        const out: string[] = [];
+        for (const id of s.option_list_ids ?? []) {
+          const g = groupByHubriseId.get(id);
+          if (g) out.push(g);
+        }
+        for (const r of s.option_list_refs ?? []) {
+          const g = groupByRef.get(r);
+          if (g) out.push(g);
+        }
+        return Array.from(new Set(out));
+      };
 
       const productSkus = isMulti
         ? skus.map((s) => ({
             name: s.name ?? "",
             plu: s.ref ?? null,
             price: parseHubRisePrice(s.price),
-            modifierGroups: (s.option_list_refs ?? [])
-              .map((r) => groupByRef.get(r))
-              .filter(Boolean),
+            modifierGroups: resolveGroupIds(s),
           }))
         : [];
 
@@ -502,17 +557,13 @@ export class HubRiseCatalogService {
       //     in productSkus[].modifierGroups above; the POS picks from
       //     whichever exists.
       if (!isMulti && firstSku) {
-        // Wipe existing links for this product so removed option lists
-        // on the HubRise side disappear here too.
         await (this.prisma as any).modifierGroupOnItem.deleteMany({
           where: { itemId: item.id },
         });
-        let order = 0;
-        for (const ref of firstSku.option_list_refs ?? []) {
-          const groupId = groupByRef.get(ref);
-          if (!groupId) continue;
+        const groupIds = resolveGroupIds(firstSku);
+        for (let i = 0; i < groupIds.length; i++) {
           await (this.prisma as any).modifierGroupOnItem.create({
-            data: { itemId: item.id, groupId, sortOrder: order++ },
+            data: { itemId: item.id, groupId: groupIds[i]!, sortOrder: i },
           });
         }
       }
