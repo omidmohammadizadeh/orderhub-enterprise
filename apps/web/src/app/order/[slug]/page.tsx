@@ -681,6 +681,7 @@ export default function OrderPage() {
         storeName={storefront.location.name}
         onReset={() => setConfirmedOrderId(null)}
         storeSlug={slug}
+        brandId={brandId}
       />
     );
   }
@@ -1991,11 +1992,16 @@ function OrderConfirmed({
   storeName,
   onReset,
   storeSlug,
+  brandId,
 }: {
   orderId: string;
   storeName: string;
   onReset: () => void;
   storeSlug: string;
+  // Phase AW — passed through so the "Back to menu" anchor in
+  // AcceptedScreen rebuilds the URL with ?brand=<id>; without it the
+  // anchor falls back to the location's default storefront.
+  brandId: string | null;
 }) {
   // Poll every 3s. Stop polling once the order reaches a terminal state
   // (delivered / collected / cancelled / rejected) — no point hammering
@@ -2040,6 +2046,7 @@ function OrderConfirmed({
       storeName={storeName}
       onReset={onReset}
       storeSlug={storeSlug}
+      brandId={brandId}
     />
   );
 }
@@ -2142,6 +2149,7 @@ function AcceptedScreen({
   storeName,
   onReset,
   storeSlug,
+  brandId,
 }: {
   data: StatusPayload;
   storeName: string;
@@ -2149,6 +2157,10 @@ function AcceptedScreen({
   /** Phase AP-5 — used by the "Back to menu" link to navigate without
    *  resetting the order-tracking state. */
   storeSlug: string;
+  /** Phase AW — when the storefront was brand-pinned, keep the pin on
+   *  the Back-to-menu anchor so the customer lands back on the brand
+   *  storefront, not the location default. */
+  brandId: string | null;
 }) {
   const isDelivery = data.fulfillmentType === "DELIVERY";
   // Steps in order. Each step is "done" once its timestamp fires.
@@ -2279,7 +2291,11 @@ function AcceptedScreen({
               entirely; this just navigates back without touching the
               cart, which is what most customers expect. */}
           <a
-            href={`/order/${storeSlug}`}
+            href={
+              brandId
+                ? `/order/${storeSlug}?brand=${encodeURIComponent(brandId)}`
+                : `/order/${storeSlug}`
+            }
             className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
           >
             Back to menu
