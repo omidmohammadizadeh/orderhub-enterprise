@@ -133,6 +133,11 @@ export const productsClient = {
     apiClient
       .get<CatalogProduct[]>(`/v1/locations/${locationId}/items`)
       .then((r) => r.data),
+  // Phase AW-12 — single-item read for the product editor. Direct
+  // by-id lookup avoids the brand-list-then-find pattern that broke
+  // edit hydration when menu.brandId drifted from item.brandId.
+  get: (id: string) =>
+    apiClient.get<CatalogProduct>(`/v1/items/${id}`).then((r) => r.data),
   create: (brandId: string, data: Partial<CatalogProduct> & { locationId?: string }) =>
     apiClient
       .post<CatalogProduct>(`/v1/brands/${brandId}/items`, data)

@@ -327,6 +327,20 @@ export class MenusController {
     return this.menus.findItemsByBrand(brandId, user.tenantId);
   }
 
+  // Phase AW-12 — single-item hydration for the edit form. Previously
+  // the product editor fetched the entire brand library and find()'d
+  // by id; that breaks the moment the menu's brandId drifts from a
+  // product's brandId (re-imported under a different brand, published
+  // picker reassignment, etc). Tenant-scoped via the brand FK.
+  @Get("items/:itemId")
+  @ApiOperation({ summary: "Get a single menu item by id" })
+  findItem(
+    @Param("itemId") itemId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findItemById(itemId, user.tenantId);
+  }
+
   // Phase AP — operators want the Products tab scoped to their selected
   // location, not the whole brand. Same pattern the Menu tab uses.
   @Get("locations/:locationId/items")

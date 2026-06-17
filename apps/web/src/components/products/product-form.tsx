@@ -48,9 +48,13 @@ export function ProductForm({
   const isEdit = !!productId;
 
   // ── Load existing product for edit mode ─────────────────────────────
+  // Phase AW-12 — direct by-id lookup. The previous list-then-find
+  // pattern silently dropped products whose brandId didn't match the
+  // brand the editor was loaded with (HubRise re-imports, publish
+  // picker reassignment, etc), leaving the form empty.
   const { data: existing } = useQuery({
     queryKey: ["catalog", "product", productId],
-    queryFn: () => productsClient.list(brandId).then((all) => all.find((p) => p.id === productId)),
+    queryFn: () => productsClient.get(productId!),
     enabled: !!productId,
   });
 

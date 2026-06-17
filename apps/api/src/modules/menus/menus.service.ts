@@ -390,6 +390,25 @@ export class MenusService {
     });
   }
 
+  // Phase AW-12 — single-item read. Tenant-scoped by joining MenuItem
+  // → Brand to verify the brand belongs to the caller's tenant. Doing
+  // the assert via assertBrandAccess after fetching the item id keeps
+  // the access pattern consistent with the rest of the service.
+  async findItemById(itemId: string, tenantId: string) {
+    const item = await this.prisma.menuItem.findUnique({
+      where: { id: itemId },
+      include: {
+        modifierGroupLinks: {
+          include: { group: { include: { options: true } } },
+        },
+        variants: { orderBy: { sortOrder: "asc" } },
+      },
+    });
+    if (!item) throw new NotFoundException(`Item ${itemId} not found`);
+    await this.assertBrandAccess(item.brandId, tenantId);
+    return item;
+  }
+
   /**
    * Phase AP — list catalog items scoped strictly to a location.
    *
