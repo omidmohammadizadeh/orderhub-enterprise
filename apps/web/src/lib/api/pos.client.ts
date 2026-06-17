@@ -99,6 +99,19 @@ export interface DirectOrderingConfig {
   heroImageUrl: string | null;
 }
 
+type DirectOrderingPatch = Partial<{
+  deliveryPrepMinutes: number;
+  collectionPrepMinutes: number;
+  acceptsCash: boolean;
+  acceptsCard: boolean;
+  acceptsDelivery: boolean;
+  acceptsCollection: boolean;
+  scheduleMaxDaysAhead: number;
+  scheduleSlotMinutes: number;
+  minOrderForDelivery: number | null;
+  heroImageUrl: string | null;
+}>;
+
 export const directOrderingClient = {
   get: (locationId: string) =>
     apiClient
@@ -106,25 +119,29 @@ export const directOrderingClient = {
         params: { locationId },
       })
       .then((r) => r.data),
-  update: (
-    locationId: string,
-    body: Partial<{
-      deliveryPrepMinutes: number;
-      collectionPrepMinutes: number;
-      acceptsCash: boolean;
-      acceptsCard: boolean;
-      acceptsDelivery: boolean;
-      acceptsCollection: boolean;
-      scheduleMaxDaysAhead: number;
-      scheduleSlotMinutes: number;
-      minOrderForDelivery: number | null;
-      heroImageUrl: string | null;
-    }>,
-  ) =>
+  update: (locationId: string, body: DirectOrderingPatch) =>
     apiClient
       .patch<DirectOrderingConfig>("/v1/direct-ordering/config", body, {
         params: { locationId },
       })
+      .then((r) => r.data),
+  // Phase AW — brand-keyed variants. Same shape, brandId where the
+  // legacy flow used locationId. Used by the BrandSettingsDrawer so
+  // each virtual brand at a location carries its own prep times,
+  // accepted payment methods, scheduling window, and min order.
+  getByBrand: (brandId: string) =>
+    apiClient
+      .get<DirectOrderingConfig>("/v1/direct-ordering/brand-config", {
+        params: { brandId },
+      })
+      .then((r) => r.data),
+  updateByBrand: (brandId: string, body: DirectOrderingPatch) =>
+    apiClient
+      .patch<DirectOrderingConfig>(
+        "/v1/direct-ordering/brand-config",
+        body,
+        { params: { brandId } },
+      )
       .then((r) => r.data),
 };
 

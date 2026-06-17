@@ -69,10 +69,12 @@ const DRIVER_TIER = [...STAFF_TIER, "DRIVER"];
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
-  // Phase AP follow-up (AP-NAV-1): Direct online ordering settings used
-  // to be a button on the POS top bar; the operator asked for it to sit
-  // under POS on the sidebar instead, so it gets a dedicated entry here.
-  { href: "/dashboard/direct-ordering", label: "Direct online ordering", icon: Globe, roles: MANAGER_TIER },
+  // Phase AW — Direct online ordering settings moved into the per-brand
+  // settings drawer (Locations → Brands → DIRECT_ONLINE channel →
+  // Connect). The settings are now per-brand so a kitchen running two
+  // ghost-kitchen brands can give each its own prep times, accepted
+  // payment methods, and minimum order. The /dashboard/direct-ordering
+  // sidebar entry has been retired.
   // Master catalog (Phase AL). The Menu entry below is the per-location
   // builder that attaches items from this catalog — it does not create
   // duplicate products.

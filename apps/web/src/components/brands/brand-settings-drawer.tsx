@@ -13,9 +13,13 @@
 // inspect, just can't change anything that affects payouts.
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, ExternalLink } from "lucide-react";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
+import {
+  directOrderingClient,
+  type DirectOrderingConfig,
+} from "@/lib/api/pos.client";
 import { ImageUploader } from "@/components/products/image-uploader";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -66,6 +70,42 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
     brand.applicationFeePercentage?.toString() ?? "",
   );
 
+  // ── Phase AW — Direct online ordering config (moved off the
+  //    location-level sidebar tab). Per-brand prep times, accepted
+  //    payment methods, accepted order types, scheduling window, and
+  //    min order. Loaded once via brand-keyed endpoint, saved
+  //    independently from the identity fields so a partial form
+  //    submit doesn't blow away one or the other.
+  const cfgQuery = useQuery<DirectOrderingConfig>({
+    queryKey: ["brand-direct-ordering", brand.id],
+    queryFn: () => directOrderingClient.getByBrand(brand.id),
+    enabled: open,
+  });
+  const [deliveryPrep, setDeliveryPrep] = useState("");
+  const [collectionPrep, setCollectionPrep] = useState("");
+  const [acceptsCash, setAcceptsCash] = useState(true);
+  const [acceptsCard, setAcceptsCard] = useState(true);
+  const [acceptsDelivery, setAcceptsDelivery] = useState(true);
+  const [acceptsCollection, setAcceptsCollection] = useState(true);
+  const [scheduleDays, setScheduleDays] = useState("7");
+  const [slotMins, setSlotMins] = useState("15");
+  const [minDelivery, setMinDelivery] = useState("");
+  useEffect(() => {
+    const c = cfgQuery.data;
+    if (!c) return;
+    setDeliveryPrep(String(c.deliveryPrepMinutes));
+    setCollectionPrep(String(c.collectionPrepMinutes));
+    setAcceptsCash(c.acceptsCash);
+    setAcceptsCard(c.acceptsCard);
+    setAcceptsDelivery(c.acceptsDelivery);
+    setAcceptsCollection(c.acceptsCollection);
+    setScheduleDays(String(c.scheduleMaxDaysAhead));
+    setSlotMins(String(c.scheduleSlotMinutes));
+    setMinDelivery(
+      c.minOrderForDelivery != null ? String(c.minOrderForDelivery) : "",
+    );
+  }, [cfgQuery.data]);
+
   // Re-seed state when the user reopens with a fresh row (different brand
   // or a refetch). Without this the modal keeps stale values from the
   // previous brand.
@@ -106,28 +146,46 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   });
 
   const save = useMutation({
+    // Phase AW — save brand identity + direct-ordering config in one
+    // click. Promise.all so a flake on one doesn't half-save the
+    // other; the brand-keyed DirectOrderingConfig endpoint is an
+    // upsert so the first save creates the row.
     mutationFn: () =>
-      brandsClient.update(brand.id, {
-        name,
-        cuisine: cuisine || null,
-        logoUrl: logoUrl ?? null,
-        onlineOrderingSlug: orderingSlug || null,
-        directOrderingEnabled: !!orderingSlug,
-        customDomain: customDomain || null,
-        phone: phone || null,
-        addressLine1: addressLine1 || null,
-        addressLine2: addressLine2 || null,
-        city: city || null,
-        postcode: postcode || null,
-        about: about || null,
-        stripeConnectedAccountId: stripeAccountId || null,
-        applicationFeeMode: appFeeMode,
-        applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
-        applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
-      }),
+      Promise.all([
+        brandsClient.update(brand.id, {
+          name,
+          cuisine: cuisine || null,
+          logoUrl: logoUrl ?? null,
+          onlineOrderingSlug: orderingSlug || null,
+          directOrderingEnabled: !!orderingSlug,
+          customDomain: customDomain || null,
+          phone: phone || null,
+          addressLine1: addressLine1 || null,
+          addressLine2: addressLine2 || null,
+          city: city || null,
+          postcode: postcode || null,
+          about: about || null,
+          stripeConnectedAccountId: stripeAccountId || null,
+          applicationFeeMode: appFeeMode,
+          applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
+          applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
+        }),
+        directOrderingClient.updateByBrand(brand.id, {
+          deliveryPrepMinutes: Number(deliveryPrep) || 0,
+          collectionPrepMinutes: Number(collectionPrep) || 0,
+          acceptsCash,
+          acceptsCard,
+          acceptsDelivery,
+          acceptsCollection,
+          scheduleMaxDaysAhead: Number(scheduleDays) || 7,
+          scheduleSlotMinutes: Number(slotMins) || 15,
+          minOrderForDelivery: minDelivery ? Number(minDelivery) : null,
+        }),
+      ]).then(([updated]) => updated),
     onSuccess: (updated) => {
       qc.invalidateQueries({ queryKey: ["brands"] });
       qc.invalidateQueries({ queryKey: ["brand-connections", brand.id] });
+      qc.invalidateQueries({ queryKey: ["brand-direct-ordering", brand.id] });
       onSaved?.(updated);
       onClose();
     },
@@ -373,6 +431,98 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             </div>
           </Section>
 
+          {/* ── Storefront behaviour (moved from sidebar tab) ───── */}
+          <Section title="Prep times advertised to customers">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Delivery (mins)">
+                <input
+                  value={deliveryPrep}
+                  onChange={(e) => setDeliveryPrep(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min="0"
+                  className="input"
+                />
+              </Field>
+              <Field label="Collection (mins)">
+                <input
+                  value={collectionPrep}
+                  onChange={(e) => setCollectionPrep(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min="0"
+                  className="input"
+                />
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Payment methods accepted online">
+            <ToggleRow
+              label="Accept cash on delivery / collection"
+              value={acceptsCash}
+              onChange={setAcceptsCash}
+              disabled={!isAdmin}
+            />
+            <ToggleRow
+              label="Accept card online (Stripe)"
+              value={acceptsCard}
+              onChange={setAcceptsCard}
+              disabled={!isAdmin}
+            />
+          </Section>
+
+          <Section title="Order types accepted online">
+            <ToggleRow
+              label="Accept delivery orders"
+              value={acceptsDelivery}
+              onChange={setAcceptsDelivery}
+              disabled={!isAdmin}
+            />
+            <ToggleRow
+              label="Accept collection orders"
+              value={acceptsCollection}
+              onChange={setAcceptsCollection}
+              disabled={!isAdmin}
+            />
+          </Section>
+
+          <Section title="Scheduling">
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Days ahead">
+                <input
+                  value={scheduleDays}
+                  onChange={(e) => setScheduleDays(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min="0"
+                  className="input"
+                />
+              </Field>
+              <Field label="Slot mins">
+                <input
+                  value={slotMins}
+                  onChange={(e) => setSlotMins(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min="0"
+                  className="input"
+                />
+              </Field>
+              <Field label="Min delivery (£)">
+                <input
+                  value={minDelivery}
+                  onChange={(e) => setMinDelivery(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input"
+                />
+              </Field>
+            </div>
+          </Section>
+
           {save.isError && (
             <p className="text-[12px] text-red-600">
               {(save.error as any)?.response?.data?.message ?? "Save failed"}
@@ -442,5 +592,39 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </label>
       {children}
     </div>
+  );
+}
+
+function ToggleRow({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="flex items-center justify-between py-1.5 text-xs">
+      <span className="text-zinc-700">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        disabled={disabled}
+        onClick={() => onChange(!value)}
+        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+          value ? "bg-emerald-500" : "bg-zinc-300"
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+            value ? "translate-x-4" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </label>
   );
 }
