@@ -76,6 +76,10 @@ interface HubRiseProduct {
   name: string;
   description?: string | null;
   tags?: string[];
+  // Round-tripped on publish from items imported with a HubRise image
+  // (see transformMenuToCatalog). HubRise treats the array as ordered;
+  // we send a single id so the existing upload is reused rather than
+  // re-bytes-uploaded.
   image_ids?: string[];
   skus?: HubRiseSku[];
   tax_rate?: { delivery?: string; collection?: string; eat_in?: string } | null;
@@ -737,6 +741,20 @@ export class HubRiseCatalogService {
         `referencedGroups=${referencedGroupIds.size}`,
     );
 
+    // Sample the first product + its SKUs so we can verify the
+    // option_list_refs we're sending actually match a ref emitted in
+    // option_lists. This shows in Render's API logs alongside the
+    // counts above.
+    if (products[0]) {
+      this.logger.log(
+        `HubRise publish sample product: ` +
+          `name="${products[0].name}" ref="${products[0].ref}" ` +
+          `image_ids=${JSON.stringify(products[0].image_ids ?? null)} ` +
+          `sku0.option_list_refs=${JSON.stringify(products[0].skus?.[0]?.option_list_refs ?? null)} ` +
+          `optionListRefs=[${optionLists.map((l) => l.ref).slice(0, 5).join(",")}${optionLists.length > 5 ? ",…" : ""}]`,
+      );
+    }
+
     const data: HubRiseCatalogData = {
       categories,
       products,
@@ -955,11 +973,24 @@ function transformMenuToCatalog(
                 .map(groupRefFor),
             },
           ];
+      // Phase AW-12.1 — round-trip the HubRise image id. Import wrote
+      // imageUrl=/api/v1/menus/hubrise-image/<catalogId>/<imageId>;
+      // pull the imageId back out so we re-reference the existing
+      // upload instead of duplicating. Operator-uploaded images that
+      // don't match this URL pattern are skipped until we wire the
+      // POST /catalogs/:id/images binary upload path (separate phase).
+      const hubriseImageMatch =
+        typeof item.imageUrl === "string"
+          ? item.imageUrl.match(/hubrise-image\/[^/]+\/([^/?#]+)/)
+          : null;
+      const image_ids = hubriseImageMatch ? [hubriseImageMatch[1]] : undefined;
+
       products.push({
         ref: item.externalId ?? `prod_${item.id}`,
         category_ref: catRef,
         name: item.name,
         description: item.description ?? null,
+        ...(image_ids && { image_ids }),
         skus,
       });
     }
