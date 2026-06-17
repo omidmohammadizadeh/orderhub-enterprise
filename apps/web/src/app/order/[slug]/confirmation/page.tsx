@@ -15,16 +15,23 @@ export default function CheckoutConfirmationPage() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
+  // Phase AW — Stripe's success_url carries `?brand=<id>` we tucked in
+  // when building the checkout session (see ordering.service.checkout).
+  // Preserve it on the bounce so the post-payment storefront still
+  // renders the brand identity instead of the location default.
+  const brand = searchParams.get("brand");
 
   useEffect(() => {
     // Bounce to the storefront in tracking mode. The storefront reads
     // ?confirmedOrderId from the query string and shows the "waiting
     // for restaurant / accepted / out for delivery" screen.
-    const target = orderId
-      ? `/order/${params.slug}?confirmedOrderId=${encodeURIComponent(orderId)}`
-      : `/order/${params.slug}`;
+    const params2 = new URLSearchParams();
+    if (orderId) params2.set("confirmedOrderId", orderId);
+    if (brand) params2.set("brand", brand);
+    const qs = params2.toString();
+    const target = qs ? `/order/${params.slug}?${qs}` : `/order/${params.slug}`;
     router.replace(target);
-  }, [orderId, params.slug, router]);
+  }, [orderId, brand, params.slug, router]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-zinc-50">

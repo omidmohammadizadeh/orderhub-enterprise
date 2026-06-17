@@ -256,18 +256,25 @@ export default function OrderPage() {
     if (typeof window === "undefined") return;
     const sp = new URLSearchParams(window.location.search);
     const id = sp.get("confirmedOrderId");
+    // Phase AW — preserve the ?brand=<id> pin across the
+    // confirmation/canceled cleanup. Stripping it dropped the
+    // customer back onto the location-default storefront ("pizza uno
+    // pelton") when they tapped Back to menu. Build the rewrite from
+    // the current pathname + just the brand query, never bringing
+    // confirmedOrderId / canceledOrderId along for the ride.
+    const rewriteUrl = () => {
+      const brand = sp.get("brand");
+      return brand
+        ? `${window.location.pathname}?brand=${encodeURIComponent(brand)}`
+        : window.location.pathname;
+    };
     if (id) {
       setConfirmedOrderId(id);
-      // Strip the query string so a manual refresh doesn't re-trigger.
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", rewriteUrl());
       return;
     }
-    // Phase AP-8 — customer clicked "back" on Stripe Checkout. The order
-    // is still in PENDING state server-side; for now we just leave the
-    // cart restored (cart state already persists). A future polish would
-    // call DELETE /orders/{id} to clean up the dangling order.
     if (sp.has("canceledOrderId")) {
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", rewriteUrl());
     }
   }, []);
   const [infoOpen, setInfoOpen] = useState(false); // Phase AP — About modal

@@ -447,8 +447,15 @@ export class OrderingService {
     // authorization (payment_intent.amount_capturable_updated).
     if (dto.paymentMethod === "CARD") {
       const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
-      const successUrl = `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}`;
-      const cancelUrl = `${origin}/order/${slug}?canceledOrderId=${order.id}`;
+      // Phase AW — keep the brand pin on the Stripe-return URLs so the
+      // post-payment storefront still renders the brand identity. The
+      // confirmation page reads `?brand=<id>` and forwards it onto the
+      // /order/<slug>?brand=… target it bounces to.
+      const brandQs = pinnedBrandId
+        ? `&brand=${encodeURIComponent(pinnedBrandId)}`
+        : "";
+      const successUrl = `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}${brandQs}`;
+      const cancelUrl = `${origin}/order/${slug}?canceledOrderId=${order.id}${brandQs}`;
 
       const { url } = await this.payments.createCheckoutSession({
         tenantId: location.brand.tenantId,

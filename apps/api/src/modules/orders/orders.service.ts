@@ -168,6 +168,13 @@ export class OrdersService {
           data: {
             tenantId,
             locationId,
+            // Phase AW — pin the order to a specific virtual brand
+            // when the storefront resolved one (?brand=<id> on the
+            // public URL). The Orders board, receipt header, and
+            // Stripe Connect resolution all key off this.
+            ...(((canonical as any).brandId) && {
+              brandId: (canonical as any).brandId as string,
+            }),
             externalId: canonical.externalId,
             platform: canonical.platform,
             displayId: canonical.displayId,
@@ -422,6 +429,10 @@ export class OrdersService {
       // don't need it) so we ride along on the (canonical as any)
       // cast at the persist site. Undefined for guest checkouts.
       customerAccountId: (dto as any).customerAccountId,
+      // Phase AW — brand pin from the storefront. ingestCanonical
+      // reads this off the canonical envelope and writes it onto the
+      // Order row so receipts, board, and payouts pick up the brand.
+      brandId: (dto as any).brandId,
     };
 
     const order = await this.ingestCanonical(canonical as any, tenantId, dto.locationId);
