@@ -60,6 +60,7 @@ import { BrandingModule } from "./modules/branding/branding.module";
 import { ProviderRegistryModule } from "./modules/provider-registry/provider-registry.module";
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
+import { PauseModule } from "./modules/pauses/pause.module";
 import { SandboxModule } from "./modules/sandbox/sandbox.module";
 import { OutboxModule } from "./modules/outbox/outbox.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
@@ -190,6 +191,7 @@ import { QUEUES } from "@orderhub/shared";
     ProviderRegistryModule,
     MobileModule,
     InventoryModule,
+    PauseModule,
     SandboxModule,
     OutboxModule,
     OnboardingModule,

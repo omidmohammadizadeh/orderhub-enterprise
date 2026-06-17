@@ -89,6 +89,21 @@ interface Storefront {
       }
     | null;
   isOpen: boolean;
+  // Phase AW-15 — operator-pushed pause/busy state. When `closed` is
+  // set the storefront renders a banner + disables Add/Checkout
+  // (customers can still browse). `busy` adds extra prep time to the
+  // visible advertised ETA without blocking checkout.
+  closed?: {
+    brandName: string;
+    resumeAt: string | null;
+    reason: string | null;
+  } | null;
+  busy?: {
+    brandName: string;
+    resumeAt: string | null;
+    reason: string | null;
+    extraPrepTime: number | null;
+  } | null;
   // Phase AP fix #4 — brand-wide modifier-group catalog so the
   // storefront's modifier modal can resolve per-SKU group IDs the
   // same way POS does for multi-SKU products.
@@ -555,6 +570,10 @@ export default function OrderPage() {
   // the customer isn't authenticated. The pending flag is consumed
   // by the effect above the moment auth state flips to authenticated.
   const handlePlaceOrder = () => {
+    // Phase AW-15 — last-mile client guard. The API rechecks too, but
+    // refusing the click here avoids a network round-trip + an
+    // unfriendly toast when the storefront is currently paused.
+    if (storefront?.closed) return;
     if (!authCustomer) {
       setPendingPlaceOrder(true);
       setLoginOpen(true);
@@ -834,6 +853,61 @@ export default function OrderPage() {
               Store is currently closed — schedule for later or come back.
             </p>
           )}
+
+          {/* Phase AW-15 — operator-pushed pause / busy banners. The
+              closed banner blocks Add + Checkout (handled below by
+              isAcceptingOrders); busy keeps everything live but warns
+              about a longer prep time. */}
+          {storefront.closed && (
+            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
+              <p className="font-semibold">
+                {storefront.closed.brandName} currently isn&apos;t accepting
+                online orders
+              </p>
+              {storefront.closed.resumeAt && (
+                <p className="mt-0.5">
+                  Reopens at{" "}
+                  <strong>
+                    {new Date(storefront.closed.resumeAt).toLocaleString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </strong>
+                </p>
+              )}
+              {storefront.closed.reason && (
+                <p className="mt-0.5 italic">
+                  &ldquo;{storefront.closed.reason}&rdquo;
+                </p>
+              )}
+              <p className="mt-1.5 text-[11px] text-red-700">
+                You can keep browsing the menu — checkout is disabled until we
+                reopen.
+              </p>
+            </div>
+          )}
+          {storefront.busy && !storefront.closed && (
+            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+              <p className="font-semibold">
+                Busy right now — orders are taking longer
+              </p>
+              {storefront.busy.extraPrepTime && (
+                <p className="mt-0.5">
+                  Add about{" "}
+                  <strong>{storefront.busy.extraPrepTime} minutes</strong> to
+                  the usual prep time.
+                </p>
+              )}
+              {storefront.busy.reason && (
+                <p className="mt-0.5 italic">
+                  &ldquo;{storefront.busy.reason}&rdquo;
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search */}
@@ -1071,6 +1145,10 @@ export default function OrderPage() {
   );
 
   function handleProductClick(item: MenuItem) {
+    // Phase AW-15 — when the storefront is paused, taps on product
+    // cards become inert. The customer can still scroll the menu but
+    // can't open the modifier sheet or drop anything in the cart.
+    if (storefront?.closed) return;
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     const multiSku = !!item.hasMultipleSkus;
     if (hasMods || multiSku) {

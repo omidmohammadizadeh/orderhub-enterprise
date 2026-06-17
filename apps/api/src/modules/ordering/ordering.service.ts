@@ -9,6 +9,7 @@ import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
+import { PauseService } from "../pauses/pause.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -58,6 +59,10 @@ export class OrderingService {
     // Phase AW-14 — strip items snoozed for ONLINE from the menu before
     // returning. Single round-trip per storefront load.
     private readonly menuAvailability: MenuAvailabilityService,
+    // Phase AW-15 — resolve current pause state so the storefront can
+    // render the "currently not accepting orders" banner and checkout
+    // can refuse to land a new Order against a paused brand.
+    private readonly pauses: PauseService,
   ) {}
 
   /**
@@ -377,26 +382,61 @@ export class OrderingService {
             : null,
     };
 
+    // Phase AW-15 — resolve current pause/busy state for this brand on
+    // the ONLINE channel. The storefront uses `closed` to render a
+    // banner ("Monster Burgerz currently is not accepting online
+    // orders, reopening at …") and to disable Add/Checkout buttons
+    // while still letting the customer browse the menu.
+    const pauseSnapshot = await this.pauses.isPaused({
+      locationId: location.id,
+      brandId: overrideBrand?.id ?? null,
+      channel: "ONLINE",
+    });
+    const brandView = b
+      ? {
+          id: b.id,
+          name: b.name,
+          slug: b.slug,
+          logoUrl: b.logoUrl,
+          cuisine: b.cuisine,
+          about: b.about,
+        }
+      : location.brand;
+    const closed = pauseSnapshot.paused
+      ? {
+          brandName:
+            pauseSnapshot.brandName ??
+            (brandView as any)?.name ??
+            location.name,
+          resumeAt: pauseSnapshot.resumeAt,
+          reason: pauseSnapshot.reason,
+        }
+      : null;
+
     return {
       directConfig,
       deliveryZones,
       brandModifierGroups,
       location: locationView,
-      brand: b
-        ? {
-            id: b.id,
-            name: b.name,
-            slug: b.slug,
-            logoUrl: b.logoUrl,
-            cuisine: b.cuisine,
-            about: b.about,
-            // Surface the brand identity here too so existing code
-            // paths that read `storefront.brand.logoUrl` still work
-            // for the brand-pinned case.
-          }
-        : location.brand,
+      brand: brandView,
       menu,
       isOpen: this.isCurrentlyOpen(location.openingHours as any, location.timezone),
+      // Phase AW-15 — null when accepting orders; populated when the
+      // operator hit Stop Taking Orders. extraPrepTime is non-null when
+      // busy-mode is active (still accepting, just slower).
+      closed,
+      busy:
+        pauseSnapshot.mode === "busy"
+          ? {
+              brandName:
+                pauseSnapshot.brandName ??
+                (brandView as any)?.name ??
+                location.name,
+              resumeAt: pauseSnapshot.resumeAt,
+              reason: pauseSnapshot.reason,
+              extraPrepTime: pauseSnapshot.extraPrepTime,
+            }
+          : null,
     };
   }
 
@@ -434,6 +474,23 @@ export class OrderingService {
 
     if (!this.isCurrentlyOpen(location.openingHours as any[], location.timezone)) {
       throw new BadRequestException("Store is currently closed");
+    }
+
+    // Phase AW-15 — server-side defence against a customer reaching the
+    // /checkout endpoint while the operator has the storefront paused
+    // (banner bypass, stale tab, deep link, race during pause). Always
+    // re-check the live state regardless of what the client thinks.
+    const livePause = await this.pauses.isPaused({
+      locationId: location.id,
+      brandId: pinnedBrandId,
+      channel: "ONLINE",
+    });
+    if (livePause.paused) {
+      throw new BadRequestException(
+        livePause.reason
+          ? `Not accepting orders right now: ${livePause.reason}`
+          : "This brand isn't accepting online orders right now",
+      );
     }
 
     // Phase AP-8 pre-flight — for CARD orders, validate the location

@@ -2,9 +2,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2 } from "lucide-react";
+import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle } from "lucide-react";
 import { OrderList } from "@/components/orders/order-list";
 import { ScheduledOrdersStrip } from "@/components/orders/scheduled-orders-strip";
+import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { apiClient } from "@/lib/api/client";
@@ -34,6 +35,7 @@ export default function OrdersPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const role = useAuthStore((s) => s.user?.role);
   const canRunTests = !!role && CAN_RUN_TEST_ORDERS.has(role);
+  const [pauseModalOpen, setPauseModalOpen] = useState(false);
 
   const testOrder = useMutation({
     mutationFn: async (fulfillmentType: "DELIVERY" | "PICKUP") => {
@@ -72,6 +74,26 @@ export default function OrdersPage() {
           <p className="text-sm text-zinc-500">
             Real-time order board — updates automatically via WebSocket.
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Phase AW-15 — Stop taking orders. Available to every role
+              the orders page itself is visible to; the modal handles
+              the duration / reason flow + the active-pause list with
+              one-click resume. */}
+          <button
+            type="button"
+            onClick={() => setPauseModalOpen(true)}
+            disabled={!selectedLocationId}
+            title={
+              selectedLocationId
+                ? "Pause or busy-mode this location"
+                : "Select a location first"
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:border-red-300 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <PauseCircle className="h-4 w-4" />
+            Stop taking orders
+          </button>
         </div>
         {canRunTests && (
           <div className="flex flex-wrap items-center gap-2">
@@ -113,6 +135,13 @@ export default function OrdersPage() {
       )}
       <ScheduledOrdersStrip locationId={selectedLocationId ?? undefined} />
       <OrderList locationId={selectedLocationId ?? undefined} />
+      {selectedLocationId && (
+        <StopTakingOrdersModal
+          open={pauseModalOpen}
+          locationId={selectedLocationId}
+          onClose={() => setPauseModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -104,6 +104,11 @@ export type MenuCategory = $Result.DefaultSelection<Prisma.$MenuCategoryPayload>
  */
 export type MenuItem = $Result.DefaultSelection<Prisma.$MenuItemPayload>
 /**
+ * Model ChannelPause
+ * 
+ */
+export type ChannelPause = $Result.DefaultSelection<Prisma.$ChannelPausePayload>
+/**
  * Model MenuItemChannelAvailability
  * 
  */
@@ -1500,6 +1505,16 @@ export class PrismaClient<
   get menuItem(): Prisma.MenuItemDelegate<ExtArgs>;
 
   /**
+   * `prisma.channelPause`: Exposes CRUD operations for the **ChannelPause** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChannelPauses
+    * const channelPauses = await prisma.channelPause.findMany()
+    * ```
+    */
+  get channelPause(): Prisma.ChannelPauseDelegate<ExtArgs>;
+
+  /**
    * `prisma.menuItemChannelAvailability`: Exposes CRUD operations for the **MenuItemChannelAvailability** model.
     * Example usage:
     * ```ts
@@ -2677,6 +2692,7 @@ export namespace Prisma {
     Menu: 'Menu',
     MenuCategory: 'MenuCategory',
     MenuItem: 'MenuItem',
+    ChannelPause: 'ChannelPause',
     MenuItemChannelAvailability: 'MenuItemChannelAvailability',
     MenuItemOnCategory: 'MenuItemOnCategory',
     ModifierGroup: 'ModifierGroup',
@@ -2764,7 +2780,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4025,6 +4041,76 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuItemCountArgs<ExtArgs>
             result: $Utils.Optional<MenuItemCountAggregateOutputType> | number
+          }
+        }
+      }
+      ChannelPause: {
+        payload: Prisma.$ChannelPausePayload<ExtArgs>
+        fields: Prisma.ChannelPauseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChannelPauseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChannelPauseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          findFirst: {
+            args: Prisma.ChannelPauseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChannelPauseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          findMany: {
+            args: Prisma.ChannelPauseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>[]
+          }
+          create: {
+            args: Prisma.ChannelPauseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          createMany: {
+            args: Prisma.ChannelPauseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChannelPauseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>[]
+          }
+          delete: {
+            args: Prisma.ChannelPauseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          update: {
+            args: Prisma.ChannelPauseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          deleteMany: {
+            args: Prisma.ChannelPauseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChannelPauseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ChannelPauseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChannelPausePayload>
+          }
+          aggregate: {
+            args: Prisma.ChannelPauseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChannelPause>
+          }
+          groupBy: {
+            args: Prisma.ChannelPauseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChannelPauseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChannelPauseCountArgs<ExtArgs>
+            result: $Utils.Optional<ChannelPauseCountAggregateOutputType> | number
           }
         }
       }
@@ -9614,6 +9700,7 @@ export namespace Prisma {
     deliveryZones: number
     userLocations: number
     platformConnections: number
+    channelPauses: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9626,6 +9713,7 @@ export namespace Prisma {
     deliveryZones?: boolean | LocationCountOutputTypeCountDeliveryZonesArgs
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
+    channelPauses?: boolean | LocationCountOutputTypeCountChannelPausesArgs
   }
 
   // Custom InputTypes
@@ -9700,6 +9788,13 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountPlatformConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BrandPlatformConnectionWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountChannelPausesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChannelPauseWhereInput
   }
 
 
@@ -24461,6 +24556,7 @@ export namespace Prisma {
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
+    channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -24596,6 +24692,7 @@ export namespace Prisma {
     userLocations?: boolean | Location$userLocationsArgs<ExtArgs>
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
+    channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -24623,6 +24720,7 @@ export namespace Prisma {
       userLocations: Prisma.$UserLocationPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
+      channelPauses: Prisma.$ChannelPausePayload<ExtArgs>[]
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
@@ -25057,6 +25155,7 @@ export namespace Prisma {
     userLocations<T extends Location$userLocationsArgs<ExtArgs> = {}>(args?: Subset<T, Location$userLocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserLocationPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    channelPauses<T extends Location$channelPausesArgs<ExtArgs> = {}>(args?: Subset<T, Location$channelPausesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findMany"> | Null>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -25667,6 +25766,26 @@ export namespace Prisma {
      */
     include?: DirectOrderingConfigInclude<ExtArgs> | null
     where?: DirectOrderingConfigWhereInput
+  }
+
+  /**
+   * Location.channelPauses
+   */
+  export type Location$channelPausesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    where?: ChannelPauseWhereInput
+    orderBy?: ChannelPauseOrderByWithRelationInput | ChannelPauseOrderByWithRelationInput[]
+    cursor?: ChannelPauseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ChannelPauseScalarFieldEnum | ChannelPauseScalarFieldEnum[]
   }
 
   /**
@@ -31813,6 +31932,1057 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MenuItemInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChannelPause
+   */
+
+  export type AggregateChannelPause = {
+    _count: ChannelPauseCountAggregateOutputType | null
+    _avg: ChannelPauseAvgAggregateOutputType | null
+    _sum: ChannelPauseSumAggregateOutputType | null
+    _min: ChannelPauseMinAggregateOutputType | null
+    _max: ChannelPauseMaxAggregateOutputType | null
+  }
+
+  export type ChannelPauseAvgAggregateOutputType = {
+    extraPrepTime: number | null
+  }
+
+  export type ChannelPauseSumAggregateOutputType = {
+    extraPrepTime: number | null
+  }
+
+  export type ChannelPauseMinAggregateOutputType = {
+    id: string | null
+    locationId: string | null
+    brandId: string | null
+    channel: string | null
+    mode: string | null
+    resumeAt: Date | null
+    reason: string | null
+    extraPrepTime: number | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChannelPauseMaxAggregateOutputType = {
+    id: string | null
+    locationId: string | null
+    brandId: string | null
+    channel: string | null
+    mode: string | null
+    resumeAt: Date | null
+    reason: string | null
+    extraPrepTime: number | null
+    pausedAt: Date | null
+    pausedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChannelPauseCountAggregateOutputType = {
+    id: number
+    locationId: number
+    brandId: number
+    channel: number
+    mode: number
+    resumeAt: number
+    reason: number
+    extraPrepTime: number
+    pausedAt: number
+    pausedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ChannelPauseAvgAggregateInputType = {
+    extraPrepTime?: true
+  }
+
+  export type ChannelPauseSumAggregateInputType = {
+    extraPrepTime?: true
+  }
+
+  export type ChannelPauseMinAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    mode?: true
+    resumeAt?: true
+    reason?: true
+    extraPrepTime?: true
+    pausedAt?: true
+    pausedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChannelPauseMaxAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    mode?: true
+    resumeAt?: true
+    reason?: true
+    extraPrepTime?: true
+    pausedAt?: true
+    pausedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChannelPauseCountAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    mode?: true
+    resumeAt?: true
+    reason?: true
+    extraPrepTime?: true
+    pausedAt?: true
+    pausedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ChannelPauseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChannelPause to aggregate.
+     */
+    where?: ChannelPauseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChannelPauses to fetch.
+     */
+    orderBy?: ChannelPauseOrderByWithRelationInput | ChannelPauseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChannelPauseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChannelPauses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChannelPauses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChannelPauses
+    **/
+    _count?: true | ChannelPauseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ChannelPauseAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChannelPauseSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChannelPauseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChannelPauseMaxAggregateInputType
+  }
+
+  export type GetChannelPauseAggregateType<T extends ChannelPauseAggregateArgs> = {
+        [P in keyof T & keyof AggregateChannelPause]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChannelPause[P]>
+      : GetScalarType<T[P], AggregateChannelPause[P]>
+  }
+
+
+
+
+  export type ChannelPauseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChannelPauseWhereInput
+    orderBy?: ChannelPauseOrderByWithAggregationInput | ChannelPauseOrderByWithAggregationInput[]
+    by: ChannelPauseScalarFieldEnum[] | ChannelPauseScalarFieldEnum
+    having?: ChannelPauseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChannelPauseCountAggregateInputType | true
+    _avg?: ChannelPauseAvgAggregateInputType
+    _sum?: ChannelPauseSumAggregateInputType
+    _min?: ChannelPauseMinAggregateInputType
+    _max?: ChannelPauseMaxAggregateInputType
+  }
+
+  export type ChannelPauseGroupByOutputType = {
+    id: string
+    locationId: string
+    brandId: string | null
+    channel: string | null
+    mode: string
+    resumeAt: Date | null
+    reason: string | null
+    extraPrepTime: number | null
+    pausedAt: Date
+    pausedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ChannelPauseCountAggregateOutputType | null
+    _avg: ChannelPauseAvgAggregateOutputType | null
+    _sum: ChannelPauseSumAggregateOutputType | null
+    _min: ChannelPauseMinAggregateOutputType | null
+    _max: ChannelPauseMaxAggregateOutputType | null
+  }
+
+  type GetChannelPauseGroupByPayload<T extends ChannelPauseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChannelPauseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChannelPauseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChannelPauseGroupByOutputType[P]>
+            : GetScalarType<T[P], ChannelPauseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChannelPauseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    mode?: boolean
+    resumeAt?: boolean
+    reason?: boolean
+    extraPrepTime?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["channelPause"]>
+
+  export type ChannelPauseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    mode?: boolean
+    resumeAt?: boolean
+    reason?: boolean
+    extraPrepTime?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["channelPause"]>
+
+  export type ChannelPauseSelectScalar = {
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    mode?: boolean
+    resumeAt?: boolean
+    reason?: boolean
+    extraPrepTime?: boolean
+    pausedAt?: boolean
+    pausedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ChannelPauseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type ChannelPauseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $ChannelPausePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChannelPause"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      locationId: string
+      brandId: string | null
+      channel: string | null
+      mode: string
+      resumeAt: Date | null
+      reason: string | null
+      extraPrepTime: number | null
+      pausedAt: Date
+      pausedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["channelPause"]>
+    composites: {}
+  }
+
+  type ChannelPauseGetPayload<S extends boolean | null | undefined | ChannelPauseDefaultArgs> = $Result.GetResult<Prisma.$ChannelPausePayload, S>
+
+  type ChannelPauseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ChannelPauseFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ChannelPauseCountAggregateInputType | true
+    }
+
+  export interface ChannelPauseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChannelPause'], meta: { name: 'ChannelPause' } }
+    /**
+     * Find zero or one ChannelPause that matches the filter.
+     * @param {ChannelPauseFindUniqueArgs} args - Arguments to find a ChannelPause
+     * @example
+     * // Get one ChannelPause
+     * const channelPause = await prisma.channelPause.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChannelPauseFindUniqueArgs>(args: SelectSubset<T, ChannelPauseFindUniqueArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ChannelPause that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ChannelPauseFindUniqueOrThrowArgs} args - Arguments to find a ChannelPause
+     * @example
+     * // Get one ChannelPause
+     * const channelPause = await prisma.channelPause.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChannelPauseFindUniqueOrThrowArgs>(args: SelectSubset<T, ChannelPauseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ChannelPause that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseFindFirstArgs} args - Arguments to find a ChannelPause
+     * @example
+     * // Get one ChannelPause
+     * const channelPause = await prisma.channelPause.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChannelPauseFindFirstArgs>(args?: SelectSubset<T, ChannelPauseFindFirstArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ChannelPause that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseFindFirstOrThrowArgs} args - Arguments to find a ChannelPause
+     * @example
+     * // Get one ChannelPause
+     * const channelPause = await prisma.channelPause.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChannelPauseFindFirstOrThrowArgs>(args?: SelectSubset<T, ChannelPauseFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ChannelPauses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChannelPauses
+     * const channelPauses = await prisma.channelPause.findMany()
+     * 
+     * // Get first 10 ChannelPauses
+     * const channelPauses = await prisma.channelPause.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const channelPauseWithIdOnly = await prisma.channelPause.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChannelPauseFindManyArgs>(args?: SelectSubset<T, ChannelPauseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ChannelPause.
+     * @param {ChannelPauseCreateArgs} args - Arguments to create a ChannelPause.
+     * @example
+     * // Create one ChannelPause
+     * const ChannelPause = await prisma.channelPause.create({
+     *   data: {
+     *     // ... data to create a ChannelPause
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChannelPauseCreateArgs>(args: SelectSubset<T, ChannelPauseCreateArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ChannelPauses.
+     * @param {ChannelPauseCreateManyArgs} args - Arguments to create many ChannelPauses.
+     * @example
+     * // Create many ChannelPauses
+     * const channelPause = await prisma.channelPause.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChannelPauseCreateManyArgs>(args?: SelectSubset<T, ChannelPauseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChannelPauses and returns the data saved in the database.
+     * @param {ChannelPauseCreateManyAndReturnArgs} args - Arguments to create many ChannelPauses.
+     * @example
+     * // Create many ChannelPauses
+     * const channelPause = await prisma.channelPause.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChannelPauses and only return the `id`
+     * const channelPauseWithIdOnly = await prisma.channelPause.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChannelPauseCreateManyAndReturnArgs>(args?: SelectSubset<T, ChannelPauseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ChannelPause.
+     * @param {ChannelPauseDeleteArgs} args - Arguments to delete one ChannelPause.
+     * @example
+     * // Delete one ChannelPause
+     * const ChannelPause = await prisma.channelPause.delete({
+     *   where: {
+     *     // ... filter to delete one ChannelPause
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChannelPauseDeleteArgs>(args: SelectSubset<T, ChannelPauseDeleteArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ChannelPause.
+     * @param {ChannelPauseUpdateArgs} args - Arguments to update one ChannelPause.
+     * @example
+     * // Update one ChannelPause
+     * const channelPause = await prisma.channelPause.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChannelPauseUpdateArgs>(args: SelectSubset<T, ChannelPauseUpdateArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ChannelPauses.
+     * @param {ChannelPauseDeleteManyArgs} args - Arguments to filter ChannelPauses to delete.
+     * @example
+     * // Delete a few ChannelPauses
+     * const { count } = await prisma.channelPause.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChannelPauseDeleteManyArgs>(args?: SelectSubset<T, ChannelPauseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChannelPauses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChannelPauses
+     * const channelPause = await prisma.channelPause.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChannelPauseUpdateManyArgs>(args: SelectSubset<T, ChannelPauseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ChannelPause.
+     * @param {ChannelPauseUpsertArgs} args - Arguments to update or create a ChannelPause.
+     * @example
+     * // Update or create a ChannelPause
+     * const channelPause = await prisma.channelPause.upsert({
+     *   create: {
+     *     // ... data to create a ChannelPause
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChannelPause we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChannelPauseUpsertArgs>(args: SelectSubset<T, ChannelPauseUpsertArgs<ExtArgs>>): Prisma__ChannelPauseClient<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ChannelPauses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseCountArgs} args - Arguments to filter ChannelPauses to count.
+     * @example
+     * // Count the number of ChannelPauses
+     * const count = await prisma.channelPause.count({
+     *   where: {
+     *     // ... the filter for the ChannelPauses we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChannelPauseCountArgs>(
+      args?: Subset<T, ChannelPauseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChannelPauseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChannelPause.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChannelPauseAggregateArgs>(args: Subset<T, ChannelPauseAggregateArgs>): Prisma.PrismaPromise<GetChannelPauseAggregateType<T>>
+
+    /**
+     * Group by ChannelPause.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChannelPauseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChannelPauseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChannelPauseGroupByArgs['orderBy'] }
+        : { orderBy?: ChannelPauseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChannelPauseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChannelPauseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChannelPause model
+   */
+  readonly fields: ChannelPauseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChannelPause.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChannelPauseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChannelPause model
+   */ 
+  interface ChannelPauseFieldRefs {
+    readonly id: FieldRef<"ChannelPause", 'String'>
+    readonly locationId: FieldRef<"ChannelPause", 'String'>
+    readonly brandId: FieldRef<"ChannelPause", 'String'>
+    readonly channel: FieldRef<"ChannelPause", 'String'>
+    readonly mode: FieldRef<"ChannelPause", 'String'>
+    readonly resumeAt: FieldRef<"ChannelPause", 'DateTime'>
+    readonly reason: FieldRef<"ChannelPause", 'String'>
+    readonly extraPrepTime: FieldRef<"ChannelPause", 'Int'>
+    readonly pausedAt: FieldRef<"ChannelPause", 'DateTime'>
+    readonly pausedBy: FieldRef<"ChannelPause", 'String'>
+    readonly createdAt: FieldRef<"ChannelPause", 'DateTime'>
+    readonly updatedAt: FieldRef<"ChannelPause", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChannelPause findUnique
+   */
+  export type ChannelPauseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter, which ChannelPause to fetch.
+     */
+    where: ChannelPauseWhereUniqueInput
+  }
+
+  /**
+   * ChannelPause findUniqueOrThrow
+   */
+  export type ChannelPauseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter, which ChannelPause to fetch.
+     */
+    where: ChannelPauseWhereUniqueInput
+  }
+
+  /**
+   * ChannelPause findFirst
+   */
+  export type ChannelPauseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter, which ChannelPause to fetch.
+     */
+    where?: ChannelPauseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChannelPauses to fetch.
+     */
+    orderBy?: ChannelPauseOrderByWithRelationInput | ChannelPauseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChannelPauses.
+     */
+    cursor?: ChannelPauseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChannelPauses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChannelPauses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChannelPauses.
+     */
+    distinct?: ChannelPauseScalarFieldEnum | ChannelPauseScalarFieldEnum[]
+  }
+
+  /**
+   * ChannelPause findFirstOrThrow
+   */
+  export type ChannelPauseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter, which ChannelPause to fetch.
+     */
+    where?: ChannelPauseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChannelPauses to fetch.
+     */
+    orderBy?: ChannelPauseOrderByWithRelationInput | ChannelPauseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChannelPauses.
+     */
+    cursor?: ChannelPauseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChannelPauses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChannelPauses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChannelPauses.
+     */
+    distinct?: ChannelPauseScalarFieldEnum | ChannelPauseScalarFieldEnum[]
+  }
+
+  /**
+   * ChannelPause findMany
+   */
+  export type ChannelPauseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter, which ChannelPauses to fetch.
+     */
+    where?: ChannelPauseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChannelPauses to fetch.
+     */
+    orderBy?: ChannelPauseOrderByWithRelationInput | ChannelPauseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChannelPauses.
+     */
+    cursor?: ChannelPauseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChannelPauses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChannelPauses.
+     */
+    skip?: number
+    distinct?: ChannelPauseScalarFieldEnum | ChannelPauseScalarFieldEnum[]
+  }
+
+  /**
+   * ChannelPause create
+   */
+  export type ChannelPauseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ChannelPause.
+     */
+    data: XOR<ChannelPauseCreateInput, ChannelPauseUncheckedCreateInput>
+  }
+
+  /**
+   * ChannelPause createMany
+   */
+  export type ChannelPauseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChannelPauses.
+     */
+    data: ChannelPauseCreateManyInput | ChannelPauseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChannelPause createManyAndReturn
+   */
+  export type ChannelPauseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ChannelPauses.
+     */
+    data: ChannelPauseCreateManyInput | ChannelPauseCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ChannelPause update
+   */
+  export type ChannelPauseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ChannelPause.
+     */
+    data: XOR<ChannelPauseUpdateInput, ChannelPauseUncheckedUpdateInput>
+    /**
+     * Choose, which ChannelPause to update.
+     */
+    where: ChannelPauseWhereUniqueInput
+  }
+
+  /**
+   * ChannelPause updateMany
+   */
+  export type ChannelPauseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChannelPauses.
+     */
+    data: XOR<ChannelPauseUpdateManyMutationInput, ChannelPauseUncheckedUpdateManyInput>
+    /**
+     * Filter which ChannelPauses to update
+     */
+    where?: ChannelPauseWhereInput
+  }
+
+  /**
+   * ChannelPause upsert
+   */
+  export type ChannelPauseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ChannelPause to update in case it exists.
+     */
+    where: ChannelPauseWhereUniqueInput
+    /**
+     * In case the ChannelPause found by the `where` argument doesn't exist, create a new ChannelPause with this data.
+     */
+    create: XOR<ChannelPauseCreateInput, ChannelPauseUncheckedCreateInput>
+    /**
+     * In case the ChannelPause was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChannelPauseUpdateInput, ChannelPauseUncheckedUpdateInput>
+  }
+
+  /**
+   * ChannelPause delete
+   */
+  export type ChannelPauseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
+    /**
+     * Filter which ChannelPause to delete.
+     */
+    where: ChannelPauseWhereUniqueInput
+  }
+
+  /**
+   * ChannelPause deleteMany
+   */
+  export type ChannelPauseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChannelPauses to delete
+     */
+    where?: ChannelPauseWhereInput
+  }
+
+  /**
+   * ChannelPause without action
+   */
+  export type ChannelPauseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChannelPause
+     */
+    select?: ChannelPauseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChannelPauseInclude<ExtArgs> | null
   }
 
 
@@ -107703,6 +108873,24 @@ export namespace Prisma {
   export type MenuItemScalarFieldEnum = (typeof MenuItemScalarFieldEnum)[keyof typeof MenuItemScalarFieldEnum]
 
 
+  export const ChannelPauseScalarFieldEnum: {
+    id: 'id',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    channel: 'channel',
+    mode: 'mode',
+    resumeAt: 'resumeAt',
+    reason: 'reason',
+    extraPrepTime: 'extraPrepTime',
+    pausedAt: 'pausedAt',
+    pausedBy: 'pausedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ChannelPauseScalarFieldEnum = (typeof ChannelPauseScalarFieldEnum)[keyof typeof ChannelPauseScalarFieldEnum]
+
+
   export const MenuItemChannelAvailabilityScalarFieldEnum: {
     id: 'id',
     itemId: 'itemId',
@@ -109341,6 +110529,19 @@ export namespace Prisma {
   };
 
   export type MenuItemOrderByRelevanceFieldEnum = (typeof MenuItemOrderByRelevanceFieldEnum)[keyof typeof MenuItemOrderByRelevanceFieldEnum]
+
+
+  export const ChannelPauseOrderByRelevanceFieldEnum: {
+    id: 'id',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    channel: 'channel',
+    mode: 'mode',
+    reason: 'reason',
+    pausedBy: 'pausedBy'
+  };
+
+  export type ChannelPauseOrderByRelevanceFieldEnum = (typeof ChannelPauseOrderByRelevanceFieldEnum)[keyof typeof ChannelPauseOrderByRelevanceFieldEnum]
 
 
   export const MenuItemChannelAvailabilityOrderByRelevanceFieldEnum: {
@@ -112250,6 +113451,7 @@ export namespace Prisma {
     userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
+    channelPauses?: ChannelPauseListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -112321,6 +113523,7 @@ export namespace Prisma {
     userLocations?: UserLocationOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
+    channelPauses?: ChannelPauseOrderByRelationAggregateInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
@@ -112396,6 +113599,7 @@ export namespace Prisma {
     userLocations?: UserLocationListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
+    channelPauses?: ChannelPauseListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -113312,6 +114516,99 @@ export namespace Prisma {
     rawModifierGroupIds?: JsonWithAggregatesFilter<"MenuItem">
     createdAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuItem"> | Date | string
+  }
+
+  export type ChannelPauseWhereInput = {
+    AND?: ChannelPauseWhereInput | ChannelPauseWhereInput[]
+    OR?: ChannelPauseWhereInput[]
+    NOT?: ChannelPauseWhereInput | ChannelPauseWhereInput[]
+    id?: StringFilter<"ChannelPause"> | string
+    locationId?: StringFilter<"ChannelPause"> | string
+    brandId?: StringNullableFilter<"ChannelPause"> | string | null
+    channel?: StringNullableFilter<"ChannelPause"> | string | null
+    mode?: StringFilter<"ChannelPause"> | string
+    resumeAt?: DateTimeNullableFilter<"ChannelPause"> | Date | string | null
+    reason?: StringNullableFilter<"ChannelPause"> | string | null
+    extraPrepTime?: IntNullableFilter<"ChannelPause"> | number | null
+    pausedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    pausedBy?: StringNullableFilter<"ChannelPause"> | string | null
+    createdAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    updatedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type ChannelPauseOrderByWithRelationInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    channel?: SortOrderInput | SortOrder
+    mode?: SortOrder
+    resumeAt?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    extraPrepTime?: SortOrderInput | SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: ChannelPauseOrderByRelevanceInput
+  }
+
+  export type ChannelPauseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ChannelPauseWhereInput | ChannelPauseWhereInput[]
+    OR?: ChannelPauseWhereInput[]
+    NOT?: ChannelPauseWhereInput | ChannelPauseWhereInput[]
+    locationId?: StringFilter<"ChannelPause"> | string
+    brandId?: StringNullableFilter<"ChannelPause"> | string | null
+    channel?: StringNullableFilter<"ChannelPause"> | string | null
+    mode?: StringFilter<"ChannelPause"> | string
+    resumeAt?: DateTimeNullableFilter<"ChannelPause"> | Date | string | null
+    reason?: StringNullableFilter<"ChannelPause"> | string | null
+    extraPrepTime?: IntNullableFilter<"ChannelPause"> | number | null
+    pausedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    pausedBy?: StringNullableFilter<"ChannelPause"> | string | null
+    createdAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    updatedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id">
+
+  export type ChannelPauseOrderByWithAggregationInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    channel?: SortOrderInput | SortOrder
+    mode?: SortOrder
+    resumeAt?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    extraPrepTime?: SortOrderInput | SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ChannelPauseCountOrderByAggregateInput
+    _avg?: ChannelPauseAvgOrderByAggregateInput
+    _max?: ChannelPauseMaxOrderByAggregateInput
+    _min?: ChannelPauseMinOrderByAggregateInput
+    _sum?: ChannelPauseSumOrderByAggregateInput
+  }
+
+  export type ChannelPauseScalarWhereWithAggregatesInput = {
+    AND?: ChannelPauseScalarWhereWithAggregatesInput | ChannelPauseScalarWhereWithAggregatesInput[]
+    OR?: ChannelPauseScalarWhereWithAggregatesInput[]
+    NOT?: ChannelPauseScalarWhereWithAggregatesInput | ChannelPauseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChannelPause"> | string
+    locationId?: StringWithAggregatesFilter<"ChannelPause"> | string
+    brandId?: StringNullableWithAggregatesFilter<"ChannelPause"> | string | null
+    channel?: StringNullableWithAggregatesFilter<"ChannelPause"> | string | null
+    mode?: StringWithAggregatesFilter<"ChannelPause"> | string
+    resumeAt?: DateTimeNullableWithAggregatesFilter<"ChannelPause"> | Date | string | null
+    reason?: StringNullableWithAggregatesFilter<"ChannelPause"> | string | null
+    extraPrepTime?: IntNullableWithAggregatesFilter<"ChannelPause"> | number | null
+    pausedAt?: DateTimeWithAggregatesFilter<"ChannelPause"> | Date | string
+    pausedBy?: StringNullableWithAggregatesFilter<"ChannelPause"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ChannelPause"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ChannelPause"> | Date | string
   }
 
   export type MenuItemChannelAvailabilityWhereInput = {
@@ -121673,6 +122970,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -121743,6 +123041,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -121807,6 +123106,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -121877,6 +123177,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -123019,6 +124320,110 @@ export namespace Prisma {
     syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
     syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseCreateInput = {
+    id?: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutChannelPausesInput
+  }
+
+  export type ChannelPauseUncheckedCreateInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChannelPauseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutChannelPausesNestedInput
+  }
+
+  export type ChannelPauseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseCreateManyInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChannelPauseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -132139,6 +133544,12 @@ export namespace Prisma {
     isNot?: LocationPaymentConfigWhereInput | null
   }
 
+  export type ChannelPauseListRelationFilter = {
+    every?: ChannelPauseWhereInput
+    some?: ChannelPauseWhereInput
+    none?: ChannelPauseWhereInput
+  }
+
   export type PrinterNullableRelationFilter = {
     is?: PrinterWhereInput | null
     isNot?: PrinterWhereInput | null
@@ -132157,6 +133568,10 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ChannelPauseOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -133020,6 +134435,65 @@ export namespace Prisma {
     _sum?: NestedDecimalFilter<$PrismaModel>
     _min?: NestedDecimalFilter<$PrismaModel>
     _max?: NestedDecimalFilter<$PrismaModel>
+  }
+
+  export type ChannelPauseOrderByRelevanceInput = {
+    fields: ChannelPauseOrderByRelevanceFieldEnum | ChannelPauseOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ChannelPauseCountOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    mode?: SortOrder
+    resumeAt?: SortOrder
+    reason?: SortOrder
+    extraPrepTime?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChannelPauseAvgOrderByAggregateInput = {
+    extraPrepTime?: SortOrder
+  }
+
+  export type ChannelPauseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    mode?: SortOrder
+    resumeAt?: SortOrder
+    reason?: SortOrder
+    extraPrepTime?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChannelPauseMinOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    mode?: SortOrder
+    resumeAt?: SortOrder
+    reason?: SortOrder
+    extraPrepTime?: SortOrder
+    pausedAt?: SortOrder
+    pausedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChannelPauseSumOrderByAggregateInput = {
+    extraPrepTime?: SortOrder
   }
 
   export type MenuItemRelationFilter = {
@@ -140045,6 +141519,13 @@ export namespace Prisma {
     connect?: DirectOrderingConfigWhereUniqueInput
   }
 
+  export type ChannelPauseCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput> | ChannelPauseCreateWithoutLocationInput[] | ChannelPauseUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ChannelPauseCreateOrConnectWithoutLocationInput | ChannelPauseCreateOrConnectWithoutLocationInput[]
+    createMany?: ChannelPauseCreateManyLocationInputEnvelope
+    connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -140136,6 +141617,13 @@ export namespace Prisma {
     create?: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: DirectOrderingConfigCreateOrConnectWithoutLocationInput
     connect?: DirectOrderingConfigWhereUniqueInput
+  }
+
+  export type ChannelPauseUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput> | ChannelPauseCreateWithoutLocationInput[] | ChannelPauseUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ChannelPauseCreateOrConnectWithoutLocationInput | ChannelPauseCreateOrConnectWithoutLocationInput[]
+    createMany?: ChannelPauseCreateManyLocationInputEnvelope
+    connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -140312,6 +141800,20 @@ export namespace Prisma {
     update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput, DirectOrderingConfigUpdateWithoutLocationInput>, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type ChannelPauseUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput> | ChannelPauseCreateWithoutLocationInput[] | ChannelPauseUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ChannelPauseCreateOrConnectWithoutLocationInput | ChannelPauseCreateOrConnectWithoutLocationInput[]
+    upsert?: ChannelPauseUpsertWithWhereUniqueWithoutLocationInput | ChannelPauseUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ChannelPauseCreateManyLocationInputEnvelope
+    set?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    disconnect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    delete?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    update?: ChannelPauseUpdateWithWhereUniqueWithoutLocationInput | ChannelPauseUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ChannelPauseUpdateManyWithWhereWithoutLocationInput | ChannelPauseUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -140486,6 +141988,20 @@ export namespace Prisma {
     delete?: DirectOrderingConfigWhereInput | boolean
     connect?: DirectOrderingConfigWhereUniqueInput
     update?: XOR<XOR<DirectOrderingConfigUpdateToOneWithWhereWithoutLocationInput, DirectOrderingConfigUpdateWithoutLocationInput>, DirectOrderingConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput> | ChannelPauseCreateWithoutLocationInput[] | ChannelPauseUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ChannelPauseCreateOrConnectWithoutLocationInput | ChannelPauseCreateOrConnectWithoutLocationInput[]
+    upsert?: ChannelPauseUpsertWithWhereUniqueWithoutLocationInput | ChannelPauseUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ChannelPauseCreateManyLocationInputEnvelope
+    set?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    disconnect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    delete?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+    update?: ChannelPauseUpdateWithWhereUniqueWithoutLocationInput | ChannelPauseUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ChannelPauseUpdateManyWithWhereWithoutLocationInput | ChannelPauseUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -141048,6 +142564,20 @@ export namespace Prisma {
     update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutItemInput[]
     updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutItemInput[]
     deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
+  export type LocationCreateNestedOneWithoutChannelPausesInput = {
+    create?: XOR<LocationCreateWithoutChannelPausesInput, LocationUncheckedCreateWithoutChannelPausesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutChannelPausesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutChannelPausesNestedInput = {
+    create?: XOR<LocationCreateWithoutChannelPausesInput, LocationUncheckedCreateWithoutChannelPausesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutChannelPausesInput
+    upsert?: LocationUpsertWithoutChannelPausesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutChannelPausesInput, LocationUpdateWithoutChannelPausesInput>, LocationUncheckedUpdateWithoutChannelPausesInput>
   }
 
   export type MenuItemCreateNestedOneWithoutChannelAvailabilityInput = {
@@ -147994,6 +149524,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -148063,6 +149594,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -148205,6 +149737,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -148274,6 +149807,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -149763,6 +151297,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -149832,6 +151367,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -151531,6 +153067,44 @@ export namespace Prisma {
     create: XOR<DirectOrderingConfigCreateWithoutLocationInput, DirectOrderingConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type ChannelPauseCreateWithoutLocationInput = {
+    id?: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChannelPauseUncheckedCreateWithoutLocationInput = {
+    id?: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChannelPauseCreateOrConnectWithoutLocationInput = {
+    where: ChannelPauseWhereUniqueInput
+    create: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ChannelPauseCreateManyLocationInputEnvelope = {
+    data: ChannelPauseCreateManyLocationInput | ChannelPauseCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -152149,6 +153723,40 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ChannelPauseUpsertWithWhereUniqueWithoutLocationInput = {
+    where: ChannelPauseWhereUniqueInput
+    update: XOR<ChannelPauseUpdateWithoutLocationInput, ChannelPauseUncheckedUpdateWithoutLocationInput>
+    create: XOR<ChannelPauseCreateWithoutLocationInput, ChannelPauseUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ChannelPauseUpdateWithWhereUniqueWithoutLocationInput = {
+    where: ChannelPauseWhereUniqueInput
+    data: XOR<ChannelPauseUpdateWithoutLocationInput, ChannelPauseUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ChannelPauseUpdateManyWithWhereWithoutLocationInput = {
+    where: ChannelPauseScalarWhereInput
+    data: XOR<ChannelPauseUpdateManyMutationInput, ChannelPauseUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type ChannelPauseScalarWhereInput = {
+    AND?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
+    OR?: ChannelPauseScalarWhereInput[]
+    NOT?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
+    id?: StringFilter<"ChannelPause"> | string
+    locationId?: StringFilter<"ChannelPause"> | string
+    brandId?: StringNullableFilter<"ChannelPause"> | string | null
+    channel?: StringNullableFilter<"ChannelPause"> | string | null
+    mode?: StringFilter<"ChannelPause"> | string
+    resumeAt?: DateTimeNullableFilter<"ChannelPause"> | Date | string | null
+    reason?: StringNullableFilter<"ChannelPause"> | string | null
+    extraPrepTime?: IntNullableFilter<"ChannelPause"> | number | null
+    pausedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    pausedBy?: StringNullableFilter<"ChannelPause"> | string | null
+    createdAt?: DateTimeFilter<"ChannelPause"> | Date | string
+    updatedAt?: DateTimeFilter<"ChannelPause"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -152524,6 +154132,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -152593,6 +154202,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -152767,6 +154377,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -152836,6 +154447,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -152899,6 +154511,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -152968,6 +154581,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -153047,6 +154661,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -153116,6 +154731,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -154028,6 +155644,290 @@ export namespace Prisma {
     snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
     createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
     updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+  }
+
+  export type LocationCreateWithoutChannelPausesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutChannelPausesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutChannelPausesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutChannelPausesInput, LocationUncheckedCreateWithoutChannelPausesInput>
+  }
+
+  export type LocationUpsertWithoutChannelPausesInput = {
+    update: XOR<LocationUpdateWithoutChannelPausesInput, LocationUncheckedUpdateWithoutChannelPausesInput>
+    create: XOR<LocationCreateWithoutChannelPausesInput, LocationUncheckedCreateWithoutChannelPausesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutChannelPausesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutChannelPausesInput, LocationUncheckedUpdateWithoutChannelPausesInput>
+  }
+
+  export type LocationUpdateWithoutChannelPausesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutChannelPausesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -156932,6 +158832,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -157001,6 +158902,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -157169,6 +159071,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -157238,6 +159141,7 @@ export namespace Prisma {
     paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -157712,6 +159616,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -157781,6 +159686,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -157860,6 +159766,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -157929,6 +159836,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -157992,6 +159900,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -158061,6 +159970,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -158140,6 +160050,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -158209,6 +160120,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -158331,6 +160243,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -158400,6 +160313,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -158956,6 +160870,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -159025,6 +160940,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -160083,6 +161999,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -160152,6 +162069,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -160257,6 +162175,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -160326,6 +162245,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -160781,6 +162701,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -160850,6 +162771,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -161080,6 +163002,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -161148,6 +163071,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -161222,6 +163146,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
   }
@@ -161290,6 +163215,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -161374,6 +163300,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -161443,6 +163370,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -162484,6 +164412,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -162553,6 +164482,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -162865,6 +164795,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -162933,6 +164864,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -163148,6 +165080,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -163217,6 +165150,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -163524,6 +165458,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -163593,6 +165528,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -163891,6 +165827,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -163960,6 +165897,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -171945,6 +173883,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -172014,6 +173953,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -172871,6 +174811,20 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ChannelPauseCreateManyLocationInput = {
+    id?: string
+    brandId?: string | null
+    channel?: string | null
+    mode?: string
+    resumeAt?: Date | string | null
+    reason?: string | null
+    extraPrepTime?: number | null
+    pausedAt?: Date | string
+    pausedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type IntegrationUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -173496,6 +175450,48 @@ export namespace Prisma {
     lastWebhookAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChannelPauseUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: StringFieldUpdateOperationsInput | string
+    resumeAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    extraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    pausedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pausedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -175216,6 +177212,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -175284,6 +177281,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -175403,6 +177401,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
   }
@@ -175471,6 +177470,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -175895,6 +177895,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -175963,6 +177964,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -177537,6 +179539,10 @@ export namespace Prisma {
      * @deprecated Use MenuItemDefaultArgs instead
      */
     export type MenuItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuItemDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ChannelPauseDefaultArgs instead
+     */
+    export type ChannelPauseArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ChannelPauseDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuItemChannelAvailabilityDefaultArgs instead
      */

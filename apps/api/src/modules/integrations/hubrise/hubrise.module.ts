@@ -8,6 +8,7 @@ import { HubRiseOauthService } from "./hubrise-oauth.service";
 import { HubRiseOrderSyncService } from "./hubrise-order-sync.service";
 import { HubRiseDeliverySyncService } from "./hubrise-delivery-sync.service";
 import { HubRiseCatalogService } from "./hubrise-catalog.service";
+import { HubRiseLocationPauseService } from "./hubrise-location-pause.service";
 import { OrdersModule } from "../../orders/orders.module";
 import { forwardRef } from "@nestjs/common";
 
@@ -36,6 +37,7 @@ import { forwardRef } from "@nestjs/common";
     HubRiseOrderSyncService,
     HubRiseDeliverySyncService,
     HubRiseCatalogService,
+    HubRiseLocationPauseService,
   ],
   // HubRiseOrderSyncService is consumed by OrdersService to push our
   // status transitions back to HubRise so every connected channel
@@ -46,6 +48,7 @@ import { forwardRef } from "@nestjs/common";
     HubRiseOauthService,
     HubRiseOrderSyncService,
     HubRiseCatalogService,
+    HubRiseLocationPauseService,
   ],
 })
 export class HubRiseModule {}

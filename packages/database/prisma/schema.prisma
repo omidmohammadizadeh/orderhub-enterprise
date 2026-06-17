@@ -459,6 +459,7 @@ model Location {
   userLocations        UserLocation[]
   platformConnections  BrandPlatformConnection[]
   directOrderingConfig DirectOrderingConfig?
+  channelPauses        ChannelPause[]
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -861,6 +862,53 @@ model MenuItem {
   @@index([plu])
   @@index([platformSource, externalId])
   @@map("menu_items")
+}
+
+// Phase AW-15 — Stop-taking-orders ("storefront pause").
+//
+// Per-(location, brand, channel) pause records. Granularity is set by
+// which columns are non-null:
+//
+//   locationId only            → pause the whole location (all brands,
+//                                 all channels)
+//   locationId + brandId        → pause just this brand at this
+//                                 location (all its channels)
+//   locationId + channel        → pause this channel at this location
+//                                 (all brands)
+//   locationId + brandId + ch.  → pause exactly this brand's channel
+//
+// A given (loc, brand, channel) is "paused now" if ANY row with
+//   resumeAt = NULL OR resumeAt > now()
+// matches one of those four hierarchies. The storefront / POS /
+// HubRise call sites use isPaused() in PauseService for the OR-walk.
+//
+// `mode` distinguishes a hard pause from busy mode (still accepting
+// orders, just with extra prep time bolted on). extra_preparation_time
+// is only set in BUSY rows.
+model ChannelPause {
+  id            String   @id @default(cuid())
+  locationId    String
+  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId       String?
+  channel       String?
+  mode          String   @default("paused") // "paused" | "busy"
+  resumeAt      DateTime?
+  reason        String?
+  extraPrepTime Int?
+  pausedAt      DateTime @default(now())
+  pausedBy      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Operators may pause "all of brand X" and then layer "channel Y at
+  // brand X" on top with a different reason — both rows coexist and
+  // either triggers the closed banner. No uniqueness constraint.
+  @@index([locationId])
+  @@index([brandId])
+  @@index([channel])
+  @@index([locationId, resumeAt])
+  @@map("channel_pauses")
 }
 
 // Phase AW-14 — Menu Availability ("86 board").
