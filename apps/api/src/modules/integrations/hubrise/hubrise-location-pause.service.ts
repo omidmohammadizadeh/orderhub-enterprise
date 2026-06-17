@@ -58,14 +58,19 @@ export class HubRiseLocationPauseService {
     const accessToken = decrypted.accessToken;
     if (!accessToken) return;
 
-    const body: Record<string, any> = { mode: args.mode };
+    // HubRise expects the acceptance fields nested under
+    // `order_acceptance` on PATCH /locations/:id. Sending mode /
+    // resume_at / reason at the root level returns 422 "is not a
+    // valid key" — confirmed against the live API.
+    const acceptance: Record<string, any> = { mode: args.mode };
     if (args.mode !== "normal") {
-      if (args.resumeAt) body.resume_at = args.resumeAt.toISOString();
-      if (args.reason) body.reason = args.reason;
+      if (args.resumeAt) acceptance.resume_at = args.resumeAt.toISOString();
+      if (args.reason) acceptance.reason = args.reason;
       if (args.mode === "busy" && args.extraPrepTime) {
-        body.extra_preparation_time = args.extraPrepTime;
+        acceptance.extra_preparation_time = args.extraPrepTime;
       }
     }
+    const body = { order_acceptance: acceptance };
 
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
