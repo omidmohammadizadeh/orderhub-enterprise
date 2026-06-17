@@ -96,7 +96,13 @@ export default function InventoryPage() {
       channel: Channel;
       duration?: DurationPreset;
       customExpiresAt?: string;
-    }) => menuAvailabilityClient.snooze(args.itemId, args),
+    }) => {
+      // Strip itemId from the body — it's in the URL path. NestJS
+      // ValidationPipe (whitelist + forbidNonWhitelisted) rejects
+      // unknown properties otherwise.
+      const { itemId, ...body } = args;
+      return menuAvailabilityClient.snooze(itemId, body);
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: refetchKey }),
     onError: (err: any) =>
       toast.error(
