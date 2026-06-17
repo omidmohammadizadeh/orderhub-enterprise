@@ -178,22 +178,46 @@ export class OrderingService {
       },
     };
 
-    const menu =
-      (await this.prisma.menu.findFirst({
-        where: { locationId: location.id, isActive: true, deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-        include: menuInclude,
-      })) ??
-      (await this.prisma.menu.findFirst({
-        where: {
-          brandId: location.brandId,
-          isActive: true,
-          deletedAt: null,
-          locationId: null,
-        },
-        orderBy: { updatedAt: "desc" },
-        include: menuInclude,
-      }));
+    // Phase AW — when a brand is pinned, its menu must win. The
+    // previous code keyed every menu lookup off the LOCATION (and the
+    // location's primary brand), which is why the customer arrived on
+    // a Monster Burgerz storefront but saw the Pizza Uno Pelton menu
+    // after the back-to-menu reset. With brandIdOverride set we look
+    // ONLY at menus published under that brand id; if the brand
+    // doesn't have one yet we fall back to location/legacy resolution
+    // so a half-set-up brand still shows the kitchen's menu rather
+    // than an empty storefront.
+    const menuBrandId = overrideBrand?.id ?? location.brandId;
+    const menu = brandIdOverride
+      ? (await this.prisma.menu.findFirst({
+          where: {
+            brandId: menuBrandId,
+            isActive: true,
+            deletedAt: null,
+          },
+          orderBy: { updatedAt: "desc" },
+          include: menuInclude,
+        })) ??
+        (await this.prisma.menu.findFirst({
+          where: { locationId: location.id, isActive: true, deletedAt: null },
+          orderBy: { updatedAt: "desc" },
+          include: menuInclude,
+        }))
+      : (await this.prisma.menu.findFirst({
+          where: { locationId: location.id, isActive: true, deletedAt: null },
+          orderBy: { updatedAt: "desc" },
+          include: menuInclude,
+        })) ??
+        (await this.prisma.menu.findFirst({
+          where: {
+            brandId: location.brandId,
+            isActive: true,
+            deletedAt: null,
+            locationId: null,
+          },
+          orderBy: { updatedAt: "desc" },
+          include: menuInclude,
+        }));
 
     // Phase AP — surface the direct-ordering config + delivery zones so
     // the storefront can render prep times, accepted methods, and auto-
@@ -269,8 +293,12 @@ export class OrderingService {
     // productSkus[].modifierGroups (plain string arrays, no FK), so the
     // storefront's modifier modal needs this list to look them up,
     // same as POS already does.
+    // Phase AW — when a brand is pinned, scope modifier groups to
+    // THAT brand. Otherwise the storefront would resolve per-SKU
+    // group ids against the kitchen's primary-brand catalog and miss
+    // anything published only under the pinned virtual brand.
     const brandModifierGroups = await this.prisma.modifierGroup.findMany({
-      where: { brandId: location.brandId },
+      where: { brandId: menuBrandId },
       include: {
         options: {
           where: { isAvailable: true },
