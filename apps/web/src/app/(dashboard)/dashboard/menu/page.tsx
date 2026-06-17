@@ -353,6 +353,11 @@ export default function MenuPage() {
         initiallyPublishedTo={
           ((publishingMenu as any)?.publishedTo ?? []) as string[]
         }
+        // Phase AW — two-step picker needs the current brand to
+        // pre-select Step 2, and the location to scope the brand
+        // dropdown to brands at this kitchen.
+        currentBrandId={(publishingMenu as any)?.brandId ?? brandId}
+        locationId={selectedLocationId ?? undefined}
         onConfirmed={(targets) => {
           qc.invalidateQueries({ queryKey: ["menus"] });
           // Show the success toast even when the operator unchecks

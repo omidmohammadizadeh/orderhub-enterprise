@@ -175,6 +175,11 @@ export const menusClient = {
       heroImage: string | null;
       locationId: string;
       publishedTo: string[];
+      // Phase AW — re-assign the menu to a brand at publish time so
+      // the channel + brand picker can move a draft menu under a
+      // different virtual brand without making the operator delete
+      // and re-create it.
+      brandId: string;
     }>,
   ) => apiClient.patch<Menu>(`/v1/menus/${menuId}`, data).then((r) => r.data),
 

@@ -134,6 +134,11 @@ export class MenusService {
 
   async update(menuId: string, tenantId: string, dto: UpdateMenuDto) {
     await this.assertMenuAccess(menuId, tenantId);
+    // Phase AW — verify the destination brand belongs to the caller
+    // before we let the publish picker re-home the menu. Without this
+    // a stale brandId in the picker could move the menu under a sibling
+    // tenant's brand.
+    if (dto.brandId) await this.assertBrandAccess(dto.brandId, tenantId);
     return this.prisma.menu.update({
       where: { id: menuId },
       data: {
@@ -146,6 +151,7 @@ export class MenusService {
         ...(dto.logoImage !== undefined && { logoImage: dto.logoImage }),
         ...(dto.heroImage !== undefined && { heroImage: dto.heroImage }),
         ...(dto.locationId !== undefined && { locationId: dto.locationId }),
+        ...(dto.brandId && { brandId: dto.brandId }),
         // Phase AM — publish target picker writes its selection here.
         // Stamping lastPublishedAt only when at least one target is on
         // means an "unpublish-all" leaves the previous stamp intact for

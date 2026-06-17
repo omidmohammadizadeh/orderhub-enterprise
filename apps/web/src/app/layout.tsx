@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import { QueryProvider } from "@/providers/query-provider";
 import "./globals.css";
 
@@ -39,6 +40,40 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen bg-zinc-50 font-sans">
         <QueryProvider>{children}</QueryProvider>
+        {/* Phase AW — global toast host. Top-right slide-in matches
+            the SaaS pattern the operator asked for: green "Published"
+            on success, red "Failed" on error, both auto-dismiss after
+            a few seconds. Anything in-app can fire one via
+            `import toast from 'react-hot-toast'`. */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3500,
+            style: {
+              borderRadius: "10px",
+              padding: "12px 14px",
+              fontSize: "13px",
+              fontWeight: 500,
+            },
+            success: {
+              style: {
+                background: "#059669",
+                color: "white",
+                border: "1px solid #047857",
+              },
+              iconTheme: { primary: "white", secondary: "#059669" },
+            },
+            error: {
+              style: {
+                background: "#dc2626",
+                color: "white",
+                border: "1px solid #b91c1c",
+              },
+              iconTheme: { primary: "white", secondary: "#dc2626" },
+              duration: 5000,
+            },
+          }}
+        />
       </body>
     </html>
   );

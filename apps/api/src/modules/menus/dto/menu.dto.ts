@@ -88,6 +88,10 @@ export class UpdateMenuDto {
   @IsArray()
   @IsString({ each: true })
   publishedTo?: string[];
+  // Phase AW — re-assign the menu to a brand at publish time. Picker
+  // shows brands at the menu's current location; the service verifies
+  // the destination brand belongs to the caller's tenant before moving.
+  @ApiPropertyOptional() @IsOptional() @IsString() brandId?: string;
 }
 
 // ── Create category ───────────────────────────────────────────────────────────
