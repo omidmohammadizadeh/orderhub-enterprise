@@ -13,7 +13,6 @@
 // tabs 2 + 3 appear after first save.
 
 import { useEffect, useMemo, useState } from "react";
-import { StripeConnectControl } from "./stripe-connect-control";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Wand2, X } from "lucide-react";
 import {
@@ -21,7 +20,6 @@ import {
   brandsClient,
   type Location,
   type LocationStatus,
-  type AppFeeMode,
 } from "@/lib/api/locations.client";
 import { OpeningHoursEditor } from "./opening-hours-editor";
 import { BrandPlatformGrid } from "./brand-platform-grid";
@@ -156,23 +154,13 @@ function GeneralTab({
   const [phone, setPhone] = useState(location?.phone ?? "");
   const [about, setAbout] = useState(location?.about ?? "");
   const [logoUrl, setLogoUrl] = useState(location?.logoUrl ?? "");
-  const [customDomain, setCustomDomain] = useState(location?.customDomain ?? "");
+  // Phase AW — customDomain, stripeConnectedAccountId, and the
+  // applicationFee* fields moved onto the brand. State + UI for them
+  // is gone; the brand settings drawer is the single source of truth.
   const [googleReviewUrl, setGoogleReviewUrl] = useState(
     location?.googleReviewUrl ?? "",
   );
   const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? "");
-  const [stripeAcct, setStripeAcct] = useState(location?.stripeConnectedAccountId ?? "");
-  const [feeMode, setFeeMode] = useState<AppFeeMode>(location?.applicationFeeMode ?? "none");
-  const [fixedFee, setFixedFee] = useState(
-    location?.applicationFeeFixedAmount != null
-      ? String(location.applicationFeeFixedAmount)
-      : "",
-  );
-  const [pctFee, setPctFee] = useState(
-    location?.applicationFeePercentage != null
-      ? String(location.applicationFeePercentage)
-      : "",
-  );
   const [status, setStatus] = useState<LocationStatus>(location?.status ?? "active");
   // Phase AU — HubRise per-location settings. We never load the raw
   // access token back from the server (it's encrypted and write-only).
@@ -227,14 +215,7 @@ function GeneralTab({
       const extras: Parameters<typeof locationsClient.update>[1] = {};
       if (about) extras.about = about;
       if (logoUrl) extras.logoUrl = logoUrl;
-      if (customDomain) extras.customDomain = customDomain;
       if (googleReviewUrl) extras.googleReviewUrl = googleReviewUrl;
-      if (stripeAcct) extras.stripeConnectedAccountId = stripeAcct;
-      if (feeMode !== "none") {
-        extras.applicationFeeMode = feeMode;
-        if (fixedFee) extras.applicationFeeFixedAmount = Number(fixedFee);
-        if (pctFee) extras.applicationFeePercentage = Number(pctFee);
-      }
       if (status !== "active") extras.status = status;
       if (Object.keys(extras).length > 0) {
         await locationsClient.update(created.id, extras as any);
@@ -261,12 +242,7 @@ function GeneralTab({
         about: about || null,
         logoUrl: logoUrl || null,
         googleReviewUrl: googleReviewUrl || null,
-        customDomain: customDomain || null,
         onlineOrderingSlug: slug || null,
-        stripeConnectedAccountId: stripeAcct || null,
-        applicationFeeMode: feeMode,
-        applicationFeeFixedAmount: fixedFee ? Number(fixedFee) : null,
-        applicationFeePercentage: pctFee ? Number(pctFee) : null,
         status,
         // Phase AU — HubRise. Only send the access token when the
         // operator typed a new one (so we don't accidentally clobber
@@ -367,15 +343,10 @@ function GeneralTab({
         />
       </Field>
 
-      {/* Phase AN follow-up: show ALL General fields on both create AND
-          edit. Slug generation is disabled until the location exists
-          since it needs an id to call the API. */}
-      <Field
-        label="Custom domain (optional)"
-        help="e.g. order.mylocation.com — DNS verification ships in a later phase."
-      >
-        <Input value={customDomain} onChange={setCustomDomain} placeholder="order.mylocation.com" />
-      </Field>
+      {/* Phase AW — Custom domain moved onto the Brand settings drawer.
+          Each brand now owns its own customer-facing URL + domain, so
+          a single kitchen with three brands no longer collapses to one
+          shared domain. Location keeps only the kitchen-ops fields. */}
 
       {/* Phase AP-5 — Google Business Profile review URL. Surfaced on
           the customer "My Orders" card as a "Leave Google review"
@@ -538,51 +509,17 @@ function GeneralTab({
         </details>
       </div>
 
-      {/* Stripe Connect + fees */}
-      <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-          Stripe Connect
-        </h3>
-        <StripeConnectControl
-          locationId={location?.id ?? null}
-          stripeAcct={stripeAcct}
-          setStripeAcct={setStripeAcct}
-        />
-        <Field label="Or enter Connected account ID manually" help="Skip if you used the Connect button above.">
-          <Input value={stripeAcct} onChange={setStripeAcct} placeholder="acct_…" />
-        </Field>
-
-        <Field label="Application fee mode" help={feeModeHelp(feeMode)}>
-          <select
-            value={feeMode}
-            onChange={(e) => setFeeMode(e.target.value as AppFeeMode)}
-            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-          >
-            <option value="none">None</option>
-            <option value="fixed_only">Fixed amount (added to customer total)</option>
-            <option value="percentage_only">Percentage (deducted from merchant payout)</option>
-            <option value="fixed_and_percentage">Both fixed + percentage</option>
-          </select>
-        </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Fixed app fee (£)">
-            <Input
-              value={fixedFee}
-              onChange={setFixedFee}
-              placeholder="0.50"
-              disabled={feeMode === "none" || feeMode === "percentage_only"}
-            />
-          </Field>
-          <Field label="Percentage app fee (%)">
-            <Input
-              value={pctFee}
-              onChange={setPctFee}
-              placeholder="5"
-              disabled={feeMode === "none" || feeMode === "fixed_only"}
-            />
-          </Field>
-        </div>
+      {/* Phase AW — Stripe Connect + application fee live on the brand,
+          not the location. A single kitchen running three virtual brands
+          now routes payouts to three separate Stripe accounts; the old
+          location-level fields were a footgun (the first brand's payout
+          settings silently applied to all sibling brands). Edit per
+          brand under Brands tab → Direct online ordering → Settings. */}
+      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">
+        <strong>Moved.</strong> Stripe Connect and the application-fee
+        settings now live on each brand individually. Open the Brands
+        tab, expand a brand, and click Connect on the "Direct online
+        ordering" channel to configure payouts.
       </div>
 
       <Field label="Status">
@@ -615,18 +552,8 @@ function GeneralTab({
   );
 }
 
-function feeModeHelp(mode: AppFeeMode): string {
-  switch (mode) {
-    case "fixed_only":
-      return "Fixed fee is added to the customer bill. Example: £10 + £0.50 = customer pays £10.50, OrderHub keeps £0.50.";
-    case "percentage_only":
-      return "Percentage fee is deducted from the merchant payout. Example: £10 basket, 5% → customer pays £10, merchant receives £9.50.";
-    case "fixed_and_percentage":
-      return "Fixed adds to customer total; percentage is deducted from the merchant payout.";
-    default:
-      return "No application fee charged.";
-  }
-}
+// Phase AW — feeModeHelp() retired alongside the Stripe Connect block.
+// Brand settings drawer hosts the equivalent copy.
 
 // ── Brands tab ────────────────────────────────────────────────────────────
 

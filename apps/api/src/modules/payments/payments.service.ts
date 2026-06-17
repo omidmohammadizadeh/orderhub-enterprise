@@ -466,7 +466,25 @@ export class PaymentsService {
   async resolveConnectAccount(
     tenantId: string,
     locationId: string,
+    brandId?: string | null,
   ): Promise<{ id: string | null; stripeAccountId: string } | null> {
+    // Phase AW — brand-level raw-account escape hatch wins over the
+    // location-level one. Each virtual brand at a shared kitchen can
+    // route payouts to its own Stripe account by pasting an acct_… on
+    // the Brand settings drawer. We only short-circuit when the brand
+    // explicitly opts in (non-empty acct_…); a blank brand field
+    // falls through to the existing per-location resolution.
+    if (brandId) {
+      const brand = await this.prisma.brand.findUnique({
+        where: { id: brandId },
+        select: { stripeConnectedAccountId: true } as any,
+      }) as any;
+      const brandRaw = brand?.stripeConnectedAccountId?.trim();
+      if (brandRaw && brandRaw.startsWith("acct_")) {
+        return { id: null, stripeAccountId: brandRaw };
+      }
+    }
+
     const locationLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
       where: { tenantId, locationId, chargesEnabled: true },
     });
@@ -577,6 +595,19 @@ export class PaymentsService {
       include: {
         items: true,
         location: true,
+        // Phase AW — pull the brand's fee + Stripe account too so we can
+        // prefer them over the location-level config below. Brand wins
+        // when set (each virtual brand has its own payout account in
+        // the spec); blank brand fields fall back to location.
+        brand: {
+          select: {
+            id: true,
+            stripeConnectedAccountId: true,
+            applicationFeeMode: true,
+            applicationFeeFixedAmount: true,
+            applicationFeePercentage: true,
+          } as any,
+        } as any,
       },
     });
     if (!order) throw new NotFoundException("Order not found");
@@ -592,10 +623,11 @@ export class PaymentsService {
     const connect = await this.resolveConnectAccount(
       params.tenantId,
       order.locationId,
+      (order as any).brandId ?? null,
     );
     if (!connect) {
       throw new BadRequestException(
-        "This location has no active Stripe Connect account — restaurant must complete Stripe onboarding before accepting card payments.",
+        "This brand has no active Stripe Connect account — operator must finish Stripe onboarding before accepting card payments.",
       );
     }
 
@@ -604,8 +636,17 @@ export class PaymentsService {
     // only. Hardcode here, override later if/when multi-currency lands.
     const currency = "gbp";
     const totalGbp = Number(order.total);
+    // Phase AW — brand-level fee config wins when its mode isn't
+    // "none". Falls back to the location's config (the legacy single-
+    // brand-per-location path) otherwise so existing payouts don't
+    // change behaviour for tenants that haven't filled brand fees in.
+    const brand = (order as any).brand as any;
+    const feeSource =
+      brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
+        ? brand
+        : order.location;
     const { applicationFeePence, customerSurchargePence } =
-      this.computeFeeBreakdownPence(order.location, totalGbp);
+      this.computeFeeBreakdownPence(feeSource, totalGbp);
 
     // One line item for the cart subtotal + one each for delivery / tax /
     // tip / discount as needed. Stripe shows each line on the hosted
