@@ -694,7 +694,48 @@ export class HubRiseCatalogService {
       );
     }
 
-    const { categories, products, optionLists } = transformMenuToCatalog(menu);
+    // Phase AW-11.4 — collect every modifier group referenced by ANY
+    // product in this menu, from both the link table (single-SKU
+    // products) AND the productSkus JSON (multi-SKU products). Then
+    // fetch them once with their options so the transformer can emit
+    // a complete option_lists array AND resolve every SKU's group ids
+    // to a real ref.
+    const referencedGroupIds = new Set<string>();
+    for (const cat of menu.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        const item = link.item;
+        for (const l of item.modifierGroupLinks ?? []) {
+          if (l.group?.id) referencedGroupIds.add(l.group.id);
+        }
+        if (Array.isArray(item.productSkus)) {
+          for (const sku of item.productSkus as any[]) {
+            for (const gid of sku.modifierGroups ?? []) {
+              if (typeof gid === "string" && gid) referencedGroupIds.add(gid);
+            }
+          }
+        }
+      }
+    }
+    const allGroups = referencedGroupIds.size
+      ? await (this.prisma as any).modifierGroup.findMany({
+          where: { id: { in: Array.from(referencedGroupIds) } },
+          include: { options: { orderBy: { sortOrder: "asc" } } },
+        })
+      : [];
+    const groupById = new Map<string, any>(
+      allGroups.map((g: any) => [g.id, g] as [string, any]),
+    );
+
+    const { categories, products, optionLists } = transformMenuToCatalog(
+      menu,
+      groupById,
+    );
+
+    this.logger.log(
+      `HubRise publish: menu=${args.menuId} categories=${categories.length} ` +
+        `products=${products.length} optionLists=${optionLists.length} ` +
+        `referencedGroups=${referencedGroupIds.size}`,
+    );
 
     const data: HubRiseCatalogData = {
       categories,
@@ -828,8 +869,18 @@ function formatHubRisePrice(amount: number, currency: string): string {
 /**
  * Walk our Menu graph and emit HubRise's catalog data shape.
  * Currency defaults to GBP — operator can change in a future phase.
+ *
+ * `groupById` is a pre-fetched lookup of every ModifierGroup referenced
+ * by any product in this menu (built by publishMenu from BOTH
+ * modifierGroupLinks AND productSkus[].modifierGroups). The transformer
+ * uses it as the single source of truth for option_list emission +
+ * SKU↔group ref resolution, so multi-SKU products whose groups only
+ * live in productSkus JSON still link correctly.
  */
-function transformMenuToCatalog(menu: any): {
+function transformMenuToCatalog(
+  menu: any,
+  groupById: Map<string, any>,
+): {
   categories: HubRiseCategory[];
   products: HubRiseProduct[];
   optionLists: HubRiseOptionList[];
@@ -848,32 +899,32 @@ function transformMenuToCatalog(menu: any): {
     }),
   );
 
-  // ModifierGroups + options — deduplicate across categories.
-  const groupSeen = new Set<string>();
+  // Stable ref for any modifier group: HubRise externalId from the
+  // import path, or grp_<cuid> if it was created locally and never
+  // round-tripped. Same shape we use to emit option_lists below, so
+  // every SKU's option_list_refs lines up with a defined option_list.
+  const groupRefFor = (g: any): string => g?.externalId ?? `grp_${g?.id}`;
+
+  // ModifierGroups + options — emit every group referenced by any
+  // product in this menu, deduplicated. Iterate the pre-fetched
+  // groupById map (which already covers BOTH modifierGroupLinks and
+  // productSkus[].modifierGroups paths) so multi-SKU products' groups
+  // are not silently dropped.
   const optionLists: HubRiseOptionList[] = [];
-  for (const cat of menu.categories ?? []) {
-    for (const link of cat.items ?? []) {
-      const item = link.item;
-      const groups = (item.modifierGroupLinks ?? []).map((l: any) => l.group);
-      for (const g of groups) {
-        const ref = g.externalId ?? `grp_${g.id}`;
-        if (groupSeen.has(ref)) continue;
-        groupSeen.add(ref);
-        optionLists.push({
-          ref,
-          name: g.name,
-          min_selections: g.minSelections ?? 0,
-          max_selections: g.maxSelections ?? null,
-          multiple_selection: g.selectionType === "ADDON",
-          options: (g.options ?? []).map((o: any) => ({
-            ref: o.externalId ?? `opt_${o.id}`,
-            name: o.name,
-            price: formatHubRisePrice(Number(o.priceAdjustment ?? 0), currency),
-            default: o.isDefault === true,
-          })),
-        });
-      }
-    }
+  for (const g of groupById.values()) {
+    optionLists.push({
+      ref: groupRefFor(g),
+      name: g.name,
+      min_selections: g.minSelections ?? 0,
+      max_selections: g.maxSelections ?? null,
+      multiple_selection: g.selectionType === "ADDON",
+      options: (g.options ?? []).map((o: any) => ({
+        ref: o.externalId ?? `opt_${o.id}`,
+        name: o.name,
+        price: formatHubRisePrice(Number(o.priceAdjustment ?? 0), currency),
+        default: o.isDefault === true,
+      })),
+    });
   }
 
   // Products
@@ -888,21 +939,20 @@ function transformMenuToCatalog(menu: any): {
             ref: s.plu ?? `${item.id}_sku_${i}`,
             name: s.name,
             price: formatHubRisePrice(Number(s.price ?? 0), currency),
-            option_list_refs: (s.modifierGroups ?? []).map((gid: string) => {
-              const g = item.modifierGroupLinks
-                ?.map((l: any) => l.group)
-                .find((g: any) => g.id === gid);
-              return g?.externalId ?? `grp_${gid}`;
-            }),
+            option_list_refs: (s.modifierGroups ?? [])
+              .map((gid: string) => groupById.get(gid))
+              .filter(Boolean)
+              .map(groupRefFor),
           }))
         : [
             {
               ref: item.plu ?? item.externalId ?? `${item.id}_sku`,
               name: null,
               price: formatHubRisePrice(Number(item.basePrice ?? 0), currency),
-              option_list_refs: (item.modifierGroupLinks ?? []).map(
-                (l: any) => l.group.externalId ?? `grp_${l.group.id}`,
-              ),
+              option_list_refs: (item.modifierGroupLinks ?? [])
+                .map((l: any) => l.group)
+                .filter(Boolean)
+                .map(groupRefFor),
             },
           ];
       products.push({
