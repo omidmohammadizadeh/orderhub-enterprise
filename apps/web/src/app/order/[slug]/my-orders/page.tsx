@@ -89,6 +89,13 @@ export default function MyOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const brandIdFromUrl =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("brand")
+      : null;
+  const brandSuffix = brandIdFromUrl
+    ? `?brand=${encodeURIComponent(brandIdFromUrl)}`
+    : "";
 
   // Open login modal automatically when auth hydration finishes and
   // there's no signed-in customer.
@@ -112,14 +119,10 @@ export default function MyOrdersPage() {
     // Phase AW-30 — scope by brand when the storefront URL carries
     // ?brand=<id> so a customer who's ordered from two brands at
     // the same kitchen only sees the brand they're currently on.
-    const brandId =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("brand")
-        : null;
     axios
       .get<OrdersResponse>(`${API_BASE}/v1/customer-auth/orders`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: brandId ? { brandId } : undefined,
+        params: brandIdFromUrl ? { brandId: brandIdFromUrl } : undefined,
       })
       .then((res) => setOrders(res.data))
       .catch((err: any) => {
@@ -162,12 +165,19 @@ export default function MyOrdersPage() {
       /* private window / quota — proceed anyway, the storefront
          just won't pre-fill in that case */
     }
-    router.push(`/order/${slug}?reorder=1`);
+    const reorderSuffix = brandIdFromUrl
+      ? `?reorder=1&brand=${encodeURIComponent(brandIdFromUrl)}`
+      : "?reorder=1";
+    router.push(`/order/${slug}${reorderSuffix}`);
   };
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <PageHeader storeSlug={params.slug} customer={customer} />
+      <PageHeader
+        storeSlug={params.slug}
+        customer={customer}
+        brandSuffix={brandSuffix}
+      />
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
         {isAuthLoading || isLoading ? (
@@ -221,6 +231,7 @@ export default function MyOrdersPage() {
         open={loginOpen}
         onClose={() => setLoginOpen(false)}
         storeSlug={params.slug}
+        brandId={brandIdFromUrl}
         onAuthenticated={() => setLoginOpen(false)}
       />
 
@@ -240,15 +251,17 @@ export default function MyOrdersPage() {
 function PageHeader({
   storeSlug,
   customer,
+  brandSuffix,
 }: {
   storeSlug: string;
   customer: any;
+  brandSuffix: string;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
         <a
-          href={`/order/${storeSlug}`}
+          href={`/order/${storeSlug}${brandSuffix}`}
           className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700 hover:text-zinc-900"
         >
           <ChevronRight className="h-4 w-4 rotate-180 text-zinc-400" />

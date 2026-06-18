@@ -239,7 +239,19 @@ export class OrderingService {
     // apply delivery fees by postcode. We read directly (no module dep
     // cycle) and fall back to permissive defaults for any location that
     // never visited the admin tab.
+    //
+    // Phase AW-30 — brand-keyed config wins when the URL pinned a brand.
+    // The brand settings drawer writes DirectOrderingConfig by brandId
+    // (one row per brand), so the location-keyed lookup we used before
+    // never saw those edits and prep-time changes silently no-op'd on
+    // brand storefronts.
+    const directConfigBrandId = overrideBrand?.id ?? location.brandId;
     const directConfig =
+      (directConfigBrandId
+        ? await (this.prisma as any).directOrderingConfig.findUnique({
+            where: { brandId: directConfigBrandId },
+          })
+        : null) ??
       (await this.prisma.directOrderingConfig.findUnique({
         where: { locationId: location.id },
       })) ?? {

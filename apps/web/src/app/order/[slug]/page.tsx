@@ -1457,6 +1457,7 @@ function OrderPage() {
       <LoginModal
         open={loginOpen}
         storeSlug={String(slug)}
+        brandId={brandId}
         onClose={() => {
           setLoginOpen(false);
           // If the customer dismissed the modal without signing in,

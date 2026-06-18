@@ -126,11 +126,13 @@ export class CustomerAuthController {
     // www.example.com and reading at example.com gives "Sign in"
     // forever. Threading the origin through OAuth state fixes that.
     const decodedState = decodeURIComponent((state ?? "").trim());
-    const [rawSlug, rawOrigin] = decodedState.includes("|")
-      ? decodedState.split("|", 2)
-      : [decodedState, ""];
-    const storeSlug = decodeURIComponent(rawSlug ?? "").trim();
-    const candidateOrigin = decodeURIComponent(rawOrigin ?? "").trim();
+    const stateParts = decodedState.includes("|")
+      ? decodedState.split("|")
+      : [decodedState];
+    const [rawSlug = "", rawOrigin = "", rawBrand = ""] = stateParts;
+    const storeSlug = decodeURIComponent(rawSlug).trim();
+    const candidateOrigin = decodeURIComponent(rawOrigin).trim();
+    const brandId = decodeURIComponent(rawBrand).trim();
 
     // Tight allow-list — only accept origins we recognise to avoid
     // turning this into an open redirect.
@@ -145,9 +147,12 @@ export class CustomerAuthController {
       : (this.config.get<string>("WEB_URL") ??
           "https://www.orderhubsolutions.com");
 
+    const brandSuffix = brandId
+      ? `&brand=${encodeURIComponent(brandId)}`
+      : "";
     const target = storeSlug
-      ? `${safeOrigin}/order/${encodeURIComponent(storeSlug)}/auth/google-callback?token=${encodeURIComponent(accessToken)}`
-      : `${safeOrigin}/auth/google-callback?token=${encodeURIComponent(accessToken)}`;
+      ? `${safeOrigin}/order/${encodeURIComponent(storeSlug)}/auth/google-callback?token=${encodeURIComponent(accessToken)}${brandSuffix}`
+      : `${safeOrigin}/auth/google-callback?token=${encodeURIComponent(accessToken)}${brandSuffix}`;
     return res.redirect(target);
   }
 }

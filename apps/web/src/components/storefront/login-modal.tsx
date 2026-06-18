@@ -23,12 +23,16 @@ type Mode = "signin" | "signup" | "sent";
 interface Props {
   open: boolean;
   storeSlug: string;
+  /** Phase AW-30 — preserve brand context across the OAuth round-trip
+   *  so login lands the customer back on the brand storefront, not
+   *  the underlying location. Optional for non-brand flows. */
+  brandId?: string | null;
   onClose: () => void;
   /** Called once the customer is signed in (login resolves successfully). */
   onAuthenticated: () => void;
 }
 
-export function LoginModal({ open, storeSlug, onClose, onAuthenticated }: Props) {
+export function LoginModal({ open, storeSlug, brandId, onClose, onAuthenticated }: Props) {
   const { login, signup } = useCustomerAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
@@ -122,7 +126,7 @@ export function LoginModal({ open, storeSlug, onClose, onAuthenticated }: Props)
             <SentState email={email} onBack={() => setMode("signin")} />
           ) : (
             <>
-              <GoogleButton storeSlug={storeSlug} />
+              <GoogleButton storeSlug={storeSlug} brandId={brandId} />
               <Divider />
               {mode === "signin" ? (
                 <form onSubmit={handleSignin} className="space-y-3">
@@ -267,7 +271,13 @@ function SentState({ email, onBack }: { email: string; onBack: () => void }) {
   );
 }
 
-function GoogleButton({ storeSlug }: { storeSlug: string }) {
+function GoogleButton({
+  storeSlug,
+  brandId,
+}: {
+  storeSlug: string;
+  brandId?: string | null;
+}) {
   // Bounce the whole window to the API. Backend's customer-google
   // strategy redirects to Google, Google redirects to our callback,
   // callback redirects back to the storefront with the token. The
@@ -288,7 +298,9 @@ function GoogleButton({ storeSlug }: { storeSlug: string }) {
   // origin's localStorage than the storefront reads from.
   const origin =
     typeof window !== "undefined" ? window.location.origin : "";
-  const stateParts = [storeSlug, origin].map(encodeURIComponent).join("|");
+  const stateParts = [storeSlug, origin, brandId ?? ""]
+    .map(encodeURIComponent)
+    .join("|");
   const href = `${API_BASE}/v1/customer-auth/google?state=${encodeURIComponent(stateParts)}`;
   return (
     <a

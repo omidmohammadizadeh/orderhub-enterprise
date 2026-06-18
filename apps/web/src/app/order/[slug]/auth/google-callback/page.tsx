@@ -25,6 +25,7 @@ function Inner() {
   const params = useParams<{ slug: string }>();
   const sp = useSearchParams();
   const token = sp.get("token");
+  const brand = sp.get("brand");
 
   useEffect(() => {
     if (!token) return;
@@ -45,10 +46,12 @@ function Inner() {
     // Tiny delay so the customer sees the green tick before the
     // redirect — feels intentional, not like a flicker.
     const t = setTimeout(() => {
-      router.replace(`/order/${params.slug}`);
+      router.replace(
+        `/order/${params.slug}${brand ? `?brand=${encodeURIComponent(brand)}` : ""}`,
+      );
     }, 800);
     return () => clearTimeout(t);
-  }, [token, params.slug, router]);
+  }, [token, params.slug, brand, router]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-zinc-50 p-6">
@@ -75,7 +78,11 @@ function Inner() {
               No token came back. Please try again from the sign-in screen.
             </p>
             <button
-              onClick={() => router.replace(`/order/${params.slug}`)}
+              onClick={() =>
+                router.replace(
+                  `/order/${params.slug}${brand ? `?brand=${encodeURIComponent(brand)}` : ""}`,
+                )
+              }
               className="mt-5 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
             >
               Back to menu
