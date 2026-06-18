@@ -1360,7 +1360,7 @@ export class OrdersService {
           if (!id) continue;
           countById.set(id, (countById.get(id) ?? 0) + 1);
         }
-        this.logger.debug(
+        this.logger.log(
           `attachCustomerVisitCounts tenant=${tenantId} rows=${rows.length} siblings=${siblings.length} identities=${countById.size}`,
         );
       } catch (err) {
