@@ -1,439 +1,843 @@
 "use client";
 
-import { useState } from "react";
+// Phase AW-24 — Enterprise analytics dashboard.
+//
+// One page, one /v1/analytics/overview call, with filters across
+// date range / location / brand / channel / fulfilment type. The
+// response carries a "previous period" snapshot of the same span
+// ending right before the current `from` so every KPI shows a
+// vs-prev delta and the revenue chart can overlay last week's line
+// on top of this week's.
+
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  TrendingUp,
-  DollarSign,
-  ShoppingBag,
-  Clock,
-  Star,
-  Users,
-  Loader2,
-  BarChart3,
-  ArrowUpRight,
+  Activity,
+  AlertTriangle,
   ArrowDownRight,
-  RefreshCw,
-  AlertCircle,
-  Package,
-  Truck,
+  ArrowUpRight,
+  Building2,
+  Calendar,
+  Download,
+  Loader2,
+  MapPin,
+  PoundSterling,
+  ShoppingBag,
+  Sparkles,
+  Tag,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
-import { apiClient } from "@/lib/api/client";
-import { cn } from "@/lib/utils";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  PieChart,
+  Pie,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  analyticsClient,
+  type AnalyticsOverview,
+} from "@/lib/api/analytics.client";
+import { brandsClient, locationsClient } from "@/lib/api/locations.client";
 
-interface SalesOverview {
-  totalRevenue: string;
-  totalOrders: number;
-  avgOrderValue: string;
-  revenueGrowth: number;
-  orderGrowth: number;
-  aovGrowth: number;
-}
-
-interface PlatformBreakdown {
-  platform: string;
-  orders: number;
-  revenue: string;
-  avgValue: string;
-  cancellationRate: number;
-}
-
-interface ProductPerformance {
-  menuItemId: string;
-  name: string;
-  orders: number;
-  revenue: string;
-  avgRating: number | null;
-}
-
-interface LocationMetrics {
-  locationId: string;
-  locationName: string;
-  orders: number;
-  revenue: string;
-  avgPrepTime: number;
-  avgRating: number | null;
-}
-
-interface KitchenMetrics {
-  avgPrepTime: number;
-  p95PrepTime: number;
-  slaBreaches: number;
-  slaBreachRate: number;
-}
-
-interface DriverMetrics {
-  totalDeliveries: number;
-  avgDeliveryTime: number;
-  onTimeRate: number;
-  avgRating: number | null;
-}
-
-interface DailySalesPoint {
-  date: string;
-  revenue: string;
-  orders: number;
-}
-
-interface AnalyticsSummary {
-  overview: SalesOverview;
-  platforms: PlatformBreakdown[];
-  topProducts: ProductPerformance[];
-  locations: LocationMetrics[];
-  kitchen: KitchenMetrics;
-  drivers: DriverMetrics;
-  dailySales: DailySalesPoint[];
-  repeatCustomerRate: number;
-  newCustomers: number;
-}
-
-const RANGE_OPTIONS = [
-  { value: "today", label: "Today" },
-  { value: "7d", label: "7 days" },
-  { value: "30d", label: "30 days" },
-  { value: "90d", label: "90 days" },
+const CHANNELS = ["POS", "DIRECT", "ONLINE", "JUST_EAT", "UBER_EATS", "DELIVEROO", "HUBRISE"];
+const CHART_COLORS = [
+  "#f97316", // orange
+  "#8b5cf6", // violet
+  "#10b981", // emerald
+  "#3b82f6", // blue
+  "#ec4899", // pink
+  "#f59e0b", // amber
+  "#06b6d4", // cyan
 ];
 
-const PLATFORM_COLORS: Record<string, string> = {
-  UBER_EATS: "bg-black text-white",
-  DELIVEROO: "bg-teal-600 text-white",
-  JUST_EAT:  "bg-orange-500 text-white",
-  DIRECT:    "bg-violet-600 text-white",
-  HUBRRISE:  "bg-blue-600 text-white",
-};
+type DatePreset = "today" | "yesterday" | "7d" | "30d" | "thisMonth" | "lastMonth" | "custom";
 
-function StatCard({
-  label, value, sub, growth, icon: Icon, iconClass,
-}: {
-  label: string; value: string; sub?: string; growth?: number;
-  icon: React.ElementType; iconClass?: string;
-}) {
-  const positive = growth !== undefined ? growth >= 0 : null;
-  return (
-    <div className="bg-white border border-zinc-200 rounded-2xl p-5">
-      <div className="flex items-start justify-between">
-        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", iconClass ?? "bg-zinc-100")}>
-          <Icon className="w-[18px] h-[18px]" />
-        </div>
-        {growth !== undefined && (
-          <span className={cn(
-            "flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full",
-            positive ? "text-emerald-700 bg-emerald-100" : "text-red-600 bg-red-100",
-          )}>
-            {positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {Math.abs(growth).toFixed(1)}%
-          </span>
-        )}
-      </div>
-      <div className="mt-3">
-        <div className="text-2xl font-bold text-zinc-900">{value}</div>
-        <div className="text-sm text-zinc-500 mt-0.5">{label}</div>
-        {sub && <div className="text-xs text-zinc-400 mt-0.5">{sub}</div>}
-      </div>
-    </div>
-  );
+function presetRange(p: DatePreset): { from: Date; to: Date } {
+  const now = new Date();
+  const start = (d: Date) => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  };
+  const end = (d: Date) => {
+    const x = new Date(d);
+    x.setHours(23, 59, 59, 999);
+    return x;
+  };
+  switch (p) {
+    case "today":
+      return { from: start(now), to: end(now) };
+    case "yesterday": {
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      return { from: start(y), to: end(y) };
+    }
+    case "7d": {
+      const f = new Date(now);
+      f.setDate(f.getDate() - 6);
+      return { from: start(f), to: end(now) };
+    }
+    case "30d": {
+      const f = new Date(now);
+      f.setDate(f.getDate() - 29);
+      return { from: start(f), to: end(now) };
+    }
+    case "thisMonth": {
+      const f = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: start(f), to: end(now) };
+    }
+    case "lastMonth": {
+      const f = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const t = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: start(f), to: end(t) };
+    }
+    case "custom":
+      return { from: start(now), to: end(now) };
+  }
 }
 
-function MiniBar({ value, max, className }: { value: number; max: number; className?: string }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return (
-    <div className="w-full bg-zinc-100 rounded-full h-1.5">
-      <div className={cn("h-1.5 rounded-full", className ?? "bg-orange-500")} style={{ width: `${pct}%` }} />
-    </div>
-  );
+const PRESETS: Array<{ id: DatePreset; label: string }> = [
+  { id: "today", label: "Today" },
+  { id: "yesterday", label: "Yesterday" },
+  { id: "7d", label: "Last 7 days" },
+  { id: "30d", label: "Last 30 days" },
+  { id: "thisMonth", label: "This month" },
+  { id: "lastMonth", label: "Last month" },
+  { id: "custom", label: "Custom" },
+];
+
+const fmtGBP = (n: number) =>
+  new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    maximumFractionDigits: 2,
+  }).format(n);
+
+const fmtNum = (n: number) => new Intl.NumberFormat("en-GB").format(n);
+
+function pctDelta(curr: number, prev: number): number {
+  if (prev === 0) return curr > 0 ? 100 : 0;
+  return ((curr - prev) / prev) * 100;
 }
 
 export default function AnalyticsPage() {
-  const [range, setRange] = useState("30d");
+  const [preset, setPreset] = useState<DatePreset>("7d");
+  const [customFrom, setCustomFrom] = useState<string>("");
+  const [customTo, setCustomTo] = useState<string>("");
+  const [locationId, setLocationId] = useState<string>("");
+  const [brandId, setBrandId] = useState<string>("");
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [tab, setTab] = useState<"revenue" | "orders" | "aov" | "breakdown">(
+    "revenue",
+  );
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["analytics-summary", range],
-    queryFn: () =>
-      apiClient
-        .get(`/v1/analytics/summary?range=${range}`)
-        .then((r) => r.data as AnalyticsSummary)
-        .catch(() => null),
+  const range = useMemo(() => {
+    if (preset !== "custom") return presetRange(preset);
+    if (customFrom && customTo) {
+      return {
+        from: new Date(customFrom + "T00:00:00"),
+        to: new Date(customTo + "T23:59:59"),
+      };
+    }
+    return presetRange("7d");
+  }, [preset, customFrom, customTo]);
+
+  const filters = {
+    from: range.from.toISOString(),
+    to: range.to.toISOString(),
+    locationId: locationId || undefined,
+    brandId: brandId || undefined,
+    channels: selectedChannels.length ? selectedChannels : undefined,
+  };
+
+  const overviewQuery = useQuery({
+    queryKey: ["analytics", "overview", filters],
+    queryFn: () => analyticsClient.overview(filters),
   });
 
-  const maxRevenue = data?.dailySales?.length
-    ? Math.max(...data.dailySales.map((d) => parseFloat(d.revenue)))
-    : 0;
+  const brandsQuery = useQuery({
+    queryKey: ["analytics", "brands"],
+    queryFn: () => brandsClient.list(),
+  });
+  const locationsQuery = useQuery({
+    queryKey: ["analytics", "locations"],
+    queryFn: () => locationsClient.list(),
+  });
 
-  const maxOrders = data?.platforms?.length
-    ? Math.max(...data.platforms.map((p) => p.orders))
-    : 0;
+  const data = overviewQuery.data;
+  const loading = overviewQuery.isLoading;
 
-  const maxProductOrders = data?.topProducts?.length
-    ? Math.max(...data.topProducts.map((p) => p.orders))
-    : 0;
+  function exportCsv() {
+    if (!data) return;
+    const rows: string[] = [];
+    rows.push("Section,Key,Value");
+    const s = data.summary;
+    rows.push(`Summary,Gross revenue,${s.grossRevenue.toFixed(2)}`);
+    rows.push(`Summary,Net revenue,${s.netRevenue.toFixed(2)}`);
+    rows.push(`Summary,Discount,${s.discount.toFixed(2)}`);
+    rows.push(`Summary,Delivery fees,${s.deliveryFees.toFixed(2)}`);
+    rows.push(`Summary,Tax,${s.taxAmount.toFixed(2)}`);
+    rows.push(`Summary,Successful orders,${s.successfulOrders}`);
+    rows.push(`Summary,Cancelled orders,${s.cancelledOrders}`);
+    rows.push(`Summary,Avg order value,${s.avgOrderValue.toFixed(2)}`);
+    rows.push("");
+    rows.push("By channel,Name,Revenue,Orders");
+    for (const c of data.byChannel)
+      rows.push(`,${c.name},${c.revenue.toFixed(2)},${c.orders}`);
+    rows.push("");
+    rows.push("By brand,Name,Revenue,Orders");
+    for (const b of data.byBrand)
+      rows.push(`,${b.name},${b.revenue.toFixed(2)},${b.orders}`);
+    rows.push("");
+    rows.push("Top products,Name,Quantity,Revenue");
+    for (const p of data.topProducts)
+      rows.push(`,${p.name.replace(/,/g, " ")},${p.quantity},${p.revenue.toFixed(2)}`);
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `analytics-${data.window.from.slice(0, 10)}-to-${data.window.to.slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
-    <div className="space-y-8 max-w-6xl">
-      <div className="flex items-center justify-between">
+    <div className="px-6 py-6 space-y-5">
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Analytics</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Sales, performance, and operational insights</p>
+          <h1 className="text-xl font-semibold text-zinc-900 flex items-center gap-2">
+            <Activity className="h-5 w-5" /> Analytics
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Revenue, sales mix, hot products, hot postcodes — with a
+            same-length prior-period comparison for every KPI.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-zinc-100 rounded-xl p-1 gap-0.5">
-            {RANGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setRange(opt.value)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                  range === opt.value
-                    ? "bg-white text-zinc-900 shadow-sm"
-                    : "text-zinc-500 hover:text-zinc-700",
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => refetch()}
-            className="p-2 rounded-xl border border-zinc-200 text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={!data}
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+        >
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </button>
+      </header>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
-        </div>
-      ) : isError || !data ? (
-        <div className="flex flex-col items-center justify-center py-24 text-zinc-500 gap-3">
-          <AlertCircle className="w-8 h-8 text-zinc-300" />
-          <p>Analytics data unavailable.</p>
-        </div>
-      ) : (
-        <>
-          {/* KPI row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard
-              label="Total revenue"
-              value={`£${parseFloat(data.overview.totalRevenue).toLocaleString("en-GB", { minimumFractionDigits: 2 })}`}
-              growth={data.overview.revenueGrowth}
-              icon={DollarSign}
-              iconClass="bg-emerald-100 text-emerald-600"
-            />
-            <StatCard
-              label="Orders"
-              value={data.overview.totalOrders.toLocaleString()}
-              growth={data.overview.orderGrowth}
-              icon={ShoppingBag}
-              iconClass="bg-blue-100 text-blue-600"
-            />
-            <StatCard
-              label="Avg order value"
-              value={`£${parseFloat(data.overview.avgOrderValue).toFixed(2)}`}
-              growth={data.overview.aovGrowth}
-              icon={TrendingUp}
-              iconClass="bg-orange-100 text-orange-600"
-            />
-            <StatCard
-              label="Repeat customer rate"
-              value={`${data.repeatCustomerRate.toFixed(1)}%`}
-              sub={`${data.newCustomers.toLocaleString()} new customers`}
-              icon={Users}
-              iconClass="bg-violet-100 text-violet-600"
-            />
-          </div>
-
-          {/* Revenue sparkline */}
-          {data.dailySales?.length > 0 && (
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChart3 className="w-4 h-4 text-zinc-500" />
-                <h2 className="font-medium text-zinc-900">Revenue trend</h2>
-              </div>
-              <div className="flex items-end gap-1 h-24">
-                {data.dailySales.map((day) => {
-                  const pct = maxRevenue > 0 ? (parseFloat(day.revenue) / maxRevenue) * 100 : 0;
-                  return (
-                    <div
-                      key={day.date}
-                      className="group relative flex-1 min-w-0"
-                      title={`${day.date}: £${parseFloat(day.revenue).toFixed(2)} · ${day.orders} orders`}
-                    >
-                      <div
-                        className="w-full bg-orange-500 rounded-t hover:bg-orange-400 transition-colors cursor-pointer"
-                        style={{ height: `${Math.max(4, pct)}%` }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-between mt-1 text-[10px] text-zinc-400">
-                <span>{data.dailySales[0]?.date}</span>
-                <span>{data.dailySales[data.dailySales.length - 1]?.date}</span>
-              </div>
+      {/* Filter bar */}
+      <section className="rounded-lg border border-zinc-200 bg-white p-3 space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setPreset(p.id)}
+              className={`rounded-md border px-3 py-1 text-xs font-medium ${
+                preset === p.id
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+          {preset === "custom" && (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="rounded-md border border-zinc-200 px-2 py-1 text-xs"
+              />
+              <span className="text-xs text-zinc-400">to</span>
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="rounded-md border border-zinc-200 px-2 py-1 text-xs"
+              />
             </div>
           )}
-
-          {/* Platform breakdown + Kitchen/Driver metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6">
-              <h2 className="font-medium text-zinc-900 mb-4">Platform breakdown</h2>
-              {data.platforms?.length ? (
-                <div className="space-y-3">
-                  {data.platforms.map((p) => (
-                    <div key={p.platform}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "text-[10px] font-bold px-1.5 py-0.5 rounded",
-                            PLATFORM_COLORS[p.platform] ?? "bg-zinc-200 text-zinc-700",
-                          )}>
-                            {p.platform.replace(/_/g, " ")}
-                          </span>
-                          <span className="text-sm text-zinc-700">{p.orders} orders</span>
-                        </div>
-                        <span className="text-sm font-semibold text-zinc-900">
-                          £{parseFloat(p.revenue).toLocaleString("en-GB", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <MiniBar value={p.orders} max={maxOrders} />
-                      <div className="flex justify-between text-xs text-zinc-400 mt-0.5">
-                        <span>AOV £{parseFloat(p.avgValue).toFixed(2)}</span>
-                        <span className={cn(p.cancellationRate > 5 ? "text-red-500" : "")}>
-                          {p.cancellationRate.toFixed(1)}% cancelled
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-400 text-center py-6">No platform data.</p>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="w-4 h-4 text-zinc-500" />
-                  <h2 className="font-medium text-zinc-900">Kitchen SLA</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Avg prep time", value: `${data.kitchen.avgPrepTime}m` },
-                    { label: "P95 prep time", value: `${data.kitchen.p95PrepTime}m` },
-                    { label: "SLA breaches", value: data.kitchen.slaBreaches.toLocaleString(), alert: data.kitchen.slaBreachRate > 10 },
-                    { label: "Breach rate", value: `${data.kitchen.slaBreachRate.toFixed(1)}%`, alert: data.kitchen.slaBreachRate > 10 },
-                  ].map(({ label, value, alert }) => (
-                    <div key={label} className="bg-zinc-50 rounded-xl p-3">
-                      <div className="text-xs text-zinc-500">{label}</div>
-                      <div className={cn("text-lg font-bold mt-0.5", alert ? "text-red-600" : "text-zinc-900")}>
-                        {value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Truck className="w-4 h-4 text-zinc-500" />
-                  <h2 className="font-medium text-zinc-900">Driver metrics</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Deliveries", value: data.drivers.totalDeliveries.toLocaleString() },
-                    { label: "Avg delivery time", value: `${data.drivers.avgDeliveryTime}m` },
-                    { label: "On-time rate", value: `${data.drivers.onTimeRate.toFixed(1)}%` },
-                    { label: "Avg rating", value: data.drivers.avgRating ? data.drivers.avgRating.toFixed(1) : "—" },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="bg-zinc-50 rounded-xl p-3">
-                      <div className="text-xs text-zinc-500">{label}</div>
-                      <div className="text-lg font-bold text-zinc-900 mt-0.5">{value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <select
+            value={locationId}
+            onChange={(e) => setLocationId(e.target.value)}
+            className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
+          >
+            <option value="">All locations</option>
+            {(locationsQuery.data ?? []).map((l: any) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={brandId}
+            onChange={(e) => setBrandId(e.target.value)}
+            className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs"
+          >
+            <option value="">All brands</option>
+            {(brandsQuery.data ?? []).map((b: any) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex flex-wrap gap-1">
+            {CHANNELS.map((c) => {
+              const on = selectedChannels.includes(c);
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() =>
+                    setSelectedChannels((prev) =>
+                      prev.includes(c)
+                        ? prev.filter((x) => x !== c)
+                        : [...prev, c],
+                    )
+                  }
+                  className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                    on
+                      ? "border-orange-500 bg-orange-50 text-orange-900"
+                      : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
+                  }`}
+                >
+                  {c.replace(/_/g, " ")}
+                </button>
+              );
+            })}
           </div>
+        </div>
+      </section>
 
-          {/* Top products + Location comparison */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-100">
-                <Package className="w-4 h-4 text-orange-500" />
-                <h2 className="font-medium text-zinc-900">Top items</h2>
-              </div>
-              {data.topProducts?.length ? (
-                <div className="divide-y divide-zinc-50">
-                  {data.topProducts.slice(0, 8).map((p, i) => (
-                    <div key={p.menuItemId} className="px-5 py-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-zinc-400 w-4">{i + 1}</span>
-                          <span className="text-sm font-medium text-zinc-800 truncate max-w-[150px]">{p.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {p.avgRating && (
-                            <span className="flex items-center gap-0.5 text-xs text-amber-500">
-                              <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                              {p.avgRating.toFixed(1)}
-                            </span>
-                          )}
-                          <span className="text-sm font-semibold text-zinc-900">
-                            £{parseFloat(p.revenue).toLocaleString("en-GB", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      </div>
-                      <MiniBar value={p.orders} max={maxProductOrders} className="bg-orange-400" />
-                      <div className="text-xs text-zinc-400 mt-0.5">{p.orders} orders</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-zinc-400 text-sm">No product data.</div>
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-zinc-400">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : !data ? (
+        <p className="text-sm text-zinc-500">No data for this filter set.</p>
+      ) : (
+        <>
+          {/* KPI tiles */}
+          <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <KpiCard
+              label="Gross revenue"
+              value={fmtGBP(data.summary.grossRevenue)}
+              hint="Subtotal + delivery + tax"
+              delta={pctDelta(
+                data.summary.grossRevenue,
+                data.summary.prevGrossRevenue,
+              )}
+              icon={<PoundSterling className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Net revenue"
+              value={fmtGBP(data.summary.netRevenue)}
+              hint="After discounts"
+              delta={pctDelta(
+                data.summary.netRevenue,
+                data.summary.prevNetRevenue,
+              )}
+              icon={<Sparkles className="h-4 w-4" />}
+              tone="primary"
+            />
+            <KpiCard
+              label="Successful orders"
+              value={fmtNum(data.summary.successfulOrders)}
+              hint="Completed"
+              delta={pctDelta(
+                data.summary.successfulOrders,
+                data.summary.prevSuccessfulOrders,
+              )}
+              icon={<ShoppingBag className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Avg order value"
+              value={fmtGBP(data.summary.avgOrderValue)}
+              delta={pctDelta(
+                data.summary.avgOrderValue,
+                data.summary.prevAvgOrderValue,
+              )}
+              icon={<Tag className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Cancelled / failed"
+              value={fmtNum(
+                data.summary.cancelledOrders + data.summary.failedOrders,
+              )}
+              hint={`${fmtGBP(data.summary.cancelledRevenue + data.summary.failedRevenue)} lost`}
+              icon={<AlertTriangle className="h-4 w-4" />}
+              tone="danger"
+            />
+            <KpiCard
+              label="Discount given"
+              value={fmtGBP(data.summary.discount)}
+              icon={<TrendingDown className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Delivery fees"
+              value={fmtGBP(data.summary.deliveryFees)}
+              icon={<MapPin className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Tax collected"
+              value={fmtGBP(data.summary.taxAmount)}
+              icon={<Building2 className="h-4 w-4" />}
+            />
+          </section>
+
+          {/* Main chart + tab strip */}
+          <section className="rounded-lg border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-2">
+              <nav className="flex items-center gap-3">
+                {[
+                  { id: "revenue", label: "Revenue" },
+                  { id: "orders", label: "Orders" },
+                  { id: "aov", label: "Avg order value" },
+                  { id: "breakdown", label: "Revenue breakdown" },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTab(t.id as any)}
+                    className={`pb-1 text-sm font-medium ${
+                      tab === t.id
+                        ? "border-b-2 border-emerald-600 text-zinc-900"
+                        : "text-zinc-500 hover:text-zinc-800"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </nav>
+              <span className="text-[11px] text-zinc-400">
+                <Calendar className="inline h-3 w-3 mr-1" />
+                {new Date(data.window.from).toLocaleDateString()} →{" "}
+                {new Date(data.window.to).toLocaleDateString()} · vs prior{" "}
+                {new Date(data.window.prevFrom).toLocaleDateString()} →{" "}
+                {new Date(data.window.prevTo).toLocaleDateString()}
+              </span>
+            </header>
+            <div className="p-4">
+              {tab === "revenue" && <RevenueChart data={data.revenueTimeline} />}
+              {tab === "orders" && <OrdersChart data={data.revenueTimeline} />}
+              {tab === "aov" && (
+                <AovChart
+                  data={data.revenueTimeline.map((d) => ({
+                    date: d.date,
+                    aov: d.orders > 0 ? d.revenue / d.orders : 0,
+                  }))}
+                />
+              )}
+              {tab === "breakdown" && (
+                <BreakdownPie data={data.byChannel} />
               )}
             </div>
+          </section>
 
-            <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-100">
-                <BarChart3 className="w-4 h-4 text-blue-500" />
-                <h2 className="font-medium text-zinc-900">Location comparison</h2>
-              </div>
-              {data.locations?.length ? (
-                <div className="divide-y divide-zinc-50">
-                  {data.locations.map((loc) => {
-                    const maxLocRev = Math.max(...data.locations.map((l) => parseFloat(l.revenue)));
-                    return (
-                      <div key={loc.locationId} className="px-5 py-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-zinc-800 truncate max-w-[150px]">
-                            {loc.locationName}
-                          </span>
-                          <span className="text-sm font-semibold text-zinc-900">
-                            £{parseFloat(loc.revenue).toLocaleString("en-GB", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        <MiniBar value={parseFloat(loc.revenue)} max={maxLocRev} className="bg-blue-500" />
-                        <div className="flex justify-between text-xs text-zinc-400 mt-0.5">
-                          <span>{loc.orders} orders · {loc.avgPrepTime}m avg prep</span>
-                          {loc.avgRating && (
-                            <span className="flex items-center gap-0.5 text-amber-500">
-                              <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                              {loc.avgRating.toFixed(1)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+          {/* Channel + Brand + Location */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <Card title="Sales by channel" subtitle="Revenue and order count">
+              {data.byChannel.length === 0 ? (
+                <Empty />
               ) : (
-                <div className="text-center py-10 text-zinc-400 text-sm">No location data.</div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={data.byChannel} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                    <XAxis type="number" tick={{ fontSize: 10 }} />
+                    <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value: number, key: string) =>
+                        key === "revenue"
+                          ? [fmtGBP(value), "Revenue"]
+                          : [fmtNum(value), "Orders"]
+                      }
+                    />
+                    <Bar dataKey="revenue" fill="#f97316" />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
-            </div>
-          </div>
+              <SmallTable
+                rows={data.byChannel.map((c) => [
+                  c.name,
+                  fmtGBP(c.revenue),
+                  fmtNum(c.orders),
+                ])}
+                headers={["Channel", "Revenue", "Orders"]}
+              />
+            </Card>
+            <Card title="Sales by brand" subtitle="Top → bottom">
+              {data.byBrand.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.byBrand.map((b) => [
+                    b.name,
+                    fmtGBP(b.revenue),
+                    fmtNum(b.orders),
+                  ])}
+                  headers={["Brand", "Revenue", "Orders"]}
+                />
+              )}
+            </Card>
+            <Card title="Sales by location" subtitle="Top → bottom">
+              {data.byLocation.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.byLocation.map((l) => [
+                    l.name,
+                    fmtGBP(l.revenue),
+                    fmtNum(l.orders),
+                  ])}
+                  headers={["Location", "Revenue", "Orders"]}
+                />
+              )}
+            </Card>
+          </section>
+
+          {/* Products + postcodes */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <Card title="Best selling products" subtitle="By revenue">
+              {data.topProducts.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.topProducts.map((p) => [
+                    p.name,
+                    fmtNum(p.quantity),
+                    fmtGBP(p.revenue),
+                  ])}
+                  headers={["Product", "Qty", "Revenue"]}
+                />
+              )}
+            </Card>
+            <Card title="Best postcodes" subtitle="Delivery orders only">
+              {data.topPostcodes.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.topPostcodes.map((p) => [
+                    p.postcode,
+                    fmtNum(p.orders),
+                    fmtGBP(p.revenue),
+                  ])}
+                  headers={["Outer", "Orders", "Revenue"]}
+                />
+              )}
+            </Card>
+            <Card title="Weakest postcodes" subtitle="Smallest delivery revenue">
+              {data.weakestPostcodes.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.weakestPostcodes.map((p) => [
+                    p.postcode,
+                    fmtNum(p.orders),
+                    fmtGBP(p.revenue),
+                  ])}
+                  headers={["Outer", "Orders", "Revenue"]}
+                />
+              )}
+            </Card>
+          </section>
+
+          {/* Heatmap */}
+          <section className="rounded-lg border border-zinc-200 bg-white p-4">
+            <header className="mb-3">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Order hours by day
+              </h2>
+              <p className="text-[11px] text-zinc-500">
+                Darker = more orders. Helps spot peak windows.
+              </p>
+            </header>
+            <Heatmap data={data.hourlyHeatmap} />
+          </section>
         </>
       )}
+    </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  hint,
+  delta,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  delta?: number;
+  icon?: React.ReactNode;
+  tone?: "primary" | "danger";
+}) {
+  const ring =
+    tone === "primary"
+      ? "border-emerald-200 bg-emerald-50"
+      : tone === "danger"
+        ? "border-rose-200 bg-rose-50"
+        : "border-zinc-200 bg-white";
+  const up = (delta ?? 0) >= 0;
+  return (
+    <div className={`rounded-lg border ${ring} p-3`}>
+      <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+        <span>{label}</span>
+        {icon}
+      </div>
+      <p className="text-xl font-bold mt-1 text-zinc-900">{value}</p>
+      {hint && <p className="text-[10px] text-zinc-500 mt-0.5">{hint}</p>}
+      {delta !== undefined && (
+        <p
+          className={`mt-1 inline-flex items-center gap-0.5 text-[10px] font-semibold ${
+            up ? "text-emerald-700" : "text-rose-700"
+          }`}
+        >
+          {up ? (
+            <ArrowUpRight className="h-3 w-3" />
+          ) : (
+            <ArrowDownRight className="h-3 w-3" />
+          )}
+          {Math.abs(delta).toFixed(1)}% vs prior period
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Card({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white p-3">
+      <header className="mb-2">
+        <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
+        {subtitle && <p className="text-[11px] text-zinc-500">{subtitle}</p>}
+      </header>
+      {children}
+    </div>
+  );
+}
+
+function Empty() {
+  return (
+    <p className="py-8 text-center text-xs text-zinc-400">
+      No data in this window.
+    </p>
+  );
+}
+
+function SmallTable({
+  headers,
+  rows,
+}: {
+  headers: string[];
+  rows: Array<Array<string | number>>;
+}) {
+  return (
+    <div className="overflow-x-auto mt-2">
+      <table className="min-w-full text-xs">
+        <thead>
+          <tr className="border-b border-zinc-100 text-zinc-500">
+            {headers.map((h, i) => (
+              <th
+                key={h}
+                className={`px-2 py-1.5 font-semibold uppercase tracking-wider text-[10px] ${
+                  i === 0 ? "text-left" : "text-right"
+                }`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, idx) => (
+            <tr key={idx} className="border-b border-zinc-50 last:border-0">
+              {r.map((c, i) => (
+                <td
+                  key={i}
+                  className={`px-2 py-1.5 ${i === 0 ? "text-left text-zinc-800" : "text-right text-zinc-600"}`}
+                >
+                  {c}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function RevenueChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
+        <Tooltip
+          formatter={(v: number) => fmtGBP(v)}
+          labelFormatter={(label) => `Day ${label}`}
+        />
+        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Area
+          type="monotone"
+          dataKey="revenue"
+          name="This period"
+          stroke="#10b981"
+          fill="url(#rev)"
+        />
+        <Line
+          type="monotone"
+          dataKey="prevRevenue"
+          name="Prior period"
+          stroke="#a1a1aa"
+          strokeDasharray="4 4"
+          dot={false}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function OrdersChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+        <YAxis tick={{ fontSize: 10 }} />
+        <Tooltip />
+        <Bar dataKey="orders" name="Orders" fill="#f97316" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function AovChart({ data }: { data: Array<{ date: string; aov: number }> }) {
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="aov" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.45} />
+            <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
+        <Tooltip formatter={(v: number) => fmtGBP(v)} />
+        <Area
+          type="monotone"
+          dataKey="aov"
+          name="Avg order value"
+          stroke="#8b5cf6"
+          fill="url(#aov)"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function BreakdownPie({ data }: { data: AnalyticsOverview["byChannel"] }) {
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <PieChart>
+        <Tooltip formatter={(v: number) => fmtGBP(v)} />
+        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Pie
+          data={data}
+          dataKey="revenue"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={110}
+          label={(entry: any) => `${entry.name}: ${fmtGBP(entry.revenue)}`}
+        >
+          {data.map((_, i) => (
+            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+function Heatmap({
+  data,
+}: {
+  data: AnalyticsOverview["hourlyHeatmap"];
+}) {
+  const max = Math.max(1, ...data.map((d) => d.orders));
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // Render as a 7x24 grid, day rows
+  return (
+    <div className="space-y-1">
+      <div className="grid grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-0.5 text-[9px] text-zinc-400">
+        <div />
+        {Array.from({ length: 24 }).map((_, h) => (
+          <div key={h} className="text-center">
+            {h}
+          </div>
+        ))}
+      </div>
+      {days.map((label, d) => (
+        <div
+          key={d}
+          className="grid grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-0.5"
+        >
+          <div className="text-[10px] text-zinc-500 self-center">{label}</div>
+          {Array.from({ length: 24 }).map((_, h) => {
+            const cell = data.find(
+              (x) => x.dayOfWeek === d && x.hour === h,
+            ) ?? { orders: 0, revenue: 0 };
+            const opacity = cell.orders / max;
+            return (
+              <div
+                key={h}
+                title={`${label} ${h}:00 · ${cell.orders} orders · ${fmtGBP(cell.revenue)}`}
+                className="aspect-square rounded-sm"
+                style={{
+                  background:
+                    opacity > 0
+                      ? `rgba(16, 185, 129, ${Math.max(0.08, opacity)})`
+                      : "rgb(244, 244, 245)",
+                }}
+              />
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

@@ -35,6 +35,42 @@ function thirtyDaysAgo(): Date {
 export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}
 
+  // ── ENTERPRISE OVERVIEW (Phase AW-24) ───────────────────────────────────────
+  // Single comprehensive payload for the analytics dashboard.
+
+  @Get("overview")
+  @ApiOperation({
+    summary:
+      "Enterprise dashboard payload: revenue, channels, brands, locations, products, postcodes, hourly heatmap, with a comparison snapshot for the prior window.",
+  })
+  @ApiQuery({ name: "from", required: false })
+  @ApiQuery({ name: "to", required: false })
+  @ApiQuery({ name: "locationId", required: false })
+  @ApiQuery({ name: "brandId", required: false })
+  @ApiQuery({ name: "channels", required: false, description: "Comma-separated orderSource values" })
+  @ApiQuery({ name: "fulfillmentTypes", required: false, description: "Comma-separated DELIVERY/PICKUP" })
+  getOverview(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("locationId") locationId?: string,
+    @Query("brandId") brandId?: string,
+    @Query("channels") channels?: string,
+    @Query("fulfillmentTypes") fulfillmentTypes?: string,
+  ) {
+    const now = new Date();
+    return this.analytics.getOverview(user.tenantId, {
+      from: parseDate(from, sevenDaysAgo()),
+      to: parseDate(to, now),
+      locationId,
+      brandId,
+      channels: channels ? channels.split(",").filter(Boolean) : undefined,
+      fulfillmentTypes: fulfillmentTypes
+        ? fulfillmentTypes.split(",").filter(Boolean)
+        : undefined,
+    });
+  }
+
   // ── REAL-TIME DASHBOARD ─────────────────────────────────────────────────────
 
   @Get("dashboard")

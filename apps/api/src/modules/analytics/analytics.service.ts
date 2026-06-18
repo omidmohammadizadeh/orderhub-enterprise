@@ -1051,6 +1051,320 @@ export class AnalyticsService {
     return { generated: snapshots.length };
   }
 
+  // ── ENTERPRISE OVERVIEW (Phase AW-24) ────────────────────────────────────────
+  //
+  // Single-call dashboard payload. Replaces N round-trips with one
+  // aggregation pass over the orders + items + brands + locations
+  // for the requested window. Includes a comparison snapshot for
+  // the immediately-preceding window of the same length so the UI
+  // can render +X% / −X% deltas without a second roundtrip.
+  //
+  // Status policy:
+  //   - "successful" = COMPLETED
+  //   - "cancelled"  = CANCELLED + REJECTED
+  //   - "failed"     = FAILED
+  //   Revenue lines use COMPLETED only; cancelled/failed are tracked
+  //   separately so the operator sees lost-opportunity money without
+  //   it inflating the headline revenue.
+
+  async getOverview(
+    tenantId: string,
+    opts: {
+      from: Date;
+      to: Date;
+      locationId?: string;
+      brandId?: string;
+      channels?: string[]; // matches Order.orderSource
+      fulfillmentTypes?: string[]; // DELIVERY | PICKUP
+    },
+  ) {
+    const baseWhere: Prisma.OrderWhereInput = {
+      tenantId,
+      isSandbox: false,
+      ...(opts.locationId && { locationId: opts.locationId }),
+      ...(opts.brandId && { brandId: opts.brandId }),
+      ...(opts.channels?.length && {
+        orderSource: { in: opts.channels as any },
+      }),
+      ...(opts.fulfillmentTypes?.length && {
+        fulfillmentType: { in: opts.fulfillmentTypes as any },
+      }),
+    };
+
+    // Comparison period: same duration, ending right before `from`.
+    const spanMs = opts.to.getTime() - opts.from.getTime();
+    const prevTo = opts.from;
+    const prevFrom = new Date(opts.from.getTime() - spanMs);
+
+    const [currOrders, prevOrders, brands, locations] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { ...baseWhere, createdAt: { gte: opts.from, lt: opts.to } },
+        include: { items: true },
+      }),
+      this.prisma.order.findMany({
+        where: { ...baseWhere, createdAt: { gte: prevFrom, lt: prevTo } },
+        select: {
+          id: true,
+          status: true,
+          subtotal: true,
+          discount: true,
+          deliveryFee: true,
+          taxAmount: true,
+          total: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.brand.findMany({
+        where: { tenantId, deletedAt: null },
+        select: { id: true, name: true },
+      }),
+      this.prisma.location.findMany({
+        where: { brand: { tenantId }, deletedAt: null },
+        select: { id: true, name: true },
+      }),
+    ]);
+
+    const brandNameById = new Map(brands.map((b) => [b.id, b.name]));
+    const locationNameById = new Map(locations.map((l) => [l.id, l.name]));
+
+    type OrderRow = (typeof currOrders)[number];
+
+    const isSuccess = (s: string) => s === "COMPLETED";
+    const isCancelled = (s: string) => s === "CANCELLED" || s === "REJECTED";
+    const isFailed = (s: string) => s === "FAILED";
+
+    // ── Headline totals ────────────────────────────────────────────
+    const successful = currOrders.filter((o) => isSuccess(o.status));
+    const cancelled = currOrders.filter((o) => isCancelled(o.status));
+    const failed = currOrders.filter((o) => isFailed(o.status));
+
+    const sumDec = <T extends keyof OrderRow>(rows: OrderRow[], key: T) =>
+      rows.reduce((s, r) => s + Number(r[key] ?? 0), 0);
+
+    // Gross = before discount. Net = total customer paid (after
+    // discount). delivery + tax are reported separately so the
+    // operator can see what's restaurant revenue vs pass-through.
+    const subtotal = sumDec(successful, "subtotal");
+    const discount = sumDec(successful, "discount");
+    const deliveryFees = sumDec(successful, "deliveryFee");
+    const taxAmount = sumDec(successful, "taxAmount");
+    const grossRevenue = subtotal + deliveryFees + taxAmount;
+    const netRevenue = grossRevenue - discount;
+
+    const avgOrderValue =
+      successful.length > 0 ? netRevenue / successful.length : 0;
+
+    // Prev-period for delta arrows.
+    const prevSuccessful = prevOrders.filter((o) => isSuccess(o.status));
+    const prevSubtotal = sumDec(prevSuccessful as any, "subtotal");
+    const prevDiscount = sumDec(prevSuccessful as any, "discount");
+    const prevDeliveryFees = sumDec(prevSuccessful as any, "deliveryFee");
+    const prevTax = sumDec(prevSuccessful as any, "taxAmount");
+    const prevGross = prevSubtotal + prevDeliveryFees + prevTax;
+    const prevNet = prevGross - prevDiscount;
+    const prevAov =
+      prevSuccessful.length > 0 ? prevNet / prevSuccessful.length : 0;
+
+    // ── Revenue timeline (per-day bucket) ──────────────────────────
+    const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+    const timelineMap = new Map<
+      string,
+      { revenue: number; orders: number; prevRevenue: number }
+    >();
+    // Pre-populate every day in range so the line chart has no gaps.
+    for (
+      let t = opts.from.getTime();
+      t < opts.to.getTime();
+      t += 24 * 60 * 60 * 1000
+    ) {
+      timelineMap.set(dayKey(new Date(t)), {
+        revenue: 0,
+        orders: 0,
+        prevRevenue: 0,
+      });
+    }
+    for (const o of successful) {
+      const k = dayKey(o.createdAt);
+      const slot = timelineMap.get(k);
+      if (!slot) continue;
+      slot.revenue += Number(o.total);
+      slot.orders += 1;
+    }
+    // Align prev orders onto the current axis by adding the span
+    // back. Lets the UI overlay "last week" on the same dates.
+    for (const o of prevSuccessful) {
+      const aligned = new Date(o.createdAt.getTime() + spanMs);
+      const k = dayKey(aligned);
+      const slot = timelineMap.get(k);
+      if (!slot) continue;
+      slot.prevRevenue += Number(o.total);
+    }
+    const revenueTimeline = Array.from(timelineMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, v]) => ({ date, ...v }));
+
+    // ── Group breakdowns ───────────────────────────────────────────
+    function rollup<K>(
+      rows: OrderRow[],
+      keyFn: (o: OrderRow) => K | null,
+    ): Map<K, { revenue: number; orders: number }> {
+      const m = new Map<K, { revenue: number; orders: number }>();
+      for (const o of rows) {
+        const k = keyFn(o);
+        if (k === null) continue;
+        const cur = m.get(k) ?? { revenue: 0, orders: 0 };
+        cur.revenue += Number(o.total);
+        cur.orders += 1;
+        m.set(k, cur);
+      }
+      return m;
+    }
+
+    const byChannelMap = rollup(successful, (o) => o.orderSource ?? "DIRECT");
+    const totalRev = netRevenue || 1;
+    const byChannel = Array.from(byChannelMap.entries())
+      .map(([name, v]) => ({
+        name: String(name),
+        revenue: v.revenue,
+        orders: v.orders,
+        share: v.revenue / totalRev,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    const byLocationMap = rollup(successful, (o) => o.locationId);
+    const byLocation = Array.from(byLocationMap.entries())
+      .map(([id, v]) => ({
+        id,
+        name: locationNameById.get(id) ?? id,
+        revenue: v.revenue,
+        orders: v.orders,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    const byBrandMap = rollup(successful, (o) => o.brandId);
+    const byBrand = Array.from(byBrandMap.entries())
+      .map(([id, v]) => ({
+        id: id as string,
+        name: brandNameById.get(id as string) ?? "Unassigned",
+        revenue: v.revenue,
+        orders: v.orders,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // ── Top products (sum quantity + revenue across OrderItems) ────
+    const productMap = new Map<
+      string,
+      { name: string; quantity: number; revenue: number }
+    >();
+    for (const o of successful) {
+      for (const it of o.items) {
+        const key = it.menuItemId ?? it.name;
+        const cur = productMap.get(key) ?? {
+          name: it.name,
+          quantity: 0,
+          revenue: 0,
+        };
+        cur.quantity += it.quantity;
+        cur.revenue += Number(it.totalPrice);
+        productMap.set(key, cur);
+      }
+    }
+    const topProducts = Array.from(productMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 15);
+
+    // ── Postcode breakdown (delivery orders only — pickup has no
+    //     postcode). Outer code only ("NE37 2LL" → "NE37") so we
+    //     aggregate by area not by individual address. ───────────
+    const postcodeMap = new Map<
+      string,
+      { orders: number; revenue: number }
+    >();
+    for (const o of successful) {
+      const addr = (o as any).postcode as string | null | undefined;
+      if (!addr) continue;
+      const outer = addr.trim().split(/\s+/)[0]?.toUpperCase();
+      if (!outer) continue;
+      const cur = postcodeMap.get(outer) ?? { orders: 0, revenue: 0 };
+      cur.orders += 1;
+      cur.revenue += Number(o.total);
+      postcodeMap.set(outer, cur);
+    }
+    const postcodesAll = Array.from(postcodeMap.entries()).map(
+      ([postcode, v]) => ({ postcode, ...v }),
+    );
+    const topPostcodes = [...postcodesAll]
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+    const weakestPostcodes = [...postcodesAll]
+      .sort((a, b) => a.revenue - b.revenue)
+      .slice(0, 10);
+
+    // ── Hourly heatmap (7×24 grid). Day index = Sunday = 0. Hour
+    //     in server-local tz; the UI just renders the grid. ─────
+    const hourlyHeatmap: Array<{
+      dayOfWeek: number;
+      hour: number;
+      orders: number;
+      revenue: number;
+    }> = [];
+    const heatmapMap = new Map<
+      string,
+      { orders: number; revenue: number }
+    >();
+    for (const o of successful) {
+      const dow = o.createdAt.getDay();
+      const hour = o.createdAt.getHours();
+      const key = `${dow}-${hour}`;
+      const cur = heatmapMap.get(key) ?? { orders: 0, revenue: 0 };
+      cur.orders += 1;
+      cur.revenue += Number(o.total);
+      heatmapMap.set(key, cur);
+    }
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        const v = heatmapMap.get(`${d}-${h}`) ?? { orders: 0, revenue: 0 };
+        hourlyHeatmap.push({ dayOfWeek: d, hour: h, ...v });
+      }
+    }
+
+    return {
+      generatedAt: new Date().toISOString(),
+      window: {
+        from: opts.from.toISOString(),
+        to: opts.to.toISOString(),
+        prevFrom: prevFrom.toISOString(),
+        prevTo: prevTo.toISOString(),
+      },
+      summary: {
+        grossRevenue,
+        netRevenue,
+        subtotal,
+        discount,
+        deliveryFees,
+        taxAmount,
+        successfulOrders: successful.length,
+        cancelledOrders: cancelled.length,
+        failedOrders: failed.length,
+        cancelledRevenue: sumDec(cancelled, "total"),
+        failedRevenue: sumDec(failed, "total"),
+        avgOrderValue,
+        prevGrossRevenue: prevGross,
+        prevNetRevenue: prevNet,
+        prevSuccessfulOrders: prevSuccessful.length,
+        prevAvgOrderValue: prevAov,
+      },
+      revenueTimeline,
+      byChannel,
+      byLocation,
+      byBrand,
+      topProducts,
+      topPostcodes,
+      weakestPostcodes,
+      hourlyHeatmap,
+    };
+  }
+
   // ── PRIVATE HELPERS ───────────────────────────────────────────────────────────
 
   private bucketKey(date: Date, granularity: "day" | "week" | "month"): string {
