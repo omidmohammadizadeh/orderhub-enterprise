@@ -409,6 +409,72 @@ export default function OrderPage() {
     string,
     { percentageOff: number; campaignId: string; campaignName: string }
   > = (storefront as any)?.itemPromos ?? {};
+  // Phase AW-19 — BOGO: trigger items get a "Buy 1, get 1 free"
+  // badge on the menu. When a trigger is in the cart, the first
+  // reward item is auto-added at £0 by the effect below.
+  const bogo: {
+    campaignId: string;
+    campaignName: string;
+    triggerItemIds: string[];
+    rewardItemIds: string[];
+  } | null = (storefront as any)?.bogo ?? null;
+  const bogoTriggerSet = useMemo(
+    () => new Set(bogo?.triggerItemIds ?? []),
+    [bogo],
+  );
+  const bogoRewardSet = useMemo(
+    () => new Set(bogo?.rewardItemIds ?? []),
+    [bogo],
+  );
+  // Flat itemId → MenuItem index, derived from the storefront tree.
+  // BOGO uses this to look up the reward item (name, plu, mods) when
+  // dropping it into the cart at £0.
+  const itemsById = useMemo(() => {
+    const out: Record<string, MenuItem> = {};
+    for (const cat of (storefront as any)?.menu?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        if (link.item) out[link.item.id] = link.item;
+      }
+    }
+    return out;
+  }, [storefront]);
+  // Auto-manage the freebie line:
+  //   - If a trigger is in the cart and there's no reward, append the
+  //     first reward at £0. Marker = unitPrice 0 + notes "🎁 BOGO".
+  //   - If no trigger is left, remove the BOGO line.
+  // Modifiers/SKUs on the reward are stripped — we just give them the
+  // base item, no extras, to keep the offer simple and the math safe.
+  useEffect(() => {
+    if (!bogo) return;
+    const cartHasTrigger = cart.some((l) => bogoTriggerSet.has(l.menuItemId));
+    const rewardLine = cart.find(
+      (l) =>
+        bogoRewardSet.has(l.menuItemId) &&
+        l.unitPrice === 0 &&
+        l.notes === "🎁 BOGO",
+    );
+    if (cartHasTrigger && !rewardLine) {
+      const rewardId = bogo.rewardItemIds[0];
+      const reward = rewardId ? itemsById[rewardId] : null;
+      if (reward) {
+        dispatch({
+          type: "ADD",
+          line: {
+            menuItemId: reward.id,
+            displayName: `${reward.name} (Free — BOGO)`,
+            unitPrice: 0,
+            quantity: 1,
+            modifiers: [],
+            selectedSku: null,
+            notes: "🎁 BOGO",
+            plu: reward.plu ?? null,
+          },
+        });
+      }
+    } else if (!cartHasTrigger && rewardLine) {
+      dispatch({ type: "REMOVE", id: rewardLine.id });
+    }
+  }, [cart, bogo, bogoTriggerSet, bogoRewardSet, itemsById]);
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -938,6 +1004,20 @@ export default function OrderPage() {
           )}
           {/* Phase AW-19 — items-only campaign banner. Only shown when
               there's no storewide campaign already taking the slot. */}
+          {bogo && !storefront.closed && (
+            <div className="mt-4 rounded-md border border-pink-200 bg-pink-50 px-4 py-2 text-xs text-pink-900">
+              <p className="font-semibold">🎁 Buy 1, get 1 free</p>
+              <p className="mt-0.5 text-[11px] text-pink-800">
+                {bogo.campaignName} — add any highlighted item and a free
+                {(() => {
+                  const id = bogo.rewardItemIds[0];
+                  const r = id ? itemsById[id] : null;
+                  return r ? ` ${r.name}` : " gift";
+                })()}{" "}
+                lands in your cart automatically.
+              </p>
+            </div>
+          )}
           {!storeCampaign && !storefront.closed && Object.keys(itemPromos).length > 0 && (() => {
             const promos = Object.values(itemPromos);
             const uniquePercents = Array.from(new Set(promos.map((p) => p.percentageOff)));
@@ -1038,6 +1118,7 @@ export default function OrderPage() {
                         key={item.id}
                         item={item}
                         promo={itemPromos[item.id] ?? null}
+                        bogoTrigger={bogoTriggerSet.has(item.id)}
                         onClick={() => handleProductClick(item)}
                       />
                     ))}
@@ -1320,10 +1401,12 @@ function CategoryChip({
 function ProductCard({
   item,
   promo,
+  bogoTrigger,
   onClick,
 }: {
   item: MenuItem;
   promo: { percentageOff: number; campaignName: string } | null;
+  bogoTrigger?: boolean;
   onClick: () => void;
 }) {
   const basePrice = Number(item.basePrice);
@@ -1357,6 +1440,16 @@ function ProductCard({
         {hasPromo && !item.outOfStock && (
           <span className="absolute top-2 right-2 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
             {promo!.percentageOff}% OFF
+          </span>
+        )}
+        {bogoTrigger && !hasPromo && !item.outOfStock && (
+          <span className="absolute top-2 right-2 rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+            BUY 1 GET 1 FREE
+          </span>
+        )}
+        {bogoTrigger && !item.outOfStock && (
+          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200">
+            🎁 Free item included
           </span>
         )}
       </div>

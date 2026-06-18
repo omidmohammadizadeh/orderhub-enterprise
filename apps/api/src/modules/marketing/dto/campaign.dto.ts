@@ -70,6 +70,12 @@ export class CreateCampaignDto {
   @IsArray()
   @IsString({ each: true })
   itemIds?: string[];
+  // Phase AW-19 — BOGO reward items. Stored on metadata.rewardItemIds.
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  rewardItemIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;
@@ -103,6 +109,11 @@ export class UpdateCampaignDto {
   @IsArray()
   @IsString({ each: true })
   itemIds?: string[];
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  rewardItemIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;

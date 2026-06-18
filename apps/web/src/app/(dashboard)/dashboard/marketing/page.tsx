@@ -34,6 +34,7 @@ import {
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
 import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
+import { BogoCampaignForm } from "@/components/marketing/bogo-form";
 
 interface TypeTile {
   id: CampaignType;
@@ -57,7 +58,7 @@ const TYPE_TILES: TypeTile[] = [
     title: "Buy 1, get 1 free",
     example: "Example: free fries with a burger",
     icon: Gift,
-    wired: false,
+    wired: true,
     badge: "Highest sales",
   },
   {
@@ -222,6 +223,16 @@ export default function MarketingPage() {
 
       {formType === "PERCENT_OFF_ITEMS" && (
         <PercentOffItemsCampaignForm
+          onCancel={() => setFormType(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            setFormType(null);
+          }}
+        />
+      )}
+
+      {formType === "BOGO" && (
+        <BogoCampaignForm
           onCancel={() => setFormType(null)}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });

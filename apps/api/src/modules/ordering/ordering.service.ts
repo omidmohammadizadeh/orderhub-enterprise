@@ -440,6 +440,7 @@ export class OrderingService {
       "ALL",
       "NEW",
     ]);
+    const bogo = await this.marketing.resolveBogo(menuBrandId, ["ALL", "NEW"]);
 
     return {
       directConfig,
@@ -447,6 +448,7 @@ export class OrderingService {
       brandModifierGroups,
       campaign,
       itemPromos,
+      bogo,
       location: locationView,
       brand: brandView,
       menu,

@@ -113,6 +113,12 @@ export class MarketingService {
         endsAt: args.dto.endsAt ? new Date(args.dto.endsAt) : null,
         maxRedemptions: args.dto.maxRedemptions ?? null,
         perCustomerLimit: args.dto.perCustomerLimit ?? null,
+        // Phase AW-19 — BOGO reward items live on metadata so they
+        // don't need their own column. Storefront reads them back to
+        // auto-add a £0 line when a trigger lands in the cart.
+        metadata: args.dto.rewardItemIds?.length
+          ? { rewardItemIds: args.dto.rewardItemIds }
+          : {},
         createdBy: args.userId ?? null,
       },
     });
@@ -250,6 +256,49 @@ export class MarketingService {
     return out;
   }
 
+  /**
+   * Phase AW-19 — pick the active BOGO campaign for storefront.
+   * Returns null when nothing matches. We only honour one BOGO at
+   * a time on the storefront — if the operator publishes more than
+   * one we take the most-recently-updated row.
+   */
+  async resolveBogo(
+    brandId: string,
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+  ): Promise<{
+    campaignId: string;
+    campaignName: string;
+    triggerItemIds: string[];
+    rewardItemIds: string[];
+  } | null> {
+    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const bogo = (rows as any[])
+      .filter(
+        (r) =>
+          r.type === "BOGO" &&
+          audiences.includes(r.audience) &&
+          (r.itemIds?.length ?? 0) > 0,
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt ?? 0).getTime() -
+          new Date(a.updatedAt ?? 0).getTime(),
+      )[0];
+    if (!bogo) return null;
+    const rewardItemIds: string[] = Array.isArray(
+      (bogo.metadata as any)?.rewardItemIds,
+    )
+      ? (bogo.metadata as any).rewardItemIds
+      : [];
+    if (!rewardItemIds.length) return null;
+    return {
+      campaignId: bogo.id,
+      campaignName: bogo.name,
+      triggerItemIds: bogo.itemIds ?? [],
+      rewardItemIds,
+    };
+  }
+
   private assertTypeFields(type: CampaignTypeValue, fields: any) {
     const missing: string[] = [];
     switch (type) {
@@ -264,7 +313,10 @@ export class MarketingService {
         if (!fields.itemIds?.length) missing.push("itemIds");
         break;
       case "BOGO":
-        // Trigger + reward items live in metadata for now.
+        // Trigger items live on itemIds, reward items on
+        // metadata.rewardItemIds (carried in via dto.rewardItemIds).
+        if (!fields.itemIds?.length) missing.push("itemIds");
+        if (!fields.rewardItemIds?.length) missing.push("rewardItemIds");
         break;
       case "FREE_ITEM":
         if (!fields.freeItemId) missing.push("freeItemId");
