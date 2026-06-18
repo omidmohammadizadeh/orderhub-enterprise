@@ -441,10 +441,50 @@ export class OrderingService {
       "NEW",
     ]);
     const bogo = await this.marketing.resolveBogo(menuBrandId, ["ALL", "NEW"]);
-    const freeItem = await this.marketing.resolveFreeItem(menuBrandId, [
+    const freeItemRaw = await this.marketing.resolveFreeItem(menuBrandId, [
       "ALL",
       "NEW",
     ]);
+    // Phase AW-19 — resolve the actual itemIds that fall under any
+    // excluded category, against THIS storefront's menu (categories
+    // are per-menu, so we can't trust the operator-side category id
+    // alone — we walk the served menu by category id AND by
+    // category name as a fallback so a same-named category in a
+    // republished menu still excludes correctly).
+    let freeItem:
+      | (typeof freeItemRaw & { excludedItemIds: string[] })
+      | null = null;
+    if (freeItemRaw) {
+      const excludedSet = new Set<string>();
+      if (freeItemRaw.excludedCategoryIds.length > 0 && menu) {
+        const wantIds = new Set(freeItemRaw.excludedCategoryIds);
+        // We don't have the source category names; fetch them so a
+        // name-match fallback can rescue stale ids that point at a
+        // since-republished menu.
+        const sourceCats = await this.prisma.menuCategory.findMany({
+          where: { id: { in: freeItemRaw.excludedCategoryIds } },
+          select: { name: true },
+        });
+        const wantNames = new Set(
+          sourceCats.map((c) => c.name.trim().toLowerCase()),
+        );
+        for (const cat of (menu as any).categories ?? []) {
+          const idMatch = wantIds.has(cat.id);
+          const nameMatch = wantNames.has(
+            String(cat.name ?? "").trim().toLowerCase(),
+          );
+          if (!idMatch && !nameMatch) continue;
+          for (const link of cat.items ?? []) {
+            const id = link.itemId ?? link.item?.id;
+            if (id) excludedSet.add(id);
+          }
+        }
+      }
+      freeItem = {
+        ...freeItemRaw,
+        excludedItemIds: Array.from(excludedSet),
+      };
+    }
 
     return {
       directConfig,

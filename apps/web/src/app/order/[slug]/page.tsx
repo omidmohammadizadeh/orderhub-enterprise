@@ -437,24 +437,15 @@ export default function OrderPage() {
     }
     return out;
   }, [storefront]);
-  // Set of itemIds that appear under ANY excluded category. An item
-  // listed under multiple categories is excluded as long as one of
-  // them is on the exclusion list — safer than a single-category
-  // last-write-wins map.
+  // Server resolves excludedItemIds against the menu it's actually
+  // serving, with a category-name fallback for republished menus.
+  // We use the server list as-is; the client used to walk the menu
+  // tree itself, but category ids drift across menu publishes so
+  // that approach silently failed for some campaigns.
   const excludedItemIdSet = useMemo(() => {
-    const out = new Set<string>();
-    const freeItemRaw: any = (storefront as any)?.freeItem;
-    const excluded: string[] = freeItemRaw?.excludedCategoryIds ?? [];
-    if (excluded.length === 0) return out;
-    const excludedCats = new Set(excluded);
-    for (const cat of (storefront as any)?.menu?.categories ?? []) {
-      if (!excludedCats.has(cat.id)) continue;
-      for (const link of cat.items ?? []) {
-        const id = link.itemId ?? link.item?.id;
-        if (id) out.add(id);
-      }
-    }
-    return out;
+    const ids: string[] =
+      (storefront as any)?.freeItem?.excludedItemIds ?? [];
+    return new Set(ids);
   }, [storefront]);
   // Phase AW-19 — FREE_ITEM campaign + chosen freebie state. The
   // gift unlocks when (subtotal of non-excluded items) ≥ minOrder.
