@@ -71,6 +71,30 @@ export class AnalyticsController {
     });
   }
 
+  // ── CUSTOMER INSIGHTS (Phase AW-25) ─────────────────────────────────────────
+
+  @Get("customer-insights")
+  @ApiOperation({
+    summary:
+      "Uber-Eats-style customer segmentation (New / Occasional / Frequent) with per-shop breakdown and daily active trends.",
+  })
+  @ApiQuery({ name: "from", required: false })
+  @ApiQuery({ name: "to", required: false })
+  @ApiQuery({ name: "locationId", required: false })
+  getCustomerInsights(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("locationId") locationId?: string,
+  ) {
+    const now = new Date();
+    return this.analytics.getCustomerInsights(user.tenantId, {
+      from: parseDate(from, sevenDaysAgo()),
+      to: parseDate(to, now),
+      locationId,
+    });
+  }
+
   // ── REAL-TIME DASHBOARD ─────────────────────────────────────────────────────
 
   @Get("dashboard")

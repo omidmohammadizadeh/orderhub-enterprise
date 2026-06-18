@@ -74,7 +74,53 @@ export interface OverviewFilters {
   fulfillmentTypes?: string[];
 }
 
+export interface CustomerInsights {
+  generatedAt: string;
+  window: { from: string; to: string; prevFrom: string; prevTo: string };
+  summary: { total: number; prevTotal: number; revenue: number };
+  groups: {
+    new: GroupDetail;
+    occasional: GroupDetail;
+    frequent: GroupDetail;
+  };
+  byShop: Array<{
+    locationId: string;
+    name: string;
+    address: string | null;
+    new: number;
+    occasional: number;
+    frequent: number;
+    total: number;
+  }>;
+  trends: Array<{
+    date: string;
+    all: number;
+    new: number;
+    occasional: number;
+    frequent: number;
+  }>;
+}
+
+export interface GroupDetail {
+  customerCount: number;
+  prevCustomerCount: number;
+  share: number;
+  revenue: number;
+  revenueShare: number;
+  avgOrderValue: number;
+  orderCount: number;
+}
+
 export const analyticsClient = {
+  customerInsights: (f: { from?: string; to?: string; locationId?: string }) => {
+    const params: Record<string, string> = {};
+    if (f.from) params.from = f.from;
+    if (f.to) params.to = f.to;
+    if (f.locationId) params.locationId = f.locationId;
+    return apiClient
+      .get<CustomerInsights>("/v1/analytics/customer-insights", { params })
+      .then((r) => r.data);
+  },
   overview: (f: OverviewFilters) => {
     const params: Record<string, string> = {};
     if (f.from) params.from = f.from;

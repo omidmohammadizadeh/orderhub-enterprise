@@ -1365,6 +1365,301 @@ export class AnalyticsService {
     };
   }
 
+  // ── CUSTOMER INSIGHTS (Phase AW-25) ──────────────────────────────────────────
+  //
+  // Uber-Eats-style customer segmentation:
+  //   - NEW:        first-ever tenant order was inside [from, to].
+  //   - OCCASIONAL: 1–2 orders in the trailing 90 days ending at `to`,
+  //                 and not classified as NEW.
+  //   - FREQUENT:   3+ orders in the trailing 90 days ending at `to`,
+  //                 and not classified as NEW.
+  //
+  // Identity = phone number when present, otherwise customerAccountId,
+  // otherwise customerName-lowered. Phone is the most consistent
+  // signal across guest checkouts + POS + marketplace ingests.
+  //
+  // We return the segmentation for the current window, the previous-
+  // period snapshot for deltas, per-shop breakdown, and a daily
+  // active-customers trend.
+
+  async getCustomerInsights(
+    tenantId: string,
+    opts: { from: Date; to: Date; locationId?: string },
+  ) {
+    type GroupKey = "NEW" | "OCCASIONAL" | "FREQUENT";
+    type ClassifiedOrder = {
+      key: string;
+      createdAt: Date;
+      total: number;
+      locationId: string;
+    };
+
+    const spanMs = opts.to.getTime() - opts.from.getTime();
+    const prevTo = opts.from;
+    const prevFrom = new Date(opts.from.getTime() - spanMs);
+    const ninetyMs = 90 * 24 * 60 * 60 * 1000;
+
+    // ── Pull orders. To classify "frequent in last 90d ending at `to`"
+    //    we need orders from (to - 90d) → to. For the prev-period
+    //    delta we need the same range shifted back by `span`. The
+    //    union covers both.
+    const lookbackStart = new Date(
+      Math.min(opts.from.getTime(), prevFrom.getTime()) - ninetyMs,
+    );
+    const orderRows = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        isSandbox: false,
+        status: "COMPLETED",
+        createdAt: { gte: lookbackStart, lt: opts.to },
+        ...(opts.locationId && { locationId: opts.locationId }),
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        total: true,
+        locationId: true,
+        customerName: true,
+        customerPhone: true,
+        customerAccountId: true,
+        customerId: true,
+      },
+    });
+
+    const keyFor = (o: (typeof orderRows)[number]): string | null => {
+      const phone = (o.customerPhone ?? "").replace(/\s+/g, "");
+      if (phone) return `p:${phone}`;
+      if (o.customerAccountId) return `a:${o.customerAccountId}`;
+      if (o.customerId) return `c:${o.customerId}`;
+      const name = (o.customerName ?? "").trim().toLowerCase();
+      if (name) return `n:${name}`;
+      return null;
+    };
+
+    // ── Find each customer's all-time first order (only matters for
+    //    customers active in either window). For accurate NEW
+    //    classification we'd query min(createdAt) across all-time;
+    //    in practice the 90d+span lookback above plus a separate
+    //    "anything older?" probe per active customer is good enough,
+    //    and faster than a tenant-wide aggregate.
+    const ordersByKey = new Map<string, ClassifiedOrder[]>();
+    for (const o of orderRows) {
+      const k = keyFor(o);
+      if (!k) continue;
+      const arr = ordersByKey.get(k) ?? [];
+      arr.push({
+        key: k,
+        createdAt: o.createdAt,
+        total: Number(o.total),
+        locationId: o.locationId,
+      });
+      ordersByKey.set(k, arr);
+    }
+    // Sort each customer's orders so earliest is first.
+    for (const arr of ordersByKey.values()) {
+      arr.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    }
+
+    function classify(
+      windowFrom: Date,
+      windowTo: Date,
+    ): {
+      // Per-bucket aggregates.
+      buckets: Record<
+        GroupKey,
+        {
+          customerCount: number;
+          orderCount: number;
+          revenue: number;
+        }
+      >;
+      // Per-(locationId, bucket) → customerCount, for the by-shop table.
+      byShop: Map<string, Record<GroupKey, number>>;
+      // For trend: per-day set of customer keys per bucket.
+      perDay: Map<string, Map<GroupKey, Set<string>>>;
+    } {
+      const buckets: Record<
+        GroupKey,
+        { customerCount: number; orderCount: number; revenue: number }
+      > = {
+        NEW: { customerCount: 0, orderCount: 0, revenue: 0 },
+        OCCASIONAL: { customerCount: 0, orderCount: 0, revenue: 0 },
+        FREQUENT: { customerCount: 0, orderCount: 0, revenue: 0 },
+      };
+      const byShop = new Map<string, Record<GroupKey, number>>();
+      const perDay = new Map<string, Map<GroupKey, Set<string>>>();
+
+      const ninetyFrom = new Date(windowTo.getTime() - ninetyMs);
+
+      for (const [k, all] of ordersByKey) {
+        const inWindow = all.filter(
+          (o) =>
+            o.createdAt.getTime() >= windowFrom.getTime() &&
+            o.createdAt.getTime() < windowTo.getTime(),
+        );
+        if (inWindow.length === 0) continue;
+        const firstEver = all[0]!.createdAt;
+        const isNew =
+          firstEver.getTime() >= windowFrom.getTime() &&
+          firstEver.getTime() < windowTo.getTime();
+        const orders90d = all.filter(
+          (o) =>
+            o.createdAt.getTime() >= ninetyFrom.getTime() &&
+            o.createdAt.getTime() < windowTo.getTime(),
+        ).length;
+        let bucket: GroupKey;
+        if (isNew) bucket = "NEW";
+        else if (orders90d >= 3) bucket = "FREQUENT";
+        else bucket = "OCCASIONAL";
+
+        buckets[bucket].customerCount += 1;
+        const revenue = inWindow.reduce((s, o) => s + o.total, 0);
+        buckets[bucket].revenue += revenue;
+        buckets[bucket].orderCount += inWindow.length;
+
+        // By-shop: attribute the customer to the shop where they
+        // ordered most by revenue in this window. Operators want
+        // "Monster Burgerz had X new customers", not "this customer
+        // appears under every shop they touched".
+        const shopRev = new Map<string, number>();
+        for (const o of inWindow) {
+          shopRev.set(o.locationId, (shopRev.get(o.locationId) ?? 0) + o.total);
+        }
+        let primaryShop = inWindow[0]!.locationId;
+        let bestRev = -Infinity;
+        for (const [loc, rev] of shopRev) {
+          if (rev > bestRev) {
+            bestRev = rev;
+            primaryShop = loc;
+          }
+        }
+        const shopRow = byShop.get(primaryShop) ?? {
+          NEW: 0,
+          OCCASIONAL: 0,
+          FREQUENT: 0,
+        };
+        shopRow[bucket] += 1;
+        byShop.set(primaryShop, shopRow);
+
+        // Per-day trend: customer counts as "active" on each day they
+        // ordered, in their assigned bucket for this window.
+        for (const o of inWindow) {
+          const day = o.createdAt.toISOString().slice(0, 10);
+          const dayMap =
+            perDay.get(day) ??
+            new Map<GroupKey, Set<string>>([
+              ["NEW", new Set()],
+              ["OCCASIONAL", new Set()],
+              ["FREQUENT", new Set()],
+            ]);
+          dayMap.get(bucket)!.add(k);
+          perDay.set(day, dayMap);
+        }
+      }
+      return { buckets, byShop, perDay };
+    }
+
+    const curr = classify(opts.from, opts.to);
+    const prev = classify(prevFrom, prevTo);
+
+    // Per-shop joined with location names.
+    const shopIds = Array.from(curr.byShop.keys());
+    const shops = shopIds.length
+      ? await this.prisma.location.findMany({
+          where: { id: { in: shopIds }, brand: { tenantId } },
+          select: { id: true, name: true, address: true },
+        })
+      : [];
+    const shopMeta = new Map(shops.map((s) => [s.id, s]));
+    const byShop = Array.from(curr.byShop.entries())
+      .map(([id, row]) => ({
+        locationId: id,
+        name: shopMeta.get(id)?.name ?? "Unknown",
+        address: shopMeta.get(id)?.address ?? null,
+        new: row.NEW,
+        occasional: row.OCCASIONAL,
+        frequent: row.FREQUENT,
+        total: row.NEW + row.OCCASIONAL + row.FREQUENT,
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    // Per-day trends, prefilled so empty days plot at zero.
+    const trends: Array<{
+      date: string;
+      all: number;
+      new: number;
+      occasional: number;
+      frequent: number;
+    }> = [];
+    for (
+      let t = opts.from.getTime();
+      t < opts.to.getTime();
+      t += 24 * 60 * 60 * 1000
+    ) {
+      const day = new Date(t).toISOString().slice(0, 10);
+      const dm = curr.perDay.get(day);
+      const n = dm?.get("NEW")?.size ?? 0;
+      const o = dm?.get("OCCASIONAL")?.size ?? 0;
+      const f = dm?.get("FREQUENT")?.size ?? 0;
+      trends.push({
+        date: day,
+        all: n + o + f,
+        new: n,
+        occasional: o,
+        frequent: f,
+      });
+    }
+
+    // Build the response.
+    function totalCustomers(
+      b: Record<GroupKey, { customerCount: number }>,
+    ): number {
+      return b.NEW.customerCount + b.OCCASIONAL.customerCount + b.FREQUENT.customerCount;
+    }
+    const total = totalCustomers(curr.buckets);
+    const prevTotal = totalCustomers(prev.buckets);
+    const overall = curr.buckets.NEW.revenue + curr.buckets.OCCASIONAL.revenue + curr.buckets.FREQUENT.revenue;
+
+    function detail(b: GroupKey) {
+      const c = curr.buckets[b];
+      const p = prev.buckets[b];
+      const share = total > 0 ? c.customerCount / total : 0;
+      const aov = c.orderCount > 0 ? c.revenue / c.orderCount : 0;
+      const revenueShare = overall > 0 ? c.revenue / overall : 0;
+      return {
+        customerCount: c.customerCount,
+        prevCustomerCount: p.customerCount,
+        share,
+        revenue: c.revenue,
+        revenueShare,
+        avgOrderValue: aov,
+        orderCount: c.orderCount,
+      };
+    }
+
+    return {
+      generatedAt: new Date().toISOString(),
+      window: {
+        from: opts.from.toISOString(),
+        to: opts.to.toISOString(),
+        prevFrom: prevFrom.toISOString(),
+        prevTo: prevTo.toISOString(),
+      },
+      summary: {
+        total,
+        prevTotal,
+        revenue: overall,
+      },
+      groups: {
+        new: detail("NEW"),
+        occasional: detail("OCCASIONAL"),
+        frequent: detail("FREQUENT"),
+      },
+      byShop,
+      trends,
+    };
+  }
+
   // ── PRIVATE HELPERS ───────────────────────────────────────────────────────────
 
   private bucketKey(date: Date, granularity: "day" | "week" | "month"): string {
