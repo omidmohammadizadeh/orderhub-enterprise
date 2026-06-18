@@ -644,7 +644,7 @@ export function ProductForm({
           attachedGroupIds. Closes on Cancel or the backdrop. */}
       {showCreateGroupModal && (
         <div
-          className="fixed inset-0 z-50 grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-8"
           onClick={(e) => {
             // Backdrop click closes; click inside the panel doesn't.
             if (e.target === e.currentTarget) {
@@ -652,7 +652,7 @@ export function ProductForm({
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mt-8 p-5">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Create a new modifier group
@@ -687,12 +687,12 @@ export function ProductForm({
           form hydrates from /v1/modifier-groups/:id. */}
       {editingGroupId && (
         <div
-          className="fixed inset-0 z-50 grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-8"
           onClick={(e) => {
             if (e.target === e.currentTarget) setEditingGroupId(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mt-8 p-5">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Edit modifier group

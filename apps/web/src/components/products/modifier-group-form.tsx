@@ -367,9 +367,24 @@ export function ModifierGroupForm({
                 primaryGroupId: o.groupId,
               })),
             );
-            // De-dupe (a modifier attached to several groups appears once).
+            // Phase AW-18.3 — seed byId from BOTH the brand-wide
+            // modifier list AND the group's own options (returned by
+            // the server's findModifierGroupById include). The earlier
+            // version only walked otherGroups, so modifiers whose
+            // owning group lives under a different brandId than the
+            // form's `brandId` prop never made it into byId and showed
+            // as "No modifiers attached". Same brand-drift family as
+            // AW-12 / AW-18.1.
             const byId = new Map<string, (typeof allOptions)[number]>();
             for (const o of allOptions) if (!byId.has(o.id)) byId.set(o.id, o);
+            for (const o of (existing as any)?.options ?? []) {
+              if (byId.has(o.id)) continue;
+              byId.set(o.id, {
+                ...o,
+                groupName: existing?.name ?? "",
+                primaryGroupId: o.groupId,
+              });
+            }
             const unique = Array.from(byId.values());
 
             const attached = attachedModifierIds
@@ -554,12 +569,12 @@ export function ModifierGroupForm({
           via allGroupsQuery above. */}
       {editingModifierId && (
         <div
-          className="fixed inset-0 z-[60] grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-8"
           onClick={(e) => {
             if (e.target === e.currentTarget) setEditingModifierId(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mt-8 p-5">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Edit modifier
