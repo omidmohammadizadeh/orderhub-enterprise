@@ -59,6 +59,7 @@ model Tenant {
   printJobs       PrintJob[]
   customers       Customer[]
   promoCodes      PromoCode[]
+  marketingCampaigns MarketingCampaign[]
   drivers         Driver[]
   suppliers       Supplier[]
   ipAllowlists    IpAllowlist[]
@@ -430,6 +431,7 @@ model Brand {
   upsellGroups        UpsellGroup[]
   platformConnections BrandPlatformConnection[]
   userBrands          UserBrand[]
+  marketingCampaigns  MarketingCampaign[]
 
   // Phase AS-1 — fallback station for items at this brand when no
   // more-specific routing rule fires.
@@ -1363,6 +1365,111 @@ model PromoCode {
   @@index([tenantId])
   @@index([tenantId, isActive])
   @@map("promo_codes")
+}
+
+// ── MarketingCampaign (Phase AW-19) ─────────────────────────────────────────
+//
+// Generic campaign row covering all the offer types in the Marketing UI
+// picker (Percentage off, BOGO, % off items, Amount off, Free item, Free
+// delivery, Happy hour). One brand-channel campaign per row. Type-specific
+// fields are nullable — the form only fills the ones its type needs.
+//
+// Audience: enum bucket the storefront + POS evaluate against the
+// customer's order history at apply time. The buckets are computed from
+// CustomerAccount.totalOrders + Order timestamps (see the campaign
+// service's resolveAudience helper).
+model MarketingCampaign {
+  id          String  @id @default(cuid())
+  tenantId    String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  brandId     String
+  brand       Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+
+  // The offer type. Drives which type-specific columns are read.
+  // PERCENTAGE_OFF      → percentageOff + minOrder (+ optional dailyStart/End for Happy hour)
+  // AMOUNT_OFF_ORDER    → amountOff + minOrder
+  // PERCENT_OFF_ITEMS   → percentageOff + itemIds[]
+  // BOGO                → buyOneGetOne (free / 50% off, configured in metadata)
+  // FREE_ITEM           → freeItemId + minOrder
+  // FREE_DELIVERY       → minOrder
+  // HAPPY_HOUR          → percentageOff + dailyStartTime + dailyEndTime
+  type CampaignType
+
+  // ACTIVE rows are evaluated at order time. DRAFT is the operator's
+  // half-built campaign. PAUSED is operator-stopped without deleting.
+  // ENDED is set by a daily cron once endsAt elapses.
+  status CampaignStatus @default(DRAFT)
+
+  // Which customer cohort can see / use this campaign. Storefront +
+  // POS compute the bucket per-customer; ALL bypasses the check.
+  audience CampaignAudience @default(ALL)
+
+  // Free-form set matching publishedTo + the channels used elsewhere
+  // (ONLINE / POS / JUST_EAT / UBER_EATS / DELIVEROO / WHATSAPP /
+  // HUBRISE). Empty array = no channel selected (campaign is dormant).
+  channels String[] @default([])
+
+  // Type-specific fields. All nullable so a row only fills what its
+  // type needs.
+  percentageOff Decimal? @db.Decimal(5, 2)
+  amountOff     Decimal? @db.Decimal(10, 2)
+  minOrder      Decimal? @db.Decimal(10, 2)
+  freeItemId    String?
+  itemIds       String[] @default([])
+  // HH:MM 24h. Local to the brand's timezone (brand inherits from
+  // location's tz at evaluation time).
+  dailyStartTime String?
+  dailyEndTime   String?
+
+  // Window. null = open-ended. The daily cron flips status to ENDED
+  // when endsAt < now.
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  // Caps. null = no cap.
+  maxRedemptions   Int?
+  perCustomerLimit Int?
+  redemptionCount  Int  @default(0)
+
+  // Anything UI-only or type-specific that doesn't justify a column.
+  // For BOGO: { mode: "free" | "half_price", trigger_item_id, reward_item_id }.
+  metadata Json @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([tenantId])
+  @@index([brandId])
+  @@index([tenantId, status])
+  @@index([brandId, status])
+  @@map("marketing_campaigns")
+}
+
+enum CampaignType {
+  PERCENTAGE_OFF
+  AMOUNT_OFF_ORDER
+  PERCENT_OFF_ITEMS
+  BOGO
+  FREE_ITEM
+  FREE_DELIVERY
+  HAPPY_HOUR
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum CampaignAudience {
+  ALL
+  NEW
+  RETURNING
+  LAPSED
 }
 
 // ── DeliveryZone (Phase AM) ──────────────────────────────────────────────────

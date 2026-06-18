@@ -750,6 +750,34 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MarketingCampaignScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  status: 'status',
+  audience: 'audience',
+  channels: 'channels',
+  percentageOff: 'percentageOff',
+  amountOff: 'amountOff',
+  minOrder: 'minOrder',
+  freeItemId: 'freeItemId',
+  itemIds: 'itemIds',
+  dailyStartTime: 'dailyStartTime',
+  dailyEndTime: 'dailyEndTime',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  maxRedemptions: 'maxRedemptions',
+  perCustomerLimit: 'perCustomerLimit',
+  redemptionCount: 'redemptionCount',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy'
+};
+
 exports.Prisma.DeliveryZoneScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2014,6 +2042,20 @@ exports.Prisma.PromoCodeOrderByRelevanceFieldEnum = {
   locationIds: 'locationIds'
 };
 
+exports.Prisma.MarketingCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  name: 'name',
+  description: 'description',
+  channels: 'channels',
+  freeItemId: 'freeItemId',
+  itemIds: 'itemIds',
+  dailyStartTime: 'dailyStartTime',
+  dailyEndTime: 'dailyEndTime',
+  createdBy: 'createdBy'
+};
+
 exports.Prisma.DeliveryZoneOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2644,6 +2686,30 @@ exports.PromoCodeType = exports.$Enums.PromoCodeType = {
   FREE_DELIVERY: 'FREE_DELIVERY'
 };
 
+exports.CampaignType = exports.$Enums.CampaignType = {
+  PERCENTAGE_OFF: 'PERCENTAGE_OFF',
+  AMOUNT_OFF_ORDER: 'AMOUNT_OFF_ORDER',
+  PERCENT_OFF_ITEMS: 'PERCENT_OFF_ITEMS',
+  BOGO: 'BOGO',
+  FREE_ITEM: 'FREE_ITEM',
+  FREE_DELIVERY: 'FREE_DELIVERY',
+  HAPPY_HOUR: 'HAPPY_HOUR'
+};
+
+exports.CampaignStatus = exports.$Enums.CampaignStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  ENDED: 'ENDED'
+};
+
+exports.CampaignAudience = exports.$Enums.CampaignAudience = {
+  ALL: 'ALL',
+  NEW: 'NEW',
+  RETURNING: 'RETURNING',
+  LAPSED: 'LAPSED'
+};
+
 exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   UBER_EATS: 'UBER_EATS',
   DELIVEROO: 'DELIVEROO',
@@ -2971,6 +3037,7 @@ exports.Prisma.ModelName = {
   CustomerAddress: 'CustomerAddress',
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',
+  MarketingCampaign: 'MarketingCampaign',
   DeliveryZone: 'DeliveryZone',
   LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',

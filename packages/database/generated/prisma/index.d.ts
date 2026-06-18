@@ -179,6 +179,11 @@ export type LoyaltyAccount = $Result.DefaultSelection<Prisma.$LoyaltyAccountPayl
  */
 export type PromoCode = $Result.DefaultSelection<Prisma.$PromoCodePayload>
 /**
+ * Model MarketingCampaign
+ * 
+ */
+export type MarketingCampaign = $Result.DefaultSelection<Prisma.$MarketingCampaignPayload>
+/**
  * Model DeliveryZone
  * 
  */
@@ -623,6 +628,39 @@ export const PromoCodeType: {
 export type PromoCodeType = (typeof PromoCodeType)[keyof typeof PromoCodeType]
 
 
+export const CampaignType: {
+  PERCENTAGE_OFF: 'PERCENTAGE_OFF',
+  AMOUNT_OFF_ORDER: 'AMOUNT_OFF_ORDER',
+  PERCENT_OFF_ITEMS: 'PERCENT_OFF_ITEMS',
+  BOGO: 'BOGO',
+  FREE_ITEM: 'FREE_ITEM',
+  FREE_DELIVERY: 'FREE_DELIVERY',
+  HAPPY_HOUR: 'HAPPY_HOUR'
+};
+
+export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType]
+
+
+export const CampaignStatus: {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  ENDED: 'ENDED'
+};
+
+export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus]
+
+
+export const CampaignAudience: {
+  ALL: 'ALL',
+  NEW: 'NEW',
+  RETURNING: 'RETURNING',
+  LAPSED: 'LAPSED'
+};
+
+export type CampaignAudience = (typeof CampaignAudience)[keyof typeof CampaignAudience]
+
+
 export const OrderPlatform: {
   UBER_EATS: 'UBER_EATS',
   DELIVEROO: 'DELIVEROO',
@@ -1065,6 +1103,18 @@ export const SelectionType: typeof $Enums.SelectionType
 export type PromoCodeType = $Enums.PromoCodeType
 
 export const PromoCodeType: typeof $Enums.PromoCodeType
+
+export type CampaignType = $Enums.CampaignType
+
+export const CampaignType: typeof $Enums.CampaignType
+
+export type CampaignStatus = $Enums.CampaignStatus
+
+export const CampaignStatus: typeof $Enums.CampaignStatus
+
+export type CampaignAudience = $Enums.CampaignAudience
+
+export const CampaignAudience: typeof $Enums.CampaignAudience
 
 export type OrderPlatform = $Enums.OrderPlatform
 
@@ -1653,6 +1703,16 @@ export class PrismaClient<
     * ```
     */
   get promoCode(): Prisma.PromoCodeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.marketingCampaign`: Exposes CRUD operations for the **MarketingCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarketingCampaigns
+    * const marketingCampaigns = await prisma.marketingCampaign.findMany()
+    * ```
+    */
+  get marketingCampaign(): Prisma.MarketingCampaignDelegate<ExtArgs>;
 
   /**
    * `prisma.deliveryZone`: Exposes CRUD operations for the **DeliveryZone** model.
@@ -2707,6 +2767,7 @@ export namespace Prisma {
     CustomerAddress: 'CustomerAddress',
     LoyaltyAccount: 'LoyaltyAccount',
     PromoCode: 'PromoCode',
+    MarketingCampaign: 'MarketingCampaign',
     DeliveryZone: 'DeliveryZone',
     LocationPaymentConfig: 'LocationPaymentConfig',
     Order: 'Order',
@@ -2780,7 +2841,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5091,6 +5152,76 @@ export namespace Prisma {
           count: {
             args: Prisma.PromoCodeCountArgs<ExtArgs>
             result: $Utils.Optional<PromoCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      MarketingCampaign: {
+        payload: Prisma.$MarketingCampaignPayload<ExtArgs>
+        fields: Prisma.MarketingCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarketingCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarketingCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.MarketingCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarketingCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.MarketingCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.MarketingCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.MarketingCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarketingCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.MarketingCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          update: {
+            args: Prisma.MarketingCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarketingCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarketingCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MarketingCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarketingCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.MarketingCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarketingCampaign>
+          }
+          groupBy: {
+            args: Prisma.MarketingCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarketingCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<MarketingCampaignCountAggregateOutputType> | number
           }
         }
       }
@@ -9322,6 +9453,7 @@ export namespace Prisma {
     printJobs: number
     customers: number
     promoCodes: number
+    marketingCampaigns: number
     drivers: number
     suppliers: number
     ipAllowlists: number
@@ -9339,6 +9471,7 @@ export namespace Prisma {
     printJobs?: boolean | TenantCountOutputTypeCountPrintJobsArgs
     customers?: boolean | TenantCountOutputTypeCountCustomersArgs
     promoCodes?: boolean | TenantCountOutputTypeCountPromoCodesArgs
+    marketingCampaigns?: boolean | TenantCountOutputTypeCountMarketingCampaignsArgs
     drivers?: boolean | TenantCountOutputTypeCountDriversArgs
     suppliers?: boolean | TenantCountOutputTypeCountSuppliersArgs
     ipAllowlists?: boolean | TenantCountOutputTypeCountIpAllowlistsArgs
@@ -9406,6 +9539,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountPromoCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PromoCodeWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountMarketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignWhereInput
   }
 
   /**
@@ -9605,6 +9745,7 @@ export namespace Prisma {
     upsellGroups: number
     platformConnections: number
     userBrands: number
+    marketingCampaigns: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9616,6 +9757,7 @@ export namespace Prisma {
     upsellGroups?: boolean | BrandCountOutputTypeCountUpsellGroupsArgs
     platformConnections?: boolean | BrandCountOutputTypeCountPlatformConnectionsArgs
     userBrands?: boolean | BrandCountOutputTypeCountUserBrandsArgs
+    marketingCampaigns?: boolean | BrandCountOutputTypeCountMarketingCampaignsArgs
   }
 
   // Custom InputTypes
@@ -9683,6 +9825,13 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountUserBrandsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserBrandWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountMarketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignWhereInput
   }
 
 
@@ -10989,6 +11138,7 @@ export namespace Prisma {
     printJobs?: boolean | Tenant$printJobsArgs<ExtArgs>
     customers?: boolean | Tenant$customersArgs<ExtArgs>
     promoCodes?: boolean | Tenant$promoCodesArgs<ExtArgs>
+    marketingCampaigns?: boolean | Tenant$marketingCampaignsArgs<ExtArgs>
     drivers?: boolean | Tenant$driversArgs<ExtArgs>
     suppliers?: boolean | Tenant$suppliersArgs<ExtArgs>
     ipAllowlists?: boolean | Tenant$ipAllowlistsArgs<ExtArgs>
@@ -11033,6 +11183,7 @@ export namespace Prisma {
     printJobs?: boolean | Tenant$printJobsArgs<ExtArgs>
     customers?: boolean | Tenant$customersArgs<ExtArgs>
     promoCodes?: boolean | Tenant$promoCodesArgs<ExtArgs>
+    marketingCampaigns?: boolean | Tenant$marketingCampaignsArgs<ExtArgs>
     drivers?: boolean | Tenant$driversArgs<ExtArgs>
     suppliers?: boolean | Tenant$suppliersArgs<ExtArgs>
     ipAllowlists?: boolean | Tenant$ipAllowlistsArgs<ExtArgs>
@@ -11056,6 +11207,7 @@ export namespace Prisma {
       printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
       customers: Prisma.$CustomerPayload<ExtArgs>[]
       promoCodes: Prisma.$PromoCodePayload<ExtArgs>[]
+      marketingCampaigns: Prisma.$MarketingCampaignPayload<ExtArgs>[]
       drivers: Prisma.$DriverPayload<ExtArgs>[]
       suppliers: Prisma.$SupplierPayload<ExtArgs>[]
       ipAllowlists: Prisma.$IpAllowlistPayload<ExtArgs>[]
@@ -11447,6 +11599,7 @@ export namespace Prisma {
     printJobs<T extends Tenant$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
     customers<T extends Tenant$customersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$customersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findMany"> | Null>
     promoCodes<T extends Tenant$promoCodesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$promoCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PromoCodePayload<ExtArgs>, T, "findMany"> | Null>
+    marketingCampaigns<T extends Tenant$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany"> | Null>
     drivers<T extends Tenant$driversArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$driversArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findMany"> | Null>
     suppliers<T extends Tenant$suppliersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$suppliersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findMany"> | Null>
     ipAllowlists<T extends Tenant$ipAllowlistsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$ipAllowlistsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$IpAllowlistPayload<ExtArgs>, T, "findMany"> | Null>
@@ -11945,6 +12098,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PromoCodeScalarFieldEnum | PromoCodeScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.marketingCampaigns
+   */
+  export type Tenant$marketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    where?: MarketingCampaignWhereInput
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    cursor?: MarketingCampaignWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
   }
 
   /**
@@ -22905,6 +23078,7 @@ export namespace Prisma {
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
+    marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
@@ -22996,6 +23170,7 @@ export namespace Prisma {
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
+    marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -23017,6 +23192,7 @@ export namespace Prisma {
       upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       userBrands: Prisma.$UserBrandPayload<ExtArgs>[]
+      marketingCampaigns: Prisma.$MarketingCampaignPayload<ExtArgs>[]
       defaultStation: Prisma.$PrinterStationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -23428,6 +23604,7 @@ export namespace Prisma {
     upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
     platformConnections<T extends Brand$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     userBrands<T extends Brand$userBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$userBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
+    marketingCampaigns<T extends Brand$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany"> | Null>
     defaultStation<T extends Brand$defaultStationArgs<ExtArgs> = {}>(args?: Subset<T, Brand$defaultStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -23982,6 +24159,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserBrandScalarFieldEnum | UserBrandScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.marketingCampaigns
+   */
+  export type Brand$marketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    where?: MarketingCampaignWhereInput
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    cursor?: MarketingCampaignWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
   }
 
   /**
@@ -48159,6 +48356,1227 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PromoCodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MarketingCampaign
+   */
+
+  export type AggregateMarketingCampaign = {
+    _count: MarketingCampaignCountAggregateOutputType | null
+    _avg: MarketingCampaignAvgAggregateOutputType | null
+    _sum: MarketingCampaignSumAggregateOutputType | null
+    _min: MarketingCampaignMinAggregateOutputType | null
+    _max: MarketingCampaignMaxAggregateOutputType | null
+  }
+
+  export type MarketingCampaignAvgAggregateOutputType = {
+    percentageOff: Decimal | null
+    amountOff: Decimal | null
+    minOrder: Decimal | null
+    maxRedemptions: number | null
+    perCustomerLimit: number | null
+    redemptionCount: number | null
+  }
+
+  export type MarketingCampaignSumAggregateOutputType = {
+    percentageOff: Decimal | null
+    amountOff: Decimal | null
+    minOrder: Decimal | null
+    maxRedemptions: number | null
+    perCustomerLimit: number | null
+    redemptionCount: number | null
+  }
+
+  export type MarketingCampaignMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    type: $Enums.CampaignType | null
+    status: $Enums.CampaignStatus | null
+    audience: $Enums.CampaignAudience | null
+    percentageOff: Decimal | null
+    amountOff: Decimal | null
+    minOrder: Decimal | null
+    freeItemId: string | null
+    dailyStartTime: string | null
+    dailyEndTime: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    maxRedemptions: number | null
+    perCustomerLimit: number | null
+    redemptionCount: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    createdBy: string | null
+  }
+
+  export type MarketingCampaignMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    name: string | null
+    description: string | null
+    type: $Enums.CampaignType | null
+    status: $Enums.CampaignStatus | null
+    audience: $Enums.CampaignAudience | null
+    percentageOff: Decimal | null
+    amountOff: Decimal | null
+    minOrder: Decimal | null
+    freeItemId: string | null
+    dailyStartTime: string | null
+    dailyEndTime: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    maxRedemptions: number | null
+    perCustomerLimit: number | null
+    redemptionCount: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    createdBy: string | null
+  }
+
+  export type MarketingCampaignCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    name: number
+    description: number
+    type: number
+    status: number
+    audience: number
+    channels: number
+    percentageOff: number
+    amountOff: number
+    minOrder: number
+    freeItemId: number
+    itemIds: number
+    dailyStartTime: number
+    dailyEndTime: number
+    startsAt: number
+    endsAt: number
+    maxRedemptions: number
+    perCustomerLimit: number
+    redemptionCount: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    createdBy: number
+    _all: number
+  }
+
+
+  export type MarketingCampaignAvgAggregateInputType = {
+    percentageOff?: true
+    amountOff?: true
+    minOrder?: true
+    maxRedemptions?: true
+    perCustomerLimit?: true
+    redemptionCount?: true
+  }
+
+  export type MarketingCampaignSumAggregateInputType = {
+    percentageOff?: true
+    amountOff?: true
+    minOrder?: true
+    maxRedemptions?: true
+    perCustomerLimit?: true
+    redemptionCount?: true
+  }
+
+  export type MarketingCampaignMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    name?: true
+    description?: true
+    type?: true
+    status?: true
+    audience?: true
+    percentageOff?: true
+    amountOff?: true
+    minOrder?: true
+    freeItemId?: true
+    dailyStartTime?: true
+    dailyEndTime?: true
+    startsAt?: true
+    endsAt?: true
+    maxRedemptions?: true
+    perCustomerLimit?: true
+    redemptionCount?: true
+    createdAt?: true
+    updatedAt?: true
+    createdBy?: true
+  }
+
+  export type MarketingCampaignMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    name?: true
+    description?: true
+    type?: true
+    status?: true
+    audience?: true
+    percentageOff?: true
+    amountOff?: true
+    minOrder?: true
+    freeItemId?: true
+    dailyStartTime?: true
+    dailyEndTime?: true
+    startsAt?: true
+    endsAt?: true
+    maxRedemptions?: true
+    perCustomerLimit?: true
+    redemptionCount?: true
+    createdAt?: true
+    updatedAt?: true
+    createdBy?: true
+  }
+
+  export type MarketingCampaignCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    name?: true
+    description?: true
+    type?: true
+    status?: true
+    audience?: true
+    channels?: true
+    percentageOff?: true
+    amountOff?: true
+    minOrder?: true
+    freeItemId?: true
+    itemIds?: true
+    dailyStartTime?: true
+    dailyEndTime?: true
+    startsAt?: true
+    endsAt?: true
+    maxRedemptions?: true
+    perCustomerLimit?: true
+    redemptionCount?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    createdBy?: true
+    _all?: true
+  }
+
+  export type MarketingCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaign to aggregate.
+     */
+    where?: MarketingCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaigns to fetch.
+     */
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarketingCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarketingCampaigns
+    **/
+    _count?: true | MarketingCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarketingCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarketingCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketingCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketingCampaignMaxAggregateInputType
+  }
+
+  export type GetMarketingCampaignAggregateType<T extends MarketingCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarketingCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarketingCampaign[P]>
+      : GetScalarType<T[P], AggregateMarketingCampaign[P]>
+  }
+
+
+
+
+  export type MarketingCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarketingCampaignWhereInput
+    orderBy?: MarketingCampaignOrderByWithAggregationInput | MarketingCampaignOrderByWithAggregationInput[]
+    by: MarketingCampaignScalarFieldEnum[] | MarketingCampaignScalarFieldEnum
+    having?: MarketingCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarketingCampaignCountAggregateInputType | true
+    _avg?: MarketingCampaignAvgAggregateInputType
+    _sum?: MarketingCampaignSumAggregateInputType
+    _min?: MarketingCampaignMinAggregateInputType
+    _max?: MarketingCampaignMaxAggregateInputType
+  }
+
+  export type MarketingCampaignGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    name: string
+    description: string | null
+    type: $Enums.CampaignType
+    status: $Enums.CampaignStatus
+    audience: $Enums.CampaignAudience
+    channels: string[]
+    percentageOff: Decimal | null
+    amountOff: Decimal | null
+    minOrder: Decimal | null
+    freeItemId: string | null
+    itemIds: string[]
+    dailyStartTime: string | null
+    dailyEndTime: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    maxRedemptions: number | null
+    perCustomerLimit: number | null
+    redemptionCount: number
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    createdBy: string | null
+    _count: MarketingCampaignCountAggregateOutputType | null
+    _avg: MarketingCampaignAvgAggregateOutputType | null
+    _sum: MarketingCampaignSumAggregateOutputType | null
+    _min: MarketingCampaignMinAggregateOutputType | null
+    _max: MarketingCampaignMaxAggregateOutputType | null
+  }
+
+  type GetMarketingCampaignGroupByPayload<T extends MarketingCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarketingCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarketingCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarketingCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], MarketingCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarketingCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    type?: boolean
+    status?: boolean
+    audience?: boolean
+    channels?: boolean
+    percentageOff?: boolean
+    amountOff?: boolean
+    minOrder?: boolean
+    freeItemId?: boolean
+    itemIds?: boolean
+    dailyStartTime?: boolean
+    dailyEndTime?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    maxRedemptions?: boolean
+    perCustomerLimit?: boolean
+    redemptionCount?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdBy?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaign"]>
+
+  export type MarketingCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    type?: boolean
+    status?: boolean
+    audience?: boolean
+    channels?: boolean
+    percentageOff?: boolean
+    amountOff?: boolean
+    minOrder?: boolean
+    freeItemId?: boolean
+    itemIds?: boolean
+    dailyStartTime?: boolean
+    dailyEndTime?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    maxRedemptions?: boolean
+    perCustomerLimit?: boolean
+    redemptionCount?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdBy?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["marketingCampaign"]>
+
+  export type MarketingCampaignSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    name?: boolean
+    description?: boolean
+    type?: boolean
+    status?: boolean
+    audience?: boolean
+    channels?: boolean
+    percentageOff?: boolean
+    amountOff?: boolean
+    minOrder?: boolean
+    freeItemId?: boolean
+    itemIds?: boolean
+    dailyStartTime?: boolean
+    dailyEndTime?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    maxRedemptions?: boolean
+    perCustomerLimit?: boolean
+    redemptionCount?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    createdBy?: boolean
+  }
+
+  export type MarketingCampaignInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+  export type MarketingCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $MarketingCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarketingCampaign"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      brand: Prisma.$BrandPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      name: string
+      description: string | null
+      type: $Enums.CampaignType
+      status: $Enums.CampaignStatus
+      audience: $Enums.CampaignAudience
+      channels: string[]
+      percentageOff: Prisma.Decimal | null
+      amountOff: Prisma.Decimal | null
+      minOrder: Prisma.Decimal | null
+      freeItemId: string | null
+      itemIds: string[]
+      dailyStartTime: string | null
+      dailyEndTime: string | null
+      startsAt: Date | null
+      endsAt: Date | null
+      maxRedemptions: number | null
+      perCustomerLimit: number | null
+      redemptionCount: number
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+      createdBy: string | null
+    }, ExtArgs["result"]["marketingCampaign"]>
+    composites: {}
+  }
+
+  type MarketingCampaignGetPayload<S extends boolean | null | undefined | MarketingCampaignDefaultArgs> = $Result.GetResult<Prisma.$MarketingCampaignPayload, S>
+
+  type MarketingCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MarketingCampaignFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MarketingCampaignCountAggregateInputType | true
+    }
+
+  export interface MarketingCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarketingCampaign'], meta: { name: 'MarketingCampaign' } }
+    /**
+     * Find zero or one MarketingCampaign that matches the filter.
+     * @param {MarketingCampaignFindUniqueArgs} args - Arguments to find a MarketingCampaign
+     * @example
+     * // Get one MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketingCampaignFindUniqueArgs>(args: SelectSubset<T, MarketingCampaignFindUniqueArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MarketingCampaign that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MarketingCampaignFindUniqueOrThrowArgs} args - Arguments to find a MarketingCampaign
+     * @example
+     * // Get one MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketingCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, MarketingCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MarketingCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignFindFirstArgs} args - Arguments to find a MarketingCampaign
+     * @example
+     * // Get one MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketingCampaignFindFirstArgs>(args?: SelectSubset<T, MarketingCampaignFindFirstArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MarketingCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignFindFirstOrThrowArgs} args - Arguments to find a MarketingCampaign
+     * @example
+     * // Get one MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketingCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, MarketingCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MarketingCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketingCampaigns
+     * const marketingCampaigns = await prisma.marketingCampaign.findMany()
+     * 
+     * // Get first 10 MarketingCampaigns
+     * const marketingCampaigns = await prisma.marketingCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const marketingCampaignWithIdOnly = await prisma.marketingCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarketingCampaignFindManyArgs>(args?: SelectSubset<T, MarketingCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MarketingCampaign.
+     * @param {MarketingCampaignCreateArgs} args - Arguments to create a MarketingCampaign.
+     * @example
+     * // Create one MarketingCampaign
+     * const MarketingCampaign = await prisma.marketingCampaign.create({
+     *   data: {
+     *     // ... data to create a MarketingCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarketingCampaignCreateArgs>(args: SelectSubset<T, MarketingCampaignCreateArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MarketingCampaigns.
+     * @param {MarketingCampaignCreateManyArgs} args - Arguments to create many MarketingCampaigns.
+     * @example
+     * // Create many MarketingCampaigns
+     * const marketingCampaign = await prisma.marketingCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarketingCampaignCreateManyArgs>(args?: SelectSubset<T, MarketingCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarketingCampaigns and returns the data saved in the database.
+     * @param {MarketingCampaignCreateManyAndReturnArgs} args - Arguments to create many MarketingCampaigns.
+     * @example
+     * // Create many MarketingCampaigns
+     * const marketingCampaign = await prisma.marketingCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarketingCampaigns and only return the `id`
+     * const marketingCampaignWithIdOnly = await prisma.marketingCampaign.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarketingCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, MarketingCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MarketingCampaign.
+     * @param {MarketingCampaignDeleteArgs} args - Arguments to delete one MarketingCampaign.
+     * @example
+     * // Delete one MarketingCampaign
+     * const MarketingCampaign = await prisma.marketingCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one MarketingCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarketingCampaignDeleteArgs>(args: SelectSubset<T, MarketingCampaignDeleteArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MarketingCampaign.
+     * @param {MarketingCampaignUpdateArgs} args - Arguments to update one MarketingCampaign.
+     * @example
+     * // Update one MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarketingCampaignUpdateArgs>(args: SelectSubset<T, MarketingCampaignUpdateArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MarketingCampaigns.
+     * @param {MarketingCampaignDeleteManyArgs} args - Arguments to filter MarketingCampaigns to delete.
+     * @example
+     * // Delete a few MarketingCampaigns
+     * const { count } = await prisma.marketingCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarketingCampaignDeleteManyArgs>(args?: SelectSubset<T, MarketingCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarketingCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketingCampaigns
+     * const marketingCampaign = await prisma.marketingCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarketingCampaignUpdateManyArgs>(args: SelectSubset<T, MarketingCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MarketingCampaign.
+     * @param {MarketingCampaignUpsertArgs} args - Arguments to update or create a MarketingCampaign.
+     * @example
+     * // Update or create a MarketingCampaign
+     * const marketingCampaign = await prisma.marketingCampaign.upsert({
+     *   create: {
+     *     // ... data to create a MarketingCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketingCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketingCampaignUpsertArgs>(args: SelectSubset<T, MarketingCampaignUpsertArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MarketingCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignCountArgs} args - Arguments to filter MarketingCampaigns to count.
+     * @example
+     * // Count the number of MarketingCampaigns
+     * const count = await prisma.marketingCampaign.count({
+     *   where: {
+     *     // ... the filter for the MarketingCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketingCampaignCountArgs>(
+      args?: Subset<T, MarketingCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarketingCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarketingCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketingCampaignAggregateArgs>(args: Subset<T, MarketingCampaignAggregateArgs>): Prisma.PrismaPromise<GetMarketingCampaignAggregateType<T>>
+
+    /**
+     * Group by MarketingCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketingCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarketingCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarketingCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: MarketingCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarketingCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketingCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarketingCampaign model
+   */
+  readonly fields: MarketingCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarketingCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarketingCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarketingCampaign model
+   */ 
+  interface MarketingCampaignFieldRefs {
+    readonly id: FieldRef<"MarketingCampaign", 'String'>
+    readonly tenantId: FieldRef<"MarketingCampaign", 'String'>
+    readonly brandId: FieldRef<"MarketingCampaign", 'String'>
+    readonly name: FieldRef<"MarketingCampaign", 'String'>
+    readonly description: FieldRef<"MarketingCampaign", 'String'>
+    readonly type: FieldRef<"MarketingCampaign", 'CampaignType'>
+    readonly status: FieldRef<"MarketingCampaign", 'CampaignStatus'>
+    readonly audience: FieldRef<"MarketingCampaign", 'CampaignAudience'>
+    readonly channels: FieldRef<"MarketingCampaign", 'String[]'>
+    readonly percentageOff: FieldRef<"MarketingCampaign", 'Decimal'>
+    readonly amountOff: FieldRef<"MarketingCampaign", 'Decimal'>
+    readonly minOrder: FieldRef<"MarketingCampaign", 'Decimal'>
+    readonly freeItemId: FieldRef<"MarketingCampaign", 'String'>
+    readonly itemIds: FieldRef<"MarketingCampaign", 'String[]'>
+    readonly dailyStartTime: FieldRef<"MarketingCampaign", 'String'>
+    readonly dailyEndTime: FieldRef<"MarketingCampaign", 'String'>
+    readonly startsAt: FieldRef<"MarketingCampaign", 'DateTime'>
+    readonly endsAt: FieldRef<"MarketingCampaign", 'DateTime'>
+    readonly maxRedemptions: FieldRef<"MarketingCampaign", 'Int'>
+    readonly perCustomerLimit: FieldRef<"MarketingCampaign", 'Int'>
+    readonly redemptionCount: FieldRef<"MarketingCampaign", 'Int'>
+    readonly metadata: FieldRef<"MarketingCampaign", 'Json'>
+    readonly createdAt: FieldRef<"MarketingCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"MarketingCampaign", 'DateTime'>
+    readonly createdBy: FieldRef<"MarketingCampaign", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarketingCampaign findUnique
+   */
+  export type MarketingCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaign to fetch.
+     */
+    where: MarketingCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaign findUniqueOrThrow
+   */
+  export type MarketingCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaign to fetch.
+     */
+    where: MarketingCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaign findFirst
+   */
+  export type MarketingCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaign to fetch.
+     */
+    where?: MarketingCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaigns to fetch.
+     */
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaigns.
+     */
+    cursor?: MarketingCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaigns.
+     */
+    distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaign findFirstOrThrow
+   */
+  export type MarketingCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaign to fetch.
+     */
+    where?: MarketingCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaigns to fetch.
+     */
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarketingCampaigns.
+     */
+    cursor?: MarketingCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarketingCampaigns.
+     */
+    distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaign findMany
+   */
+  export type MarketingCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which MarketingCampaigns to fetch.
+     */
+    where?: MarketingCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarketingCampaigns to fetch.
+     */
+    orderBy?: MarketingCampaignOrderByWithRelationInput | MarketingCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarketingCampaigns.
+     */
+    cursor?: MarketingCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarketingCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarketingCampaigns.
+     */
+    skip?: number
+    distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * MarketingCampaign create
+   */
+  export type MarketingCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarketingCampaign.
+     */
+    data: XOR<MarketingCampaignCreateInput, MarketingCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * MarketingCampaign createMany
+   */
+  export type MarketingCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketingCampaigns.
+     */
+    data: MarketingCampaignCreateManyInput | MarketingCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarketingCampaign createManyAndReturn
+   */
+  export type MarketingCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MarketingCampaigns.
+     */
+    data: MarketingCampaignCreateManyInput | MarketingCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaign update
+   */
+  export type MarketingCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarketingCampaign.
+     */
+    data: XOR<MarketingCampaignUpdateInput, MarketingCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which MarketingCampaign to update.
+     */
+    where: MarketingCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaign updateMany
+   */
+  export type MarketingCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketingCampaigns.
+     */
+    data: XOR<MarketingCampaignUpdateManyMutationInput, MarketingCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which MarketingCampaigns to update
+     */
+    where?: MarketingCampaignWhereInput
+  }
+
+  /**
+   * MarketingCampaign upsert
+   */
+  export type MarketingCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarketingCampaign to update in case it exists.
+     */
+    where: MarketingCampaignWhereUniqueInput
+    /**
+     * In case the MarketingCampaign found by the `where` argument doesn't exist, create a new MarketingCampaign with this data.
+     */
+    create: XOR<MarketingCampaignCreateInput, MarketingCampaignUncheckedCreateInput>
+    /**
+     * In case the MarketingCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarketingCampaignUpdateInput, MarketingCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * MarketingCampaign delete
+   */
+  export type MarketingCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
+    /**
+     * Filter which MarketingCampaign to delete.
+     */
+    where: MarketingCampaignWhereUniqueInput
+  }
+
+  /**
+   * MarketingCampaign deleteMany
+   */
+  export type MarketingCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketingCampaigns to delete
+     */
+    where?: MarketingCampaignWhereInput
+  }
+
+  /**
+   * MarketingCampaign without action
+   */
+  export type MarketingCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaign
+     */
+    select?: MarketingCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarketingCampaignInclude<ExtArgs> | null
   }
 
 
@@ -109209,6 +110627,37 @@ export namespace Prisma {
   export type PromoCodeScalarFieldEnum = (typeof PromoCodeScalarFieldEnum)[keyof typeof PromoCodeScalarFieldEnum]
 
 
+  export const MarketingCampaignScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    name: 'name',
+    description: 'description',
+    type: 'type',
+    status: 'status',
+    audience: 'audience',
+    channels: 'channels',
+    percentageOff: 'percentageOff',
+    amountOff: 'amountOff',
+    minOrder: 'minOrder',
+    freeItemId: 'freeItemId',
+    itemIds: 'itemIds',
+    dailyStartTime: 'dailyStartTime',
+    dailyEndTime: 'dailyEndTime',
+    startsAt: 'startsAt',
+    endsAt: 'endsAt',
+    maxRedemptions: 'maxRedemptions',
+    perCustomerLimit: 'perCustomerLimit',
+    redemptionCount: 'redemptionCount',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    createdBy: 'createdBy'
+  };
+
+  export type MarketingCampaignScalarFieldEnum = (typeof MarketingCampaignScalarFieldEnum)[keyof typeof MarketingCampaignScalarFieldEnum]
+
+
   export const DeliveryZoneScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -110764,6 +112213,23 @@ export namespace Prisma {
   export type PromoCodeOrderByRelevanceFieldEnum = (typeof PromoCodeOrderByRelevanceFieldEnum)[keyof typeof PromoCodeOrderByRelevanceFieldEnum]
 
 
+  export const MarketingCampaignOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    name: 'name',
+    description: 'description',
+    channels: 'channels',
+    freeItemId: 'freeItemId',
+    itemIds: 'itemIds',
+    dailyStartTime: 'dailyStartTime',
+    dailyEndTime: 'dailyEndTime',
+    createdBy: 'createdBy'
+  };
+
+  export type MarketingCampaignOrderByRelevanceFieldEnum = (typeof MarketingCampaignOrderByRelevanceFieldEnum)[keyof typeof MarketingCampaignOrderByRelevanceFieldEnum]
+
+
   export const DeliveryZoneOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -111733,6 +113199,48 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'CampaignType'
+   */
+  export type EnumCampaignTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignType'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignType[]'
+   */
+  export type ListEnumCampaignTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignStatus'
+   */
+  export type EnumCampaignStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignStatus[]'
+   */
+  export type ListEnumCampaignStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignAudience'
+   */
+  export type EnumCampaignAudienceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignAudience'>
+    
+
+
+  /**
+   * Reference to a field of type 'CampaignAudience[]'
+   */
+  export type ListEnumCampaignAudienceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CampaignAudience[]'>
+    
+
+
+  /**
    * Reference to a field of type 'OrderPlatform'
    */
   export type EnumOrderPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderPlatform'>
@@ -112203,6 +113711,7 @@ export namespace Prisma {
     printJobs?: PrintJobListRelationFilter
     customers?: CustomerListRelationFilter
     promoCodes?: PromoCodeListRelationFilter
+    marketingCampaigns?: MarketingCampaignListRelationFilter
     drivers?: DriverListRelationFilter
     suppliers?: SupplierListRelationFilter
     ipAllowlists?: IpAllowlistListRelationFilter
@@ -112231,6 +113740,7 @@ export namespace Prisma {
     printJobs?: PrintJobOrderByRelationAggregateInput
     customers?: CustomerOrderByRelationAggregateInput
     promoCodes?: PromoCodeOrderByRelationAggregateInput
+    marketingCampaigns?: MarketingCampaignOrderByRelationAggregateInput
     drivers?: DriverOrderByRelationAggregateInput
     suppliers?: SupplierOrderByRelationAggregateInput
     ipAllowlists?: IpAllowlistOrderByRelationAggregateInput
@@ -112263,6 +113773,7 @@ export namespace Prisma {
     printJobs?: PrintJobListRelationFilter
     customers?: CustomerListRelationFilter
     promoCodes?: PromoCodeListRelationFilter
+    marketingCampaigns?: MarketingCampaignListRelationFilter
     drivers?: DriverListRelationFilter
     suppliers?: SupplierListRelationFilter
     ipAllowlists?: IpAllowlistListRelationFilter
@@ -113254,6 +114765,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
+    marketingCampaigns?: MarketingCampaignListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }
 
@@ -113302,6 +114814,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupOrderByRelationAggregateInput
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     userBrands?: UserBrandOrderByRelationAggregateInput
+    marketingCampaigns?: MarketingCampaignOrderByRelationAggregateInput
     defaultStation?: PrinterStationOrderByWithRelationInput
     _relevance?: BrandOrderByRelevanceInput
   }
@@ -113355,6 +114868,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupListRelationFilter
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
+    marketingCampaigns?: MarketingCampaignListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "tenantId_slug">
 
@@ -116121,6 +117635,167 @@ export namespace Prisma {
     locationIds?: StringNullableListFilter<"PromoCode">
     createdAt?: DateTimeWithAggregatesFilter<"PromoCode"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PromoCode"> | Date | string
+  }
+
+  export type MarketingCampaignWhereInput = {
+    AND?: MarketingCampaignWhereInput | MarketingCampaignWhereInput[]
+    OR?: MarketingCampaignWhereInput[]
+    NOT?: MarketingCampaignWhereInput | MarketingCampaignWhereInput[]
+    id?: StringFilter<"MarketingCampaign"> | string
+    tenantId?: StringFilter<"MarketingCampaign"> | string
+    brandId?: StringFilter<"MarketingCampaign"> | string
+    name?: StringFilter<"MarketingCampaign"> | string
+    description?: StringNullableFilter<"MarketingCampaign"> | string | null
+    type?: EnumCampaignTypeFilter<"MarketingCampaign"> | $Enums.CampaignType
+    status?: EnumCampaignStatusFilter<"MarketingCampaign"> | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFilter<"MarketingCampaign"> | $Enums.CampaignAudience
+    channels?: StringNullableListFilter<"MarketingCampaign">
+    percentageOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    amountOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: StringNullableFilter<"MarketingCampaign"> | string | null
+    itemIds?: StringNullableListFilter<"MarketingCampaign">
+    dailyStartTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    dailyEndTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    startsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    endsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    maxRedemptions?: IntNullableFilter<"MarketingCampaign"> | number | null
+    perCustomerLimit?: IntNullableFilter<"MarketingCampaign"> | number | null
+    redemptionCount?: IntFilter<"MarketingCampaign"> | number
+    metadata?: JsonFilter<"MarketingCampaign">
+    createdAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    createdBy?: StringNullableFilter<"MarketingCampaign"> | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }
+
+  export type MarketingCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    channels?: SortOrder
+    percentageOff?: SortOrderInput | SortOrder
+    amountOff?: SortOrderInput | SortOrder
+    minOrder?: SortOrderInput | SortOrder
+    freeItemId?: SortOrderInput | SortOrder
+    itemIds?: SortOrder
+    dailyStartTime?: SortOrderInput | SortOrder
+    dailyEndTime?: SortOrderInput | SortOrder
+    startsAt?: SortOrderInput | SortOrder
+    endsAt?: SortOrderInput | SortOrder
+    maxRedemptions?: SortOrderInput | SortOrder
+    perCustomerLimit?: SortOrderInput | SortOrder
+    redemptionCount?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: MarketingCampaignOrderByRelevanceInput
+  }
+
+  export type MarketingCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MarketingCampaignWhereInput | MarketingCampaignWhereInput[]
+    OR?: MarketingCampaignWhereInput[]
+    NOT?: MarketingCampaignWhereInput | MarketingCampaignWhereInput[]
+    tenantId?: StringFilter<"MarketingCampaign"> | string
+    brandId?: StringFilter<"MarketingCampaign"> | string
+    name?: StringFilter<"MarketingCampaign"> | string
+    description?: StringNullableFilter<"MarketingCampaign"> | string | null
+    type?: EnumCampaignTypeFilter<"MarketingCampaign"> | $Enums.CampaignType
+    status?: EnumCampaignStatusFilter<"MarketingCampaign"> | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFilter<"MarketingCampaign"> | $Enums.CampaignAudience
+    channels?: StringNullableListFilter<"MarketingCampaign">
+    percentageOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    amountOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: StringNullableFilter<"MarketingCampaign"> | string | null
+    itemIds?: StringNullableListFilter<"MarketingCampaign">
+    dailyStartTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    dailyEndTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    startsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    endsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    maxRedemptions?: IntNullableFilter<"MarketingCampaign"> | number | null
+    perCustomerLimit?: IntNullableFilter<"MarketingCampaign"> | number | null
+    redemptionCount?: IntFilter<"MarketingCampaign"> | number
+    metadata?: JsonFilter<"MarketingCampaign">
+    createdAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    createdBy?: StringNullableFilter<"MarketingCampaign"> | string | null
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }, "id">
+
+  export type MarketingCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    channels?: SortOrder
+    percentageOff?: SortOrderInput | SortOrder
+    amountOff?: SortOrderInput | SortOrder
+    minOrder?: SortOrderInput | SortOrder
+    freeItemId?: SortOrderInput | SortOrder
+    itemIds?: SortOrder
+    dailyStartTime?: SortOrderInput | SortOrder
+    dailyEndTime?: SortOrderInput | SortOrder
+    startsAt?: SortOrderInput | SortOrder
+    endsAt?: SortOrderInput | SortOrder
+    maxRedemptions?: SortOrderInput | SortOrder
+    perCustomerLimit?: SortOrderInput | SortOrder
+    redemptionCount?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    _count?: MarketingCampaignCountOrderByAggregateInput
+    _avg?: MarketingCampaignAvgOrderByAggregateInput
+    _max?: MarketingCampaignMaxOrderByAggregateInput
+    _min?: MarketingCampaignMinOrderByAggregateInput
+    _sum?: MarketingCampaignSumOrderByAggregateInput
+  }
+
+  export type MarketingCampaignScalarWhereWithAggregatesInput = {
+    AND?: MarketingCampaignScalarWhereWithAggregatesInput | MarketingCampaignScalarWhereWithAggregatesInput[]
+    OR?: MarketingCampaignScalarWhereWithAggregatesInput[]
+    NOT?: MarketingCampaignScalarWhereWithAggregatesInput | MarketingCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MarketingCampaign"> | string
+    tenantId?: StringWithAggregatesFilter<"MarketingCampaign"> | string
+    brandId?: StringWithAggregatesFilter<"MarketingCampaign"> | string
+    name?: StringWithAggregatesFilter<"MarketingCampaign"> | string
+    description?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
+    type?: EnumCampaignTypeWithAggregatesFilter<"MarketingCampaign"> | $Enums.CampaignType
+    status?: EnumCampaignStatusWithAggregatesFilter<"MarketingCampaign"> | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceWithAggregatesFilter<"MarketingCampaign"> | $Enums.CampaignAudience
+    channels?: StringNullableListFilter<"MarketingCampaign">
+    percentageOff?: DecimalNullableWithAggregatesFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    amountOff?: DecimalNullableWithAggregatesFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableWithAggregatesFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
+    itemIds?: StringNullableListFilter<"MarketingCampaign">
+    dailyStartTime?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
+    dailyEndTime?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
+    startsAt?: DateTimeNullableWithAggregatesFilter<"MarketingCampaign"> | Date | string | null
+    endsAt?: DateTimeNullableWithAggregatesFilter<"MarketingCampaign"> | Date | string | null
+    maxRedemptions?: IntNullableWithAggregatesFilter<"MarketingCampaign"> | number | null
+    perCustomerLimit?: IntNullableWithAggregatesFilter<"MarketingCampaign"> | number | null
+    redemptionCount?: IntWithAggregatesFilter<"MarketingCampaign"> | number
+    metadata?: JsonWithAggregatesFilter<"MarketingCampaign">
+    createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MarketingCampaign"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
   }
 
   export type DeliveryZoneWhereInput = {
@@ -121551,6 +123226,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -121579,6 +123255,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -121607,6 +123284,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -121635,6 +123313,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -122737,6 +124416,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -122784,6 +124464,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -122829,6 +124510,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -122876,6 +124558,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -126150,6 +127833,200 @@ export namespace Prisma {
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    tenant: TenantCreateNestedOneWithoutMarketingCampaignsInput
+    brand: BrandCreateNestedOneWithoutMarketingCampaignsInput
+  }
+
+  export type MarketingCampaignUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type MarketingCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    brand?: BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+  }
+
+  export type MarketingCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MarketingCampaignCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type MarketingCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MarketingCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type DeliveryZoneCreateInput = {
@@ -132335,6 +134212,12 @@ export namespace Prisma {
     none?: PromoCodeWhereInput
   }
 
+  export type MarketingCampaignListRelationFilter = {
+    every?: MarketingCampaignWhereInput
+    some?: MarketingCampaignWhereInput
+    none?: MarketingCampaignWhereInput
+  }
+
   export type DriverListRelationFilter = {
     every?: DriverWhereInput
     some?: DriverWhereInput
@@ -132412,6 +134295,10 @@ export namespace Prisma {
   }
 
   export type PromoCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MarketingCampaignOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -135598,6 +137485,159 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPromoCodeTypeFilter<$PrismaModel>
     _max?: NestedEnumPromoCodeTypeFilter<$PrismaModel>
+  }
+
+  export type EnumCampaignTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeFilter<$PrismaModel> | $Enums.CampaignType
+  }
+
+  export type EnumCampaignStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignStatus | EnumCampaignStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignStatusFilter<$PrismaModel> | $Enums.CampaignStatus
+  }
+
+  export type EnumCampaignAudienceFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignAudience | EnumCampaignAudienceFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignAudienceFilter<$PrismaModel> | $Enums.CampaignAudience
+  }
+
+  export type MarketingCampaignOrderByRelevanceInput = {
+    fields: MarketingCampaignOrderByRelevanceFieldEnum | MarketingCampaignOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MarketingCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    channels?: SortOrder
+    percentageOff?: SortOrder
+    amountOff?: SortOrder
+    minOrder?: SortOrder
+    freeItemId?: SortOrder
+    itemIds?: SortOrder
+    dailyStartTime?: SortOrder
+    dailyEndTime?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    maxRedemptions?: SortOrder
+    perCustomerLimit?: SortOrder
+    redemptionCount?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type MarketingCampaignAvgOrderByAggregateInput = {
+    percentageOff?: SortOrder
+    amountOff?: SortOrder
+    minOrder?: SortOrder
+    maxRedemptions?: SortOrder
+    perCustomerLimit?: SortOrder
+    redemptionCount?: SortOrder
+  }
+
+  export type MarketingCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    percentageOff?: SortOrder
+    amountOff?: SortOrder
+    minOrder?: SortOrder
+    freeItemId?: SortOrder
+    dailyStartTime?: SortOrder
+    dailyEndTime?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    maxRedemptions?: SortOrder
+    perCustomerLimit?: SortOrder
+    redemptionCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type MarketingCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    audience?: SortOrder
+    percentageOff?: SortOrder
+    amountOff?: SortOrder
+    minOrder?: SortOrder
+    freeItemId?: SortOrder
+    dailyStartTime?: SortOrder
+    dailyEndTime?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    maxRedemptions?: SortOrder
+    perCustomerLimit?: SortOrder
+    redemptionCount?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type MarketingCampaignSumOrderByAggregateInput = {
+    percentageOff?: SortOrder
+    amountOff?: SortOrder
+    minOrder?: SortOrder
+    maxRedemptions?: SortOrder
+    perCustomerLimit?: SortOrder
+    redemptionCount?: SortOrder
+  }
+
+  export type EnumCampaignTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel> | $Enums.CampaignType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignTypeFilter<$PrismaModel>
+    _max?: NestedEnumCampaignTypeFilter<$PrismaModel>
+  }
+
+  export type EnumCampaignStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignStatus | EnumCampaignStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignStatusWithAggregatesFilter<$PrismaModel> | $Enums.CampaignStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignStatusFilter<$PrismaModel>
+    _max?: NestedEnumCampaignStatusFilter<$PrismaModel>
+  }
+
+  export type EnumCampaignAudienceWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignAudience | EnumCampaignAudienceFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignAudienceWithAggregatesFilter<$PrismaModel> | $Enums.CampaignAudience
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignAudienceFilter<$PrismaModel>
+    _max?: NestedEnumCampaignAudienceFilter<$PrismaModel>
   }
 
   export type DeliveryZoneOrderByRelevanceInput = {
@@ -139813,6 +141853,13 @@ export namespace Prisma {
     connect?: PromoCodeWhereUniqueInput | PromoCodeWhereUniqueInput[]
   }
 
+  export type MarketingCampaignCreateNestedManyWithoutTenantInput = {
+    create?: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput> | MarketingCampaignCreateWithoutTenantInput[] | MarketingCampaignUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutTenantInput | MarketingCampaignCreateOrConnectWithoutTenantInput[]
+    createMany?: MarketingCampaignCreateManyTenantInputEnvelope
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+  }
+
   export type DriverCreateNestedManyWithoutTenantInput = {
     create?: XOR<DriverCreateWithoutTenantInput, DriverUncheckedCreateWithoutTenantInput> | DriverCreateWithoutTenantInput[] | DriverUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: DriverCreateOrConnectWithoutTenantInput | DriverCreateOrConnectWithoutTenantInput[]
@@ -139921,6 +141968,13 @@ export namespace Prisma {
     connectOrCreate?: PromoCodeCreateOrConnectWithoutTenantInput | PromoCodeCreateOrConnectWithoutTenantInput[]
     createMany?: PromoCodeCreateManyTenantInputEnvelope
     connect?: PromoCodeWhereUniqueInput | PromoCodeWhereUniqueInput[]
+  }
+
+  export type MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput> | MarketingCampaignCreateWithoutTenantInput[] | MarketingCampaignUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutTenantInput | MarketingCampaignCreateOrConnectWithoutTenantInput[]
+    createMany?: MarketingCampaignCreateManyTenantInputEnvelope
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
   }
 
   export type DriverUncheckedCreateNestedManyWithoutTenantInput = {
@@ -140096,6 +142150,20 @@ export namespace Prisma {
     update?: PromoCodeUpdateWithWhereUniqueWithoutTenantInput | PromoCodeUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: PromoCodeUpdateManyWithWhereWithoutTenantInput | PromoCodeUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: PromoCodeScalarWhereInput | PromoCodeScalarWhereInput[]
+  }
+
+  export type MarketingCampaignUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput> | MarketingCampaignCreateWithoutTenantInput[] | MarketingCampaignUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutTenantInput | MarketingCampaignCreateOrConnectWithoutTenantInput[]
+    upsert?: MarketingCampaignUpsertWithWhereUniqueWithoutTenantInput | MarketingCampaignUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: MarketingCampaignCreateManyTenantInputEnvelope
+    set?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    disconnect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    delete?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    update?: MarketingCampaignUpdateWithWhereUniqueWithoutTenantInput | MarketingCampaignUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: MarketingCampaignUpdateManyWithWhereWithoutTenantInput | MarketingCampaignUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
   }
 
   export type DriverUpdateManyWithoutTenantNestedInput = {
@@ -140312,6 +142380,20 @@ export namespace Prisma {
     update?: PromoCodeUpdateWithWhereUniqueWithoutTenantInput | PromoCodeUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: PromoCodeUpdateManyWithWhereWithoutTenantInput | PromoCodeUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: PromoCodeScalarWhereInput | PromoCodeScalarWhereInput[]
+  }
+
+  export type MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput> | MarketingCampaignCreateWithoutTenantInput[] | MarketingCampaignUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutTenantInput | MarketingCampaignCreateOrConnectWithoutTenantInput[]
+    upsert?: MarketingCampaignUpsertWithWhereUniqueWithoutTenantInput | MarketingCampaignUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: MarketingCampaignCreateManyTenantInputEnvelope
+    set?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    disconnect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    delete?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    update?: MarketingCampaignUpdateWithWhereUniqueWithoutTenantInput | MarketingCampaignUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: MarketingCampaignUpdateManyWithWhereWithoutTenantInput | MarketingCampaignUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
   }
 
   export type DriverUncheckedUpdateManyWithoutTenantNestedInput = {
@@ -141190,6 +143272,13 @@ export namespace Prisma {
     connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
   }
 
+  export type MarketingCampaignCreateNestedManyWithoutBrandInput = {
+    create?: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput> | MarketingCampaignCreateWithoutBrandInput[] | MarketingCampaignUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutBrandInput | MarketingCampaignCreateOrConnectWithoutBrandInput[]
+    createMany?: MarketingCampaignCreateManyBrandInputEnvelope
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutBrandDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -141256,6 +143345,13 @@ export namespace Prisma {
     connectOrCreate?: UserBrandCreateOrConnectWithoutBrandInput | UserBrandCreateOrConnectWithoutBrandInput[]
     createMany?: UserBrandCreateManyBrandInputEnvelope
     connect?: UserBrandWhereUniqueInput | UserBrandWhereUniqueInput[]
+  }
+
+  export type MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput> | MarketingCampaignCreateWithoutBrandInput[] | MarketingCampaignUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutBrandInput | MarketingCampaignCreateOrConnectWithoutBrandInput[]
+    createMany?: MarketingCampaignCreateManyBrandInputEnvelope
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -141404,6 +143500,20 @@ export namespace Prisma {
     deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
   }
 
+  export type MarketingCampaignUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput> | MarketingCampaignCreateWithoutBrandInput[] | MarketingCampaignUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutBrandInput | MarketingCampaignCreateOrConnectWithoutBrandInput[]
+    upsert?: MarketingCampaignUpsertWithWhereUniqueWithoutBrandInput | MarketingCampaignUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: MarketingCampaignCreateManyBrandInputEnvelope
+    set?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    disconnect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    delete?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    update?: MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput | MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: MarketingCampaignUpdateManyWithWhereWithoutBrandInput | MarketingCampaignUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutBrandDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -141534,6 +143644,20 @@ export namespace Prisma {
     update?: UserBrandUpdateWithWhereUniqueWithoutBrandInput | UserBrandUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: UserBrandUpdateManyWithWhereWithoutBrandInput | UserBrandUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: UserBrandScalarWhereInput | UserBrandScalarWhereInput[]
+  }
+
+  export type MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput> | MarketingCampaignCreateWithoutBrandInput[] | MarketingCampaignUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutBrandInput | MarketingCampaignCreateOrConnectWithoutBrandInput[]
+    upsert?: MarketingCampaignUpsertWithWhereUniqueWithoutBrandInput | MarketingCampaignUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: MarketingCampaignCreateManyBrandInputEnvelope
+    set?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    disconnect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    delete?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+    update?: MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput | MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: MarketingCampaignUpdateManyWithWhereWithoutBrandInput | MarketingCampaignUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutLocationsInput = {
@@ -143359,6 +145483,64 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutPromoCodesInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPromoCodesInput, TenantUpdateWithoutPromoCodesInput>, TenantUncheckedUpdateWithoutPromoCodesInput>
+  }
+
+  export type MarketingCampaignCreatechannelsInput = {
+    set: string[]
+  }
+
+  export type MarketingCampaignCreateitemIdsInput = {
+    set: string[]
+  }
+
+  export type TenantCreateNestedOneWithoutMarketingCampaignsInput = {
+    create?: XOR<TenantCreateWithoutMarketingCampaignsInput, TenantUncheckedCreateWithoutMarketingCampaignsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutMarketingCampaignsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type BrandCreateNestedOneWithoutMarketingCampaignsInput = {
+    create?: XOR<BrandCreateWithoutMarketingCampaignsInput, BrandUncheckedCreateWithoutMarketingCampaignsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutMarketingCampaignsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type EnumCampaignTypeFieldUpdateOperationsInput = {
+    set?: $Enums.CampaignType
+  }
+
+  export type EnumCampaignStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CampaignStatus
+  }
+
+  export type EnumCampaignAudienceFieldUpdateOperationsInput = {
+    set?: $Enums.CampaignAudience
+  }
+
+  export type MarketingCampaignUpdatechannelsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MarketingCampaignUpdateitemIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput = {
+    create?: XOR<TenantCreateWithoutMarketingCampaignsInput, TenantUncheckedCreateWithoutMarketingCampaignsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutMarketingCampaignsInput
+    upsert?: TenantUpsertWithoutMarketingCampaignsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutMarketingCampaignsInput, TenantUpdateWithoutMarketingCampaignsInput>, TenantUncheckedUpdateWithoutMarketingCampaignsInput>
+  }
+
+  export type BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput = {
+    create?: XOR<BrandCreateWithoutMarketingCampaignsInput, BrandUncheckedCreateWithoutMarketingCampaignsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutMarketingCampaignsInput
+    upsert?: BrandUpsertWithoutMarketingCampaignsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutMarketingCampaignsInput, BrandUpdateWithoutMarketingCampaignsInput>, BrandUncheckedUpdateWithoutMarketingCampaignsInput>
   }
 
   export type LocationCreateNestedOneWithoutDeliveryZonesInput = {
@@ -146584,6 +148766,57 @@ export namespace Prisma {
     _max?: NestedEnumPromoCodeTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumCampaignTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeFilter<$PrismaModel> | $Enums.CampaignType
+  }
+
+  export type NestedEnumCampaignStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignStatus | EnumCampaignStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignStatusFilter<$PrismaModel> | $Enums.CampaignStatus
+  }
+
+  export type NestedEnumCampaignAudienceFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignAudience | EnumCampaignAudienceFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignAudienceFilter<$PrismaModel> | $Enums.CampaignAudience
+  }
+
+  export type NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignType | EnumCampaignTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignType[] | ListEnumCampaignTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignTypeWithAggregatesFilter<$PrismaModel> | $Enums.CampaignType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignTypeFilter<$PrismaModel>
+    _max?: NestedEnumCampaignTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCampaignStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignStatus | EnumCampaignStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignStatus[] | ListEnumCampaignStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignStatusWithAggregatesFilter<$PrismaModel> | $Enums.CampaignStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignStatusFilter<$PrismaModel>
+    _max?: NestedEnumCampaignStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCampaignAudienceWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CampaignAudience | EnumCampaignAudienceFieldRefInput<$PrismaModel>
+    in?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CampaignAudience[] | ListEnumCampaignAudienceFieldRefInput<$PrismaModel>
+    not?: NestedEnumCampaignAudienceWithAggregatesFilter<$PrismaModel> | $Enums.CampaignAudience
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCampaignAudienceFilter<$PrismaModel>
+    _max?: NestedEnumCampaignAudienceFilter<$PrismaModel>
+  }
+
   export type NestedEnumOrderPlatformFilter<$PrismaModel = never> = {
     equals?: $Enums.OrderPlatform | EnumOrderPlatformFieldRefInput<$PrismaModel>
     in?: $Enums.OrderPlatform[] | ListEnumOrderPlatformFieldRefInput<$PrismaModel>
@@ -147202,6 +149435,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -147248,6 +149482,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -147673,6 +149908,70 @@ export namespace Prisma {
 
   export type PromoCodeCreateManyTenantInputEnvelope = {
     data: PromoCodeCreateManyTenantInput | PromoCodeCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarketingCampaignCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    brand: BrandCreateNestedOneWithoutMarketingCampaignsInput
+  }
+
+  export type MarketingCampaignUncheckedCreateWithoutTenantInput = {
+    id?: string
+    brandId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type MarketingCampaignCreateOrConnectWithoutTenantInput = {
+    where: MarketingCampaignWhereUniqueInput
+    create: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput>
+  }
+
+  export type MarketingCampaignCreateManyTenantInputEnvelope = {
+    data: MarketingCampaignCreateManyTenantInput | MarketingCampaignCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -148396,6 +150695,53 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PromoCode"> | Date | string
   }
 
+  export type MarketingCampaignUpsertWithWhereUniqueWithoutTenantInput = {
+    where: MarketingCampaignWhereUniqueInput
+    update: XOR<MarketingCampaignUpdateWithoutTenantInput, MarketingCampaignUncheckedUpdateWithoutTenantInput>
+    create: XOR<MarketingCampaignCreateWithoutTenantInput, MarketingCampaignUncheckedCreateWithoutTenantInput>
+  }
+
+  export type MarketingCampaignUpdateWithWhereUniqueWithoutTenantInput = {
+    where: MarketingCampaignWhereUniqueInput
+    data: XOR<MarketingCampaignUpdateWithoutTenantInput, MarketingCampaignUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type MarketingCampaignUpdateManyWithWhereWithoutTenantInput = {
+    where: MarketingCampaignScalarWhereInput
+    data: XOR<MarketingCampaignUpdateManyMutationInput, MarketingCampaignUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type MarketingCampaignScalarWhereInput = {
+    AND?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
+    OR?: MarketingCampaignScalarWhereInput[]
+    NOT?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
+    id?: StringFilter<"MarketingCampaign"> | string
+    tenantId?: StringFilter<"MarketingCampaign"> | string
+    brandId?: StringFilter<"MarketingCampaign"> | string
+    name?: StringFilter<"MarketingCampaign"> | string
+    description?: StringNullableFilter<"MarketingCampaign"> | string | null
+    type?: EnumCampaignTypeFilter<"MarketingCampaign"> | $Enums.CampaignType
+    status?: EnumCampaignStatusFilter<"MarketingCampaign"> | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFilter<"MarketingCampaign"> | $Enums.CampaignAudience
+    channels?: StringNullableListFilter<"MarketingCampaign">
+    percentageOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    amountOff?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"MarketingCampaign"> | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: StringNullableFilter<"MarketingCampaign"> | string | null
+    itemIds?: StringNullableListFilter<"MarketingCampaign">
+    dailyStartTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    dailyEndTime?: StringNullableFilter<"MarketingCampaign"> | string | null
+    startsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    endsAt?: DateTimeNullableFilter<"MarketingCampaign"> | Date | string | null
+    maxRedemptions?: IntNullableFilter<"MarketingCampaign"> | number | null
+    perCustomerLimit?: IntNullableFilter<"MarketingCampaign"> | number | null
+    redemptionCount?: IntFilter<"MarketingCampaign"> | number
+    metadata?: JsonFilter<"MarketingCampaign">
+    createdAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"MarketingCampaign"> | Date | string
+    createdBy?: StringNullableFilter<"MarketingCampaign"> | string | null
+  }
+
   export type DriverUpsertWithWhereUniqueWithoutTenantInput = {
     where: DriverWhereUniqueInput
     update: XOR<DriverUpdateWithoutTenantInput, DriverUncheckedUpdateWithoutTenantInput>
@@ -148758,6 +151104,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -148785,6 +151132,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -149165,6 +151513,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -149192,6 +151541,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -150008,6 +152358,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -150054,6 +152405,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUserBrandsInput = {
@@ -150177,6 +152529,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -150223,6 +152576,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type TenantCreateWithoutInvitationsInput = {
@@ -150242,6 +152596,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -150269,6 +152624,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -150369,6 +152725,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -150396,6 +152753,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -151019,6 +153377,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -151046,6 +153405,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -151089,6 +153449,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -151116,6 +153477,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -151263,6 +153625,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -151290,6 +153653,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -151971,6 +154335,70 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MarketingCampaignCreateWithoutBrandInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    tenant: TenantCreateNestedOneWithoutMarketingCampaignsInput
+  }
+
+  export type MarketingCampaignUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type MarketingCampaignCreateOrConnectWithoutBrandInput = {
+    where: MarketingCampaignWhereUniqueInput
+    create: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput>
+  }
+
+  export type MarketingCampaignCreateManyBrandInputEnvelope = {
+    data: MarketingCampaignCreateManyBrandInput | MarketingCampaignCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutBrandDefaultsInput = {
     id?: string
     name: string
@@ -152039,6 +154467,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -152066,6 +154495,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -152450,6 +154880,22 @@ export namespace Prisma {
     data: XOR<UserBrandUpdateManyMutationInput, UserBrandUncheckedUpdateManyWithoutBrandInput>
   }
 
+  export type MarketingCampaignUpsertWithWhereUniqueWithoutBrandInput = {
+    where: MarketingCampaignWhereUniqueInput
+    update: XOR<MarketingCampaignUpdateWithoutBrandInput, MarketingCampaignUncheckedUpdateWithoutBrandInput>
+    create: XOR<MarketingCampaignCreateWithoutBrandInput, MarketingCampaignUncheckedCreateWithoutBrandInput>
+  }
+
+  export type MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput = {
+    where: MarketingCampaignWhereUniqueInput
+    data: XOR<MarketingCampaignUpdateWithoutBrandInput, MarketingCampaignUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type MarketingCampaignUpdateManyWithWhereWithoutBrandInput = {
+    where: MarketingCampaignScalarWhereInput
+    data: XOR<MarketingCampaignUpdateManyMutationInput, MarketingCampaignUncheckedUpdateManyWithoutBrandInput>
+  }
+
   export type PrinterStationUpsertWithoutBrandDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
     create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
@@ -152539,6 +154985,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -152585,6 +155032,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -153482,6 +155930,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -153528,6 +155977,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -154147,6 +156597,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -154193,6 +156644,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -154392,6 +156844,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -154438,6 +156891,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationUpsertWithoutPlatformConnectionsInput = {
@@ -154911,6 +157365,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -154957,6 +157412,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -155099,6 +157555,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -155145,6 +157602,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -156631,6 +159089,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -156677,6 +159136,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -156927,6 +159387,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -156973,6 +159434,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -157943,6 +160405,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -157989,6 +160452,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -158049,6 +160513,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -158095,6 +160560,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -158139,6 +160605,7 @@ export namespace Prisma {
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -158185,6 +160652,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -158245,6 +160713,7 @@ export namespace Prisma {
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -158291,6 +160760,7 @@ export namespace Prisma {
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -158473,6 +160943,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutTenantInput
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -158500,6 +160971,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -158800,6 +161272,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutTenantNestedInput
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -158827,6 +161300,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -159135,6 +161609,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -159181,6 +161656,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -159386,6 +161862,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -159432,6 +161909,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CustomerCreateWithoutAddressesInput = {
@@ -159642,6 +162120,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutTenantInput
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -159669,6 +162148,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -159712,6 +162192,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutTenantNestedInput
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -159739,6 +162220,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -159748,6 +162230,334 @@ export namespace Prisma {
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantCreateWithoutMarketingCampaignsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutMarketingCampaignsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutMarketingCampaignsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutMarketingCampaignsInput, TenantUncheckedCreateWithoutMarketingCampaignsInput>
+  }
+
+  export type BrandCreateWithoutMarketingCampaignsInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutMarketingCampaignsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutMarketingCampaignsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutMarketingCampaignsInput, BrandUncheckedCreateWithoutMarketingCampaignsInput>
+  }
+
+  export type TenantUpsertWithoutMarketingCampaignsInput = {
+    update: XOR<TenantUpdateWithoutMarketingCampaignsInput, TenantUncheckedUpdateWithoutMarketingCampaignsInput>
+    create: XOR<TenantCreateWithoutMarketingCampaignsInput, TenantUncheckedCreateWithoutMarketingCampaignsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutMarketingCampaignsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutMarketingCampaignsInput, TenantUncheckedUpdateWithoutMarketingCampaignsInput>
+  }
+
+  export type TenantUpdateWithoutMarketingCampaignsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutMarketingCampaignsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type BrandUpsertWithoutMarketingCampaignsInput = {
+    update: XOR<BrandUpdateWithoutMarketingCampaignsInput, BrandUncheckedUpdateWithoutMarketingCampaignsInput>
+    create: XOR<BrandCreateWithoutMarketingCampaignsInput, BrandUncheckedCreateWithoutMarketingCampaignsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutMarketingCampaignsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutMarketingCampaignsInput, BrandUncheckedUpdateWithoutMarketingCampaignsInput>
+  }
+
+  export type BrandUpdateWithoutMarketingCampaignsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutMarketingCampaignsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -160334,6 +163144,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -160361,6 +163172,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -160642,6 +163454,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -160688,6 +163501,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -160961,6 +163775,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -160988,6 +163803,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -161293,6 +164109,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -161339,6 +164156,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -163715,6 +166533,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -163742,6 +166561,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -164111,6 +166931,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -164138,6 +166959,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -164516,6 +167338,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -164543,6 +167366,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -164889,6 +167713,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutDefaultStationInput = {
@@ -164934,6 +167759,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDefaultStationInput = {
@@ -165184,6 +168010,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -165211,6 +168038,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -165568,6 +168396,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -165595,6 +168424,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -165931,6 +168761,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -165958,6 +168789,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -166870,6 +169702,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
@@ -166897,6 +169730,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
@@ -166972,6 +169806,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
@@ -166999,6 +169834,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
@@ -167567,6 +170403,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -167594,6 +170431,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -167723,6 +170561,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -167750,6 +170589,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -168858,6 +171698,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
@@ -168885,6 +171726,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
@@ -169014,6 +171856,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
@@ -169041,6 +171884,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
@@ -170394,6 +173238,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -170421,6 +173266,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -170498,6 +173344,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -170525,6 +173372,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -170782,6 +173630,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
@@ -170809,6 +173658,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
@@ -170969,6 +173819,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
@@ -170996,6 +173847,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
@@ -171596,6 +174448,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutTenantInput
     customers?: CustomerCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
     drivers?: DriverCreateNestedManyWithoutTenantInput
     suppliers?: SupplierCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
@@ -171623,6 +174476,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
     customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
     promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
     drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
     suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
@@ -171666,6 +174520,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
     customers?: CustomerUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
     drivers?: DriverUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
@@ -171693,6 +174548,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
     customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
     promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
     drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
     suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
@@ -172017,6 +174873,33 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MarketingCampaignCreateManyTenantInput = {
+    id?: string
+    brandId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
   export type DriverCreateManyTenantInput = {
     id?: string
     userId?: string | null
@@ -172155,6 +175038,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -172201,6 +175085,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -172751,6 +175636,87 @@ export namespace Prisma {
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+  }
+
+  export type MarketingCampaignUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MarketingCampaignUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type DriverUpdateWithoutTenantInput = {
@@ -174047,6 +177013,33 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type MarketingCampaignCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -174837,6 +177830,87 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MarketingCampaignUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+  }
+
+  export type MarketingCampaignUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MarketingCampaignUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type IntegrationCreateManyLocationInput = {
@@ -177987,6 +181061,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutDefaultStationInput = {
@@ -178032,6 +181107,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutDefaultStationInput = {
@@ -179836,6 +182912,10 @@ export namespace Prisma {
      * @deprecated Use PromoCodeDefaultArgs instead
      */
     export type PromoCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PromoCodeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MarketingCampaignDefaultArgs instead
+     */
+    export type MarketingCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingCampaignDefaultArgs<ExtArgs>
     /**
      * @deprecated Use DeliveryZoneDefaultArgs instead
      */
