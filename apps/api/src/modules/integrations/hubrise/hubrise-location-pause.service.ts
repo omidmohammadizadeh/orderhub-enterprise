@@ -59,14 +59,25 @@ export class HubRiseLocationPauseService {
     if (!accessToken) return;
 
     // HubRise expects the acceptance fields nested under
-    // `order_acceptance` on PATCH /locations/:id. Sending mode /
-    // resume_at / reason at the root level returns 422 "is not a
-    // valid key" — confirmed against the live API.
+    // `order_acceptance` on PATCH /locations/:id.
+    //
+    //   paused: { mode, resume_at?, reason? }
+    //   busy:   { mode, resume_at?, extra_preparation_time }  ← NO reason
+    //   normal: { mode }
+    //
+    // Sending `reason` while mode=busy returns 422 from HubRise
+    // ("/order_acceptance/reason is not a valid key"). Confirmed
+    // against the live API + their own admin payload — busy mode
+    // doesn't surface a reason to the customer.
     const acceptance: Record<string, any> = { mode: args.mode };
-    if (args.mode !== "normal") {
+    if (args.mode === "paused") {
       if (args.resumeAt) acceptance.resume_at = args.resumeAt.toISOString();
       if (args.reason) acceptance.reason = args.reason;
-      if (args.mode === "busy" && args.extraPrepTime) {
+    } else if (args.mode === "busy") {
+      // HubRise treats null as "no auto-reset" — match the operator's
+      // sample payload exactly so this hits the spec.
+      acceptance.resume_at = args.resumeAt ? args.resumeAt.toISOString() : null;
+      if (args.extraPrepTime) {
         acceptance.extra_preparation_time = args.extraPrepTime;
       }
     }

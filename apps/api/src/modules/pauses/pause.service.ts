@@ -189,7 +189,9 @@ export class PauseService {
         channel: args.scope.channel ?? null,
         mode: args.mode,
         resumeAt,
-        reason: args.reason ?? null,
+        // Busy mode doesn't surface a reason to the customer — match
+        // HubRise behaviour and skip persisting it locally too.
+        reason: args.mode === "busy" ? null : args.reason ?? null,
         extraPrepTime: args.mode === "busy" ? args.extraPrepTime ?? null : null,
         pausedBy: args.userId ?? null,
       },

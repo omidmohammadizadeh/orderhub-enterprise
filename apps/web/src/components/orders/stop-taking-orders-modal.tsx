@@ -118,9 +118,10 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
   const pauseMutation = useMutation({
     mutationFn: () => {
       const reason = reasonPreset === null ? reasonOther : reasonPreset;
-      // Busy mode doesn't auto-resume — operator restores normal hours
-      // manually via the "Reset to normal hours" button on the active
-      // row. Mirrors HubRise's behaviour (resume_at: null for busy).
+      // Busy mode doesn't auto-resume and doesn't carry a reason —
+      // mirrors HubRise's own admin payload exactly (resume_at: null,
+      // no reason). Operator restores normal prep via the "Reset to
+      // normal hours" button on the active row.
       const isBusy = mode === "busy";
       return pausesClient.pause({
         locationId,
@@ -138,7 +139,7 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
             : duration === "custom"
               ? new Date(customResumeAt).toISOString()
               : undefined,
-        reason: reason || undefined,
+        reason: isBusy ? undefined : reason || undefined,
         extraPrepTime: isBusy ? extraPrepTime : undefined,
       });
     },
@@ -384,7 +385,8 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
             </Section>
           )}
 
-          {/* ── Reason ────────────────────────────────────────────── */}
+          {/* ── Reason (pause-only — HubRise rejects reason on busy) ─ */}
+          {mode === "paused" && (
           <Section title="Reason (shown to customers)">
             <div className="flex flex-wrap gap-2">
               {REASON_PRESETS.map((r) => (
@@ -425,6 +427,7 @@ export function StopTakingOrdersModal({ open, locationId, onClose }: Props) {
               />
             )}
           </Section>
+          )}
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-zinc-100 px-5 py-3">
