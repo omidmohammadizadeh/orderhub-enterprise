@@ -196,6 +196,17 @@ export class MenusController {
     return this.menus.findAllByLocation(locationId, user.tenantId);
   }
 
+  // Phase AW-18 — operator picked "All locations" in the location
+  // switcher. Return every menu they can see across every location
+  // they have access to. Tenant-scoped via assertTenantAccess in
+  // findAllForTenant + the user.userId filter for per-user location
+  // restrictions.
+  @Get("menus")
+  @ApiOperation({ summary: "List every menu visible to the caller across all their locations" })
+  findAllForTenant(@CurrentUser() user: AuthenticatedUser) {
+    return this.menus.findAllForTenant(user.tenantId, user.userId);
+  }
+
   @Get("menus/:menuId")
   @ApiOperation({ summary: "Get menu with categories and items" })
   findOne(

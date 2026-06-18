@@ -139,6 +139,10 @@ export const menusClient = {
     apiClient
       .get<Menu[]>(`/v1/locations/${locationId}/menus`)
       .then((r) => r.data),
+  // Phase AW-18 — "All locations" view on the Menu tab. Tenant-wide
+  // list, server filters by the caller's UserLocation set.
+  listMenusForTenant: () =>
+    apiClient.get<Menu[]>(`/v1/menus`).then((r) => r.data),
 
   getMenu: (menuId: string) =>
     apiClient.get<MenuWithCategories>(`/v1/menus/${menuId}`).then((r) => r.data),

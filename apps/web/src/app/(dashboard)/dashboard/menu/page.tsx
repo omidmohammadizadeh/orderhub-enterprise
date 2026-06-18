@@ -85,10 +85,18 @@ export default function MenuPage() {
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
+  // Phase AW-18 — when the operator picks "All locations" in the
+  // location switcher, list every menu they can see across every
+  // location they have access to (server filters by UserLocation).
+  // Otherwise stick with the location-scoped list.
   const { data: menus = [], isLoading } = useQuery({
-    queryKey: ["menus", "location", selectedLocationId],
-    queryFn: () => menusClient.listMenusForLocation(selectedLocationId!),
-    enabled: !!selectedLocationId,
+    queryKey: selectedLocationId
+      ? (["menus", "location", selectedLocationId] as const)
+      : (["menus", "tenant"] as const),
+    queryFn: () =>
+      selectedLocationId
+        ? menusClient.listMenusForLocation(selectedLocationId)
+        : menusClient.listMenusForTenant(),
   });
 
   const createBrandMutation = useMutation({
@@ -358,12 +366,12 @@ export default function MenuPage() {
           modal; the per-location list keeps the operator focused on
           the shop they're working at. */}
 
-      {!selectedLocationId && (
+      {!selectedLocationId && menus.length === 0 && !isLoading && (
         <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-zinc-200 rounded-xl">
           <UtensilsCrossed className="h-10 w-10 text-zinc-300 mb-3" />
-          <p className="font-medium text-zinc-500">Pick a location</p>
+          <p className="font-medium text-zinc-500">No menus across your locations yet</p>
           <p className="text-sm text-zinc-400 mt-1">
-            Use the selector above to choose which location&apos;s menus to manage.
+            Pick a specific location above to create the first one.
           </p>
         </div>
       )}

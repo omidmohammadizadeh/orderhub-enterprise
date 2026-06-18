@@ -110,6 +110,48 @@ export class MenusService {
     });
   }
 
+  // Phase AW-18 — operator picked "All locations" in the location
+  // switcher. Return every menu they can see across every location
+  // their tenant has, additionally restricted to the user's assigned
+  // UserLocation set when present. Empty scope → tenant-wide (matches
+  // brands/locations service behaviour).
+  async findAllForTenant(tenantId: string, userId: string) {
+    const userLocations = await (this.prisma as any).userLocation.findMany({
+      where: { userId },
+      select: { locationId: true },
+    });
+    const allowedLocationIds: string[] | null = userLocations.length
+      ? userLocations.map((r: { locationId: string }) => r.locationId)
+      : null;
+    return this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        ...(allowedLocationIds && {
+          OR: [
+            { locationId: { in: allowedLocationIds } },
+            // Brand-only menus (no location) stay visible to anyone
+            // in the tenant — they're the franchise-wide library, not
+            // a location-scoped publication.
+            { locationId: null },
+          ],
+        }),
+      },
+      include: {
+        _count: { select: { categories: true, versions: true } },
+        versions: {
+          orderBy: { version: "desc" },
+          take: 1,
+          select: { version: true, label: true, createdAt: true },
+        },
+        // Menu.locationId is a plain scalar — no relation on the
+        // generated client — so the UI joins client-side against the
+        // locations list it already has.
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   async findOne(menuId: string, tenantId: string) {
     const menu = await this.prisma.menu.findFirst({
       where: { id: menuId, deletedAt: null, brand: { tenantId } },
