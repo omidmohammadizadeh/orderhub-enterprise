@@ -137,6 +137,10 @@ interface CartLine {
   selectedSku?: ProductSku | null;
   notes?: string;
   plu?: string | null;
+  // Phase AW-19 — BOGO freebie marker. Holds the id of the trigger
+  // cart line this freebie mirrors. Internal-only — never sent to the
+  // backend so the kitchen ticket doesn't carry the synthetic link.
+  bogoOf?: string;
 }
 
 type CartAction =
@@ -432,50 +436,46 @@ export default function OrderPage() {
     return out;
   }, [storefront]);
   // BOGO auto-mirror:
-  //   For every trigger itemId that's in the cart with a non-zero
-  //   line, ensure there's a matching free £0 copy of THAT same
-  //   item. Marker: unitPrice 0 + notes "🎁 BOGO:<itemId>". One
-  //   freebie per trigger itemId — buying more of the same trigger
-  //   doesn't compound. When the trigger leaves the cart entirely,
-  //   the matching freebie goes with it.
+  //   For every paid trigger line, ensure there's a matching free
+  //   copy that mirrors its modifiers + SKU at £0. The freebie is
+  //   tracked by bogoOf = trigger line id; when the trigger goes,
+  //   its mirror goes too. Modifier prices are zeroed so the cart
+  //   total math (unitPrice + sum(modifiers)) stays at 0 for the
+  //   freebie.
   useEffect(() => {
     if (!bogo) return;
-    const paidTriggerIds = new Set(
-      cart
-        .filter((l) => bogoTriggerSet.has(l.menuItemId) && l.unitPrice > 0)
-        .map((l) => l.menuItemId),
+    const triggerLines = cart.filter(
+      (l) =>
+        bogoTriggerSet.has(l.menuItemId) && l.unitPrice > 0 && !l.bogoOf,
     );
-    const freebies = cart.filter(
-      (l) => l.unitPrice === 0 && (l.notes ?? "").startsWith("🎁 BOGO:"),
-    );
-    // Add missing freebies for triggers in the cart.
-    for (const itemId of paidTriggerIds) {
-      const marker = `🎁 BOGO:${itemId}`;
-      if (freebies.some((f) => f.notes === marker)) continue;
-      const item = itemsById[itemId];
-      if (!item) continue;
-      dispatch({
-        type: "ADD",
-        line: {
-          menuItemId: itemId,
-          displayName: `${item.name} (Free — Buy 1 Get 1)`,
-          unitPrice: 0,
-          quantity: 1,
-          modifiers: [],
-          selectedSku: null,
-          notes: marker,
-          plu: item.plu ?? null,
-        },
-      });
-    }
-    // Remove orphaned freebies whose trigger left the cart.
+    const freebies = cart.filter((l) => l.bogoOf);
+    const triggerIds = new Set(triggerLines.map((l) => l.id));
+    // Drop orphaned freebies first so we don't double-process.
     for (const f of freebies) {
-      const parentId = (f.notes ?? "").slice("🎁 BOGO:".length);
-      if (!paidTriggerIds.has(parentId)) {
+      if (!triggerIds.has(f.bogoOf!)) {
         dispatch({ type: "REMOVE", id: f.id });
       }
     }
-  }, [cart, bogo, bogoTriggerSet, itemsById]);
+    // Add freebies for any trigger that doesn't have one yet.
+    for (const t of triggerLines) {
+      if (freebies.some((f) => f.bogoOf === t.id)) continue;
+      dispatch({
+        type: "ADD",
+        line: {
+          menuItemId: t.menuItemId,
+          displayName: `${t.displayName} (Free — Buy 1 Get 1)`,
+          unitPrice: 0,
+          quantity: 1,
+          // Mirror modifier list but zero the prices so totals stay 0.
+          modifiers: t.modifiers.map((m) => ({ ...m, price: 0 })),
+          selectedSku: t.selectedSku ?? null,
+          notes: "",
+          plu: t.plu ?? null,
+          bogoOf: t.id,
+        },
+      });
+    }
+  }, [cart, bogo, bogoTriggerSet]);
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
