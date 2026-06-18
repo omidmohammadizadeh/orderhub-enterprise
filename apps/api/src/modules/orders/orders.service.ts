@@ -1103,13 +1103,71 @@ export class OrdersService {
     );
   }
 
+  /**
+   * Phase AW-23 — Business-day reset helper.
+   *
+   * Returns the most recent occurrence of `resetHour:00` in the
+   * given timezone that is ≤ now. Falls back to server-local time
+   * when no timezone is supplied. Used to roll yesterday's
+   * terminal orders off the live board at the start of the new
+   * shift instead of letting them sit there for a rolling 24h.
+   *
+   * Example with resetHour=5 in Europe/London:
+   *   - Asked at 03:30 BST  → returns yesterday 05:00 BST
+   *   - Asked at 05:00 BST  → returns today 05:00 BST
+   *   - Asked at 14:00 BST  → returns today 05:00 BST
+   */
+  private computeBusinessDayCutoff(
+    timezone: string | undefined,
+    resetHour: number,
+  ): Date {
+    const now = new Date();
+    const local = timezone
+      ? new Date(now.toLocaleString("en-US", { timeZone: timezone }))
+      : now;
+    // Drift between local and now (in ms) tells us how to shift
+    // back to a real UTC Date once we've picked the calendar day
+    // we want to anchor on.
+    const drift = local.getTime() - now.getTime();
+    // Today's reset moment (local clock).
+    const todayReset = new Date(local);
+    todayReset.setHours(resetHour, 0, 0, 0);
+    // If we haven't crossed today's reset yet, the business day
+    // started at yesterday's reset.
+    if (local.getTime() < todayReset.getTime()) {
+      todayReset.setDate(todayReset.getDate() - 1);
+    }
+    return new Date(todayReset.getTime() - drift);
+  }
+
   async findLiveOrders(tenantId: string, locationId?: string) {
-    // The board shows every active order PLUS terminal orders from the last
-    // 24 hours so operators can see what just completed / was cancelled
-    // without leaving the page. After 24h terminal orders drop off the live
-    // board and live only in /v1/orders (history) — that keeps the live
-    // query bounded as volume grows.
-    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // Phase AW-23 — Business-day reset.
+    //
+    // Operators want yesterday's completed orders to drop off the
+    // live board at the start of the new business day (5am local
+    // by default) — not after a rolling 24h. Without this, a 23h-
+    // ago COMPLETED order from a busy Friday night was still
+    // staring at the Saturday-morning shift.
+    //
+    // We compute "most recent 5am in the location's timezone that
+    // isn't in the future" and use it as the lower bound for
+    // terminal orders. Active orders (PENDING/ACCEPTED/PREPARING/
+    // READY/etc.) are never filtered by time — a stuck order from
+    // any age still needs operator eyes on it.
+    //
+    // Tenant-wide view (no locationId) uses UTC 5am as a single
+    // threshold; computing per-location would require a second
+    // query for every order's timezone, which isn't worth it for
+    // the rare "all locations" view.
+    let timezone: string | undefined;
+    if (locationId) {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { timezone: true },
+      });
+      timezone = loc?.timezone ?? undefined;
+    }
+    const since24h = this.computeBusinessDayCutoff(timezone, 5);
     return this.prisma.order.findMany({
       where: {
         tenantId,
