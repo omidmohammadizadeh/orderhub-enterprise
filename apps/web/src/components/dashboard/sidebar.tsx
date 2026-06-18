@@ -139,9 +139,15 @@ export function Sidebar() {
   // Phase AW-28 — In fullscreen mode the layout hides the rail
   // entirely (more horizontal real estate for the Orders table).
   // Topbar owns the toggle; we just opt out of rendering.
+  //
+  // Render the inner component as JSX (not a function call) so it
+  // gets its own component instance with its own hook list. Calling
+  // _Sidebar() inlines its hooks into Sidebar's hook order, and the
+  // collapsed→expanded toggle would then change the hook count
+  // between renders → React error #300.
   const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
   if (collapsed) return null;
-  return _Sidebar();
+  return <_Sidebar />;
 }
 
 function _Sidebar() {
