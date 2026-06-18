@@ -356,6 +356,15 @@ export class BrandsService {
             postcode: true,
             country: true,
             phone: true,
+            // Phase AW-30 — operator-side change: the dedicated
+            // location-level URL was retired, so onlineOrderingSlug
+            // is null on most rows now. The legacy `slug` column
+            // still carries the original location handle and is
+            // accepted by the ordering API's storefront lookup
+            // (slug OR onlineOrderingSlug), so we fall through to
+            // it before giving up. id is the last-resort target
+            // since the storefront route also accepts a raw id.
+            slug: true,
             onlineOrderingSlug: true,
             timezone: true,
             openingHours: true,
@@ -369,12 +378,23 @@ export class BrandsService {
       : null;
     if (!fallbackLocation) return null;
 
+    // Single storefront slug the brand page can redirect to without
+    // re-implementing the fallback chain on the client. Whatever this
+    // resolves to is guaranteed to work against /v1/ordering/store/
+    // (the ordering API accepts onlineOrderingSlug, legacy slug, or
+    // id via its OR-where).
+    const storefrontSlug =
+      fallbackLocation.onlineOrderingSlug ??
+      fallbackLocation.slug ??
+      fallbackLocation.id;
+
     return {
       brand,
       // Public storefront read shape: brand fields win when set,
       // otherwise the location backstops them.
       location: {
         ...fallbackLocation,
+        storefrontSlug,
         addressLine1: brand.addressLine1 ?? fallbackLocation.addressLine1,
         addressLine2: brand.addressLine2 ?? fallbackLocation.addressLine2,
         city: brand.city ?? fallbackLocation.city,

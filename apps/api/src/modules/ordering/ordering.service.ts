@@ -81,7 +81,7 @@ export class OrderingService {
     body: { code: string; subtotal: number },
   ) {
     const location = await this.prisma.location.findFirst({
-      where: { OR: [{ onlineOrderingSlug: slug }, { slug }] },
+      where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
     });
     if (!location || !location.isActive || location.deletedAt) {
@@ -107,7 +107,7 @@ export class OrderingService {
     // hours, delivery zones, prep config).
     const location = await this.prisma.location.findFirst({
       where: {
-        OR: [{ onlineOrderingSlug: slug }, { slug }],
+        OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }],
       },
       include: {
         brand: {
@@ -536,7 +536,7 @@ export class OrderingService {
 
   async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
     const location = await this.prisma.location.findFirst({
-      where: { OR: [{ onlineOrderingSlug: slug }, { slug }] },
+      where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
     });
 

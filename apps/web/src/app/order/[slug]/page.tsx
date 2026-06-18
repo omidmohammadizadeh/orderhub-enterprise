@@ -947,7 +947,7 @@ export default function OrderPage() {
               customer={authCustomer ?? null}
               onSignInClick={() => setLoginOpen(true)}
               onLogout={logoutCustomer}
-              myOrdersHref={`/order/${slug}/my-orders`}
+              myOrdersHref={`/order/${slug}/my-orders${brandId ? `?brand=${brandId}` : ""}`}
             />
             <button
               onClick={() => setCartOpen(true)}

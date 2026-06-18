@@ -109,9 +109,17 @@ export default function MyOrdersPage() {
     }
     setIsLoading(true);
     setError(null);
+    // Phase AW-30 — scope by brand when the storefront URL carries
+    // ?brand=<id> so a customer who's ordered from two brands at
+    // the same kitchen only sees the brand they're currently on.
+    const brandId =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("brand")
+        : null;
     axios
       .get<OrdersResponse>(`${API_BASE}/v1/customer-auth/orders`, {
         headers: { Authorization: `Bearer ${token}` },
+        params: brandId ? { brandId } : undefined,
       })
       .then((res) => setOrders(res.data))
       .catch((err: any) => {

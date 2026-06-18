@@ -72,9 +72,15 @@ export class CustomerAuthController {
   @Public()
   @UseGuards(CustomerJwtGuard)
   @Get("orders")
-  @ApiOperation({ summary: "Current customer's orders, split active/history" })
-  myOrders(@CurrentCustomer() customer: any) {
-    return this.customerAuth.listOrders(customer.id);
+  @ApiOperation({
+    summary:
+      "Current customer's orders, split active/history. Pass ?brandId= to scope to a single brand.",
+  })
+  myOrders(
+    @CurrentCustomer() customer: any,
+    @Query("brandId") brandId?: string,
+  ) {
+    return this.customerAuth.listOrders(customer.id, brandId);
   }
 
   // ── Google OAuth ─────────────────────────────────────────────────

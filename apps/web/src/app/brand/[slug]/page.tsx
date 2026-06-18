@@ -29,6 +29,8 @@ interface BrandPublic {
   location: {
     id: string;
     onlineOrderingSlug: string | null;
+    slug?: string | null;
+    storefrontSlug?: string | null;
   };
 }
 
@@ -48,7 +50,17 @@ export default function BrandStorefrontPage({ params }: Props) {
           setError("This brand is not currently accepting online orders.");
           return;
         }
-        if (!data.location.onlineOrderingSlug) {
+        // Phase AW-30 — Backend now returns a unified
+        // location.storefrontSlug (onlineOrderingSlug → legacy slug →
+        // id). Fall back through the chain ourselves too in case the
+        // operator is on an older build that hasn't redeployed the
+        // API yet.
+        const target =
+          data.location.storefrontSlug ??
+          data.location.onlineOrderingSlug ??
+          data.location.slug ??
+          data.location.id;
+        if (!target) {
           setError(
             "The shop running this brand hasn't published its menu yet. Please check back later.",
           );
@@ -57,9 +69,7 @@ export default function BrandStorefrontPage({ params }: Props) {
         // Forward to the existing location storefront with brand context.
         // Using replace() so the brand URL stays in history but the
         // address bar shows /order/<slug>?brand=<id>.
-        router.replace(
-          `/order/${data.location.onlineOrderingSlug}?brand=${data.brand.id}`,
-        );
+        router.replace(`/order/${target}?brand=${data.brand.id}`);
       })
       .catch((err: any) => {
         if (cancelled) return;
