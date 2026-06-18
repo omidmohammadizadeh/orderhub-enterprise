@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   modifierGroupsClient,
   modifiersClient,
@@ -430,20 +431,42 @@ export function ModifierGroupForm({
                               </span>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setAttachedModifierIds(
-                                    attachedModifierIds.filter(
-                                      (id) => id !== m.id,
-                                    ),
-                                  )
-                                }
-                                disabled={owned}
-                                title={
-                                  owned
-                                    ? "Owned by this group — delete the modifier instead."
-                                    : "Remove"
-                                }
-                                className="text-zinc-300 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                onClick={async () => {
+                                  // Phase AW-18.5 — trash = delete the
+                                  // modifier outright (was: detach).
+                                  // Confirm before destroying.
+                                  const ok = window.confirm(
+                                    `Delete "${m.name}"?\n\nThis removes the modifier from the catalog and unattaches it from every group that uses it. This cannot be undone.`,
+                                  );
+                                  if (!ok) return;
+                                  try {
+                                    await modifiersClient.remove(m.id);
+                                    setAttachedModifierIds((prev) =>
+                                      prev.filter((id) => id !== m.id),
+                                    );
+                                    qc.invalidateQueries({
+                                      queryKey: [
+                                        "catalog",
+                                        "modifier-groups",
+                                        brandId,
+                                      ],
+                                    });
+                                    qc.invalidateQueries({
+                                      queryKey: [
+                                        "catalog",
+                                        "modifier-group",
+                                        groupId,
+                                      ],
+                                    });
+                                    toast.success(`Deleted "${m.name}"`);
+                                  } catch (err: any) {
+                                    toast.error(
+                                      `Failed to delete: ${err?.response?.data?.message ?? err?.message ?? "unknown error"}`,
+                                    );
+                                  }
+                                }}
+                                title="Delete this modifier"
+                                className="text-zinc-300 hover:text-red-600"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>

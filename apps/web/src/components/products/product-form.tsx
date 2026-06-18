@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   productsClient,
   modifierGroupsClient,
@@ -482,13 +483,36 @@ export function ProductForm({
                       </button>
                       <button
                         type="button"
-                        onClick={() =>
-                          setAttachedGroupIds(
-                            attachedGroupIds.filter((id) => id !== g.id),
-                          )
-                        }
+                        onClick={async () => {
+                          // Phase AW-18.5 — trash = delete the group
+                          // outright. Confirm first; on success drop
+                          // it from the local attached set and
+                          // invalidate the brand-wide list so other
+                          // products' editors refresh too.
+                          const ok = window.confirm(
+                            `Delete "${g.name}"?\n\nThis removes the modifier group from the catalog and unattaches it from every product that uses it. This cannot be undone.`,
+                          );
+                          if (!ok) return;
+                          try {
+                            await modifierGroupsClient.remove(g.id);
+                            setAttachedGroupIds((prev) =>
+                              prev.filter((id) => id !== g.id),
+                            );
+                            qc.invalidateQueries({
+                              queryKey: ["catalog", "modifier-groups", brandId],
+                            });
+                            qc.invalidateQueries({
+                              queryKey: ["catalog", "product", productId],
+                            });
+                            toast.success(`Deleted "${g.name}"`);
+                          } catch (err: any) {
+                            toast.error(
+                              `Failed to delete: ${err?.response?.data?.message ?? err?.message ?? "unknown error"}`,
+                            );
+                          }
+                        }}
                         className="text-zinc-300 hover:text-red-600 transition-colors ml-2"
-                        title="Remove from this product"
+                        title="Delete this modifier group"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
