@@ -30,6 +30,7 @@ import {
   KeyRound,
   UserCog,
   Inbox,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -82,6 +83,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
   { href: "/dashboard/store-ops", label: "Store Ops", icon: Store, roles: MANAGER_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
+  { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
   { href: "/dashboard/drivers", label: "Drivers", icon: Truck, roles: MANAGER_TIER },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER },
