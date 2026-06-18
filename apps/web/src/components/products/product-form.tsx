@@ -210,10 +210,39 @@ export function ProductForm({
   // Image used to be required at the form level; operator wants the option
   // to save without one (placeholder shown in the catalog list instead).
   const canSave = name.trim().length > 0;
-  const attachedGroups = useMemo(
-    () => allGroups.filter((g) => attachedGroupIds.includes(g.id)),
-    [allGroups, attachedGroupIds],
+
+  // Phase AW-18.1 — attached groups come from the item's own
+  // modifierGroupLinks (server-included via /v1/items/:itemId). The
+  // earlier filter-against-allGroups pattern dropped the rows whenever
+  // the form's brandId disagreed with the item's brandId (e.g. a
+  // HubRise-imported menu attached to a different brand at publish
+  // time). Reading straight off existing.modifierGroupLinks makes
+  // hydration brand-drift safe.
+  const linkedGroups = useMemo(
+    () =>
+      ((existing as any)?.modifierGroupLinks ?? [])
+        .map((l: any) => l.group)
+        .filter(Boolean),
+    [existing],
   );
+  const attachedGroups = useMemo(() => {
+    const merged = new Map<string, any>();
+    for (const g of linkedGroups) merged.set(g.id, g);
+    // Operator-added (or removed) since opening: trust the local
+    // attachedGroupIds set and look up via allGroups for any id the
+    // server-side links don't have yet.
+    for (const id of attachedGroupIds) {
+      if (merged.has(id)) continue;
+      const local = allGroups.find((g) => g.id === id);
+      if (local) merged.set(id, local);
+    }
+    // Filter back down to whatever is currently in attachedGroupIds —
+    // operator may have detached one of the imported links in this
+    // session, so we still respect the local state.
+    return Array.from(merged.values()).filter((g: any) =>
+      attachedGroupIds.includes(g.id),
+    );
+  }, [linkedGroups, allGroups, attachedGroupIds]);
   const availableGroups = useMemo(
     () => allGroups.filter((g) => !attachedGroupIds.includes(g.id)),
     [allGroups, attachedGroupIds],
