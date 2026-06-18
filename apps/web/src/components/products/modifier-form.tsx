@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Plus, X } from "lucide-react";
 import {
   modifiersClient,
@@ -34,10 +34,21 @@ export function ModifierForm({
   const qc = useQueryClient();
   const isEdit = !!modifierId;
 
-  // Find the existing modifier by flattening all options.
-  const existing: CatalogModifier | undefined = modifierId
-    ? groups.flatMap((g) => g.options ?? []).find((o) => o.id === modifierId)
-    : undefined;
+  // Phase AW-18.4 — single-row read. The earlier list-then-find
+  // through `groups` returned undefined when the modifier's owning
+  // group lived under a different brand than the form's `brandId`
+  // (HubRise-imported groups, repeat of the AW-12 family). Hitting
+  // GET /v1/modifier-options/:id makes hydration brand-drift safe.
+  const { data: fetched } = useQuery({
+    queryKey: ["catalog", "modifier-option", modifierId],
+    queryFn: () => modifiersClient.get(modifierId!),
+    enabled: !!modifierId,
+  });
+  const existing: CatalogModifier | undefined =
+    fetched ??
+    (modifierId
+      ? groups.flatMap((g) => g.options ?? []).find((o) => o.id === modifierId)
+      : undefined);
 
   const [groupId, setGroupId] = useState<string>(existing?.groupId ?? groups[0]?.id ?? "");
   const [name, setName] = useState("");
