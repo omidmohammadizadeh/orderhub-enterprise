@@ -709,6 +709,33 @@ export class MenusService {
     });
   }
 
+  // Phase AW-18.2 — single-row reads. Same brand-drift fix the items
+  // path got in AW-12: the edit forms need to hydrate by id rather
+  // than filter through a brand list (which may be empty when the
+  // form's brandId disagrees with the row's actual brandId).
+  async findModifierGroupById(groupId: string, tenantId: string) {
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id: groupId },
+      include: {
+        options: { orderBy: { sortOrder: "asc" } },
+        _count: { select: { itemLinks: true } },
+      },
+    });
+    if (!group) throw new NotFoundException(`Modifier group ${groupId} not found`);
+    await this.assertBrandAccess(group.brandId, tenantId);
+    return group;
+  }
+
+  async findModifierOptionById(optionId: string, tenantId: string) {
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id: optionId },
+      include: { group: { select: { brandId: true, name: true } } },
+    });
+    if (!option) throw new NotFoundException(`Modifier ${optionId} not found`);
+    await this.assertBrandAccess(option.group.brandId, tenantId);
+    return option;
+  }
+
   async findModifierGroupsByBrand(brandId: string, tenantId: string) {
     await this.assertBrandAccess(brandId, tenantId);
     const groups = await this.prisma.modifierGroup.findMany({

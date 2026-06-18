@@ -536,6 +536,26 @@ export class MenusController {
     return this.menus.findModifierGroupsByBrand(brandId, user.tenantId);
   }
 
+  // Phase AW-18.2 — single-row reads so the edit forms hydrate by
+  // id instead of brand-list-then-find. Mirrors AW-12's items fix.
+  @Get("modifier-groups/:groupId")
+  @ApiOperation({ summary: "Get a single modifier group by id" })
+  findModifierGroup(
+    @Param("groupId") groupId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findModifierGroupById(groupId, user.tenantId);
+  }
+
+  @Get("modifier-options/:optionId")
+  @ApiOperation({ summary: "Get a single modifier option by id" })
+  findModifierOption(
+    @Param("optionId") optionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.findModifierOptionById(optionId, user.tenantId);
+  }
+
   // Phase AP — location-scoped modifier groups for the Products tab.
   @Get("locations/:locationId/modifier-groups")
   @ApiOperation({ summary: "List modifier groups for a single location" })

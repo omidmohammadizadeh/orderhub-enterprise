@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AttachModal } from "./attach-modal";
+import { ModifierForm } from "./modifier-form";
 
 interface Props {
   brandId: string;
@@ -38,10 +39,12 @@ export function ModifierGroupForm({
   const qc = useQueryClient();
   const isEdit = !!groupId;
 
+  // Phase AW-18.2 — by-id read. Earlier list-then-find returned
+  // undefined when the form's brandId disagreed with the group's
+  // actual brandId, leaving every field blank in edit mode.
   const { data: existing } = useQuery({
     queryKey: ["catalog", "modifier-group", groupId],
-    queryFn: () =>
-      modifierGroupsClient.list(brandId).then((all) => all.find((g) => g.id === groupId)),
+    queryFn: () => modifierGroupsClient.get(groupId!),
     enabled: !!groupId,
   });
 
@@ -77,6 +80,8 @@ export function ModifierGroupForm({
   // server set on save.
   const [attachedModifierIds, setAttachedModifierIds] = useState<string[]>([]);
   const [showAddModifierModal, setShowAddModifierModal] = useState(false);
+  // Phase AW-18.2 — click a modifier row to open its own editor.
+  const [editingModifierId, setEditingModifierId] = useState<string | null>(null);
   const [showInlineCreate, setShowInlineCreate] = useState(false);
 
   useEffect(() => {
@@ -387,9 +392,14 @@ export function ModifierGroupForm({
                         return (
                           <div
                             key={m.id}
-                            className="flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2"
+                            className="flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
                           >
-                            <div className="min-w-0 flex-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingModifierId(m.id)}
+                              className="min-w-0 flex-1 text-left hover:text-violet-700 transition-colors"
+                              title="Click to edit this modifier"
+                            >
                               <p className="text-sm font-medium text-zinc-900 truncate">
                                 {m.name}{" "}
                                 <span className="text-[10px] font-normal text-zinc-500 ml-1">
@@ -398,7 +408,7 @@ export function ModifierGroupForm({
                                     : `(shared from ${m.groupName})`}
                                 </span>
                               </p>
-                            </div>
+                            </button>
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <span className="text-xs text-zinc-500 tabular-nums">
                                 £{Number(m.priceAdjustment).toFixed(2)}
@@ -535,6 +545,49 @@ export function ModifierGroupForm({
             <Trash2 className="h-3.5 w-3.5" />
             Delete group
           </button>
+        </div>
+      )}
+
+      {/* Phase AW-18.2 — Edit existing modifier. ModifierForm needs
+          the brand's full groups list to populate its primary-group
+          dropdown and resolve the modifier by id; we already have it
+          via allGroupsQuery above. */}
+      {editingModifierId && (
+        <div
+          className="fixed inset-0 z-[60] grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingModifierId(null);
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mt-8 p-5">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Edit modifier
+              </h2>
+              <button
+                onClick={() => setEditingModifierId(null)}
+                className="text-zinc-400 hover:text-zinc-700 text-2xl leading-none"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <ModifierForm
+              brandId={brandId}
+              groups={otherGroups}
+              modifierId={editingModifierId}
+              onCancel={() => setEditingModifierId(null)}
+              onSaved={() => {
+                qc.invalidateQueries({
+                  queryKey: ["catalog", "modifier-groups", brandId],
+                });
+                qc.invalidateQueries({
+                  queryKey: ["catalog", "modifier-group", groupId],
+                });
+                setEditingModifierId(null);
+              }}
+            />
+          </div>
         </div>
       )}
     </div>

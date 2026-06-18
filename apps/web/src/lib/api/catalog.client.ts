@@ -170,6 +170,12 @@ export const modifierGroupsClient = {
     apiClient
       .get<CatalogModifierGroup[]>(`/v1/brands/${brandId}/modifier-groups`)
       .then((r) => r.data),
+  // Phase AW-18.2 — single-row read. Mirrors productsClient.get from
+  // AW-12 so the edit form hydrates by id (brand-drift safe).
+  get: (id: string) =>
+    apiClient
+      .get<CatalogModifierGroup>(`/v1/modifier-groups/${id}`)
+      .then((r) => r.data),
   // Phase AP — Products tab is location-scoped.
   listForLocation: (locationId: string) =>
     apiClient
@@ -197,6 +203,11 @@ export const modifiersClient = {
   create: (groupId: string, data: Partial<CatalogModifier>) =>
     apiClient
       .post<CatalogModifier>(`/v1/modifier-groups/${groupId}/options`, data)
+      .then((r) => r.data),
+  // Phase AW-18.2 — single-row read for the edit form.
+  get: (id: string) =>
+    apiClient
+      .get<CatalogModifier>(`/v1/modifier-options/${id}`)
       .then((r) => r.data),
   update: (id: string, data: Partial<CatalogModifier>) =>
     apiClient.patch<CatalogModifier>(`/v1/modifier-options/${id}`, data).then((r) => r.data),

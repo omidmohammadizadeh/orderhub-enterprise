@@ -92,6 +92,10 @@ export function ProductForm({
   // the product page. On save, the new group's id is appended to
   // attachedGroupIds so it auto-attaches to this product.
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  // Phase AW-18.2 — click an attached group row to open it for edit.
+  // Reuses the same ModifierGroupForm shell as Create New, just with
+  // groupId set so the form hydrates from the server.
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
     Array<{
@@ -462,15 +466,20 @@ export function ProductForm({
                       key={g.id}
                       className="group flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-zinc-900">
+                      <button
+                        type="button"
+                        onClick={() => setEditingGroupId(g.id)}
+                        className="min-w-0 flex-1 text-left hover:text-violet-700 transition-colors"
+                        title="Click to edit this modifier group and its modifiers"
+                      >
+                        <p className="text-sm font-medium text-zinc-900 group-hover:text-violet-700">
                           {g.name}{" "}
                           <span className="text-[11px] font-normal text-zinc-500">
                             ({g.options?.length ?? 0} modifier
                             {g.options?.length === 1 ? "" : "s"})
                           </span>
                         </p>
-                      </div>
+                      </button>
                       <button
                         type="button"
                         onClick={() =>
@@ -478,7 +487,7 @@ export function ProductForm({
                             attachedGroupIds.filter((id) => id !== g.id),
                           )
                         }
-                        className="text-zinc-300 hover:text-red-600 transition-colors"
+                        className="text-zinc-300 hover:text-red-600 transition-colors ml-2"
                         title="Remove from this product"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -667,6 +676,49 @@ export function ProductForm({
                   );
                 }
                 setShowCreateGroupModal(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Phase AW-18.2 — Edit existing modifier group + its modifiers.
+          Same component as Create New, just with groupId set so the
+          form hydrates from /v1/modifier-groups/:id. */}
+      {editingGroupId && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingGroupId(null);
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mt-8 p-5">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Edit modifier group
+              </h2>
+              <button
+                onClick={() => setEditingGroupId(null)}
+                className="text-zinc-400 hover:text-zinc-700 text-2xl leading-none"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <ModifierGroupForm
+              brandId={brandId}
+              groupId={editingGroupId}
+              onCancel={() => setEditingGroupId(null)}
+              onSaved={() => {
+                // Refresh the brand-wide groups list so the updated
+                // name + options reflect in the attached-row display.
+                qc.invalidateQueries({
+                  queryKey: ["catalog", "modifier-groups", brandId],
+                });
+                qc.invalidateQueries({
+                  queryKey: ["catalog", "product", productId],
+                });
+                setEditingGroupId(null);
               }}
             />
           </div>
