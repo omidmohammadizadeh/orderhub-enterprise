@@ -32,6 +32,7 @@ import {
   type CampaignType,
 } from "@/lib/api/marketing.client";
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
+import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 
 interface TypeTile {
   id: CampaignType;
@@ -71,7 +72,7 @@ const TYPE_TILES: TypeTile[] = [
     title: "Amount off order",
     example: "Example: £5 off £20+",
     icon: ShoppingCart,
-    wired: false,
+    wired: true,
   },
   {
     id: "FREE_ITEM",
@@ -200,6 +201,16 @@ export default function MarketingPage() {
 
       {formType === "PERCENTAGE_OFF" && (
         <PercentageOffCampaignForm
+          onCancel={() => setFormType(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            setFormType(null);
+          }}
+        />
+      )}
+
+      {formType === "AMOUNT_OFF_ORDER" && (
+        <AmountOffCampaignForm
           onCancel={() => setFormType(null)}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });

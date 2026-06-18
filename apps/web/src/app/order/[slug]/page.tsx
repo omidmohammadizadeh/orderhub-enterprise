@@ -401,11 +401,17 @@ export default function OrderPage() {
   // when the subtotal clears its minOrder (if set). Re-resolves
   // server-side at checkout so a tampered total can't cheat.
   const storeCampaign = (storefront as any)?.campaign ?? null;
-  const campaignDiscount =
-    storeCampaign?.percentageOff != null &&
-    (storeCampaign.minOrder == null || subtotal >= storeCampaign.minOrder)
+  const campaignClears =
+    storeCampaign &&
+    (storeCampaign.minOrder == null ||
+      subtotal >= Number(storeCampaign.minOrder));
+  const campaignDiscount = !campaignClears
+    ? 0
+    : storeCampaign.percentageOff != null
       ? Math.round(subtotal * Number(storeCampaign.percentageOff)) / 100
-      : 0;
+      : storeCampaign.amountOff != null
+        ? Math.min(subtotal, Number(storeCampaign.amountOff))
+        : 0;
   // Effective discount is the larger of the promo code and the
   // campaign — they don't stack.
   const effectiveDiscount = Math.max(promoDiscount, campaignDiscount);
@@ -904,10 +910,13 @@ export default function OrderPage() {
               </p>
             </div>
           )}
-          {storeCampaign && !storefront.closed && storeCampaign.percentageOff != null && (
+          {storeCampaign && !storefront.closed && (storeCampaign.percentageOff != null || storeCampaign.amountOff != null) && (
             <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
               <p className="font-semibold">
-                🎉 {Number(storeCampaign.percentageOff)}% off your order
+                🎉{" "}
+                {storeCampaign.percentageOff != null
+                  ? `${Number(storeCampaign.percentageOff)}% off your order`
+                  : `£${Number(storeCampaign.amountOff).toFixed(2)} off your order`}
                 {storeCampaign.minOrder
                   ? ` on £${Number(storeCampaign.minOrder).toFixed(2)}+`
                   : ""}

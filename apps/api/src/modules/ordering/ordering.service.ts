@@ -563,12 +563,15 @@ export class OrderingService {
       });
       if (
         appliedCampaign &&
-        appliedCampaign.percentageOff != null &&
         (appliedCampaign.minOrder == null ||
           dto.subtotal >= appliedCampaign.minOrder)
       ) {
-        campaignDiscount =
-          Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+        if (appliedCampaign.percentageOff != null) {
+          campaignDiscount =
+            Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+        } else if (appliedCampaign.amountOff != null) {
+          campaignDiscount = Math.min(dto.subtotal, appliedCampaign.amountOff);
+        }
       }
     } catch (err) {
       // Phase AW-19 — never fail checkout because campaign resolution
@@ -757,8 +760,10 @@ export class OrderingService {
       args.audiences.includes(r.audience),
     );
     if (!matching.length) return null;
-    // Prefer the highest percent; tiebreak by amountOff. Operators
-    // don't usually stack campaigns so the choice is rarely contended.
+    // Pick the campaign with the bigger headline number: highest
+    // percent wins over a smaller one; amount-off rows compare on
+    // amountOff. Operators don't usually stack campaigns so the
+    // choice is rarely contended.
     matching.sort(
       (a: any, b: any) =>
         Number(b.percentageOff ?? 0) - Number(a.percentageOff ?? 0) ||
