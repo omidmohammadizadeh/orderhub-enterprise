@@ -441,6 +441,10 @@ export class OrderingService {
       "NEW",
     ]);
     const bogo = await this.marketing.resolveBogo(menuBrandId, ["ALL", "NEW"]);
+    const freeDelivery = await this.marketing.resolveFreeDelivery(
+      menuBrandId,
+      ["ALL", "NEW"],
+    );
     const freeItemRaw = await this.marketing.resolveFreeItem(menuBrandId, [
       "ALL",
       "NEW",
@@ -493,6 +497,7 @@ export class OrderingService {
       campaign,
       itemPromos,
       bogo,
+      freeDelivery,
       freeItem,
       location: locationView,
       brand: brandView,
@@ -635,13 +640,31 @@ export class OrderingService {
         `Campaign re-resolution failed for slug=${slug}: ${(err as Error).message}`,
       );
     }
+    // Phase AW-19 — server-side enforcement of FREE_DELIVERY so a
+    // tampered cart can't charge the customer if the campaign is
+    // active. Resolution failures fall back to dto.deliveryFee.
+    let serverDeliveryFee = dto.deliveryFee ?? 0;
+    try {
+      const fd = await this.marketing.resolveFreeDelivery(campaignBrandId, [
+        "ALL",
+        await this.marketing.resolveAudience({
+          tenantId: location.brand.tenantId,
+          customerAccountId: dto.customerAccountId ?? null,
+        }),
+      ]);
+      if (fd && dto.fulfillmentType === "DELIVERY") serverDeliveryFee = 0;
+    } catch (err) {
+      this.logger.warn(
+        `Free-delivery re-resolution failed for slug=${slug}: ${(err as Error).message}`,
+      );
+    }
     const round2 = (n: number) => Math.round(n * 100) / 100;
     const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
     const serverTotal = round2(
       dto.subtotal -
         serverDiscount +
         (dto.taxAmount ?? 0) +
-        (dto.deliveryFee ?? 0),
+        serverDeliveryFee,
     );
 
     const order = await this.ordersService.create(
@@ -658,7 +681,7 @@ export class OrderingService {
         items,
         subtotal: dto.subtotal,
         taxAmount: dto.taxAmount ?? 0,
-        deliveryFee: dto.deliveryFee ?? 0,
+        deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
         total: serverTotal,
         specialInstructions: dto.specialInstructions,
@@ -814,7 +837,11 @@ export class OrderingService {
     // Phase AW-19 — only storewide order-level types belong here.
     // PERCENT_OFF_ITEMS rows are delivered through `itemPromos` and
     // must not be applied to the whole basket.
-    const STOREWIDE = new Set(["PERCENTAGE_OFF", "AMOUNT_OFF_ORDER"]);
+    const STOREWIDE = new Set([
+      "PERCENTAGE_OFF",
+      "AMOUNT_OFF_ORDER",
+      "HAPPY_HOUR",
+    ]);
     const matching = rows.filter(
       (r: any) =>
         STOREWIDE.has(r.type) && args.audiences.includes(r.audience),

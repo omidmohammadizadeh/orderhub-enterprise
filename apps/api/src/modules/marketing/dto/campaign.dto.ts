@@ -83,6 +83,13 @@ export class CreateCampaignDto {
   @IsArray()
   @IsString({ each: true })
   excludedCategoryIds?: string[];
+  // Phase AW-19 — HAPPY_HOUR day-of-week gate (0=Sun…6=Sat).
+  // Stored on metadata.daysOfWeek. Empty = every day.
+  @ApiPropertyOptional({ type: [Number] })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  daysOfWeek?: number[];
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;

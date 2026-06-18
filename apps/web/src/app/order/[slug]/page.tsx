@@ -397,7 +397,15 @@ export default function OrderPage() {
   // Phase AP fix #1 — promo code: FREE_DELIVERY zeroes the fee,
   // FIXED/PERCENTAGE produce a discountAmount that comes off subtotal.
   const promoDiscount = promoApplied?.discountAmount ?? 0;
-  const freeDelivery = promoApplied?.freeDelivery === true;
+  // Phase AW-19 — FREE_DELIVERY campaign matches the brand+audience
+  // server-side. When present, delivery fee is forced to 0 here and
+  // the checkout endpoint re-enforces it so a tampered cart can't
+  // charge anyway.
+  const freeDeliveryCampaign:
+    | { campaignId: string; campaignName: string }
+    | null = (storefront as any)?.freeDelivery ?? null;
+  const freeDelivery =
+    promoApplied?.freeDelivery === true || !!freeDeliveryCampaign;
   const rawDeliveryFee = matchedZone?.fee ?? 0;
   const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
 
@@ -1109,6 +1117,15 @@ export default function OrderPage() {
               <p className="mt-0.5 text-[11px] text-pink-800">
                 {bogo.campaignName} — add any highlighted item and a free
                 copy of the same item lands in your cart automatically.
+              </p>
+            </div>
+          )}
+          {freeDeliveryCampaign && !storefront.closed && (
+            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-900">
+              <p className="font-semibold">🚚 Free delivery</p>
+              <p className="mt-0.5 text-[11px] text-emerald-800">
+                {freeDeliveryCampaign.campaignName} — delivery is on the house
+                for this order.
               </p>
             </div>
           )}

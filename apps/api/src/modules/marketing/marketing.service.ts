@@ -125,6 +125,9 @@ export class MarketingService {
           ...(args.dto.excludedCategoryIds?.length
             ? { excludedCategoryIds: args.dto.excludedCategoryIds }
             : {}),
+          ...(args.dto.daysOfWeek?.length
+            ? { daysOfWeek: args.dto.daysOfWeek }
+            : {}),
         },
         createdBy: args.userId ?? null,
       },
@@ -344,6 +347,23 @@ export class MarketingService {
     };
   }
 
+  /**
+   * Phase AW-19 — is there an active FREE_DELIVERY for this brand
+   * on ONLINE matching the customer audience? Single boolean is all
+   * the storefront needs — there's no per-item math to do.
+   */
+  async resolveFreeDelivery(
+    brandId: string,
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+  ): Promise<{ campaignId: string; campaignName: string } | null> {
+    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const row = (rows as any[]).find(
+      (r) => r.type === "FREE_DELIVERY" && audiences.includes(r.audience),
+    );
+    if (!row) return null;
+    return { campaignId: row.id, campaignName: row.name };
+  }
+
   private assertTypeFields(type: CampaignTypeValue, fields: any) {
     const missing: string[] = [];
     switch (type) {
@@ -371,9 +391,12 @@ export class MarketingService {
         if (fields.minOrder == null) missing.push("minOrder");
         break;
       case "FREE_DELIVERY":
+        // Just brand/channels/audience/duration — no fields required.
         break;
       case "HAPPY_HOUR":
-        if (fields.percentageOff == null) missing.push("percentageOff");
+        if (fields.percentageOff == null && fields.amountOff == null) {
+          missing.push("percentageOff or amountOff");
+        }
         if (!fields.dailyStartTime) missing.push("dailyStartTime");
         if (!fields.dailyEndTime) missing.push("dailyEndTime");
         break;
@@ -386,6 +409,12 @@ export class MarketingService {
   }
 
   private matchesDailyWindow(row: any, now: Date): boolean {
+    // Day-of-week gate (metadata.daysOfWeek: 0=Sun … 6=Sat). Empty
+    // or missing array means "any day".
+    const days: number[] = Array.isArray(row.metadata?.daysOfWeek)
+      ? row.metadata.daysOfWeek
+      : [];
+    if (days.length > 0 && !days.includes(now.getDay())) return false;
     if (!row.dailyStartTime || !row.dailyEndTime) return true;
     const hhmm = (d: Date) =>
       `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;

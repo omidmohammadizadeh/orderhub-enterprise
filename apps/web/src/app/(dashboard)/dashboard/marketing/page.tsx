@@ -36,6 +36,8 @@ import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
 import { BogoCampaignForm } from "@/components/marketing/bogo-form";
 import { FreeItemCampaignForm } from "@/components/marketing/free-item-form";
+import { FreeDeliveryCampaignForm } from "@/components/marketing/free-delivery-form";
+import { HappyHourCampaignForm } from "@/components/marketing/happy-hour-form";
 
 interface TypeTile {
   id: CampaignType;
@@ -89,14 +91,14 @@ const TYPE_TILES: TypeTile[] = [
     title: "Free delivery",
     example: "Customer pays £0 delivery",
     icon: Truck,
-    wired: false,
+    wired: true,
   },
   {
     id: "HAPPY_HOUR",
     title: "Happy hour",
-    example: "Example: 20% off £20+ (14:00–17:00)",
+    example: "Example: 20% off (14:00–17:00, Mon-Fri)",
     icon: Clock,
-    wired: false,
+    wired: true,
   },
 ];
 
@@ -244,6 +246,26 @@ export default function MarketingPage() {
 
       {formType === "FREE_ITEM" && (
         <FreeItemCampaignForm
+          onCancel={() => setFormType(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            setFormType(null);
+          }}
+        />
+      )}
+
+      {formType === "FREE_DELIVERY" && (
+        <FreeDeliveryCampaignForm
+          onCancel={() => setFormType(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            setFormType(null);
+          }}
+        />
+      )}
+
+      {formType === "HAPPY_HOUR" && (
+        <HappyHourCampaignForm
           onCancel={() => setFormType(null)}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
