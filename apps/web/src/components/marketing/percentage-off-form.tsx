@@ -67,6 +67,10 @@ export function PercentageOffCampaignForm({ onCancel, onSaved }: Props) {
   const in30 = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(in30);
+  // Phase AW-19.1 — "Run until I cancel" sends endsAt: null. Backend
+  // already treats null endsAt as open-ended; the campaign stays
+  // ACTIVE until the operator pauses or deletes it.
+  const [runUntilCancelled, setRunUntilCancelled] = useState(false);
 
   const [minOrder, setMinOrder] = useState<number | null>(20);
   const [minOrderCustom, setMinOrderCustom] = useState(false);
@@ -97,7 +101,12 @@ export function PercentageOffCampaignForm({ onCancel, onSaved }: Props) {
         percentageOff: percent,
         minOrder: minOrder ?? undefined,
         startsAt: new Date(startDate).toISOString(),
-        endsAt: new Date(endDate + "T23:59:59").toISOString(),
+        // Phase AW-19.1 — null endsAt = run until cancelled. Server
+        // already treats null as open-ended in
+        // resolveActiveForBrandChannel.
+        endsAt: runUntilCancelled
+          ? undefined
+          : new Date(endDate + "T23:59:59").toISOString(),
         status: (goLive ? "ACTIVE" : "DRAFT") as "ACTIVE" | "DRAFT",
       };
       const results = await Promise.all(
@@ -334,10 +343,25 @@ export function PercentageOffCampaignForm({ onCancel, onSaved }: Props) {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="input"
+                  disabled={runUntilCancelled}
+                  className="input disabled:bg-zinc-50 disabled:text-zinc-400"
                 />
               </div>
             </div>
+            <label className="mt-3 flex items-center gap-2 cursor-pointer rounded-md border border-zinc-200 px-3 py-2 hover:border-zinc-300">
+              <input
+                type="checkbox"
+                checked={runUntilCancelled}
+                onChange={(e) => setRunUntilCancelled(e.target.checked)}
+              />
+              <div>
+                <p className="text-sm text-zinc-900">Run until I cancel</p>
+                <p className="text-[11px] text-zinc-500">
+                  Campaign stays active with no end date. Pause or delete it
+                  from this page whenever you want.
+                </p>
+              </div>
+            </label>
           </Section>
 
           {/* ── Min spend ────────────────────────────────────────── */}
