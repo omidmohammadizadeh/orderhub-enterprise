@@ -1141,37 +1141,10 @@ export default function OrderPage() {
                   ✨ Spend £{freeItem.minOrder.toFixed(2)} and get {headline}
                 </p>
                 <p className="mt-0.5 text-[11px] text-amber-800">
-                  {!eligible
-                    ? `Add £${remaining.toFixed(2)} more (eligible items only) to unlock.`
-                    : freeItem.freeItemIds.length > 1
-                      ? chosenFreeItemId
-                        ? "Gift added to your cart — tap another to swap."
-                        : "🎉 Unlocked! Pick which one you want:"
-                      : "You've unlocked the gift — it's in your cart."}
+                  {eligible
+                    ? "🎉 Unlocked! Pick your free item in the cart."
+                    : `Add £${remaining.toFixed(2)} more (eligible items only) to unlock.`}
                 </p>
-                {eligible && freeItem.freeItemIds.length > 1 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {freeItem.freeItemIds.map((id) => {
-                      const it = itemsById[id];
-                      if (!it) return null;
-                      const on = chosenFreeItemId === id;
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => setChosenFreeItemId(id)}
-                          className={`rounded-full border px-3 py-1 text-[11px] font-medium ${
-                            on
-                              ? "border-amber-600 bg-amber-600 text-white"
-                              : "border-amber-300 bg-white text-amber-900 hover:border-amber-500"
-                          }`}
-                        >
-                          {it.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             );
           })()}
@@ -1335,6 +1308,23 @@ export default function OrderPage() {
           promoDiscount={promoDiscount}
           campaignDiscount={campaignDiscount}
           campaignName={storeCampaign?.name ?? null}
+          freeItemPicker={
+            freeItem
+              ? {
+                  eligible: eligibleSubtotal >= freeItem.minOrder,
+                  minOrder: freeItem.minOrder,
+                  remaining: Math.max(
+                    0,
+                    freeItem.minOrder - eligibleSubtotal,
+                  ),
+                  options: freeItem.freeItemIds
+                    .map((id) => ({ id, name: itemsById[id]?.name ?? "" }))
+                    .filter((o) => !!o.name),
+                  chosenId: chosenFreeItemId,
+                  onChoose: setChosenFreeItemId,
+                }
+              : null
+          }
           freeDelivery={freeDelivery}
           postcodeSuggestions={postcodeSuggestions}
           postcodeLookupNote={postcodeLookupNote}
@@ -1712,6 +1702,16 @@ interface CartPanelProps {
     postcode?: string;
   }) => void;
   slug: string;
+  // Phase AW-19 — FREE_ITEM picker that lives in the cart panel so
+  // the customer makes their choice while reviewing the order.
+  freeItemPicker: {
+    eligible: boolean;
+    minOrder: number;
+    remaining: number;
+    options: Array<{ id: string; name: string }>;
+    chosenId: string | null;
+    onChoose: (id: string) => void;
+  } | null;
 }
 
 function CartPanel(props: CartPanelProps) {
@@ -1735,6 +1735,7 @@ function CartPanel(props: CartPanelProps) {
     postcodeLookupLoading,
     onPostcodeLookup,
     onPickPostcodeSuggestion,
+    freeItemPicker,
     dispatch,
     subtotal,
     deliveryFee,
@@ -1794,6 +1795,44 @@ function CartPanel(props: CartPanelProps) {
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          {freeItemPicker && freeItemPicker.options.length > 0 && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <p className="font-semibold">
+                ✨ Free item with purchase
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-800">
+                {!freeItemPicker.eligible
+                  ? `Add £${freeItemPicker.remaining.toFixed(2)} more (eligible items only) to unlock.`
+                  : freeItemPicker.options.length === 1
+                    ? `🎉 Unlocked! Free ${freeItemPicker.options[0]?.name ?? "item"} added to your cart.`
+                    : freeItemPicker.chosenId
+                      ? "Gift added to your cart — tap another to swap."
+                      : "🎉 Unlocked! Pick which one you want:"}
+              </p>
+              {freeItemPicker.eligible &&
+                freeItemPicker.options.length > 1 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {freeItemPicker.options.map((o) => {
+                      const on = freeItemPicker.chosenId === o.id;
+                      return (
+                        <button
+                          key={o.id}
+                          type="button"
+                          onClick={() => freeItemPicker.onChoose(o.id)}
+                          className={`rounded-full border px-3 py-1 text-[11px] font-medium ${
+                            on
+                              ? "border-amber-600 bg-amber-600 text-white"
+                              : "border-amber-300 bg-white text-amber-900 hover:border-amber-500"
+                          }`}
+                        >
+                          {o.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+            </div>
+          )}
           {cart.length === 0 ? (
             <p className="py-10 text-center text-sm text-zinc-400">
               Cart is empty
