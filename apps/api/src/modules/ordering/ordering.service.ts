@@ -441,6 +441,10 @@ export class OrderingService {
       "NEW",
     ]);
     const bogo = await this.marketing.resolveBogo(menuBrandId, ["ALL", "NEW"]);
+    const freeItem = await this.marketing.resolveFreeItem(menuBrandId, [
+      "ALL",
+      "NEW",
+    ]);
 
     return {
       directConfig,
@@ -449,6 +453,7 @@ export class OrderingService {
       campaign,
       itemPromos,
       bogo,
+      freeItem,
       location: locationView,
       brand: brandView,
       menu,

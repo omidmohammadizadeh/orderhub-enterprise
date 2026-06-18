@@ -76,6 +76,13 @@ export class CreateCampaignDto {
   @IsArray()
   @IsString({ each: true })
   rewardItemIds?: string[];
+  // Phase AW-19 — FREE_ITEM excluded category ids (kept off the
+  // spend threshold). Stored on metadata.excludedCategoryIds.
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  excludedCategoryIds?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;

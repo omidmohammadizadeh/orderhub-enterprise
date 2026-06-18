@@ -141,6 +141,8 @@ interface CartLine {
   // cart line this freebie mirrors. Internal-only — never sent to the
   // backend so the kitchen ticket doesn't carry the synthetic link.
   bogoOf?: string;
+  // Phase AW-19 — FREE_ITEM gift marker (campaign id). Internal-only.
+  freeItemOf?: string;
 }
 
 type CartAction =
@@ -435,6 +437,34 @@ export default function OrderPage() {
     }
     return out;
   }, [storefront]);
+  // itemId → categoryId index, for FREE_ITEM exclusion math.
+  const itemCategoryId = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const cat of (storefront as any)?.menu?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        if (link.itemId) out[link.itemId] = cat.id;
+      }
+    }
+    return out;
+  }, [storefront]);
+  // Phase AW-19 — FREE_ITEM campaign + chosen freebie state. The
+  // gift unlocks when (subtotal of non-excluded items) ≥ minOrder.
+  // When the operator pools more than one option, the customer
+  // picks; otherwise the single option auto-locks in.
+  const freeItem: {
+    campaignId: string;
+    campaignName: string;
+    minOrder: number;
+    freeItemIds: string[];
+    excludedCategoryIds: string[];
+  } | null = (storefront as any)?.freeItem ?? null;
+  const [chosenFreeItemId, setChosenFreeItemId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!freeItem) return;
+    if (!chosenFreeItemId || !freeItem.freeItemIds.includes(chosenFreeItemId)) {
+      setChosenFreeItemId(freeItem.freeItemIds[0] ?? null);
+    }
+  }, [freeItem, chosenFreeItemId]);
   // BOGO auto-mirror:
   //   For every paid trigger line, ensure there's a matching free
   //   copy that mirrors its modifiers + SKU at £0. The freebie is
@@ -476,6 +506,61 @@ export default function OrderPage() {
       });
     }
   }, [cart, bogo, bogoTriggerSet]);
+
+  // Phase AW-19 — eligible spend for FREE_ITEM unlock = subtotal of
+  // all paid lines whose item category is NOT in the exclusion set.
+  // Free lines (BOGO mirrors, free-item gifts) are skipped so they
+  // can't bootstrap their own threshold.
+  const eligibleSubtotal = useMemo(() => {
+    if (!freeItem) return 0;
+    const excluded = new Set(freeItem.excludedCategoryIds);
+    return cart.reduce((sum, l) => {
+      if (l.unitPrice === 0) return sum;
+      const catId = itemCategoryId[l.menuItemId];
+      if (catId && excluded.has(catId)) return sum;
+      return (
+        sum +
+        (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) *
+          l.quantity
+      );
+    }, 0);
+  }, [cart, freeItem, itemCategoryId]);
+  // Gift line auto-management: when eligible and a chosen freebie
+  // is set, add it at £0; when no longer eligible OR the choice
+  // changes, remove the existing gift first. Marker = freeItemOf
+  // on the cart line.
+  useEffect(() => {
+    if (!freeItem) return;
+    const giftLine = cart.find((l) => (l as any).freeItemOf);
+    const eligible = eligibleSubtotal >= freeItem.minOrder;
+    if (!eligible || !chosenFreeItemId) {
+      if (giftLine) dispatch({ type: "REMOVE", id: giftLine.id });
+      return;
+    }
+    // Wrong item picked → swap.
+    if (giftLine && giftLine.menuItemId !== chosenFreeItemId) {
+      dispatch({ type: "REMOVE", id: giftLine.id });
+      return; // next render will add the right one
+    }
+    if (!giftLine) {
+      const item = itemsById[chosenFreeItemId];
+      if (!item) return;
+      dispatch({
+        type: "ADD",
+        line: {
+          menuItemId: item.id,
+          displayName: `${item.name} (Free gift)`,
+          unitPrice: 0,
+          quantity: 1,
+          modifiers: [],
+          selectedSku: null,
+          notes: "",
+          plu: item.plu ?? null,
+          freeItemOf: freeItem.campaignId,
+        } as any,
+      });
+    }
+  }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById]);
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -1014,6 +1099,53 @@ export default function OrderPage() {
               </p>
             </div>
           )}
+          {freeItem && !storefront.closed && (() => {
+            const eligible = eligibleSubtotal >= freeItem.minOrder;
+            const remaining = Math.max(0, freeItem.minOrder - eligibleSubtotal);
+            return (
+              <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+                <p className="font-semibold">
+                  ✨ Spend £{freeItem.minOrder.toFixed(2)} and get a free item
+                </p>
+                <p className="mt-0.5 text-[11px] text-amber-800">
+                  {eligible
+                    ? "You've unlocked the gift — pick yours below!"
+                    : `Add £${remaining.toFixed(2)} more to unlock.`}
+                </p>
+                {eligible && freeItem.freeItemIds.length > 1 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {freeItem.freeItemIds.map((id) => {
+                      const it = itemsById[id];
+                      if (!it) return null;
+                      const on = chosenFreeItemId === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => setChosenFreeItemId(id)}
+                          className={`rounded-full border px-3 py-1 text-[11px] font-medium ${
+                            on
+                              ? "border-amber-600 bg-amber-600 text-white"
+                              : "border-amber-300 bg-white text-amber-900 hover:border-amber-500"
+                          }`}
+                        >
+                          {it.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {eligible &&
+                  freeItem.freeItemIds.length === 1 &&
+                  chosenFreeItemId &&
+                  itemsById[chosenFreeItemId] && (
+                    <p className="mt-1 text-[11px] font-medium text-amber-800">
+                      Free: {itemsById[chosenFreeItemId].name}
+                    </p>
+                  )}
+              </div>
+            );
+          })()}
           {!storeCampaign && !storefront.closed && Object.keys(itemPromos).length > 0 && (() => {
             const promos = Object.values(itemPromos);
             const uniquePercents = Array.from(new Set(promos.map((p) => p.percentageOff)));

@@ -113,12 +113,19 @@ export class MarketingService {
         endsAt: args.dto.endsAt ? new Date(args.dto.endsAt) : null,
         maxRedemptions: args.dto.maxRedemptions ?? null,
         perCustomerLimit: args.dto.perCustomerLimit ?? null,
-        // Phase AW-19 — BOGO reward items live on metadata so they
-        // don't need their own column. Storefront reads them back to
-        // auto-add a £0 line when a trigger lands in the cart.
-        metadata: args.dto.rewardItemIds?.length
-          ? { rewardItemIds: args.dto.rewardItemIds }
-          : {},
+        // Phase AW-19 — extra structured fields ride on metadata so
+        // we don't need a schema column for each campaign type:
+        //   - rewardItemIds: BOGO (legacy single-reward model)
+        //   - excludedCategoryIds: FREE_ITEM (drop these from the
+        //     threshold calc so meal deals etc. don't unlock the gift)
+        metadata: {
+          ...(args.dto.rewardItemIds?.length
+            ? { rewardItemIds: args.dto.rewardItemIds }
+            : {}),
+          ...(args.dto.excludedCategoryIds?.length
+            ? { excludedCategoryIds: args.dto.excludedCategoryIds }
+            : {}),
+        },
         createdBy: args.userId ?? null,
       },
     });
@@ -291,6 +298,52 @@ export class MarketingService {
     };
   }
 
+  /**
+   * Phase AW-19 — pick the active FREE_ITEM campaign for storefront.
+   * Returns the gift threshold + the pool of items the customer can
+   * pick from + categories that don't count toward the threshold.
+   * Only one active FREE_ITEM is surfaced at a time — operator can
+   * pause others; ties broken by most-recently-updated.
+   */
+  async resolveFreeItem(
+    brandId: string,
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+  ): Promise<{
+    campaignId: string;
+    campaignName: string;
+    minOrder: number;
+    freeItemIds: string[];
+    excludedCategoryIds: string[];
+  } | null> {
+    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const row = (rows as any[])
+      .filter(
+        (r) =>
+          r.type === "FREE_ITEM" &&
+          audiences.includes(r.audience) &&
+          (r.itemIds?.length ?? 0) > 0 &&
+          r.minOrder != null,
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt ?? 0).getTime() -
+          new Date(a.updatedAt ?? 0).getTime(),
+      )[0];
+    if (!row) return null;
+    const excludedCategoryIds: string[] = Array.isArray(
+      (row.metadata as any)?.excludedCategoryIds,
+    )
+      ? (row.metadata as any).excludedCategoryIds
+      : [];
+    return {
+      campaignId: row.id,
+      campaignName: row.name,
+      minOrder: Number(row.minOrder),
+      freeItemIds: row.itemIds,
+      excludedCategoryIds,
+    };
+  }
+
   private assertTypeFields(type: CampaignTypeValue, fields: any) {
     const missing: string[] = [];
     switch (type) {
@@ -310,7 +363,12 @@ export class MarketingService {
         if (!fields.itemIds?.length) missing.push("itemIds");
         break;
       case "FREE_ITEM":
-        if (!fields.freeItemId) missing.push("freeItemId");
+        // itemIds = pool of free items the customer can claim
+        // (single → auto-added; multiple → storefront picker).
+        // minOrder is the spend threshold computed on the eligible
+        // subtotal (after metadata.excludedCategoryIds is netted out).
+        if (!fields.itemIds?.length) missing.push("itemIds");
+        if (fields.minOrder == null) missing.push("minOrder");
         break;
       case "FREE_DELIVERY":
         break;
