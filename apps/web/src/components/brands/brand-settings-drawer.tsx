@@ -14,11 +14,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, X, ExternalLink } from "lucide-react";
+import { Loader2, X, ExternalLink, Trash2, Plus } from "lucide-react";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
 import {
   directOrderingClient,
   type DirectOrderingConfig,
+  deliveryZonesClient,
+  type DeliveryZone,
 } from "@/lib/api/pos.client";
 import { ImageUploader } from "@/components/products/image-uploader";
 import { useAuthStore } from "@/stores/auth.store";
@@ -679,6 +681,15 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
             </div>
           </Section>
 
+          <Section title="Delivery postcodes & charges">
+            <p className="mb-2 text-[11px] text-zinc-500">
+              Customers entering one of these postcode prefixes get the
+              matching delivery fee. The longest matching prefix wins
+              (so &ldquo;SW1A&rdquo; beats &ldquo;SW&rdquo;).
+            </p>
+            <DeliveryZonesEditor brandId={brand.id} isAdmin={isAdmin} />
+          </Section>
+
           {save.isError && (
             <p className="text-[12px] text-red-600">
               {(save.error as any)?.response?.data?.message ?? "Save failed"}
@@ -747,6 +758,165 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function DeliveryZonesEditor({
+  brandId,
+  isAdmin,
+}: {
+  brandId: string;
+  isAdmin: boolean;
+}) {
+  const qc = useQueryClient();
+  const zonesQuery = useQuery<DeliveryZone[]>({
+    queryKey: ["brand-delivery-zones", brandId],
+    queryFn: () => deliveryZonesClient.listByBrand(brandId),
+  });
+
+  const [newPrefix, setNewPrefix] = useState("");
+  const [newFee, setNewFee] = useState("");
+  const [newMin, setNewMin] = useState("");
+
+  const create = useMutation({
+    mutationFn: () =>
+      deliveryZonesClient.create({
+        brandId,
+        postcodePrefix: newPrefix.trim().toUpperCase(),
+        fee: Number(newFee) || 0,
+        minOrderValue: newMin ? Number(newMin) : undefined,
+      }),
+    onSuccess: () => {
+      setNewPrefix("");
+      setNewFee("");
+      setNewMin("");
+      qc.invalidateQueries({ queryKey: ["brand-delivery-zones", brandId] });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => deliveryZonesClient.remove(id),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["brand-delivery-zones", brandId] }),
+  });
+
+  const toggleActive = useMutation({
+    mutationFn: (z: DeliveryZone) =>
+      deliveryZonesClient.update(z.id, { isActive: !z.isActive }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["brand-delivery-zones", brandId] }),
+  });
+
+  const zones = zonesQuery.data ?? [];
+
+  return (
+    <div className="space-y-2">
+      {zonesQuery.isLoading ? (
+        <p className="text-[11px] text-zinc-500">Loading…</p>
+      ) : zones.length === 0 ? (
+        <p className="text-[11px] text-zinc-500">
+          No postcodes configured yet. Add one below.
+        </p>
+      ) : (
+        <ul className="divide-y divide-zinc-100 rounded border border-zinc-200">
+          {zones.map((z) => (
+            <li
+              key={z.id}
+              className="flex items-center gap-2 px-2 py-1.5 text-xs"
+            >
+              <span className="w-24 font-mono font-semibold tracking-wider text-zinc-900">
+                {z.postcodePrefix}
+              </span>
+              <span className="w-20 text-zinc-700">£{Number(z.fee).toFixed(2)}</span>
+              <span className="flex-1 text-zinc-500">
+                {z.minOrderValue != null
+                  ? `min £${Number(z.minOrderValue).toFixed(2)}`
+                  : "no min"}
+              </span>
+              <button
+                type="button"
+                disabled={!isAdmin}
+                onClick={() => toggleActive.mutate(z)}
+                className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                  z.isActive
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-zinc-100 text-zinc-500"
+                } disabled:opacity-50`}
+              >
+                {z.isActive ? "Active" : "Paused"}
+              </button>
+              <button
+                type="button"
+                disabled={!isAdmin}
+                onClick={() => remove.mutate(z.id)}
+                className="text-zinc-400 hover:text-red-600 disabled:opacity-50"
+                aria-label="Delete"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 pt-1">
+        <Field label="Postcode">
+          <input
+            value={newPrefix}
+            onChange={(e) => setNewPrefix(e.target.value)}
+            placeholder="SW1A"
+            disabled={!isAdmin}
+            className="input"
+          />
+        </Field>
+        <Field label="Fee (£)">
+          <input
+            value={newFee}
+            onChange={(e) => setNewFee(e.target.value)}
+            placeholder="3.50"
+            type="number"
+            min="0"
+            step="0.01"
+            disabled={!isAdmin}
+            className="input"
+          />
+        </Field>
+        <Field label="Min order (£)">
+          <input
+            value={newMin}
+            onChange={(e) => setNewMin(e.target.value)}
+            placeholder="optional"
+            type="number"
+            min="0"
+            step="0.01"
+            disabled={!isAdmin}
+            className="input"
+          />
+        </Field>
+        <button
+          type="button"
+          onClick={() => create.mutate()}
+          disabled={
+            !isAdmin || create.isPending || !newPrefix.trim() || !newFee
+          }
+          className="inline-flex h-[34px] items-center gap-1 rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {create.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <>
+              <Plus className="h-3.5 w-3.5" />
+              Add
+            </>
+          )}
+        </button>
+      </div>
+      {create.isError && (
+        <p className="text-[11px] text-red-600">
+          {(create.error as any)?.response?.data?.message ?? "Add failed"}
+        </p>
+      )}
     </div>
   );
 }

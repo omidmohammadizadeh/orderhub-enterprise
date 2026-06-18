@@ -6,7 +6,8 @@ import { apiClient } from "./client";
 
 export interface DeliveryZone {
   id: string;
-  locationId: string;
+  locationId: string | null;
+  brandId: string | null;
   postcodePrefix: string;
   fee: string | number; // Prisma serialises Decimal → string
   minOrderValue: string | number | null;
@@ -26,6 +27,10 @@ export const deliveryZonesClient = {
     apiClient
       .get<DeliveryZone[]>("/v1/delivery-zones", { params: { locationId } })
       .then((r) => r.data),
+  listByBrand: (brandId: string) =>
+    apiClient
+      .get<DeliveryZone[]>("/v1/delivery-zones", { params: { brandId } })
+      .then((r) => r.data),
   lookup: (locationId: string, postcode: string) =>
     apiClient
       .get<DeliveryFeeLookup>("/v1/delivery-zones/lookup", {
@@ -33,7 +38,8 @@ export const deliveryZonesClient = {
       })
       .then((r) => r.data),
   create: (body: {
-    locationId: string;
+    locationId?: string;
+    brandId?: string;
     postcodePrefix: string;
     fee: number;
     minOrderValue?: number;

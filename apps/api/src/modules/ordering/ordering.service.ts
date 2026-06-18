@@ -266,10 +266,23 @@ export class OrderingService {
         minOrderForDelivery: null,
         heroImageUrl: null,
       };
-    const deliveryZones = await this.prisma.deliveryZone.findMany({
-      where: { locationId: location.id, isActive: true },
-      select: { postcodePrefix: true, fee: true, minOrderValue: true },
-    });
+    // Phase AW-30 — when a brand is pinned, brand zones win. Falls back
+    // to location zones when the brand has none configured yet so a
+    // half-set-up brand doesn't lose delivery entirely.
+    const zoneBrandId = overrideBrand?.id ?? location.brandId;
+    const brandZones = zoneBrandId
+      ? await (this.prisma as any).deliveryZone.findMany({
+          where: { brandId: zoneBrandId, isActive: true },
+          select: { postcodePrefix: true, fee: true, minOrderValue: true },
+        })
+      : [];
+    const deliveryZones =
+      brandZones.length > 0
+        ? brandZones
+        : await this.prisma.deliveryZone.findMany({
+            where: { locationId: location.id, isActive: true },
+            select: { postcodePrefix: true, fee: true, minOrderValue: true },
+          });
 
     // Phase AP fix #4 — pick up categories that link to this menu
     // through the Phase-AK menuIds[] array but whose primary menuId

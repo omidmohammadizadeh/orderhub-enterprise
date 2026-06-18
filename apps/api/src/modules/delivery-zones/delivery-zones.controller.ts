@@ -25,13 +25,17 @@ export class DeliveryZonesController {
   constructor(private readonly zones: DeliveryZonesService) {}
 
   @Get()
-  @ApiOperation({ summary: "List delivery zones for a location" })
-  @ApiQuery({ name: "locationId", required: true })
+  @ApiOperation({ summary: "List delivery zones for a location or brand" })
+  @ApiQuery({ name: "locationId", required: false })
+  @ApiQuery({ name: "brandId", required: false })
   list(
     @CurrentUser() user: AuthenticatedUser,
-    @Query("locationId") locationId: string,
+    @Query("locationId") locationId?: string,
+    @Query("brandId") brandId?: string,
   ) {
-    return this.zones.listForLocation(user.tenantId, locationId);
+    if (brandId) return this.zones.listForBrand(user.tenantId, brandId);
+    if (locationId) return this.zones.listForLocation(user.tenantId, locationId);
+    return [];
   }
 
   @Get("lookup")
@@ -53,7 +57,8 @@ export class DeliveryZonesController {
     @CurrentUser() user: AuthenticatedUser,
     @Body()
     body: {
-      locationId: string;
+      locationId?: string;
+      brandId?: string;
       postcodePrefix: string;
       fee: number;
       minOrderValue?: number;

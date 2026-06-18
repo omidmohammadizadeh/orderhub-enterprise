@@ -10,7 +10,8 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 // ("SW1A") and the more specific one always wins.
 
 export interface CreateDeliveryZoneDto {
-  locationId: string;
+  locationId?: string;
+  brandId?: string;
   postcodePrefix: string;
   fee: number;
   minOrderValue?: number;
@@ -48,6 +49,14 @@ export class DeliveryZonesService {
     if (!loc) throw new NotFoundException("Location not found");
   }
 
+  private async assertBrand(tenantId: string, brandId: string) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+  }
+
   async listForLocation(tenantId: string, locationId: string) {
     await this.assertLocation(tenantId, locationId);
     return this.prisma.deliveryZone.findMany({
@@ -56,21 +65,39 @@ export class DeliveryZonesService {
     });
   }
 
+  async listForBrand(tenantId: string, brandId: string) {
+    await this.assertBrand(tenantId, brandId);
+    return this.prisma.deliveryZone.findMany({
+      where: { brandId } as any,
+      orderBy: [{ isActive: "desc" }, { postcodePrefix: "asc" }],
+    });
+  }
+
   async create(tenantId: string, dto: CreateDeliveryZoneDto) {
-    await this.assertLocation(tenantId, dto.locationId);
     const prefix = normalisePostcode(dto.postcodePrefix);
     if (!prefix) throw new BadRequestException("postcodePrefix is required");
     if (dto.fee < 0) throw new BadRequestException("fee must be ≥ 0");
+    if (!dto.locationId && !dto.brandId) {
+      throw new BadRequestException("locationId or brandId is required");
+    }
+    if (dto.locationId && dto.brandId) {
+      throw new BadRequestException(
+        "Provide either locationId or brandId, not both",
+      );
+    }
+    if (dto.locationId) await this.assertLocation(tenantId, dto.locationId);
+    if (dto.brandId) await this.assertBrand(tenantId, dto.brandId);
 
     return this.prisma.deliveryZone.create({
       data: {
         tenantId,
-        locationId: dto.locationId,
+        locationId: dto.locationId ?? null,
+        brandId: dto.brandId ?? null,
         postcodePrefix: prefix,
         fee: dto.fee,
         minOrderValue: dto.minOrderValue ?? null,
         isActive: dto.isActive ?? true,
-      },
+      } as any,
     });
   }
 
