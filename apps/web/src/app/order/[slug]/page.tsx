@@ -23,8 +23,8 @@
 //   • directConfig toggles hide/disable the order types + payment
 //     methods the operator turned off
 
-import { useEffect, useMemo, useRef, useState, useReducer } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState, useReducer } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
@@ -180,17 +180,33 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default function OrderPage() {
+export default function OrderPageRoute() {
+  // useSearchParams must be inside a Suspense boundary so Next.js
+  // can statically prerender the shell — see google-callback for
+  // the same pattern.
+  return (
+    <Suspense fallback={<div className="grid min-h-screen place-items-center text-zinc-400" />}>
+      <OrderPage />
+    </Suspense>
+  );
+}
+
+function OrderPage() {
   const { slug } = useParams<{ slug: string }>();
   // Phase AW — brand context. /brand/<slug> redirects here with
   // ?brand=<id>; we forward that to the API so the storefront returns
   // the brand's identity (name, logo, address, about, Stripe Connect)
   // instead of the underlying physical location's. Read once at mount
   // so the React Query key stays stable across renders.
-  const brandId = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return new URLSearchParams(window.location.search).get("brand");
-  }, []);
+  // Phase AW-30 follow-up — Next.js `router.replace` from the brand
+  // route is async; reading window.location.search via useMemo([]) at
+  // mount races the URL update, so the first storefront fetch went
+  // out with brandId=null and rendered the underlying location's
+  // identity for a beat before the second fetch corrected it. The
+  // reactive useSearchParams hook gives us the always-current value
+  // — no flicker, no double-fetch from stale state.
+  const searchParams = useSearchParams();
+  const brandId = searchParams?.get("brand") ?? null;
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [cartOpen, setCartOpen] = useState(false);
 

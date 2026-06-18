@@ -95,9 +95,6 @@ export class OrderingService {
   }
 
   async getStorefrontBySlug(slug: string, brandIdOverride?: string) {
-    this.logger.log(
-      `getStorefrontBySlug slug="${slug}" brandIdOverride="${brandIdOverride ?? "(none)"}"`,
-    );
     // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
     // older locations may still only have the legacy `slug`. Resolve
     // either so old printed flyers and QR codes keep working.
@@ -128,9 +125,6 @@ export class OrderingService {
     // if the override id doesn't belong to this location's brand or
     // can't be resolved, so a malformed URL never strands the customer
     // with no storefront at all.
-    this.logger.log(
-      `getStorefrontBySlug resolved location=${location.id} (name="${location.name}") brand=${location.brandId}`,
-    );
     const overrideBrand = brandIdOverride
       ? await (this.prisma as any).brand.findUnique({
           where: { id: brandIdOverride },
@@ -208,9 +202,6 @@ export class OrderingService {
     // doesn't have one yet we fall back to location/legacy resolution
     // so a half-set-up brand still shows the kitchen's menu rather
     // than an empty storefront.
-    this.logger.log(
-      `getStorefrontBySlug overrideBrand=${overrideBrand ? `${overrideBrand.id} (name="${overrideBrand.name}")` : "(null)"}`,
-    );
     const menuBrandId = overrideBrand?.id ?? location.brandId;
     const menu = brandIdOverride
       ? (await this.prisma.menu.findFirst({
