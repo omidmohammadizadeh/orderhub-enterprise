@@ -110,7 +110,6 @@ const primaryNav: NavItem[] = [
 ];
 
 const operationsNav: NavItem[] = [
-  { href: "/dashboard/orders/rush-hour", label: "Rush Hour", icon: Zap, roles: MANAGER_TIER },
   { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat, roles: MANAGER_TIER },
   { href: "/dashboard/orders/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
@@ -125,11 +124,8 @@ const financeNav: NavItem[] = [
 ];
 
 const secondaryNav: NavItem[] = [
-  { href: "/dashboard/onboarding", label: "Setup guide", icon: Rocket, roles: [...MANAGER_TIER, "ONBOARDING_AGENT"] },
-  { href: "/dashboard/settings/printers", label: "Printers", icon: Printer, roles: MANAGER_TIER },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: MANAGER_TIER },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: MANAGER_TIER },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: MANAGER_TIER },
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
@@ -266,8 +262,7 @@ function _Sidebar() {
                       item={item}
                       isActive={
                         pathname === item.href ||
-                        (item.href !== "/dashboard/settings" &&
-                          pathname.startsWith(item.href))
+                        pathname.startsWith(item.href)
                       }
                     />
                   ))}

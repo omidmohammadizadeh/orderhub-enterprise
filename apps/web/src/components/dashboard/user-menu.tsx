@@ -93,8 +93,8 @@ export function UserMenu() {
             <MenuItem icon={User} label="Your profile" onClick={() => setOpen(false)} />
             <MenuItem
               icon={Settings}
-              label="Settings"
-              onClick={() => { setOpen(false); router.push("/dashboard/settings"); }}
+              label="Security"
+              onClick={() => { setOpen(false); router.push("/dashboard/settings/security"); }}
             />
           </div>
 
