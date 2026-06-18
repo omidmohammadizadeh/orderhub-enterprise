@@ -429,26 +429,38 @@ export class OrderingService {
     // know who's logged in yet — the page hydrates auth on the
     // client), we conservatively resolve for NEW + ALL audiences
     // only. The cart re-asks per-customer once auth lands.
+    // Phase AW-19 — all marketing resolvers evaluate daily windows
+    // in the location timezone so an operator setting "Mon 14:00 UK"
+    // matches UK clock-time, not server-UTC.
+    const tz = location.timezone;
     const campaign = await this.pickStorefrontCampaign({
       brandId: menuBrandId,
       audiences: ["ALL", "NEW"],
+      timezone: tz,
     });
     // Phase AW-19 — per-item promo map for PERCENT_OFF_ITEMS. Storefront
     // ProductCard reads this to strike through the original price and
     // show the discounted one. Cart math uses the discounted unitPrice.
-    const itemPromos = await this.marketing.resolveItemPromos(menuBrandId, [
-      "ALL",
-      "NEW",
-    ]);
-    const bogo = await this.marketing.resolveBogo(menuBrandId, ["ALL", "NEW"]);
+    const itemPromos = await this.marketing.resolveItemPromos(
+      menuBrandId,
+      ["ALL", "NEW"],
+      tz,
+    );
+    const bogo = await this.marketing.resolveBogo(
+      menuBrandId,
+      ["ALL", "NEW"],
+      tz,
+    );
     const freeDelivery = await this.marketing.resolveFreeDelivery(
       menuBrandId,
       ["ALL", "NEW"],
+      tz,
     );
-    const freeItemRaw = await this.marketing.resolveFreeItem(menuBrandId, [
-      "ALL",
-      "NEW",
-    ]);
+    const freeItemRaw = await this.marketing.resolveFreeItem(
+      menuBrandId,
+      ["ALL", "NEW"],
+      tz,
+    );
     // Phase AW-19 — resolve the actual itemIds that fall under any
     // excluded category, against THIS storefront's menu (categories
     // are per-menu, so we can't trust the operator-side category id
@@ -620,6 +632,7 @@ export class OrderingService {
       const appliedCampaign = await this.pickStorefrontCampaign({
         brandId: campaignBrandId,
         audiences: ["ALL", customerAudience],
+        timezone: location.timezone,
       });
       if (
         appliedCampaign &&
@@ -645,13 +658,17 @@ export class OrderingService {
     // active. Resolution failures fall back to dto.deliveryFee.
     let serverDeliveryFee = dto.deliveryFee ?? 0;
     try {
-      const fd = await this.marketing.resolveFreeDelivery(campaignBrandId, [
-        "ALL",
-        await this.marketing.resolveAudience({
-          tenantId: location.brand.tenantId,
-          customerAccountId: dto.customerAccountId ?? null,
-        }),
-      ]);
+      const fd = await this.marketing.resolveFreeDelivery(
+        campaignBrandId,
+        [
+          "ALL",
+          await this.marketing.resolveAudience({
+            tenantId: location.brand.tenantId,
+            customerAccountId: dto.customerAccountId ?? null,
+          }),
+        ],
+        location.timezone,
+      );
       if (fd && dto.fulfillmentType === "DELIVERY") serverDeliveryFee = 0;
     } catch (err) {
       this.logger.warn(
@@ -820,6 +837,7 @@ export class OrderingService {
   private async pickStorefrontCampaign(args: {
     brandId: string;
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">;
+    timezone?: string;
   }): Promise<{
     id: string;
     name: string;
@@ -832,6 +850,7 @@ export class OrderingService {
     const rows = await this.marketing.resolveActiveForBrandChannel(
       args.brandId,
       "ONLINE",
+      args.timezone,
     );
     if (!rows.length) return null;
     // Phase AW-19 — only storewide order-level types belong here.

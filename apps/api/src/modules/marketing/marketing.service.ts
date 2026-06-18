@@ -61,7 +61,11 @@ export class MarketingService {
    * matching is done by the caller because it needs the customer
    * context (see resolveAudience below).
    */
-  async resolveActiveForBrandChannel(brandId: string, channel: string) {
+  async resolveActiveForBrandChannel(
+    brandId: string,
+    channel: string,
+    timezone?: string,
+  ) {
     const now = new Date();
     const rows = await (this.prisma as any).marketingCampaign.findMany({
       where: {
@@ -76,11 +80,15 @@ export class MarketingService {
         ],
       },
     });
-    // Daily window filter (HAPPY_HOUR + any percentage-off campaign
-    // with explicit dailyStart/End). Time is HH:MM local — the brand
-    // doesn't carry a tz column yet, so we use the server's locale.
-    // Phase AW-20 will replace this with brand-tz aware evaluation.
-    return rows.filter((r: any) => this.matchesDailyWindow(r, now));
+    // Daily-window + day-of-week gate are evaluated in the brand's
+    // location timezone (Render runs in UTC, so an operator setting
+    // "14:00 UK" would match the wrong server-UTC hour without this
+    // conversion). Falls back to server-local time only when the
+    // caller hasn't supplied a timezone — keeps legacy callers safe.
+    const local = timezone
+      ? new Date(now.toLocaleString("en-US", { timeZone: timezone }))
+      : now;
+    return rows.filter((r: any) => this.matchesDailyWindow(r, local));
   }
 
   // ─── Writes ────────────────────────────────────────────────────────
@@ -239,10 +247,15 @@ export class MarketingService {
   async resolveItemPromos(
     brandId: string,
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+    timezone?: string,
   ): Promise<
     Record<string, { percentageOff: number; campaignId: string; campaignName: string }>
   > {
-    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const rows = await this.resolveActiveForBrandChannel(
+      brandId,
+      "ONLINE",
+      timezone,
+    );
     const out: Record<
       string,
       { percentageOff: number; campaignId: string; campaignName: string }
@@ -275,12 +288,17 @@ export class MarketingService {
   async resolveBogo(
     brandId: string,
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+    timezone?: string,
   ): Promise<{
     campaignId: string;
     campaignName: string;
     triggerItemIds: string[];
   } | null> {
-    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const rows = await this.resolveActiveForBrandChannel(
+      brandId,
+      "ONLINE",
+      timezone,
+    );
     const bogo = (rows as any[])
       .filter(
         (r) =>
@@ -311,6 +329,7 @@ export class MarketingService {
   async resolveFreeItem(
     brandId: string,
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+    timezone?: string,
   ): Promise<{
     campaignId: string;
     campaignName: string;
@@ -318,7 +337,11 @@ export class MarketingService {
     freeItemIds: string[];
     excludedCategoryIds: string[];
   } | null> {
-    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const rows = await this.resolveActiveForBrandChannel(
+      brandId,
+      "ONLINE",
+      timezone,
+    );
     const row = (rows as any[])
       .filter(
         (r) =>
@@ -355,8 +378,13 @@ export class MarketingService {
   async resolveFreeDelivery(
     brandId: string,
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+    timezone?: string,
   ): Promise<{ campaignId: string; campaignName: string } | null> {
-    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const rows = await this.resolveActiveForBrandChannel(
+      brandId,
+      "ONLINE",
+      timezone,
+    );
     const row = (rows as any[]).find(
       (r) => r.type === "FREE_DELIVERY" && audiences.includes(r.audience),
     );
