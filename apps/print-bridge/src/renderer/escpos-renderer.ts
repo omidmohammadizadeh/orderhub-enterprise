@@ -172,6 +172,20 @@ export function renderToEscPos(
   newline();
   out.push(...doubleSizeOff(), ...boldOff(), ...alignLeft());
 
+  // Phase AW-26 — NEW / RETURNING customer banner. Server pre-renders
+  // the wording in `customerVisitTag` so every print client agrees
+  // ("*** NEW CUSTOMER ***" / "*** RETURNING CUSTOMER · ORDER #N ***").
+  // Bold + centred so it's the second thing the counter notices after
+  // the order number.
+  if (payload.customerVisitTag) {
+    newline();
+    out.push(...alignCenter(), ...boldOn());
+    write(String(payload.customerVisitTag));
+    newline();
+    out.push(...boldOff(), ...alignLeft());
+    newline();
+  }
+
   if (payload.customerName) {
     write(`Customer: ${payload.customerName}`);
     newline();
