@@ -936,6 +936,26 @@ export default function OrderPage() {
               )}
             </div>
           )}
+          {/* Phase AW-19 — items-only campaign banner. Only shown when
+              there's no storewide campaign already taking the slot. */}
+          {!storeCampaign && !storefront.closed && Object.keys(itemPromos).length > 0 && (() => {
+            const promos = Object.values(itemPromos);
+            const uniquePercents = Array.from(new Set(promos.map((p) => p.percentageOff)));
+            const uniqueNames = Array.from(new Set(promos.map((p) => p.campaignName)));
+            const headline =
+              uniquePercents.length === 1
+                ? `${uniquePercents[0]}% off selected items`
+                : "Discounts on selected items";
+            return (
+              <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
+                <p className="font-semibold">🎉 {headline}</p>
+                <p className="mt-0.5 text-[11px] text-orange-800">
+                  {uniqueNames.length === 1 ? uniqueNames[0] : "Multiple offers"} —
+                  applied automatically. Look for the price tags below.
+                </p>
+              </div>
+            );
+          })()}
           {storefront.busy && !storefront.closed && (
             <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
               <p className="font-semibold">

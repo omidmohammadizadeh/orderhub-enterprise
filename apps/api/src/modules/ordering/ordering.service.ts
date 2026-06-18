@@ -764,8 +764,13 @@ export class OrderingService {
       "ONLINE",
     );
     if (!rows.length) return null;
-    const matching = rows.filter((r: any) =>
-      args.audiences.includes(r.audience),
+    // Phase AW-19 — only storewide order-level types belong here.
+    // PERCENT_OFF_ITEMS rows are delivered through `itemPromos` and
+    // must not be applied to the whole basket.
+    const STOREWIDE = new Set(["PERCENTAGE_OFF", "AMOUNT_OFF_ORDER"]);
+    const matching = rows.filter(
+      (r: any) =>
+        STOREWIDE.has(r.type) && args.audiences.includes(r.audience),
     );
     if (!matching.length) return null;
     // Pick the campaign with the bigger headline number: highest
