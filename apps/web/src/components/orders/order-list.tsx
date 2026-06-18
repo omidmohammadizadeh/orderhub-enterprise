@@ -573,8 +573,24 @@ function OrderRow({
         <DeliveryTypeBadge type={(order as any).deliveryType} />
       </Td>
       <Td>
-        <div className="max-w-[110px] truncate text-zinc-700">
-          {order.customerInfo?.name ?? "—"}
+        <div className="max-w-[150px] flex flex-col gap-0.5">
+          <div className="truncate text-zinc-700">
+            {order.customerInfo?.name ?? "—"}
+          </div>
+          {/* Phase AW-26 — NEW / RETURNING customer signal. The
+              count is attached server-side by
+              OrdersService.findLiveOrders. */}
+          {typeof order.customerVisitCount === "number" &&
+            order.customerVisitCount > 0 &&
+            (order.customerVisitCount <= 1 ? (
+              <span className="inline-flex w-fit items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
+                New
+              </span>
+            ) : (
+              <span className="inline-flex w-fit items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-800">
+                Returning · #{order.customerVisitCount}
+              </span>
+            ))}
         </div>
       </Td>
       <Td>
