@@ -1,10 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { Maximize2, Minimize2, Search } from "lucide-react";
 import { UserMenu } from "./user-menu";
 import { LiveNotifications } from "./live-notifications";
 import { cn } from "@/lib/utils";
+import { useLayoutStore } from "@/stores/layout.store";
 
 const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/orders": { title: "Orders", description: "Live and recent orders" },
@@ -47,6 +48,8 @@ function getPageMeta(pathname: string) {
 export function Topbar() {
   const pathname = usePathname();
   const { title, description } = getPageMeta(pathname);
+  const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
 
   return (
     <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-6">
@@ -75,6 +78,24 @@ export function Topbar() {
           <kbd className="ml-2 hidden lg:inline-flex h-5 items-center gap-1 rounded border border-zinc-200 bg-white px-1.5 font-mono text-[10px] text-zinc-400">
             ⌘K
           </kbd>
+        </button>
+
+        {/* Phase AW-28 — Sidebar collapse toggle. Maximize hides the
+            rail so wide tables (Orders, Analytics) get the whole
+            viewport width. Persisted across reloads via the layout
+            store. */}
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Show sidebar" : "Hide sidebar"}
+          title={collapsed ? "Show sidebar" : "Expand to fullscreen"}
+          className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700"
+        >
+          {collapsed ? (
+            <Minimize2 className="h-3.5 w-3.5" />
+          ) : (
+            <Maximize2 className="h-3.5 w-3.5" />
+          )}
         </button>
 
         <LiveNotifications />

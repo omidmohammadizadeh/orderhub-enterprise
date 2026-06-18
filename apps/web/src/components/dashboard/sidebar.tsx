@@ -133,7 +133,18 @@ const secondaryNav: NavItem[] = [
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
+import { useLayoutStore } from "@/stores/layout.store";
+
 export function Sidebar() {
+  // Phase AW-28 — In fullscreen mode the layout hides the rail
+  // entirely (more horizontal real estate for the Orders table).
+  // Topbar owns the toggle; we just opt out of rendering.
+  const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
+  if (collapsed) return null;
+  return _Sidebar();
+}
+
+function _Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
 
