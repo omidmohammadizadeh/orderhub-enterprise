@@ -211,6 +211,45 @@ export class MarketingService {
     if (!brand) throw new NotFoundException("Brand not found");
   }
 
+  /**
+   * Phase AW-19 — per-item promo map for PERCENT_OFF_ITEMS campaigns.
+   *
+   * Walks all ACTIVE in-window PERCENT_OFF_ITEMS rows for the brand
+   * on the ONLINE channel and returns a Map keyed by itemId with the
+   * winning percentageOff (highest if multiple campaigns name the
+   * same item). Storefront uses this to decorate menu cards with a
+   * strikethrough price + percent badge.
+   */
+  async resolveItemPromos(
+    brandId: string,
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+  ): Promise<
+    Record<string, { percentageOff: number; campaignId: string; campaignName: string }>
+  > {
+    const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
+    const out: Record<
+      string,
+      { percentageOff: number; campaignId: string; campaignName: string }
+    > = {};
+    for (const r of rows as any[]) {
+      if (r.type !== "PERCENT_OFF_ITEMS") continue;
+      if (!audiences.includes(r.audience)) continue;
+      if (r.percentageOff == null) continue;
+      const pct = Number(r.percentageOff);
+      for (const itemId of (r.itemIds ?? []) as string[]) {
+        const existing = out[itemId];
+        if (!existing || pct > existing.percentageOff) {
+          out[itemId] = {
+            percentageOff: pct,
+            campaignId: r.id,
+            campaignName: r.name,
+          };
+        }
+      }
+    }
+    return out;
+  }
+
   private assertTypeFields(type: CampaignTypeValue, fields: any) {
     const missing: string[] = [];
     switch (type) {

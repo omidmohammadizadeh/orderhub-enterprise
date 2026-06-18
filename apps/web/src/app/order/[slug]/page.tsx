@@ -401,6 +401,14 @@ export default function OrderPage() {
   // when the subtotal clears its minOrder (if set). Re-resolves
   // server-side at checkout so a tampered total can't cheat.
   const storeCampaign = (storefront as any)?.campaign ?? null;
+  // Phase AW-19 — per-item promo map from PERCENT_OFF_ITEMS campaigns.
+  // Keyed by itemId → { percentageOff, campaignName }. Drives the
+  // strikethrough badge on ProductCard and the discounted unitPrice
+  // applied when the item lands in the cart.
+  const itemPromos: Record<
+    string,
+    { percentageOff: number; campaignId: string; campaignName: string }
+  > = (storefront as any)?.itemPromos ?? {};
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -1009,6 +1017,7 @@ export default function OrderPage() {
                       <ProductCard
                         key={item.id}
                         item={item}
+                        promo={itemPromos[item.id] ?? null}
                         onClick={() => handleProductClick(item)}
                       />
                     ))}
@@ -1109,12 +1118,18 @@ export default function OrderPage() {
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => {
+            // Phase AW-19 — discount the modal's unitPrice too so a
+            // pizza with mods still respects the campaign.
+            const promo = itemPromos[line.menuItemId];
+            const unitPrice = promo
+              ? Math.round(line.unitPrice * (1 - promo.percentageOff / 100) * 100) / 100
+              : line.unitPrice;
             dispatch({
               type: "ADD",
               line: {
                 menuItemId: line.menuItemId,
                 displayName: line.displayName,
-                unitPrice: line.unitPrice,
+                unitPrice,
                 quantity: line.quantity,
                 modifiers: line.modifiers,
                 selectedSku: line.selectedSku,
@@ -1196,12 +1211,19 @@ export default function OrderPage() {
       setModalItem(item);
       return;
     }
+    // Phase AW-19 — apply per-item promo at add time so cart subtotal
+    // and order line price are already discounted. ProductCard shows
+    // the strikethrough; cart shows the net price.
+    const promo = itemPromos[item.id];
+    const unitPrice = promo
+      ? Math.round(Number(item.basePrice) * (1 - promo.percentageOff / 100) * 100) / 100
+      : Number(item.basePrice);
     dispatch({
       type: "ADD",
       line: {
         menuItemId: item.id,
         displayName: item.name,
-        unitPrice: Number(item.basePrice),
+        unitPrice,
         quantity: 1,
         modifiers: [],
         selectedSku: null,
@@ -1277,11 +1299,18 @@ function CategoryChip({
 
 function ProductCard({
   item,
+  promo,
   onClick,
 }: {
   item: MenuItem;
+  promo: { percentageOff: number; campaignName: string } | null;
   onClick: () => void;
 }) {
+  const basePrice = Number(item.basePrice);
+  const hasPromo = !!promo && promo.percentageOff > 0;
+  const discounted = hasPromo
+    ? Math.round(basePrice * (1 - promo!.percentageOff / 100) * 100) / 100
+    : basePrice;
   return (
     <button
       onClick={onClick}
@@ -1305,6 +1334,11 @@ function ProductCard({
             Out of stock
           </span>
         )}
+        {hasPromo && !item.outOfStock && (
+          <span className="absolute top-2 right-2 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+            {promo!.percentageOff}% OFF
+          </span>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <h3 className="text-sm font-bold text-zinc-900 line-clamp-1">
@@ -1316,9 +1350,20 @@ function ProductCard({
           </p>
         )}
         <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="text-base font-bold text-orange-600">
-            £{Number(item.basePrice).toFixed(2)}
-          </span>
+          {hasPromo ? (
+            <div className="flex flex-col leading-tight">
+              <span className="text-[11px] text-zinc-400 line-through">
+                £{basePrice.toFixed(2)}
+              </span>
+              <span className="text-base font-bold text-red-600">
+                £{discounted.toFixed(2)}
+              </span>
+            </div>
+          ) : (
+            <span className="text-base font-bold text-orange-600">
+              £{basePrice.toFixed(2)}
+            </span>
+          )}
           <span className="inline-flex items-center gap-1 rounded-md bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white group-hover:bg-orange-600">
             <Plus className="h-3.5 w-3.5" /> Add
           </span>

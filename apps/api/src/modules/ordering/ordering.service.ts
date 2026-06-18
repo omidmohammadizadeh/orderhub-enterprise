@@ -433,12 +433,20 @@ export class OrderingService {
       brandId: menuBrandId,
       audiences: ["ALL", "NEW"],
     });
+    // Phase AW-19 — per-item promo map for PERCENT_OFF_ITEMS. Storefront
+    // ProductCard reads this to strike through the original price and
+    // show the discounted one. Cart math uses the discounted unitPrice.
+    const itemPromos = await this.marketing.resolveItemPromos(menuBrandId, [
+      "ALL",
+      "NEW",
+    ]);
 
     return {
       directConfig,
       deliveryZones,
       brandModifierGroups,
       campaign,
+      itemPromos,
       location: locationView,
       brand: brandView,
       menu,
