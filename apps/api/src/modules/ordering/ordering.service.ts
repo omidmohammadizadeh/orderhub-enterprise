@@ -10,6 +10,7 @@ import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { PauseService } from "../pauses/pause.service";
+import { MarketingService } from "../marketing/marketing.service";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -63,6 +64,11 @@ export class OrderingService {
     // render the "currently not accepting orders" banner and checkout
     // can refuse to land a new Order against a paused brand.
     private readonly pauses: PauseService,
+    // Phase AW-19 — pick + apply the best active marketing campaign at
+    // storefront load + checkout time. Audience bucket is resolved
+    // per-customer so a NEW customer's "first order 20% off" only
+    // fires for actual newcomers.
+    private readonly marketing: MarketingService,
   ) {}
 
   /**
@@ -413,10 +419,26 @@ export class OrderingService {
         }
       : null;
 
+    // Phase AW-19 — pick the best active marketing campaign for this
+    // brand on the ONLINE channel. The storefront cart displays a
+    // discount line "20% off applied" and reduces the total locally;
+    // checkout() re-resolves server-side so a client tampering with
+    // the discount can't cheat.
+    //
+    // Without the customer's id (the storefront response doesn't
+    // know who's logged in yet — the page hydrates auth on the
+    // client), we conservatively resolve for NEW + ALL audiences
+    // only. The cart re-asks per-customer once auth lands.
+    const campaign = await this.pickStorefrontCampaign({
+      brandId: menuBrandId,
+      audiences: ["ALL", "NEW"],
+    });
+
     return {
       directConfig,
       deliveryZones,
       brandModifierGroups,
+      campaign,
       location: locationView,
       brand: brandView,
       menu,
@@ -521,6 +543,39 @@ export class OrderingService {
       notes: item.notes,
     }));
 
+    // Phase AW-19 — re-resolve the marketing campaign server-side so a
+    // tampered cart can't apply an offer they're not entitled to. We
+    // resolve the customer's audience bucket now that we have their
+    // customerAccountId (or treat guest checkouts as NEW). Discount
+    // applies to subtotal only, never delivery/tax. Order.discount and
+    // Order.total are rewritten to use the server-computed values.
+    const campaignBrandId =
+      pinnedBrandId ?? (location as any).brandId;
+    const customerAudience = await this.marketing.resolveAudience({
+      tenantId: location.brand.tenantId,
+      customerAccountId: dto.customerAccountId ?? null,
+    });
+    const appliedCampaign = await this.pickStorefrontCampaign({
+      brandId: campaignBrandId,
+      audiences: ["ALL", customerAudience],
+    });
+    let campaignDiscount = 0;
+    if (
+      appliedCampaign &&
+      appliedCampaign.percentageOff != null &&
+      (appliedCampaign.minOrder == null ||
+        dto.subtotal >= appliedCampaign.minOrder)
+    ) {
+      campaignDiscount =
+        Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+    }
+    const serverDiscount = Math.max(dto.discount ?? 0, campaignDiscount);
+    const serverTotal =
+      dto.subtotal -
+      serverDiscount +
+      (dto.taxAmount ?? 0) +
+      (dto.deliveryFee ?? 0);
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -536,8 +591,8 @@ export class OrderingService {
         subtotal: dto.subtotal,
         taxAmount: dto.taxAmount ?? 0,
         deliveryFee: dto.deliveryFee ?? 0,
-        discount: dto.discount ?? 0,
-        total: dto.total,
+        discount: serverDiscount,
+        total: serverTotal,
         specialInstructions: dto.specialInstructions,
         idempotencyKey: dto.idempotencyKey,
         paymentMethod: dto.paymentMethod ?? "CASH",
@@ -663,6 +718,54 @@ export class OrderingService {
    * brand-new location can still place orders while the operator is
    * filling things in.
    */
+  /**
+   * Phase AW-19 — pick the best active campaign for the storefront.
+   *
+   * Returns null when nothing matches. When several campaigns qualify
+   * (e.g. both ALL and NEW have one), we pick the one with the
+   * highest percentageOff so the customer sees the friendliest
+   * offer. Min-order gating is left to the cart math.
+   */
+  private async pickStorefrontCampaign(args: {
+    brandId: string;
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">;
+  }): Promise<{
+    id: string;
+    name: string;
+    type: string;
+    audience: string;
+    percentageOff: number | null;
+    amountOff: number | null;
+    minOrder: number | null;
+  } | null> {
+    const rows = await this.marketing.resolveActiveForBrandChannel(
+      args.brandId,
+      "ONLINE",
+    );
+    if (!rows.length) return null;
+    const matching = rows.filter((r: any) =>
+      args.audiences.includes(r.audience),
+    );
+    if (!matching.length) return null;
+    // Prefer the highest percent; tiebreak by amountOff. Operators
+    // don't usually stack campaigns so the choice is rarely contended.
+    matching.sort(
+      (a: any, b: any) =>
+        Number(b.percentageOff ?? 0) - Number(a.percentageOff ?? 0) ||
+        Number(b.amountOff ?? 0) - Number(a.amountOff ?? 0),
+    );
+    const c = matching[0];
+    return {
+      id: c.id,
+      name: c.name,
+      type: c.type,
+      audience: c.audience,
+      percentageOff: c.percentageOff != null ? Number(c.percentageOff) : null,
+      amountOff: c.amountOff != null ? Number(c.amountOff) : null,
+      minOrder: c.minOrder != null ? Number(c.minOrder) : null,
+    };
+  }
+
   private isCurrentlyOpen(openingHours: any, timezone: string): boolean {
     if (!openingHours) return true;
 

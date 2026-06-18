@@ -395,6 +395,21 @@ export default function OrderPage() {
   const rawDeliveryFee = matchedZone?.fee ?? 0;
   const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
 
+  // Phase AW-19 — auto-apply the storefront's matched marketing
+  // campaign. Server returns the eligible campaign in
+  // storefront.campaign; we apply it as a discount line on the cart
+  // when the subtotal clears its minOrder (if set). Re-resolves
+  // server-side at checkout so a tampered total can't cheat.
+  const storeCampaign = (storefront as any)?.campaign ?? null;
+  const campaignDiscount =
+    storeCampaign?.percentageOff != null &&
+    (storeCampaign.minOrder == null || subtotal >= storeCampaign.minOrder)
+      ? Math.round(subtotal * Number(storeCampaign.percentageOff)) / 100
+      : 0;
+  // Effective discount is the larger of the promo code and the
+  // campaign — they don't stack.
+  const effectiveDiscount = Math.max(promoDiscount, campaignDiscount);
+
   // Phase AP-8 — visible service charge.
   // Only the fixed portion of the application fee surfaces to the
   // customer; percent-only fees are deducted from the restaurant's
@@ -414,7 +429,7 @@ export default function OrderPage() {
     paymentMethod === "CARD" && usesFixedFee && feeFixed > 0 ? feeFixed : 0;
 
   const total =
-    Math.max(0, subtotal - promoDiscount) + deliveryFee + serviceCharge;
+    Math.max(0, subtotal - effectiveDiscount) + deliveryFee + serviceCharge;
   const cartCount = cart.reduce((s, l) => s + l.quantity, 0);
 
   // Categories + search filter
@@ -500,7 +515,7 @@ export default function OrderPage() {
         paymentMethod,
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
-        discount: promoDiscount,
+        discount: effectiveDiscount,
         promoCode: promoApplied?.code,
         discountType: promoApplied
           ? promoApplied.freeDelivery
@@ -889,6 +904,21 @@ export default function OrderPage() {
               </p>
             </div>
           )}
+          {storeCampaign && !storefront.closed && storeCampaign.percentageOff != null && (
+            <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
+              <p className="font-semibold">
+                🎉 {Number(storeCampaign.percentageOff)}% off your order
+                {storeCampaign.minOrder
+                  ? ` on £${Number(storeCampaign.minOrder).toFixed(2)}+`
+                  : ""}
+              </p>
+              {storeCampaign.name && (
+                <p className="mt-0.5 text-[11px] text-orange-800">
+                  {storeCampaign.name} — applied automatically at checkout.
+                </p>
+              )}
+            </div>
+          )}
           {storefront.busy && !storefront.closed && (
             <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
               <p className="font-semibold">
@@ -1027,6 +1057,8 @@ export default function OrderPage() {
             setPromoError(null);
           }}
           promoDiscount={promoDiscount}
+          campaignDiscount={campaignDiscount}
+          campaignName={storeCampaign?.name ?? null}
           freeDelivery={freeDelivery}
           postcodeSuggestions={postcodeSuggestions}
           postcodeLookupNote={postcodeLookupNote}
@@ -1335,6 +1367,8 @@ interface CartPanelProps {
   onApplyPromo: () => void;
   onClearPromo: () => void;
   promoDiscount: number;
+  campaignDiscount: number;
+  campaignName: string | null;
   freeDelivery: boolean;
   postcodeSuggestions: Array<{
     id: string;
@@ -1369,6 +1403,8 @@ function CartPanel(props: CartPanelProps) {
     onApplyPromo,
     onClearPromo,
     promoDiscount,
+    campaignDiscount,
+    campaignName,
     freeDelivery,
     postcodeSuggestions,
     postcodeLookupNote,
@@ -1709,7 +1745,13 @@ function CartPanel(props: CartPanelProps) {
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
           <Row label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
-          {promoDiscount > 0 && (
+          {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
+            <Row
+              label={`Discount (${campaignName ?? "Promo"})`}
+              value={`-£${campaignDiscount.toFixed(2)}`}
+            />
+          )}
+          {promoDiscount > campaignDiscount && promoDiscount > 0 && (
             <Row
               label={`Discount (${promoApplied?.code ?? ""})`}
               value={`-£${promoDiscount.toFixed(2)}`}

@@ -6,6 +6,7 @@ import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { InventoryModule } from "../inventory/inventory.module";
 import { PauseModule } from "../pauses/pause.module";
+import { MarketingModule } from "../marketing/marketing.module";
 
 @Module({
   // Phase AP-8 — PaymentsModule provides Stripe Checkout Session creation
@@ -23,6 +24,7 @@ import { PauseModule } from "../pauses/pause.module";
     PaymentsModule,
     InventoryModule,
     PauseModule,
+    MarketingModule,
   ],
   controllers: [OrderingController],
   providers: [OrderingService],
