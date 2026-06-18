@@ -269,7 +269,6 @@ export class MarketingService {
     campaignId: string;
     campaignName: string;
     triggerItemIds: string[];
-    rewardItemIds: string[];
   } | null> {
     const rows = await this.resolveActiveForBrandChannel(brandId, "ONLINE");
     const bogo = (rows as any[])
@@ -285,17 +284,10 @@ export class MarketingService {
           new Date(a.updatedAt ?? 0).getTime(),
       )[0];
     if (!bogo) return null;
-    const rewardItemIds: string[] = Array.isArray(
-      (bogo.metadata as any)?.rewardItemIds,
-    )
-      ? (bogo.metadata as any).rewardItemIds
-      : [];
-    if (!rewardItemIds.length) return null;
     return {
       campaignId: bogo.id,
       campaignName: bogo.name,
       triggerItemIds: bogo.itemIds ?? [],
-      rewardItemIds,
     };
   }
 
@@ -313,10 +305,9 @@ export class MarketingService {
         if (!fields.itemIds?.length) missing.push("itemIds");
         break;
       case "BOGO":
-        // Trigger items live on itemIds, reward items on
-        // metadata.rewardItemIds (carried in via dto.rewardItemIds).
+        // Reward is the trigger item itself — adding any of these to
+        // the cart drops a free £0 copy of the same item.
         if (!fields.itemIds?.length) missing.push("itemIds");
-        if (!fields.rewardItemIds?.length) missing.push("rewardItemIds");
         break;
       case "FREE_ITEM":
         if (!fields.freeItemId) missing.push("freeItemId");

@@ -416,19 +416,12 @@ export default function OrderPage() {
     campaignId: string;
     campaignName: string;
     triggerItemIds: string[];
-    rewardItemIds: string[];
   } | null = (storefront as any)?.bogo ?? null;
   const bogoTriggerSet = useMemo(
     () => new Set(bogo?.triggerItemIds ?? []),
     [bogo],
   );
-  const bogoRewardSet = useMemo(
-    () => new Set(bogo?.rewardItemIds ?? []),
-    [bogo],
-  );
-  // Flat itemId → MenuItem index, derived from the storefront tree.
-  // BOGO uses this to look up the reward item (name, plu, mods) when
-  // dropping it into the cart at £0.
+  // Flat itemId → MenuItem index for BOGO freebie name/plu lookup.
   const itemsById = useMemo(() => {
     const out: Record<string, MenuItem> = {};
     for (const cat of (storefront as any)?.menu?.categories ?? []) {
@@ -438,43 +431,51 @@ export default function OrderPage() {
     }
     return out;
   }, [storefront]);
-  // Auto-manage the freebie line:
-  //   - If a trigger is in the cart and there's no reward, append the
-  //     first reward at £0. Marker = unitPrice 0 + notes "🎁 BOGO".
-  //   - If no trigger is left, remove the BOGO line.
-  // Modifiers/SKUs on the reward are stripped — we just give them the
-  // base item, no extras, to keep the offer simple and the math safe.
+  // BOGO auto-mirror:
+  //   For every trigger itemId that's in the cart with a non-zero
+  //   line, ensure there's a matching free £0 copy of THAT same
+  //   item. Marker: unitPrice 0 + notes "🎁 BOGO:<itemId>". One
+  //   freebie per trigger itemId — buying more of the same trigger
+  //   doesn't compound. When the trigger leaves the cart entirely,
+  //   the matching freebie goes with it.
   useEffect(() => {
     if (!bogo) return;
-    const cartHasTrigger = cart.some((l) => bogoTriggerSet.has(l.menuItemId));
-    const rewardLine = cart.find(
-      (l) =>
-        bogoRewardSet.has(l.menuItemId) &&
-        l.unitPrice === 0 &&
-        l.notes === "🎁 BOGO",
+    const paidTriggerIds = new Set(
+      cart
+        .filter((l) => bogoTriggerSet.has(l.menuItemId) && l.unitPrice > 0)
+        .map((l) => l.menuItemId),
     );
-    if (cartHasTrigger && !rewardLine) {
-      const rewardId = bogo.rewardItemIds[0];
-      const reward = rewardId ? itemsById[rewardId] : null;
-      if (reward) {
-        dispatch({
-          type: "ADD",
-          line: {
-            menuItemId: reward.id,
-            displayName: `${reward.name} (Free — BOGO)`,
-            unitPrice: 0,
-            quantity: 1,
-            modifiers: [],
-            selectedSku: null,
-            notes: "🎁 BOGO",
-            plu: reward.plu ?? null,
-          },
-        });
-      }
-    } else if (!cartHasTrigger && rewardLine) {
-      dispatch({ type: "REMOVE", id: rewardLine.id });
+    const freebies = cart.filter(
+      (l) => l.unitPrice === 0 && (l.notes ?? "").startsWith("🎁 BOGO:"),
+    );
+    // Add missing freebies for triggers in the cart.
+    for (const itemId of paidTriggerIds) {
+      const marker = `🎁 BOGO:${itemId}`;
+      if (freebies.some((f) => f.notes === marker)) continue;
+      const item = itemsById[itemId];
+      if (!item) continue;
+      dispatch({
+        type: "ADD",
+        line: {
+          menuItemId: itemId,
+          displayName: `${item.name} (Free — Buy 1 Get 1)`,
+          unitPrice: 0,
+          quantity: 1,
+          modifiers: [],
+          selectedSku: null,
+          notes: marker,
+          plu: item.plu ?? null,
+        },
+      });
     }
-  }, [cart, bogo, bogoTriggerSet, bogoRewardSet, itemsById]);
+    // Remove orphaned freebies whose trigger left the cart.
+    for (const f of freebies) {
+      const parentId = (f.notes ?? "").slice("🎁 BOGO:".length);
+      if (!paidTriggerIds.has(parentId)) {
+        dispatch({ type: "REMOVE", id: f.id });
+      }
+    }
+  }, [cart, bogo, bogoTriggerSet, itemsById]);
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -1009,12 +1010,7 @@ export default function OrderPage() {
               <p className="font-semibold">🎁 Buy 1, get 1 free</p>
               <p className="mt-0.5 text-[11px] text-pink-800">
                 {bogo.campaignName} — add any highlighted item and a free
-                {(() => {
-                  const id = bogo.rewardItemIds[0];
-                  const r = id ? itemsById[id] : null;
-                  return r ? ` ${r.name}` : " gift";
-                })()}{" "}
-                lands in your cart automatically.
+                copy of the same item lands in your cart automatically.
               </p>
             </div>
           )}

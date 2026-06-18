@@ -2,14 +2,9 @@
 
 // Phase AW-19 — Buy 1, get 1 free (BOGO) campaign form.
 //
-// Two pickers off the brand's published menu:
-//   1. Trigger items — customer must add one of these to qualify
-//   2. Reward items  — first one in the cart is added at £0 once a
-//                      trigger is present
-//
-// We save itemIds = trigger; metadata.rewardItemIds = reward. The
-// storefront surfaces both lists so the menu can highlight trigger
-// items and the cart can auto-drop in the freebie.
+// One picker off the brand's published menu: trigger items. When a
+// customer adds a trigger to the cart, a £0 copy of the SAME item
+// auto-lands as their freebie — no separate reward selection.
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -52,7 +47,6 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
 
   const [brandId, setBrandId] = useState<string | null>(null);
   const [triggerIds, setTriggerIds] = useState<Set<string>>(new Set());
-  const [rewardIds, setRewardIds] = useState<Set<string>>(new Set());
 
   const [channels, setChannels] = useState<string[]>(["ONLINE"]);
   const [audience, setAudience] = useState<CampaignAudience>("ALL");
@@ -99,9 +93,7 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
     mutationFn: async () => {
       if (!brandId) throw new Error("Pick a brand");
       if (triggerIds.size === 0)
-        throw new Error("Pick at least one trigger item");
-      if (rewardIds.size === 0)
-        throw new Error("Pick at least one reward item");
+        throw new Error("Pick at least one item");
       if (channels.length === 0) throw new Error("Pick at least one channel");
       const body = {
         type: "BOGO" as const,
@@ -110,7 +102,6 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
         audience,
         channels,
         itemIds: Array.from(triggerIds),
-        rewardItemIds: Array.from(rewardIds),
         startsAt: new Date(startDate).toISOString(),
         endsAt: runUntilCancelled
           ? undefined
@@ -132,7 +123,6 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
   const canSave =
     !!brandId &&
     triggerIds.size > 0 &&
-    rewardIds.size > 0 &&
     channels.length > 0 &&
     !save.isPending;
 
@@ -183,7 +173,6 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
                 onChange={(e) => {
                   setBrandId(e.target.value || null);
                   setTriggerIds(new Set());
-                  setRewardIds(new Set());
                 }}
               >
                 {(brandsQuery.data ?? []).map((b: Brand) => (
@@ -195,30 +184,18 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
             )}
           </Section>
 
-          <Section title="Buy these items (trigger)">
+          <Section title="Buy 1, get 1 free items">
             <p className="text-[11px] text-zinc-500 mb-2">
-              Customer must add one of these to qualify. Trigger items get a
-              "Buy 1 get 1 free" badge on the menu.
+              Tick the items that qualify. When the customer adds one of
+              these to the cart, an identical free copy is added
+              automatically. Each item gets a "Buy 1 get 1 free" badge on
+              the menu.
             </p>
             <ItemPicker
               categories={categories}
               loading={menuQuery.isLoading}
               selected={triggerIds}
               setSelected={setTriggerIds}
-              accent="violet"
-            />
-          </Section>
-
-          <Section title="Get these free (reward)">
-            <p className="text-[11px] text-zinc-500 mb-2">
-              The first reward in this list gets auto-added at £0 when a
-              trigger lands in the cart.
-            </p>
-            <ItemPicker
-              categories={categories}
-              loading={menuQuery.isLoading}
-              selected={rewardIds}
-              setSelected={setRewardIds}
               accent="pink"
             />
           </Section>
