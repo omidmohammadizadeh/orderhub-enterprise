@@ -1250,33 +1250,57 @@ export class OrdersService {
     tenantId: string,
   ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
     if (rows.length === 0) return [] as any;
-    // Gather identifiers we'll look up.
-    const phoneSet = new Set<string>();
+    // Gather both raw and normalised (spaces stripped) forms of every
+    // phone we'll look up. Phones in the DB are stored as the operator
+    // / customer typed them ("07788 180 709" vs "07788180709"), so a
+    // strict equality filter misses sibling rows; pull every row whose
+    // RAW phone matches what's on the board, then bucket by the
+    // normalised form to attribute counts.
+    const rawPhones = new Set<string>();
     for (const r of rows) {
-      const p = (r.customerPhone ?? "").replace(/\s+/g, "");
-      if (p) phoneSet.add(p);
+      if (r.customerPhone) rawPhones.add(r.customerPhone);
     }
-    let countByPhone = new Map<string, number>();
-    if (phoneSet.size > 0) {
-      const grouped = await (this.prisma as any).order.groupBy({
-        by: ["customerPhone"],
-        where: {
-          tenantId,
-          isSandbox: false,
-          status: { not: "CANCELLED" },
-          customerPhone: { in: Array.from(phoneSet) },
-        },
-        _count: { _all: true },
-      });
-      for (const g of grouped as Array<{ customerPhone: string | null; _count: { _all: number } }>) {
-        if (g.customerPhone) {
-          countByPhone.set(g.customerPhone.replace(/\s+/g, ""), g._count._all);
+    const normalise = (s: string | null | undefined) =>
+      (s ?? "").replace(/\s+/g, "");
+    const countByNormalised = new Map<string, number>();
+    if (rawPhones.size > 0) {
+      try {
+        // groupBy with `in` only matches verbatim, so we re-bucket
+        // results by normalised key in-process to absorb sibling
+        // rows stored with different whitespace.
+        const grouped = await (this.prisma as any).order.groupBy({
+          by: ["customerPhone"],
+          where: {
+            tenantId,
+            isSandbox: false,
+            status: { not: "CANCELLED" },
+            customerPhone: { in: Array.from(rawPhones) },
+          },
+          _count: { _all: true },
+        });
+        for (const g of grouped as Array<{
+          customerPhone: string | null;
+          _count: { _all: number };
+        }>) {
+          const k = normalise(g.customerPhone);
+          if (!k) continue;
+          countByNormalised.set(
+            k,
+            (countByNormalised.get(k) ?? 0) + g._count._all,
+          );
         }
+        this.logger.debug(
+          `attachCustomerVisitCounts tenant=${tenantId} rows=${rows.length} phones=${rawPhones.size} buckets=${countByNormalised.size}`,
+        );
+      } catch (err) {
+        this.logger.warn(
+          `attachCustomerVisitCounts groupBy failed for tenant=${tenantId}: ${(err as Error).message}`,
+        );
       }
     }
     return rows.map((r) => {
-      const p = (r.customerPhone ?? "").replace(/\s+/g, "");
-      const lifetime = p ? (countByPhone.get(p) ?? 1) : 1;
+      const k = normalise(r.customerPhone);
+      const lifetime = k ? (countByNormalised.get(k) ?? 1) : 1;
       const visitCount = lifetime;
       return {
         ...r,

@@ -72,16 +72,18 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               method={order.paymentMethod}
               status={order.paymentStatus}
             />
-            {/* Phase AW-26 — NEW / RETURNING customer signal. visitCount
-                is the lifetime order count attached server-side. */}
-            {typeof (order as any).customerVisitCount === "number" &&
-              ((order as any).customerVisitCount <= 1 ? (
+            {/* Phase AW-26 — NEW / RETURNING customer signal.
+                customerVisitCount is the lifetime order count attached
+                server-side by OrdersService.findLiveOrders. */}
+            {typeof order.customerVisitCount === "number" &&
+              order.customerVisitCount > 0 &&
+              (order.customerVisitCount <= 1 ? (
                 <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
                   New
                 </span>
               ) : (
                 <span className="inline-flex items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-800">
-                  Returning · #{(order as any).customerVisitCount}
+                  Returning · #{order.customerVisitCount}
                 </span>
               ))}
           </div>

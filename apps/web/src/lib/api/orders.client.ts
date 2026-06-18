@@ -24,6 +24,10 @@ export interface Order {
   id: string;
   tenantId: string;
   locationId: string;
+  /** Phase AW-26 — lifetime order count for this customer (by phone).
+   *  1 = NEW. Attached server-side by OrdersService.findLiveOrders. */
+  customerVisitCount?: number;
+  customerVisitTag?: string;
   externalId: string | null;
   platform: string;
   orderSource: string;
