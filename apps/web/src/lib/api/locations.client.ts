@@ -73,13 +73,6 @@ export type WeekdayKey =
   | "sunday";
 export type OpeningHoursMap = Record<WeekdayKey, DaySchedule>;
 
-export interface BusyModeInput {
-  enabled: boolean;
-  reason?: string;
-  until?: string | null;
-  affectedPlatforms?: string[];
-}
-
 export const WEEKDAY_LABELS: Array<[WeekdayKey, string]> = [
   ["monday", "Monday"],
   ["tuesday", "Tuesday"],
@@ -131,8 +124,6 @@ export const locationsClient = {
     apiClient
       .post<{ applied: number }>(`/v1/locations/${id}/opening-hours/apply-to`, { locationIds })
       .then((r) => r.data),
-  setBusyMode: (id: string, body: BusyModeInput) =>
-    apiClient.patch<Location>(`/v1/locations/${id}/busy-mode`, body).then((r) => r.data),
 };
 
 // ── Brand client ──

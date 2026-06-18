@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/orders": { title: "Orders", description: "Live and recent orders" },
   "/dashboard/menu": { title: "Menu", description: "Manage your menu and pricing" },
-  "/dashboard/store-ops": { title: "Store Operations", description: "Control live store status and availability" },
   "/dashboard/customers": { title: "Customers", description: "CRM, loyalty, and promo codes" },
   "/dashboard/drivers": { title: "Drivers", description: "Dispatch and delivery tracking" },
   "/dashboard/analytics": { title: "Analytics", description: "Sales and performance insights" },

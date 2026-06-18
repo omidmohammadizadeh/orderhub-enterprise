@@ -85,12 +85,6 @@ export type OpeningHours = Record<
   DaySchedule
 >;
 
-export interface BusyModeInput {
-  enabled: boolean;
-  reason?: string;
-  until?: string | null; // ISO timestamp
-  affectedPlatforms?: string[]; // ONLINE | UBER_EATS | DELIVEROO | JUST_EAT | HUBRISE
-}
 
 const WEEKDAYS = [
   "sunday",
@@ -576,21 +570,6 @@ export class LocationsService {
       data: { openingHours: hours as any },
     });
     return result.count;
-  }
-
-  // ── Busy mode ────────────────────────────────────────────────────────────
-
-  async setBusyMode(locationId: string, tenantId: string, input: BusyModeInput) {
-    await this.assertAccess(locationId, tenantId);
-    return this.prisma.location.update({
-      where: { id: locationId },
-      data: {
-        busyMode: input.enabled,
-        pauseUntil: input.until ? new Date(input.until) : null,
-        storeStatusNote: input.reason ?? null,
-        busyModeJson: input as any,
-      },
-    });
   }
 
   // ── Public storefront (unauthenticated) ─────────────────────────────────

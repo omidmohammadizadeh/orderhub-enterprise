@@ -13,7 +13,6 @@ import {
   ChevronDown,
   Monitor,
   Rocket,
-  Store,
   Users,
   Truck,
   CreditCard,
@@ -81,7 +80,6 @@ const primaryNav: NavItem[] = [
   // duplicate products.
   { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
-  { href: "/dashboard/store-ops", label: "Store Ops", icon: Store, roles: MANAGER_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
   { href: "/dashboard/drivers", label: "Drivers", icon: Truck, roles: MANAGER_TIER },

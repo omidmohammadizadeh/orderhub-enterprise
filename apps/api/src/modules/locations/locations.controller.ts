@@ -16,7 +16,6 @@ import {
   CreateLocationDto,
   UpdateLocationDto,
   OpeningHours,
-  BusyModeInput,
   buildOnlineOrderingUrl,
 } from "./locations.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -149,17 +148,6 @@ export class LocationsController {
     return this.locations
       .copyHoursToLocations(locationId, user.tenantId, body.locationIds)
       .then((count) => ({ applied: count }));
-  }
-
-  @Patch(":locationId/busy-mode")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
-  @ApiOperation({ summary: "Set busy-mode state" })
-  setBusyMode(
-    @Param("locationId") locationId: string,
-    @Body() body: BusyModeInput,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.locations.setBusyMode(locationId, user.tenantId, body);
   }
 
   // ── Public storefront ───────────────────────────────────────────────────

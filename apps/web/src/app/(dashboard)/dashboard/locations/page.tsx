@@ -20,7 +20,6 @@ import {
   Settings,
   MoreHorizontal,
   Loader2,
-  Pause,
 } from "lucide-react";
 import { locationsClient, type Location } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -37,14 +36,12 @@ const CAN_MANAGE_LOCATIONS = new Set([
 ]);
 import { LocationEditModal } from "@/components/locations/location-edit-modal";
 import { OpeningHoursDrawer } from "@/components/locations/opening-hours-drawer";
-import { BusyModeDrawer } from "@/components/locations/busy-mode-drawer";
 import { LocationBrandsDrawer } from "@/components/locations/location-brands-drawer";
 import { DeleteLocationModal } from "@/components/locations/delete-location-modal";
 import { Trash2 } from "lucide-react";
 
 type Drawer =
   | { kind: "hours"; locationId: string }
-  | { kind: "busy"; locationId: string }
   | { kind: "brands"; locationId: string }
   | { kind: "edit"; locationId: string | null } // null = create
   | { kind: "delete"; locationId: string; name: string }
@@ -161,7 +158,6 @@ export default function LocationsPage() {
               onToggleExpand={() => toggleExpanded(loc.id)}
               onEdit={() => setDrawer({ kind: "edit", locationId: loc.id })}
               onHours={() => setDrawer({ kind: "hours", locationId: loc.id })}
-              onBusy={() => setDrawer({ kind: "busy", locationId: loc.id })}
               onBrands={() => setDrawer({ kind: "brands", locationId: loc.id })}
               onDelete={() =>
                 setDrawer({ kind: "delete", locationId: loc.id, name: loc.name })
@@ -186,9 +182,6 @@ export default function LocationsPage() {
           onClose={closeDrawer}
         />
       )}
-      {drawer?.kind === "busy" && (
-        <BusyModeDrawer locationId={drawer.locationId} onClose={closeDrawer} onSaved={onSaved} />
-      )}
       {drawer?.kind === "brands" && (
         <LocationBrandsDrawer locationId={drawer.locationId} onClose={closeDrawer} />
       )}
@@ -210,7 +203,6 @@ function LocationCard({
   onToggleExpand,
   onEdit,
   onHours,
-  onBusy,
   onBrands,
   onDelete,
   canManage,
@@ -220,7 +212,6 @@ function LocationCard({
   onToggleExpand: () => void;
   onEdit: () => void;
   onHours: () => void;
-  onBusy: () => void;
   onBrands: () => void;
   onDelete: () => void;
   canManage: boolean;
@@ -249,11 +240,6 @@ function LocationCard({
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-zinc-900 truncate">{location.name}</h3>
             <StatusBadge status={status} />
-            {location.busyMode && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                <Pause className="h-2.5 w-2.5" /> Busy
-              </span>
-            )}
             <span className="text-[10px] text-zinc-400">
               {channelCount} channel link{channelCount === 1 ? "" : "s"}
             </span>
@@ -280,9 +266,6 @@ function LocationCard({
         </ActionChip>
         <ActionChip icon={<Tag className="h-3 w-3" />} onClick={onBrands}>
           Brands
-        </ActionChip>
-        <ActionChip icon={<Pause className="h-3 w-3" />} onClick={onBusy}>
-          Busy mode
         </ActionChip>
         {canManage && (
           <button
