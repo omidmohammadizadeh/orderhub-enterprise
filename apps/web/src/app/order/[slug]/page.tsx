@@ -437,12 +437,21 @@ export default function OrderPage() {
     }
     return out;
   }, [storefront]);
-  // itemId → categoryId index, for FREE_ITEM exclusion math.
-  const itemCategoryId = useMemo(() => {
-    const out: Record<string, string> = {};
+  // Set of itemIds that appear under ANY excluded category. An item
+  // listed under multiple categories is excluded as long as one of
+  // them is on the exclusion list — safer than a single-category
+  // last-write-wins map.
+  const excludedItemIdSet = useMemo(() => {
+    const out = new Set<string>();
+    const freeItemRaw: any = (storefront as any)?.freeItem;
+    const excluded: string[] = freeItemRaw?.excludedCategoryIds ?? [];
+    if (excluded.length === 0) return out;
+    const excludedCats = new Set(excluded);
     for (const cat of (storefront as any)?.menu?.categories ?? []) {
+      if (!excludedCats.has(cat.id)) continue;
       for (const link of cat.items ?? []) {
-        if (link.itemId) out[link.itemId] = cat.id;
+        const id = link.itemId ?? link.item?.id;
+        if (id) out.add(id);
       }
     }
     return out;
@@ -459,10 +468,25 @@ export default function OrderPage() {
     excludedCategoryIds: string[];
   } | null = (storefront as any)?.freeItem ?? null;
   const [chosenFreeItemId, setChosenFreeItemId] = useState<string | null>(null);
+  // Only auto-lock when there's a single option. With multiple
+  // options the customer must actively pick — no silent default.
+  // We still re-sync if the operator removes the previously chosen
+  // item from the pool.
   useEffect(() => {
-    if (!freeItem) return;
-    if (!chosenFreeItemId || !freeItem.freeItemIds.includes(chosenFreeItemId)) {
-      setChosenFreeItemId(freeItem.freeItemIds[0] ?? null);
+    if (!freeItem) {
+      if (chosenFreeItemId !== null) setChosenFreeItemId(null);
+      return;
+    }
+    if (freeItem.freeItemIds.length === 1) {
+      const only = freeItem.freeItemIds[0] ?? null;
+      if (chosenFreeItemId !== only) setChosenFreeItemId(only);
+      return;
+    }
+    if (
+      chosenFreeItemId &&
+      !freeItem.freeItemIds.includes(chosenFreeItemId)
+    ) {
+      setChosenFreeItemId(null);
     }
   }, [freeItem, chosenFreeItemId]);
   // BOGO auto-mirror:
@@ -513,18 +537,16 @@ export default function OrderPage() {
   // can't bootstrap their own threshold.
   const eligibleSubtotal = useMemo(() => {
     if (!freeItem) return 0;
-    const excluded = new Set(freeItem.excludedCategoryIds);
     return cart.reduce((sum, l) => {
       if (l.unitPrice === 0) return sum;
-      const catId = itemCategoryId[l.menuItemId];
-      if (catId && excluded.has(catId)) return sum;
+      if (excludedItemIdSet.has(l.menuItemId)) return sum;
       return (
         sum +
         (l.unitPrice + l.modifiers.reduce((m, x) => m + x.price, 0)) *
           l.quantity
       );
     }, 0);
-  }, [cart, freeItem, itemCategoryId]);
+  }, [cart, freeItem, excludedItemIdSet]);
   // Gift line auto-management: when eligible and a chosen freebie
   // is set, add it at £0; when no longer eligible OR the choice
   // changes, remove the existing gift first. Marker = freeItemOf
@@ -1102,15 +1124,30 @@ export default function OrderPage() {
           {freeItem && !storefront.closed && (() => {
             const eligible = eligibleSubtotal >= freeItem.minOrder;
             const remaining = Math.max(0, freeItem.minOrder - eligibleSubtotal);
+            const named = freeItem.freeItemIds
+              .map((id) => itemsById[id]?.name)
+              .filter(Boolean) as string[];
+            const headline =
+              named.length === 0
+                ? "a free item"
+                : named.length === 1
+                  ? `a free ${named[0]}`
+                  : named.length === 2
+                    ? `a free ${named[0]} or ${named[1]}`
+                    : `a free item (${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]})`;
             return (
               <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
                 <p className="font-semibold">
-                  ✨ Spend £{freeItem.minOrder.toFixed(2)} and get a free item
+                  ✨ Spend £{freeItem.minOrder.toFixed(2)} and get {headline}
                 </p>
                 <p className="mt-0.5 text-[11px] text-amber-800">
-                  {eligible
-                    ? "You've unlocked the gift — pick yours below!"
-                    : `Add £${remaining.toFixed(2)} more to unlock.`}
+                  {!eligible
+                    ? `Add £${remaining.toFixed(2)} more (eligible items only) to unlock.`
+                    : freeItem.freeItemIds.length > 1
+                      ? chosenFreeItemId
+                        ? "Gift added to your cart — tap another to swap."
+                        : "🎉 Unlocked! Pick which one you want:"
+                      : "You've unlocked the gift — it's in your cart."}
                 </p>
                 {eligible && freeItem.freeItemIds.length > 1 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1135,14 +1172,6 @@ export default function OrderPage() {
                     })}
                   </div>
                 )}
-                {eligible &&
-                  freeItem.freeItemIds.length === 1 &&
-                  chosenFreeItemId &&
-                  itemsById[chosenFreeItemId] && (
-                    <p className="mt-1 text-[11px] font-medium text-amber-800">
-                      Free: {itemsById[chosenFreeItemId].name}
-                    </p>
-                  )}
               </div>
             );
           })()}
