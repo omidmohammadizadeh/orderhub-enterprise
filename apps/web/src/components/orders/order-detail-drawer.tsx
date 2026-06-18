@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil } from "lucide-react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
+import { useAuthStore } from "../../stores/auth.store";
 import type { Order } from "../../lib/api/orders.client";
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
@@ -39,11 +41,35 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelInput, setShowCancelInput] = useState(false);
   const updateStatus = useUpdateOrderStatus();
+  const router = useRouter();
+  const userRole = useAuthStore((s) => s.user?.role);
 
   if (!order) return null;
 
   const actions = NEXT_ACTIONS[order.status] ?? [];
   const total = order.items.reduce((s, i) => s + i.quantity, 0);
+
+  // Phase AW-22 — Edit eligibility mirrors the server-side gate so
+  // the button never shows up for an order the API would reject.
+  // Manager-tier roles only; cash; POS; status < READY.
+  const EDIT_ROLES = new Set([
+    "MANAGER",
+    "DARK_KITCHEN_MANAGER",
+    "TENANT_OWNER",
+    "PLATFORM_ADMIN",
+  ]);
+  const editableStatus = ["PENDING", "ACCEPTED", "PREPARING"].includes(
+    order.status,
+  );
+  const isCash =
+    ((order as any).paymentMethod ?? "").toString().toUpperCase() === "CASH";
+  const isPos = (order as any).orderSource === "POS";
+  const canEdit =
+    !!userRole &&
+    EDIT_ROLES.has(userRole) &&
+    editableStatus &&
+    isCash &&
+    isPos;
 
   function handleAction(status: string) {
     if ((status === "CANCELLED" || status === "REJECTED") && !showCancelInput) {
@@ -265,8 +291,22 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       </div>
 
       {/* Actions footer */}
-      {actions.length > 0 && (
+      {(actions.length > 0 || canEdit) && (
         <div className="border-t border-zinc-200 px-5 py-4 space-y-2">
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                router.push(`/dashboard/pos?editOrderId=${order.id}`);
+                onClose();
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+              Edit order
+            </Button>
+          )}
           {showCancelInput && (
             <input
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"

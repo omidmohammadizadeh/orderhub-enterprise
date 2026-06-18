@@ -75,6 +75,10 @@ export interface CartPanelProps {
   onPlaceOrder: (payload: PlaceOrderPayload) => Promise<void> | void;
   submitting: boolean;
   feedback?: string | null;
+  // Phase AW-22 — when set, the panel renders "Save changes" instead
+  // of "Place order" so the operator knows the action will amend the
+  // existing ticket rather than create a new one.
+  submitButtonLabel?: string;
   // Persistence callbacks — the parent owns the draft store key (per
   // location) so it can purge on successful submit.
   initialDraft?: PartialDraft;
@@ -1033,7 +1037,8 @@ export function PosCartPanel(props: CartPanelProps) {
           className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {isScheduled ? "Save scheduled order" : "Place order"}
+          {props.submitButtonLabel ??
+            (isScheduled ? "Save scheduled order" : "Place order")}
         </button>
         {feedback && (
           <p className="text-center text-[11px] text-zinc-600">{feedback}</p>

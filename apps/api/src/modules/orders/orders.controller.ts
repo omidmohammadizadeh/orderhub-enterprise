@@ -18,6 +18,7 @@ import {
 } from "@nestjs/swagger";
 import { OrdersService, OrderFilters } from "./orders.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { EditOrderDto } from "./dto/edit-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -159,6 +160,25 @@ export class OrdersController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.orders.findOne(id, user.tenantId);
+  }
+
+  // ── PATCH /api/v1/orders/:id/edit ────────────────────
+  // Phase AW-22 — Manager amends a POS order the customer rang back
+  // about. Constraints (status, payment, source) enforced server-
+  // side too — this gate is just for permissions.
+  @Patch(":id/edit")
+  @Roles("MANAGER", "DARK_KITCHEN_MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Replace line items + customer info on a POS order (cash, pre-Ready). Reprints ticket.",
+  })
+  async edit(
+    @Param("id") id: string,
+    @Body() dto: EditOrderDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.editOrder(id, user.tenantId, dto, user.userId);
   }
 
   // ── PATCH /api/v1/orders/:id/status ──────────────────

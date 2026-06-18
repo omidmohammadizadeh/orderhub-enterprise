@@ -589,6 +589,187 @@ export class OrdersService {
     return order;
   }
 
+  // ── Edit order (Phase AW-22) ──────────────────────────
+  //
+  // Manager-driven amendment for POS orders the customer rang back
+  // about. Constraints (enforced here, not just at controller):
+  //   - status must be PENDING / ACCEPTED / PREPARING (anything up
+  //     to READY); past READY the kitchen has it and editing the
+  //     items will trail behind reality.
+  //   - paymentMethod must be CASH. CARD orders may already be
+  //     captured; we don't want a delta that the customer can't pay.
+  //   - orderSource must be POS. Online + marketplace orders have
+  //     their own correction flows.
+  //
+  // The implementation replaces the OrderItems array wholesale —
+  // operator gets a clean delete + reinsert rather than per-line
+  // diff. An OrderStatusHistory row records the edit so the audit
+  // trail shows what changed and who did it. After the transaction
+  // commits we re-emit emitNewOrder so the existing printer
+  // pipeline reprints the full updated ticket (the printer worker
+  // can't tell the difference from a brand-new order, which is
+  // exactly what we want for a clean reprint).
+  async editOrder(
+    orderId: string,
+    tenantId: string,
+    dto: {
+      items: Array<{
+        name: string;
+        quantity: number;
+        unitPrice: number;
+        totalPrice: number;
+        notes?: string;
+        sku?: string;
+        modifiers?: Array<{
+          name: string;
+          price: number;
+          quantity?: number;
+        }>;
+      }>;
+      subtotal: number;
+      taxAmount?: number;
+      deliveryFee?: number;
+      discount?: number;
+      total: number;
+      customerInfo?: { name: string; phone?: string; email?: string };
+      deliveryAddress?: {
+        line1: string;
+        line2?: string;
+        city: string;
+        postcode: string;
+        country?: string;
+      };
+      specialInstructions?: string;
+    },
+    userId: string,
+  ): Promise<Order> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      include: { items: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    const EDITABLE = new Set<OrderStatus>(["PENDING", "ACCEPTED", "PREPARING"]);
+    if (!EDITABLE.has(order.status)) {
+      throw new BadRequestException(
+        "Order can only be edited before it's marked Ready",
+      );
+    }
+    if ((order.paymentMethod ?? "").toUpperCase() !== "CASH") {
+      throw new BadRequestException(
+        "Only cash orders can be edited",
+      );
+    }
+    if (order.orderSource !== "POS") {
+      throw new BadRequestException(
+        "Only POS orders are editable from this flow",
+      );
+    }
+    if (!dto.items.length) {
+      throw new BadRequestException("Order must have at least one item");
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+      await tx.orderItem.createMany({
+        data: dto.items.map((it) => ({
+          orderId: order.id,
+          name: it.name,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          totalPrice: it.totalPrice,
+          modifiers: (it.modifiers ?? []) as any,
+          notes: it.notes ?? null,
+        })),
+      });
+
+      const customerInfoUpdate =
+        dto.customerInfo !== undefined
+          ? (dto.customerInfo as any)
+          : (order.customerInfo as any);
+
+      const customerNameUpdate =
+        dto.customerInfo?.name ?? order.customerName ?? null;
+      const customerPhoneUpdate =
+        dto.customerInfo?.phone ?? order.customerPhone ?? null;
+
+      const u = await tx.order.update({
+        where: { id: order.id },
+        data: {
+          subtotal: dto.subtotal,
+          taxAmount: dto.taxAmount ?? 0,
+          deliveryFee: dto.deliveryFee ?? 0,
+          discount: dto.discount ?? 0,
+          total: dto.total,
+          customerInfo: customerInfoUpdate,
+          customerName: customerNameUpdate,
+          customerPhone: customerPhoneUpdate,
+          deliveryAddress: dto.deliveryAddress
+            ? (dto.deliveryAddress as any)
+            : order.deliveryAddress ?? undefined,
+          specialInstructions:
+            dto.specialInstructions ?? order.specialInstructions,
+          updatedAt: new Date(),
+        },
+      });
+
+      const beforeTotal = Number(order.total);
+      const afterTotal = dto.total;
+      const beforeCount = order.items.reduce((s, i) => s + i.quantity, 0);
+      const afterCount = dto.items.reduce((s, i) => s + i.quantity, 0);
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          tenantId,
+          fromStatus: order.status,
+          toStatus: order.status,
+          actorType: "STAFF",
+          changedBy: userId,
+          note: `Order edited: ${beforeCount} → ${afterCount} item(s), total £${beforeTotal.toFixed(2)} → £${afterTotal.toFixed(2)}`,
+        },
+      });
+
+      return u;
+    });
+
+    // Re-emit so the printer pipeline reprints the full updated
+    // ticket. emitOrderUpdated also fires so the staff board
+    // refreshes the line items in-place.
+    this.socket.emitNewOrder(updated.locationId, {
+      orderId: updated.id,
+      tenantId,
+      locationId: updated.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      itemCount: dto.items.reduce((s, i) => s + i.quantity, 0),
+      customerName: updated.customerName ?? "",
+      scheduledFor: updated.scheduledFor?.toISOString() ?? null,
+      createdAt: updated.createdAt.toISOString(),
+      isEdit: true,
+    } as any);
+    this.socket.emitOrderUpdated(updated.locationId, {
+      orderId: updated.id,
+      tenantId,
+      locationId: updated.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      itemCount: dto.items.reduce((s, i) => s + i.quantity, 0),
+      customerName: updated.customerName ?? "",
+      scheduledFor: updated.scheduledFor?.toISOString() ?? null,
+      createdAt: updated.createdAt.toISOString(),
+    });
+
+    return updated;
+  }
+
   // ── Status transitions ────────────────────────────────
 
   async updateStatus(
