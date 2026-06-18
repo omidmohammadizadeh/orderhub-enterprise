@@ -197,6 +197,27 @@ export class PrintRoutingService {
     // ── Translate buckets → targets ──────────────────────────────────
     const targets: PrintTarget[] = [];
 
+    // Phase AW-26 — lifetime visit count for this customer at the
+    // tenant. Used by every payload built below (kitchen tickets +
+    // customer receipt + driver slip) so they all carry a "NEW
+    // CUSTOMER" / "RETURNING #N" banner. Phone is the most stable
+    // identifier across guest checkouts + POS + marketplace ingests.
+    const phone = (order.customerPhone ?? "").replace(/\s+/g, "");
+    const customerVisitCount = phone
+      ? await this.prisma.order.count({
+          where: {
+            tenantId: order.tenantId,
+            isSandbox: false,
+            status: { not: "CANCELLED" },
+            customerPhone: phone,
+          },
+        })
+      : 1;
+    const customerVisitTag =
+      customerVisitCount <= 1
+        ? "*** NEW CUSTOMER ***"
+        : `*** RETURNING CUSTOMER · ORDER #${customerVisitCount} ***`;
+
     // Kitchen tickets, one per station.
     const stationDetails = await this.prisma.printerStation.findMany({
       where: {
@@ -245,6 +266,8 @@ export class PrintRoutingService {
           deliveryAddress: this.formatDeliveryAddress(order),
           specialInstructions: order.specialInstructions ?? null,
           receivedAt: order.receivedAt ?? order.createdAt,
+          customerVisitCount,
+          customerVisitTag,
         },
       });
     }
@@ -302,7 +325,10 @@ export class PrintRoutingService {
           receiptPrinterId,
           null,
         ),
-        payload: this.buildReceiptPayload(order, items, header),
+        payload: this.buildReceiptPayload(order, items, header, {
+          customerVisitCount,
+          customerVisitTag,
+        }),
       });
     }
 
@@ -321,7 +347,10 @@ export class PrintRoutingService {
           order.location.dispatchPrinterId,
           null,
         ),
-        payload: this.buildDriverSlipPayload(order, header),
+        payload: this.buildDriverSlipPayload(order, header, {
+          customerVisitCount,
+          customerVisitTag,
+        }),
       });
     }
 
@@ -459,9 +488,12 @@ export class PrintRoutingService {
     order: any,
     items: OrderItemForRouting[],
     header: HeaderContext = EMPTY_HEADER,
+    visit: { customerVisitCount?: number; customerVisitTag?: string } = {},
   ) {
     return {
       ...header,
+      customerVisitCount: visit.customerVisitCount,
+      customerVisitTag: visit.customerVisitTag,
       orderNumber: order.orderNumber ?? order.displayId ?? null,
       displayId: order.displayId ?? null,
       // Order origin shown above the items so the kitchen instantly knows
@@ -493,9 +525,15 @@ export class PrintRoutingService {
     };
   }
 
-  private buildDriverSlipPayload(order: any, header: HeaderContext = EMPTY_HEADER) {
+  private buildDriverSlipPayload(
+    order: any,
+    header: HeaderContext = EMPTY_HEADER,
+    visit: { customerVisitCount?: number; customerVisitTag?: string } = {},
+  ) {
     return {
       ...header,
+      customerVisitCount: visit.customerVisitCount,
+      customerVisitTag: visit.customerVisitTag,
       orderNumber: order.orderNumber ?? order.displayId ?? null,
       displayId: order.displayId ?? null,
       platform: order.platform ?? null,
