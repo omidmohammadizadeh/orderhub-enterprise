@@ -197,22 +197,58 @@ export class PrintRoutingService {
     // ── Translate buckets → targets ──────────────────────────────────
     const targets: PrintTarget[] = [];
 
-    // Phase AW-26 — lifetime visit count for this customer at the
-    // tenant. Used by every payload built below (kitchen tickets +
-    // customer receipt + driver slip) so they all carry a "NEW
-    // CUSTOMER" / "RETURNING #N" banner. Phone is the most stable
-    // identifier across guest checkouts + POS + marketplace ingests.
-    const phone = (order.customerPhone ?? "").replace(/\s+/g, "");
-    const customerVisitCount = phone
-      ? await this.prisma.order.count({
+    // Phase AW-26 — Lifetime visit count for the banner on every
+    // payload below. Identity is channel-aware:
+    //   - Marketplaces (Just Eat / Uber Eats / Deliveroo / HubRise)
+    //     mask the phone per order, so we key by NAME + POSTCODE.
+    //   - POS + our own ONLINE storefront key by NAME + PHONE +
+    //     POSTCODE since the phone is the real customer's number.
+    // Count is the running tally including this order — "*** ORDER
+    // #1 ***" on a brand-new visit, "#2" on the next return, etc.
+    const MARKETPLACES = new Set([
+      "JUST_EAT",
+      "UBER_EATS",
+      "DELIVEROO",
+      "HUBRISE",
+    ]);
+    const isMarketplace =
+      MARKETPLACES.has(order.integrationSource ?? "") ||
+      MARKETPLACES.has(order.platform ?? "") ||
+      !!order.viaHubrise;
+    const customerVisitCount = await (async () => {
+      const name = order.customerName;
+      const postcode = order.postcode;
+      const phone = order.customerPhone;
+      try {
+        if (isMarketplace) {
+          if (!name) return 1;
+          return await this.prisma.order.count({
+            where: {
+              tenantId: order.tenantId,
+              isSandbox: false,
+              status: { not: "CANCELLED" },
+              customerName: name,
+              ...(postcode && { postcode }),
+            },
+          });
+        }
+        // Direct / POS / Online
+        if (!name) return 1;
+        if (!phone && !postcode) return 1;
+        return await this.prisma.order.count({
           where: {
             tenantId: order.tenantId,
             isSandbox: false,
             status: { not: "CANCELLED" },
-            customerPhone: phone,
+            customerName: name,
+            ...(phone && { customerPhone: phone }),
+            ...(postcode && { postcode }),
           },
-        })
-      : 1;
+        });
+      } catch {
+        return 1;
+      }
+    })();
     const customerVisitTag =
       customerVisitCount <= 1
         ? "*** NEW CUSTOMER ***"

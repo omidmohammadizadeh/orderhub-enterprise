@@ -1245,67 +1245,138 @@ export class OrdersService {
    * is included in its own running total — i.e. if a phone has 3
    * orders total, the oldest is #1, then #2, then #3.
    */
-  private async attachCustomerVisitCounts<T extends { id: string; customerPhone: string | null; createdAt: Date }>(
+  private async attachCustomerVisitCounts<
+    T extends {
+      id: string;
+      customerName: string | null;
+      customerPhone: string | null;
+      postcode: string | null;
+      platform: string;
+      orderSource: string;
+      integrationSource: string;
+      viaHubrise: boolean;
+      createdAt: Date;
+    },
+  >(
     rows: T[],
     tenantId: string,
   ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
     if (rows.length === 0) return [] as any;
-    // Gather both raw and normalised (spaces stripped) forms of every
-    // phone we'll look up. Phones in the DB are stored as the operator
-    // / customer typed them ("07788 180 709" vs "07788180709"), so a
-    // strict equality filter misses sibling rows; pull every row whose
-    // RAW phone matches what's on the board, then bucket by the
-    // normalised form to attribute counts.
-    const rawPhones = new Set<string>();
+
+    // Build a per-row identity key. Marketplaces mask the customer
+    // phone (Uber / Just Eat / Deliveroo / HubRise rotate the number
+    // per order so dedup-by-phone always shows "NEW"), so for those
+    // channels we key by name + postcode. POS + our direct online
+    // storefront use name + phone + postcode — phone is reliable when
+    // it's ours, and the extra signals tighten the match for walk-ins
+    // who share a postcode.
+    const MARKETPLACES = new Set([
+      "JUST_EAT",
+      "UBER_EATS",
+      "DELIVEROO",
+      "HUBRISE",
+    ]);
+    const norm = (s: string | null | undefined) =>
+      (s ?? "").replace(/\s+/g, "").toLowerCase();
+    const identityFor = (o: {
+      customerName: string | null;
+      customerPhone: string | null;
+      postcode: string | null;
+      platform: string;
+      orderSource: string;
+      integrationSource: string;
+      viaHubrise: boolean;
+    }): string | null => {
+      const isMarketplace =
+        MARKETPLACES.has(o.integrationSource) ||
+        MARKETPLACES.has(o.platform) ||
+        o.viaHubrise;
+      const name = norm(o.customerName);
+      const postcode = norm(o.postcode);
+      const phone = norm(o.customerPhone);
+      if (isMarketplace) {
+        // Name is required so a missing-name marketplace order doesn't
+        // collide with every other anonymous row.
+        if (!name) return null;
+        return `mkt|${name}|${postcode}`;
+      }
+      // POS + Online: phone is the strongest signal. Combined with
+      // name+postcode for the rare phone clash (shared household line,
+      // typo). Either phone OR postcode must exist; a pure-name match
+      // is too noisy to count as the same customer.
+      if (!name) return null;
+      if (!phone && !postcode) return null;
+      return `dir|${name}|${phone}|${postcode}`;
+    };
+
+    // Compute identities for every board row, then pull all tenant
+    // orders that could plausibly contribute to any of those
+    // identities. We don't reach for a DB-side GROUP BY on a derived
+    // identity (Prisma can't express it efficiently), so the safer
+    // path is a single findMany filtered to the *components* present
+    // on the board (names, phones, postcodes) and a bucket pass in
+    // process. Bounded to 365 days to keep the scan tight for big
+    // tenants — anything older than a year shouldn't influence a
+    // "returning customer" call anyway.
+    const names = new Set<string>();
+    const phones = new Set<string>();
+    const postcodes = new Set<string>();
     for (const r of rows) {
-      if (r.customerPhone) rawPhones.add(r.customerPhone);
+      if (r.customerName) names.add(r.customerName);
+      if (r.customerPhone) phones.add(r.customerPhone);
+      if (r.postcode) postcodes.add(r.postcode);
     }
-    const normalise = (s: string | null | undefined) =>
-      (s ?? "").replace(/\s+/g, "");
-    const countByNormalised = new Map<string, number>();
-    if (rawPhones.size > 0) {
+
+    const orClauses: any[] = [];
+    if (names.size) orClauses.push({ customerName: { in: Array.from(names) } });
+    if (phones.size) orClauses.push({ customerPhone: { in: Array.from(phones) } });
+    if (postcodes.size)
+      orClauses.push({ postcode: { in: Array.from(postcodes) } });
+
+    const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    const countById = new Map<string, number>();
+    if (orClauses.length > 0) {
       try {
-        // groupBy with `in` only matches verbatim, so we re-bucket
-        // results by normalised key in-process to absorb sibling
-        // rows stored with different whitespace.
-        const grouped = await (this.prisma as any).order.groupBy({
-          by: ["customerPhone"],
+        const siblings = await this.prisma.order.findMany({
           where: {
             tenantId,
             isSandbox: false,
             status: { not: "CANCELLED" },
-            customerPhone: { in: Array.from(rawPhones) },
+            createdAt: { gte: oneYearAgo },
+            OR: orClauses,
           },
-          _count: { _all: true },
+          select: {
+            customerName: true,
+            customerPhone: true,
+            postcode: true,
+            platform: true,
+            orderSource: true,
+            integrationSource: true,
+            viaHubrise: true,
+          },
         });
-        for (const g of grouped as Array<{
-          customerPhone: string | null;
-          _count: { _all: number };
-        }>) {
-          const k = normalise(g.customerPhone);
-          if (!k) continue;
-          countByNormalised.set(
-            k,
-            (countByNormalised.get(k) ?? 0) + g._count._all,
-          );
+        for (const s of siblings) {
+          const id = identityFor(s);
+          if (!id) continue;
+          countById.set(id, (countById.get(id) ?? 0) + 1);
         }
         this.logger.debug(
-          `attachCustomerVisitCounts tenant=${tenantId} rows=${rows.length} phones=${rawPhones.size} buckets=${countByNormalised.size}`,
+          `attachCustomerVisitCounts tenant=${tenantId} rows=${rows.length} siblings=${siblings.length} identities=${countById.size}`,
         );
       } catch (err) {
         this.logger.warn(
-          `attachCustomerVisitCounts groupBy failed for tenant=${tenantId}: ${(err as Error).message}`,
+          `attachCustomerVisitCounts lookup failed for tenant=${tenantId}: ${(err as Error).message}`,
         );
       }
     }
+
     return rows.map((r) => {
-      const k = normalise(r.customerPhone);
-      const lifetime = k ? (countByNormalised.get(k) ?? 1) : 1;
-      const visitCount = lifetime;
+      const id = identityFor(r);
+      const lifetime = id ? (countById.get(id) ?? 1) : 1;
       return {
         ...r,
-        customerVisitCount: visitCount,
-        customerVisitTag: visitCount <= 1 ? "NEW" : "RETURNING",
+        customerVisitCount: lifetime,
+        customerVisitTag: lifetime <= 1 ? "NEW" : "RETURNING",
       };
     });
   }
