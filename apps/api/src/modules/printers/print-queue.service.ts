@@ -37,11 +37,27 @@ export class PrintQueueService {
 
     const jobs: Array<{ printerId: string | null; type: PrintJobType; payload: object }> = [];
 
+    // Phase AW-26 — lifetime visit count for this customer at the
+    // tenant so the receipt + kitchen ticket can render a "NEW
+    // CUSTOMER" / "RETURNING #N" banner. Phone is the most stable
+    // identifier across guest checkouts + POS + marketplaces.
+    const phone = (order.customerPhone ?? "").replace(/\s+/g, "");
+    const visitCount = phone
+      ? await this.prisma.order.count({
+          where: {
+            tenantId: order.tenantId,
+            isSandbox: false,
+            status: { not: "CANCELLED" },
+            customerPhone: phone,
+          },
+        })
+      : 1;
+
     if (receiptPrinter) {
       jobs.push({
         printerId: receiptPrinter.id,
         type: "RECEIPT",
-        payload: buildReceiptPayload(order),
+        payload: buildReceiptPayload(order, visitCount),
       });
     }
 
@@ -49,7 +65,7 @@ export class PrintQueueService {
       jobs.push({
         printerId: kitchenPrinter.id,
         type: "KITCHEN_TICKET",
-        payload: buildKitchenTicketPayload(order),
+        payload: buildKitchenTicketPayload(order, visitCount),
       });
     }
 

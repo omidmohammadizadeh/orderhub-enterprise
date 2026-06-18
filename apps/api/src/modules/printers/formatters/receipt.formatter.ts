@@ -35,6 +35,12 @@ export interface ReceiptPayload {
   paymentLabel: string;
   specialInstructions?: string | null;
   scheduledFor?: string | null;
+  // Phase AW-26 — Customer loyalty hint. visitCount === 1 → NEW;
+  // otherwise the tag carries the running order number ("RETURNING ·
+  // #N") so the printer agent can render a bold one-line banner that
+  // tells the counter staff at a glance who's at the door.
+  customerVisitCount?: number;
+  customerVisitTag?: string;
   printedAt: string;
 }
 
@@ -69,7 +75,10 @@ export function paymentLabelFor(
   return "*** UNPAID ***";
 }
 
-export function buildReceiptPayload(order: any): ReceiptPayload {
+export function buildReceiptPayload(
+  order: any,
+  customerVisitCount?: number,
+): ReceiptPayload {
   const customer = order.customerInfo as Record<string, any>;
   const address = order.deliveryAddress as Record<string, any> | null;
 
@@ -108,6 +117,13 @@ export function buildReceiptPayload(order: any): ReceiptPayload {
     paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
     specialInstructions: order.specialInstructions ?? null,
     scheduledFor: order.scheduledFor?.toISOString() ?? null,
+    customerVisitCount,
+    customerVisitTag:
+      customerVisitCount == null
+        ? undefined
+        : customerVisitCount <= 1
+          ? "*** NEW CUSTOMER ***"
+          : `*** RETURNING CUSTOMER · ORDER #${customerVisitCount} ***`,
     printedAt: new Date().toISOString(),
   };
 }

@@ -72,18 +72,33 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               method={order.paymentMethod}
               status={order.paymentStatus}
             />
+            {/* Phase AW-26 — NEW / RETURNING customer signal. visitCount
+                is the lifetime order count attached server-side. */}
+            {typeof (order as any).customerVisitCount === "number" &&
+              ((order as any).customerVisitCount <= 1 ? (
+                <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  New
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-800">
+                  Returning · #{(order as any).customerVisitCount}
+                </span>
+              ))}
           </div>
           <p className="mt-0.5 text-xs text-zinc-500">
             {itemCount} item{itemCount !== 1 ? "s" : ""} · £{order.total.toFixed(2)}
           </p>
         </div>
 
-        {/* Scheduled indicator */}
+        {/* Phase AW-26 — Scheduled badge made unmissable so the
+            counter staff don't mistake a 6pm pickup for a "now"
+            order during the lunch rush. */}
         {order.scheduledFor && (
-          <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+          <div className="inline-flex items-center gap-1.5 self-start rounded-md border border-amber-300 bg-amber-100 px-2 py-1 text-xs font-bold uppercase tracking-wider text-amber-900">
             <Calendar className="h-3.5 w-3.5" />
             <span>
-              Scheduled {new Date(order.scheduledFor).toLocaleTimeString([], {
+              Scheduled ·{" "}
+              {new Date(order.scheduledFor).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}

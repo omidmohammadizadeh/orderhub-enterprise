@@ -22,10 +22,17 @@ export interface KitchenTicketPayload {
   paymentLabel: string;
   specialInstructions?: string | null;
   scheduledFor?: string | null;
+  // Phase AW-26 — visitCount === 1 → NEW; otherwise running order
+  // number for the kitchen banner.
+  customerVisitCount?: number;
+  customerVisitTag?: string;
   printedAt: string;
 }
 
-export function buildKitchenTicketPayload(order: any): KitchenTicketPayload {
+export function buildKitchenTicketPayload(
+  order: any,
+  customerVisitCount?: number,
+): KitchenTicketPayload {
   const customer = order.customerInfo as Record<string, any>;
 
   return {
@@ -47,6 +54,13 @@ export function buildKitchenTicketPayload(order: any): KitchenTicketPayload {
     paymentLabel: paymentLabelFor(order.paymentMethod, order.paymentStatus),
     specialInstructions: order.specialInstructions ?? null,
     scheduledFor: order.scheduledFor?.toISOString() ?? null,
+    customerVisitCount,
+    customerVisitTag:
+      customerVisitCount == null
+        ? undefined
+        : customerVisitCount <= 1
+          ? "*** NEW CUSTOMER ***"
+          : `*** RETURNING CUSTOMER · ORDER #${customerVisitCount} ***`,
     printedAt: new Date().toISOString(),
   };
 }

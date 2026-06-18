@@ -1168,7 +1168,7 @@ export class OrdersService {
       timezone = loc?.timezone ?? undefined;
     }
     const since24h = this.computeBusinessDayCutoff(timezone, 5);
-    return this.prisma.order.findMany({
+    const rows = await this.prisma.order.findMany({
       where: {
         tenantId,
         ...(locationId && { locationId }),
@@ -1223,6 +1223,66 @@ export class OrdersService {
       },
       include: ORDER_INCLUDE,
       orderBy: { createdAt: "desc" },
+    });
+    return this.attachCustomerVisitCounts(rows, tenantId);
+  }
+
+  /**
+   * Phase AW-26 — Annotate each order with how many TOTAL orders the
+   * customer has placed at this tenant up to and including this one.
+   *
+   *   visitCount === 1  → "NEW CUSTOMER" badge on the card/ticket
+   *   visitCount  >  1  → "Returning · #N" badge
+   *
+   * Identity = phone first (most reliable across guest checkouts +
+   * POS + marketplace ingests), then customerAccountId, then
+   * customerId. Orders missing all three get visitCount=1 to avoid
+   * misleading the operator.
+   *
+   * Batched: one tenant-wide groupBy on phone covers the entire
+   * board response, then we attribute counts in-process. For each
+   * order, we cap visitCount to (orderCount) so the order itself
+   * is included in its own running total — i.e. if a phone has 3
+   * orders total, the oldest is #1, then #2, then #3.
+   */
+  private async attachCustomerVisitCounts<T extends { id: string; customerPhone: string | null; createdAt: Date }>(
+    rows: T[],
+    tenantId: string,
+  ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
+    if (rows.length === 0) return [] as any;
+    // Gather identifiers we'll look up.
+    const phoneSet = new Set<string>();
+    for (const r of rows) {
+      const p = (r.customerPhone ?? "").replace(/\s+/g, "");
+      if (p) phoneSet.add(p);
+    }
+    let countByPhone = new Map<string, number>();
+    if (phoneSet.size > 0) {
+      const grouped = await (this.prisma as any).order.groupBy({
+        by: ["customerPhone"],
+        where: {
+          tenantId,
+          isSandbox: false,
+          status: { not: "CANCELLED" },
+          customerPhone: { in: Array.from(phoneSet) },
+        },
+        _count: { _all: true },
+      });
+      for (const g of grouped as Array<{ customerPhone: string | null; _count: { _all: number } }>) {
+        if (g.customerPhone) {
+          countByPhone.set(g.customerPhone.replace(/\s+/g, ""), g._count._all);
+        }
+      }
+    }
+    return rows.map((r) => {
+      const p = (r.customerPhone ?? "").replace(/\s+/g, "");
+      const lifetime = p ? (countByPhone.get(p) ?? 1) : 1;
+      const visitCount = lifetime;
+      return {
+        ...r,
+        customerVisitCount: visitCount,
+        customerVisitTag: visitCount <= 1 ? "NEW" : "RETURNING",
+      };
     });
   }
 }
