@@ -1571,11 +1571,19 @@ export class AnalyticsService {
         })
       : [];
     const shopMeta = new Map(shops.map((s) => [s.id, s]));
+    const fmtAddress = (raw: unknown): string | null => {
+      if (!raw || typeof raw !== "object") return null;
+      const a = raw as Record<string, any>;
+      const parts = [a.line1, a.line2, a.city, a.postcode].filter(
+        (p) => typeof p === "string" && p.length > 0,
+      );
+      return parts.length ? parts.join(", ") : null;
+    };
     const byShop = Array.from(curr.byShop.entries())
       .map(([id, row]) => ({
         locationId: id,
         name: shopMeta.get(id)?.name ?? "Unknown",
-        address: shopMeta.get(id)?.address ?? null,
+        address: fmtAddress(shopMeta.get(id)?.address),
         new: row.NEW,
         occasional: row.OCCASIONAL,
         frequent: row.FREQUENT,

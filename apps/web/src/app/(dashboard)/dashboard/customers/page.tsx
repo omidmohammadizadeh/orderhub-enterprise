@@ -358,7 +358,7 @@ function InsightsTab() {
                       >
                         <td className="px-3 py-3 text-zinc-800">
                           <p className="font-medium text-zinc-900">{s.name}</p>
-                          {s.address && (
+                          {typeof s.address === "string" && s.address && (
                             <p className="text-[11px] text-zinc-500">
                               {s.address}
                             </p>
