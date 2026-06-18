@@ -1,0 +1,85 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
+import { PrismaService } from "../../infrastructure/database/prisma.service";
+
+// Phase AW-27 — Daily auto-complete at the business-day rollover.
+//
+// At 05:00 UTC every day (≈ 05:00 GMT / 06:00 BST, matching the
+// operator's "next shift" cutoff) we flip every non-terminal order
+// to COMPLETED so the next morning starts with a clean board.
+//
+// In-scope statuses (anything that can still legitimately progress):
+//   PENDING, ACCEPTED, PREPARING, READY, DISPATCHED,
+//   PENDING_DISPATCH, ASSIGNED_DRIVER, ACCEPTED_BY_DRIVER,
+//   OUT_FOR_DELIVERY
+//
+// Out-of-scope (already terminal — left untouched):
+//   COMPLETED, CANCELLED, REJECTED, FAILED, REFUNDED
+//
+// We also bound by `updatedAt < 24h ago` so a fresh order placed at
+// 04:59 doesn't get completed five minutes later. The cron writes a
+// status-history row tagged "SYSTEM / 5am-rollover" so the audit
+// trail explains why the status flipped without operator input.
+
+@Injectable()
+export class OrdersAutoCompleteCron {
+  private readonly logger = new Logger(OrdersAutoCompleteCron.name);
+
+  private static readonly IN_FLIGHT_STATUSES = [
+    "PENDING",
+    "ACCEPTED",
+    "PREPARING",
+    "READY",
+    "DISPATCHED",
+    "PENDING_DISPATCH",
+    "ASSIGNED_DRIVER",
+    "ACCEPTED_BY_DRIVER",
+    "OUT_FOR_DELIVERY",
+  ] as const;
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  // 05:00 UTC daily.
+  @Cron("0 5 * * *")
+  async run() {
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 1h grace
+    const rows = await this.prisma.order.findMany({
+      where: {
+        status: {
+          in: OrdersAutoCompleteCron.IN_FLIGHT_STATUSES as any,
+        },
+        updatedAt: { lt: cutoff },
+      },
+      select: { id: true, tenantId: true, status: true },
+    });
+
+    if (rows.length === 0) {
+      this.logger.log("Auto-complete: no in-flight orders to roll over.");
+      return;
+    }
+
+    const ids = rows.map((r) => r.id);
+    await this.prisma.$transaction([
+      this.prisma.order.updateMany({
+        where: { id: { in: ids } },
+        data: { status: "COMPLETED" as any, updatedAt: new Date() },
+      }),
+      this.prisma.orderStatusHistory.createMany({
+        data: rows.map((r) => ({
+          orderId: r.id,
+          tenantId: r.tenantId,
+          fromStatus: r.status as any,
+          toStatus: "COMPLETED" as any,
+          actorType: "SYSTEM" as any,
+          note: "5am business-day rollover — auto-completed",
+        })),
+      }),
+    ]);
+
+    this.logger.log(
+      `Auto-completed ${rows.length} orders at the 5am rollover (statuses: ${Array.from(
+        new Set(rows.map((r) => r.status)),
+      ).join(", ")}).`,
+    );
+  }
+}

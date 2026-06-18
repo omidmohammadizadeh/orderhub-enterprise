@@ -1129,7 +1129,15 @@ export class AnalyticsService {
 
     type OrderRow = (typeof currOrders)[number];
 
-    const isSuccess = (s: string) => s === "COMPLETED";
+    // Phase AW-27 — Treat every non-terminally-negative status as
+    // successful so the dashboard isn't blank during the day. A live
+    // order accruing revenue (PENDING / ACCEPTED / PREPARING / READY /
+    // DISPATCHED) shows up in revenue immediately; if the operator
+    // later cancels it the 5am auto-complete leaves it (CANCELLED is
+    // terminal) and the analytics view shifts the line into the
+    // cancelled bucket on its own.
+    const NEGATIVE = new Set(["CANCELLED", "REJECTED", "FAILED"]);
+    const isSuccess = (s: string) => !NEGATIVE.has(s);
     const isCancelled = (s: string) => s === "CANCELLED" || s === "REJECTED";
     const isFailed = (s: string) => s === "FAILED";
 

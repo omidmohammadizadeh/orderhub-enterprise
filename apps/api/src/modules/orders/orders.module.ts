@@ -1,6 +1,7 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { OrdersController } from "./orders.controller";
+import { OrdersAutoCompleteCron } from "./orders-auto-complete.cron";
 import { SocketModule } from "../../infrastructure/socket/socket.module";
 import { AuthModule } from "../auth/auth.module";
 import { OutboxModule } from "../outbox/outbox.module";
@@ -28,7 +29,7 @@ import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
     forwardRef(() => HubRiseModule),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, OrdersAutoCompleteCron],
   exports: [OrdersService],
 })
 export class OrdersModule {}
