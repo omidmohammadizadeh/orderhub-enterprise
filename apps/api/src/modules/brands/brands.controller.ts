@@ -95,6 +95,24 @@ export class BrandsController {
     return this.brands.setSlug(brandId, user.tenantId, body?.slug);
   }
 
+  // Phase AW-16 — publish a brand's opening hours + prep time to one
+  // channel. POS/ONLINE are local-only (they overlay the brand's
+  // openingHours at storefront/POS read time, no external push needed).
+  // HUBRISE pushes to PATCH /v1/locations/:id { opening_hours,
+  // preparation_time }. Just Eat / Uber Eats / Deliveroo / WhatsApp
+  // are UI-only until each direct integration is wired.
+  @Post(":brandId/publish-hours")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Publish brand hours + prep time to a channel" })
+  publishHours(
+    @Param("brandId") brandId: string,
+    @Body() body: { channel: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.publishHours(brandId, user.tenantId, body.channel);
+  }
+
   @Delete(":brandId")
   @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)

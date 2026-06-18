@@ -167,6 +167,12 @@ export interface Brand {
   applicationFeeFixedAmount?: number | string | null;
   applicationFeePercentage?: number | string | null;
   applicationFeeMode?: string;
+  // Phase AW-16 — brand-level hours + prep time. openingHours is an
+  // object keyed by lowercase weekday name with arrays of
+  // {from, to} time strings, mirroring HubRise's expected shape.
+  openingHours?: Record<string, Array<{ from: string; to: string }>>;
+  prepTime?: number | null;
+  busyExtraPrepTime?: number | null;
   _count?: { platformConnections?: number; locations?: number };
 }
 
@@ -195,6 +201,16 @@ export const brandsClient = {
       .post<Brand>(`/v1/brands/${id}/online-ordering-slug`, { slug: slug ?? null })
       .then((r) => r.data),
   remove: (id: string) => apiClient.delete(`/v1/brands/${id}`),
+  // Phase AW-16 — push the brand's hours + prep to one channel.
+  // HUBRISE PATCHes /v1/locations/:id; POS/ONLINE no-op (overlay at
+  // read time); marketplace channels return pending_integration.
+  publishHours: (id: string, channel: string) =>
+    apiClient
+      .post<{ channel: string; status: string; pushed: boolean }>(
+        `/v1/brands/${id}/publish-hours`,
+        { channel },
+      )
+      .then((r) => r.data),
 };
 
 // ── Brand-platform connections ──

@@ -1,5 +1,13 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -46,6 +54,11 @@ export interface UpdateBrandDto {
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;
   applicationFeeMode?: string;
+  // Phase AW-16 — brand-level opening hours + prep time. Published
+  // through to HubRise (+ future channels) via /v1/brands/:id/publish-hours.
+  openingHours?: any;
+  prepTime?: number | null;
+  busyExtraPrepTime?: number | null;
 }
 
 function slugify(name: string): string {
@@ -62,7 +75,13 @@ function slugify(name: string): string {
 
 @Injectable()
 export class BrandsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    // Phase AW-16 — HubRise location PATCH for the Publish Hours flow.
+    // forwardRef in case the integration module ever imports brands.
+    @Inject(forwardRef(() => HubRiseLocationPauseService))
+    private readonly hubrise: HubRiseLocationPauseService,
+  ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
    *  whose primaryLocationId === locationId (virtual brands at that
@@ -227,6 +246,13 @@ export class BrandsService {
         ...(dto.applicationFeeMode !== undefined && {
           applicationFeeMode: dto.applicationFeeMode,
         }),
+        ...(dto.openingHours !== undefined && {
+          openingHours: dto.openingHours,
+        }),
+        ...(dto.prepTime !== undefined && { prepTime: dto.prepTime } as any),
+        ...(dto.busyExtraPrepTime !== undefined && {
+          busyExtraPrepTime: dto.busyExtraPrepTime,
+        } as any),
       },
     });
   }
@@ -365,6 +391,64 @@ export class BrandsService {
       where: { id: brandId },
       data: { deletedAt: new Date() },
     });
+  }
+
+  // Phase AW-16 — publish the brand's openingHours + prepTime out
+  // through one channel. For HUBRISE we PATCH /v1/locations/:id.
+  // POS / ONLINE are no-ops here — the storefront + POS read brand
+  // overlay at request time, so nothing extra to push. Marketplace
+  // channels (Just Eat / Uber Eats / Deliveroo / WhatsApp) return a
+  // soft success today so the UI can record the operator's intent;
+  // each direct push gets wired in its own follow-up phase.
+  async publishHours(brandId: string, tenantId: string, channel: string) {
+    const brand = (await this.assertAccess(brandId, tenantId)) as any;
+    if (!channel) throw new BadRequestException("channel required");
+
+    switch (channel) {
+      case "ONLINE":
+      case "POS":
+        // Local channels — storefront + POS overlay brand-first when
+        // a brand is pinned (see AW-2 ordering.service overlay), so
+        // updating the brand row IS the publish. No-op here.
+        return { channel, status: "ok", pushed: false };
+
+      case "HUBRISE": {
+        // Find any HubRise-connected location this brand operates at.
+        // primary-location virtual brands use their primaryLocationId;
+        // a kitchen-default brand picks its first attached location.
+        const location = await this.prisma.location.findFirst({
+          where: {
+            OR: [
+              { id: brand.primaryLocationId ?? "" },
+              { brandId, hubriseLocationId: { not: null } },
+            ],
+            hubriseLocationId: { not: null },
+          },
+          select: { id: true },
+        });
+        if (!location) {
+          throw new BadRequestException(
+            "No HubRise-connected location found for this brand. Connect HubRise on the location first.",
+          );
+        }
+        await this.hubrise.publishHours({
+          locationId: location.id,
+          openingHours: brand.openingHours,
+          prepTime: brand.prepTime ?? null,
+        });
+        return { channel, status: "ok", pushed: true };
+      }
+
+      case "JUST_EAT":
+      case "UBER_EATS":
+      case "DELIVEROO":
+      case "WHATSAPP":
+        // Intent recorded; direct push lands in a future phase.
+        return { channel, status: "pending_integration", pushed: false };
+
+      default:
+        throw new BadRequestException(`Unknown channel: ${channel}`);
+    }
   }
 
   private async assertAccess(brandId: string, tenantId: string) {

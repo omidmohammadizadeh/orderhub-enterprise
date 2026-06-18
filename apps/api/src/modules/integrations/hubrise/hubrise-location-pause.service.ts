@@ -96,4 +96,69 @@ export class HubRiseLocationPauseService {
         (args.resumeAt ? ` resume_at=${args.resumeAt.toISOString()}` : ""),
     );
   }
+
+  /**
+   * Phase AW-16 — push opening_hours + preparation_time to HubRise.
+   *
+   * HubRise expects opening_hours as
+   *   { monday: [{from:"11:00", to:"23:59"}, ...], tuesday: [...], … }
+   * keyed by lowercase weekday name. preparation_time is an integer
+   * (minutes). We send what we have on the brand and silently no-op
+   * if the brand has no HubRise-connected location.
+   *
+   * Caller: PublishHoursService when the operator hits the new
+   * "Publish hours" button with channel = HUBRISE.
+   */
+  async publishHours(args: {
+    locationId: string;
+    openingHours: any;
+    prepTime: number | null;
+  }): Promise<void> {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: args.locationId },
+      select: {
+        hubriseCredentials: true,
+        hubriseLocationId: true,
+      },
+    });
+    if (!loc?.hubriseLocationId || !loc.hubriseCredentials) return;
+
+    const decrypted = this.credentialEncryption.decrypt(
+      loc.hubriseCredentials as Record<string, unknown>,
+    ) as Record<string, string>;
+    const accessToken = decrypted.accessToken;
+    if (!accessToken) return;
+
+    const body: Record<string, any> = {};
+    if (args.openingHours && typeof args.openingHours === "object") {
+      body.opening_hours = args.openingHours;
+    }
+    if (args.prepTime != null && args.prepTime > 0) {
+      body.preparation_time = args.prepTime;
+    }
+    if (Object.keys(body).length === 0) return;
+
+    const baseUrl =
+      this.config.get<string>("app.platforms.hubrise.baseUrl") ??
+      "https://api.hubrise.com/v1";
+    const url = `${baseUrl}/locations/${loc.hubriseLocationId.toLowerCase()}`;
+
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Access-Token": accessToken,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(
+        `HubRise PATCH /locations/${loc.hubriseLocationId} hours → ${res.status}: ${text.slice(0, 200)}`,
+      );
+    }
+    this.logger.log(
+      `HubRise location ${loc.hubriseLocationId} hours published (prep=${args.prepTime ?? "-"})`,
+    );
+  }
 }

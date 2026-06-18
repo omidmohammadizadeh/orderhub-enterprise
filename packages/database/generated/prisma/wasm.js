@@ -303,6 +303,9 @@ exports.Prisma.BrandScalarFieldEnum = {
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
+  openingHours: 'openingHours',
+  prepTime: 'prepTime',
+  busyExtraPrepTime: 'busyExtraPrepTime',
   defaultStationId: 'defaultStationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

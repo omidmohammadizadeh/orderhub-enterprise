@@ -409,6 +409,19 @@ model Brand {
   // location. One config per brand drives that brand's storefront.
   directOrderingConfig DirectOrderingConfig?
 
+  // Phase AW-16 — brand-level opening hours, base prep time, and
+  // busy-mode extra prep. Operators set these on the brand (not the
+  // location) so each virtual brand running out of one kitchen can
+  // run on its own schedule. The Publish Hours button in the menu
+  // section pushes this state to HubRise (PATCH /v1/locations/:id
+  // { opening_hours, preparation_time }). Storefront + POS already
+  // overlay brand-first when a brand is pinned (see AW-2 storefront
+  // resolver). When null, callers fall back to the underlying
+  // Location's columns for backwards compatibility.
+  openingHours      Json @default("{}")
+  prepTime          Int?
+  busyExtraPrepTime Int?
+
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]
@@ -2789,7 +2802,7 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ═══���══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
 

@@ -69,6 +69,38 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
   const [appFeePct, setAppFeePct] = useState<string>(
     brand.applicationFeePercentage?.toString() ?? "",
   );
+  // Phase AW-16 — brand-level opening hours + prep time. openingHours
+  // is a map { monday: [{from, to}, ...], … } mirroring HubRise's
+  // shape. Empty defaults so the operator can fill them in.
+  const DAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ] as const;
+  type Day = (typeof DAYS)[number];
+  const [openingHours, setOpeningHours] = useState<
+    Record<Day, Array<{ from: string; to: string }>>
+  >(() => {
+    const src = (brand.openingHours ?? {}) as any;
+    const out: Record<Day, Array<{ from: string; to: string }>> = {
+      monday: [], tuesday: [], wednesday: [], thursday: [],
+      friday: [], saturday: [], sunday: [],
+    };
+    for (const d of DAYS) {
+      if (Array.isArray(src[d])) out[d] = src[d];
+    }
+    return out;
+  });
+  const [prepTime, setPrepTime] = useState<string>(
+    brand.prepTime != null ? String(brand.prepTime) : "",
+  );
+  const [busyExtraPrepTime, setBusyExtraPrepTime] = useState<string>(
+    brand.busyExtraPrepTime != null ? String(brand.busyExtraPrepTime) : "",
+  );
 
   // ── Phase AW — Direct online ordering config (moved off the
   //    location-level sidebar tab). Per-brand prep times, accepted
@@ -169,6 +201,11 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
           applicationFeeMode: appFeeMode,
           applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
           applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
+          openingHours,
+          prepTime: prepTime ? Number(prepTime) : null,
+          busyExtraPrepTime: busyExtraPrepTime
+            ? Number(busyExtraPrepTime)
+            : null,
         }),
         directOrderingClient.updateByBrand(brand.id, {
           deliveryPrepMinutes: Number(deliveryPrep) || 0,
@@ -425,6 +462,125 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                   disabled={!isAdmin}
                   type="number"
                   step="0.01"
+                  className="input"
+                />
+              </Field>
+            </div>
+          </Section>
+
+          {/* ── Opening hours + base prep time (Phase AW-16) ─────── */}
+          <Section title="Opening hours + prep time">
+            <p className="text-[11px] text-zinc-500 mb-3">
+              Per-brand schedule. Published to HubRise via the
+              &ldquo;Publish hours&rdquo; button on the Menu page.
+            </p>
+            <div className="space-y-2">
+              {DAYS.map((day) => (
+                <div key={day} className="flex items-center gap-2">
+                  <span className="w-20 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    {day}
+                  </span>
+                  <div className="flex flex-1 flex-col gap-1">
+                    {openingHours[day].length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          isAdmin &&
+                          setOpeningHours({
+                            ...openingHours,
+                            [day]: [{ from: "09:00", to: "21:00" }],
+                          })
+                        }
+                        disabled={!isAdmin}
+                        className="rounded-md border border-dashed border-zinc-300 px-2 py-1 text-left text-[11px] text-zinc-500 hover:border-zinc-400 disabled:opacity-50"
+                      >
+                        Closed — tap to add hours
+                      </button>
+                    ) : (
+                      openingHours[day].map((slot, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5">
+                          <input
+                            type="time"
+                            value={slot.from}
+                            onChange={(e) => {
+                              const copy = { ...openingHours };
+                              copy[day] = [...copy[day]];
+                              copy[day][idx] = { ...slot, from: e.target.value };
+                              setOpeningHours(copy);
+                            }}
+                            disabled={!isAdmin}
+                            className="input"
+                          />
+                          <span className="text-[11px] text-zinc-400">→</span>
+                          <input
+                            type="time"
+                            value={slot.to}
+                            onChange={(e) => {
+                              const copy = { ...openingHours };
+                              copy[day] = [...copy[day]];
+                              copy[day][idx] = { ...slot, to: e.target.value };
+                              setOpeningHours(copy);
+                            }}
+                            disabled={!isAdmin}
+                            className="input"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const copy = { ...openingHours };
+                              copy[day] = copy[day].filter((_, i) => i !== idx);
+                              setOpeningHours(copy);
+                            }}
+                            disabled={!isAdmin}
+                            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 disabled:opacity-50"
+                            title="Remove slot"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                    {openingHours[day].length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          isAdmin &&
+                          setOpeningHours({
+                            ...openingHours,
+                            [day]: [
+                              ...openingHours[day],
+                              { from: "18:00", to: "23:00" },
+                            ],
+                          })
+                        }
+                        disabled={!isAdmin}
+                        className="self-start rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-50 disabled:opacity-50"
+                      >
+                        + Add another slot
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Field label="Base prep time (minutes)">
+                <input
+                  value={prepTime}
+                  onChange={(e) => setPrepTime(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min={0}
+                  className="input"
+                />
+              </Field>
+              <Field label="Busy mode adds (minutes)">
+                <input
+                  value={busyExtraPrepTime}
+                  onChange={(e) => setBusyExtraPrepTime(e.target.value)}
+                  disabled={!isAdmin}
+                  type="number"
+                  min={0}
                   className="input"
                 />
               </Field>

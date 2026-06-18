@@ -26,8 +26,9 @@ import { AddMenuModal } from "@/components/menu/add-menu-modal";
 import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
+import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
-import { Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2, Clock } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 const STATUS_CONFIG = {
@@ -54,6 +55,7 @@ export default function MenuPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
   const [publishingMenu, setPublishingMenu] = useState<Menu | null>(null);
+  const [publishHoursOpen, setPublishHoursOpen] = useState(false);
   // Phase AM — transient success toast after a publish, dismissed
   // after 4s or on next user interaction.
   const [publishToast, setPublishToast] = useState<{
@@ -292,6 +294,20 @@ export default function MenuPage() {
               ? "Importing…"
               : "Import from HubRise"}
           </Button>
+          {/* Phase AW-16 — Publish brand-level opening hours + prep
+              time to one channel (HubRise wired; marketplaces stubbed
+              for now). Separate from menu publish because hours change
+              far more often than menus do. */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setPublishHoursOpen(true)}
+            disabled={!selectedLocationId}
+            title="Push the brand's opening hours + prep time to a channel"
+          >
+            <Clock className="h-4 w-4 mr-1.5" />
+            Publish hours
+          </Button>
           <Button
             size="sm"
             onClick={openAddMenu}
@@ -394,6 +410,12 @@ export default function MenuPage() {
           ))}
         </div>
       )}
+
+      <PublishHoursModal
+        open={publishHoursOpen}
+        locationId={selectedLocationId ?? undefined}
+        onClose={() => setPublishHoursOpen(false)}
+      />
 
       <PublishMenuModal
         open={!!publishingMenu}
