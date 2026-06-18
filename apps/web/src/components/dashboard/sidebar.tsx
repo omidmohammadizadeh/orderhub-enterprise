@@ -30,6 +30,7 @@ import {
   UserCog,
   Inbox,
   Megaphone,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -80,6 +81,7 @@ const primaryNav: NavItem[] = [
   // duplicate products.
   { href: "/dashboard/products", label: "Products", icon: Layers, roles: MANAGER_TIER },
   { href: "/dashboard/menu", label: "Menu", icon: UtensilsCrossed, roles: MANAGER_TIER },
+  { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
   { href: "/dashboard/drivers", label: "Drivers", icon: Truck, roles: MANAGER_TIER },

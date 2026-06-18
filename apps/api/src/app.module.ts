@@ -49,6 +49,7 @@ import { KdsModule } from "./modules/kds/kds.module";
 import { PrintersModule } from "./modules/printers/printers.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { OrderingModule } from "./modules/ordering/ordering.module";
+import { StoreStatusModule } from "./modules/store-status/store-status.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DriversModule } from "./modules/drivers/drivers.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
@@ -180,6 +181,7 @@ import { QUEUES } from "@orderhub/shared";
     KdsModule,
     PrintersModule,
     OrderingModule,
+    StoreStatusModule,
     CustomersModule,
     DriversModule,
     PaymentsModule,
