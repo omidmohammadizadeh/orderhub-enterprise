@@ -551,30 +551,40 @@ export class OrderingService {
     // Order.total are rewritten to use the server-computed values.
     const campaignBrandId =
       pinnedBrandId ?? (location as any).brandId;
-    const customerAudience = await this.marketing.resolveAudience({
-      tenantId: location.brand.tenantId,
-      customerAccountId: dto.customerAccountId ?? null,
-    });
-    const appliedCampaign = await this.pickStorefrontCampaign({
-      brandId: campaignBrandId,
-      audiences: ["ALL", customerAudience],
-    });
     let campaignDiscount = 0;
-    if (
-      appliedCampaign &&
-      appliedCampaign.percentageOff != null &&
-      (appliedCampaign.minOrder == null ||
-        dto.subtotal >= appliedCampaign.minOrder)
-    ) {
-      campaignDiscount =
-        Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+    try {
+      const customerAudience = await this.marketing.resolveAudience({
+        tenantId: location.brand.tenantId,
+        customerAccountId: dto.customerAccountId ?? null,
+      });
+      const appliedCampaign = await this.pickStorefrontCampaign({
+        brandId: campaignBrandId,
+        audiences: ["ALL", customerAudience],
+      });
+      if (
+        appliedCampaign &&
+        appliedCampaign.percentageOff != null &&
+        (appliedCampaign.minOrder == null ||
+          dto.subtotal >= appliedCampaign.minOrder)
+      ) {
+        campaignDiscount =
+          Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+      }
+    } catch (err) {
+      // Phase AW-19 — never fail checkout because campaign resolution
+      // broke. Fall back to whatever the client already applied.
+      this.logger.warn(
+        `Campaign re-resolution failed for slug=${slug}: ${(err as Error).message}`,
+      );
     }
-    const serverDiscount = Math.max(dto.discount ?? 0, campaignDiscount);
-    const serverTotal =
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
+    const serverTotal = round2(
       dto.subtotal -
-      serverDiscount +
-      (dto.taxAmount ?? 0) +
-      (dto.deliveryFee ?? 0);
+        serverDiscount +
+        (dto.taxAmount ?? 0) +
+        (dto.deliveryFee ?? 0),
+    );
 
     const order = await this.ordersService.create(
       {
