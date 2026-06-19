@@ -1225,7 +1225,11 @@ export class OrdersService {
           AND: [
             { paymentMethod: "CARD" },
             { paymentStatus: "PENDING" },
-            { orderSource: "DIRECT" },
+            // Phase AW-30 — storefront places these as orderSource:
+            // "ONLINE", DIRECT predates the AP flows. Hide both until
+            // Stripe authorisation lands. Marketplace sources stay
+            // visible because those orders arrive already paid.
+            { orderSource: { in: ["DIRECT", "ONLINE"] } },
           ],
         },
         OR: [
