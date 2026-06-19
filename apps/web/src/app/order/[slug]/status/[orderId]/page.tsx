@@ -110,9 +110,14 @@ export default function OrderStatusPage() {
     ];
   }, [data, isDelivery]);
 
-  const orderRef = data?.orderNumber
-    ? `#${data.orderNumber}`
-    : data?.displayId ?? params.orderId.slice(0, 8);
+  // Phase AW-30 — prefer the 5-char displayId so the tracker matches
+  // the receipt + the orders board + the My Orders list. Falls back to
+  // the internal orderNumber for legacy orders without a short code.
+  const orderRef = data?.displayId
+    ? `#${data.displayId}`
+    : data?.orderNumber
+      ? `#${data.orderNumber}`
+      : params.orderId.slice(0, 8);
 
   return (
     <div className="min-h-screen bg-zinc-50">

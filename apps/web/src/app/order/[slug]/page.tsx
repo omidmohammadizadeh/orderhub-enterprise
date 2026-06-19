@@ -2688,10 +2688,12 @@ function AcceptedScreen({
         ]
       : [{ key: "COLLECTED", label: "Collected", at: data.deliveredAt }]),
   ];
-  const orderRef = data.orderNumber
-    ? `#${data.orderNumber}`
-    : data.displayId
-      ? `#${data.displayId}`
+  // Phase AW-30 — prefer the 5-char displayId so the confirmation +
+  // tracker screens match the receipt and the My Orders list.
+  const orderRef = data.displayId
+    ? `#${data.displayId}`
+    : data.orderNumber
+      ? `#${data.orderNumber}`
       : `#${data.id.slice(-6).toUpperCase()}`;
   const completed = data.status === "COMPLETED";
 
