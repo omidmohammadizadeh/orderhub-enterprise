@@ -1715,10 +1715,36 @@ export class PaymentsService {
   /**
    * List every brand in the tenant with its Connect status so the
    * Payments page can render one card per brand.
+   *
+   * When `locationId` is passed, only brands tied to that location
+   * show up:
+   *   - the location's parent kitchen brand (Location.brandId), AND
+   *   - any virtual brand pinned to it via Brand.primaryLocationId.
+   * Brands that haven't enabled direct online ordering yet are
+   * filtered out — there's nothing to take payment for, so the
+   * payments page hides them.
    */
-  async listBrandConnectStatus(tenantId: string) {
+  async listBrandConnectStatus(tenantId: string, locationId?: string) {
+    const baseWhere: any = {
+      tenantId,
+      deletedAt: null,
+      directOrderingEnabled: true,
+    };
+
+    if (locationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: locationId, brand: { tenantId } },
+        select: { id: true, brandId: true },
+      });
+      if (!loc) return [];
+      baseWhere.OR = [
+        { id: loc.brandId },
+        { primaryLocationId: loc.id },
+      ];
+    }
+
     const brands = await this.prisma.brand.findMany({
-      where: { tenantId, deletedAt: null },
+      where: baseWhere,
       select: {
         id: true,
         name: true,

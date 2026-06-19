@@ -181,9 +181,15 @@ export class PaymentsController {
   // GET /v1/payments/connect/brands — one row per brand with status.
   @Get("connect/brands")
   @Roles("MANAGER", "TENANT_OWNER", "FINANCIAL_AGENT")
-  @ApiOperation({ summary: "List Connect status for every brand" })
-  listBrandConnectStatus(@CurrentUser() user: AuthenticatedUser) {
-    return this.payments.listBrandConnectStatus(user.tenantId);
+  @ApiOperation({
+    summary:
+      "List Connect status for every brand. Pass ?locationId= to scope to a single location's brands.",
+  })
+  listBrandConnectStatus(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.payments.listBrandConnectStatus(user.tenantId, locationId);
   }
 
   // POST /v1/payments/connect/brands/:brandId/onboarding-session

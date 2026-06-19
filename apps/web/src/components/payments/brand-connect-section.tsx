@@ -20,6 +20,7 @@ import {
 } from "@stripe/react-connect-js";
 import { loadConnectAndInitialize } from "@stripe/connect-js";
 import { apiClient } from "@/lib/api/client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface BrandConnectRow {
   brandId: string;
@@ -43,11 +44,20 @@ type PanelMode = "onboarding" | "management";
 
 export function BrandConnectSection() {
   const qc = useQueryClient();
+  // Phase AW-30 — scope the brand list to the location picker in the
+  // sidebar. When "All locations" is selected (null) we show every
+  // brand with direct online ordering enabled; when one location is
+  // pinned we show only the brands tied to that location.
+  const locationId = useSelectedLocationStore(
+    (s) => s.selectedLocationId,
+  );
   const brandsQuery = useQuery({
-    queryKey: ["brand-connect"],
+    queryKey: ["brand-connect", locationId],
     queryFn: () =>
       apiClient
-        .get("/v1/payments/connect/brands")
+        .get("/v1/payments/connect/brands", {
+          params: locationId ? { locationId } : undefined,
+        })
         .then((r) => r.data as BrandConnectRow[]),
   });
 
@@ -86,7 +96,9 @@ export function BrandConnectSection() {
         </div>
       ) : brands.length === 0 ? (
         <p className="text-sm text-zinc-500">
-          No brands yet. Create one from Locations → Brands first.
+          {locationId
+            ? "No brands with online ordering enabled at this location. Switch to All locations or enable a brand's online ordering from Locations → Brands."
+            : "No brands with online ordering enabled yet. Create one from Locations → Brands first."}
         </p>
       ) : (
         <ul className="divide-y divide-zinc-100">
