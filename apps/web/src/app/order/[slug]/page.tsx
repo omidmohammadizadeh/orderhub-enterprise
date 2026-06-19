@@ -2406,7 +2406,14 @@ function computeSlots(
   const dayKey = DAY_KEYS[day.getDay()];
   if (!dayKey) return [];
   const dayCfg = openingHours[dayKey];
-  if (!dayCfg?.enabled || !Array.isArray(dayCfg.slots)) return [];
+  // Phase AW-30 — accept both `{ enabled, slots }` (location drawer)
+  // and bare `[{ from, to }]` (brand drawer) shapes.
+  const slots: Array<{ from?: string; to?: string }> = Array.isArray(dayCfg)
+    ? dayCfg
+    : dayCfg && dayCfg.enabled !== false && Array.isArray(dayCfg.slots)
+      ? dayCfg.slots
+      : [];
+  if (slots.length === 0) return [];
 
   const now = new Date();
   const isToday = day.toDateString() === now.toDateString();
@@ -2415,7 +2422,7 @@ function computeSlots(
     : new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0);
 
   const out: string[] = [];
-  for (const slot of dayCfg.slots) {
+  for (const slot of slots) {
     if (!slot?.from || !slot?.to) continue;
     const [fh = 0, fm = 0] = String(slot.from).split(":").map(Number);
     const [th = 0, tm = 0] = String(slot.to).split(":").map(Number);
@@ -2976,15 +2983,25 @@ function OpeningHoursTable({ openingHours }: { openingHours: any }) {
       </p>
     );
   }
+  // Phase AW-30 — two shapes ship through here. The location drawer
+  // saves `{ monday: { enabled, slots:[{from,to}] } }`; the brand
+  // drawer saves the flatter `{ monday: [{from,to}] }`. Coerce to the
+  // slots array up front so both render the same way.
+  const slotsFor = (day: any): Array<{ from?: string; to?: string }> => {
+    if (Array.isArray(day)) return day;
+    if (day && day.enabled !== false && Array.isArray(day.slots)) return day.slots;
+    return [];
+  };
   return (
     <ul className="space-y-1.5">
       {INFO_DAYS.map(([key, label]) => {
         const day = openingHours[key];
-        const closed = !day?.enabled || !Array.isArray(day.slots) || day.slots.length === 0;
+        const slots = slotsFor(day);
+        const closed = slots.length === 0;
         const summary = closed
           ? "Closed"
-          : day.slots
-              .map((s: any) => `${s.from ?? "??"} – ${s.to ?? "??"}`)
+          : slots
+              .map((s) => `${s.from ?? "??"} – ${s.to ?? "??"}`)
               .join(", ");
         return (
           <li key={key} className="flex items-center justify-between">
