@@ -43,6 +43,12 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SOCKET_URL
 ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
+# Phase AW-30 — Stripe publishable key for embedded Connect onboarding.
+# Must be declared here or Next.js never sees it during `next build`
+# and the bundle ships with process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+# = undefined, regardless of what Render shows in the env var list.
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 RUN pnpm --filter @orderhub/shared build
 RUN pnpm --filter @orderhub/web build
