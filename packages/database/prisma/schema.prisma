@@ -52,23 +52,23 @@ model Tenant {
   settings Json         @default("{}")
   metadata Json         @default("{}")
 
-  brands          Brand[]
-  users           User[]
-  apiKeys         ApiKey[]
-  orders          Order[]
-  printJobs       PrintJob[]
-  customers       Customer[]
-  promoCodes      PromoCode[]
+  brands             Brand[]
+  users              User[]
+  apiKeys            ApiKey[]
+  orders             Order[]
+  printJobs          PrintJob[]
+  customers          Customer[]
+  promoCodes         PromoCode[]
   marketingCampaigns MarketingCampaign[]
-  drivers         Driver[]
-  suppliers       Supplier[]
-  ipAllowlists    IpAllowlist[]
-  connectAccount  StripeConnectAccount[]
-  branding        TenantBranding?
-  subscription    TenantSubscription?
-  invitations     Invitation[]
-  printerStations PrinterStation[]
-  printAgents     PrintAgent[]
+  drivers            Driver[]
+  suppliers          Supplier[]
+  ipAllowlists       IpAllowlist[]
+  connectAccount     StripeConnectAccount[]
+  branding           TenantBranding?
+  subscription       TenantSubscription?
+  invitations        Invitation[]
+  printerStations    PrinterStation[]
+  printAgents        PrintAgent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -419,9 +419,9 @@ model Brand {
   // overlay brand-first when a brand is pinned (see AW-2 storefront
   // resolver). When null, callers fall back to the underlying
   // Location's columns for backwards compatibility.
-  openingHours       Json    @default("{}")
-  prepTime           Int?
-  busyExtraPrepTime  Int?
+  openingHours      Json @default("{}")
+  prepTime          Int?
+  busyExtraPrepTime Int?
 
   locations           Location[]
   menus               Menu[]
@@ -861,11 +861,11 @@ model MenuItem {
   // importer can re-link after creating local ModifierGroup rows.
   rawModifierGroupIds Json      @default("[]")
 
-  categories         MenuItemOnCategory[]
-  modifierGroupLinks ModifierGroupOnItem[]
-  variants           MenuItemVariant[]
-  recipe             Recipe?
-  stationRoutes      MenuItemStation[]
+  categories          MenuItemOnCategory[]
+  modifierGroupLinks  ModifierGroupOnItem[]
+  variants            MenuItemVariant[]
+  recipe              Recipe?
+  stationRoutes       MenuItemStation[]
   // Phase AW-14 — per-channel snooze records ("86" board). One row
   // per (item, channel) currently snoozed; absence = available.
   channelAvailability MenuItemChannelAvailability[]
@@ -902,16 +902,16 @@ model MenuItem {
 // orders, just with extra prep time bolted on). extra_preparation_time
 // is only set in BUSY rows.
 model ChannelPause {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   locationId    String
-  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  location      Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
   brandId       String?
   channel       String?
-  mode          String   @default("paused") // "paused" | "busy"
+  mode          String    @default("paused") // "paused" | "busy"
   resumeAt      DateTime?
   reason        String?
   extraPrepTime Int?
-  pausedAt      DateTime @default(now())
+  pausedAt      DateTime  @default(now())
   pausedBy      String?
 
   createdAt DateTime @default(now())
@@ -941,23 +941,23 @@ model ChannelPause {
 // Per-channel intentionally — operators want to 86 a pizza on Uber
 // Eats only without taking it off the in-store POS.
 model MenuItemChannelAvailability {
-  id            String   @id @default(cuid())
-  itemId        String
-  item          MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  channel       String
+  id           String    @id @default(cuid())
+  itemId       String
+  item         MenuItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  channel      String
   // Always false in current rows — the row's existence IS the snooze.
   // Kept on the model so a future "explicit in-stock with count"
   // record can ride the same table without an enum change.
-  isAvailable   Boolean  @default(false)
+  isAvailable  Boolean   @default(false)
   // ISO timestamp. Read-time filter compares against now(); past
   // values are treated as expired (auto-unsnooze).
-  expiresAt     DateTime?
+  expiresAt    DateTime?
   // Operator-supplied reason, free text. Surfaced on the inventory
   // board so the next shift knows why a product is out.
-  snoozeReason  String?
+  snoozeReason String?
   // For audit + the inventory board's "snoozed N minutes ago" label.
-  snoozedAt     DateTime @default(now())
-  snoozedBy     String?
+  snoozedAt    DateTime  @default(now())
+  snoozedBy    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1414,11 +1414,11 @@ model MarketingCampaign {
 
   // Type-specific fields. All nullable so a row only fills what its
   // type needs.
-  percentageOff Decimal? @db.Decimal(5, 2)
-  amountOff     Decimal? @db.Decimal(10, 2)
-  minOrder      Decimal? @db.Decimal(10, 2)
-  freeItemId    String?
-  itemIds       String[] @default([])
+  percentageOff  Decimal? @db.Decimal(5, 2)
+  amountOff      Decimal? @db.Decimal(10, 2)
+  minOrder       Decimal? @db.Decimal(10, 2)
+  freeItemId     String?
+  itemIds        String[] @default([])
   // HH:MM 24h. Local to the brand's timezone (brand inherits from
   // location's tz at evaluation time).
   dailyStartTime String?

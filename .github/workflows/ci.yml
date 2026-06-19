@@ -59,6 +59,7 @@ jobs:
       - name: Build workspace packages
         run: |
           pnpm --filter @orderhub/database db:generate
+          pnpm --filter @orderhub/database build
           pnpm --filter @orderhub/shared build
 
       - name: Type check — API
@@ -96,6 +97,7 @@ jobs:
         run: |
           # Ensure the schema can generate without errors
           pnpm --filter @orderhub/database db:generate
+          pnpm --filter @orderhub/database build
 
   # ── Tests ───────────────────────────────────────────────
   test:
@@ -145,6 +147,7 @@ jobs:
       - name: Build workspace packages
         run: |
           pnpm --filter @orderhub/database db:generate
+          pnpm --filter @orderhub/database build
           pnpm --filter @orderhub/shared build
 
       - name: Apply test schema
@@ -252,4 +255,5 @@ jobs:
           DIRECT_URL: postgresql://orderhub:secret@localhost:5432/orderhub_migration_check
         run: |
           pnpm --filter @orderhub/database db:generate
+          pnpm --filter @orderhub/database build
           pnpm --filter @orderhub/database exec prisma validate

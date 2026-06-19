@@ -74212,6 +74212,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     stripeAccountId: string | null
     accountType: string | null
     chargesEnabled: boolean | null
@@ -74227,6 +74228,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     stripeAccountId: string | null
     accountType: string | null
     chargesEnabled: boolean | null
@@ -74242,6 +74244,7 @@ export namespace Prisma {
     id: number
     tenantId: number
     locationId: number
+    brandId: number
     stripeAccountId: number
     accountType: number
     chargesEnabled: number
@@ -74260,6 +74263,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     stripeAccountId?: true
     accountType?: true
     chargesEnabled?: true
@@ -74275,6 +74279,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     stripeAccountId?: true
     accountType?: true
     chargesEnabled?: true
@@ -74290,6 +74295,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     stripeAccountId?: true
     accountType?: true
     chargesEnabled?: true
@@ -74379,6 +74385,7 @@ export namespace Prisma {
     id: string
     tenantId: string
     locationId: string | null
+    brandId: string | null
     stripeAccountId: string
     accountType: string
     chargesEnabled: boolean
@@ -74412,6 +74419,7 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     stripeAccountId?: boolean
     accountType?: boolean
     chargesEnabled?: boolean
@@ -74432,6 +74440,7 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     stripeAccountId?: boolean
     accountType?: boolean
     chargesEnabled?: boolean
@@ -74449,6 +74458,7 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     stripeAccountId?: boolean
     accountType?: boolean
     chargesEnabled?: boolean
@@ -74482,6 +74492,7 @@ export namespace Prisma {
       id: string
       tenantId: string
       locationId: string | null
+      brandId: string | null
       stripeAccountId: string
       accountType: string
       chargesEnabled: boolean
@@ -74891,6 +74902,7 @@ export namespace Prisma {
     readonly id: FieldRef<"StripeConnectAccount", 'String'>
     readonly tenantId: FieldRef<"StripeConnectAccount", 'String'>
     readonly locationId: FieldRef<"StripeConnectAccount", 'String'>
+    readonly brandId: FieldRef<"StripeConnectAccount", 'String'>
     readonly stripeAccountId: FieldRef<"StripeConnectAccount", 'String'>
     readonly accountType: FieldRef<"StripeConnectAccount", 'String'>
     readonly chargesEnabled: FieldRef<"StripeConnectAccount", 'Boolean'>
@@ -111187,6 +111199,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     stripeAccountId: 'stripeAccountId',
     accountType: 'accountType',
     chargesEnabled: 'chargesEnabled',
@@ -112598,6 +112611,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     stripeAccountId: 'stripeAccountId',
     accountType: 'accountType',
     defaultCurrency: 'defaultCurrency',
@@ -120264,6 +120278,7 @@ export namespace Prisma {
     id?: StringFilter<"StripeConnectAccount"> | string
     tenantId?: StringFilter<"StripeConnectAccount"> | string
     locationId?: StringNullableFilter<"StripeConnectAccount"> | string | null
+    brandId?: StringNullableFilter<"StripeConnectAccount"> | string | null
     stripeAccountId?: StringFilter<"StripeConnectAccount"> | string
     accountType?: StringFilter<"StripeConnectAccount"> | string
     chargesEnabled?: BoolFilter<"StripeConnectAccount"> | boolean
@@ -120283,6 +120298,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     stripeAccountId?: SortOrder
     accountType?: SortOrder
     chargesEnabled?: SortOrder
@@ -120301,6 +120317,7 @@ export namespace Prisma {
 
   export type StripeConnectAccountWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    brandId?: string
     stripeAccountId?: string
     AND?: StripeConnectAccountWhereInput | StripeConnectAccountWhereInput[]
     OR?: StripeConnectAccountWhereInput[]
@@ -120319,12 +120336,13 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     payments?: PaymentListRelationFilter
     payouts?: PayoutListRelationFilter
-  }, "id" | "stripeAccountId">
+  }, "id" | "stripeAccountId" | "brandId">
 
   export type StripeConnectAccountOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     stripeAccountId?: SortOrder
     accountType?: SortOrder
     chargesEnabled?: SortOrder
@@ -120347,6 +120365,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"StripeConnectAccount"> | string
     tenantId?: StringWithAggregatesFilter<"StripeConnectAccount"> | string
     locationId?: StringNullableWithAggregatesFilter<"StripeConnectAccount"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"StripeConnectAccount"> | string | null
     stripeAccountId?: StringWithAggregatesFilter<"StripeConnectAccount"> | string
     accountType?: StringWithAggregatesFilter<"StripeConnectAccount"> | string
     chargesEnabled?: BoolWithAggregatesFilter<"StripeConnectAccount"> | boolean
@@ -130805,6 +130824,7 @@ export namespace Prisma {
   export type StripeConnectAccountCreateInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -130824,6 +130844,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -130841,6 +130862,7 @@ export namespace Prisma {
   export type StripeConnectAccountUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -130860,6 +130882,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -130878,6 +130901,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -130893,6 +130917,7 @@ export namespace Prisma {
   export type StripeConnectAccountUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -130909,6 +130934,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -139616,6 +139642,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     stripeAccountId?: SortOrder
     accountType?: SortOrder
     chargesEnabled?: SortOrder
@@ -139632,6 +139659,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     stripeAccountId?: SortOrder
     accountType?: SortOrder
     chargesEnabled?: SortOrder
@@ -139647,6 +139675,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     stripeAccountId?: SortOrder
     accountType?: SortOrder
     chargesEnabled?: SortOrder
@@ -150257,6 +150286,7 @@ export namespace Prisma {
   export type StripeConnectAccountCreateWithoutTenantInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -150274,6 +150304,7 @@ export namespace Prisma {
   export type StripeConnectAccountUncheckedCreateWithoutTenantInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -151034,6 +151065,7 @@ export namespace Prisma {
     id?: StringFilter<"StripeConnectAccount"> | string
     tenantId?: StringFilter<"StripeConnectAccount"> | string
     locationId?: StringNullableFilter<"StripeConnectAccount"> | string | null
+    brandId?: StringNullableFilter<"StripeConnectAccount"> | string | null
     stripeAccountId?: StringFilter<"StripeConnectAccount"> | string
     accountType?: StringFilter<"StripeConnectAccount"> | string
     chargesEnabled?: BoolFilter<"StripeConnectAccount"> | boolean
@@ -171279,6 +171311,7 @@ export namespace Prisma {
   export type StripeConnectAccountCreateWithoutPaymentsInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -171297,6 +171330,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -171562,6 +171596,7 @@ export namespace Prisma {
   export type StripeConnectAccountUpdateWithoutPaymentsInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -171580,6 +171615,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -172074,6 +172110,7 @@ export namespace Prisma {
   export type StripeConnectAccountCreateWithoutPayoutsInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -172092,6 +172129,7 @@ export namespace Prisma {
     id?: string
     tenantId: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -172124,6 +172162,7 @@ export namespace Prisma {
   export type StripeConnectAccountUpdateWithoutPayoutsInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -172142,6 +172181,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -175411,6 +175451,7 @@ export namespace Prisma {
   export type StripeConnectAccountCreateManyTenantInput = {
     id?: string
     locationId?: string | null
+    brandId?: string | null
     stripeAccountId: string
     accountType?: string
     chargesEnabled?: boolean
@@ -176306,6 +176347,7 @@ export namespace Prisma {
   export type StripeConnectAccountUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -176323,6 +176365,7 @@ export namespace Prisma {
   export type StripeConnectAccountUncheckedUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -176340,6 +176383,7 @@ export namespace Prisma {
   export type StripeConnectAccountUncheckedUpdateManyWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     stripeAccountId?: StringFieldUpdateOperationsInput | string
     accountType?: StringFieldUpdateOperationsInput | string
     chargesEnabled?: BoolFieldUpdateOperationsInput | boolean
