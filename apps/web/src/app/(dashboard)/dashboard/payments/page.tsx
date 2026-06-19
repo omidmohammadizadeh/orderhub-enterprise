@@ -21,6 +21,7 @@ import {
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
+import { BrandConnectSection } from "@/components/payments/brand-connect-section";
 
 interface LedgerEntry {
   id: string;
@@ -121,6 +122,9 @@ export default function PaymentsPage() {
         <h1 className="text-xl font-semibold text-zinc-900">Payments & Financial</h1>
         <p className="text-sm text-zinc-500 mt-0.5">Ledger, payouts, reconciliation, and Stripe Connect</p>
       </div>
+
+      {/* Phase AW-30 — per-brand Connect with embedded onboarding */}
+      <BrandConnectSection />
 
       {/* Stripe Connect status */}
       <div className={cn(

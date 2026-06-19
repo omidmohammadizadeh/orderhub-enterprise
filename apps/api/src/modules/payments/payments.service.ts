@@ -1505,6 +1505,269 @@ export class PaymentsService {
     return { url: onboardingUrl, accountId: account.stripeAccountId };
   }
 
+  // ── Phase AW-30 — per-brand Stripe Connect with embedded onboarding ──
+  //
+  // The legacy hosted-link flow (createLocationConnectOnboardingLink)
+  // is kept for backwards compatibility; new tenants use the embedded
+  // components rendered on the /dashboard/payments page. Each brand
+  // gets its own Express account so a tenant with multiple virtual
+  // brands can settle each one separately. Application fees still flow
+  // through PaymentIntent.application_fee_amount unchanged.
+
+  private async ensureBrandConnectAccount(tenantId: string, brandId: string) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        country: true,
+        stripeConnectedAccountId: true,
+      },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+
+    let account = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, brandId },
+    });
+
+    if (!account) {
+      let stripeAccountId =
+        brand.stripeConnectedAccountId?.trim() ||
+        `mock_acct_${brandId.slice(0, 8)}`;
+
+      // If the brand has no acct_ yet, create one on Stripe with the
+      // brand details pre-filled so the operator's form is half-done
+      // before they ever see it.
+      if (this.stripe && !brand.stripeConnectedAccountId) {
+        try {
+          const stripeAccount = await this.stripe.accounts.create({
+            type: "express",
+            country: brand.country || "GB",
+            email: undefined,
+            capabilities: {
+              card_payments: { requested: true },
+              transfers: { requested: true },
+            },
+            business_profile: {
+              name: brand.name,
+              support_phone: brand.phone || undefined,
+            },
+            company: brand.addressLine1
+              ? {
+                  address: {
+                    line1: brand.addressLine1,
+                    line2: brand.addressLine2 || undefined,
+                    city: brand.city || undefined,
+                    postal_code: brand.postcode || undefined,
+                    country: brand.country || "GB",
+                  },
+                }
+              : undefined,
+            metadata: { tenantId, brandId, brandName: brand.name },
+          });
+          stripeAccountId = stripeAccount.id;
+        } catch (err: any) {
+          this.logger.error(
+            `Brand Connect account create failed for ${brandId}: ${err.message}`,
+          );
+          throw new BadRequestException(
+            `Couldn't create Stripe account: ${err.message}`,
+          );
+        }
+      }
+
+      account = await (this.prisma as any).stripeConnectAccount.create({
+        data: {
+          tenantId,
+          brandId,
+          stripeAccountId,
+          accountType: "EXPRESS",
+          chargesEnabled: false,
+          payoutsEnabled: false,
+          onboardingComplete: false,
+        },
+      });
+
+      // Mirror the acct_… onto the brand so resolveConnectAccount
+      // already returns this account on the next checkout.
+      if (!brand.stripeConnectedAccountId) {
+        await (this.prisma as any).brand.update({
+          where: { id: brandId },
+          data: { stripeConnectedAccountId: stripeAccountId },
+        });
+      }
+    }
+
+    return account;
+  }
+
+  /**
+   * Embedded onboarding — returns an AccountSession client_secret the
+   * web `<ConnectAccountOnboarding />` component consumes. The merchant
+   * fills the form inside our dashboard rather than on stripe.com.
+   */
+  async createBrandOnboardingSession(tenantId: string, brandId: string) {
+    const account = await this.ensureBrandConnectAccount(tenantId, brandId);
+    if (!this.stripe) {
+      return {
+        stripeAccountId: account.stripeAccountId,
+        clientSecret: `mock_cs_onboard_${account.stripeAccountId}`,
+        mock: true,
+      };
+    }
+    try {
+      const session = await this.stripe.accountSessions.create({
+        account: account.stripeAccountId,
+        components: {
+          account_onboarding: { enabled: true },
+        },
+      });
+      return {
+        stripeAccountId: account.stripeAccountId,
+        clientSecret: session.client_secret,
+      };
+    } catch (err: any) {
+      this.logger.error(
+        `Stripe AccountSession (onboarding) failed for brand ${brandId}: ${err.message}`,
+      );
+      throw new BadRequestException(
+        `Couldn't open onboarding: ${err.message}`,
+      );
+    }
+  }
+
+  /**
+   * Embedded management — same idea, but for the
+   * `<ConnectAccountManagement />` + `<ConnectPayouts />` panels the
+   * merchant uses to change bank details or check payout schedule
+   * after they're already onboarded.
+   */
+  async createBrandManagementSession(tenantId: string, brandId: string) {
+    const account = await this.ensureBrandConnectAccount(tenantId, brandId);
+    if (!this.stripe) {
+      return {
+        stripeAccountId: account.stripeAccountId,
+        clientSecret: `mock_cs_manage_${account.stripeAccountId}`,
+        mock: true,
+      };
+    }
+    try {
+      const session = await this.stripe.accountSessions.create({
+        account: account.stripeAccountId,
+        components: {
+          account_management: { enabled: true },
+          payouts: { enabled: true },
+          notification_banner: { enabled: true },
+        },
+      });
+      return {
+        stripeAccountId: account.stripeAccountId,
+        clientSecret: session.client_secret,
+      };
+    } catch (err: any) {
+      this.logger.error(
+        `Stripe AccountSession (management) failed for brand ${brandId}: ${err.message}`,
+      );
+      throw new BadRequestException(
+        `Couldn't open management panel: ${err.message}`,
+      );
+    }
+  }
+
+  /**
+   * List every brand in the tenant with its Connect status so the
+   * Payments page can render one card per brand.
+   */
+  async listBrandConnectStatus(tenantId: string) {
+    const brands = await this.prisma.brand.findMany({
+      where: { tenantId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        stripeConnectedAccountId: true,
+        applicationFeeMode: true,
+        applicationFeeFixedAmount: true,
+        applicationFeePercentage: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    const accounts = await (this.prisma as any).stripeConnectAccount.findMany({
+      where: { tenantId, brandId: { not: null } },
+    });
+    const byBrandId = new Map<string, any>();
+    for (const a of accounts) byBrandId.set(a.brandId, a);
+
+    return brands.map((b) => {
+      const a = byBrandId.get(b.id);
+      return {
+        brandId: b.id,
+        name: b.name,
+        logoUrl: b.logoUrl,
+        stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,
+        chargesEnabled: a?.chargesEnabled ?? false,
+        payoutsEnabled: a?.payoutsEnabled ?? false,
+        onboardingComplete: a?.onboardingComplete ?? false,
+        applicationFee: {
+          mode: b.applicationFeeMode,
+          fixedAmount: b.applicationFeeFixedAmount,
+          percentage: b.applicationFeePercentage,
+        },
+      };
+    });
+  }
+
+  /** Refresh Stripe-side capability flags into our DB row. */
+  async refreshBrandConnectStatus(tenantId: string, brandId: string) {
+    const account = await (this.prisma as any).stripeConnectAccount.findFirst({
+      where: { tenantId, brandId },
+    });
+    if (!account) return { connected: false };
+    if (!this.stripe) {
+      return {
+        connected: true,
+        stripeAccountId: account.stripeAccountId,
+        chargesEnabled: account.chargesEnabled,
+        payoutsEnabled: account.payoutsEnabled,
+        onboardingComplete: account.onboardingComplete,
+      };
+    }
+    try {
+      const fresh = await this.stripe.accounts.retrieve(account.stripeAccountId);
+      const updated = await (this.prisma as any).stripeConnectAccount.update({
+        where: { id: account.id },
+        data: {
+          chargesEnabled: !!fresh.charges_enabled,
+          payoutsEnabled: !!fresh.payouts_enabled,
+          onboardingComplete: !!fresh.details_submitted,
+        },
+      });
+      return {
+        connected: true,
+        stripeAccountId: updated.stripeAccountId,
+        chargesEnabled: updated.chargesEnabled,
+        payoutsEnabled: updated.payoutsEnabled,
+        onboardingComplete: updated.onboardingComplete,
+      };
+    } catch (err: any) {
+      this.logger.warn(
+        `refreshBrandConnectStatus retrieve failed for ${brandId}: ${err.message}`,
+      );
+      return {
+        connected: true,
+        stripeAccountId: account.stripeAccountId,
+        chargesEnabled: account.chargesEnabled,
+        payoutsEnabled: account.payoutsEnabled,
+        onboardingComplete: account.onboardingComplete,
+      };
+    }
+  }
+
   /** Returns the current Connect status for a location's account. */
   async getLocationConnectStatus(tenantId: string, locationId: string) {
     const account = await (this.prisma as any).stripeConnectAccount.findFirst({

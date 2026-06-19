@@ -266,6 +266,12 @@ importers:
       '@orderhub/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@stripe/connect-js':
+        specifier: ^3.3.16
+        version: 3.4.5
+      '@stripe/react-connect-js':
+        specifier: ^3.3.18
+        version: 3.4.3(@stripe/connect-js@3.4.5)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@stripe/react-stripe-js':
         specifier: ^3.1.1
         version: 3.10.0(@stripe/stripe-js@5.10.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1774,6 +1780,16 @@ packages:
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
+  '@stripe/connect-js@3.4.5':
+    resolution: {integrity: sha512-2GZYc1pO2gYtq5rooZei483oSqeNROTD4XwnKXK8GXILvrLVJjMUCLDXi8Rmu8ojL5DWMnEOtXdnZxs8xxZecQ==}
+
+  '@stripe/react-connect-js@3.4.3':
+    resolution: {integrity: sha512-UNckvWpmVdkUQ4lhPmwAKpB8QD1LNnDz7SDz0qQabdTfk5sLhhOYnN/SRQGhAe57Z6PLuyidaIUzjvDSw2/pYA==}
+    peerDependencies:
+      '@stripe/connect-js': '>=3.4.5'
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@stripe/react-stripe-js@3.10.0':
     resolution: {integrity: sha512-UPqHZwMwDzGSax0ZI7XlxR3tZSpgIiZdk3CiwjbTK978phwR/fFXeAXQcN/h8wTAjR4ZIAzdlI9DbOqJhuJdeg==}
@@ -6980,6 +6996,14 @@ snapshots:
   '@socket.io/component-emitter@3.1.2': {}
 
   '@standard-schema/spec@1.0.0': {}
+
+  '@stripe/connect-js@3.4.5': {}
+
+  '@stripe/react-connect-js@3.4.3(@stripe/connect-js@3.4.5)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@stripe/connect-js': 3.4.5
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
 
   '@stripe/react-stripe-js@3.10.0(@stripe/stripe-js@5.10.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:

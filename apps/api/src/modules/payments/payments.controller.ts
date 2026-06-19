@@ -175,4 +175,48 @@ export class PaymentsController {
   ) {
     return this.payments.getLocationConnectStatus(user.tenantId, locationId);
   }
+
+  // ── Phase AW-30 — per-brand embedded onboarding endpoints ──────────
+
+  // GET /v1/payments/connect/brands — one row per brand with status.
+  @Get("connect/brands")
+  @Roles("MANAGER", "TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "List Connect status for every brand" })
+  listBrandConnectStatus(@CurrentUser() user: AuthenticatedUser) {
+    return this.payments.listBrandConnectStatus(user.tenantId);
+  }
+
+  // POST /v1/payments/connect/brands/:brandId/onboarding-session
+  @Post("connect/brands/:brandId/onboarding-session")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Open embedded onboarding for a brand" })
+  brandOnboardingSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("brandId") brandId: string,
+  ) {
+    return this.payments.createBrandOnboardingSession(user.tenantId, brandId);
+  }
+
+  // POST /v1/payments/connect/brands/:brandId/management-session
+  @Post("connect/brands/:brandId/management-session")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Open embedded management panel for a brand" })
+  brandManagementSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("brandId") brandId: string,
+  ) {
+    return this.payments.createBrandManagementSession(user.tenantId, brandId);
+  }
+
+  // POST /v1/payments/connect/brands/:brandId/refresh
+  // Pulls fresh capability flags from Stripe and updates our DB row.
+  @Post("connect/brands/:brandId/refresh")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Refresh a brand's Connect status from Stripe" })
+  refreshBrandConnect(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("brandId") brandId: string,
+  ) {
+    return this.payments.refreshBrandConnectStatus(user.tenantId, brandId);
+  }
 }

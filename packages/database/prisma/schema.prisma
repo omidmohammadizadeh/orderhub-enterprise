@@ -2214,7 +2214,12 @@ model StripeConnectAccount {
   id                 String  @id @default(cuid())
   tenantId           String
   tenant             Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  locationId         String? // null = tenant-level account
+  // Exactly one of these is set per row:
+  //   tenant-level  → both null
+  //   per-location  → locationId set (legacy AP-8 flow)
+  //   per-brand     → brandId set (AW-30 embedded onboarding flow)
+  locationId         String?
+  brandId            String?
   stripeAccountId    String  @unique
   accountType        String  @default("EXPRESS")
   chargesEnabled     Boolean @default(false)
@@ -2230,7 +2235,9 @@ model StripeConnectAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([brandId])
   @@index([tenantId])
+  @@index([brandId])
   @@map("stripe_connect_accounts")
 }
 
