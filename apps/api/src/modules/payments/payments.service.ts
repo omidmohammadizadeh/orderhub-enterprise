@@ -1514,7 +1514,11 @@ export class PaymentsService {
   // brands can settle each one separately. Application fees still flow
   // through PaymentIntent.application_fee_amount unchanged.
 
-  private async ensureBrandConnectAccount(tenantId: string, brandId: string) {
+  private async ensureBrandConnectAccount(
+    tenantId: string,
+    brandId: string,
+    actingUserId?: string,
+  ) {
     const brand = await this.prisma.brand.findFirst({
       where: { id: brandId, tenantId, deletedAt: null },
       select: {
@@ -1545,14 +1549,34 @@ export class PaymentsService {
       // before they ever see it.
       if (this.stripe && !brand.stripeConnectedAccountId) {
         try {
-          // Phase AW-30 fix — only pre-fill `business_profile` (name +
-          // phone). Pre-filling `company: { address }` requires us to
-          // declare `business_type` ahead of time, but we don't know
-          // whether the merchant is a sole trader or a company until
-          // they fill the embedded form. Better to let the form ask.
+          // Phase AW-30 — pre-fill the email so Stripe skips its
+          // "Let's get started" screen. Falls back to the brand's
+          // tenant owner if the acting user isn't around (e.g. when
+          // the call comes from a background job). Pre-filling
+          // `company: { address }` is intentionally NOT done — that
+          // would force us to declare `business_type` ahead of time
+          // and we don't know whether the merchant is a sole trader
+          // or a company until the embedded form asks them.
+          let prefillEmail: string | undefined;
+          if (actingUserId) {
+            const u = await (this.prisma as any).user.findUnique({
+              where: { id: actingUserId },
+              select: { email: true },
+            });
+            prefillEmail = u?.email ?? undefined;
+          }
+          if (!prefillEmail) {
+            const owner = await (this.prisma as any).user.findFirst({
+              where: { tenantId, role: "TENANT_OWNER" },
+              select: { email: true },
+            });
+            prefillEmail = owner?.email ?? undefined;
+          }
+
           const stripeAccount = await this.stripe.accounts.create({
             type: "express",
             country: brand.country || "GB",
+            email: prefillEmail,
             capabilities: {
               card_payments: { requested: true },
               transfers: { requested: true },
@@ -1604,8 +1628,16 @@ export class PaymentsService {
    * web `<ConnectAccountOnboarding />` component consumes. The merchant
    * fills the form inside our dashboard rather than on stripe.com.
    */
-  async createBrandOnboardingSession(tenantId: string, brandId: string) {
-    const account = await this.ensureBrandConnectAccount(tenantId, brandId);
+  async createBrandOnboardingSession(
+    tenantId: string,
+    brandId: string,
+    actingUserId?: string,
+  ) {
+    const account = await this.ensureBrandConnectAccount(
+      tenantId,
+      brandId,
+      actingUserId,
+    );
     if (!this.stripe) {
       return {
         stripeAccountId: account.stripeAccountId,
@@ -1640,8 +1672,16 @@ export class PaymentsService {
    * merchant uses to change bank details or check payout schedule
    * after they're already onboarded.
    */
-  async createBrandManagementSession(tenantId: string, brandId: string) {
-    const account = await this.ensureBrandConnectAccount(tenantId, brandId);
+  async createBrandManagementSession(
+    tenantId: string,
+    brandId: string,
+    actingUserId?: string,
+  ) {
+    const account = await this.ensureBrandConnectAccount(
+      tenantId,
+      brandId,
+      actingUserId,
+    );
     if (!this.stripe) {
       return {
         stripeAccountId: account.stripeAccountId,

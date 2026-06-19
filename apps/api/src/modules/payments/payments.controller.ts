@@ -194,7 +194,11 @@ export class PaymentsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("brandId") brandId: string,
   ) {
-    return this.payments.createBrandOnboardingSession(user.tenantId, brandId);
+    return this.payments.createBrandOnboardingSession(
+      user.tenantId,
+      brandId,
+      user.userId,
+    );
   }
 
   // POST /v1/payments/connect/brands/:brandId/management-session
@@ -205,7 +209,11 @@ export class PaymentsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("brandId") brandId: string,
   ) {
-    return this.payments.createBrandManagementSession(user.tenantId, brandId);
+    return this.payments.createBrandManagementSession(
+      user.tenantId,
+      brandId,
+      user.userId,
+    );
   }
 
   // POST /v1/payments/connect/brands/:brandId/refresh
