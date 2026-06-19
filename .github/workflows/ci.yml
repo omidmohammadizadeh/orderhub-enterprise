@@ -91,9 +91,17 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Validate Prisma schema
+        env:
+          # Prisma 5+ reads env() values during `validate` to satisfy
+          # datasource.url + directUrl. Real connection isn't made.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
         run: pnpm --filter @orderhub/database exec prisma validate
 
       - name: Check for pending migrations
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
         run: |
           # Ensure the schema can generate without errors
           pnpm --filter @orderhub/database db:generate
