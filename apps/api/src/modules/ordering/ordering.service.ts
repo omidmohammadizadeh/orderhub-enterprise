@@ -111,7 +111,20 @@ export class OrderingService {
       },
       include: {
         brand: {
-          select: { id: true, name: true, slug: true, logoUrl: true, metadata: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            metadata: true,
+            // Phase AW-30 — brand-level opening hours + prep config
+            // override the location's when set. Brand wins for "is the
+            // shop open" + "how long is prep" so a kitchen running 3
+            // virtual brands can run them on different schedules.
+            openingHours: true,
+            prepTime: true,
+            busyExtraPrepTime: true,
+          },
         },
       },
     });
@@ -148,6 +161,9 @@ export class OrderingService {
             applicationFeeFixedAmount: true,
             directOrderingEnabled: true,
             isSuspended: true,
+            openingHours: true,
+            prepTime: true,
+            busyExtraPrepTime: true,
           },
         })
       : null;
@@ -369,6 +385,26 @@ export class OrderingService {
       },
     });
 
+    // Phase AW-30 — brand-level opening hours win when configured.
+    // Brand.openingHours default is `{}` which we treat as "not set"
+    // (legacy single-brand kitchens keep using their location hours).
+    // Pinned brand → URL-pinned brand row; otherwise the location's
+    // primary brand. Both surfaces consume the same value so the
+    // banner ("we're closed") and the checkout guard agree.
+    const activeBrandForOps =
+      overrideBrand ?? (location.brand as unknown as typeof overrideBrand);
+    const isHoursConfigured = (h: any) => {
+      if (h == null) return false;
+      if (Array.isArray(h)) return h.length > 0;
+      if (typeof h === "object") return Object.keys(h).length > 0;
+      return false;
+    };
+    const effectiveHours = isHoursConfigured(
+      (activeBrandForOps as any)?.openingHours,
+    )
+      ? (activeBrandForOps as any).openingHours
+      : location.openingHours;
+
     // Phase AW — apply the brand identity overlay. When a brand is
     // pinned via ?brand=<id>, every customer-facing field on the
     // storefront prefers brand-level data; the location keeps the
@@ -395,7 +431,10 @@ export class OrderingService {
       // storefront code paths still reading from it.
       address: location.address,
       timezone: location.timezone,
-      openingHours: location.openingHours,
+      // Phase AW-30 — brand hours win when configured, location hours
+      // are the fallback. `effectiveHours` is also fed to isCurrentlyOpen
+      // below so the storefront banner + checkout guard agree.
+      openingHours: effectiveHours,
       deliveryConfig: location.deliveryConfig,
       status: location.status,
       busyMode: location.busyMode,
@@ -539,7 +578,7 @@ export class OrderingService {
       location: locationView,
       brand: brandView,
       menu,
-      isOpen: this.isCurrentlyOpen(location.openingHours as any, location.timezone),
+      isOpen: this.isCurrentlyOpen(effectiveHours as any, location.timezone),
       // Phase AW-15 — null when accepting orders; populated when the
       // operator hit Stop Taking Orders. extraPrepTime is non-null when
       // busy-mode is active (still accepting, just slower).
@@ -577,10 +616,16 @@ export class OrderingService {
     // rather drop a malformed query param than create an order under
     // someone else's brand.
     let pinnedBrandId: string | null = null;
+    let pinnedBrandHours: any = null;
     if (brandIdOverride) {
       const brandRow = await (this.prisma as any).brand.findUnique({
         where: { id: brandIdOverride },
-        select: { id: true, tenantId: true, isSuspended: true },
+        select: {
+          id: true,
+          tenantId: true,
+          isSuspended: true,
+          openingHours: true,
+        },
       });
       if (
         brandRow &&
@@ -588,10 +633,23 @@ export class OrderingService {
         brandRow.tenantId === location.brand.tenantId
       ) {
         pinnedBrandId = brandRow.id;
+        pinnedBrandHours = brandRow.openingHours ?? null;
       }
     }
 
-    if (!this.isCurrentlyOpen(location.openingHours as any[], location.timezone)) {
+    // Phase AW-30 — checkout guard uses brand hours when configured,
+    // so a customer who got past the storefront banner ("brand says
+    // open") can't be blocked by the location's stricter window.
+    // Brand.openingHours defaults to {} which we treat as "not set".
+    const brandHoursConfigured =
+      pinnedBrandHours != null &&
+      (Array.isArray(pinnedBrandHours)
+        ? pinnedBrandHours.length > 0
+        : Object.keys(pinnedBrandHours).length > 0);
+    const checkoutHours = brandHoursConfigured
+      ? pinnedBrandHours
+      : location.openingHours;
+    if (!this.isCurrentlyOpen(checkoutHours as any, location.timezone)) {
       throw new BadRequestException("Store is currently closed");
     }
 
