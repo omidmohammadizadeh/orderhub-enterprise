@@ -989,11 +989,22 @@ export class OrderingService {
         "saturday",
       ] as const;
       const today = openingHours[keys[dayOfWeek] as string];
-      if (!today || !today.enabled) return false;
-      const slots = Array.isArray(today.slots) ? today.slots : [];
+      if (!today) return false;
+      // Phase AW-30 — two shapes share this map. The Phase AN location
+      // drawer saves `{ monday: { enabled: true, slots: [...] } }`; the
+      // Phase AW-16 brand drawer saves the flatter
+      // `{ monday: [{ from, to }] }`. Accept either so a brand without
+      // the `enabled` key isn't silently treated as closed.
+      const slots: Array<{ from?: string; to?: string }> = Array.isArray(today)
+        ? today
+        : today.enabled === false
+          ? []
+          : Array.isArray(today.slots)
+            ? today.slots
+            : [];
+      if (slots.length === 0) return false;
       return slots.some(
-        (s: { from?: string; to?: string }) =>
-          !!s.from && !!s.to && currentTime >= s.from && currentTime < s.to,
+        (s) => !!s.from && !!s.to && currentTime >= s.from && currentTime < s.to,
       );
     }
 
