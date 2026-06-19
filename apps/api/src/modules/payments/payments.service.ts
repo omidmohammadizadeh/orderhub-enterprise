@@ -1545,10 +1545,14 @@ export class PaymentsService {
       // before they ever see it.
       if (this.stripe && !brand.stripeConnectedAccountId) {
         try {
+          // Phase AW-30 fix — only pre-fill `business_profile` (name +
+          // phone). Pre-filling `company: { address }` requires us to
+          // declare `business_type` ahead of time, but we don't know
+          // whether the merchant is a sole trader or a company until
+          // they fill the embedded form. Better to let the form ask.
           const stripeAccount = await this.stripe.accounts.create({
             type: "express",
             country: brand.country || "GB",
-            email: undefined,
             capabilities: {
               card_payments: { requested: true },
               transfers: { requested: true },
@@ -1557,17 +1561,6 @@ export class PaymentsService {
               name: brand.name,
               support_phone: brand.phone || undefined,
             },
-            company: brand.addressLine1
-              ? {
-                  address: {
-                    line1: brand.addressLine1,
-                    line2: brand.addressLine2 || undefined,
-                    city: brand.city || undefined,
-                    postal_code: brand.postcode || undefined,
-                    country: brand.country || "GB",
-                  },
-                }
-              : undefined,
             metadata: { tenantId, brandId, brandName: brand.name },
           });
           stripeAccountId = stripeAccount.id;
