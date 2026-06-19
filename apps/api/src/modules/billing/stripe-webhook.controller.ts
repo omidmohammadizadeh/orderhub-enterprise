@@ -14,6 +14,7 @@ import { Request } from "express";
 import { Public } from "../../common/decorators/public.decorator";
 import { StripeService } from "./stripe.service";
 import { BillingService } from "./billing.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 @ApiTags("webhooks")
@@ -24,6 +25,7 @@ export class StripeWebhookController {
   constructor(
     private readonly stripe: StripeService,
     private readonly billing: BillingService,
+    private readonly subscriptions: SubscriptionsService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -83,6 +85,38 @@ export class StripeWebhookController {
     let processingError: string | null = null;
     try {
       await this.billing.handleStripeWebhookBilling(event);
+      // Phase AW-30 — forward subscription events to the per-location
+      // merchant-subscription mirror. Each handler is a no-op for events
+      // unrelated to a MerchantSubscription row.
+      try {
+        switch (event.type) {
+          case "customer.subscription.created":
+          case "customer.subscription.updated":
+          case "customer.subscription.deleted":
+            await this.subscriptions.syncFromStripeSubscription(
+              event.data.object,
+            );
+            break;
+          case "invoice.paid":
+          case "invoice.payment_failed":
+          case "invoice.payment_action_required":
+            await this.subscriptions.syncFromStripeInvoice(event.data.object);
+            break;
+          case "payment_method.attached":
+          case "customer.updated":
+            if (event.data.object.customer ?? event.data.object.id) {
+              await this.subscriptions.syncDefaultPaymentMethod(
+                event.data.object.customer ?? event.data.object.id,
+                event.data.object,
+              );
+            }
+            break;
+        }
+      } catch (err: any) {
+        this.logger.warn(
+          `MerchantSubscription sync skipped for ${event.type}: ${err?.message ?? err}`,
+        );
+      }
       await db.stripeWebhookEvent.update({
         where: { stripeEventId: event.id },
         data: { processedAt: new Date(), error: null },

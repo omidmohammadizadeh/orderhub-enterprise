@@ -52,23 +52,24 @@ model Tenant {
   settings Json         @default("{}")
   metadata Json         @default("{}")
 
-  brands             Brand[]
-  users              User[]
-  apiKeys            ApiKey[]
-  orders             Order[]
-  printJobs          PrintJob[]
-  customers          Customer[]
-  promoCodes         PromoCode[]
-  marketingCampaigns MarketingCampaign[]
-  drivers            Driver[]
-  suppliers          Supplier[]
-  ipAllowlists       IpAllowlist[]
-  connectAccount     StripeConnectAccount[]
-  branding           TenantBranding?
-  subscription       TenantSubscription?
-  invitations        Invitation[]
-  printerStations    PrinterStation[]
-  printAgents        PrintAgent[]
+  brands                Brand[]
+  users                 User[]
+  apiKeys               ApiKey[]
+  orders                Order[]
+  printJobs             PrintJob[]
+  customers             Customer[]
+  promoCodes            PromoCode[]
+  marketingCampaigns    MarketingCampaign[]
+  drivers               Driver[]
+  suppliers             Supplier[]
+  ipAllowlists          IpAllowlist[]
+  connectAccount        StripeConnectAccount[]
+  branding              TenantBranding?
+  subscription          TenantSubscription?
+  merchantSubscriptions MerchantSubscription[]
+  invitations           Invitation[]
+  printerStations       PrinterStation[]
+  printAgents           PrintAgent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -476,6 +477,7 @@ model Location {
   platformConnections  BrandPlatformConnection[]
   directOrderingConfig DirectOrderingConfig?
   channelPauses        ChannelPause[]
+  merchantSubscription MerchantSubscription?
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -2355,7 +2357,7 @@ model Payout {
   @@map("payouts")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════��══════════════════════════════════════════
 // PHASE F — INVENTORY & STOCK SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -2660,6 +2662,49 @@ model TenantSubscription {
   @@map("tenant_subscriptions")
 }
 
+// Phase AW-30 — per-location SaaS subscription billed by the platform.
+// Distinct from TenantSubscription (which is tenant-wide). Each row
+// represents one shop the platform charges a flat monthly amount.
+// Card collection + invoice list + PDF download all flow through
+// the Stripe Customer Portal so we don't rebuild what Stripe gives
+// us; this row just mirrors the bits we need to render in our own
+// UI (status pill, next charge date, monthly amount).
+model MerchantSubscription {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Stripe handles
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String? // a per-merchant Price we mint at create time
+  stripeCheckoutId     String? // most recent Checkout Session id for collecting card
+
+  // Pricing
+  monthlyAmountPence Int // platform fee in pence, e.g. 4900 for £49/month
+  currency           String @default("gbp")
+
+  // Status — mirrors Stripe's, updated by webhook
+  status              String    @default("incomplete") // incomplete | active | past_due | canceled | unpaid | trialing
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean   @default(false)
+  trialEndsAt         DateTime?
+  defaultPaymentBrand String? // "visa", "mastercard" — for the "Card on file" line
+  defaultPaymentLast4 String?
+  lastInvoiceStatus   String? // paid | open | uncollectible | void
+  lastFailureMessage  String? // human-readable reason from invoice.payment_failed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("merchant_subscriptions")
+}
+
 model Invoice {
   id              String             @id @default(cuid())
   tenantId        String
@@ -2797,7 +2842,7 @@ model DeviceSession {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — ADVANCED ANALYTICS
-// ═══��══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 // Pre-computed daily sales rollup — feeds dashboards without scanning orders
 model DailySalesSnapshot {
@@ -2979,7 +3024,7 @@ model OutboxEvent {
   @@map("outbox_events")
 }
 
-// ════════════════════════════════════════════════════════════════════════════��═
+// ══════════════════════════════════════════════════════════════════════════════
 // Enums
 // ══════════════════════════════════════════════════════════════════════════════
 

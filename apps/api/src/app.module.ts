@@ -54,6 +54,7 @@ import { CustomersModule } from "./modules/customers/customers.module";
 import { DriversModule } from "./modules/drivers/drivers.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { BillingModule } from "./modules/billing/billing.module";
+import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { SecurityModule } from "./modules/security/security.module";
 import { BrandingModule } from "./modules/branding/branding.module";
@@ -186,6 +187,7 @@ import { QUEUES } from "@orderhub/shared";
     DriversModule,
     PaymentsModule,
     BillingModule,
+    SubscriptionsModule,
     NotificationsModule,
     SecurityModule,
     BrandingModule,

@@ -399,6 +399,11 @@ export type SubscriptionPlan = $Result.DefaultSelection<Prisma.$SubscriptionPlan
  */
 export type TenantSubscription = $Result.DefaultSelection<Prisma.$TenantSubscriptionPayload>
 /**
+ * Model MerchantSubscription
+ * 
+ */
+export type MerchantSubscription = $Result.DefaultSelection<Prisma.$MerchantSubscriptionPayload>
+/**
  * Model Invoice
  * 
  */
@@ -2145,6 +2150,16 @@ export class PrismaClient<
   get tenantSubscription(): Prisma.TenantSubscriptionDelegate<ExtArgs>;
 
   /**
+   * `prisma.merchantSubscription`: Exposes CRUD operations for the **MerchantSubscription** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MerchantSubscriptions
+    * const merchantSubscriptions = await prisma.merchantSubscription.findMany()
+    * ```
+    */
+  get merchantSubscription(): Prisma.MerchantSubscriptionDelegate<ExtArgs>;
+
+  /**
    * `prisma.invoice`: Exposes CRUD operations for the **Invoice** model.
     * Example usage:
     * ```ts
@@ -2811,6 +2826,7 @@ export namespace Prisma {
     CustomDomain: 'CustomDomain',
     SubscriptionPlan: 'SubscriptionPlan',
     TenantSubscription: 'TenantSubscription',
+    MerchantSubscription: 'MerchantSubscription',
     Invoice: 'Invoice',
     InvoiceLineItem: 'InvoiceLineItem',
     UsageRecord: 'UsageRecord',
@@ -2841,7 +2857,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -8235,6 +8251,76 @@ export namespace Prisma {
           }
         }
       }
+      MerchantSubscription: {
+        payload: Prisma.$MerchantSubscriptionPayload<ExtArgs>
+        fields: Prisma.MerchantSubscriptionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MerchantSubscriptionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MerchantSubscriptionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          findFirst: {
+            args: Prisma.MerchantSubscriptionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MerchantSubscriptionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          findMany: {
+            args: Prisma.MerchantSubscriptionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>[]
+          }
+          create: {
+            args: Prisma.MerchantSubscriptionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          createMany: {
+            args: Prisma.MerchantSubscriptionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MerchantSubscriptionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>[]
+          }
+          delete: {
+            args: Prisma.MerchantSubscriptionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          update: {
+            args: Prisma.MerchantSubscriptionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          deleteMany: {
+            args: Prisma.MerchantSubscriptionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MerchantSubscriptionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MerchantSubscriptionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantSubscriptionPayload>
+          }
+          aggregate: {
+            args: Prisma.MerchantSubscriptionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMerchantSubscription>
+          }
+          groupBy: {
+            args: Prisma.MerchantSubscriptionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MerchantSubscriptionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MerchantSubscriptionCountArgs<ExtArgs>
+            result: $Utils.Optional<MerchantSubscriptionCountAggregateOutputType> | number
+          }
+        }
+      }
       Invoice: {
         payload: Prisma.$InvoicePayload<ExtArgs>
         fields: Prisma.InvoiceFieldRefs
@@ -9458,6 +9544,7 @@ export namespace Prisma {
     suppliers: number
     ipAllowlists: number
     connectAccount: number
+    merchantSubscriptions: number
     invitations: number
     printerStations: number
     printAgents: number
@@ -9476,6 +9563,7 @@ export namespace Prisma {
     suppliers?: boolean | TenantCountOutputTypeCountSuppliersArgs
     ipAllowlists?: boolean | TenantCountOutputTypeCountIpAllowlistsArgs
     connectAccount?: boolean | TenantCountOutputTypeCountConnectAccountArgs
+    merchantSubscriptions?: boolean | TenantCountOutputTypeCountMerchantSubscriptionsArgs
     invitations?: boolean | TenantCountOutputTypeCountInvitationsArgs
     printerStations?: boolean | TenantCountOutputTypeCountPrinterStationsArgs
     printAgents?: boolean | TenantCountOutputTypeCountPrintAgentsArgs
@@ -9574,6 +9662,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountConnectAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: StripeConnectAccountWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountMerchantSubscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MerchantSubscriptionWhereInput
   }
 
   /**
@@ -11154,6 +11249,7 @@ export namespace Prisma {
     connectAccount?: boolean | Tenant$connectAccountArgs<ExtArgs>
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
+    merchantSubscriptions?: boolean | Tenant$merchantSubscriptionsArgs<ExtArgs>
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
@@ -11199,6 +11295,7 @@ export namespace Prisma {
     connectAccount?: boolean | Tenant$connectAccountArgs<ExtArgs>
     branding?: boolean | Tenant$brandingArgs<ExtArgs>
     subscription?: boolean | Tenant$subscriptionArgs<ExtArgs>
+    merchantSubscriptions?: boolean | Tenant$merchantSubscriptionsArgs<ExtArgs>
     invitations?: boolean | Tenant$invitationsArgs<ExtArgs>
     printerStations?: boolean | Tenant$printerStationsArgs<ExtArgs>
     printAgents?: boolean | Tenant$printAgentsArgs<ExtArgs>
@@ -11223,6 +11320,7 @@ export namespace Prisma {
       connectAccount: Prisma.$StripeConnectAccountPayload<ExtArgs>[]
       branding: Prisma.$TenantBrandingPayload<ExtArgs> | null
       subscription: Prisma.$TenantSubscriptionPayload<ExtArgs> | null
+      merchantSubscriptions: Prisma.$MerchantSubscriptionPayload<ExtArgs>[]
       invitations: Prisma.$InvitationPayload<ExtArgs>[]
       printerStations: Prisma.$PrinterStationPayload<ExtArgs>[]
       printAgents: Prisma.$PrintAgentPayload<ExtArgs>[]
@@ -11615,6 +11713,7 @@ export namespace Prisma {
     connectAccount<T extends Tenant$connectAccountArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$connectAccountArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StripeConnectAccountPayload<ExtArgs>, T, "findMany"> | Null>
     branding<T extends Tenant$brandingArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$brandingArgs<ExtArgs>>): Prisma__TenantBrandingClient<$Result.GetResult<Prisma.$TenantBrandingPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     subscription<T extends Tenant$subscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$subscriptionArgs<ExtArgs>>): Prisma__TenantSubscriptionClient<$Result.GetResult<Prisma.$TenantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    merchantSubscriptions<T extends Tenant$merchantSubscriptionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$merchantSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findMany"> | Null>
     invitations<T extends Tenant$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany"> | Null>
     printerStations<T extends Tenant$printerStationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printerStationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findMany"> | Null>
     printAgents<T extends Tenant$printAgentsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$printAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintAgentPayload<ExtArgs>, T, "findMany"> | Null>
@@ -12237,6 +12336,26 @@ export namespace Prisma {
      */
     include?: TenantSubscriptionInclude<ExtArgs> | null
     where?: TenantSubscriptionWhereInput
+  }
+
+  /**
+   * Tenant.merchantSubscriptions
+   */
+  export type Tenant$merchantSubscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    where?: MerchantSubscriptionWhereInput
+    orderBy?: MerchantSubscriptionOrderByWithRelationInput | MerchantSubscriptionOrderByWithRelationInput[]
+    cursor?: MerchantSubscriptionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MerchantSubscriptionScalarFieldEnum | MerchantSubscriptionScalarFieldEnum[]
   }
 
   /**
@@ -24827,6 +24946,7 @@ export namespace Prisma {
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
+    merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -24963,6 +25083,7 @@ export namespace Prisma {
     platformConnections?: boolean | Location$platformConnectionsArgs<ExtArgs>
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
+    merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -24991,6 +25112,7 @@ export namespace Prisma {
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
       channelPauses: Prisma.$ChannelPausePayload<ExtArgs>[]
+      merchantSubscription: Prisma.$MerchantSubscriptionPayload<ExtArgs> | null
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
@@ -25426,6 +25548,7 @@ export namespace Prisma {
     platformConnections<T extends Location$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Location$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     channelPauses<T extends Location$channelPausesArgs<ExtArgs> = {}>(args?: Subset<T, Location$channelPausesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findMany"> | Null>
+    merchantSubscription<T extends Location$merchantSubscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Location$merchantSubscriptionArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -26056,6 +26179,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ChannelPauseScalarFieldEnum | ChannelPauseScalarFieldEnum[]
+  }
+
+  /**
+   * Location.merchantSubscription
+   */
+  export type Location$merchantSubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    where?: MerchantSubscriptionWhereInput
   }
 
   /**
@@ -95254,6 +95392,1159 @@ export namespace Prisma {
 
 
   /**
+   * Model MerchantSubscription
+   */
+
+  export type AggregateMerchantSubscription = {
+    _count: MerchantSubscriptionCountAggregateOutputType | null
+    _avg: MerchantSubscriptionAvgAggregateOutputType | null
+    _sum: MerchantSubscriptionSumAggregateOutputType | null
+    _min: MerchantSubscriptionMinAggregateOutputType | null
+    _max: MerchantSubscriptionMaxAggregateOutputType | null
+  }
+
+  export type MerchantSubscriptionAvgAggregateOutputType = {
+    monthlyAmountPence: number | null
+  }
+
+  export type MerchantSubscriptionSumAggregateOutputType = {
+    monthlyAmountPence: number | null
+  }
+
+  export type MerchantSubscriptionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    stripeCustomerId: string | null
+    stripeSubscriptionId: string | null
+    stripePriceId: string | null
+    stripeCheckoutId: string | null
+    monthlyAmountPence: number | null
+    currency: string | null
+    status: string | null
+    currentPeriodStart: Date | null
+    currentPeriodEnd: Date | null
+    cancelAtPeriodEnd: boolean | null
+    trialEndsAt: Date | null
+    defaultPaymentBrand: string | null
+    defaultPaymentLast4: string | null
+    lastInvoiceStatus: string | null
+    lastFailureMessage: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MerchantSubscriptionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    stripeCustomerId: string | null
+    stripeSubscriptionId: string | null
+    stripePriceId: string | null
+    stripeCheckoutId: string | null
+    monthlyAmountPence: number | null
+    currency: string | null
+    status: string | null
+    currentPeriodStart: Date | null
+    currentPeriodEnd: Date | null
+    cancelAtPeriodEnd: boolean | null
+    trialEndsAt: Date | null
+    defaultPaymentBrand: string | null
+    defaultPaymentLast4: string | null
+    lastInvoiceStatus: string | null
+    lastFailureMessage: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MerchantSubscriptionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    stripeCustomerId: number
+    stripeSubscriptionId: number
+    stripePriceId: number
+    stripeCheckoutId: number
+    monthlyAmountPence: number
+    currency: number
+    status: number
+    currentPeriodStart: number
+    currentPeriodEnd: number
+    cancelAtPeriodEnd: number
+    trialEndsAt: number
+    defaultPaymentBrand: number
+    defaultPaymentLast4: number
+    lastInvoiceStatus: number
+    lastFailureMessage: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MerchantSubscriptionAvgAggregateInputType = {
+    monthlyAmountPence?: true
+  }
+
+  export type MerchantSubscriptionSumAggregateInputType = {
+    monthlyAmountPence?: true
+  }
+
+  export type MerchantSubscriptionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stripeCustomerId?: true
+    stripeSubscriptionId?: true
+    stripePriceId?: true
+    stripeCheckoutId?: true
+    monthlyAmountPence?: true
+    currency?: true
+    status?: true
+    currentPeriodStart?: true
+    currentPeriodEnd?: true
+    cancelAtPeriodEnd?: true
+    trialEndsAt?: true
+    defaultPaymentBrand?: true
+    defaultPaymentLast4?: true
+    lastInvoiceStatus?: true
+    lastFailureMessage?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MerchantSubscriptionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stripeCustomerId?: true
+    stripeSubscriptionId?: true
+    stripePriceId?: true
+    stripeCheckoutId?: true
+    monthlyAmountPence?: true
+    currency?: true
+    status?: true
+    currentPeriodStart?: true
+    currentPeriodEnd?: true
+    cancelAtPeriodEnd?: true
+    trialEndsAt?: true
+    defaultPaymentBrand?: true
+    defaultPaymentLast4?: true
+    lastInvoiceStatus?: true
+    lastFailureMessage?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MerchantSubscriptionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    stripeCustomerId?: true
+    stripeSubscriptionId?: true
+    stripePriceId?: true
+    stripeCheckoutId?: true
+    monthlyAmountPence?: true
+    currency?: true
+    status?: true
+    currentPeriodStart?: true
+    currentPeriodEnd?: true
+    cancelAtPeriodEnd?: true
+    trialEndsAt?: true
+    defaultPaymentBrand?: true
+    defaultPaymentLast4?: true
+    lastInvoiceStatus?: true
+    lastFailureMessage?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MerchantSubscriptionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MerchantSubscription to aggregate.
+     */
+    where?: MerchantSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantSubscriptions to fetch.
+     */
+    orderBy?: MerchantSubscriptionOrderByWithRelationInput | MerchantSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MerchantSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MerchantSubscriptions
+    **/
+    _count?: true | MerchantSubscriptionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MerchantSubscriptionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MerchantSubscriptionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MerchantSubscriptionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MerchantSubscriptionMaxAggregateInputType
+  }
+
+  export type GetMerchantSubscriptionAggregateType<T extends MerchantSubscriptionAggregateArgs> = {
+        [P in keyof T & keyof AggregateMerchantSubscription]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMerchantSubscription[P]>
+      : GetScalarType<T[P], AggregateMerchantSubscription[P]>
+  }
+
+
+
+
+  export type MerchantSubscriptionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MerchantSubscriptionWhereInput
+    orderBy?: MerchantSubscriptionOrderByWithAggregationInput | MerchantSubscriptionOrderByWithAggregationInput[]
+    by: MerchantSubscriptionScalarFieldEnum[] | MerchantSubscriptionScalarFieldEnum
+    having?: MerchantSubscriptionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MerchantSubscriptionCountAggregateInputType | true
+    _avg?: MerchantSubscriptionAvgAggregateInputType
+    _sum?: MerchantSubscriptionSumAggregateInputType
+    _min?: MerchantSubscriptionMinAggregateInputType
+    _max?: MerchantSubscriptionMaxAggregateInputType
+  }
+
+  export type MerchantSubscriptionGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    stripeCustomerId: string | null
+    stripeSubscriptionId: string | null
+    stripePriceId: string | null
+    stripeCheckoutId: string | null
+    monthlyAmountPence: number
+    currency: string
+    status: string
+    currentPeriodStart: Date | null
+    currentPeriodEnd: Date | null
+    cancelAtPeriodEnd: boolean
+    trialEndsAt: Date | null
+    defaultPaymentBrand: string | null
+    defaultPaymentLast4: string | null
+    lastInvoiceStatus: string | null
+    lastFailureMessage: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MerchantSubscriptionCountAggregateOutputType | null
+    _avg: MerchantSubscriptionAvgAggregateOutputType | null
+    _sum: MerchantSubscriptionSumAggregateOutputType | null
+    _min: MerchantSubscriptionMinAggregateOutputType | null
+    _max: MerchantSubscriptionMaxAggregateOutputType | null
+  }
+
+  type GetMerchantSubscriptionGroupByPayload<T extends MerchantSubscriptionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MerchantSubscriptionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MerchantSubscriptionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MerchantSubscriptionGroupByOutputType[P]>
+            : GetScalarType<T[P], MerchantSubscriptionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MerchantSubscriptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stripeCustomerId?: boolean
+    stripeSubscriptionId?: boolean
+    stripePriceId?: boolean
+    stripeCheckoutId?: boolean
+    monthlyAmountPence?: boolean
+    currency?: boolean
+    status?: boolean
+    currentPeriodStart?: boolean
+    currentPeriodEnd?: boolean
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: boolean
+    defaultPaymentBrand?: boolean
+    defaultPaymentLast4?: boolean
+    lastInvoiceStatus?: boolean
+    lastFailureMessage?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["merchantSubscription"]>
+
+  export type MerchantSubscriptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stripeCustomerId?: boolean
+    stripeSubscriptionId?: boolean
+    stripePriceId?: boolean
+    stripeCheckoutId?: boolean
+    monthlyAmountPence?: boolean
+    currency?: boolean
+    status?: boolean
+    currentPeriodStart?: boolean
+    currentPeriodEnd?: boolean
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: boolean
+    defaultPaymentBrand?: boolean
+    defaultPaymentLast4?: boolean
+    lastInvoiceStatus?: boolean
+    lastFailureMessage?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["merchantSubscription"]>
+
+  export type MerchantSubscriptionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    stripeCustomerId?: boolean
+    stripeSubscriptionId?: boolean
+    stripePriceId?: boolean
+    stripeCheckoutId?: boolean
+    monthlyAmountPence?: boolean
+    currency?: boolean
+    status?: boolean
+    currentPeriodStart?: boolean
+    currentPeriodEnd?: boolean
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: boolean
+    defaultPaymentBrand?: boolean
+    defaultPaymentLast4?: boolean
+    lastInvoiceStatus?: boolean
+    lastFailureMessage?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MerchantSubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type MerchantSubscriptionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $MerchantSubscriptionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MerchantSubscription"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      stripeCustomerId: string | null
+      stripeSubscriptionId: string | null
+      stripePriceId: string | null
+      stripeCheckoutId: string | null
+      monthlyAmountPence: number
+      currency: string
+      status: string
+      currentPeriodStart: Date | null
+      currentPeriodEnd: Date | null
+      cancelAtPeriodEnd: boolean
+      trialEndsAt: Date | null
+      defaultPaymentBrand: string | null
+      defaultPaymentLast4: string | null
+      lastInvoiceStatus: string | null
+      lastFailureMessage: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["merchantSubscription"]>
+    composites: {}
+  }
+
+  type MerchantSubscriptionGetPayload<S extends boolean | null | undefined | MerchantSubscriptionDefaultArgs> = $Result.GetResult<Prisma.$MerchantSubscriptionPayload, S>
+
+  type MerchantSubscriptionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MerchantSubscriptionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MerchantSubscriptionCountAggregateInputType | true
+    }
+
+  export interface MerchantSubscriptionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MerchantSubscription'], meta: { name: 'MerchantSubscription' } }
+    /**
+     * Find zero or one MerchantSubscription that matches the filter.
+     * @param {MerchantSubscriptionFindUniqueArgs} args - Arguments to find a MerchantSubscription
+     * @example
+     * // Get one MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MerchantSubscriptionFindUniqueArgs>(args: SelectSubset<T, MerchantSubscriptionFindUniqueArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MerchantSubscription that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MerchantSubscriptionFindUniqueOrThrowArgs} args - Arguments to find a MerchantSubscription
+     * @example
+     * // Get one MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MerchantSubscriptionFindUniqueOrThrowArgs>(args: SelectSubset<T, MerchantSubscriptionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MerchantSubscription that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionFindFirstArgs} args - Arguments to find a MerchantSubscription
+     * @example
+     * // Get one MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MerchantSubscriptionFindFirstArgs>(args?: SelectSubset<T, MerchantSubscriptionFindFirstArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MerchantSubscription that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionFindFirstOrThrowArgs} args - Arguments to find a MerchantSubscription
+     * @example
+     * // Get one MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MerchantSubscriptionFindFirstOrThrowArgs>(args?: SelectSubset<T, MerchantSubscriptionFindFirstOrThrowArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MerchantSubscriptions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MerchantSubscriptions
+     * const merchantSubscriptions = await prisma.merchantSubscription.findMany()
+     * 
+     * // Get first 10 MerchantSubscriptions
+     * const merchantSubscriptions = await prisma.merchantSubscription.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const merchantSubscriptionWithIdOnly = await prisma.merchantSubscription.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MerchantSubscriptionFindManyArgs>(args?: SelectSubset<T, MerchantSubscriptionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MerchantSubscription.
+     * @param {MerchantSubscriptionCreateArgs} args - Arguments to create a MerchantSubscription.
+     * @example
+     * // Create one MerchantSubscription
+     * const MerchantSubscription = await prisma.merchantSubscription.create({
+     *   data: {
+     *     // ... data to create a MerchantSubscription
+     *   }
+     * })
+     * 
+     */
+    create<T extends MerchantSubscriptionCreateArgs>(args: SelectSubset<T, MerchantSubscriptionCreateArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MerchantSubscriptions.
+     * @param {MerchantSubscriptionCreateManyArgs} args - Arguments to create many MerchantSubscriptions.
+     * @example
+     * // Create many MerchantSubscriptions
+     * const merchantSubscription = await prisma.merchantSubscription.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MerchantSubscriptionCreateManyArgs>(args?: SelectSubset<T, MerchantSubscriptionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MerchantSubscriptions and returns the data saved in the database.
+     * @param {MerchantSubscriptionCreateManyAndReturnArgs} args - Arguments to create many MerchantSubscriptions.
+     * @example
+     * // Create many MerchantSubscriptions
+     * const merchantSubscription = await prisma.merchantSubscription.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MerchantSubscriptions and only return the `id`
+     * const merchantSubscriptionWithIdOnly = await prisma.merchantSubscription.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MerchantSubscriptionCreateManyAndReturnArgs>(args?: SelectSubset<T, MerchantSubscriptionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MerchantSubscription.
+     * @param {MerchantSubscriptionDeleteArgs} args - Arguments to delete one MerchantSubscription.
+     * @example
+     * // Delete one MerchantSubscription
+     * const MerchantSubscription = await prisma.merchantSubscription.delete({
+     *   where: {
+     *     // ... filter to delete one MerchantSubscription
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MerchantSubscriptionDeleteArgs>(args: SelectSubset<T, MerchantSubscriptionDeleteArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MerchantSubscription.
+     * @param {MerchantSubscriptionUpdateArgs} args - Arguments to update one MerchantSubscription.
+     * @example
+     * // Update one MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MerchantSubscriptionUpdateArgs>(args: SelectSubset<T, MerchantSubscriptionUpdateArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MerchantSubscriptions.
+     * @param {MerchantSubscriptionDeleteManyArgs} args - Arguments to filter MerchantSubscriptions to delete.
+     * @example
+     * // Delete a few MerchantSubscriptions
+     * const { count } = await prisma.merchantSubscription.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MerchantSubscriptionDeleteManyArgs>(args?: SelectSubset<T, MerchantSubscriptionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MerchantSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MerchantSubscriptions
+     * const merchantSubscription = await prisma.merchantSubscription.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MerchantSubscriptionUpdateManyArgs>(args: SelectSubset<T, MerchantSubscriptionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MerchantSubscription.
+     * @param {MerchantSubscriptionUpsertArgs} args - Arguments to update or create a MerchantSubscription.
+     * @example
+     * // Update or create a MerchantSubscription
+     * const merchantSubscription = await prisma.merchantSubscription.upsert({
+     *   create: {
+     *     // ... data to create a MerchantSubscription
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MerchantSubscription we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MerchantSubscriptionUpsertArgs>(args: SelectSubset<T, MerchantSubscriptionUpsertArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MerchantSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionCountArgs} args - Arguments to filter MerchantSubscriptions to count.
+     * @example
+     * // Count the number of MerchantSubscriptions
+     * const count = await prisma.merchantSubscription.count({
+     *   where: {
+     *     // ... the filter for the MerchantSubscriptions we want to count
+     *   }
+     * })
+    **/
+    count<T extends MerchantSubscriptionCountArgs>(
+      args?: Subset<T, MerchantSubscriptionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MerchantSubscriptionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MerchantSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MerchantSubscriptionAggregateArgs>(args: Subset<T, MerchantSubscriptionAggregateArgs>): Prisma.PrismaPromise<GetMerchantSubscriptionAggregateType<T>>
+
+    /**
+     * Group by MerchantSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantSubscriptionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MerchantSubscriptionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MerchantSubscriptionGroupByArgs['orderBy'] }
+        : { orderBy?: MerchantSubscriptionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MerchantSubscriptionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMerchantSubscriptionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MerchantSubscription model
+   */
+  readonly fields: MerchantSubscriptionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MerchantSubscription.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MerchantSubscriptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MerchantSubscription model
+   */ 
+  interface MerchantSubscriptionFieldRefs {
+    readonly id: FieldRef<"MerchantSubscription", 'String'>
+    readonly tenantId: FieldRef<"MerchantSubscription", 'String'>
+    readonly locationId: FieldRef<"MerchantSubscription", 'String'>
+    readonly stripeCustomerId: FieldRef<"MerchantSubscription", 'String'>
+    readonly stripeSubscriptionId: FieldRef<"MerchantSubscription", 'String'>
+    readonly stripePriceId: FieldRef<"MerchantSubscription", 'String'>
+    readonly stripeCheckoutId: FieldRef<"MerchantSubscription", 'String'>
+    readonly monthlyAmountPence: FieldRef<"MerchantSubscription", 'Int'>
+    readonly currency: FieldRef<"MerchantSubscription", 'String'>
+    readonly status: FieldRef<"MerchantSubscription", 'String'>
+    readonly currentPeriodStart: FieldRef<"MerchantSubscription", 'DateTime'>
+    readonly currentPeriodEnd: FieldRef<"MerchantSubscription", 'DateTime'>
+    readonly cancelAtPeriodEnd: FieldRef<"MerchantSubscription", 'Boolean'>
+    readonly trialEndsAt: FieldRef<"MerchantSubscription", 'DateTime'>
+    readonly defaultPaymentBrand: FieldRef<"MerchantSubscription", 'String'>
+    readonly defaultPaymentLast4: FieldRef<"MerchantSubscription", 'String'>
+    readonly lastInvoiceStatus: FieldRef<"MerchantSubscription", 'String'>
+    readonly lastFailureMessage: FieldRef<"MerchantSubscription", 'String'>
+    readonly createdAt: FieldRef<"MerchantSubscription", 'DateTime'>
+    readonly updatedAt: FieldRef<"MerchantSubscription", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MerchantSubscription findUnique
+   */
+  export type MerchantSubscriptionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantSubscription to fetch.
+     */
+    where: MerchantSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * MerchantSubscription findUniqueOrThrow
+   */
+  export type MerchantSubscriptionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantSubscription to fetch.
+     */
+    where: MerchantSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * MerchantSubscription findFirst
+   */
+  export type MerchantSubscriptionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantSubscription to fetch.
+     */
+    where?: MerchantSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantSubscriptions to fetch.
+     */
+    orderBy?: MerchantSubscriptionOrderByWithRelationInput | MerchantSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MerchantSubscriptions.
+     */
+    cursor?: MerchantSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MerchantSubscriptions.
+     */
+    distinct?: MerchantSubscriptionScalarFieldEnum | MerchantSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantSubscription findFirstOrThrow
+   */
+  export type MerchantSubscriptionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantSubscription to fetch.
+     */
+    where?: MerchantSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantSubscriptions to fetch.
+     */
+    orderBy?: MerchantSubscriptionOrderByWithRelationInput | MerchantSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MerchantSubscriptions.
+     */
+    cursor?: MerchantSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MerchantSubscriptions.
+     */
+    distinct?: MerchantSubscriptionScalarFieldEnum | MerchantSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantSubscription findMany
+   */
+  export type MerchantSubscriptionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantSubscriptions to fetch.
+     */
+    where?: MerchantSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantSubscriptions to fetch.
+     */
+    orderBy?: MerchantSubscriptionOrderByWithRelationInput | MerchantSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MerchantSubscriptions.
+     */
+    cursor?: MerchantSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantSubscriptions.
+     */
+    skip?: number
+    distinct?: MerchantSubscriptionScalarFieldEnum | MerchantSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantSubscription create
+   */
+  export type MerchantSubscriptionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MerchantSubscription.
+     */
+    data: XOR<MerchantSubscriptionCreateInput, MerchantSubscriptionUncheckedCreateInput>
+  }
+
+  /**
+   * MerchantSubscription createMany
+   */
+  export type MerchantSubscriptionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MerchantSubscriptions.
+     */
+    data: MerchantSubscriptionCreateManyInput | MerchantSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MerchantSubscription createManyAndReturn
+   */
+  export type MerchantSubscriptionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MerchantSubscriptions.
+     */
+    data: MerchantSubscriptionCreateManyInput | MerchantSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MerchantSubscription update
+   */
+  export type MerchantSubscriptionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MerchantSubscription.
+     */
+    data: XOR<MerchantSubscriptionUpdateInput, MerchantSubscriptionUncheckedUpdateInput>
+    /**
+     * Choose, which MerchantSubscription to update.
+     */
+    where: MerchantSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * MerchantSubscription updateMany
+   */
+  export type MerchantSubscriptionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MerchantSubscriptions.
+     */
+    data: XOR<MerchantSubscriptionUpdateManyMutationInput, MerchantSubscriptionUncheckedUpdateManyInput>
+    /**
+     * Filter which MerchantSubscriptions to update
+     */
+    where?: MerchantSubscriptionWhereInput
+  }
+
+  /**
+   * MerchantSubscription upsert
+   */
+  export type MerchantSubscriptionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MerchantSubscription to update in case it exists.
+     */
+    where: MerchantSubscriptionWhereUniqueInput
+    /**
+     * In case the MerchantSubscription found by the `where` argument doesn't exist, create a new MerchantSubscription with this data.
+     */
+    create: XOR<MerchantSubscriptionCreateInput, MerchantSubscriptionUncheckedCreateInput>
+    /**
+     * In case the MerchantSubscription was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MerchantSubscriptionUpdateInput, MerchantSubscriptionUncheckedUpdateInput>
+  }
+
+  /**
+   * MerchantSubscription delete
+   */
+  export type MerchantSubscriptionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+    /**
+     * Filter which MerchantSubscription to delete.
+     */
+    where: MerchantSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * MerchantSubscription deleteMany
+   */
+  export type MerchantSubscriptionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MerchantSubscriptions to delete
+     */
+    where?: MerchantSubscriptionWhereInput
+  }
+
+  /**
+   * MerchantSubscription without action
+   */
+  export type MerchantSubscriptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantSubscription
+     */
+    select?: MerchantSubscriptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantSubscriptionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Invoice
    */
 
@@ -111536,6 +112827,32 @@ export namespace Prisma {
   export type TenantSubscriptionScalarFieldEnum = (typeof TenantSubscriptionScalarFieldEnum)[keyof typeof TenantSubscriptionScalarFieldEnum]
 
 
+  export const MerchantSubscriptionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    stripeCustomerId: 'stripeCustomerId',
+    stripeSubscriptionId: 'stripeSubscriptionId',
+    stripePriceId: 'stripePriceId',
+    stripeCheckoutId: 'stripeCheckoutId',
+    monthlyAmountPence: 'monthlyAmountPence',
+    currency: 'currency',
+    status: 'status',
+    currentPeriodStart: 'currentPeriodStart',
+    currentPeriodEnd: 'currentPeriodEnd',
+    cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+    trialEndsAt: 'trialEndsAt',
+    defaultPaymentBrand: 'defaultPaymentBrand',
+    defaultPaymentLast4: 'defaultPaymentLast4',
+    lastInvoiceStatus: 'lastInvoiceStatus',
+    lastFailureMessage: 'lastFailureMessage',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MerchantSubscriptionScalarFieldEnum = (typeof MerchantSubscriptionScalarFieldEnum)[keyof typeof MerchantSubscriptionScalarFieldEnum]
+
+
   export const InvoiceScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -112849,6 +114166,25 @@ export namespace Prisma {
   export type TenantSubscriptionOrderByRelevanceFieldEnum = (typeof TenantSubscriptionOrderByRelevanceFieldEnum)[keyof typeof TenantSubscriptionOrderByRelevanceFieldEnum]
 
 
+  export const MerchantSubscriptionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    stripeCustomerId: 'stripeCustomerId',
+    stripeSubscriptionId: 'stripeSubscriptionId',
+    stripePriceId: 'stripePriceId',
+    stripeCheckoutId: 'stripeCheckoutId',
+    currency: 'currency',
+    status: 'status',
+    defaultPaymentBrand: 'defaultPaymentBrand',
+    defaultPaymentLast4: 'defaultPaymentLast4',
+    lastInvoiceStatus: 'lastInvoiceStatus',
+    lastFailureMessage: 'lastFailureMessage'
+  };
+
+  export type MerchantSubscriptionOrderByRelevanceFieldEnum = (typeof MerchantSubscriptionOrderByRelevanceFieldEnum)[keyof typeof MerchantSubscriptionOrderByRelevanceFieldEnum]
+
+
   export const InvoiceOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -113815,6 +115151,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountListRelationFilter
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
+    merchantSubscriptions?: MerchantSubscriptionListRelationFilter
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
@@ -113844,6 +115181,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountOrderByRelationAggregateInput
     branding?: TenantBrandingOrderByWithRelationInput
     subscription?: TenantSubscriptionOrderByWithRelationInput
+    merchantSubscriptions?: MerchantSubscriptionOrderByRelationAggregateInput
     invitations?: InvitationOrderByRelationAggregateInput
     printerStations?: PrinterStationOrderByRelationAggregateInput
     printAgents?: PrintAgentOrderByRelationAggregateInput
@@ -113877,6 +115215,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountListRelationFilter
     branding?: XOR<TenantBrandingNullableRelationFilter, TenantBrandingWhereInput> | null
     subscription?: XOR<TenantSubscriptionNullableRelationFilter, TenantSubscriptionWhereInput> | null
+    merchantSubscriptions?: MerchantSubscriptionListRelationFilter
     invitations?: InvitationListRelationFilter
     printerStations?: PrinterStationListRelationFilter
     printAgents?: PrintAgentListRelationFilter
@@ -115124,6 +116463,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
+    merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -115196,6 +116536,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     channelPauses?: ChannelPauseOrderByRelationAggregateInput
+    merchantSubscription?: MerchantSubscriptionOrderByWithRelationInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
@@ -115272,6 +116613,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionListRelationFilter
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
+    merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -122086,6 +123428,142 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"TenantSubscription"> | Date | string
   }
 
+  export type MerchantSubscriptionWhereInput = {
+    AND?: MerchantSubscriptionWhereInput | MerchantSubscriptionWhereInput[]
+    OR?: MerchantSubscriptionWhereInput[]
+    NOT?: MerchantSubscriptionWhereInput | MerchantSubscriptionWhereInput[]
+    id?: StringFilter<"MerchantSubscription"> | string
+    tenantId?: StringFilter<"MerchantSubscription"> | string
+    locationId?: StringFilter<"MerchantSubscription"> | string
+    stripeCustomerId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripeSubscriptionId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripePriceId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    monthlyAmountPence?: IntFilter<"MerchantSubscription"> | number
+    currency?: StringFilter<"MerchantSubscription"> | string
+    status?: StringFilter<"MerchantSubscription"> | string
+    currentPeriodStart?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    cancelAtPeriodEnd?: BoolFilter<"MerchantSubscription"> | boolean
+    trialEndsAt?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    defaultPaymentBrand?: StringNullableFilter<"MerchantSubscription"> | string | null
+    defaultPaymentLast4?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastInvoiceStatus?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastFailureMessage?: StringNullableFilter<"MerchantSubscription"> | string | null
+    createdAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type MerchantSubscriptionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
+    stripeSubscriptionId?: SortOrderInput | SortOrder
+    stripePriceId?: SortOrderInput | SortOrder
+    stripeCheckoutId?: SortOrderInput | SortOrder
+    monthlyAmountPence?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    currentPeriodStart?: SortOrderInput | SortOrder
+    currentPeriodEnd?: SortOrderInput | SortOrder
+    cancelAtPeriodEnd?: SortOrder
+    trialEndsAt?: SortOrderInput | SortOrder
+    defaultPaymentBrand?: SortOrderInput | SortOrder
+    defaultPaymentLast4?: SortOrderInput | SortOrder
+    lastInvoiceStatus?: SortOrderInput | SortOrder
+    lastFailureMessage?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    _relevance?: MerchantSubscriptionOrderByRelevanceInput
+  }
+
+  export type MerchantSubscriptionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    stripeCustomerId?: string
+    stripeSubscriptionId?: string
+    AND?: MerchantSubscriptionWhereInput | MerchantSubscriptionWhereInput[]
+    OR?: MerchantSubscriptionWhereInput[]
+    NOT?: MerchantSubscriptionWhereInput | MerchantSubscriptionWhereInput[]
+    tenantId?: StringFilter<"MerchantSubscription"> | string
+    stripePriceId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    monthlyAmountPence?: IntFilter<"MerchantSubscription"> | number
+    currency?: StringFilter<"MerchantSubscription"> | string
+    status?: StringFilter<"MerchantSubscription"> | string
+    currentPeriodStart?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    cancelAtPeriodEnd?: BoolFilter<"MerchantSubscription"> | boolean
+    trialEndsAt?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    defaultPaymentBrand?: StringNullableFilter<"MerchantSubscription"> | string | null
+    defaultPaymentLast4?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastInvoiceStatus?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastFailureMessage?: StringNullableFilter<"MerchantSubscription"> | string | null
+    createdAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId" | "stripeCustomerId" | "stripeSubscriptionId">
+
+  export type MerchantSubscriptionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
+    stripeSubscriptionId?: SortOrderInput | SortOrder
+    stripePriceId?: SortOrderInput | SortOrder
+    stripeCheckoutId?: SortOrderInput | SortOrder
+    monthlyAmountPence?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    currentPeriodStart?: SortOrderInput | SortOrder
+    currentPeriodEnd?: SortOrderInput | SortOrder
+    cancelAtPeriodEnd?: SortOrder
+    trialEndsAt?: SortOrderInput | SortOrder
+    defaultPaymentBrand?: SortOrderInput | SortOrder
+    defaultPaymentLast4?: SortOrderInput | SortOrder
+    lastInvoiceStatus?: SortOrderInput | SortOrder
+    lastFailureMessage?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MerchantSubscriptionCountOrderByAggregateInput
+    _avg?: MerchantSubscriptionAvgOrderByAggregateInput
+    _max?: MerchantSubscriptionMaxOrderByAggregateInput
+    _min?: MerchantSubscriptionMinOrderByAggregateInput
+    _sum?: MerchantSubscriptionSumOrderByAggregateInput
+  }
+
+  export type MerchantSubscriptionScalarWhereWithAggregatesInput = {
+    AND?: MerchantSubscriptionScalarWhereWithAggregatesInput | MerchantSubscriptionScalarWhereWithAggregatesInput[]
+    OR?: MerchantSubscriptionScalarWhereWithAggregatesInput[]
+    NOT?: MerchantSubscriptionScalarWhereWithAggregatesInput | MerchantSubscriptionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MerchantSubscription"> | string
+    tenantId?: StringWithAggregatesFilter<"MerchantSubscription"> | string
+    locationId?: StringWithAggregatesFilter<"MerchantSubscription"> | string
+    stripeCustomerId?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    stripeSubscriptionId?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    stripePriceId?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    stripeCheckoutId?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    monthlyAmountPence?: IntWithAggregatesFilter<"MerchantSubscription"> | number
+    currency?: StringWithAggregatesFilter<"MerchantSubscription"> | string
+    status?: StringWithAggregatesFilter<"MerchantSubscription"> | string
+    currentPeriodStart?: DateTimeNullableWithAggregatesFilter<"MerchantSubscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableWithAggregatesFilter<"MerchantSubscription"> | Date | string | null
+    cancelAtPeriodEnd?: BoolWithAggregatesFilter<"MerchantSubscription"> | boolean
+    trialEndsAt?: DateTimeNullableWithAggregatesFilter<"MerchantSubscription"> | Date | string | null
+    defaultPaymentBrand?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    defaultPaymentLast4?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    lastInvoiceStatus?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    lastFailureMessage?: StringNullableWithAggregatesFilter<"MerchantSubscription"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MerchantSubscription"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MerchantSubscription"> | Date | string
+  }
+
   export type InvoiceWhereInput = {
     AND?: InvoiceWhereInput | InvoiceWhereInput[]
     OR?: InvoiceWhereInput[]
@@ -123347,6 +124825,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -123376,6 +124855,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -123405,6 +124885,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -123434,6 +124915,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -124851,6 +126333,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -124922,6 +126405,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -124987,6 +126471,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -125058,6 +126543,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -132833,6 +134319,165 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MerchantSubscriptionCreateInput = {
+    id?: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutMerchantSubscriptionsInput
+    location: LocationCreateNestedOneWithoutMerchantSubscriptionInput
+  }
+
+  export type MerchantSubscriptionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantSubscriptionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutMerchantSubscriptionsNestedInput
+    location?: LocationUpdateOneRequiredWithoutMerchantSubscriptionNestedInput
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantSubscriptionCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantSubscriptionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type InvoiceCreateInput = {
     id?: string
     tenantId: string
@@ -134383,6 +136028,12 @@ export namespace Prisma {
     isNot?: TenantSubscriptionWhereInput | null
   }
 
+  export type MerchantSubscriptionListRelationFilter = {
+    every?: MerchantSubscriptionWhereInput
+    some?: MerchantSubscriptionWhereInput
+    none?: MerchantSubscriptionWhereInput
+  }
+
   export type InvitationListRelationFilter = {
     every?: InvitationWhereInput
     some?: InvitationWhereInput
@@ -134446,6 +136097,10 @@ export namespace Prisma {
   }
 
   export type StripeConnectAccountOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MerchantSubscriptionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -135676,6 +137331,11 @@ export namespace Prisma {
     every?: ChannelPauseWhereInput
     some?: ChannelPauseWhereInput
     none?: ChannelPauseWhereInput
+  }
+
+  export type MerchantSubscriptionNullableRelationFilter = {
+    is?: MerchantSubscriptionWhereInput | null
+    isNot?: MerchantSubscriptionWhereInput | null
   }
 
   export type PrinterNullableRelationFilter = {
@@ -141096,6 +142756,89 @@ export namespace Prisma {
     _max?: NestedEnumSubscriptionStatusFilter<$PrismaModel>
   }
 
+  export type MerchantSubscriptionOrderByRelevanceInput = {
+    fields: MerchantSubscriptionOrderByRelevanceFieldEnum | MerchantSubscriptionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MerchantSubscriptionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stripeCustomerId?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    stripePriceId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    monthlyAmountPence?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    currentPeriodStart?: SortOrder
+    currentPeriodEnd?: SortOrder
+    cancelAtPeriodEnd?: SortOrder
+    trialEndsAt?: SortOrder
+    defaultPaymentBrand?: SortOrder
+    defaultPaymentLast4?: SortOrder
+    lastInvoiceStatus?: SortOrder
+    lastFailureMessage?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MerchantSubscriptionAvgOrderByAggregateInput = {
+    monthlyAmountPence?: SortOrder
+  }
+
+  export type MerchantSubscriptionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stripeCustomerId?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    stripePriceId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    monthlyAmountPence?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    currentPeriodStart?: SortOrder
+    currentPeriodEnd?: SortOrder
+    cancelAtPeriodEnd?: SortOrder
+    trialEndsAt?: SortOrder
+    defaultPaymentBrand?: SortOrder
+    defaultPaymentLast4?: SortOrder
+    lastInvoiceStatus?: SortOrder
+    lastFailureMessage?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MerchantSubscriptionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    stripeCustomerId?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    stripePriceId?: SortOrder
+    stripeCheckoutId?: SortOrder
+    monthlyAmountPence?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    currentPeriodStart?: SortOrder
+    currentPeriodEnd?: SortOrder
+    cancelAtPeriodEnd?: SortOrder
+    trialEndsAt?: SortOrder
+    defaultPaymentBrand?: SortOrder
+    defaultPaymentLast4?: SortOrder
+    lastInvoiceStatus?: SortOrder
+    lastFailureMessage?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MerchantSubscriptionSumOrderByAggregateInput = {
+    monthlyAmountPence?: SortOrder
+  }
+
   export type EnumInvoiceStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.InvoiceStatus | EnumInvoiceStatusFieldRefInput<$PrismaModel>
     in?: $Enums.InvoiceStatus[] | ListEnumInvoiceStatusFieldRefInput<$PrismaModel>
@@ -142042,6 +143785,13 @@ export namespace Prisma {
     connect?: TenantSubscriptionWhereUniqueInput
   }
 
+  export type MerchantSubscriptionCreateNestedManyWithoutTenantInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput> | MerchantSubscriptionCreateWithoutTenantInput[] | MerchantSubscriptionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutTenantInput | MerchantSubscriptionCreateOrConnectWithoutTenantInput[]
+    createMany?: MerchantSubscriptionCreateManyTenantInputEnvelope
+    connect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+  }
+
   export type InvitationCreateNestedManyWithoutTenantInput = {
     create?: XOR<InvitationCreateWithoutTenantInput, InvitationUncheckedCreateWithoutTenantInput> | InvitationCreateWithoutTenantInput[] | InvitationUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: InvitationCreateOrConnectWithoutTenantInput | InvitationCreateOrConnectWithoutTenantInput[]
@@ -142157,6 +143907,13 @@ export namespace Prisma {
     create?: XOR<TenantSubscriptionCreateWithoutTenantInput, TenantSubscriptionUncheckedCreateWithoutTenantInput>
     connectOrCreate?: TenantSubscriptionCreateOrConnectWithoutTenantInput
     connect?: TenantSubscriptionWhereUniqueInput
+  }
+
+  export type MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput> | MerchantSubscriptionCreateWithoutTenantInput[] | MerchantSubscriptionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutTenantInput | MerchantSubscriptionCreateOrConnectWithoutTenantInput[]
+    createMany?: MerchantSubscriptionCreateManyTenantInputEnvelope
+    connect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
   }
 
   export type InvitationUncheckedCreateNestedManyWithoutTenantInput = {
@@ -142382,6 +144139,20 @@ export namespace Prisma {
     delete?: TenantSubscriptionWhereInput | boolean
     connect?: TenantSubscriptionWhereUniqueInput
     update?: XOR<XOR<TenantSubscriptionUpdateToOneWithWhereWithoutTenantInput, TenantSubscriptionUpdateWithoutTenantInput>, TenantSubscriptionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput> | MerchantSubscriptionCreateWithoutTenantInput[] | MerchantSubscriptionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutTenantInput | MerchantSubscriptionCreateOrConnectWithoutTenantInput[]
+    upsert?: MerchantSubscriptionUpsertWithWhereUniqueWithoutTenantInput | MerchantSubscriptionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: MerchantSubscriptionCreateManyTenantInputEnvelope
+    set?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    disconnect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    delete?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    connect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    update?: MerchantSubscriptionUpdateWithWhereUniqueWithoutTenantInput | MerchantSubscriptionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: MerchantSubscriptionUpdateManyWithWhereWithoutTenantInput | MerchantSubscriptionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: MerchantSubscriptionScalarWhereInput | MerchantSubscriptionScalarWhereInput[]
   }
 
   export type InvitationUpdateManyWithoutTenantNestedInput = {
@@ -142612,6 +144383,20 @@ export namespace Prisma {
     delete?: TenantSubscriptionWhereInput | boolean
     connect?: TenantSubscriptionWhereUniqueInput
     update?: XOR<XOR<TenantSubscriptionUpdateToOneWithWhereWithoutTenantInput, TenantSubscriptionUpdateWithoutTenantInput>, TenantSubscriptionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput> | MerchantSubscriptionCreateWithoutTenantInput[] | MerchantSubscriptionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutTenantInput | MerchantSubscriptionCreateOrConnectWithoutTenantInput[]
+    upsert?: MerchantSubscriptionUpsertWithWhereUniqueWithoutTenantInput | MerchantSubscriptionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: MerchantSubscriptionCreateManyTenantInputEnvelope
+    set?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    disconnect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    delete?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    connect?: MerchantSubscriptionWhereUniqueInput | MerchantSubscriptionWhereUniqueInput[]
+    update?: MerchantSubscriptionUpdateWithWhereUniqueWithoutTenantInput | MerchantSubscriptionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: MerchantSubscriptionUpdateManyWithWhereWithoutTenantInput | MerchantSubscriptionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: MerchantSubscriptionScalarWhereInput | MerchantSubscriptionScalarWhereInput[]
   }
 
   export type InvitationUncheckedUpdateManyWithoutTenantNestedInput = {
@@ -143932,6 +145717,12 @@ export namespace Prisma {
     connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
   }
 
+  export type MerchantSubscriptionCreateNestedOneWithoutLocationInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
+    connect?: MerchantSubscriptionWhereUniqueInput
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -144030,6 +145821,12 @@ export namespace Prisma {
     connectOrCreate?: ChannelPauseCreateOrConnectWithoutLocationInput | ChannelPauseCreateOrConnectWithoutLocationInput[]
     createMany?: ChannelPauseCreateManyLocationInputEnvelope
     connect?: ChannelPauseWhereUniqueInput | ChannelPauseWhereUniqueInput[]
+  }
+
+  export type MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
+    connect?: MerchantSubscriptionWhereUniqueInput
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -144210,6 +146007,16 @@ export namespace Prisma {
     update?: ChannelPauseUpdateWithWhereUniqueWithoutLocationInput | ChannelPauseUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: ChannelPauseUpdateManyWithWhereWithoutLocationInput | ChannelPauseUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
+  }
+
+  export type MerchantSubscriptionUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
+    upsert?: MerchantSubscriptionUpsertWithoutLocationInput
+    disconnect?: MerchantSubscriptionWhereInput | boolean
+    delete?: MerchantSubscriptionWhereInput | boolean
+    connect?: MerchantSubscriptionWhereUniqueInput
+    update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
   }
 
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
@@ -144400,6 +146207,16 @@ export namespace Prisma {
     update?: ChannelPauseUpdateWithWhereUniqueWithoutLocationInput | ChannelPauseUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: ChannelPauseUpdateManyWithWhereWithoutLocationInput | ChannelPauseUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: ChannelPauseScalarWhereInput | ChannelPauseScalarWhereInput[]
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
+    upsert?: MerchantSubscriptionUpsertWithoutLocationInput
+    disconnect?: MerchantSubscriptionWhereInput | boolean
+    delete?: MerchantSubscriptionWhereInput | boolean
+    connect?: MerchantSubscriptionWhereUniqueInput
+    update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
   }
 
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
@@ -148289,6 +150106,34 @@ export namespace Prisma {
     deleteMany?: UsageRecordScalarWhereInput | UsageRecordScalarWhereInput[]
   }
 
+  export type TenantCreateNestedOneWithoutMerchantSubscriptionsInput = {
+    create?: XOR<TenantCreateWithoutMerchantSubscriptionsInput, TenantUncheckedCreateWithoutMerchantSubscriptionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutMerchantSubscriptionsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutMerchantSubscriptionInput = {
+    create?: XOR<LocationCreateWithoutMerchantSubscriptionInput, LocationUncheckedCreateWithoutMerchantSubscriptionInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutMerchantSubscriptionInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutMerchantSubscriptionsNestedInput = {
+    create?: XOR<TenantCreateWithoutMerchantSubscriptionsInput, TenantUncheckedCreateWithoutMerchantSubscriptionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutMerchantSubscriptionsInput
+    upsert?: TenantUpsertWithoutMerchantSubscriptionsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutMerchantSubscriptionsInput, TenantUpdateWithoutMerchantSubscriptionsInput>, TenantUncheckedUpdateWithoutMerchantSubscriptionsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutMerchantSubscriptionNestedInput = {
+    create?: XOR<LocationCreateWithoutMerchantSubscriptionInput, LocationUncheckedCreateWithoutMerchantSubscriptionInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutMerchantSubscriptionInput
+    upsert?: LocationUpsertWithoutMerchantSubscriptionInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutMerchantSubscriptionInput, LocationUpdateWithoutMerchantSubscriptionInput>, LocationUncheckedUpdateWithoutMerchantSubscriptionInput>
+  }
+
   export type TenantSubscriptionCreateNestedOneWithoutInvoicesInput = {
     create?: XOR<TenantSubscriptionCreateWithoutInvoicesInput, TenantSubscriptionUncheckedCreateWithoutInvoicesInput>
     connectOrCreate?: TenantSubscriptionCreateOrConnectWithoutInvoicesInput
@@ -150427,6 +152272,60 @@ export namespace Prisma {
     create: XOR<TenantSubscriptionCreateWithoutTenantInput, TenantSubscriptionUncheckedCreateWithoutTenantInput>
   }
 
+  export type MerchantSubscriptionCreateWithoutTenantInput = {
+    id?: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutMerchantSubscriptionInput
+  }
+
+  export type MerchantSubscriptionUncheckedCreateWithoutTenantInput = {
+    id?: string
+    locationId: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantSubscriptionCreateOrConnectWithoutTenantInput = {
+    where: MerchantSubscriptionWhereUniqueInput
+    create: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionCreateManyTenantInputEnvelope = {
+    data: MerchantSubscriptionCreateManyTenantInput | MerchantSubscriptionCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type InvitationCreateWithoutTenantInput = {
     id?: string
     email: string
@@ -151188,6 +153087,48 @@ export namespace Prisma {
     usageRecords?: UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   }
 
+  export type MerchantSubscriptionUpsertWithWhereUniqueWithoutTenantInput = {
+    where: MerchantSubscriptionWhereUniqueInput
+    update: XOR<MerchantSubscriptionUpdateWithoutTenantInput, MerchantSubscriptionUncheckedUpdateWithoutTenantInput>
+    create: XOR<MerchantSubscriptionCreateWithoutTenantInput, MerchantSubscriptionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionUpdateWithWhereUniqueWithoutTenantInput = {
+    where: MerchantSubscriptionWhereUniqueInput
+    data: XOR<MerchantSubscriptionUpdateWithoutTenantInput, MerchantSubscriptionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionUpdateManyWithWhereWithoutTenantInput = {
+    where: MerchantSubscriptionScalarWhereInput
+    data: XOR<MerchantSubscriptionUpdateManyMutationInput, MerchantSubscriptionUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type MerchantSubscriptionScalarWhereInput = {
+    AND?: MerchantSubscriptionScalarWhereInput | MerchantSubscriptionScalarWhereInput[]
+    OR?: MerchantSubscriptionScalarWhereInput[]
+    NOT?: MerchantSubscriptionScalarWhereInput | MerchantSubscriptionScalarWhereInput[]
+    id?: StringFilter<"MerchantSubscription"> | string
+    tenantId?: StringFilter<"MerchantSubscription"> | string
+    locationId?: StringFilter<"MerchantSubscription"> | string
+    stripeCustomerId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripeSubscriptionId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripePriceId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    stripeCheckoutId?: StringNullableFilter<"MerchantSubscription"> | string | null
+    monthlyAmountPence?: IntFilter<"MerchantSubscription"> | number
+    currency?: StringFilter<"MerchantSubscription"> | string
+    status?: StringFilter<"MerchantSubscription"> | string
+    currentPeriodStart?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    currentPeriodEnd?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    cancelAtPeriodEnd?: BoolFilter<"MerchantSubscription"> | boolean
+    trialEndsAt?: DateTimeNullableFilter<"MerchantSubscription"> | Date | string | null
+    defaultPaymentBrand?: StringNullableFilter<"MerchantSubscription"> | string | null
+    defaultPaymentLast4?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastInvoiceStatus?: StringNullableFilter<"MerchantSubscription"> | string | null
+    lastFailureMessage?: StringNullableFilter<"MerchantSubscription"> | string | null
+    createdAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantSubscription"> | Date | string
+  }
+
   export type InvitationUpsertWithWhereUniqueWithoutTenantInput = {
     where: InvitationWhereUniqueInput
     update: XOR<InvitationUpdateWithoutTenantInput, InvitationUncheckedUpdateWithoutTenantInput>
@@ -151318,6 +153259,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -151346,6 +153288,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -151727,6 +153670,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -151755,6 +153699,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -152181,6 +154126,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -152251,6 +154197,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -152394,6 +154341,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -152464,6 +154412,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -152814,6 +154763,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
@@ -152842,6 +154792,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
@@ -152943,6 +154894,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
@@ -152971,6 +154923,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
@@ -153595,6 +155548,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -153623,6 +155577,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -153667,6 +155622,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -153695,6 +155651,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -153843,6 +155800,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -153871,6 +155829,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -153984,6 +155943,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -154054,6 +156014,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -154719,6 +156680,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -154747,6 +156709,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -155951,6 +157914,55 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MerchantSubscriptionCreateWithoutLocationInput = {
+    id?: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutMerchantSubscriptionsInput
+  }
+
+  export type MerchantSubscriptionUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantSubscriptionCreateOrConnectWithoutLocationInput = {
+    where: MerchantSubscriptionWhereUniqueInput
+    create: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -156598,6 +158610,61 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ChannelPause"> | Date | string
   }
 
+  export type MerchantSubscriptionUpsertWithoutLocationInput = {
+    update: XOR<MerchantSubscriptionUpdateWithoutLocationInput, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
+    create: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
+    where?: MerchantSubscriptionWhereInput
+  }
+
+  export type MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput = {
+    where?: MerchantSubscriptionWhereInput
+    data: XOR<MerchantSubscriptionUpdateWithoutLocationInput, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type MerchantSubscriptionUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutMerchantSubscriptionsNestedInput
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -156984,6 +159051,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -157054,6 +159122,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -157239,6 +159308,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -157309,6 +159379,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -157373,6 +159444,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -157443,6 +159515,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -157523,6 +159596,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -157593,6 +159667,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -158589,6 +160664,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -158659,6 +160735,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -158739,6 +160816,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -158809,6 +160887,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -161238,6 +163317,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -161266,6 +163346,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -161567,6 +163648,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -161595,6 +163677,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -161778,6 +163861,7 @@ export namespace Prisma {
     userLocations?: UserLocationCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -161848,6 +163932,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -162027,6 +164112,7 @@ export namespace Prisma {
     userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -162097,6 +164183,7 @@ export namespace Prisma {
     userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -162419,6 +164506,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -162447,6 +164535,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -162491,6 +164580,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -162519,6 +164609,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -162547,6 +164638,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -162575,6 +164667,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -162718,6 +164811,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -162746,6 +164840,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -162918,6 +165013,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -162988,6 +165084,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -163167,6 +165264,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -163237,6 +165335,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -163406,6 +165505,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -163476,6 +165576,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -163556,6 +165657,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -163626,6 +165728,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -163651,6 +165754,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -163679,6 +165783,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -163751,6 +165856,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -163821,6 +165927,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -164284,6 +166391,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -164312,6 +166420,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -164390,6 +166499,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -164460,6 +166570,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -165529,6 +167640,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -165599,6 +167711,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -165705,6 +167818,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -165775,6 +167889,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -166231,6 +168346,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -166301,6 +168417,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -166532,6 +168649,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -166601,6 +168719,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -166676,6 +168795,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
   }
@@ -166745,6 +168865,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -166830,6 +168951,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -166900,6 +169022,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -167044,6 +169167,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -167072,6 +169196,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -167442,6 +169567,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -167470,6 +169596,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -167849,6 +169976,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
   }
@@ -167877,6 +170005,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
   }
@@ -167948,6 +170077,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -168018,6 +170148,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -168341,6 +170472,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -168410,6 +170542,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -168523,6 +170656,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
   }
@@ -168551,6 +170685,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
   }
@@ -168628,6 +170763,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -168698,6 +170834,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -168909,6 +171046,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
   }
@@ -168937,6 +171075,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
   }
@@ -169008,6 +171147,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -169078,6 +171218,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -169274,6 +171415,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
   }
@@ -169302,6 +171444,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
   }
@@ -169379,6 +171522,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -169449,6 +171593,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -170214,6 +172359,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -170242,6 +172388,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -170318,6 +172465,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -170346,6 +172494,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -170915,6 +173064,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -170943,6 +173093,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -171073,6 +173224,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -171101,6 +173253,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -172218,6 +174371,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -172246,6 +174400,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -172376,6 +174531,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -172404,6 +174560,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -173758,6 +175915,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -173786,6 +175944,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -173864,6 +176023,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -173892,6 +176052,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -174150,6 +176311,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -174178,6 +176340,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -174339,6 +176502,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -174367,6 +176531,7 @@ export namespace Prisma {
     ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -174481,6 +176646,426 @@ export namespace Prisma {
     metadata?: JsonFilter<"UsageRecord">
     createdAt?: DateTimeFilter<"UsageRecord"> | Date | string
     updatedAt?: DateTimeFilter<"UsageRecord"> | Date | string
+  }
+
+  export type TenantCreateWithoutMerchantSubscriptionsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutTenantInput
+    orders?: OrderCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobCreateNestedManyWithoutTenantInput
+    customers?: CustomerCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    invitations?: InvitationCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutMerchantSubscriptionsInput = {
+    id?: string
+    name: string
+    slug: string
+    plan?: $Enums.TenantPlan
+    status?: $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brands?: BrandUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutTenantInput
+    orders?: OrderUncheckedCreateNestedManyWithoutTenantInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutTenantInput
+    customers?: CustomerUncheckedCreateNestedManyWithoutTenantInput
+    promoCodes?: PromoCodeUncheckedCreateNestedManyWithoutTenantInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    suppliers?: SupplierUncheckedCreateNestedManyWithoutTenantInput
+    ipAllowlists?: IpAllowlistUncheckedCreateNestedManyWithoutTenantInput
+    connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
+    branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
+    subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutMerchantSubscriptionsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutMerchantSubscriptionsInput, TenantUncheckedCreateWithoutMerchantSubscriptionsInput>
+  }
+
+  export type LocationCreateWithoutMerchantSubscriptionInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutMerchantSubscriptionInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutMerchantSubscriptionInput, LocationUncheckedCreateWithoutMerchantSubscriptionInput>
+  }
+
+  export type TenantUpsertWithoutMerchantSubscriptionsInput = {
+    update: XOR<TenantUpdateWithoutMerchantSubscriptionsInput, TenantUncheckedUpdateWithoutMerchantSubscriptionsInput>
+    create: XOR<TenantCreateWithoutMerchantSubscriptionsInput, TenantUncheckedCreateWithoutMerchantSubscriptionsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutMerchantSubscriptionsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutMerchantSubscriptionsInput, TenantUncheckedUpdateWithoutMerchantSubscriptionsInput>
+  }
+
+  export type TenantUpdateWithoutMerchantSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutTenantNestedInput
+    orders?: OrderUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutMerchantSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    plan?: EnumTenantPlanFieldUpdateOperationsInput | $Enums.TenantPlan
+    status?: EnumTenantStatusFieldUpdateOperationsInput | $Enums.TenantStatus
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brands?: BrandUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutTenantNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutTenantNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutTenantNestedInput
+    customers?: CustomerUncheckedUpdateManyWithoutTenantNestedInput
+    promoCodes?: PromoCodeUncheckedUpdateManyWithoutTenantNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    suppliers?: SupplierUncheckedUpdateManyWithoutTenantNestedInput
+    ipAllowlists?: IpAllowlistUncheckedUpdateManyWithoutTenantNestedInput
+    connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
+    branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
+    subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type LocationUpsertWithoutMerchantSubscriptionInput = {
+    update: XOR<LocationUpdateWithoutMerchantSubscriptionInput, LocationUncheckedUpdateWithoutMerchantSubscriptionInput>
+    create: XOR<LocationCreateWithoutMerchantSubscriptionInput, LocationUncheckedCreateWithoutMerchantSubscriptionInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutMerchantSubscriptionInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutMerchantSubscriptionInput, LocationUncheckedUpdateWithoutMerchantSubscriptionInput>
+  }
+
+  export type LocationUpdateWithoutMerchantSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutMerchantSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -174968,6 +177553,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionCreateNestedManyWithoutTenantInput
     invitations?: InvitationCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentCreateNestedManyWithoutTenantInput
@@ -174996,6 +177582,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedCreateNestedManyWithoutTenantInput
     branding?: TenantBrandingUncheckedCreateNestedOneWithoutTenantInput
     subscription?: TenantSubscriptionUncheckedCreateNestedOneWithoutTenantInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedCreateNestedManyWithoutTenantInput
     invitations?: InvitationUncheckedCreateNestedManyWithoutTenantInput
     printerStations?: PrinterStationUncheckedCreateNestedManyWithoutTenantInput
     printAgents?: PrintAgentUncheckedCreateNestedManyWithoutTenantInput
@@ -175040,6 +177627,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUpdateManyWithoutTenantNestedInput
@@ -175068,6 +177656,7 @@ export namespace Prisma {
     connectAccount?: StripeConnectAccountUncheckedUpdateManyWithoutTenantNestedInput
     branding?: TenantBrandingUncheckedUpdateOneWithoutTenantNestedInput
     subscription?: TenantSubscriptionUncheckedUpdateOneWithoutTenantNestedInput
+    merchantSubscriptions?: MerchantSubscriptionUncheckedUpdateManyWithoutTenantNestedInput
     invitations?: InvitationUncheckedUpdateManyWithoutTenantNestedInput
     printerStations?: PrinterStationUncheckedUpdateManyWithoutTenantNestedInput
     printAgents?: PrintAgentUncheckedUpdateManyWithoutTenantNestedInput
@@ -175460,6 +178049,28 @@ export namespace Prisma {
     country?: string
     onboardingComplete?: boolean
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantSubscriptionCreateManyTenantInput = {
+    id?: string
+    locationId: string
+    stripeCustomerId?: string | null
+    stripeSubscriptionId?: string | null
+    stripePriceId?: string | null
+    stripeCheckoutId?: string | null
+    monthlyAmountPence: number
+    currency?: string
+    status?: string
+    currentPeriodStart?: Date | string | null
+    currentPeriodEnd?: Date | string | null
+    cancelAtPeriodEnd?: boolean
+    trialEndsAt?: Date | string | null
+    defaultPaymentBrand?: string | null
+    defaultPaymentLast4?: string | null
+    lastInvoiceStatus?: string | null
+    lastFailureMessage?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -176392,6 +179003,72 @@ export namespace Prisma {
     country?: StringFieldUpdateOperationsInput | string
     onboardingComplete?: BoolFieldUpdateOperationsInput | boolean
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantSubscriptionUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutMerchantSubscriptionNestedInput
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantSubscriptionUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyAmountPence?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    currentPeriodStart?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    currentPeriodEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelAtPeriodEnd?: BoolFieldUpdateOperationsInput | boolean
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultPaymentBrand?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultPaymentLast4?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInvoiceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastFailureMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -177634,6 +180311,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -177704,6 +180382,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -181084,6 +183763,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -181153,6 +183833,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -181273,6 +183954,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
   }
@@ -181342,6 +184024,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -181783,6 +184466,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -181852,6 +184536,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -183662,6 +186347,10 @@ export namespace Prisma {
      * @deprecated Use TenantSubscriptionDefaultArgs instead
      */
     export type TenantSubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TenantSubscriptionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MerchantSubscriptionDefaultArgs instead
+     */
+    export type MerchantSubscriptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MerchantSubscriptionDefaultArgs<ExtArgs>
     /**
      * @deprecated Use InvoiceDefaultArgs instead
      */

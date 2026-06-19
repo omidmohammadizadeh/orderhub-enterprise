@@ -1434,6 +1434,29 @@ exports.Prisma.TenantSubscriptionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MerchantSubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  stripePriceId: 'stripePriceId',
+  stripeCheckoutId: 'stripeCheckoutId',
+  monthlyAmountPence: 'monthlyAmountPence',
+  currency: 'currency',
+  status: 'status',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  trialEndsAt: 'trialEndsAt',
+  defaultPaymentBrand: 'defaultPaymentBrand',
+  defaultPaymentLast4: 'defaultPaymentLast4',
+  lastInvoiceStatus: 'lastInvoiceStatus',
+  lastFailureMessage: 'lastFailureMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.InvoiceScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2453,6 +2476,22 @@ exports.Prisma.TenantSubscriptionOrderByRelevanceFieldEnum = {
   lastInvoiceStatus: 'lastInvoiceStatus'
 };
 
+exports.Prisma.MerchantSubscriptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  stripePriceId: 'stripePriceId',
+  stripeCheckoutId: 'stripeCheckoutId',
+  currency: 'currency',
+  status: 'status',
+  defaultPaymentBrand: 'defaultPaymentBrand',
+  defaultPaymentLast4: 'defaultPaymentLast4',
+  lastInvoiceStatus: 'lastInvoiceStatus',
+  lastFailureMessage: 'lastFailureMessage'
+};
+
 exports.Prisma.InvoiceOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3085,6 +3124,7 @@ exports.Prisma.ModelName = {
   CustomDomain: 'CustomDomain',
   SubscriptionPlan: 'SubscriptionPlan',
   TenantSubscription: 'TenantSubscription',
+  MerchantSubscription: 'MerchantSubscription',
   Invoice: 'Invoice',
   InvoiceLineItem: 'InvoiceLineItem',
   UsageRecord: 'UsageRecord',

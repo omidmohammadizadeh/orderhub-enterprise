@@ -8,9 +8,10 @@ import { StripeService } from "./stripe.service";
 import { StripeWebhookController } from "./stripe-webhook.controller";
 import { UsageService } from "./usage.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { SubscriptionsModule } from "../subscriptions/subscriptions.module";
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, SubscriptionsModule],
   controllers: [BillingController, StripeWebhookController],
   providers: [
     StripeService,

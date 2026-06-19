@@ -119,7 +119,7 @@ const financeNav: NavItem[] = [
   // platform admin. Operators (OWNER) don't get finance unless we
   // later add a finance-delegate role.
   { href: "/dashboard/payments", label: "Payments", icon: DollarSign, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
-  { href: "/dashboard/billing", label: "Billing", icon: CreditCard, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
+  { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard, roles: ["PLATFORM_ADMIN", "TENANT_OWNER", "FINANCIAL_AGENT"] },
 ];
 
 const secondaryNav: NavItem[] = [
