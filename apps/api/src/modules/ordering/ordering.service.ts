@@ -988,24 +988,49 @@ export class OrderingService {
         "friday",
         "saturday",
       ] as const;
-      const today = openingHours[keys[dayOfWeek] as string];
-      if (!today) return false;
       // Phase AW-30 — two shapes share this map. The Phase AN location
-      // drawer saves `{ monday: { enabled: true, slots: [...] } }`; the
-      // Phase AW-16 brand drawer saves the flatter
-      // `{ monday: [{ from, to }] }`. Accept either so a brand without
-      // the `enabled` key isn't silently treated as closed.
-      const slots: Array<{ from?: string; to?: string }> = Array.isArray(today)
-        ? today
-        : today.enabled === false
-          ? []
-          : Array.isArray(today.slots)
-            ? today.slots
-            : [];
-      if (slots.length === 0) return false;
-      return slots.some(
-        (s) => !!s.from && !!s.to && currentTime >= s.from && currentTime < s.to,
-      );
+      // drawer saves `{ monday: { enabled, slots:[{from,to}] } }`; the
+      // AW-16 brand drawer saves the flatter `{ monday: [{from,to}] }`.
+      // Accept either.
+      const slotsForKey = (key: string): Array<{ from?: string; to?: string }> => {
+        const d = openingHours[key];
+        if (!d) return [];
+        if (Array.isArray(d)) return d;
+        if (d.enabled === false) return [];
+        return Array.isArray(d.slots) ? d.slots : [];
+      };
+
+      // Phase AW-30 — overnight slots ("from > to" means past
+      // midnight). 09:00→02:00 keeps the shop open from 09:00 today
+      // through 02:00 tomorrow, so at 01:30 the previous day's slot
+      // is still active.
+      const toMins = (s: string) => {
+        const [h = 0, m = 0] = s.split(":").map(Number);
+        return h * 60 + m;
+      };
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const yesterdayIdx = (dayOfWeek + 6) % 7;
+
+      for (const s of slotsForKey(keys[dayOfWeek] as string)) {
+        if (!s.from || !s.to) continue;
+        const from = toMins(s.from);
+        const to = toMins(s.to);
+        if (from < to) {
+          if (nowMins >= from && nowMins < to) return true;
+        } else if (from > to) {
+          // Today's overnight slot — open from `from` until midnight.
+          if (nowMins >= from) return true;
+        }
+      }
+      for (const s of slotsForKey(keys[yesterdayIdx] as string)) {
+        if (!s.from || !s.to) continue;
+        const from = toMins(s.from);
+        const to = toMins(s.to);
+        // Yesterday's overnight slot spilling into today — open from
+        // midnight until `to`.
+        if (from > to && nowMins < to) return true;
+      }
+      return false;
     }
 
     // Legacy array shape
