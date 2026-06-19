@@ -39,6 +39,15 @@ export class StripeWebhookController {
     @Req() req: RawBodyRequest<Request>,
     @Headers("stripe-signature") sig: string,
   ): Promise<{ received: boolean }> {
+    // Phase AW-30 — VERY first log so we can confirm the route is
+    // reached at all when Stripe's "timed out" error shows up. If we
+    // don't see this line in Render logs, the request isn't getting
+    // through Render's proxy / our middleware → something upstream
+    // is dropping it.
+    this.logger.log(
+      `stripe-webhook HIT sig=${sig?.slice(0, 24) ?? "missing"} body-len=${req.rawBody?.length ?? "n/a"}`,
+    );
+
     if (!sig) {
       throw new BadRequestException("Missing stripe-signature header");
     }
@@ -58,6 +67,32 @@ export class StripeWebhookController {
       throw new BadRequestException(`Webhook signature verification failed: ${err.message}`);
     }
 
+    // Phase AW-30 — return 200 IMMEDIATELY, then process in background.
+    // Stripe's webhook timeout is ~20s; any slow downstream work
+    // (Prisma writes, Stripe API calls inside billing.handleStripeWebhookBilling,
+    // logging) could push us over that limit and cause the "timed out"
+    // failures we were seeing. The DB writes inside the handler are
+    // idempotent (stripeWebhookEvent unique key + upserts) so doing
+    // them after the response is safe — Stripe will retry on failure
+    // and we'll skip duplicates.
+    this.processEventInBackground(event);
+    return { received: true };
+  }
+
+  private processEventInBackground(event: any) {
+    setImmediate(async () => {
+      try {
+        await this.runEventHandlers(event);
+      } catch (err: any) {
+        this.logger.error(
+          `Background webhook processing failed for ${event.id} (${event.type}): ${err?.message ?? err}`,
+        );
+      }
+    });
+  }
+
+  private async runEventHandlers(event: any) {
+
     const db = this.prisma as any;
 
     // Idempotency check — skip if we've already processed this event
@@ -68,7 +103,7 @@ export class StripeWebhookController {
 
     if (existing?.processedAt) {
       this.logger.debug(`Stripe event ${event.id} already processed — skipping`);
-      return { received: true };
+      return;
     }
 
     // Record event before processing (upsert handles rare duplicate deliveries)
@@ -133,7 +168,5 @@ export class StripeWebhookController {
       // Do not re-throw — Stripe retries on 5xx; returning 200 prevents retry storms
       // for events we explicitly don't handle or for tenant-not-found scenarios.
     }
-
-    return { received: true };
   }
 }
