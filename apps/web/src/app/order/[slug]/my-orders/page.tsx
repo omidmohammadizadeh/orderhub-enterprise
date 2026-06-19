@@ -18,8 +18,8 @@
 // nobody's signed in, we open the LoginModal immediately rather than
 // bouncing to the home page — keeps the deep-link experience.
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import {
   Bike,
@@ -87,18 +87,33 @@ interface OrdersResponse {
 }
 
 export default function MyOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center text-zinc-400" />
+      }
+    >
+      <MyOrdersInner />
+    </Suspense>
+  );
+}
+
+function MyOrdersInner() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { customer, token, isLoading: isAuthLoading } = useCustomerAuth();
   const [orders, setOrders] = useState<OrdersResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
-  const brandIdFromUrl =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("brand")
-      : null;
+  // Phase AW-30 follow-up — useSearchParams is reactive and SSR-safe.
+  // The previous `typeof window !== "undefined" && new URLSearchParams(...)`
+  // pattern returned null during SSR + hydration, so the Back-to-menu
+  // href baked in /order/<slug> with no brand and customers landed on
+  // the location storefront after tapping it.
+  const brandIdFromUrl = searchParams?.get("brand") ?? null;
   const brandSuffix = brandIdFromUrl
     ? `?brand=${encodeURIComponent(brandIdFromUrl)}`
     : "";
