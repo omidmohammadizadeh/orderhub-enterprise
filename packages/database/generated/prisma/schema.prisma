@@ -432,6 +432,7 @@ model Brand {
   platformConnections BrandPlatformConnection[]
   userBrands          UserBrand[]
   marketingCampaigns  MarketingCampaign[]
+  deliveryZones       DeliveryZone[]
 
   // Phase AS-1 — fallback station for items at this brand when no
   // more-specific routing rule fires.
@@ -1477,21 +1478,29 @@ enum CampaignAudience {
 // first letters of a postcode. Free delivery is modelled as fee=0.
 // minOrderValue is enforced at order-creation time when set.
 model DeliveryZone {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   tenantId       String
-  locationId     String
-  location       Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  // Phase AW-30 — keyed by brand OR location. Storefront prefers
+  // brand zones when the URL pins a brand; falls back to location
+  // zones for legacy single-brand kitchens. Exactly one of brandId
+  // or locationId is set per row.
+  locationId     String?
+  location       Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId        String?
+  brand          Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   postcodePrefix String
-  fee            Decimal  @db.Decimal(10, 2)
-  minOrderValue  Decimal? @db.Decimal(10, 2)
-  isActive       Boolean  @default(true)
+  fee            Decimal   @db.Decimal(10, 2)
+  minOrderValue  Decimal?  @db.Decimal(10, 2)
+  isActive       Boolean   @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([locationId, postcodePrefix])
+  @@unique([brandId, postcodePrefix])
   @@index([tenantId])
   @@index([locationId])
+  @@index([brandId])
   @@map("delivery_zones")
 }
 
@@ -2341,7 +2350,7 @@ model Payout {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — INVENTORY & STOCK SYSTEM
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════���══
 
 model Supplier {
   id       String  @id @default(cuid())
@@ -2589,7 +2598,7 @@ model CustomDomain {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — SUBSCRIPTIONS & BILLING
-// ════════════════════════════════��═════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 model SubscriptionPlan {
   id               String  @id @default(cuid())

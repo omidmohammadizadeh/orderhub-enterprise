@@ -73,6 +73,18 @@ const ORDER_PROJECTION = {
       logoUrl: true,
     },
   },
+  // Phase AW-30 — surface the brand identity so the customer's My
+  // Orders cards show the brand they actually ordered from, not the
+  // underlying kitchen location. Falls back to location in the UI for
+  // legacy orders predating the brand pinning.
+  brand: {
+    select: {
+      id: true,
+      name: true,
+      onlineOrderingSlug: true,
+      logoUrl: true,
+    },
+  },
 } as const;
 
 function serialiseOrderForCustomer(o: any) {

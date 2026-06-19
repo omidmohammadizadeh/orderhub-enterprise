@@ -782,6 +782,7 @@ exports.Prisma.DeliveryZoneScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   locationId: 'locationId',
+  brandId: 'brandId',
   postcodePrefix: 'postcodePrefix',
   fee: 'fee',
   minOrderValue: 'minOrderValue',
@@ -2060,6 +2061,7 @@ exports.Prisma.DeliveryZoneOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   locationId: 'locationId',
+  brandId: 'brandId',
   postcodePrefix: 'postcodePrefix'
 };
 

@@ -9746,6 +9746,7 @@ export namespace Prisma {
     platformConnections: number
     userBrands: number
     marketingCampaigns: number
+    deliveryZones: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9758,6 +9759,7 @@ export namespace Prisma {
     platformConnections?: boolean | BrandCountOutputTypeCountPlatformConnectionsArgs
     userBrands?: boolean | BrandCountOutputTypeCountUserBrandsArgs
     marketingCampaigns?: boolean | BrandCountOutputTypeCountMarketingCampaignsArgs
+    deliveryZones?: boolean | BrandCountOutputTypeCountDeliveryZonesArgs
   }
 
   // Custom InputTypes
@@ -9832,6 +9834,13 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountMarketingCampaignsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MarketingCampaignWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountDeliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DeliveryZoneWhereInput
   }
 
 
@@ -23079,6 +23088,7 @@ export namespace Prisma {
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
+    deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
@@ -23171,6 +23181,7 @@ export namespace Prisma {
     platformConnections?: boolean | Brand$platformConnectionsArgs<ExtArgs>
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
+    deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -23193,6 +23204,7 @@ export namespace Prisma {
       platformConnections: Prisma.$BrandPlatformConnectionPayload<ExtArgs>[]
       userBrands: Prisma.$UserBrandPayload<ExtArgs>[]
       marketingCampaigns: Prisma.$MarketingCampaignPayload<ExtArgs>[]
+      deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
       defaultStation: Prisma.$PrinterStationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -23605,6 +23617,7 @@ export namespace Prisma {
     platformConnections<T extends Brand$platformConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$platformConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandPlatformConnectionPayload<ExtArgs>, T, "findMany"> | Null>
     userBrands<T extends Brand$userBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$userBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
     marketingCampaigns<T extends Brand$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany"> | Null>
+    deliveryZones<T extends Brand$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
     defaultStation<T extends Brand$defaultStationArgs<ExtArgs> = {}>(args?: Subset<T, Brand$defaultStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -24179,6 +24192,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MarketingCampaignScalarFieldEnum | MarketingCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.deliveryZones
+   */
+  export type Brand$deliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DeliveryZone
+     */
+    select?: DeliveryZoneSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DeliveryZoneInclude<ExtArgs> | null
+    where?: DeliveryZoneWhereInput
+    orderBy?: DeliveryZoneOrderByWithRelationInput | DeliveryZoneOrderByWithRelationInput[]
+    cursor?: DeliveryZoneWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
   }
 
   /**
@@ -49606,6 +49639,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     postcodePrefix: string | null
     fee: Decimal | null
     minOrderValue: Decimal | null
@@ -49618,6 +49652,7 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     locationId: string | null
+    brandId: string | null
     postcodePrefix: string | null
     fee: Decimal | null
     minOrderValue: Decimal | null
@@ -49630,6 +49665,7 @@ export namespace Prisma {
     id: number
     tenantId: number
     locationId: number
+    brandId: number
     postcodePrefix: number
     fee: number
     minOrderValue: number
@@ -49654,6 +49690,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     postcodePrefix?: true
     fee?: true
     minOrderValue?: true
@@ -49666,6 +49703,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     postcodePrefix?: true
     fee?: true
     minOrderValue?: true
@@ -49678,6 +49716,7 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     locationId?: true
+    brandId?: true
     postcodePrefix?: true
     fee?: true
     minOrderValue?: true
@@ -49776,7 +49815,8 @@ export namespace Prisma {
   export type DeliveryZoneGroupByOutputType = {
     id: string
     tenantId: string
-    locationId: string
+    locationId: string | null
+    brandId: string | null
     postcodePrefix: string
     fee: Decimal
     minOrderValue: Decimal | null
@@ -49808,32 +49848,37 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     postcodePrefix?: boolean
     fee?: boolean
     minOrderValue?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DeliveryZone$locationArgs<ExtArgs>
+    brand?: boolean | DeliveryZone$brandArgs<ExtArgs>
   }, ExtArgs["result"]["deliveryZone"]>
 
   export type DeliveryZoneSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     postcodePrefix?: boolean
     fee?: boolean
     minOrderValue?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DeliveryZone$locationArgs<ExtArgs>
+    brand?: boolean | DeliveryZone$brandArgs<ExtArgs>
   }, ExtArgs["result"]["deliveryZone"]>
 
   export type DeliveryZoneSelectScalar = {
     id?: boolean
     tenantId?: boolean
     locationId?: boolean
+    brandId?: boolean
     postcodePrefix?: boolean
     fee?: boolean
     minOrderValue?: boolean
@@ -49843,21 +49888,25 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DeliveryZone$locationArgs<ExtArgs>
+    brand?: boolean | DeliveryZone$brandArgs<ExtArgs>
   }
   export type DeliveryZoneIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    location?: boolean | LocationDefaultArgs<ExtArgs>
+    location?: boolean | DeliveryZone$locationArgs<ExtArgs>
+    brand?: boolean | DeliveryZone$brandArgs<ExtArgs>
   }
 
   export type $DeliveryZonePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "DeliveryZone"
     objects: {
-      location: Prisma.$LocationPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs> | null
+      brand: Prisma.$BrandPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       tenantId: string
-      locationId: string
+      locationId: string | null
+      brandId: string | null
       postcodePrefix: string
       fee: Prisma.Decimal
       minOrderValue: Prisma.Decimal | null
@@ -50228,7 +50277,8 @@ export namespace Prisma {
    */
   export interface Prisma__DeliveryZoneClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends DeliveryZone$locationArgs<ExtArgs> = {}>(args?: Subset<T, DeliveryZone$locationArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    brand<T extends DeliveryZone$brandArgs<ExtArgs> = {}>(args?: Subset<T, DeliveryZone$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -50261,6 +50311,7 @@ export namespace Prisma {
     readonly id: FieldRef<"DeliveryZone", 'String'>
     readonly tenantId: FieldRef<"DeliveryZone", 'String'>
     readonly locationId: FieldRef<"DeliveryZone", 'String'>
+    readonly brandId: FieldRef<"DeliveryZone", 'String'>
     readonly postcodePrefix: FieldRef<"DeliveryZone", 'String'>
     readonly fee: FieldRef<"DeliveryZone", 'Decimal'>
     readonly minOrderValue: FieldRef<"DeliveryZone", 'Decimal'>
@@ -50582,6 +50633,36 @@ export namespace Prisma {
      * Filter which DeliveryZones to delete
      */
     where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * DeliveryZone.location
+   */
+  export type DeliveryZone$locationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
+  }
+
+  /**
+   * DeliveryZone.brand
+   */
+  export type DeliveryZone$brandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Brand
+     */
+    select?: BrandSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandInclude<ExtArgs> | null
+    where?: BrandWhereInput
   }
 
   /**
@@ -110662,6 +110743,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     postcodePrefix: 'postcodePrefix',
     fee: 'fee',
     minOrderValue: 'minOrderValue',
@@ -112234,6 +112316,7 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     locationId: 'locationId',
+    brandId: 'brandId',
     postcodePrefix: 'postcodePrefix'
   };
 
@@ -114766,6 +114849,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
     marketingCampaigns?: MarketingCampaignListRelationFilter
+    deliveryZones?: DeliveryZoneListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }
 
@@ -114815,6 +114899,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionOrderByRelationAggregateInput
     userBrands?: UserBrandOrderByRelationAggregateInput
     marketingCampaigns?: MarketingCampaignOrderByRelationAggregateInput
+    deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
     defaultStation?: PrinterStationOrderByWithRelationInput
     _relevance?: BrandOrderByRelevanceInput
   }
@@ -114869,6 +114954,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionListRelationFilter
     userBrands?: UserBrandListRelationFilter
     marketingCampaigns?: MarketingCampaignListRelationFilter
+    deliveryZones?: DeliveryZoneListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "tenantId_slug">
 
@@ -117804,20 +117890,23 @@ export namespace Prisma {
     NOT?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
     id?: StringFilter<"DeliveryZone"> | string
     tenantId?: StringFilter<"DeliveryZone"> | string
-    locationId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringNullableFilter<"DeliveryZone"> | string | null
+    brandId?: StringNullableFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringFilter<"DeliveryZone"> | string
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFilter<"DeliveryZone"> | boolean
     createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
     updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
-    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
   }
 
   export type DeliveryZoneOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    locationId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     postcodePrefix?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
@@ -117825,30 +117914,35 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
+    brand?: BrandOrderByWithRelationInput
     _relevance?: DeliveryZoneOrderByRelevanceInput
   }
 
   export type DeliveryZoneWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     locationId_postcodePrefix?: DeliveryZoneLocationIdPostcodePrefixCompoundUniqueInput
+    brandId_postcodePrefix?: DeliveryZoneBrandIdPostcodePrefixCompoundUniqueInput
     AND?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
     OR?: DeliveryZoneWhereInput[]
     NOT?: DeliveryZoneWhereInput | DeliveryZoneWhereInput[]
     tenantId?: StringFilter<"DeliveryZone"> | string
-    locationId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringNullableFilter<"DeliveryZone"> | string | null
+    brandId?: StringNullableFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringFilter<"DeliveryZone"> | string
     fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
     isActive?: BoolFilter<"DeliveryZone"> | boolean
     createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
     updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
-    location?: XOR<LocationRelationFilter, LocationWhereInput>
-  }, "id" | "locationId_postcodePrefix">
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+    brand?: XOR<BrandNullableRelationFilter, BrandWhereInput> | null
+  }, "id" | "locationId_postcodePrefix" | "brandId_postcodePrefix">
 
   export type DeliveryZoneOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    locationId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
     postcodePrefix?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrderInput | SortOrder
@@ -117868,7 +117962,8 @@ export namespace Prisma {
     NOT?: DeliveryZoneScalarWhereWithAggregatesInput | DeliveryZoneScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"DeliveryZone"> | string
     tenantId?: StringWithAggregatesFilter<"DeliveryZone"> | string
-    locationId?: StringWithAggregatesFilter<"DeliveryZone"> | string
+    locationId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"DeliveryZone"> | string | null
     postcodePrefix?: StringWithAggregatesFilter<"DeliveryZone"> | string
     fee?: DecimalWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
     minOrderValue?: DecimalNullableWithAggregatesFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
@@ -124417,6 +124512,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -124465,6 +124561,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -124511,6 +124608,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -124559,6 +124657,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -128038,13 +128137,15 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    location: LocationCreateNestedOneWithoutDeliveryZonesInput
+    location?: LocationCreateNestedOneWithoutDeliveryZonesInput
+    brand?: BrandCreateNestedOneWithoutDeliveryZonesInput
   }
 
   export type DeliveryZoneUncheckedCreateInput = {
     id?: string
     tenantId: string
-    locationId: string
+    locationId?: string | null
+    brandId?: string | null
     postcodePrefix: string
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -128062,13 +128163,15 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    location?: LocationUpdateOneRequiredWithoutDeliveryZonesNestedInput
+    location?: LocationUpdateOneWithoutDeliveryZonesNestedInput
+    brand?: BrandUpdateOneWithoutDeliveryZonesNestedInput
   }
 
   export type DeliveryZoneUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: StringFieldUpdateOperationsInput | string
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -128080,7 +128183,8 @@ export namespace Prisma {
   export type DeliveryZoneCreateManyInput = {
     id?: string
     tenantId: string
-    locationId: string
+    locationId?: string | null
+    brandId?: string | null
     postcodePrefix: string
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -128103,7 +128207,8 @@ export namespace Prisma {
   export type DeliveryZoneUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: StringFieldUpdateOperationsInput | string
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -135299,6 +135404,12 @@ export namespace Prisma {
     none?: BrandPlatformConnectionWhereInput
   }
 
+  export type DeliveryZoneListRelationFilter = {
+    every?: DeliveryZoneWhereInput
+    some?: DeliveryZoneWhereInput
+    none?: DeliveryZoneWhereInput
+  }
+
   export type PrinterStationNullableRelationFilter = {
     is?: PrinterStationWhereInput | null
     isNot?: PrinterStationWhereInput | null
@@ -135325,6 +135436,10 @@ export namespace Prisma {
   }
 
   export type BrandPlatformConnectionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DeliveryZoneOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -135526,12 +135641,6 @@ export namespace Prisma {
     none?: KdsScreenWhereInput
   }
 
-  export type DeliveryZoneListRelationFilter = {
-    every?: DeliveryZoneWhereInput
-    some?: DeliveryZoneWhereInput
-    none?: DeliveryZoneWhereInput
-  }
-
   export type LocationPaymentConfigNullableRelationFilter = {
     is?: LocationPaymentConfigWhereInput | null
     isNot?: LocationPaymentConfigWhereInput | null
@@ -135557,10 +135666,6 @@ export namespace Prisma {
   }
 
   export type KdsScreenOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type DeliveryZoneOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -137651,10 +137756,16 @@ export namespace Prisma {
     postcodePrefix: string
   }
 
+  export type DeliveryZoneBrandIdPostcodePrefixCompoundUniqueInput = {
+    brandId: string
+    postcodePrefix: string
+  }
+
   export type DeliveryZoneCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     postcodePrefix?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -137672,6 +137783,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     postcodePrefix?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -137684,6 +137796,7 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     locationId?: SortOrder
+    brandId?: SortOrder
     postcodePrefix?: SortOrder
     fee?: SortOrder
     minOrderValue?: SortOrder
@@ -143279,6 +143392,13 @@ export namespace Prisma {
     connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
   }
 
+  export type DeliveryZoneCreateNestedManyWithoutBrandInput = {
+    create?: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput> | DeliveryZoneCreateWithoutBrandInput[] | DeliveryZoneUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutBrandInput | DeliveryZoneCreateOrConnectWithoutBrandInput[]
+    createMany?: DeliveryZoneCreateManyBrandInputEnvelope
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutBrandDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -143352,6 +143472,13 @@ export namespace Prisma {
     connectOrCreate?: MarketingCampaignCreateOrConnectWithoutBrandInput | MarketingCampaignCreateOrConnectWithoutBrandInput[]
     createMany?: MarketingCampaignCreateManyBrandInputEnvelope
     connect?: MarketingCampaignWhereUniqueInput | MarketingCampaignWhereUniqueInput[]
+  }
+
+  export type DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput> | DeliveryZoneCreateWithoutBrandInput[] | DeliveryZoneUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutBrandInput | DeliveryZoneCreateOrConnectWithoutBrandInput[]
+    createMany?: DeliveryZoneCreateManyBrandInputEnvelope
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -143514,6 +143641,20 @@ export namespace Prisma {
     deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
   }
 
+  export type DeliveryZoneUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput> | DeliveryZoneCreateWithoutBrandInput[] | DeliveryZoneUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutBrandInput | DeliveryZoneCreateOrConnectWithoutBrandInput[]
+    upsert?: DeliveryZoneUpsertWithWhereUniqueWithoutBrandInput | DeliveryZoneUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: DeliveryZoneCreateManyBrandInputEnvelope
+    set?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    disconnect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    delete?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    update?: DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput | DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: DeliveryZoneUpdateManyWithWhereWithoutBrandInput | DeliveryZoneUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutBrandDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -143658,6 +143799,20 @@ export namespace Prisma {
     update?: MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput | MarketingCampaignUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: MarketingCampaignUpdateManyWithWhereWithoutBrandInput | MarketingCampaignUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: MarketingCampaignScalarWhereInput | MarketingCampaignScalarWhereInput[]
+  }
+
+  export type DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput> | DeliveryZoneCreateWithoutBrandInput[] | DeliveryZoneUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: DeliveryZoneCreateOrConnectWithoutBrandInput | DeliveryZoneCreateOrConnectWithoutBrandInput[]
+    upsert?: DeliveryZoneUpsertWithWhereUniqueWithoutBrandInput | DeliveryZoneUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: DeliveryZoneCreateManyBrandInputEnvelope
+    set?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    disconnect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    delete?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+    update?: DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput | DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: DeliveryZoneUpdateManyWithWhereWithoutBrandInput | DeliveryZoneUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutLocationsInput = {
@@ -145549,12 +145704,30 @@ export namespace Prisma {
     connect?: LocationWhereUniqueInput
   }
 
-  export type LocationUpdateOneRequiredWithoutDeliveryZonesNestedInput = {
+  export type BrandCreateNestedOneWithoutDeliveryZonesInput = {
+    create?: XOR<BrandCreateWithoutDeliveryZonesInput, BrandUncheckedCreateWithoutDeliveryZonesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutDeliveryZonesInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type LocationUpdateOneWithoutDeliveryZonesNestedInput = {
     create?: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
     connectOrCreate?: LocationCreateOrConnectWithoutDeliveryZonesInput
     upsert?: LocationUpsertWithoutDeliveryZonesInput
+    disconnect?: LocationWhereInput | boolean
+    delete?: LocationWhereInput | boolean
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutDeliveryZonesInput, LocationUpdateWithoutDeliveryZonesInput>, LocationUncheckedUpdateWithoutDeliveryZonesInput>
+  }
+
+  export type BrandUpdateOneWithoutDeliveryZonesNestedInput = {
+    create?: XOR<BrandCreateWithoutDeliveryZonesInput, BrandUncheckedCreateWithoutDeliveryZonesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutDeliveryZonesInput
+    upsert?: BrandUpsertWithoutDeliveryZonesInput
+    disconnect?: BrandWhereInput | boolean
+    delete?: BrandWhereInput | boolean
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutDeliveryZonesInput, BrandUpdateWithoutDeliveryZonesInput>, BrandUncheckedUpdateWithoutDeliveryZonesInput>
   }
 
   export type LocationCreateNestedOneWithoutPaymentConfigInput = {
@@ -149436,6 +149609,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -149483,6 +149657,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -152359,6 +152534,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -152406,6 +152582,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUserBrandsInput = {
@@ -152530,6 +152707,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -152577,6 +152755,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type TenantCreateWithoutInvitationsInput = {
@@ -154399,6 +154578,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DeliveryZoneCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location?: LocationCreateNestedOneWithoutDeliveryZonesInput
+  }
+
+  export type DeliveryZoneUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DeliveryZoneCreateOrConnectWithoutBrandInput = {
+    where: DeliveryZoneWhereUniqueInput
+    create: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput>
+  }
+
+  export type DeliveryZoneCreateManyBrandInputEnvelope = {
+    data: DeliveryZoneCreateManyBrandInput | DeliveryZoneCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutBrandDefaultsInput = {
     id?: string
     name: string
@@ -154896,6 +155109,38 @@ export namespace Prisma {
     data: XOR<MarketingCampaignUpdateManyMutationInput, MarketingCampaignUncheckedUpdateManyWithoutBrandInput>
   }
 
+  export type DeliveryZoneUpsertWithWhereUniqueWithoutBrandInput = {
+    where: DeliveryZoneWhereUniqueInput
+    update: XOR<DeliveryZoneUpdateWithoutBrandInput, DeliveryZoneUncheckedUpdateWithoutBrandInput>
+    create: XOR<DeliveryZoneCreateWithoutBrandInput, DeliveryZoneUncheckedCreateWithoutBrandInput>
+  }
+
+  export type DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput = {
+    where: DeliveryZoneWhereUniqueInput
+    data: XOR<DeliveryZoneUpdateWithoutBrandInput, DeliveryZoneUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type DeliveryZoneUpdateManyWithWhereWithoutBrandInput = {
+    where: DeliveryZoneScalarWhereInput
+    data: XOR<DeliveryZoneUpdateManyMutationInput, DeliveryZoneUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type DeliveryZoneScalarWhereInput = {
+    AND?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+    OR?: DeliveryZoneScalarWhereInput[]
+    NOT?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+    id?: StringFilter<"DeliveryZone"> | string
+    tenantId?: StringFilter<"DeliveryZone"> | string
+    locationId?: StringNullableFilter<"DeliveryZone"> | string | null
+    brandId?: StringNullableFilter<"DeliveryZone"> | string | null
+    postcodePrefix?: StringFilter<"DeliveryZone"> | string
+    fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
+    minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"DeliveryZone"> | boolean
+    createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+    updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutBrandDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
     create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
@@ -154986,6 +155231,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -155033,6 +155279,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -155473,11 +155720,13 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    brand?: BrandCreateNestedOneWithoutDeliveryZonesInput
   }
 
   export type DeliveryZoneUncheckedCreateWithoutLocationInput = {
     id?: string
     tenantId: string
+    brandId?: string | null
     postcodePrefix: string
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -155931,6 +156180,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -155978,6 +156228,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -156165,21 +156416,6 @@ export namespace Prisma {
   export type DeliveryZoneUpdateManyWithWhereWithoutLocationInput = {
     where: DeliveryZoneScalarWhereInput
     data: XOR<DeliveryZoneUpdateManyMutationInput, DeliveryZoneUncheckedUpdateManyWithoutLocationInput>
-  }
-
-  export type DeliveryZoneScalarWhereInput = {
-    AND?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
-    OR?: DeliveryZoneScalarWhereInput[]
-    NOT?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
-    id?: StringFilter<"DeliveryZone"> | string
-    tenantId?: StringFilter<"DeliveryZone"> | string
-    locationId?: StringFilter<"DeliveryZone"> | string
-    postcodePrefix?: StringFilter<"DeliveryZone"> | string
-    fee?: DecimalFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string
-    minOrderValue?: DecimalNullableFilter<"DeliveryZone"> | Decimal | DecimalJsLike | number | string | null
-    isActive?: BoolFilter<"DeliveryZone"> | boolean
-    createdAt?: DateTimeFilter<"DeliveryZone"> | Date | string
-    updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
   }
 
   export type LocationPaymentConfigUpsertWithoutLocationInput = {
@@ -156598,6 +156834,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -156645,6 +156882,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -156845,6 +157083,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -156892,6 +157131,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationUpsertWithoutPlatformConnectionsInput = {
@@ -157366,6 +157606,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -157413,6 +157654,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -157556,6 +157798,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -157603,6 +157846,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -159090,6 +159334,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -159137,6 +159382,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -159388,6 +159634,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -159435,6 +159682,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -160406,6 +160654,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -160453,6 +160702,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -160514,6 +160764,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -160561,6 +160812,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -160606,6 +160858,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -160653,6 +160906,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -160714,6 +160968,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -160761,6 +161016,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -161610,6 +161866,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -161657,6 +161914,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -161863,6 +162121,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -161910,6 +162169,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CustomerCreateWithoutAddressesInput = {
@@ -162336,6 +162596,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -162383,6 +162644,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -162511,6 +162773,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -162558,6 +162821,7 @@ export namespace Prisma {
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -162697,6 +162961,105 @@ export namespace Prisma {
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
     where: LocationWhereUniqueInput
     create: XOR<LocationCreateWithoutDeliveryZonesInput, LocationUncheckedCreateWithoutDeliveryZonesInput>
+  }
+
+  export type BrandCreateWithoutDeliveryZonesInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutDeliveryZonesInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutDeliveryZonesInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutDeliveryZonesInput, BrandUncheckedCreateWithoutDeliveryZonesInput>
   }
 
   export type LocationUpsertWithoutDeliveryZonesInput = {
@@ -162842,6 +163205,111 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type BrandUpsertWithoutDeliveryZonesInput = {
+    update: XOR<BrandUpdateWithoutDeliveryZonesInput, BrandUncheckedUpdateWithoutDeliveryZonesInput>
+    create: XOR<BrandCreateWithoutDeliveryZonesInput, BrandUncheckedCreateWithoutDeliveryZonesInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutDeliveryZonesInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutDeliveryZonesInput, BrandUncheckedUpdateWithoutDeliveryZonesInput>
+  }
+
+  export type BrandUpdateWithoutDeliveryZonesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutDeliveryZonesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -163455,6 +163923,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -163502,6 +163971,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -164110,6 +164580,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -164157,6 +164628,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -167714,6 +168186,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutDefaultStationInput = {
@@ -167760,6 +168233,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDefaultStationInput = {
@@ -175039,6 +175513,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -175086,6 +175561,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -177040,6 +177516,18 @@ export namespace Prisma {
     createdBy?: string | null
   }
 
+  export type DeliveryZoneCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    postcodePrefix: string
+    fee: Decimal | DecimalJsLike | number | string
+    minOrderValue?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -177913,6 +178401,42 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type DeliveryZoneUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneWithoutDeliveryZonesNestedInput
+  }
+
+  export type DeliveryZoneUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DeliveryZoneUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    postcodePrefix?: StringFieldUpdateOperationsInput | string
+    fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntegrationCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -178079,6 +178603,7 @@ export namespace Prisma {
   export type DeliveryZoneCreateManyLocationInput = {
     id?: string
     tenantId: string
+    brandId?: string | null
     postcodePrefix: string
     fee: Decimal | DecimalJsLike | number | string
     minOrderValue?: Decimal | DecimalJsLike | number | string | null
@@ -178660,11 +179185,13 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneWithoutDeliveryZonesNestedInput
   }
 
   export type DeliveryZoneUncheckedUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: StringFieldUpdateOperationsInput | string
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -178676,6 +179203,7 @@ export namespace Prisma {
   export type DeliveryZoneUncheckedUpdateManyWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
     postcodePrefix?: StringFieldUpdateOperationsInput | string
     fee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minOrderValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
@@ -181062,6 +181590,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutDefaultStationInput = {
@@ -181108,6 +181637,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutDefaultStationInput = {

@@ -73,6 +73,12 @@ interface Order {
     googleReviewUrl: string | null;
     logoUrl: string | null;
   };
+  brand?: {
+    id: string;
+    name: string;
+    onlineOrderingSlug: string | null;
+    logoUrl: string | null;
+  } | null;
 }
 
 interface OrdersResponse {
@@ -332,13 +338,15 @@ const STATUS_META: Record<
 
 function ActiveCard({ order, onTrack }: { order: Order; onTrack: () => void }) {
   const meta = STATUS_META[order.status] ?? STATUS_META.PENDING!;
+  const merchantName = order.brand?.name ?? order.location.name;
+  const merchantLogo = order.brand?.logoUrl ?? order.location.logoUrl;
   return (
     <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
       <div className="flex items-start gap-3 p-4">
-        <LocationAvatar location={order.location} />
+        <LocationAvatar location={{ name: merchantName, logoUrl: merchantLogo }} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-bold text-zinc-900">{order.location.name}</h3>
+            <h3 className="text-sm font-bold text-zinc-900">{merchantName}</h3>
             <OrderNumberPill order={order} />
           </div>
           <p className="mt-1 text-xs text-zinc-500">
@@ -382,13 +390,15 @@ function HistoryCard({
       }),
     [order.createdAt],
   );
+  const merchantName = order.brand?.name ?? order.location.name;
+  const merchantLogo = order.brand?.logoUrl ?? order.location.logoUrl;
   return (
     <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
       <div className="flex items-start gap-3 p-4">
-        <LocationAvatar location={order.location} />
+        <LocationAvatar location={{ name: merchantName, logoUrl: merchantLogo }} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-bold text-zinc-900">{order.location.name}</h3>
+            <h3 className="text-sm font-bold text-zinc-900">{merchantName}</h3>
             <OrderNumberPill order={order} />
           </div>
           <p className="mt-1 text-xs text-zinc-500">
@@ -450,7 +460,11 @@ function ActionButton({
   );
 }
 
-function LocationAvatar({ location }: { location: Order["location"] }) {
+function LocationAvatar({
+  location,
+}: {
+  location: { name: string; logoUrl: string | null };
+}) {
   if (location.logoUrl) {
     return (
       <img
@@ -553,7 +567,7 @@ function ViewOrderDrawer({
         <div className="space-y-3 p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs uppercase tracking-wider text-zinc-400">
-              {order.location.name}
+              {order.brand?.name ?? order.location.name}
             </p>
             <OrderNumberPill order={order} />
           </div>
