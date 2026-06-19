@@ -25,6 +25,10 @@ const boldOn = () => [ESC, 0x45, 0x01];
 const boldOff = () => [ESC, 0x45, 0x00];
 const doubleSizeOn = () => [GS, 0x21, 0x11];
 const doubleSizeOff = () => [GS, 0x21, 0x00];
+// Phase AW-30 — reverse video (white on black). Used to highlight the
+// returning-customer banner so the counter staff can't miss it.
+const reverseOn = () => [GS, 0x42, 0x01];
+const reverseOff = () => [GS, 0x42, 0x00];
 const cut = () => [GS, 0x56, 0x42, 0x00]; // partial cut
 const openCashDrawer = () => [ESC, 0x70, 0x00, 0x40, 0xc8]; // kick pin 2
 
@@ -163,10 +167,13 @@ export function renderToEscPos(
     out.push(...boldOff(), ...alignLeft());
   }
 
-  // Big order number — always shown, even if the payload only carries
-  // a displayId.
+  // Phase AW-30 — prefer the 5-char displayId ("AB31C") over the
+  // internal-sequential orderNumber so the receipt shows the same
+  // code the customer sees in their app + emails. Marketplace orders
+  // also populate displayId with their platform code so this ordering
+  // works for both paths.
   const orderRef =
-    payload.orderNumber ?? payload.displayId ?? payload.orderId ?? null;
+    payload.displayId ?? payload.orderNumber ?? payload.orderId ?? null;
   out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn());
   write(orderRef ? `#${orderRef}` : "ORDER");
   newline();
@@ -178,11 +185,14 @@ export function renderToEscPos(
   // Bold + centred so it's the second thing the counter notices after
   // the order number.
   if (payload.customerVisitTag) {
+    // Phase AW-30 — double-size + reverse video. Bold alone gets lost
+    // between the order number and the customer block; the highlight
+    // is what makes a returning regular obvious at a glance.
     newline();
-    out.push(...alignCenter(), ...boldOn());
-    write(String(payload.customerVisitTag));
+    out.push(...alignCenter(), ...boldOn(), ...reverseOn());
+    write(` ${String(payload.customerVisitTag)} `);
     newline();
-    out.push(...boldOff(), ...alignLeft());
+    out.push(...reverseOff(), ...boldOff(), ...alignLeft());
     newline();
   }
 

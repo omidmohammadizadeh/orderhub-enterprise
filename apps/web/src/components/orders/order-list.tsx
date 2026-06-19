@@ -510,13 +510,13 @@ function OrderRow({
       </Td>
       <Td>
         <span className="font-semibold text-zinc-900">
-          {/* Match the printed ticket: prefer the human sequential
-              orderNumber (#34) over the cuid-derived displayId
-              (#8annpw). Falls back to displayId for marketplace orders
-              that carry the external platform reference but no internal
-              sequence yet, and finally to the cuid tail if neither
-              exists. */}
-          #{(order as any).orderNumber ?? order.displayId ?? order.id.slice(-6)}
+          {/* Phase AW-30 — prefer the 5-char displayId ("AB31C"). It's
+              what the customer sees on their receipt + status page so
+              the board should match. Marketplace orders also populate
+              displayId with their platform code, so this ordering
+              works for both paths. Falls back to the internal-
+              sequential orderNumber for legacy rows. */}
+          #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
         </span>
       </Td>
       <Td>

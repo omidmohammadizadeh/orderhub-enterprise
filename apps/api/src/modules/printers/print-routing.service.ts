@@ -25,6 +25,10 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import {
+  computeVisitCountForOrder,
+  visitTagFor,
+} from "../orders/customer-visit.helper";
 
 // ── Result shape ────────────────────────────────────────────────────────
 //
@@ -197,62 +201,23 @@ export class PrintRoutingService {
     // ── Translate buckets → targets ──────────────────────────────────
     const targets: PrintTarget[] = [];
 
-    // Phase AW-26 — Lifetime visit count for the banner on every
-    // payload below. Identity is channel-aware:
-    //   - Marketplaces (Just Eat / Uber Eats / Deliveroo / HubRise)
-    //     mask the phone per order, so we key by NAME + POSTCODE.
-    //   - POS + our own ONLINE storefront key by NAME + PHONE +
-    //     POSTCODE since the phone is the real customer's number.
-    // Count is the running tally including this order — "*** ORDER
-    // #1 ***" on a brand-new visit, "#2" on the next return, etc.
-    const MARKETPLACES = new Set([
-      "JUST_EAT",
-      "UBER_EATS",
-      "DELIVEROO",
-      "HUBRISE",
-    ]);
-    const isMarketplace =
-      MARKETPLACES.has(order.integrationSource ?? "") ||
-      MARKETPLACES.has(order.platform ?? "") ||
-      !!order.viaHubrise;
-    const customerVisitCount = await (async () => {
-      const name = order.customerName;
-      const postcode = order.postcode;
-      const phone = order.customerPhone;
-      try {
-        if (isMarketplace) {
-          if (!name) return 1;
-          return await this.prisma.order.count({
-            where: {
-              tenantId: order.tenantId,
-              isSandbox: false,
-              status: { not: "CANCELLED" },
-              customerName: name,
-              ...(postcode && { postcode }),
-            },
-          });
-        }
-        // Direct / POS / Online
-        if (!name) return 1;
-        if (!phone && !postcode) return 1;
-        return await this.prisma.order.count({
-          where: {
-            tenantId: order.tenantId,
-            isSandbox: false,
-            status: { not: "CANCELLED" },
-            customerName: name,
-            ...(phone && { customerPhone: phone }),
-            ...(postcode && { postcode }),
-          },
-        });
-      } catch {
-        return 1;
-      }
-    })();
-    const customerVisitTag =
-      customerVisitCount <= 1
-        ? "*** NEW CUSTOMER ***"
-        : `*** RETURNING CUSTOMER · ORDER #${customerVisitCount} ***`;
+    // Phase AW-30 — visit count uses the shared helper so receipt,
+    // kitchen ticket, and the orders board all agree. Scoped to
+    // (tenantId, brandId) so a customer who's been to brand A four
+    // times and brand B once sees "ORDER #4" at A and "ORDER #1"
+    // at B — never the cross-brand sum.
+    const customerVisitCount = await computeVisitCountForOrder(this.prisma, {
+      tenantId: order.tenantId,
+      brandId: (order as any).brandId ?? null,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      postcode: order.postcode,
+      platform: order.platform,
+      orderSource: order.orderSource,
+      integrationSource: order.integrationSource,
+      viaHubrise: order.viaHubrise,
+    });
+    const customerVisitTag = visitTagFor(customerVisitCount);
 
     // Kitchen tickets, one per station.
     const stationDetails = await this.prisma.printerStation.findMany({

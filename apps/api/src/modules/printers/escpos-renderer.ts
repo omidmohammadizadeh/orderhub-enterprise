@@ -117,8 +117,12 @@ export function renderToEscPos(
     out.push(...boldOff(), ...alignLeft());
   }
 
+  // Phase AW-30 — prefer the customer-friendly displayId ("AB31C") over
+  // the internal-sequential orderNumber. Marketplaces also populate
+  // displayId with their platform code (JE-123, UE-987 …) so this
+  // ordering does the right thing for both paths.
   const orderRef =
-    payload.orderNumber ?? payload.displayId ?? payload.orderId ?? null;
+    payload.displayId ?? payload.orderNumber ?? payload.orderId ?? null;
   out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn());
   write(orderRef ? `#${orderRef}` : "ORDER");
   newline();

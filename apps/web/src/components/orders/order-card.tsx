@@ -59,10 +59,14 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold text-zinc-900">
-              {order.orderNumber != null
-                ? `#${order.orderNumber}`
-                : order.displayId
-                  ? `#${order.displayId}`
+              {/* Phase AW-30 — displayId is the 5-char customer-facing
+                  code ("AB31C"); marketplaces also populate it with
+                  their platform code (JE-123). Prefer it over the
+                  internal-sequential orderNumber for both cases. */}
+              {order.displayId
+                ? `#${order.displayId}`
+                : order.orderNumber != null
+                  ? `#${order.orderNumber}`
                   : `#${order.id.slice(-6).toUpperCase()}`}
             </span>
             <span className="text-sm font-medium text-zinc-700">

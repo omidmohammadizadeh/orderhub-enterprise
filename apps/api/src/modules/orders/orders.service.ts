@@ -86,6 +86,38 @@ export class OrdersService {
   ) {}
 
   /**
+   * Phase AW-30 — short, customer-friendly order code.
+   * 5 characters, mixed upper-case letters + digits. Picked from a 33-
+   * char alphabet that excludes the look-alikes 0/O, 1/I/L so counter
+   * staff don't misread "1L0OB" off a thermal print. Collisions are
+   * checked per-tenant; 33^5 ≈ 39M values so a 10k-order tenant has
+   * ~0.0003 collision probability per attempt — we retry up to 8 times
+   * before giving up and letting the order ship without a short code
+   * (orderNumber still uniquely identifies it for ops).
+   */
+  private async generateShortDisplayCode(
+    tenantId: string,
+  ): Promise<string | null> {
+    const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // 30 unambiguous chars
+    const pick = () => {
+      let s = "";
+      for (let i = 0; i < 5; i++) {
+        s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+      }
+      return s;
+    };
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const code = pick();
+      const clash = await this.prisma.order.findFirst({
+        where: { tenantId, displayId: code },
+        select: { id: true },
+      });
+      if (!clash) return code;
+    }
+    return null;
+  }
+
+  /**
    * Phase AM — claim the next sequential order number for a tenant.
    * Uses upsert + atomic increment so concurrent POS submits never
    * collide. The first call for a tenant seeds nextValue=1, returns 1,
@@ -486,6 +518,10 @@ export class OrdersService {
     if (isInternal) {
       const orderNumber = await this.allocateOrderNumber(tenantId);
       posUpdate.orderNumber = orderNumber;
+      // Phase AW-30 — also mint a 5-char customer-facing code. Falls
+      // back to "#<orderNumber>" downstream if generation fails.
+      const shortCode = await this.generateShortDisplayCode(tenantId);
+      if (shortCode) posUpdate.displayId = shortCode;
     }
 
     if (Object.keys(posUpdate).length > 0) {
@@ -1255,6 +1291,7 @@ export class OrdersService {
       orderSource: string;
       integrationSource: string;
       viaHubrise: boolean;
+      brandId: string | null;
       createdAt: Date;
     },
   >(
@@ -1278,6 +1315,11 @@ export class OrdersService {
     ]);
     const norm = (s: string | null | undefined) =>
       (s ?? "").replace(/\s+/g, "").toLowerCase();
+    // Phase AW-30 — identity is brand-scoped. Same customer ordering
+    // from MONSTER and PIZZA UNO at the same kitchen lives in two
+    // separate buckets so the receipt at MONSTER says "ORDER #4"
+    // (their fourth MONSTER order) instead of "#9" (total across the
+    // whole tenant).
     const identityFor = (o: {
       customerName: string | null;
       customerPhone: string | null;
@@ -1286,6 +1328,7 @@ export class OrdersService {
       orderSource: string;
       integrationSource: string;
       viaHubrise: boolean;
+      brandId: string | null;
     }): string | null => {
       const isMarketplace =
         MARKETPLACES.has(o.integrationSource) ||
@@ -1294,19 +1337,14 @@ export class OrdersService {
       const name = norm(o.customerName);
       const postcode = norm(o.postcode);
       const phone = norm(o.customerPhone);
+      const brand = o.brandId ?? "_";
       if (isMarketplace) {
-        // Name is required so a missing-name marketplace order doesn't
-        // collide with every other anonymous row.
         if (!name) return null;
-        return `mkt|${name}|${postcode}`;
+        return `b:${brand}|mkt|${name}|${postcode}`;
       }
-      // POS + Online: phone is the strongest signal. Combined with
-      // name+postcode for the rare phone clash (shared household line,
-      // typo). Either phone OR postcode must exist; a pure-name match
-      // is too noisy to count as the same customer.
       if (!name) return null;
       if (!phone && !postcode) return null;
-      return `dir|${name}|${phone}|${postcode}`;
+      return `b:${brand}|dir|${name}|${phone}|${postcode}`;
     };
 
     // Compute identities for every board row, then pull all tenant
@@ -1353,6 +1391,7 @@ export class OrdersService {
             orderSource: true,
             integrationSource: true,
             viaHubrise: true,
+            brandId: true,
           },
         });
         for (const s of siblings) {

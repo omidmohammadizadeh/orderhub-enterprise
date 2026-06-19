@@ -497,7 +497,12 @@ function LocationAvatar({
 }
 
 function OrderNumberPill({ order }: { order: Order }) {
-  const label = order.orderNumber ? `#${order.orderNumber}` : order.displayId;
+  // Phase AW-30 — prefer the 5-char displayId (matches the receipt).
+  const label = order.displayId
+    ? `#${order.displayId}`
+    : order.orderNumber
+      ? `#${order.orderNumber}`
+      : null;
   if (!label) return null;
   return (
     <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600">

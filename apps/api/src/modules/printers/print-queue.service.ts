@@ -8,6 +8,7 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { buildReceiptPayload } from "./formatters/receipt.formatter";
 import { buildKitchenTicketPayload } from "./formatters/kitchen-ticket.formatter";
 import { buildLabelPayloads } from "./formatters/label.formatter";
+import { computeVisitCountForOrder } from "../orders/customer-visit.helper";
 
 @Injectable()
 export class PrintQueueService {
@@ -37,21 +38,21 @@ export class PrintQueueService {
 
     const jobs: Array<{ printerId: string | null; type: PrintJobType; payload: object }> = [];
 
-    // Phase AW-26 — lifetime visit count for this customer at the
-    // tenant so the receipt + kitchen ticket can render a "NEW
-    // CUSTOMER" / "RETURNING #N" banner. Phone is the most stable
-    // identifier across guest checkouts + POS + marketplaces.
-    const phone = (order.customerPhone ?? "").replace(/\s+/g, "");
-    const visitCount = phone
-      ? await this.prisma.order.count({
-          where: {
-            tenantId: order.tenantId,
-            isSandbox: false,
-            status: { not: "CANCELLED" },
-            customerPhone: phone,
-          },
-        })
-      : 1;
+    // Phase AW-30 — single source of truth for visit count. Same
+    // helper used by the orders board + print-routing service so all
+    // three views show the same number. Scoped to (tenantId, brandId)
+    // so cross-brand orders don't inflate the count.
+    const visitCount = await computeVisitCountForOrder(this.prisma, {
+      tenantId: order.tenantId,
+      brandId: (order as any).brandId ?? null,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      postcode: order.postcode,
+      platform: order.platform,
+      orderSource: order.orderSource,
+      integrationSource: order.integrationSource,
+      viaHubrise: order.viaHubrise,
+    });
 
     if (receiptPrinter) {
       jobs.push({
