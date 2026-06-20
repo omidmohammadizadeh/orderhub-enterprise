@@ -257,7 +257,7 @@ export class PrintRoutingService {
             modifiers: i.modifiers ?? [],
             notes: i.notes ?? null,
           })),
-          orderNumber: order.orderNumber ?? order.displayId ?? null,
+          orderNumber: order.displayId ?? order.orderNumber ?? null,
           displayId: order.displayId ?? null,
           platform: order.platform ?? null,
           orderSource: order.orderSource ?? null,
@@ -495,7 +495,7 @@ export class PrintRoutingService {
       ...header,
       customerVisitCount: visit.customerVisitCount,
       customerVisitTag: visit.customerVisitTag,
-      orderNumber: order.orderNumber ?? order.displayId ?? null,
+      orderNumber: order.displayId ?? order.orderNumber ?? null,
       displayId: order.displayId ?? null,
       // Order origin shown above the items so the kitchen instantly knows
       // whether to honour Uber's flow vs DIRECT etc. Both fields ship —
@@ -535,7 +535,7 @@ export class PrintRoutingService {
       ...header,
       customerVisitCount: visit.customerVisitCount,
       customerVisitTag: visit.customerVisitTag,
-      orderNumber: order.orderNumber ?? order.displayId ?? null,
+      orderNumber: order.displayId ?? order.orderNumber ?? null,
       displayId: order.displayId ?? null,
       platform: order.platform ?? null,
       orderSource: order.orderSource ?? null,
