@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "Order Hub Solutions",
+    "slug": "orderhub-pos",
+    "scheme": "orderhub",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.orderhubsolutions.pos",
+      "buildNumber": "1",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "com.orderhubsolutions.pos",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ]
+    },
+    "plugins": [
+      "expo-apple-authentication",
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "REPLACE_WITH_REVERSED_CLIENT_ID"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://orderhub-api.onrender.com/api",
+      "webUrl": "https://orderhubsolutions.com",
+      "googleWebClientId": "REPLACE_WITH_WEB_OAUTH_CLIENT_ID",
+      "googleIosClientId": "REPLACE_WITH_IOS_OAUTH_CLIENT_ID",
+      "eas": {
+        "projectId": "REPLACE_AFTER_FIRST_EAS_INIT"
+      }
+    }
+  }
+}

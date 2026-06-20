@@ -1,0 +1,42 @@
+{
+  "name": "@orderhub/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
+    "build:android": "eas build --platform android --profile production",
+    "build:ios": "eas build --platform ios --profile production",
+    "submit:android": "eas submit --platform android --latest",
+    "submit:ios": "eas submit --platform ios --latest"
+  },
+  "dependencies": {
+    "@invertase/react-native-apple-authentication": "^2.4.0",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-google-signin/google-signin": "^13.1.0",
+    "axios": "^1.7.7",
+    "expo": "~51.0.39",
+    "expo-apple-authentication": "~6.4.2",
+    "expo-keep-awake": "~13.0.2",
+    "expo-screen-orientation": "~7.0.5",
+    "expo-secure-store": "~13.0.2",
+    "expo-splash-screen": "~0.27.7",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "3.31.1",
+    "react-native-webview": "13.8.6"
+  },
+  "devDependencies": {
+    "@types/react": "~18.2.79",
+    "@orderhub/eslint-config": "workspace:*",
+    "@orderhub/tsconfig": "workspace:*",
+    "eslint": "^8.57.0",
+    "typescript": "~5.3.3"
+  }
+}
