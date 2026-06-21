@@ -43,15 +43,15 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "REPLACE_WITH_REVERSED_CLIENT_ID"
+          "iosUrlScheme": "com.googleusercontent.apps.331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m"
         }
       ]
     ],
     "extra": {
       "apiUrl": "https://orderhub-api.onrender.com/api",
       "webUrl": "https://orderhubsolutions.com",
-      "googleWebClientId": "REPLACE_WITH_WEB_OAUTH_CLIENT_ID",
-      "googleIosClientId": "REPLACE_WITH_IOS_OAUTH_CLIENT_ID",
+      "googleWebClientId": "331572609147-vjm10k3ro6o0a0ce0g49g955bmkt4u7r.apps.googleusercontent.com",
+      "googleIosClientId": "331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m.apps.googleusercontent.com",
       "eas": {
         "projectId": "REPLACE_AFTER_FIRST_EAS_INIT"
       }
