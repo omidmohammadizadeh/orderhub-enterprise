@@ -40,8 +40,15 @@ const SOUND_PATHS: Record<OrderSoundKind, string> = {
   rider_arrived: "/sounds/rider_arrived.mp3",
 };
 
+interface PlayOptions {
+  /** Total number of plays. Defaults to 1 — i.e. play once. */
+  repeatCount?: number;
+  /** Gap between consecutive plays, in milliseconds. Defaults to 500. */
+  intervalMs?: number;
+}
+
 interface UseOrderSoundsReturn {
-  play: (kind: OrderSoundKind) => void;
+  play: (kind: OrderSoundKind, opts?: PlayOptions) => void;
 }
 
 export function useOrderSounds(): UseOrderSoundsReturn {
@@ -67,28 +74,36 @@ export function useOrderSounds(): UseOrderSoundsReturn {
     });
   }, []);
 
-  const play = (kind: OrderSoundKind) => {
+  const play = (kind: OrderSoundKind, opts?: PlayOptions) => {
     const el = audioRefs.current[kind];
     if (!el) return;
-    try {
-      // Rewind if a previous play is still in flight — without this,
-      // back-to-back events get swallowed by Chrome (the second
-      // .play() is a no-op while the first is still buffering).
-      el.pause();
-      el.currentTime = 0;
-      const result = el.play();
-      // play() returns a Promise in modern browsers. The autoplay
-      // policy rejects it on the first call before any user gesture
-      // has happened — that's fine, swallow it. Other failures
-      // (file 404, decode error) also reject; we don't surface them
-      // because there's nothing the operator can do about it from
-      // the UI, and they show up in DevTools network/console anyway.
-      if (result && typeof result.catch === "function") {
-        result.catch(() => undefined);
+    // Clamp to sensible bounds — repeatCount of 0 or negative is
+    // treated as 1, and we cap at 20 so a misconfigured rule can't
+    // beep for 5 minutes.
+    const total = Math.max(1, Math.min(20, opts?.repeatCount ?? 1));
+    const interval = Math.max(200, opts?.intervalMs ?? 500);
+    const playOnce = () => {
+      try {
+        el.pause();
+        el.currentTime = 0;
+        const result = el.play();
+        if (result && typeof result.catch === "function") {
+          result.catch(() => undefined);
+        }
+      } catch {
+        // Older browsers throw synchronously.
       }
-    } catch {
-      // Defensive — older browsers throw synchronously rather than
-      // returning a rejected promise. Same swallow rationale.
+    };
+    playOnce();
+    if (total > 1) {
+      let played = 1;
+      const tick = () => {
+        if (played >= total) return;
+        played++;
+        playOnce();
+        if (played < total) setTimeout(tick, interval);
+      };
+      setTimeout(tick, interval);
     }
   };
 

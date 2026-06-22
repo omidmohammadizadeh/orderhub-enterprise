@@ -7,6 +7,7 @@ import { useOrdersStore } from "../stores/orders.store";
 import { getSocket } from "../lib/socket/socket.client";
 import { useAuthStore } from "../stores/auth.store";
 import { useOrderSounds } from "./use-order-sounds";
+import { alertsClient } from "../lib/api/printers.client";
 import type {
   OrderEventPayload,
   OrderCancelledPayload,
@@ -27,6 +28,27 @@ export function useLiveOrders(locationId?: string) {
   const liveOrders = useOrdersStore((s) => s.liveOrders);
   const token = useAuthStore((s) => s.accessToken);
   const { play } = useOrderSounds();
+
+  // Pull the alert config so the simple useOrderSounds player honours
+  // the "beep N times" / "every X ms" settings the operator set in
+  // Printers → Alerts. Without this the dashboard beeps exactly once
+  // even when the rule says 4 times, which is the user-visible bug.
+  const alertsQuery = useQuery({
+    queryKey: ["alerts", locationId] as const,
+    queryFn: () => alertsClient.list(locationId),
+    enabled: !!locationId,
+    staleTime: 60_000,
+  });
+  const alertOpts = (trigger: string) => {
+    const rule = (alertsQuery.data ?? []).find(
+      (a) => a.trigger === trigger && a.enabled,
+    );
+    if (!rule) return undefined;
+    return {
+      repeatCount: rule.repeatCount,
+      intervalMs: rule.repeatIntervalMs,
+    };
+  };
 
   const query = useQuery({
     queryKey: liveOrdersKey(locationId),
@@ -73,7 +95,7 @@ export function useLiveOrders(locationId?: string) {
     // shapes (orderId, not id) — not the full Order from the REST list
     // endpoint.
     const onNew = (payload: OrderEventPayload) => {
-      play("new");
+      play("new", alertOpts("NEW_ORDER"));
       applyNewOrder(payload);
     };
     const onUpdated = (payload: OrderEventPayload) => {
@@ -86,13 +108,13 @@ export function useLiveOrders(locationId?: string) {
           .getState()
           .liveOrders.find((o) => o.id === payload.orderId);
         if (!prev || prev.status !== "RIDER_ARRIVED") {
-          play("rider_arrived");
+          play("rider_arrived", alertOpts("RIDER_ARRIVED"));
         }
       }
       applyOrderUpdated(payload);
     };
     const onCancelled = (payload: OrderCancelledPayload) => {
-      play("cancelled");
+      play("cancelled", alertOpts("ORDER_CANCELLED"));
       applyOrderCancelled(payload);
     };
 

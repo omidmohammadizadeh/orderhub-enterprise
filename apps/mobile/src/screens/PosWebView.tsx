@@ -15,12 +15,10 @@
 //      and for { type: "openExternal", url } (so external links open
 //      in the system browser, not inside the WebView).
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -33,6 +31,7 @@ import Constants from "expo-constants";
 import { signOutGoogle } from "@/services/google";
 import type { AuthTokens } from "@/services/auth";
 import { PrinterSetupScreen } from "@/screens/PrinterSetupScreen";
+import { printAgent } from "@/print/agent";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -45,9 +44,15 @@ interface Props {
 
 export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [printerSetupOpen, setPrinterSetupOpen] = useState(false);
+
+  // Start the print agent on mount. Safe to call repeatedly — the
+  // singleton no-ops if it's already running. Agent only does real
+  // work after the user has pasted a pair code in PrinterSetup.
+  useEffect(() => {
+    void printAgent.start();
+  }, []);
 
   // Hand both tokens to the web via its existing OAuth-callback page —
   // that page sets the Zustand store + fetches /me, then router.replace
@@ -113,21 +118,7 @@ export function PosWebView({ tokens, onSignOut }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.flex}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              webRef.current?.reload();
-              setTimeout(() => setRefreshing(false), 1200);
-            }}
-            tintColor="#F97316"
-          />
-        }
-      >
+      <View style={styles.flex}>
         <WebView
           ref={webRef}
           source={{ uri: handoffUrl }}
@@ -149,8 +140,12 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           // from the dashboard on desktop) — flip this on later if we
           // want camera capture from the tablet.
           allowFileAccess={false}
-          // Pull-to-refresh + system back button feel native this way.
-          pullToRefreshEnabled
+          // No pull-to-refresh — the web POS has its own refresh button
+          // and pulling on a scrollable list intercepts the gesture and
+          // makes vertical scrolling on long order lists feel sticky.
+          pullToRefreshEnabled={false}
+          overScrollMode="never"
+          bounces={false}
           // If the web POS is paused on a backgrounded tab, the OS may
           // throttle JS; this keeps the timer/poll loops alive.
           androidLayerType="hardware"
@@ -167,7 +162,7 @@ export function PosWebView({ tokens, onSignOut }: Props) {
             <ActivityIndicator size="large" color="#F97316" />
           </View>
         )}
-      </ScrollView>
+      </View>
 
       {/* Floating printer button — small + unobtrusive, opens the
           native PrinterSetupScreen modal where the user can pair

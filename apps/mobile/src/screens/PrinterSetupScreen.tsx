@@ -21,6 +21,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -32,6 +33,7 @@ import {
   type PairedBtDevice,
 } from "@/print/transport/bluetooth";
 import { buildTestReceipt } from "@/print/escpos/test-receipt";
+import { printAgent, type AgentStatus } from "@/print/agent";
 
 interface Props {
   visible: boolean;
@@ -43,6 +45,44 @@ export function PrinterSetupScreen({ visible, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [btEnabled, setBtEnabled] = useState<boolean | null>(null);
   const [printingAddress, setPrintingAddress] = useState<string | null>(null);
+  const [agentStatus, setAgentStatus] = useState<AgentStatus>(
+    printAgent.getStatus(),
+  );
+  const [pairCode, setPairCode] = useState("");
+  const [pairing, setPairing] = useState(false);
+
+  useEffect(() => printAgent.subscribe(setAgentStatus), []);
+
+  const onPair = async () => {
+    if (!pairCode.trim()) {
+      Alert.alert("Pair code required", "Type the 6-character code shown on the dashboard.");
+      return;
+    }
+    setPairing(true);
+    try {
+      await printAgent.pairWithCode(pairCode);
+      setPairCode("");
+      Alert.alert(
+        "Tablet paired",
+        "Once the dashboard shows this tablet as online, bind your Bluetooth printer to it from the Agents tab.",
+      );
+    } catch (err: any) {
+      Alert.alert("Pairing failed", err?.message ?? "Unknown error");
+    } finally {
+      setPairing(false);
+    }
+  };
+
+  const onUnpair = async () => {
+    Alert.alert("Unpair tablet?", "Print jobs will stop reaching this tablet.", [
+      { text: "Cancel" },
+      {
+        text: "Unpair",
+        style: "destructive",
+        onPress: () => printAgent.unpair(),
+      },
+    ]);
+  };
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -110,6 +150,84 @@ export function PrinterSetupScreen({ visible, onClose }: Props) {
         </View>
 
         <ScrollView contentContainerStyle={styles.body}>
+          {/* Agent status — pair the tablet to the API once so it shows
+              up in the dashboard's Agents tab and starts claiming jobs.
+              Without this the test print works but real orders sit in
+              the queue with no agent to pick them up. */}
+          <View style={styles.agentCard}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.sectionTitle}>Print agent</Text>
+              <View
+                style={[
+                  styles.statusPill,
+                  agentStatus.online
+                    ? styles.statusPillOn
+                    : agentStatus.paired
+                    ? styles.statusPillWarn
+                    : styles.statusPillOff,
+                ]}
+              >
+                <Text style={styles.statusPillText}>
+                  {agentStatus.online
+                    ? "Online"
+                    : agentStatus.paired
+                    ? "Reconnecting…"
+                    : "Not paired"}
+                </Text>
+              </View>
+            </View>
+
+            {agentStatus.paired ? (
+              <>
+                <Text style={styles.agentMeta}>
+                  Agent ID: {agentStatus.agentId?.slice(0, 8)}…
+                </Text>
+                <Text style={styles.agentMeta}>
+                  Bound printers: {agentStatus.printers.length}
+                </Text>
+                {agentStatus.lastError && (
+                  <Text style={styles.errorInline}>{agentStatus.lastError}</Text>
+                )}
+                <Pressable onPress={onUnpair} style={styles.unpairBtn}>
+                  <Text style={styles.unpairBtnText}>Unpair tablet</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.helpBody}>
+                  On a desktop, open dashboard → Printers → Agents → Pair new
+                  device. Type the 6-character code shown there below.
+                </Text>
+                <TextInput
+                  style={styles.pairInput}
+                  value={pairCode}
+                  onChangeText={(t) => setPairCode(t.toUpperCase().trim())}
+                  placeholder="ABC123"
+                  placeholderTextColor="#475569"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  maxLength={8}
+                />
+                <Pressable
+                  onPress={onPair}
+                  disabled={pairing || pairCode.length < 4}
+                  style={({ pressed }) => [
+                    styles.pairBtn,
+                    pressed && styles.pairBtnPressed,
+                    (pairing || pairCode.length < 4) && styles.pairBtnDisabled,
+                  ]}
+                >
+                  {pairing ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.pairBtnText}>Pair tablet</Text>
+                  )}
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          <View style={styles.divider} />
           <Text style={styles.helpHeader}>How to pair a Bluetooth printer</Text>
           <Text style={styles.helpBody}>
             1. Turn the printer on.{"\n"}
@@ -273,5 +391,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: "italic",
     lineHeight: 18,
+  },
+  agentCard: {
+    backgroundColor: "#1E293B",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  agentMeta: { color: "#94A3B8", fontSize: 13, marginTop: 6 },
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  statusPillOn: { backgroundColor: "#16A34A" },
+  statusPillWarn: { backgroundColor: "#CA8A04" },
+  statusPillOff: { backgroundColor: "#475569" },
+  statusPillText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  pairInput: {
+    backgroundColor: "#0F172A",
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 4,
+    textAlign: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+  pairBtn: {
+    backgroundColor: "#F97316",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  pairBtnPressed: { opacity: 0.7 },
+  pairBtnDisabled: { opacity: 0.4 },
+  pairBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  unpairBtn: {
+    marginTop: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#475569",
+  },
+  unpairBtnText: { color: "#94A3B8", fontSize: 14, fontWeight: "500" },
+  errorInline: {
+    color: "#F87171",
+    fontSize: 12,
+    marginTop: 8,
   },
 });
