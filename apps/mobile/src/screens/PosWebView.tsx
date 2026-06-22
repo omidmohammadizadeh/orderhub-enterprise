@@ -89,6 +89,24 @@ export function PosWebView({ tokens, onSignOut }: Props) {
     }
   };
 
+  // The web's logout button just clears its Zustand store and redirects
+  // to /login. The web has no idea it's running inside a native shell,
+  // so it never calls window.OrderHubNative.signOut(). We watch the
+  // WebView's URL: anytime it ends up on the dashboard /login page,
+  // treat that as a logout and bounce back to the native LoginScreen.
+  const handleNavStateChange = async (state: { url: string }) => {
+    const u = state.url || "";
+    // Match /login (with or without query string) but NOT
+    // /auth/oauth/callback (that one is the handoff URL we load on
+    // sign-in) and NOT the storefront /order/[slug]/login (customer auth).
+    const isDashboardLogin =
+      /\/login(\?|$|#)/.test(u) && !u.includes("/order/");
+    if (isDashboardLogin) {
+      await signOutGoogle();
+      onSignOut();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView
@@ -111,6 +129,7 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           source={{ uri: handoffUrl }}
           injectedJavaScriptBeforeContentLoaded={injectedBeforeLoad}
           onMessage={onMessage}
+          onNavigationStateChange={handleNavStateChange}
           onLoadEnd={() => setLoaded(true)}
           // Sound + media autoplay — the existing web POS plays an MP3
           // when a new order lands; without these flags WKWebView blocks
