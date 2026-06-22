@@ -18,9 +18,11 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,6 +32,7 @@ import Constants from "expo-constants";
 
 import { signOutGoogle } from "@/services/google";
 import type { AuthTokens } from "@/services/auth";
+import { PrinterSetupScreen } from "@/screens/PrinterSetupScreen";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -44,6 +47,7 @@ export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [printerSetupOpen, setPrinterSetupOpen] = useState(false);
 
   // Hand both tokens to the web via its existing OAuth-callback page —
   // that page sets the Zustand store + fetches /me, then router.replace
@@ -164,6 +168,23 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating printer button — small + unobtrusive, opens the
+          native PrinterSetupScreen modal where the user can pair
+          their thermal printer and run a test print. */}
+      <Pressable
+        onPress={() => setPrinterSetupOpen(true)}
+        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+        hitSlop={8}
+        accessibilityLabel="Printer setup"
+      >
+        <Text style={styles.fabIcon}>🖨</Text>
+      </Pressable>
+
+      <PrinterSetupScreen
+        visible={printerSetupOpen}
+        onClose={() => setPrinterSetupOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -177,4 +198,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#0F172A",
   },
+  fab: {
+    position: "absolute",
+    right: 12,
+    bottom: 24,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#F97316",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+  },
+  fabPressed: { opacity: 0.75 },
+  fabIcon: { fontSize: 22 },
 });
