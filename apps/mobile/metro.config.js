@@ -26,9 +26,5 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, "node_modules"),
 ];
 
-// 3. Disable Metro's hierarchical lookup so it doesn't accidentally
-//    resolve a package from a parent that doesn't have it (which
-//    causes confusing "module not found" errors at runtime).
-config.resolver.disableHierarchicalLookup = true;
 
 module.exports = config;
