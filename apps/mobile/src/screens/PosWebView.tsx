@@ -1,8 +1,12 @@
 // PosWebView — the full-screen native shell around the existing web POS.
 //
 // Three things make this feel native instead of "just a browser":
-//   1. The JWT is injected into window.localStorage BEFORE the page
-//      loads, so the web POS wakes up already signed in.
+//   1. The JWT pair is handed off via /auth/oauth/callback?access=…&refresh=…
+//      — that page already exists for the web's Google OAuth flow and
+//      populates the Zustand auth store (`orderhub-auth`) the right way,
+//      then redirects to /dashboard. We can't just localStorage.setItem
+//      directly: the web persists a wrapped Zustand shape with user +
+//      isAuthenticated flags, not a bare token.
 //   2. mediaPlaybackRequiresUserAction={false} +
 //      allowsInlineMediaPlayback so the web POS can play its order
 //      sound via HTML5 Audio without a tap-to-unlock.
@@ -25,29 +29,38 @@ import * as Linking from "expo-linking";
 import Constants from "expo-constants";
 
 import { signOutGoogle } from "@/services/google";
+import type { AuthTokens } from "@/services/auth";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
   "https://orderhubsolutions.com";
 
 interface Props {
-  token: string;
+  tokens: AuthTokens;
   onSignOut: () => void;
 }
 
-export function PosWebView({ token, onSignOut }: Props) {
+export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Runs INSIDE the WebView before any of our web JS runs. Plants the
-  // token and a tiny postMessage helper.
+  // Hand both tokens to the web via its existing OAuth-callback page —
+  // that page sets the Zustand store + fetches /me, then router.replace
+  // to /dashboard. Far more reliable than guessing the persist shape.
+  const handoffUrl = useMemo(() => {
+    const qs = new URLSearchParams({
+      access: tokens.accessToken,
+      refresh: tokens.refreshToken,
+    });
+    return `${WEB_URL}/auth/oauth/callback?${qs.toString()}`;
+  }, [tokens]);
+
+  // Tiny native ↔ web bridge for sign-out + external link opens.
+  // The token handoff happens via the URL above, not via injection.
   const injectedBeforeLoad = useMemo(
     () => `
       (function () {
-        try {
-          window.localStorage.setItem('orderhub.token', ${JSON.stringify(token)});
-        } catch (e) {}
         window.OrderHubNative = {
           signOut: function () {
             window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'signout' }));
@@ -59,7 +72,7 @@ export function PosWebView({ token, onSignOut }: Props) {
         true;
       })();
     `,
-    [token],
+    [],
   );
 
   const onMessage = async (e: WebViewMessageEvent) => {
@@ -95,7 +108,7 @@ export function PosWebView({ token, onSignOut }: Props) {
       >
         <WebView
           ref={webRef}
-          source={{ uri: `${WEB_URL}/dashboard/orders` }}
+          source={{ uri: handoffUrl }}
           injectedJavaScriptBeforeContentLoaded={injectedBeforeLoad}
           onMessage={onMessage}
           onLoadEnd={() => setLoaded(true)}

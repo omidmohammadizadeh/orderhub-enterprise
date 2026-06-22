@@ -17,12 +17,13 @@ import {
   exchangeAppleIdToken,
   exchangeGoogleIdToken,
   loginWithEmailPassword,
+  type AuthTokens,
 } from "@/services/auth";
 import { signInWithGoogle } from "@/services/google";
 import { isAppleSignInAvailable, signInWithApple } from "@/services/apple";
 
 interface Props {
-  onSignedIn: (jwt: string) => void;
+  onSignedIn: (tokens: AuthTokens) => void;
 }
 
 export function LoginScreen({ onSignedIn }: Props) {
@@ -44,8 +45,8 @@ export function LoginScreen({ onSignedIn }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      const jwt = await loginWithEmailPassword(email.trim(), password);
-      onSignedIn(jwt);
+      const t = await loginWithEmailPassword(email.trim(), password);
+      onSignedIn(t);
     } catch (err: any) {
       setError(
         err?.response?.data?.message ?? err?.message ?? "Sign-in failed",
@@ -61,8 +62,8 @@ export function LoginScreen({ onSignedIn }: Props) {
     try {
       const idToken = await signInWithGoogle();
       if (!idToken) return; // user cancelled
-      const jwt = await exchangeGoogleIdToken(idToken);
-      onSignedIn(jwt);
+      const t = await exchangeGoogleIdToken(idToken);
+      onSignedIn(t);
     } catch (err: any) {
       setError(err?.message ?? "Google sign-in failed");
     } finally {
@@ -76,12 +77,12 @@ export function LoginScreen({ onSignedIn }: Props) {
     try {
       const result = await signInWithApple();
       if (!result) return; // user cancelled
-      const jwt = await exchangeAppleIdToken(
+      const t = await exchangeAppleIdToken(
         result.idToken,
         result.fullName,
         result.email,
       );
-      onSignedIn(jwt);
+      onSignedIn(t);
     } catch (err: any) {
       setError(err?.message ?? "Apple sign-in failed");
     } finally {

@@ -1,18 +1,20 @@
-// Auth service — stores the JWT in expo-secure-store (Keychain on iOS,
-// Keystore on Android). On launch we hydrate from secure storage so a
-// returning operator doesn't have to log in again.
+// Auth service — stores both access + refresh JWTs in expo-secure-store
+// (Keychain on iOS, Keystore on Android). On launch we hydrate from
+// secure storage so a returning operator doesn't have to log in again.
 //
 // All three login paths (email/pass, Google native, Apple native) end
 // here: they exchange their respective credential for an OrderHub JWT
-// via the API, then setToken() persists + flips the React state that
-// gates the WebView screen.
+// pair via the API, then setTokens() persists + flips the React state
+// that gates the WebView screen. We keep BOTH tokens so the WebView
+// can hand them to the web's /auth/oauth/callback page, which is the
+// only path that populates the web's Zustand auth store correctly.
 
 import { useEffect, useState, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Constants from "expo-constants";
 
-const TOKEN_KEY = "orderhub.token";
+const TOKEN_KEY = "orderhub.tokens"; // JSON: { accessToken, refreshToken }
 
 const API_URL =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
@@ -23,76 +25,98 @@ export const api = axios.create({
   timeout: 15000,
 });
 
-let inMemoryToken: string | null = null;
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
+let inMemoryAccess: string | null = null;
 
 api.interceptors.request.use((config) => {
-  if (inMemoryToken) {
+  if (inMemoryAccess) {
     config.headers = config.headers ?? {};
-    (config.headers as any).Authorization = `Bearer ${inMemoryToken}`;
+    (config.headers as any).Authorization = `Bearer ${inMemoryAccess}`;
   }
   return config;
 });
 
 export function useAuth() {
-  const [token, setTokenState] = useState<string | null>(null);
+  const [tokens, setTokensState] = useState<AuthTokens | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(TOKEN_KEY)
       .then((stored) => {
-        if (stored) {
-          inMemoryToken = stored;
-          setTokenState(stored);
+        if (!stored) return;
+        try {
+          const parsed = JSON.parse(stored) as AuthTokens;
+          if (parsed?.accessToken) {
+            inMemoryAccess = parsed.accessToken;
+            setTokensState(parsed);
+          }
+        } catch {
+          // Old single-string token from a previous app version — discard.
         }
       })
       .finally(() => setHydrated(true));
   }, []);
 
-  const setToken = useCallback(async (next: string | null) => {
-    inMemoryToken = next;
-    setTokenState(next);
+  const setTokens = useCallback(async (next: AuthTokens | null) => {
+    inMemoryAccess = next?.accessToken ?? null;
+    setTokensState(next);
     if (next) {
-      await SecureStore.setItemAsync(TOKEN_KEY, next);
+      await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(next));
     } else {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
     }
   }, []);
 
-  return { token, hydrated, setToken };
+  return { tokens, hydrated, setTokens };
 }
 
-// API login responses come back as { tokens: { accessToken, ... }, user }.
-// We only need the accessToken on the device — refresh handling is deferred
-// until we add long-lived staff sessions.
-type LoginResponse = { tokens: { accessToken: string } };
+// API login responses: { tokens: { accessToken, refreshToken, ... }, user }.
+// We keep BOTH tokens so the web's auth callback page can rebuild its
+// Zustand auth store (it persists refreshToken too).
+type LoginResponse = {
+  tokens: { accessToken: string; refreshToken: string };
+};
+
+function toTokens(res: { data: LoginResponse }): AuthTokens {
+  return {
+    accessToken: res.data.tokens.accessToken,
+    refreshToken: res.data.tokens.refreshToken,
+  };
+}
 
 export async function loginWithEmailPassword(
   email: string,
   password: string,
-): Promise<string> {
+): Promise<AuthTokens> {
   const res = await api.post<LoginResponse>("/v1/auth/login", {
     email,
     password,
   });
-  return res.data.tokens.accessToken;
+  return toTokens(res);
 }
 
-export async function exchangeGoogleIdToken(idToken: string): Promise<string> {
+export async function exchangeGoogleIdToken(
+  idToken: string,
+): Promise<AuthTokens> {
   const res = await api.post<LoginResponse>("/v1/auth/google/native", {
     idToken,
   });
-  return res.data.tokens.accessToken;
+  return toTokens(res);
 }
 
 export async function exchangeAppleIdToken(
   idToken: string,
   fullName?: { givenName?: string | null; familyName?: string | null },
   email?: string | null,
-): Promise<string> {
+): Promise<AuthTokens> {
   const res = await api.post<LoginResponse>("/v1/auth/apple/native", {
     idToken,
     fullName,
     email,
   });
-  return res.data.tokens.accessToken;
+  return toTokens(res);
 }
