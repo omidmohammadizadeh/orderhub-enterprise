@@ -10,6 +10,7 @@ import { AuthService } from "./auth.service";
 import { TokenService } from "./services/token.service";
 import { PasswordService } from "./services/password.service";
 import { OAuthService } from "./services/oauth.service";
+import { NativeOAuthService } from "./services/native-oauth.service";
 import { AuditLogService } from "./services/audit-log.service";
 
 // Strategies
@@ -44,6 +45,7 @@ import { AppleStrategy } from "./strategies/oauth/apple.strategy";
     TokenService,
     PasswordService,
     OAuthService,
+    NativeOAuthService,
     AuditLogService,
 
     // Passport strategies

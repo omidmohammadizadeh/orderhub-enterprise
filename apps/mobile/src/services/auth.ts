@@ -61,26 +61,27 @@ export function useAuth() {
   return { token, hydrated, setToken };
 }
 
+// API login responses come back as { tokens: { accessToken, ... }, user }.
+// We only need the accessToken on the device — refresh handling is deferred
+// until we add long-lived staff sessions.
+type LoginResponse = { tokens: { accessToken: string } };
+
 export async function loginWithEmailPassword(
   email: string,
   password: string,
 ): Promise<string> {
-  const res = await api.post<{ accessToken: string }>("/v1/auth/login", {
+  const res = await api.post<LoginResponse>("/v1/auth/login", {
     email,
     password,
   });
-  return res.data.accessToken;
+  return res.data.tokens.accessToken;
 }
 
 export async function exchangeGoogleIdToken(idToken: string): Promise<string> {
-  // Posts the Google ID token to our existing customer/staff Google auth
-  // endpoint. The server validates the token against Google, finds-or-
-  // creates the user, and returns our own JWT.
-  const res = await api.post<{ accessToken: string }>(
-    "/v1/auth/google/native",
-    { idToken },
-  );
-  return res.data.accessToken;
+  const res = await api.post<LoginResponse>("/v1/auth/google/native", {
+    idToken,
+  });
+  return res.data.tokens.accessToken;
 }
 
 export async function exchangeAppleIdToken(
@@ -88,10 +89,10 @@ export async function exchangeAppleIdToken(
   fullName?: { givenName?: string | null; familyName?: string | null },
   email?: string | null,
 ): Promise<string> {
-  const res = await api.post<{ accessToken: string }>("/v1/auth/apple/native", {
+  const res = await api.post<LoginResponse>("/v1/auth/apple/native", {
     idToken,
     fullName,
     email,
   });
-  return res.data.accessToken;
+  return res.data.tokens.accessToken;
 }

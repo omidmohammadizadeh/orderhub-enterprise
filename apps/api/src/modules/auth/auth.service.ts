@@ -193,6 +193,34 @@ export class AuthService {
     };
   }
 
+  // Public wrapper used by native-OAuth controller endpoints that already
+  // hold a tokens+user pair and just need the standard LoginResponseDto
+  // shape (so mobile + web speak the same wire format).
+  async buildLoginResponse(
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl: string | null;
+      role: string;
+      permissions: string[];
+      tenantId: string;
+      isVerified: boolean;
+    },
+    tokens: AuthTokensDto,
+    tenantId: string,
+  ): Promise<LoginResponseDto> {
+    const tenant = await this.prisma.tenant.findUniqueOrThrow({
+      where: { id: tenantId },
+      select: { name: true },
+    });
+    return {
+      tokens,
+      user: this.mapUserProfile(user, tenant),
+    };
+  }
+
   // ── Private helpers ───────────────────────────────────
 
   private mapUserProfile(

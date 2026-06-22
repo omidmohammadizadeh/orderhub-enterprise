@@ -15,6 +15,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
 import { OAuthService } from "./services/oauth.service";
+import { NativeOAuthService } from "./services/native-oauth.service";
 import { TokenService } from "./services/token.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { OAuthProfile } from "./interfaces/oauth-provider.interface";
@@ -29,6 +30,10 @@ import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
+import {
+  GoogleNativeAuthDto,
+  AppleNativeAuthDto,
+} from "./dto/native-oauth.dto";
 import {
   LoginResponseDto,
   AuthTokensDto,
@@ -59,6 +64,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly oauthService: OAuthService,
+    private readonly nativeOAuth: NativeOAuthService,
     private readonly tokenService: TokenService,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
@@ -239,5 +245,87 @@ export class AuthController {
         `${webUrl}/auth/login?error=${encodeURIComponent(err?.message ?? "oauth_failed")}`,
       );
     }
+  }
+
+  // ── Native mobile OAuth ─────────────────────────────────────────────
+  //
+  // The Expo mobile app uses native sign-in SDKs that produce a signed
+  // ID token on-device. These two endpoints accept that token, verify it
+  // against the provider, find-or-create the OrderHub user, and return
+  // the same LoginResponseDto that /login produces. No browser round-trip.
+
+  @Public()
+  @Post("google/native")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: "Exchange a native Google ID token for an OrderHub JWT" })
+  @ApiResponse({ status: 200, type: LoginResponseDto })
+  @ApiResponse({ status: 401, description: "Invalid Google ID token" })
+  async googleNative(
+    @Body() dto: GoogleNativeAuthDto,
+    @Req() req: Request,
+  ): Promise<LoginResponseDto> {
+    const profile = await this.nativeOAuth.verifyGoogleIdToken(dto.idToken);
+    return this.exchangeNativeProfile(profile, req);
+  }
+
+  @Public()
+  @Post("apple/native")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: "Exchange a native Apple ID token for an OrderHub JWT" })
+  @ApiResponse({ status: 200, type: LoginResponseDto })
+  @ApiResponse({ status: 401, description: "Invalid Apple ID token" })
+  async appleNative(
+    @Body() dto: AppleNativeAuthDto,
+    @Req() req: Request,
+  ): Promise<LoginResponseDto> {
+    const profile = await this.nativeOAuth.verifyAppleIdToken(
+      dto.idToken,
+      dto.email,
+      dto.fullName,
+    );
+    return this.exchangeNativeProfile(profile, req);
+  }
+
+  // Shared tail of both native flows — picks the default tenant, runs
+  // findOrCreateUser, then issues an OrderHub JWT pair + user profile.
+  private async exchangeNativeProfile(
+    profile: OAuthProfile,
+    req: Request,
+  ): Promise<LoginResponseDto> {
+    const defaultTenant = await this.prisma.tenant.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (!defaultTenant) {
+      throw new ServiceUnavailableException(
+        "No tenant available — contact support",
+      );
+    }
+
+    const { userId, tenantId } = await this.oauthService.findOrCreateUser(
+      profile,
+      defaultTenant.id,
+    );
+
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    if (!user.isActive) {
+      throw new ServiceUnavailableException("Account is inactive");
+    }
+
+    const tokens = await this.tokenService.generateTokenPair(
+      {
+        userId: user.id,
+        tenantId,
+        role: user.role,
+        permissions: user.permissions,
+      },
+      extractMeta(req),
+    );
+
+    return this.authService.buildLoginResponse(user, tokens, tenantId);
   }
 }

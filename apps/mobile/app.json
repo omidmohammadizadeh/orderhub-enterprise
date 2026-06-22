@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0F172A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.orderhubsolutions.pos",
@@ -20,7 +22,9 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -51,7 +55,10 @@
       "apiUrl": "https://orderhub-api.onrender.com/api",
       "webUrl": "https://orderhubsolutions.com",
       "googleWebClientId": "331572609147-vjm10k3ro6o0a0ce0g49g955bmkt4u7r.apps.googleusercontent.com",
-      "googleIosClientId": "331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m.apps.googleusercontent.com"
+      "googleIosClientId": "331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "d70e5765-80c7-4aa4-a2c6-ab038c2c3a74"
+      }
     }
   }
 }
