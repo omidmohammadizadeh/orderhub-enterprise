@@ -205,8 +205,41 @@ function PrinterWizard({
   >("LAN");
   const [ipAddress, setIp] = useState("");
   const [port, setPort] = useState("9100");
+  const [btMac, setBtMac] = useState("");
   const [paperWidth, setPaperWidth] = useState<58 | 80>(80);
   const [model, setModel] = useState("");
+
+  // Native bridge — exposed by the OrderHub Solutions Android app via
+  // window.OrderHubBT. When present we can list the tablet's paired
+  // Bluetooth devices directly, so the operator doesn't have to copy
+  // a MAC address by hand. When absent (desktop browser), users can
+  // still type the MAC themselves.
+  const [btDevices, setBtDevices] = useState<
+    Array<{ name: string; address: string }>
+  >([]);
+  const [btScanning, setBtScanning] = useState(false);
+  const [btError, setBtError] = useState<string | null>(null);
+  const hasNativeBt =
+    typeof window !== "undefined" && !!(window as any).OrderHubBT;
+
+  const scanBtDevices = async () => {
+    if (!hasNativeBt) return;
+    setBtScanning(true);
+    setBtError(null);
+    try {
+      const list = await (window as any).OrderHubBT.listDevices();
+      setBtDevices(list);
+      if (list.length === 0) {
+        setBtError(
+          "No paired Bluetooth devices found. Pair the printer in Android Settings → Connected devices → Pair new device, then tap Scan.",
+        );
+      }
+    } catch (e: any) {
+      setBtError(e?.message ?? "Bluetooth scan failed");
+    } finally {
+      setBtScanning(false);
+    }
+  };
   const [stationId, setStationId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
@@ -231,6 +264,12 @@ function PrinterWizard({
           ipAddress,
           port: parseInt(port, 10) || 9100,
         }),
+        // No btMac column on the Printer table yet — store the MAC in
+        // the existing ipAddress field. The mobile bridge reads
+        // `printer.ipAddress` as the BT address when connectionType is
+        // BLUETOOTH. We'll promote to a dedicated column once we add
+        // BT-specific stats (signal strength, last-seen).
+        ...(connectionType === "BLUETOOTH" && btMac && { ipAddress: btMac }),
         paperWidth,
         model: model || null,
         kind:
@@ -372,12 +411,94 @@ function PrinterWizard({
                   </Field>
                 </>
               )}
-              {connectionType !== "LAN" && (
+              {connectionType === "BLUETOOTH" && (
+                <div className="space-y-2">
+                  {hasNativeBt ? (
+                    <>
+                      <Field label="Paired Bluetooth devices">
+                        {btDevices.length === 0 ? (
+                          <button
+                            type="button"
+                            onClick={scanBtDevices}
+                            disabled={btScanning}
+                            className="w-full rounded-md border border-violet-300 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-50"
+                          >
+                            {btScanning
+                              ? "Scanning…"
+                              : "Scan paired Bluetooth devices"}
+                          </button>
+                        ) : (
+                          <div className="space-y-1">
+                            {btDevices.map((d) => (
+                              <button
+                                key={d.address}
+                                type="button"
+                                onClick={() => {
+                                  setBtMac(d.address);
+                                  if (!name) setName(d.name);
+                                }}
+                                className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm ${
+                                  btMac === d.address
+                                    ? "border-violet-600 bg-violet-50"
+                                    : "border-zinc-300 hover:bg-zinc-50"
+                                }`}
+                              >
+                                <span>
+                                  <span className="font-medium text-zinc-900">
+                                    {d.name}
+                                  </span>
+                                  <span className="ml-2 text-xs text-zinc-500">
+                                    {d.address}
+                                  </span>
+                                </span>
+                                {btMac === d.address && (
+                                  <span className="text-xs font-semibold text-violet-700">
+                                    Selected
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={scanBtDevices}
+                              disabled={btScanning}
+                              className="mt-1 text-xs text-violet-600 underline disabled:opacity-50"
+                            >
+                              {btScanning ? "Scanning…" : "Refresh list"}
+                            </button>
+                          </div>
+                        )}
+                      </Field>
+                      {btError && (
+                        <p className="rounded bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                          {btError}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Field label="Bluetooth MAC address">
+                        <input
+                          value={btMac}
+                          onChange={(e) =>
+                            setBtMac(e.target.value.toUpperCase())
+                          }
+                          placeholder="00:01:90:42:EE:C9"
+                          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm font-mono"
+                        />
+                      </Field>
+                      <p className="rounded bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+                        Open this page from the Order Hub Solutions tablet app
+                        to see paired devices automatically.
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+              {connectionType === "USB" && (
                 <p className="rounded bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                  Bluetooth and USB require the OrderHub Print Bridge running
-                  on this location's device. Pair the device under
-                  <strong> Agents</strong> first; the bridge config file then
-                  maps this printer.
+                  USB requires the desktop Print Bridge. Pair the bridge under
+                  <strong> Agents</strong> first.
                 </p>
               )}
             </>

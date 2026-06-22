@@ -15,14 +15,8 @@
 //      and for { type: "openExternal", url } (so external links open
 //      in the system browser, not inside the WebView).
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useMemo, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Linking from "expo-linking";
@@ -30,8 +24,11 @@ import Constants from "expo-constants";
 
 import { signOutGoogle } from "@/services/google";
 import type { AuthTokens } from "@/services/auth";
-import { PrinterSetupScreen } from "@/screens/PrinterSetupScreen";
-import { printAgent } from "@/print/agent";
+import {
+  listBondedDevices,
+  sendBytesOverBt,
+  ensureBtPermissions,
+} from "@/print/transport/bluetooth";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -45,14 +42,6 @@ interface Props {
 export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
-  const [printerSetupOpen, setPrinterSetupOpen] = useState(false);
-
-  // Start the print agent on mount. Safe to call repeatedly — the
-  // singleton no-ops if it's already running. Agent only does real
-  // work after the user has pasted a pair code in PrinterSetup.
-  useEffect(() => {
-    void printAgent.start();
-  }, []);
 
   // Hand both tokens to the web via its existing OAuth-callback page —
   // that page sets the Zustand store + fetches /me, then router.replace
@@ -65,8 +54,21 @@ export function PosWebView({ tokens, onSignOut }: Props) {
     return `${WEB_URL}/auth/oauth/callback?${qs.toString()}`;
   }, [tokens]);
 
-  // Tiny native ↔ web bridge for sign-out + external link opens.
-  // The token handoff happens via the URL above, not via injection.
+  // Native ↔ web bridge.
+  //
+  // window.OrderHubNative — signOut + openExternal (existing).
+  // window.OrderHubBT     — let the dashboard's Printers tab see the
+  //                         tablet's paired BT devices and send raw
+  //                         ESC/POS bytes to one of them. With this
+  //                         the operator never has to open a separate
+  //                         "printer setup" screen: pair the printer
+  //                         in Android settings, open Printers tab,
+  //                         pick the paired printer from a dropdown,
+  //                         click save. Done.
+  //
+  // Request/response uses { type, reqId } envelopes; native sends the
+  // result back by injecting `window.__ohbtResolve(reqId, value)`. The
+  // bridge helpers return Promises that resolve / reject when that fires.
   const injectedBeforeLoad = useMemo(
     () => `
       (function () {
@@ -78,11 +80,50 @@ export function PosWebView({ tokens, onSignOut }: Props) {
             window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openExternal', url: url }));
           }
         };
+
+        var pending = {};
+        var nextId = 1;
+        function request(type, payload) {
+          return new Promise(function (resolve, reject) {
+            var reqId = 'r' + (nextId++);
+            pending[reqId] = { resolve: resolve, reject: reject };
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: type, reqId: reqId, payload: payload || null
+            }));
+          });
+        }
+        window.__ohbtResolve = function (reqId, value) {
+          var p = pending[reqId]; if (!p) return; delete pending[reqId];
+          p.resolve(value);
+        };
+        window.__ohbtReject = function (reqId, msg) {
+          var p = pending[reqId]; if (!p) return; delete pending[reqId];
+          p.reject(new Error(msg || 'bridge error'));
+        };
+
+        window.OrderHubBT = {
+          isReady: true,
+          listDevices: function () { return request('bt:list'); },
+          print: function (mac, base64Bytes) {
+            return request('bt:print', { mac: mac, bytes: base64Bytes });
+          }
+        };
         true;
       })();
     `,
     [],
   );
+
+  const respond = (reqId: string, value: unknown) => {
+    webRef.current?.injectJavaScript(
+      `window.__ohbtResolve(${JSON.stringify(reqId)}, ${JSON.stringify(value)}); true;`,
+    );
+  };
+  const reject = (reqId: string, msg: string) => {
+    webRef.current?.injectJavaScript(
+      `window.__ohbtReject(${JSON.stringify(reqId)}, ${JSON.stringify(msg)}); true;`,
+    );
+  };
 
   const onMessage = async (e: WebViewMessageEvent) => {
     try {
@@ -92,6 +133,27 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         onSignOut();
       } else if (msg?.type === "openExternal" && msg?.url) {
         await Linking.openURL(String(msg.url));
+      } else if (msg?.type === "bt:list" && msg?.reqId) {
+        try {
+          await ensureBtPermissions();
+          const devices = await listBondedDevices();
+          respond(
+            msg.reqId,
+            devices.map((d) => ({ name: d.name, address: d.address })),
+          );
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "Bluetooth list failed");
+        }
+      } else if (msg?.type === "bt:print" && msg?.reqId && msg?.payload) {
+        try {
+          const { mac, bytes } = msg.payload as { mac: string; bytes: string };
+          if (!mac || !bytes) throw new Error("mac + bytes required");
+          const buf = base64ToBytes(bytes);
+          await sendBytesOverBt(mac, buf);
+          respond(msg.reqId, { ok: true });
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "Bluetooth print failed");
+        }
       }
     } catch {
       // Ignore non-JSON / non-OrderHub messages.
@@ -164,24 +226,35 @@ export function PosWebView({ tokens, onSignOut }: Props) {
         )}
       </View>
 
-      {/* Floating printer button — small + unobtrusive, opens the
-          native PrinterSetupScreen modal where the user can pair
-          their thermal printer and run a test print. */}
-      <Pressable
-        onPress={() => setPrinterSetupOpen(true)}
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        hitSlop={8}
-        accessibilityLabel="Printer setup"
-      >
-        <Text style={styles.fabIcon}>🖨</Text>
-      </Pressable>
-
-      <PrinterSetupScreen
-        visible={printerSetupOpen}
-        onClose={() => setPrinterSetupOpen(false)}
-      />
     </SafeAreaView>
   );
+}
+
+// base64 → Uint8Array. Compact and ASCII-only friendly; the dashboard
+// is responsible for sending properly-encoded ESC/POS payloads.
+function base64ToBytes(b64: string): Uint8Array {
+  const clean = b64.replace(/\s+/g, "");
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const map: Record<string, number> = {};
+  for (let i = 0; i < chars.length; i++) map[chars[i]!] = i;
+  const out: number[] = [];
+  let i = 0;
+  while (i < clean.length) {
+    const c0 = clean[i++] ?? "A";
+    const c1 = clean[i++] ?? "A";
+    const c2 = clean[i++] ?? "=";
+    const c3 = clean[i++] ?? "=";
+    const n =
+      (map[c0]! << 18) |
+      (map[c1]! << 12) |
+      ((c2 === "=" ? 0 : map[c2]!) << 6) |
+      (c3 === "=" ? 0 : map[c3]!);
+    out.push((n >> 16) & 0xff);
+    if (c2 !== "=") out.push((n >> 8) & 0xff);
+    if (c3 !== "=") out.push(n & 0xff);
+  }
+  return new Uint8Array(out);
 }
 
 const styles = StyleSheet.create({
@@ -193,22 +266,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#0F172A",
   },
-  fab: {
-    position: "absolute",
-    right: 12,
-    bottom: 24,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#F97316",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
-  },
-  fabPressed: { opacity: 0.75 },
-  fabIcon: { fontSize: 22 },
 });
