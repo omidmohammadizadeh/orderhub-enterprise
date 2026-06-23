@@ -1,23 +1,19 @@
 "use client";
 
 // Client-side auto-print. No conditions, no server print-job pipeline,
-// no socket — it rides the exact same path as the manual "print" button
-// (which works): watch the live orders feed, and when a NEW order shows
-// up, print it straight to every Bluetooth printer whose "Auto-print"
-// toggle is on, using that printer's configured copy counts.
+// no socket dependency for the print itself — it rides the same path as
+// the manual "print" button (which works): watch the live orders feed,
+// and when a NEW order shows up, print it straight to every Bluetooth
+// printer whose "Auto-print" toggle is on, using that printer's copy
+// counts.
 //
 // Per-printer settings live on printer.defaults:
-//   autoPrint        — master on/off for this printer
-//   copiesNewOrder   — copies to print when a new order arrives
-//   copiesCancelled  — copies to print when an order is cancelled (0 = off)
-//   copiesReprint    — copies the manual reprint button uses
+//   autoPrint, copiesNewOrder, copiesCancelled, copiesReprint
 //
-// Dedupe rule: on first load we seed every currently-visible order as
-// "already handled" so we never reprint the existing board. Only orders
-// that appear AFTER mount print. Each order prints once for "new" and
-// once (at most) for "cancelled".
+// Returns a live status object so the board can show, ON SCREEN, whether
+// auto-print is armed — invaluable on a tablet where there's no console.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { printersClient } from "../lib/api/printers.client";
 import {
@@ -30,14 +26,22 @@ import { buildPrintPayload } from "../lib/printing/order-receipt";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
+export interface AutoPrintStatus {
+  inApp: boolean; // running inside the native tablet shell
+  armedPrinters: number; // BT printers with auto-print ON
+  lastMessage: string | null; // last action / error, for on-screen display
+}
+
 export function useBridgeAutoPrint(locationId?: string, orders?: any[]) {
-  // Ids we've already acted on, so we never double-print.
   const printedNewRef = useRef<Set<string>>(new Set());
   const printedCancelRef = useRef<Set<string>>(new Set());
   const seededRef = useRef(false);
+  const [status, setStatus] = useState<AutoPrintStatus>({
+    inApp: false,
+    armedPrinters: 0,
+    lastMessage: null,
+  });
 
-  // Keep the printer list fresh (auto-print toggle / copies change on
-  // another device, or a printer is connected, without a reload).
   const printersQuery = useQuery({
     queryKey: ["printers", "list", locationId ?? "all"],
     queryFn: () => printersClient.list(locationId),
@@ -50,11 +54,23 @@ export function useBridgeAutoPrint(locationId?: string, orders?: any[]) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!hasNativeBridge() || !locationId || !orders) return;
+    const inApp = hasNativeBridge();
 
-    // First time we see the orders list: remember everything currently
-    // on the board so we don't reprint the backlog. Nothing prints on
-    // this pass.
+    const btPrinters = (printersRef.current ?? []).filter(
+      (p: any) =>
+        (!locationId || p.locationId === locationId) &&
+        p.connectionType === "BLUETOOTH" &&
+        p.ipAddress &&
+        p.isActive !== false &&
+        p.defaults?.autoPrint,
+    );
+
+    setStatus((s) => ({ ...s, inApp, armedPrinters: btPrinters.length }));
+
+    if (!inApp || !locationId || !orders) return;
+
+    // First load: remember the current board so we don't reprint the
+    // backlog. Nothing prints on this pass.
     if (!seededRef.current) {
       for (const o of orders) {
         printedNewRef.current.add(o.id);
@@ -65,14 +81,7 @@ export function useBridgeAutoPrint(locationId?: string, orders?: any[]) {
       return;
     }
 
-    const btPrinters = printersRef.current.filter(
-      (p: any) =>
-        p.locationId === locationId &&
-        p.connectionType === "BLUETOOTH" &&
-        p.ipAddress &&
-        p.isActive !== false &&
-        p.defaults?.autoPrint,
-    );
+    const hasItems = (o: any) => Array.isArray(o?.items) && o.items.length > 0;
 
     const printToAll = async (
       order: any,
@@ -81,48 +90,61 @@ export function useBridgeAutoPrint(locationId?: string, orders?: any[]) {
     ) => {
       const payload = buildPrintPayload(order, banner ? { banner } : undefined);
       for (const p of btPrinters) {
+        const fallback = copiesField === "copiesNewOrder" ? 1 : 0;
         const copies = Math.max(
           0,
-          Math.floor(Number(p.defaults?.[copiesField] ?? (copiesField === "copiesNewOrder" ? 1 : 0))) || 0,
+          Math.floor(Number(p.defaults?.[copiesField] ?? fallback)) || 0,
         );
         if (copies < 1) continue;
         try {
           const single = buildOrderReceipt(payload, p.paperWidth ?? 80);
           await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
-          console.log(
-            `[auto-print] ${copiesField} ${copies}x order=${order.id} -> ${p.name}`,
-          );
-        } catch (e) {
-          console.error(`[auto-print] FAILED order=${order.id} -> ${p.name}`, e);
+          const msg = `Printed ${copies}× ${
+            banner ? "cancellation" : "order"
+          } #${order.displayId ?? order.orderNumber ?? order.id?.slice(-4)} → ${p.name} @ ${new Date().toLocaleTimeString()}`;
+          console.log(`[auto-print] ${msg}`);
+          setStatus((s) => ({ ...s, lastMessage: msg }));
+        } catch (e: any) {
+          const msg = `FAILED → ${p.name}: ${e?.message ?? e}`;
+          console.error("[auto-print]", msg, e);
+          setStatus((s) => ({ ...s, lastMessage: msg }));
         }
       }
     };
 
     for (const o of orders) {
-      const status = String(o.status ?? "").toUpperCase();
+      const statusUp = String(o.status ?? "").toUpperCase();
 
-      // New order → print once.
+      // New order → print once, but only once we actually have the line
+      // items. New orders first arrive over the socket as a PARTIAL
+      // record (no items); printing then would spit a blank receipt and
+      // poison the dedupe so the full order never prints. Wait for the
+      // full order (REST refetch / order:updated) before committing.
       if (!printedNewRef.current.has(o.id)) {
-        printedNewRef.current.add(o.id);
-        if (btPrinters.length) void printToAll(o, "copiesNewOrder");
+        if (btPrinters.length === 0) {
+          // No armed printer — treat as handled so we don't dump the
+          // backlog the moment one gets enabled.
+          printedNewRef.current.add(o.id);
+        } else if (hasItems(o)) {
+          printedNewRef.current.add(o.id);
+          void printToAll(o, "copiesNewOrder");
+        }
+        // else: partial order, leave unseen so it prints when full.
       }
 
-      // Cancelled → print a cancellation slip once (if copies > 0).
-      if (
-        CANCELLED_STATUSES.has(status) &&
-        !printedCancelRef.current.has(o.id)
-      ) {
+      // Cancelled → print a cancellation slip once.
+      if (CANCELLED_STATUSES.has(statusUp) && !printedCancelRef.current.has(o.id)) {
         printedCancelRef.current.add(o.id);
-        if (btPrinters.length)
+        if (btPrinters.length && hasItems(o))
           void printToAll(o, "copiesCancelled", "*** ORDER CANCELLED ***");
       }
     }
 
-    // Bound memory on a long-running till.
     for (const ref of [printedNewRef, printedCancelRef]) {
-      if (ref.current.size > 500) {
+      if (ref.current.size > 500)
         ref.current = new Set(Array.from(ref.current).slice(-500));
-      }
     }
   }, [orders, locationId, printersQuery.data]);
+
+  return status;
 }

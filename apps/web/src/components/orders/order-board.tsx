@@ -178,7 +178,7 @@ export function OrderBoard({ locationId }: Props) {
   // Auto-print incoming orders to BT printers via the native bridge
   // (when this page is loaded inside the OrderHub Solutions tablet
   // app). No-op in a regular desktop browser.
-  useBridgeAutoPrint(locationId, orders);
+  const autoPrint = useBridgeAutoPrint(locationId, orders);
 
   const platforms = useMemo(() => {
     const set = new Set(orders.map((o) => o.platform));
@@ -229,6 +229,29 @@ export function OrderBoard({ locationId }: Props) {
 
   return (
     <>
+      {/* Auto-print status — only inside the native tablet app. Lets the
+          operator see at a glance whether auto-print is armed, without a
+          developer console. */}
+      {autoPrint.inApp && (
+        <div
+          className={`mb-3 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+            autoPrint.armedPrinters > 0
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-amber-200 bg-amber-50 text-amber-800"
+          }`}
+        >
+          <span className="font-semibold">
+            🖨 Auto-print:{" "}
+            {autoPrint.armedPrinters > 0
+              ? `ON · ${autoPrint.armedPrinters} printer${autoPrint.armedPrinters > 1 ? "s" : ""}`
+              : "OFF — turn it on in Printers → printer settings"}
+          </span>
+          {autoPrint.lastMessage && (
+            <span className="opacity-80">· {autoPrint.lastMessage}</span>
+          )}
+        </div>
+      )}
+
       {/* Platform filter */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {platforms.map((p) => (

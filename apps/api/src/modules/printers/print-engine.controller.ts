@@ -335,6 +335,19 @@ export class PrintJobsController {
     return this.jobs.pendingBridgeJobs(user.tenantId, locationId);
   }
 
+  // Wipe the queue — cancel every pending/stuck job (optionally scoped
+  // to one location). Backs the "Clear queue" button.
+  @Post("clear-queue")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES)
+  @HttpCode(HttpStatus.OK)
+  clearQueue(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.jobs.clearQueue(user.tenantId, locationId);
+  }
+
   @Post("test-print")
   @ApiBearerAuth()
   @Roles(...MANAGE_PRINT_ROLES)

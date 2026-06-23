@@ -117,6 +117,13 @@ export const printersClient = {
         params: locationId ? { locationId } : undefined,
       })
       .then((r) => r.data),
+  // Cancel every pending/stuck print job (optionally one location).
+  clearQueue: (locationId?: string) =>
+    apiClient
+      .post<{ cleared: number }>("/v1/print-jobs/clear-queue", null, {
+        params: locationId ? { locationId } : undefined,
+      })
+      .then((r) => r.data),
   // Turn automatic order printing on/off for this printer's location.
   setReceiptDefault: (id: string, active: boolean) =>
     apiClient

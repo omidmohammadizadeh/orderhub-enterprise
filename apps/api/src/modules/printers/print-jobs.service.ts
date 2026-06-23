@@ -464,6 +464,25 @@ export class PrintJobsService {
     });
   }
 
+  // Clear the queue: cancel every still-pending job for the tenant
+  // (optionally one location). Used by the "Clear queue" button so the
+  // operator can wipe a backlog of stuck/old jobs in one tap.
+  async clearQueue(tenantId: string, locationId?: string) {
+    const { count } = await (this.prisma as any).printJob.updateMany({
+      where: {
+        tenantId,
+        ...(locationId && { locationId }),
+        status: { in: ["QUEUED", "CLAIMED", "PRINTING"] },
+      },
+      data: {
+        status: "CANCELLED",
+        nextRetryAt: null,
+        deadLetteredAt: new Date(),
+      },
+    });
+    return { cleared: count };
+  }
+
   async markPrinted(jobId: string, agentId: string) {
     const job = await this.requireClaimedBy(jobId, agentId);
     const updated = await (this.prisma as any).printJob.update({
