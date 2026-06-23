@@ -54,6 +54,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   // order missed its first print) and as a manual "print again"
   // button on tablets where the operator wants a second copy.
   const onPrint = async () => {
+    if (!order) return;
     setPrinting(true);
     setPrintMsg(null);
     try {
