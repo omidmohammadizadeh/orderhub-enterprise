@@ -405,8 +405,6 @@ export function OrderList({ locationId }: Props) {
                 <Th>Type</Th>
                 <Th>Delivery</Th>
                 <Th>Customer</Th>
-                <Th>Items</Th>
-                <Th>Total</Th>
                 <Th>Payment</Th>
                 <Th>Status</Th>
                 <Th>Actions</Th>
@@ -484,7 +482,6 @@ function OrderRow({
   order: Order;
   onOpen: () => void;
 }) {
-  const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
   const bucket =
     BUCKETS.find((b) => b.match(order)) ??
     BUCKETS[BUCKETS.length - 1]!;
@@ -592,14 +589,6 @@ function OrderRow({
               </span>
             ))}
         </div>
-      </Td>
-      <Td>
-        <span className="text-zinc-700 tabular-nums">{itemCount}</span>
-      </Td>
-      <Td>
-        <span className="font-semibold text-zinc-900 tabular-nums">
-          £{Number(order.total).toFixed(2)}
-        </span>
       </Td>
       <Td>
         <PaymentBadge
