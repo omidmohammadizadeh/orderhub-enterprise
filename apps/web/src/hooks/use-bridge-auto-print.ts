@@ -77,12 +77,23 @@ export function useBridgeAutoPrint(locationId?: string) {
         console.log("[bridge-print] skip — missing id/printerId");
         return;
       }
-      const printer = bt.find((p: any) => p.id === event.printerId);
+      // Prefer exact printerId match; fall back to any BT printer at
+      // this location if the job was routed to a legacy LAN printer ID
+      // that's no longer active. The socket event is already scoped to
+      // this location's room, so falling back is safe when there is no
+      // desktop print bridge active.
+      const exactMatch = bt.find((p: any) => p.id === event.printerId);
+      const printer = exactMatch ?? (bt.length > 0 ? bt[0] : null);
       if (!printer) {
         console.log(
-          `[bridge-print] skip — printerId ${event.printerId} not in BT list`,
+          `[bridge-print] skip — no BT printer available (printerId=${event.printerId})`,
         );
         return;
+      }
+      if (!exactMatch) {
+        console.log(
+          `[bridge-print] using fallback printer ${printer.name} (event.printerId=${event.printerId} not in BT list)`,
+        );
       }
       if (printedRef.current.has(event.id)) {
         console.log(`[bridge-print] skip — already printed job ${event.id}`);

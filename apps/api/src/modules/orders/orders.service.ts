@@ -42,7 +42,9 @@ const ORDER_INCLUDE = {
       id: true,
       name: true,
       brandId: true,
-      brand: { select: { id: true, name: true, logoUrl: true } },
+      address: true,
+      phone: true,
+      brand: { select: { id: true, name: true, logoUrl: true, phone: true, addressLine1: true, city: true, postcode: true } },
     },
   },
   // Surface the order's brand to the dashboard so the board can render

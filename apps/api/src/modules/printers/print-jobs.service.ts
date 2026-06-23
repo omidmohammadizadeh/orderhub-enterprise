@@ -216,6 +216,7 @@ export class PrintJobsService {
             printerId: row.printerId,
             stationId: row.stationId,
             status: row.status,
+            locationId: order.locationId,
             orderId: dto.orderId,
             trigger: dto.trigger,
             copies: row.copies,
