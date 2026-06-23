@@ -79,6 +79,20 @@ export function buildPrintPayload(
     platform: displayChannelFor(order),
     orderSource: (order as any).orderSource ?? null,
     fulfillmentType: order.fulfillmentType,
+    // New / returning customer banner (matches the order card). Use the
+    // server-supplied tag when present, otherwise derive from the count.
+    customerVisitCount: (order as any).customerVisitCount ?? null,
+    customerVisitTag:
+      (order as any).customerVisitTag ??
+      (typeof (order as any).customerVisitCount === "number"
+        ? (order as any).customerVisitCount <= 1
+          ? "*** NEW CUSTOMER ***"
+          : `*** RETURNING CUSTOMER · ORDER #${(order as any).customerVisitCount} ***`
+        : null),
+    // Timing — scheduled slot or estimated ready time, for the receipt's
+    // "expected delivery / collection" line + scheduled banner.
+    scheduledFor: (order as any).scheduledFor ?? null,
+    estimatedReadyAt: (order as any).estimatedReadyAt ?? null,
     customerName: (order as any).customerName ?? null,
     customerPhone: (order as any).customerPhone ?? null,
     deliveryAddress,

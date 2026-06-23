@@ -129,6 +129,19 @@ export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
 // Format a money amount the printer can render. We keep this
 // transport-agnostic — the API already chose £/$/€, so we just print
 // "10.99" with up to 2 decimals.
+// Compact, ASCII-safe date+time for the receipt, e.g. "Tue 24 Jun 18:30".
+function fmtWhen(iso: any): string {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return "";
+  const date = d.toLocaleDateString([], {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+  });
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return `${date} ${time}`;
+}
+
 function money(n: any): string {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return "";
@@ -221,12 +234,31 @@ export function buildOrderReceipt(
   line(buf, received);
   line(buf, "");
 
+  // ── SCHEDULED banner (bold, with date + time) ─────────────────────
+  if (payload?.scheduledFor) {
+    buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON, ...reverseOn());
+    line(buf, "SCHEDULED");
+    buf.push(...reverseOff(), ...DOUBLE_OFF);
+    for (const w of wrap(fmtWhen(payload.scheduledFor), cols)) line(buf, w);
+    buf.push(...BOLD_OFF, ...ALIGN_LEFT);
+    line(buf, "");
+  }
+
   // ── Order meta ────────────────────────────────────────────────────
   buf.push(...ALIGN_LEFT);
   if (payload?.platform || payload?.orderSource)
     line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
   if (payload?.fulfillmentType)
     line(buf, `Type    : ${payload.fulfillmentType}`);
+  // Always show the expected delivery / collection time.
+  {
+    const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
+    const label = isDelivery ? "Deliver " : "Collect ";
+    const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
+    buf.push(...BOLD_ON);
+    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
+    buf.push(...BOLD_OFF);
+  }
   if (payload?.customerName)
     line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
   if (payload?.customerPhone)
