@@ -25,6 +25,7 @@ import {
   bridgePrint,
   buildOrderReceipt,
   hasNativeBridge,
+  repeatReceipt,
 } from "../lib/printing/bridge";
 
 export function useBridgeAutoPrint(locationId?: string) {
@@ -117,16 +118,16 @@ export function useBridgeAutoPrint(locationId?: string) {
         `[bridge-print] rendering job=${event.id} trigger=${event.trigger} copies=${copies} printer=${printer.name}`,
       );
       try {
-        const bytes = buildOrderReceipt(
+        const single = buildOrderReceipt(
           renderPayload,
           printer.paperWidth ?? 80,
         );
-        for (let i = 0; i < copies; i++) {
-          await bridgePrint(printer.ipAddress!, bytes);
-          if (i + 1 < copies)
-            await new Promise((r) => setTimeout(r, 400));
-        }
-        console.log(`[bridge-print] OK job=${event.id}`);
+        // All copies in one buffer / one connection — the native side
+        // streams + drains them reliably. (Separate print() calls per
+        // copy used to race the printer and drop all but the first.)
+        const bytes = repeatReceipt(single, copies);
+        await bridgePrint(printer.ipAddress!, bytes);
+        console.log(`[bridge-print] OK job=${event.id} copies=${copies}`);
         // Clear the job out of the Printers-page queue. The bridge
         // prints directly over Bluetooth and never goes through the
         // agent claim/complete cycle, so without this the job sits in

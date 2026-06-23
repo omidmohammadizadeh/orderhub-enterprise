@@ -32,6 +32,25 @@ const CHUNK_SIZE = 512;
 // chunks lets the printer drain.
 const CHUNK_PAUSE_MS = 30;
 
+// After the final chunk is written we must NOT hand control back (and
+// certainly must not disconnect) until the printer has physically
+// drained its buffer. device.write() resolving only means the bytes
+// reached the OS RFCOMM socket — the printer is still chewing through
+// them. If we returned (or tore the socket down) immediately the
+// receipt got truncated ("only prints a small bit, press reprint to
+// finish"). We wait a base settle time plus time proportional to the
+// payload so long receipts get long enough to finish.
+const DRAIN_BASE_MS = 350;
+const DRAIN_PER_KB_MS = 120;
+const DRAIN_MAX_MS = 4000;
+
+function drainMsFor(byteLen: number): number {
+  const ms = DRAIN_BASE_MS + (byteLen / 1024) * DRAIN_PER_KB_MS;
+  return Math.min(DRAIN_MAX_MS, Math.round(ms));
+}
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 export interface PairedBtDevice {
   address: string; // MAC, e.g. "00:01:90:42:EE:C9"
   name: string;
@@ -83,7 +102,78 @@ export async function listBondedDevices(): Promise<PairedBtDevice[]> {
   return devices.map((d) => ({ address: d.address, name: d.name }));
 }
 
-/** Connect to a bonded device, write the buffer in chunks, close.
+// One persistent RFCOMM connection per printer, reused across prints.
+//
+// Opening a fresh socket for every receipt was the source of two bugs:
+//   * Copies failed — the 2nd connectToDevice() raced the printer
+//     still finishing the 1st receipt and the SPP socket refused, so
+//     only one copy came out.
+//   * Truncated prints — disconnecting right after the last write()
+//     tore the socket down before the printer drained, so the receipt
+//     cut off partway.
+// A counter printer is happy to hold one connection open indefinitely,
+// so we connect once and keep it. We only reconnect if the cached
+// socket has dropped (printer slept / went out of range).
+let cached: { address: string; device: BluetoothDevice } | null = null;
+
+async function dropCached(): Promise<void> {
+  if (!cached) return;
+  const d = cached.device;
+  cached = null;
+  try {
+    await d.disconnect();
+  } catch {
+    // ignore — printer times out its own side
+  }
+}
+
+async function getConnection(address: string): Promise<BluetoothDevice> {
+  if (cached && cached.address === address) {
+    try {
+      if (await cached.device.isConnected()) return cached.device;
+    } catch {
+      // fall through and reconnect
+    }
+    await dropCached();
+  } else if (cached) {
+    // Switched to a different printer — release the old socket first.
+    await dropCached();
+  }
+
+  const device = await RNBluetoothClassic.connectToDevice(address, {
+    // Standard SPP profile for ESC/POS printers. We write pre-encoded
+    // base64 byte chunks, so the charset is irrelevant — the bytes are
+    // already final ESC/POS commands.
+    connectorType: "rfcomm",
+    delimiter: "",
+    charset: "utf-8",
+  });
+  cached = { address, device };
+  return device;
+}
+
+async function writeChunks(
+  device: BluetoothDevice,
+  bytes: Uint8Array,
+): Promise<void> {
+  // Stream chunks with a small pause between to respect the printer's
+  // input buffer.
+  //
+  // CRITICAL: pass "base64" as the encoding hint so the lib decodes
+  // the base64 string back into raw bytes BEFORE writing to RFCOMM.
+  // Without this hint, write() sends the ASCII bytes of the base64
+  // string itself, and the printer prints "G0AbYQE=…" instead of
+  // honouring the ESC/POS commands.
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+    await device.write(toBase64(chunk), "base64");
+    if (i + CHUNK_SIZE < bytes.length) await sleep(CHUNK_PAUSE_MS);
+  }
+}
+
+/** Connect to a bonded device (reusing an open socket if we have one),
+ *  stream the buffer in chunks, then wait for the printer to drain
+ *  before returning. The socket is intentionally LEFT OPEN for reuse.
  *  Throws on any I/O failure so the caller can surface a clear error. */
 export async function sendBytesOverBt(
   address: string,
@@ -91,39 +181,30 @@ export async function sendBytesOverBt(
 ): Promise<void> {
   const ok = await ensureBtPermissions();
   if (!ok) throw new Error("Bluetooth permissions not granted");
+  if (bytes.length === 0) return;
 
-  let device: BluetoothDevice | null = null;
   try {
-    device = await RNBluetoothClassic.connectToDevice(address, {
-      // Standard SPP UUID for ESC/POS printers
-      CONNECTOR_TYPE: "rfcomm",
-      DELIMITER: "",
-      DEVICE_CHARSET: "utf-8",
-    });
-
-    // Stream chunks with a small pause between to respect the
-    // printer's input buffer.
-    //
-    // CRITICAL: pass "base64" as the encoding hint so the lib decodes
-    // the base64 string back into raw bytes BEFORE writing to RFCOMM.
-    // Without this hint, write() sends the ASCII bytes of the base64
-    // string itself, and the printer prints "G0AbYQE=…" instead of
-    // honouring the ESC/POS commands.
-    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-      const chunk = bytes.subarray(i, i + CHUNK_SIZE);
-      await device.write(toBase64(chunk), "base64");
-      if (i + CHUNK_SIZE < bytes.length) {
-        await new Promise((r) => setTimeout(r, CHUNK_PAUSE_MS));
-      }
-    }
-  } finally {
-    try {
-      if (device) await device.disconnect();
-    } catch {
-      // disconnect errors are non-fatal — the printer will time out
-      // its own side of the connection in a few seconds.
-    }
+    const device = await getConnection(address);
+    await writeChunks(device, bytes);
+  } catch (err) {
+    // The cached socket may have gone stale mid-write. Drop it, make
+    // one clean reconnect attempt, and retry the whole buffer.
+    await dropCached();
+    const device = await getConnection(address);
+    await writeChunks(device, bytes);
   }
+
+  // Hold control (and the open socket) until the printer has had time
+  // to physically print everything we just queued. Without this the
+  // caller marks the job done / fires the next copy while the printer
+  // is mid-receipt and the output gets truncated.
+  await sleep(drainMsFor(bytes.length));
+}
+
+/** Force-close the persistent printer socket. Call on teardown or when
+ *  the operator unbinds the printer. Safe to call when nothing's open. */
+export async function disconnectBt(): Promise<void> {
+  await dropCached();
 }
 
 // React Native doesn't ship a built-in Buffer; small base64 helper

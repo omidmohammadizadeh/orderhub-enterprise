@@ -73,6 +73,20 @@ export async function bridgePrint(
   await (window as BridgeWindow).OrderHubBT!.print(mac, b64);
 }
 
+// Repeat a fully-rendered receipt N times into one buffer. Each copy
+// already ends in a paper cut, so the printer spits out N separate
+// receipts. We concatenate rather than calling print() N times so the
+// whole job goes down a single Bluetooth connection — issuing several
+// back-to-back connect/print cycles races the printer and historically
+// dropped all copies but the first.
+export function repeatReceipt(bytes: Uint8Array, copies: number): Uint8Array {
+  const n = Math.max(1, Math.floor(copies) || 1);
+  if (n === 1) return bytes;
+  const out = new Uint8Array(bytes.length * n);
+  for (let i = 0; i < n; i++) out.set(bytes, i * bytes.length);
+  return out;
+}
+
 export function bytesToBase64(bytes: Uint8Array): string {
   let bin = "";
   const chunk = 0x8000;
