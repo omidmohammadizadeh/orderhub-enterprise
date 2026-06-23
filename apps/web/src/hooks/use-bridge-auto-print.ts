@@ -127,6 +127,19 @@ export function useBridgeAutoPrint(locationId?: string) {
             await new Promise((r) => setTimeout(r, 400));
         }
         console.log(`[bridge-print] OK job=${event.id}`);
+        // Clear the job out of the Printers-page queue. The bridge
+        // prints directly over Bluetooth and never goes through the
+        // agent claim/complete cycle, so without this the job sits in
+        // QUEUED forever and the queue keeps growing.
+        try {
+          await printersClient.markBridgePrinted(event.id);
+          console.log(`[bridge-print] marked PRINTED job=${event.id}`);
+        } catch (markErr) {
+          console.warn(
+            `[bridge-print] printed OK but failed to mark job ${event.id} PRINTED`,
+            markErr,
+          );
+        }
       } catch (e) {
         console.error("[bridge-print] FAILED", e);
       }

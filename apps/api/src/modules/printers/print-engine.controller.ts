@@ -381,6 +381,22 @@ export class PrintJobsController {
     return this.jobs.markPrinted(id, agentId);
   }
 
+  // Bridge-mode completion. The tablet's WebView prints over Bluetooth
+  // directly (no agent claim/poll), so it marks jobs done off its normal
+  // dashboard JWT session rather than agent creds. Without this, every
+  // bridge-printed job sat in QUEUED forever and the Printers page filled
+  // up with a growing queue.
+  @Post(":id/bridge-printed")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES, "STAFF")
+  @HttpCode(HttpStatus.OK)
+  bridgePrinted(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+  ) {
+    return this.jobs.markPrintedByBridge(id, user.tenantId);
+  }
+
   @Public()
   @Post(":id/fail")
   @HttpCode(HttpStatus.OK)

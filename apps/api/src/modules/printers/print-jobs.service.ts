@@ -399,6 +399,35 @@ export class PrintJobsService {
     return updated;
   }
 
+  // Bridge-mode completion. The tablet's WebView renders + writes the
+  // receipt over Bluetooth itself (no agent claim/poll cycle), so it
+  // can't use the agent-protocol :id/complete endpoint. This marks the
+  // job PRINTED off the back of a normal authenticated dashboard
+  // session — we only verify the job belongs to the caller's tenant.
+  // Idempotent: re-marking an already-PRINTED job is a no-op.
+  async markPrintedByBridge(jobId: string, tenantId: string) {
+    const job = await (this.prisma as any).printJob.findUnique({
+      where: { id: jobId },
+      select: { id: true, tenantId: true, status: true },
+    });
+    if (!job) throw new NotFoundException("Job not found");
+    if (job.tenantId !== tenantId) {
+      throw new BadRequestException("Job belongs to another tenant");
+    }
+    if (job.status === "PRINTED") return job;
+    const updated = await (this.prisma as any).printJob.update({
+      where: { id: jobId },
+      data: {
+        status: "PRINTED",
+        printedAt: new Date(),
+        nextRetryAt: null,
+        deadLetteredAt: null,
+      },
+    });
+    this.emitUpdated(updated);
+    return updated;
+  }
+
   async markPrinted(jobId: string, agentId: string) {
     const job = await this.requireClaimedBy(jobId, agentId);
     const updated = await (this.prisma as any).printJob.update({

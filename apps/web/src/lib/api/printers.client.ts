@@ -93,6 +93,13 @@ export const printersClient = {
     apiClient
       .post("/v1/print-jobs/test-print", { printerId })
       .then((r) => r.data),
+  // Mark a job PRINTED after the native Bluetooth bridge rendered it on
+  // the tablet. Clears it out of the Printers-page queue (the bridge
+  // doesn't go through the agent claim/complete cycle).
+  markBridgePrinted: (jobId: string) =>
+    apiClient
+      .post(`/v1/print-jobs/${jobId}/bridge-printed`, {})
+      .then((r) => r.data),
 };
 
 export const printAgentsClient = {
