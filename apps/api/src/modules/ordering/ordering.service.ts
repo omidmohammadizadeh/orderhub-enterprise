@@ -33,6 +33,8 @@ export interface CheckoutDto {
   discount?: number;
   total: number;
   specialInstructions?: string;
+  /** ISO timestamp when the customer scheduled the order for later. */
+  scheduledFor?: string;
   promoCode?: string;
   // Phase AP-8 — when set to "CARD", checkout() returns a Stripe Checkout
   // Session URL the storefront should redirect the browser to. Defaults
@@ -785,6 +787,11 @@ export class OrderingService {
         discount: serverDiscount,
         total: serverTotal,
         specialInstructions: dto.specialInstructions,
+        // Phase — thread the customer's chosen schedule through so the
+        // order is actually saved as scheduled (was dropped here, which
+        // made every scheduled storefront order show "ASAP").
+        scheduledFor: (dto as any).scheduledFor ?? undefined,
+        isScheduled: !!(dto as any).scheduledFor,
         idempotencyKey: dto.idempotencyKey,
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",

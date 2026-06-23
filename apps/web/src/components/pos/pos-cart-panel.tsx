@@ -225,11 +225,10 @@ export function PosCartPanel(props: CartPanelProps) {
       addressLine2: addrLine2,
       city,
       postcode,
-      preparationMinutes: prepMinutes,
-      scheduledFor: isScheduled
-        ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
-        : undefined,
-      isScheduled,
+      // NOTE: timing (preparationMinutes / scheduledFor / isScheduled) is
+      // deliberately NOT persisted to the draft. Each order is its own
+      // decision — carrying a schedule over meant the next order stayed
+      // locked to the previous order's time. New orders always start ASAP.
       discountType,
       promoCode: promoCodeInput,
       paymentMethod,

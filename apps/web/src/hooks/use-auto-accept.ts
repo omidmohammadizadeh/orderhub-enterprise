@@ -50,6 +50,13 @@ export function useAutoAccept(locationId?: string) {
       if (String(o.status ?? "").toUpperCase() !== "PENDING") continue;
       if (acceptedRef.current.has(o.id) || inFlightRef.current.has(o.id))
         continue;
+      // Don't auto-accept a future scheduled order — it stays PENDING in
+      // the Scheduled section until the operator starts it (or its time
+      // comes). Only ~2 min of slack so a "now-ish" slot still accepts.
+      if (o.scheduledFor) {
+        const when = new Date(o.scheduledFor).getTime();
+        if (Number.isFinite(when) && when > Date.now() + 2 * 60_000) continue;
+      }
       inFlightRef.current.add(o.id);
       ordersClient
         .updateStatus(o.id, "ACCEPTED", { note: "auto-accept" } as any)
