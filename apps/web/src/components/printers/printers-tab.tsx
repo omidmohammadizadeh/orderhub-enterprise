@@ -5,6 +5,11 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  hasNativeBridge,
+  bridgePrint,
+  buildTestReceipt,
+} from "@/lib/printing/bridge";
+import {
   Plus,
   Wifi,
   WifiOff,
@@ -38,7 +43,20 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
     : items;
 
   const testPrint = useMutation({
-    mutationFn: (id: string) => printersClient.testPrint(id),
+    mutationFn: async (printer: any) => {
+      // Bluetooth printer + native bridge available → send raw bytes
+      // straight to the printer via the WebView bridge. No API round
+      // trip, no PrintJob queue, no agent needed. The dashboard *is*
+      // the print engine in this path.
+      if (printer.connectionType === "BLUETOOTH" && hasNativeBridge()) {
+        const mac = printer.ipAddress; // BT MAC is stored in ipAddress
+        if (!mac) throw new Error("No Bluetooth address saved for this printer");
+        const bytes = buildTestReceipt(printer.paperWidth ?? 80);
+        await bridgePrint(mac, bytes);
+        return { ok: true } as any;
+      }
+      return printersClient.testPrint(printer.id);
+    },
   });
   const remove = useMutation({
     mutationFn: (id: string) => printersClient.remove(id),
@@ -94,9 +112,15 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                     </div>
                   </Td>
                   <Td>
-                    {p.isOnline ? (
+                    {p.isOnline ||
+                    (p.connectionType === "BLUETOOTH" &&
+                      hasNativeBridge() &&
+                      p.ipAddress) ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                        <Wifi className="h-3 w-3" /> Online
+                        <Wifi className="h-3 w-3" />
+                        {p.connectionType === "BLUETOOTH" && hasNativeBridge()
+                          ? "Online (tablet)"
+                          : "Online"}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600">
@@ -120,12 +144,13 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                   <Td>
                     <div className="flex justify-end gap-1">
                       <button
-                        onClick={() => testPrint.mutate(p.id)}
+                        onClick={() => testPrint.mutate(p)}
                         disabled={testPrint.isPending}
                         title="Send test print"
                         className="rounded p-1.5 text-zinc-500 hover:bg-violet-50 hover:text-violet-700"
                       >
-                        {testPrint.isPending && testPrint.variables === p.id ? (
+                        {testPrint.isPending &&
+                        testPrint.variables?.id === p.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Send className="h-4 w-4" />
@@ -219,8 +244,7 @@ function PrinterWizard({
   >([]);
   const [btScanning, setBtScanning] = useState(false);
   const [btError, setBtError] = useState<string | null>(null);
-  const hasNativeBt =
-    typeof window !== "undefined" && !!(window as any).OrderHubBT;
+  const hasNativeBt = hasNativeBridge();
 
   const scanBtDevices = async () => {
     if (!hasNativeBt) return;

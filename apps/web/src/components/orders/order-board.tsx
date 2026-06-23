@@ -20,6 +20,7 @@ import {
 import { StatusColumn } from "./status-column";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
+import { useBridgeAutoPrint } from "../../hooks/use-bridge-auto-print";
 import type { Order } from "../../lib/api/orders.client";
 
 // ── Board column model ──────────────────────────────────────────────────────
@@ -173,6 +174,11 @@ export function OrderBoard({ locationId }: Props) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string>("ALL");
   const { orders, isLoading, error } = useLiveOrders(locationId);
+
+  // Auto-print incoming orders to BT printers via the native bridge
+  // (when this page is loaded inside the OrderHub Solutions tablet
+  // app). No-op in a regular desktop browser.
+  useBridgeAutoPrint(locationId);
 
   const platforms = useMemo(() => {
     const set = new Set(orders.map((o) => o.platform));
