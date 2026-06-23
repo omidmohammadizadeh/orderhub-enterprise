@@ -20,6 +20,8 @@ const BOLD_OFF = [ESC, 0x45, 0x00];
 const DOUBLE_ON = [GS, 0x21, 0x11];
 const DOUBLE_OFF = [GS, 0x21, 0x00];
 const CUT = [GS, 0x56, 0x42, 0x00];
+const reverseOn = () => [GS, 0x42, 0x01];
+const reverseOff = () => [GS, 0x42, 0x00];
 
 function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
@@ -110,79 +112,214 @@ export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
   return new Uint8Array(buf);
 }
 
-// Best-effort order receipt. We accept a loose shape so any Order
-// payload from the API works — missing fields just collapse cleanly.
+// Format a money amount the printer can render. We keep this
+// transport-agnostic — the API already chose £/$/€, so we just print
+// "10.99" with up to 2 decimals.
+function money(n: any): string {
+  const v = typeof n === "number" ? n : Number(n);
+  if (!Number.isFinite(v)) return "";
+  return v.toFixed(2);
+}
+
+// Word-wrap a long string at column boundaries. Thermal printers
+// don't auto-wrap — long lines just truncate at the column count.
+function wrap(text: string, width: number): string[] {
+  const words = String(text).split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    if (!cur) {
+      cur = w;
+      continue;
+    }
+    if (cur.length + 1 + w.length <= width) cur += " " + w;
+    else {
+      lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [""];
+}
+
+// Receipt from the PrintJob.payload structure that PrintJobsService
+// builds on the server. The shape is stable across renderers:
+//   - print-bridge desktop produces the same receipt from the same
+//     payload via apps/print-bridge/src/renderer/escpos-renderer.ts;
+//   - this function does the same thing in the browser so bridge-mode
+//     tablets get a 1-for-1 match.
+//
+// We deliberately don't render brandLogoUrl — server-side rasterising
+// to ESC/POS bitmap is non-trivial in JS, and the bridge event payload
+// drops the base64 PNG anyway. Everything else (header, returning-
+// customer banner, items + modifiers + notes, totals, payment, special
+// instructions, footer) is rendered to match.
 export function buildOrderReceipt(
-  order: any,
+  payload: any,
   paperWidth: number = 80,
 ): Uint8Array {
   const cols = colsFor(paperWidth);
   const buf: number[] = [];
   buf.push(...INIT);
 
+  // ── Header ────────────────────────────────────────────────────────
   buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON);
-  line(buf, order?.displayId ? `#${order.displayId}` : "NEW ORDER");
+  const brandName = String(payload?.brandName ?? payload?.locationName ?? "");
+  if (brandName) line(buf, brandName.slice(0, Math.floor(cols / 2)));
   buf.push(...DOUBLE_OFF);
-  line(buf, String(order?.brand?.name ?? order?.location?.name ?? ""));
+  if (payload?.locationAddress) {
+    for (const w of wrap(String(payload.locationAddress), cols))
+      line(buf, w);
+  }
+  if (payload?.locationPhone)
+    line(buf, `Tel: ${payload.locationPhone}`);
   buf.push(...BOLD_OFF);
-  line(buf, new Date(order?.createdAt ?? Date.now()).toLocaleString());
   line(buf, "");
 
+  // ── Returning-customer banner ─────────────────────────────────────
+  if (payload?.customerVisitTag) {
+    buf.push(...BOLD_ON, ...reverseOn());
+    for (const w of wrap(String(payload.customerVisitTag), cols))
+      line(buf, w);
+    buf.push(...reverseOff(), ...BOLD_OFF);
+    line(buf, "");
+  }
+
+  // ── Order number (big and bold) ───────────────────────────────────
+  buf.push(...BOLD_ON, ...DOUBLE_ON);
+  const orderNo = String(
+    payload?.displayId ?? payload?.orderNumber ?? "",
+  );
+  if (orderNo) line(buf, `#${orderNo}`);
+  buf.push(...DOUBLE_OFF, ...BOLD_OFF);
+  const received = payload?.receivedAt
+    ? new Date(payload.receivedAt).toLocaleString()
+    : new Date().toLocaleString();
+  line(buf, received);
+  line(buf, "");
+
+  // ── Order meta ────────────────────────────────────────────────────
   buf.push(...ALIGN_LEFT);
-  line(buf, `Channel : ${order?.source ?? order?.platform ?? "POS"}`);
-  if (order?.fulfillmentType)
-    line(buf, `Type    : ${order.fulfillmentType}`);
-  if (order?.customerName)
-    line(buf, `Customer: ${String(order.customerName).slice(0, cols - 10)}`);
-  if (order?.customerPhone)
-    line(buf, `Phone   : ${order.customerPhone}`);
+  if (payload?.platform || payload?.orderSource)
+    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
+  if (payload?.fulfillmentType)
+    line(buf, `Type    : ${payload.fulfillmentType}`);
+  if (payload?.customerName)
+    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
+  if (payload?.customerPhone)
+    line(buf, `Phone   : ${payload.customerPhone}`);
+  if (payload?.deliveryAddress) {
+    line(buf, "Address :");
+    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
+      line(buf, `  ${w}`);
+  }
   line(buf, "-".repeat(cols));
 
-  const items = Array.isArray(order?.items) ? order.items : [];
+  // ── Items ─────────────────────────────────────────────────────────
+  const items = Array.isArray(payload?.items) ? payload.items : [];
   for (const it of items) {
     const qty = String(it?.quantity ?? 1);
-    const name = String(it?.name ?? it?.productName ?? "Item").slice(
-      0,
-      cols - 10,
+    const name = String(
+      it?.name ?? it?.productName ?? it?.title ?? "Item",
     );
-    const price =
+    const lineTotal =
       typeof it?.totalPrice === "number"
-        ? it.totalPrice.toFixed(2)
+        ? it.totalPrice
         : typeof it?.price === "number"
-          ? (it.price * (it?.quantity ?? 1)).toFixed(2)
-          : "";
+          ? it.price * (it?.quantity ?? 1)
+          : NaN;
+    const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
+
     buf.push(...BOLD_ON);
-    line(buf, padBetween(`${qty}x ${name}`, price, cols));
-    buf.push(...BOLD_OFF);
-    if (Array.isArray(it?.modifiers)) {
-      for (const m of it.modifiers) {
-        const mname = String(m?.name ?? "").slice(0, cols - 4);
-        if (mname) line(buf, `   + ${mname}`);
+    const head = `${qty}x ${name}`;
+    if (head.length + 1 + priceStr.length <= cols) {
+      line(buf, padBetween(head, priceStr, cols));
+    } else {
+      // Item name too long — wrap and put price on its own line
+      const wrapped = wrap(head, cols - priceStr.length - 1);
+      for (let i = 0; i < wrapped.length; i++) {
+        if (i === 0) line(buf, padBetween(wrapped[i]!, priceStr, cols));
+        else line(buf, wrapped[i]!);
       }
     }
-    if (it?.notes) line(buf, `   ! ${String(it.notes).slice(0, cols - 5)}`);
+    buf.push(...BOLD_OFF);
+
+    if (Array.isArray(it?.modifiers)) {
+      for (const m of it.modifiers) {
+        const mname = String(m?.name ?? m?.title ?? "");
+        if (!mname) continue;
+        const mprice =
+          typeof m?.price === "number" && m.price > 0
+            ? `+${money(m.price)}`
+            : "";
+        const mline = `  + ${mname}`;
+        if (mprice && mline.length + 1 + mprice.length <= cols)
+          line(buf, padBetween(mline, mprice, cols));
+        else line(buf, mline);
+      }
+    }
+    if (it?.notes) {
+      for (const w of wrap(`! ${String(it.notes)}`, cols - 4))
+        line(buf, `   ${w}`);
+    }
   }
   line(buf, "-".repeat(cols));
 
-  const total =
-    typeof order?.totalAmount === "number"
-      ? order.totalAmount.toFixed(2)
-      : typeof order?.total === "number"
-        ? order.total.toFixed(2)
-        : "";
-  if (total) {
+  // ── Totals ────────────────────────────────────────────────────────
+  const showRow = (label: string, value: any) => {
+    const s = money(value);
+    if (s) line(buf, padBetween(label, s, cols));
+  };
+  showRow("Subtotal", payload?.subtotal);
+  if (
+    typeof payload?.deliveryFee === "number" &&
+    payload.deliveryFee > 0
+  )
+    showRow("Delivery", payload.deliveryFee);
+  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
+    showRow("Tax", payload.taxAmount);
+  if (typeof payload?.discount === "number" && payload.discount > 0)
+    showRow("Discount", -payload.discount);
+
+  if (
+    typeof payload?.total === "number" ||
+    typeof payload?.totalAmount === "number"
+  ) {
+    const total = payload?.total ?? payload?.totalAmount;
     buf.push(...BOLD_ON, ...DOUBLE_ON);
-    line(buf, padBetween("TOTAL", total, Math.floor(cols / 2)));
+    line(buf, padBetween("TOTAL", money(total), Math.floor(cols / 2)));
     buf.push(...DOUBLE_OFF, ...BOLD_OFF);
   }
+  line(buf, "");
 
-  if (order?.notes) {
-    line(buf, "");
-    line(buf, "Notes:");
-    line(buf, String(order.notes).slice(0, cols * 3));
+  // ── Payment ───────────────────────────────────────────────────────
+  if (payload?.paymentLabel) {
+    buf.push(...ALIGN_CENTER, ...BOLD_ON);
+    for (const w of wrap(String(payload.paymentLabel), cols)) line(buf, w);
+    buf.push(...BOLD_OFF, ...ALIGN_LEFT);
+  } else if (payload?.paymentMethod) {
+    buf.push(...ALIGN_CENTER, ...BOLD_ON);
+    line(
+      buf,
+      `${payload.paymentMethod}${
+        payload?.paymentStatus ? ` · ${payload.paymentStatus}` : ""
+      }`,
+    );
+    buf.push(...BOLD_OFF, ...ALIGN_LEFT);
   }
 
-  buf.push(LF, LF, LF);
+  // ── Special instructions ──────────────────────────────────────────
+  if (payload?.specialInstructions) {
+    line(buf, "");
+    buf.push(...BOLD_ON);
+    line(buf, "Special instructions:");
+    buf.push(...BOLD_OFF);
+    for (const w of wrap(String(payload.specialInstructions), cols))
+      line(buf, w);
+  }
+
+  // ── Footer ────────────────────────────────────────────────────────
+  buf.push(LF, LF, LF, LF);
   buf.push(...CUT);
   return new Uint8Array(buf);
 }

@@ -195,6 +195,18 @@ export class PrintJobsService {
           )}`,
         );
         // Phase AS-2 — surface the new job to listening dashboards.
+        // Bridge-mode dashboards (mobile WebView) render + print on the
+        // tablet's Bluetooth printer directly. They need the rendered
+        // payload + copies count to produce a receipt identical to the
+        // print-bridge desktop output. We strip brandLogoUrl out of the
+        // event because base64 PNGs can be 50KB+ and the bridge can't
+        // raster them in JS for ESC/POS anyway — print-bridge's logo
+        // pathway uses canvas which isn't viable in the WebView.
+        const liteForBridge = (() => {
+          const p = (t.payload ?? {}) as Record<string, any>;
+          const { brandLogoUrl, ...rest } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+          return rest;
+        })();
         this.socket.emitToLocation(
           order.locationId,
           "printer:job:created" as any,
@@ -204,12 +216,10 @@ export class PrintJobsService {
             printerId: row.printerId,
             stationId: row.stationId,
             status: row.status,
-            // Phase BR — bridge-mode dashboards (mobile WebView wrapping
-            // the dashboard) listen for this event to render + print on
-            // their tablet's Bluetooth printer directly. They need the
-            // orderId to fetch the full order payload.
             orderId: dto.orderId,
             trigger: dto.trigger,
+            copies: row.copies,
+            payload: liteForBridge,
           } as any,
         );
       } catch (err: any) {

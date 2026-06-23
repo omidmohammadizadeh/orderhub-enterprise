@@ -93,11 +93,37 @@ export function useBridgeAutoPrint(locationId?: string) {
     // to render + send via the tablet. The PrintJob row remains in the
     // queue (no agent claims it) — that's intentional for v1 so the
     // operator can see in the queue what's already been auto-printed.
-    const onJobCreated = (payload: any) => {
-      if (!payload?.orderId || !payload?.printerId) return;
-      const printerMatches = bt.some((p: any) => p.id === payload.printerId);
-      if (!printerMatches) return;
-      void printOrder(payload.orderId);
+    const onJobCreated = async (event: any) => {
+      if (!event?.id || !event?.printerId) return;
+      const printer = bt.find((p: any) => p.id === event.printerId);
+      if (!printer) return;
+      // Dedupe by PrintJob id — socket replays after reconnect would
+      // otherwise re-print jobs that already fired.
+      if (printedRef.current.has(event.id)) return;
+      printedRef.current.add(event.id);
+      if (printedRef.current.size > 200) {
+        const arr = Array.from(printedRef.current);
+        printedRef.current = new Set(arr.slice(arr.length - 200));
+      }
+      // The API ships the rendered structured payload with the event
+      // (Phase BR). The rich receipt builder consumes it directly —
+      // brand header, returning-customer banner, items + modifiers +
+      // notes, totals, payment label, special instructions, cut.
+      const renderPayload = event.payload ?? null;
+      if (!renderPayload) return;
+      const copies = Math.max(1, Number(event.copies ?? 1) || 1);
+      try {
+        const bytes = buildOrderReceipt(renderPayload, printer.paperWidth ?? 80);
+        for (let i = 0; i < copies; i++) {
+          await bridgePrint(printer.ipAddress!, bytes);
+          // Tiny pause between copies so the printer can cut + reload.
+          if (i + 1 < copies)
+            await new Promise((r) => setTimeout(r, 400));
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("[bridge-print job:created] failed", e);
+      }
     };
     socket.on("order:new", onNew);
     // `printer:job:created` isn't in the typed ServerToClientEvents map
