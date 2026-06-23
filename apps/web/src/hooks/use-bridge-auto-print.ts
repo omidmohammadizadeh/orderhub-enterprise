@@ -87,9 +87,23 @@ export function useBridgeAutoPrint(locationId?: string) {
       if (!payload?.orderId) return;
       void printOrder(payload.orderId);
     };
+    // printer:job:created fires for EVERY auto-print trigger that matches
+    // a printer rule: ORDER_RECEIVED, ORDER_ACCEPTED, ORDER_PREPARING,
+    // ORDER_READY. For the BT-bridge path, we treat the job as a signal
+    // to render + send via the tablet. The PrintJob row remains in the
+    // queue (no agent claims it) — that's intentional for v1 so the
+    // operator can see in the queue what's already been auto-printed.
+    const onJobCreated = (payload: any) => {
+      if (!payload?.orderId || !payload?.printerId) return;
+      const printerMatches = bt.some((p: any) => p.id === payload.printerId);
+      if (!printerMatches) return;
+      void printOrder(payload.orderId);
+    };
     socket.on("order:new", onNew);
+    socket.on("printer:job:created", onJobCreated);
     return () => {
       socket.off("order:new", onNew);
+      socket.off("printer:job:created", onJobCreated);
     };
   }, [token, locationId, printersQuery.data]);
 }

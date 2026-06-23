@@ -424,7 +424,15 @@ export function OrderList({ locationId }: Props) {
       )}
 
       <OrderDetailDrawer
-        order={selected}
+        // Always derive from the live orders list so the drawer reflects
+        // status changes the user just made (Accept, Preparing, Ready…)
+        // without needing to close + reopen the panel. Fall back to the
+        // captured snapshot only if the order has dropped off the page.
+        order={
+          selected
+            ? orders.find((o) => o.id === selected.id) ?? selected
+            : null
+        }
         onClose={() => setSelected(null)}
       />
     </>

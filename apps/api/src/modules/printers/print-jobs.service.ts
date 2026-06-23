@@ -204,6 +204,12 @@ export class PrintJobsService {
             printerId: row.printerId,
             stationId: row.stationId,
             status: row.status,
+            // Phase BR — bridge-mode dashboards (mobile WebView wrapping
+            // the dashboard) listen for this event to render + print on
+            // their tablet's Bluetooth printer directly. They need the
+            // orderId to fetch the full order payload.
+            orderId: dto.orderId,
+            trigger: dto.trigger,
           } as any,
         );
       } catch (err: any) {
