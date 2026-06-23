@@ -178,7 +178,7 @@ export function OrderBoard({ locationId }: Props) {
   // Auto-print incoming orders to BT printers via the native bridge
   // (when this page is loaded inside the OrderHub Solutions tablet
   // app). No-op in a regular desktop browser.
-  useBridgeAutoPrint(locationId);
+  useBridgeAutoPrint(locationId, orders);
 
   const platforms = useMemo(() => {
     const set = new Set(orders.map((o) => o.platform));

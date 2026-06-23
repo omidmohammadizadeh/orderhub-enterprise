@@ -176,6 +176,15 @@ export function buildOrderReceipt(
   const buf: number[] = [];
   buf.push(...INIT);
 
+  // ── Banner (e.g. ORDER CANCELLED) ─────────────────────────────────
+  if (payload?.banner) {
+    buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON, ...reverseOn());
+    for (const w of wrap(String(payload.banner), Math.floor(cols / 2)))
+      line(buf, w);
+    buf.push(...reverseOff(), ...DOUBLE_OFF, ...BOLD_OFF);
+    line(buf, "");
+  }
+
   // ── Header ────────────────────────────────────────────────────────
   buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON);
   const brandName = String(payload?.brandName ?? payload?.locationName ?? "");

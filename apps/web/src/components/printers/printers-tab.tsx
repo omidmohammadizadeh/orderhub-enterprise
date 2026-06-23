@@ -108,7 +108,7 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                       <span className="font-semibold text-zinc-900">
                         {p.name}
                       </span>
-                      {p.isReceiptDefault && (
+                      {p.defaults?.autoPrint && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                           <CheckCircle2 className="h-2.5 w-2.5" /> Auto-print
                         </span>
@@ -618,48 +618,45 @@ function PrinterSettingsDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [copies, setCopies] = useState<number>(printer.defaults?.copies ?? 1);
-  const [printLogo, setPrintLogo] = useState<boolean>(
-    !!printer.defaults?.printLogo,
+  const d = printer.defaults ?? {};
+  // Auto-print: when on, the orders board prints to this printer the
+  // moment a new order appears — no triggers, no conditions. Copies are
+  // independently configurable for new orders, cancellations, and the
+  // manual reprint button.
+  const [autoPrint, setAutoPrint] = useState<boolean>(!!d.autoPrint);
+  const [copiesNewOrder, setCopiesNewOrder] = useState<number>(
+    Number(d.copiesNewOrder ?? d.copies ?? 1),
   );
-  const [printQr, setPrintQr] = useState<boolean>(!!printer.defaults?.qrCode);
-  const [largeFont, setLargeFont] = useState<boolean>(
-    !!printer.defaults?.largeFont,
+  const [copiesCancelled, setCopiesCancelled] = useState<number>(
+    Number(d.copiesCancelled ?? 0),
   );
-  const [openDrawer, setOpenDrawer] = useState<boolean>(
-    !!printer.defaults?.openCashDrawer,
+  const [copiesReprint, setCopiesReprint] = useState<number>(
+    Number(d.copiesReprint ?? 1),
   );
+  const [printLogo, setPrintLogo] = useState<boolean>(!!d.printLogo);
+  const [printQr, setPrintQr] = useState<boolean>(!!d.qrCode);
+  const [largeFont, setLargeFont] = useState<boolean>(!!d.largeFont);
+  const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
-  // Whether this printer is the location's auto-print receipt target.
-  // This is the switch that actually makes accepted orders print — the
-  // routing engine sends the CUSTOMER_RECEIPT to Location.receiptPrinterId.
-  const [autoPrint, setAutoPrint] = useState<boolean>(
-    !!printer.isReceiptDefault,
-  );
-  const [rules, setRules] = useState<
-    { trigger: string; copies: number }[]
-  >(Array.isArray(printer.autoPrintRules) ? printer.autoPrintRules : []);
 
   const save = useMutation({
-    mutationFn: async () => {
-      await printersClient.update(printer.id, {
+    mutationFn: () =>
+      printersClient.update(printer.id, {
         defaults: {
-          copies,
+          ...d,
+          autoPrint,
+          copiesNewOrder,
+          copiesCancelled,
+          copiesReprint,
+          // keep legacy `copies` in sync with new-order count
+          copies: copiesNewOrder,
           printLogo,
           qrCode: printQr,
           largeFont,
           openCashDrawer: openDrawer,
         },
         supportsCut: autoCut,
-        autoPrintRules: rules as any,
-      } as any);
-      // Point (or clear) this location's receipt slot at this printer
-      // only when it actually changed, so we don't stomp another
-      // printer's binding on every save.
-      if (autoPrint !== !!printer.isReceiptDefault) {
-        await printersClient.setReceiptDefault(printer.id, autoPrint);
-      }
-    },
+      } as any),
     onSuccess: onSaved,
   });
 
@@ -682,10 +679,11 @@ function PrinterSettingsDrawer({
             <label className="flex items-center justify-between rounded-md border border-violet-200 bg-violet-50/50 px-3 py-2.5">
               <span>
                 <span className="block text-sm font-semibold text-zinc-800">
-                  Auto-print new orders
+                  Auto-print
                 </span>
                 <span className="block text-xs text-zinc-500">
-                  Print a receipt here automatically when an order is accepted.
+                  When on, every new order prints to this printer
+                  automatically.
                 </span>
               </span>
               <input
@@ -697,18 +695,49 @@ function PrinterSettingsDrawer({
             </label>
           </Section>
 
-          <Section title="Defaults">
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Copies">
+          <Section title="Copies">
+            <p className="text-xs text-zinc-500 mb-2">
+              How many copies to print for each event. Set 0 to skip.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="New order">
                 <input
                   type="number"
-                  min={1}
-                  max={10}
-                  value={copies}
-                  onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
+                  min={0}
+                  value={copiesNewOrder}
+                  onChange={(e) =>
+                    setCopiesNewOrder(Math.max(0, parseInt(e.target.value, 10) || 0))
+                  }
                   className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                 />
               </Field>
+              <Field label="Cancelled">
+                <input
+                  type="number"
+                  min={0}
+                  value={copiesCancelled}
+                  onChange={(e) =>
+                    setCopiesCancelled(Math.max(0, parseInt(e.target.value, 10) || 0))
+                  }
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                />
+              </Field>
+              <Field label="Reprint">
+                <input
+                  type="number"
+                  min={1}
+                  value={copiesReprint}
+                  onChange={(e) =>
+                    setCopiesReprint(Math.max(1, parseInt(e.target.value, 10) || 1))
+                  }
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                />
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Receipt options">
+            <div className="grid grid-cols-2 gap-2">
               <Toggle
                 label="Print logo"
                 value={printLogo}
@@ -730,72 +759,6 @@ function PrinterSettingsDrawer({
                 onChange={setOpenDrawer}
               />
               <Toggle label="Auto cut" value={autoCut} onChange={setAutoCut} />
-            </div>
-          </Section>
-
-          <Section title="Auto-print rules">
-            <p className="text-xs text-zinc-500 mb-2">
-              Decide which order events trigger a print on this printer. Add
-              the same trigger twice to print extra copies for that trigger.
-            </p>
-            <div className="space-y-1.5">
-              {rules.map((r, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <select
-                    value={r.trigger}
-                    onChange={(e) => {
-                      const next = [...rules];
-                      next[i] = { ...next[i]!, trigger: e.target.value };
-                      setRules(next);
-                    }}
-                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-sm"
-                  >
-                    {[
-                      "ORDER_RECEIVED",
-                      "ORDER_ACCEPTED",
-                      "ORDER_PREPARING",
-                      "ORDER_READY",
-                      "MANUAL_ONLY",
-                    ].map((t) => (
-                      <option key={t} value={t}>
-                        {t.replace(/_/g, " ")}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={r.copies}
-                    onChange={(e) => {
-                      const next = [...rules];
-                      next[i] = {
-                        ...next[i]!,
-                        copies: parseInt(e.target.value, 10) || 1,
-                      };
-                      setRules(next);
-                    }}
-                    className="w-16 rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
-                  />
-                  <button
-                    onClick={() => setRules(rules.filter((_, j) => j !== i))}
-                    className="text-zinc-400 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() =>
-                  setRules([
-                    ...rules,
-                    { trigger: "ORDER_ACCEPTED", copies: 1 },
-                  ])
-                }
-                className="text-xs font-semibold text-violet-700 hover:text-violet-800"
-              >
-                + Add rule
-              </button>
             </div>
           </Section>
         </div>
