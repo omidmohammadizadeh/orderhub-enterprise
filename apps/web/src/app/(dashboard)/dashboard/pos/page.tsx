@@ -57,6 +57,10 @@ export default function PosPage() {
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [draft, setDraft] = useState<PartialDraft>({});
+  // Bumped after each placed order to force the cart panel to remount —
+  // its customer/address/payment fields are internal state seeded from
+  // initialDraft, so clearing `draft` alone doesn't wipe them.
+  const [cartResetKey, setCartResetKey] = useState(0);
   const [search, setSearch] = useState("");
   const [submitFeedback, setSubmitFeedback] = useState<string | null>(null);
   // Phase AM — manager-side modals on the POS top bar.
@@ -300,6 +304,7 @@ export default function PosPage() {
       );
       setCart([]);
       setDraft({});
+      setCartResetKey((k) => k + 1); // wipe the panel's internal fields
       if (selectedLocationId) clearCartDraft(selectedLocationId);
       if (edited) {
         // Drop edit-mode and return to a fresh POS cart.
@@ -486,6 +491,7 @@ export default function PosPage() {
           {/* Right — cart panel */}
           <div className="col-span-5 lg:col-span-4 flex flex-col overflow-hidden">
             <PosCartPanel
+              key={cartResetKey}
               locationId={selectedLocationId}
               cart={cart}
               onRemoveLine={removeLine}
