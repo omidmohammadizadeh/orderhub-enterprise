@@ -90,6 +90,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         );
         await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
       }
+      // Clear this order's job(s) from the queue + bump "last print".
+      void printersClient.markOrderPrinted(order.id);
       setPrintMsg(
         bt.length === 1 ? "Printed" : `Printed to ${bt.length} printers`,
       );

@@ -124,6 +124,13 @@ export const printersClient = {
         params: locationId ? { locationId } : undefined,
       })
       .then((r) => r.data),
+  // After the tablet prints an order's receipt itself, clear that
+  // order's server-side job(s) from the queue + bump "last print".
+  markOrderPrinted: (orderId: string) =>
+    apiClient
+      .post(`/v1/print-jobs/order/${orderId}/printed`, {})
+      .then((r) => r.data)
+      .catch(() => null),
   // Turn automatic order printing on/off for this printer's location.
   setReceiptDefault: (id: string, active: boolean) =>
     apiClient

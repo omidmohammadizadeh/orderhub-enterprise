@@ -487,6 +487,32 @@ export class PrintJobsService {
     return { cleared: count };
   }
 
+  // Mark every pending job for an order PRINTED. The tablet now prints
+  // receipts itself (client-side Bluetooth), so the server-created
+  // PrintJob would otherwise sit QUEUED forever and "last print" would
+  // never update. The WebView calls this after it prints an order so the
+  // queue clears and the widgets reflect reality. Returns how many it
+  // flipped + emits so the dashboard refreshes live.
+  async markOrderPrinted(orderId: string, tenantId: string) {
+    const jobs = await (this.prisma as any).printJob.findMany({
+      where: {
+        orderId,
+        tenantId,
+        status: { in: ["QUEUED", "CLAIMED", "PRINTING", "RETRYING"] },
+      },
+      select: { id: true },
+    });
+    const now = new Date();
+    for (const j of jobs) {
+      const updated = await (this.prisma as any).printJob.update({
+        where: { id: j.id },
+        data: { status: "PRINTED", printedAt: now, nextRetryAt: null },
+      });
+      this.emitUpdated(updated);
+    }
+    return { printed: jobs.length };
+  }
+
   async markPrinted(jobId: string, agentId: string) {
     const job = await this.requireClaimedBy(jobId, agentId);
     const updated = await (this.prisma as any).printJob.update({

@@ -96,6 +96,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       banner?: string,
     ) => {
       const payload = buildPrintPayload(order, banner ? { banner } : undefined);
+      let printedAny = false;
       for (const p of btPrinters) {
         const fallback = copiesField === "copiesNewOrder" ? 1 : 0;
         const copies = Math.max(
@@ -106,6 +107,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         try {
           const single = buildOrderReceipt(payload, p.paperWidth ?? 80);
           await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
+          printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
             order.displayId ?? order.orderNumber ?? order.id?.slice(-4)
           } @ ${new Date().toLocaleTimeString()}`;
@@ -116,6 +118,11 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           console.error("[auto-print]", msg, e);
           setStatus((s) => ({ ...s, lastMessage: msg }));
         }
+      }
+      // Clear this order's server-side job(s) from the queue + bump
+      // "last print" — the receipt has physically printed.
+      if (printedAny && order?.id) {
+        void printersClient.markOrderPrinted(order.id);
       }
     };
 

@@ -348,6 +348,20 @@ export class PrintJobsController {
     return this.jobs.clearQueue(user.tenantId, locationId);
   }
 
+  // The tablet prints receipts client-side, then calls this so the
+  // server-created job(s) for the order leave the queue and "last print"
+  // updates. Authed with the operator's normal session.
+  @Post("order/:orderId/printed")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES, "STAFF")
+  @HttpCode(HttpStatus.OK)
+  markOrderPrinted(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("orderId") orderId: string,
+  ) {
+    return this.jobs.markOrderPrinted(orderId, user.tenantId);
+  }
+
   @Post("test-print")
   @ApiBearerAuth()
   @Roles(...MANAGE_PRINT_ROLES)
