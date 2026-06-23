@@ -7,6 +7,18 @@
 
 import type { Order } from "../api/orders.client";
 
+// The customer-facing channel for the receipt. HubRise is an aggregator
+// — the real marketplace (Deliveroo / Uber Eats / Just Eat) is carried
+// in `orderSource`, while `platform` is the literal string "HUBRISE".
+// Never print "HUBRISE": resolve to the real channel and tidy it up.
+export function displayChannelFor(order: any): string | null {
+  const platform = String(order?.platform ?? "").toUpperCase();
+  const source = String(order?.orderSource ?? "").toUpperCase();
+  let channel = platform && platform !== "HUBRISE" ? platform : source;
+  if (!channel || channel === "HUBRISE") channel = source && source !== "HUBRISE" ? source : "ONLINE";
+  return channel.replace(/_/g, " ");
+}
+
 export function paymentLabelFor(
   method: string | null | undefined,
   status: string | null | undefined,
@@ -63,7 +75,8 @@ export function buildPrintPayload(
     locationPhone: brand?.phone ?? loc?.phone ?? null,
     displayId: (order as any).displayId ?? null,
     orderNumber: (order as any).orderNumber ?? null,
-    platform: order.platform ?? null,
+    // Receipt "Channel" line — resolved real channel, never "HUBRISE".
+    platform: displayChannelFor(order),
     orderSource: (order as any).orderSource ?? null,
     fulfillmentType: order.fulfillmentType,
     customerName: (order as any).customerName ?? null,

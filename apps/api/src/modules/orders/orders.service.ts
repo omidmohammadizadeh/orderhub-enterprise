@@ -170,13 +170,36 @@ export class OrdersService {
         select: { settings: true },
       });
       const settings = (location?.settings ?? {}) as Record<string, unknown>;
-      if (settings.autoAcceptOrders !== true) return;
+      if (settings.autoAcceptOrders !== true) {
+        this.logger.log(
+          `Auto-accept OFF for location ${locationId} — order ${orderId} left PENDING`,
+        );
+        return;
+      }
+      // Only act on a still-PENDING order. If a near-simultaneous webhook
+      // already advanced it (common with marketplace order.update bursts),
+      // re-issuing ACCEPTED would throw an invalid-transition error and
+      // the swallowed catch made it look like auto-accept "didn't work".
+      const fresh = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: { status: true, platform: true, orderSource: true },
+      });
+      if (!fresh) return;
+      if (fresh.status !== "PENDING") {
+        this.logger.log(
+          `Auto-accept skipped order ${orderId} — already ${fresh.status}`,
+        );
+        return;
+      }
       await this.updateStatus(
         orderId,
         tenantId,
         { status: "ACCEPTED" } as UpdateOrderStatusDto,
         "system:auto-accept",
         "SYSTEM" as OrderStatusActorType,
+      );
+      this.logger.log(
+        `Auto-accepted order ${orderId} (${fresh.platform}/${fresh.orderSource})`,
       );
     } catch (err: any) {
       this.logger.warn(
@@ -346,8 +369,18 @@ export class OrdersService {
       //   - unpaid CARD orders (must wait for Stripe authorization)
       // Errors are swallowed deliberately — auto-accept is a convenience,
       // never a hard requirement for ingest to succeed.
+      // The unpaid-card hold only applies to DIRECT orders we collect
+      // payment for ourselves (storefront card orders awaiting our Stripe
+      // authorization). Marketplace / HubRise / any future channel are
+      // settled platform-side, so they must auto-accept regardless of
+      // payment status — anything not flagged DIRECT is a platform order.
+      const isPlatformOrder =
+        (canonical as any).viaHubrise === true ||
+        ((canonical as any).integrationSource &&
+          (canonical as any).integrationSource !== "DIRECT");
+      const waitForOurAuth = !isPlatformOrder && isUnpaidCard;
       const isScheduledFuture = this.isFutureScheduled(canonical.scheduledFor);
-      if (!isUnpaidCard && !isScheduledFuture) {
+      if (!waitForOurAuth && !isScheduledFuture) {
         void this.maybeAutoAccept(order.id, tenantId, locationId);
       }
 
@@ -385,7 +418,15 @@ export class OrdersService {
                 idempotencyKey: canonical.idempotencyKey,
               },
         });
-        if (existing) return existing;
+        if (existing) {
+          // Safety net: if the order is still PENDING (e.g. the original
+          // create event failed to auto-accept), try again on this repeat
+          // event so it never gets stuck waiting for a manual tap.
+          if (existing.status === "PENDING") {
+            void this.maybeAutoAccept(existing.id, tenantId, locationId);
+          }
+          return existing;
+        }
       }
       throw err;
     }
