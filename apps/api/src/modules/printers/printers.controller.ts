@@ -90,6 +90,23 @@ export class PrintersController {
     return this.printers.delete(id, user.tenantId);
   }
 
+  // Turn automatic order printing on/off by pointing the location's
+  // receipt slot at this printer (or clearing it). This is the one
+  // switch the new Bluetooth-first Printers page uses for "Auto-print
+  // new orders".
+  @Post(":id/receipt-default")
+  @BillingExempt() // Live ops — never blocked
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set/clear this printer as the location receipt default" })
+  setReceiptDefault(
+    @Param("id") id: string,
+    @Body() body: { active?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.printers.setReceiptDefault(id, user.tenantId, body.active !== false);
+  }
+
   @Get(":id/jobs")
   @BillingExempt() // Job history is live ops view — never blocked
   @ApiOperation({ summary: "Get recent print jobs for a printer" })

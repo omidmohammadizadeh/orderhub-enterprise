@@ -11,11 +11,31 @@ export class PrintersService {
   ) {}
 
   async findByLocation(locationId: string, tenantId: string) {
-    await this.assertLocationAccess(locationId, tenantId);
-    return this.prisma.printer.findMany({
+    const loc = await this.assertLocationAccess(locationId, tenantId);
+    const printers = await this.prisma.printer.findMany({
       where: { locationId },
       orderBy: { name: "asc" },
     });
+    // Surface which printer the location auto-prints receipts to, so the
+    // Printers page can show the "Auto-print" badge and toggle without a
+    // second round-trip. receiptPrinterId lives on Location.
+    return printers.map((p) => ({
+      ...p,
+      isReceiptDefault: loc.receiptPrinterId === p.id,
+    }));
+  }
+
+  /** Point (or unpoint) this location's auto-print receipt slot at the
+   *  given printer. This is the single switch that turns automatic
+   *  order printing on/off — the routing engine prints CUSTOMER_RECEIPT
+   *  to Location.receiptPrinterId. */
+  async setReceiptDefault(printerId: string, tenantId: string, active: boolean) {
+    const printer = await this.assertPrinterAccess(printerId, tenantId);
+    await this.prisma.location.update({
+      where: { id: printer.locationId },
+      data: { receiptPrinterId: active ? printer.id : null },
+    });
+    return { ok: true, receiptPrinterId: active ? printer.id : null };
   }
 
   async create(

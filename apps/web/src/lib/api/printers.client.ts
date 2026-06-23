@@ -21,6 +21,20 @@ export interface Printer {
   supportsLabels: boolean;
   supportsCut: boolean;
   supportsCashDrawer: boolean;
+  // True when this printer is the location's auto-print receipt target.
+  isReceiptDefault?: boolean;
+}
+
+export interface PrintJobRow {
+  id: string;
+  type: string;
+  status: string;
+  printerId: string | null;
+  copies: number;
+  attempts: number;
+  error: string | null;
+  createdAt: string;
+  printedAt: string | null;
 }
 
 export interface PrintAgent {
@@ -72,7 +86,25 @@ export interface AlertConfig {
 }
 
 export const printersClient = {
-  list: () => apiClient.get<Printer[]>("/v1/printers").then((r) => r.data),
+  list: (locationId?: string) =>
+    apiClient
+      .get<Printer[]>("/v1/printers", {
+        params: locationId ? { locationId } : undefined,
+      })
+      .then((r) => r.data),
+  // Recent print jobs for a location (newest first). Drives the
+  // "Recent prints" list on the Printers page.
+  listJobs: (locationId?: string, limit = 20) =>
+    apiClient
+      .get<PrintJobRow[]>("/v1/print-jobs", {
+        params: { ...(locationId ? { locationId } : {}), limit },
+      })
+      .then((r) => r.data),
+  // Turn automatic order printing on/off for this printer's location.
+  setReceiptDefault: (id: string, active: boolean) =>
+    apiClient
+      .post(`/v1/printers/${id}/receipt-default`, { active })
+      .then((r) => r.data),
   create: (body: Partial<Printer> & { locationId: string }) =>
     apiClient.post<Printer>("/v1/printers", body).then((r) => r.data),
   update: (id: string, body: Partial<Printer>) =>
