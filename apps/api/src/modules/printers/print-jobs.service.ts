@@ -468,14 +468,18 @@ export class PrintJobsService {
   // (optionally one location). Used by the "Clear queue" button so the
   // operator can wipe a backlog of stuck/old jobs in one tap.
   async clearQueue(tenantId: string, locationId?: string) {
+    // PrintJobStatus has no CANCELLED — FAILED is the terminal "won't
+    // print" state. Dead-letter them so they leave the active queue and
+    // don't get retried.
     const { count } = await (this.prisma as any).printJob.updateMany({
       where: {
         tenantId,
         ...(locationId && { locationId }),
-        status: { in: ["QUEUED", "CLAIMED", "PRINTING"] },
+        status: { in: ["QUEUED", "CLAIMED", "PRINTING", "RETRYING"] },
       },
       data: {
-        status: "CANCELLED",
+        status: "FAILED",
+        error: "Cleared from queue by operator",
         nextRetryAt: null,
         deadLetteredAt: new Date(),
       },
