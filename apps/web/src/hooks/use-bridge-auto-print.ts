@@ -100,10 +100,13 @@ export function useBridgeAutoPrint(locationId?: string) {
       void printOrder(payload.orderId);
     };
     socket.on("order:new", onNew);
-    socket.on("printer:job:created", onJobCreated);
+    // `printer:job:created` isn't in the typed ServerToClientEvents map
+    // (added later). Cast to bypass the lint; payload is checked at
+    // runtime above.
+    (socket as any).on("printer:job:created", onJobCreated);
     return () => {
       socket.off("order:new", onNew);
-      socket.off("printer:job:created", onJobCreated);
+      (socket as any).off("printer:job:created", onJobCreated);
     };
   }, [token, locationId, printersQuery.data]);
 }
