@@ -27,6 +27,7 @@ import {
   type Widgets,
 } from "@/lib/api/printers.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { hasNativeBridge } from "@/lib/printing/bridge";
 import { PrintersTab } from "@/components/printers/printers-tab";
 import { StationsTab } from "@/components/printers/stations-tab";
 import { AgentsTab } from "@/components/printers/agents-tab";
@@ -44,7 +45,33 @@ export default function PrintersPage() {
     queryFn: () => printersClient.widgets(locationId ?? undefined),
     refetchInterval: 15_000,
   });
-  const w: Widgets | undefined = widgetsQuery.data;
+  // Also pull the printer list so the Online/Offline counts above the
+  // tabs can recognise Bluetooth printers connected via the tablet
+  // bridge as "Online". The API's widgets endpoint only counts
+  // isOnline-in-DB which is stuck at false for bridge-only printers.
+  const printersQuery = useQuery({
+    queryKey: ["printers", "list"],
+    queryFn: () => printersClient.list(),
+    refetchInterval: 15_000,
+    enabled: hasNativeBridge(),
+  });
+  const bridgeOnlineExtra = hasNativeBridge()
+    ? (printersQuery.data ?? []).filter(
+        (p: any) =>
+          (!locationId || p.locationId === locationId) &&
+          p.connectionType === "BLUETOOTH" &&
+          p.ipAddress &&
+          !p.isOnline,
+      ).length
+    : 0;
+  const rawWidgets: Widgets | undefined = widgetsQuery.data;
+  const w: Widgets | undefined = rawWidgets
+    ? {
+        ...rawWidgets,
+        online: rawWidgets.online + bridgeOnlineExtra,
+        offline: Math.max(0, rawWidgets.offline - bridgeOnlineExtra),
+      }
+    : undefined;
 
   return (
     <div className="space-y-6">

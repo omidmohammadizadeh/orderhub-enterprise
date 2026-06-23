@@ -103,10 +103,15 @@ export async function sendBytesOverBt(
 
     // Stream chunks with a small pause between to respect the
     // printer's input buffer.
+    //
+    // CRITICAL: pass "base64" as the encoding hint so the lib decodes
+    // the base64 string back into raw bytes BEFORE writing to RFCOMM.
+    // Without this hint, write() sends the ASCII bytes of the base64
+    // string itself, and the printer prints "G0AbYQE=…" instead of
+    // honouring the ESC/POS commands.
     for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
       const chunk = bytes.subarray(i, i + CHUNK_SIZE);
-      // The lib accepts base64-encoded data for "write".
-      await device.write(toBase64(chunk));
+      await device.write(toBase64(chunk), "base64");
       if (i + CHUNK_SIZE < bytes.length) {
         await new Promise((r) => setTimeout(r, CHUNK_PAUSE_MS));
       }
