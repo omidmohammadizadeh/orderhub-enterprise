@@ -322,6 +322,19 @@ export class PrintJobsController {
     });
   }
 
+  // Bridge polling fallback — the tablet WebView polls this for QUEUED
+  // jobs to print over Bluetooth when the socket event is missed.
+  // Returns recent jobs with their render payload + copies.
+  @Get("pending-bridge")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES, "STAFF")
+  pendingBridge(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.jobs.pendingBridgeJobs(user.tenantId, locationId);
+  }
+
   @Post("test-print")
   @ApiBearerAuth()
   @Roles(...MANAGE_PRINT_ROLES)

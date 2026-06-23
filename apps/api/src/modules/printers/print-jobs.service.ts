@@ -428,6 +428,42 @@ export class PrintJobsService {
     return updated;
   }
 
+  // Bridge polling fallback. The tablet WebView polls this every few
+  // seconds and prints any QUEUED job over Bluetooth, then marks it
+  // PRINTED via markPrintedByBridge. This is the safety net for when
+  // the printer:job:created socket event doesn't reach the WebView
+  // (backgrounded tab, dropped socket, etc.) — without it, auto-print
+  // silently never fires and jobs pile up in QUEUED. We only return
+  // recent jobs (last 15 min) so a backlog of old stuck jobs can't
+  // trigger a paper avalanche, and strip the heavy base64 logo the
+  // bridge can't rasterise anyway.
+  async pendingBridgeJobs(tenantId: string, locationId?: string) {
+    const since = new Date(Date.now() - 15 * 60_000);
+    const rows = await (this.prisma as any).printJob.findMany({
+      where: {
+        tenantId,
+        ...(locationId && { locationId }),
+        status: "QUEUED",
+        createdAt: { gte: since },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 15,
+      select: {
+        id: true,
+        printerId: true,
+        type: true,
+        copies: true,
+        trigger: true,
+        payload: true,
+      },
+    });
+    return rows.map((r: any) => {
+      const p = (r.payload ?? {}) as Record<string, any>;
+      const { brandLogoUrl, ...rest } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+      return { ...r, payload: rest };
+    });
+  }
+
   async markPrinted(jobId: string, agentId: string) {
     const job = await this.requireClaimedBy(jobId, agentId);
     const updated = await (this.prisma as any).printJob.update({

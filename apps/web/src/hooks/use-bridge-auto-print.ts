@@ -3,18 +3,23 @@
 // Auto-print incoming orders straight to the tablet's Bluetooth printer.
 //
 // When the dashboard is loaded inside the OrderHub Solutions Android
-// app, window.OrderHubBT is exposed. We listen for the API's
-// printer:job:created socket event and, for any job whose printer is
-// a bridge-bound Bluetooth printer at this location, render the
-// rendered structured payload to ESC/POS and write it via the bridge.
+// app, window.OrderHubBT is exposed. The API decides WHEN to print
+// (its auto-rule engine creates a QUEUED PrintJob on ORDER_ACCEPTED
+// etc.). We turn that job into ESC/POS bytes and write it over the
+// bridge, then mark it PRINTED so it clears the queue.
 //
-// Single source of truth: the API decides WHEN to print (its auto-rule
-// engine — ORDER_RECEIVED / ORDER_ACCEPTED / ORDER_PREPARING /
-// ORDER_READY). We just react. No more order:new race with two
-// listeners stepping on each other.
+// TWO paths to the same printer, on purpose:
+//   1. Fast path — the printer:job:created socket event (instant).
+//   2. Fallback — poll /print-jobs/pending-bridge every few seconds.
+// The socket event can silently fail to reach a WebView (backgrounded
+// tab, dropped/again-handshaking socket). When that happens auto-print
+// just never fires and jobs sit in QUEUED forever. The poller is the
+// safety net that makes auto-print actually reliable AND drains the
+// queue. Both paths dedupe on job id and markBridgePrinted is
+// idempotent, so a job never prints twice.
 //
-// Console messages are prefixed `[bridge-print]` so the operator (or
-// a remote debugger) can grep logcat for them.
+// Console messages are prefixed `[bridge-print]` so the operator (or a
+// remote debugger) can grep logcat for them.
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -28,15 +33,25 @@ import {
   repeatReceipt,
 } from "../lib/printing/bridge";
 
+const POLL_MS = 5000;
+
+interface BridgeJob {
+  id: string;
+  printerId?: string | null;
+  copies?: number;
+  payload?: any;
+  trigger?: string | null;
+}
+
 export function useBridgeAutoPrint(locationId?: string) {
   const token = useAuthStore((s) => s.accessToken);
-  const printedRef = useRef<Set<string>>(new Set());
+  // Job ids we've already started printing — dedupe across socket +
+  // poll so a job never prints twice.
+  const handledRef = useRef<Set<string>>(new Set());
 
-  // Refetch every 30s so a printer newly bound on another device shows
-  // up without a full page reload.
   const printersQuery = useQuery({
-    queryKey: ["printers", "list"],
-    queryFn: () => printersClient.list(),
+    queryKey: ["printers", "list", locationId ?? "all"],
+    queryFn: () => printersClient.list(locationId),
     enabled: !!locationId && hasNativeBridge(),
     refetchInterval: 30_000,
     staleTime: 30_000,
@@ -44,14 +59,12 @@ export function useBridgeAutoPrint(locationId?: string) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Log every reason the listener might NOT install so the operator
-    // can self-diagnose by viewing console.
     if (!token) return console.log("[bridge-print] no token yet");
     if (!locationId)
       return console.log("[bridge-print] no locationId selected");
     if (!hasNativeBridge())
       return console.log(
-        "[bridge-print] window.OrderHubBT not available — running in plain browser, not native shell",
+        "[bridge-print] window.OrderHubBT not available — plain browser, not native shell",
       );
 
     const bt = (printersQuery.data ?? []).filter(
@@ -67,87 +80,94 @@ export function useBridgeAutoPrint(locationId?: string) {
     );
     if (bt.length === 0) return;
 
-    const socket = getSocket(token);
-    console.log(
-      `[bridge-print] subscribing to printer:job:created (socket connected=${(socket as any).connected})`,
-    );
+    let cancelled = false;
 
-    const onJobCreated = async (event: any) => {
-      console.log("[bridge-print] event:", event);
-      if (!event?.id || !event?.printerId) {
-        console.log("[bridge-print] skip — missing id/printerId");
-        return;
-      }
-      // Prefer exact printerId match; fall back to any BT printer at
-      // this location if the job was routed to a legacy LAN printer ID
-      // that's no longer active. The socket event is already scoped to
-      // this location's room, so falling back is safe when there is no
-      // desktop print bridge active.
-      const exactMatch = bt.find((p: any) => p.id === event.printerId);
-      const printer = exactMatch ?? (bt.length > 0 ? bt[0] : null);
+    // Render + write one job, then mark it printed so it leaves the
+    // queue. Safe to call from both the socket handler and the poller.
+    const handleJob = async (job: BridgeJob) => {
+      if (cancelled) return;
+      if (!job?.id) return;
+      if (handledRef.current.has(job.id)) return;
+
+      const exactMatch = bt.find((p: any) => p.id === job.printerId);
+      const printer = exactMatch ?? bt[0];
       if (!printer) {
         console.log(
-          `[bridge-print] skip — no BT printer available (printerId=${event.printerId})`,
+          `[bridge-print] skip ${job.id} — no BT printer available`,
         );
         return;
       }
-      if (!exactMatch) {
-        console.log(
-          `[bridge-print] using fallback printer ${printer.name} (event.printerId=${event.printerId} not in BT list)`,
-        );
-      }
-      if (printedRef.current.has(event.id)) {
-        console.log(`[bridge-print] skip — already printed job ${event.id}`);
+      const payload = job.payload ?? null;
+      if (!payload) {
+        console.warn(`[bridge-print] job ${job.id} has no payload — skipping`);
         return;
-      }
-      printedRef.current.add(event.id);
-      if (printedRef.current.size > 200) {
-        const arr = Array.from(printedRef.current);
-        printedRef.current = new Set(arr.slice(arr.length - 200));
       }
 
-      const renderPayload = event.payload ?? null;
-      if (!renderPayload) {
-        console.warn(
-          "[bridge-print] event has no payload — API likely on old build. Re-deploy API and try again.",
+      // Claim the id up front so the other path doesn't double-fire
+      // while this print is in flight.
+      handledRef.current.add(job.id);
+      if (handledRef.current.size > 300) {
+        const arr = Array.from(handledRef.current);
+        handledRef.current = new Set(arr.slice(arr.length - 300));
+      }
+
+      const copies = Math.max(1, Number(job.copies ?? 1) || 1);
+      try {
+        console.log(
+          `[bridge-print] printing job=${job.id} trigger=${job.trigger} copies=${copies} printer=${printer.name}`,
         );
+        const single = buildOrderReceipt(payload, printer.paperWidth ?? 80);
+        await bridgePrint(printer.ipAddress!, repeatReceipt(single, copies));
+        console.log(`[bridge-print] OK job=${job.id}`);
+      } catch (e) {
+        // Printing failed — let it be retried on a later poll.
+        handledRef.current.delete(job.id);
+        console.error(`[bridge-print] FAILED job=${job.id}`, e);
         return;
       }
-      const copies = Math.max(1, Number(event.copies ?? 1) || 1);
-      console.log(
-        `[bridge-print] rendering job=${event.id} trigger=${event.trigger} copies=${copies} printer=${printer.name}`,
-      );
+
       try {
-        const single = buildOrderReceipt(
-          renderPayload,
-          printer.paperWidth ?? 80,
+        await printersClient.markBridgePrinted(job.id);
+        console.log(`[bridge-print] marked PRINTED job=${job.id}`);
+      } catch (markErr) {
+        console.warn(
+          `[bridge-print] printed but failed to mark ${job.id}`,
+          markErr,
         );
-        // All copies in one buffer / one connection — the native side
-        // streams + drains them reliably. (Separate print() calls per
-        // copy used to race the printer and drop all but the first.)
-        const bytes = repeatReceipt(single, copies);
-        await bridgePrint(printer.ipAddress!, bytes);
-        console.log(`[bridge-print] OK job=${event.id} copies=${copies}`);
-        // Clear the job out of the Printers-page queue. The bridge
-        // prints directly over Bluetooth and never goes through the
-        // agent claim/complete cycle, so without this the job sits in
-        // QUEUED forever and the queue keeps growing.
-        try {
-          await printersClient.markBridgePrinted(event.id);
-          console.log(`[bridge-print] marked PRINTED job=${event.id}`);
-        } catch (markErr) {
-          console.warn(
-            `[bridge-print] printed OK but failed to mark job ${event.id} PRINTED`,
-            markErr,
-          );
-        }
-      } catch (e) {
-        console.error("[bridge-print] FAILED", e);
       }
     };
 
+    // ── Fast path: socket event ──────────────────────────────────────
+    const socket = getSocket(token);
+    console.log(
+      `[bridge-print] subscribing to printer:job:created (connected=${(socket as any).connected})`,
+    );
+    const onJobCreated = (event: any) => {
+      console.log("[bridge-print] socket event:", event?.id);
+      void handleJob(event);
+    };
     (socket as any).on("printer:job:created", onJobCreated);
+
+    // ── Fallback: poll for QUEUED jobs ───────────────────────────────
+    const poll = async () => {
+      if (cancelled) return;
+      try {
+        const jobs = await printersClient.pendingBridgeJobs(locationId);
+        if (jobs.length)
+          console.log(`[bridge-print] poll found ${jobs.length} queued job(s)`);
+        for (const j of jobs) {
+          await handleJob(j);
+        }
+      } catch (e) {
+        // Network blip — next tick tries again.
+      }
+    };
+    void poll();
+    const timer = setInterval(poll, POLL_MS);
+
     return () => {
+      cancelled = true;
+      clearInterval(timer);
       (socket as any).off("printer:job:created", onJobCreated);
     };
   }, [token, locationId, printersQuery.data]);

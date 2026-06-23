@@ -100,6 +100,23 @@ export const printersClient = {
         params: { ...(locationId ? { locationId } : {}), limit },
       })
       .then((r) => r.data),
+  // Polling fallback for bridge auto-print: QUEUED jobs (with payload)
+  // the tablet should print over Bluetooth right now.
+  pendingBridgeJobs: (locationId?: string) =>
+    apiClient
+      .get<
+        Array<{
+          id: string;
+          printerId: string | null;
+          type: string;
+          copies: number;
+          trigger: string | null;
+          payload: any;
+        }>
+      >("/v1/print-jobs/pending-bridge", {
+        params: locationId ? { locationId } : undefined,
+      })
+      .then((r) => r.data),
   // Turn automatic order printing on/off for this printer's location.
   setReceiptDefault: (id: string, active: boolean) =>
     apiClient
