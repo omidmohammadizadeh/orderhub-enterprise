@@ -4,6 +4,7 @@ import { AccessGate } from "@/components/dashboard/access-gate";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { AlertSoundPlayer } from "@/components/dashboard/alert-sound-player";
+import { AutoPrintRunner } from "@/components/dashboard/auto-print-runner";
 
 // Private app — never appear in search results.
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <AuthGuard>
       <AccessGate>
         <AlertSoundPlayer />
+        <AutoPrintRunner />
         <div className="flex h-screen overflow-hidden bg-zinc-50">
           <Sidebar />
           <div className="flex flex-1 min-w-0 flex-col overflow-hidden">

@@ -20,7 +20,6 @@ import {
 import { StatusColumn } from "./status-column";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
-import { useBridgeAutoPrint } from "../../hooks/use-bridge-auto-print";
 import type { Order } from "../../lib/api/orders.client";
 
 // ── Board column model ──────────────────────────────────────────────────────
@@ -175,10 +174,9 @@ export function OrderBoard({ locationId }: Props) {
   const [platformFilter, setPlatformFilter] = useState<string>("ALL");
   const { orders, isLoading, error } = useLiveOrders(locationId);
 
-  // Auto-print incoming orders to BT printers via the native bridge
-  // (when this page is loaded inside the OrderHub Solutions tablet
-  // app). No-op in a regular desktop browser.
-  const autoPrint = useBridgeAutoPrint(locationId, orders);
+  // Auto-print now runs globally from the dashboard layout
+  // (AutoPrintRunner), so it works on every page — not just this board.
+  // Nothing to mount here.
 
   const platforms = useMemo(() => {
     const set = new Set(orders.map((o) => o.platform));
@@ -229,29 +227,6 @@ export function OrderBoard({ locationId }: Props) {
 
   return (
     <>
-      {/* Auto-print status — only inside the native tablet app. Lets the
-          operator see at a glance whether auto-print is armed, without a
-          developer console. */}
-      {autoPrint.inApp && (
-        <div
-          className={`mb-3 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
-            autoPrint.armedPrinters > 0
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-amber-200 bg-amber-50 text-amber-800"
-          }`}
-        >
-          <span className="font-semibold">
-            🖨 Auto-print:{" "}
-            {autoPrint.armedPrinters > 0
-              ? `ON · ${autoPrint.armedPrinters} printer${autoPrint.armedPrinters > 1 ? "s" : ""}`
-              : "OFF — turn it on in Printers → printer settings"}
-          </span>
-          {autoPrint.lastMessage && (
-            <span className="opacity-80">· {autoPrint.lastMessage}</span>
-          )}
-        </div>
-      )}
-
       {/* Platform filter */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {platforms.map((p) => (
