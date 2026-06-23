@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
+import { printersClient } from "../../lib/api/printers.client";
+import {
+  hasNativeBridge,
+  bridgePrint,
+  buildOrderReceipt,
+} from "../../lib/printing/bridge";
 import type { Order } from "../../lib/api/orders.client";
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
@@ -40,6 +46,50 @@ interface Props {
 export function OrderDetailDrawer({ order, onClose }: Props) {
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelInput, setShowCancelInput] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const [printMsg, setPrintMsg] = useState<string | null>(null);
+
+  // Reprint the order to every BT printer at this location via the
+  // native bridge. Used both for the auto-print recovery (when an
+  // order missed its first print) and as a manual "print again"
+  // button on tablets where the operator wants a second copy.
+  const onPrint = async () => {
+    setPrinting(true);
+    setPrintMsg(null);
+    try {
+      if (!hasNativeBridge()) {
+        throw new Error(
+          "Native printing only works inside the OrderHub Solutions tablet app.",
+        );
+      }
+      const printers = await printersClient.list();
+      const bt = printers.filter(
+        (p: any) =>
+          p.locationId === order.locationId &&
+          p.connectionType === "BLUETOOTH" &&
+          p.ipAddress &&
+          p.isActive !== false,
+      );
+      if (bt.length === 0) {
+        throw new Error(
+          "No Bluetooth printer configured for this location. Add one in Printers.",
+        );
+      }
+      for (const p of bt) {
+        const bytes = buildOrderReceipt(order, p.paperWidth ?? 80);
+        await bridgePrint(p.ipAddress!, bytes);
+      }
+      setPrintMsg(
+        bt.length === 1 ? "Printed" : `Printed to ${bt.length} printers`,
+      );
+      setTimeout(() => setPrintMsg(null), 2500);
+    } catch (e: any) {
+      setPrintMsg(e?.message ?? "Print failed");
+      setTimeout(() => setPrintMsg(null), 4000);
+    } finally {
+      setPrinting(false);
+    }
+  };
   const updateStatus = useUpdateOrderStatus();
   const router = useRouter();
   const userRole = useAuthStore((s) => s.user?.role);
@@ -96,9 +146,34 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             <span className="text-sm font-bold text-zinc-900">#{order.displayId}</span>
           )}
         </div>
-        <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 transition-colors">
-          <X className="h-4 w-4 text-zinc-500" />
-        </button>
+        <div className="flex items-center gap-1">
+          {printMsg && (
+            <span
+              className={`mr-1 text-[11px] font-semibold ${
+                printMsg.includes("Print") && !printMsg.includes("failed")
+                  ? "text-emerald-600"
+                  : "text-rose-600"
+              }`}
+            >
+              {printMsg}
+            </span>
+          )}
+          <button
+            onClick={onPrint}
+            disabled={printing}
+            title="Print receipt"
+            className="rounded-lg p-1.5 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 transition-colors"
+          >
+            {printing ? (
+              <Loader2 className="h-4 w-4 text-zinc-500 animate-spin" />
+            ) : (
+              <Printer className="h-4 w-4 text-zinc-500" />
+            )}
+          </button>
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 transition-colors">
+            <X className="h-4 w-4 text-zinc-500" />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
