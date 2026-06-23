@@ -85,7 +85,7 @@ export function bytesToBase64(bytes: Uint8Array): string {
 
 // ── Receipt templates ──────────────────────────────────────────────
 
-export function buildTestReceipt(paperWidth: 58 | 80 = 80): Uint8Array {
+export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
   const buf: number[] = [];
   buf.push(...INIT);
   buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON);
@@ -114,7 +114,7 @@ export function buildTestReceipt(paperWidth: 58 | 80 = 80): Uint8Array {
 // payload from the API works — missing fields just collapse cleanly.
 export function buildOrderReceipt(
   order: any,
-  paperWidth: 58 | 80 = 80,
+  paperWidth: number = 80,
 ): Uint8Array {
   const cols = colsFor(paperWidth);
   const buf: number[] = [];
