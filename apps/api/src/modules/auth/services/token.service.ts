@@ -28,7 +28,9 @@ export class TokenService {
     private readonly prisma: PrismaService,
   ) {
     this.accessTtlMs = this.parseTtl(config.get("JWT_ACCESS_TTL", "15m"));
-    this.refreshTtlMs = this.parseTtl(config.get("JWT_REFRESH_TTL", "7d"));
+    // Long default so sessions persist until manual logout (sliding
+    // rotation re-extends on every refresh). Overridable via env.
+    this.refreshTtlMs = this.parseTtl(config.get("JWT_REFRESH_TTL", "365d"));
   }
 
   // ── Public API ────────────────────────────────────────

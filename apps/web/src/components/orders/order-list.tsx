@@ -404,6 +404,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Time</Th>
                 <Th>Order #</Th>
                 <Th>Channel</Th>
+                <Th>Brand</Th>
                 <Th>Type</Th>
                 <Th>Delivery</Th>
                 <Th>Customer</Th>
@@ -544,8 +545,23 @@ function OrderRow({
           }
         />
       </Td>
-      {/* Brand column removed from the list (shown in the order popup) to
-          keep the table narrow enough that Status fits on 8" tablets. */}
+      {/* Brand + location — the brand the order belongs to (resolved
+          from the marketplace payload for HubRise) with the fulfilling
+          location beneath it. */}
+      <Td>
+        <div className="max-w-[160px] flex flex-col gap-0.5">
+          <span className="truncate font-medium text-zinc-900">
+            {(order as any).brand?.name ??
+              (order as any).location?.brand?.name ??
+              "—"}
+          </span>
+          {(order as any).location?.name && (
+            <span className="truncate text-[11px] text-zinc-500">
+              {(order as any).location.name}
+            </span>
+          )}
+        </div>
+      </Td>
       <Td>
         <FulfillmentBadge type={order.fulfillmentType} />
       </Td>

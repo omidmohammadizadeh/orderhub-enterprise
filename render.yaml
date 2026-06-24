@@ -91,8 +91,11 @@ services:
       # ── JWT config ──
       - key: JWT_ACCESS_TTL
         value: 15m
+      # Long-lived refresh so the till / dashboard stays logged in until
+      # the operator logs out manually. Sliding rotation extends it on
+      # every refresh, so an actively-used device never drops out.
       - key: JWT_REFRESH_TTL
-        value: 7d
+        value: 365d
       # ── Logging ──
       - key: LOG_LEVEL
         value: info

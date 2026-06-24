@@ -141,6 +141,22 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       0,
     );
 
+    // HubRise discounts / offers — an array of applied deals. Field
+    // naming varies by marketplace (value / amount / price, sometimes
+    // negative), so sum the magnitudes. Falls back to a scalar discount
+    // field. The order-level `total` is already net of these; we surface
+    // the discount so the card + receipt show the offer the customer got
+    // (previously hard-coded to 0 and silently dropped).
+    const discountList = Array.isArray(order.discounts) ? order.discounts : [];
+    const discount =
+      Math.abs(
+        discountList.reduce(
+          (acc: number, d: any) =>
+            acc + parseMoney(d?.value ?? d?.amount ?? d?.price ?? d?.total),
+          0,
+        ),
+      ) || Math.abs(parseMoney(order.total_discount ?? order.discount ?? 0));
+
     // Payment hint — HubRise sends payment as either:
     //   { type: "online" | "cash_on_delivery", amount: "..." }      ← spec
     //   { name: "Paid online" | "Cash on delivery", amount: "..." } ← Uber/Deliveroo
@@ -233,7 +249,7 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       subtotal,
       taxAmount: 0,
       deliveryFee: 0,
-      discount: 0,
+      discount,
       total: total || subtotal,
       specialInstructions: order.customer_notes ?? undefined,
       // HubRise `expected_time` is the promised ready/ETA time and is set
@@ -268,6 +284,9 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         // which field carries the brand if the hint ever misses.
         hubriseBrandName: brandHint ?? null,
         hubriseBrandCandidates: brandCandidates,
+        // Raw discounts kept for visibility / refinement if a marketplace
+        // names the discount amount field differently.
+        hubriseDiscounts: discountList,
       },
     };
   }
