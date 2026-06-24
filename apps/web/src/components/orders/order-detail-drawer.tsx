@@ -190,6 +190,39 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        {/* Expected delivery / collection time (moved here from the
+            order card so the card stays uncluttered). */}
+        {(() => {
+          const isDelivery = /DELIV/i.test(order.fulfillmentType ?? "");
+          const label = isDelivery ? "Expected delivery" : "Expected collection";
+          const when =
+            order.scheduledFor ?? (order as any).estimatedReadyAt ?? null;
+          let value = "ASAP";
+          if (when) {
+            const d = new Date(when);
+            const time = d.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            value = order.scheduledFor
+              ? `${d.toLocaleDateString([], { weekday: "short", day: "2-digit", month: "short" })} · ${time}`
+              : time;
+          }
+          return (
+            <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-zinc-100 bg-zinc-50">
+              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <Clock className="h-4 w-4" />
+                {label}
+              </span>
+              <span
+                className={`text-sm font-bold ${order.scheduledFor ? "text-amber-700" : "text-zinc-900"}`}
+              >
+                {order.scheduledFor ? `Scheduled · ${value}` : value}
+              </span>
+            </div>
+          );
+        })()}
+
         {/* Customer */}
         <div className="px-5 py-4 border-b border-zinc-100">
           <p className="text-sm font-semibold text-zinc-900">{order.customerInfo.name}</p>

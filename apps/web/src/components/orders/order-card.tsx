@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Clock,
   User,
   MapPin,
   Calendar,
@@ -112,30 +111,8 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           </div>
         )}
 
-        {/* Expected delivery / collection time — always shown. */}
-        {(() => {
-          const isDelivery = /DELIV/i.test(order.fulfillmentType ?? "");
-          const label = isDelivery ? "Delivery" : "Collection";
-          const when = order.scheduledFor ?? (order as any).estimatedReadyAt;
-          let value = "ASAP";
-          if (when) {
-            const d = new Date(when);
-            const time = d.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-            value = order.scheduledFor
-              ? `${d.toLocaleDateString([], { day: "2-digit", month: "short" })} ${time}`
-              : time;
-          }
-          return (
-            <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-              <Clock className="h-3.5 w-3.5 text-zinc-400" />
-              <span className="font-semibold">{label}:</span>
-              <span>{value}</span>
-            </div>
-          );
-        })()}
+        {/* Expected delivery / collection time lives in the order detail
+            popup (it crowded the card). See order-detail-drawer. */}
 
         {/* Special instructions */}
         {order.specialInstructions && (
