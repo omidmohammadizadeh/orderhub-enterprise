@@ -542,10 +542,15 @@ export function buildOrderReceipt(
       line(buf, w);
   }
 
-  // ── QR code (e.g. order reference / reorder link) ─────────────────
+  // ── QR code (reorder link + live marketing caption) ──────────────
   if (opts?.qr) {
     line(buf, "");
     buf.push(...ALIGN_CENTER);
+    if (payload?.qrCaption) {
+      buf.push(...BOLD_ON);
+      for (const w of wrap(String(payload.qrCaption), cols)) line(buf, w);
+      buf.push(...BOLD_OFF);
+    }
     buf.push(...qrEscPos(String(opts.qr), paperWidth === 58 ? 5 : 6));
     buf.push(LF);
     buf.push(...ALIGN_LEFT);

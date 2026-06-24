@@ -55,6 +55,73 @@ export class MarketingService {
   }
 
   /**
+   * Receipt QR offer for marketplace order tickets. Returns the brand's
+   * direct-online-ordering URL (so a scan opens the storefront) plus a
+   * "Scan me to get …" caption derived from the brand's live marketing.
+   *
+   *   url     — null when the brand/location has no online ordering set
+   *             up (slug missing); the caller then prints no QR.
+   *   caption — based on the best ACTIVE in-window campaign, preferring
+   *             ones that run on the ONLINE channel (the QR drives online
+   *             orders). Generic fallback when nothing is live.
+   */
+  async receiptOffer(tenantId: string, brandId: string, locationId: string) {
+    const loc = await (this.prisma as any).location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { onlineOrderingSlug: true },
+    });
+    const slug = loc?.onlineOrderingSlug ?? null;
+    const base = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com")
+      .replace(/\/+$/, "");
+    const url = slug
+      ? `${base}/order/${slug}?brand=${encodeURIComponent(brandId)}`
+      : null;
+
+    const now = new Date();
+    const campaigns = await (this.prisma as any).marketingCampaign.findMany({
+      where: {
+        tenantId,
+        brandId,
+        status: "ACTIVE",
+        OR: [{ startsAt: null }, { startsAt: { lte: now } }],
+        AND: [{ OR: [{ endsAt: null }, { endsAt: { gte: now } }] }],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const pick =
+      campaigns.find((c: any) => (c.channels ?? []).includes("ONLINE")) ??
+      campaigns[0] ??
+      null;
+
+    return { url, caption: this.offerCaption(pick) };
+  }
+
+  private offerCaption(c: any): string {
+    const tail = "your next order";
+    const num = (v: any) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? String(n).replace(/\.00$/, "") : "";
+    };
+    if (!c) return `Scan me to order online & get a deal on ${tail}`;
+    switch (c.type) {
+      case "AMOUNT_OFF_ORDER":
+        return `Scan me to get £${num(c.amountOff)} off ${tail}`;
+      case "PERCENTAGE_OFF":
+      case "PERCENT_OFF_ITEMS":
+      case "HAPPY_HOUR":
+        return `Scan me to get ${num(c.percentageOff)}% off ${tail}`;
+      case "FREE_DELIVERY":
+        return `Scan me to get free delivery on ${tail}`;
+      case "BOGO":
+        return `Scan me to get buy one get one free on ${tail}`;
+      case "FREE_ITEM":
+        return `Scan me to get a free item on ${tail}`;
+      default:
+        return `Scan me to order online & get a deal on ${tail}`;
+    }
+  }
+
+  /**
    * Resolve the campaigns currently eligible for this brand × channel.
    * Returns ACTIVE rows whose window covers now() and (when set)
    * whose daily start/end window covers the local time. Audience

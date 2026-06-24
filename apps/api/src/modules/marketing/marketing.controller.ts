@@ -32,6 +32,19 @@ export class MarketingController {
     return this.svc.list({ tenantId: user.tenantId, brandId });
   }
 
+  // Receipt QR offer for marketplace tickets — storefront URL + a live
+  // "Scan me to get …" caption for this brand. Used by the tablet's
+  // print path.
+  @Get("receipt-offer")
+  @ApiOperation({ summary: "Storefront QR URL + live offer caption for a brand" })
+  receiptOffer(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("brandId") brandId: string,
+    @Query("locationId") locationId: string,
+  ) {
+    return this.svc.receiptOffer(user.tenantId, brandId, locationId);
+  }
+
   @Get("campaigns/:id")
   @ApiOperation({ summary: "Get a single campaign by id" })
   findOne(

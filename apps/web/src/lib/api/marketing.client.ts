@@ -82,4 +82,13 @@ export const marketingClient = {
       .then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/marketing/campaigns/${id}`).then((r) => r.data),
+  // Receipt QR: storefront URL + live "Scan me to get …" caption for a
+  // brand. Used by the tablet print path for marketplace tickets.
+  receiptOffer: (brandId: string, locationId: string) =>
+    apiClient
+      .get<{ url: string | null; caption: string }>(
+        "/v1/marketing/receipt-offer",
+        { params: { brandId, locationId } },
+      )
+      .then((r) => r.data),
 };

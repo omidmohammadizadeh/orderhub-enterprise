@@ -72,10 +72,11 @@ export function buildPrintPayload(
     // Brand logo for the receipt header (rastered to ESC/POS by the
     // bridge renderer). Brand wins, else the location's primary brand.
     brandLogoUrl: brand?.logoUrl ?? loc?.brand?.logoUrl ?? null,
-    // QR payload — the order's customer-facing reference. Only printed
-    // when the printer has "Print QR code" enabled.
-    qrData:
-      (order as any).displayId ?? (order as any).orderNumber?.toString() ?? null,
+    // QR is resolved at print time for marketplace tickets only (the
+    // storefront URL + live offer caption) — set by the print path, not
+    // here. Left null so non-marketplace receipts never carry a QR.
+    qrData: null as string | null,
+    qrCaption: null as string | null,
     brandName: brand?.name ?? loc?.name ?? null,
     locationName: loc?.name ?? null,
     locationAddress,

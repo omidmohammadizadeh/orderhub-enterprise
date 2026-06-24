@@ -23,6 +23,7 @@ import {
   repeatReceipt,
 } from "../lib/printing/bridge";
 import { buildPrintPayload } from "../lib/printing/order-receipt";
+import { resolveReceiptOffer } from "../lib/printing/print-order";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
@@ -98,6 +99,15 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       banner?: string,
     ) => {
       const payload = buildPrintPayload(order, banner ? { banner } : undefined);
+      // Marketplace "scan to order online" QR — new-order tickets only,
+      // never on cancellation slips.
+      if (copiesField === "copiesNewOrder") {
+        const offer = await resolveReceiptOffer(order);
+        if (offer) {
+          payload.qrData = offer.url;
+          payload.qrCaption = offer.caption;
+        }
+      }
       let printedAny = false;
       for (const p of btPrinters) {
         const fallback = copiesField === "copiesNewOrder" ? 1 : 0;
