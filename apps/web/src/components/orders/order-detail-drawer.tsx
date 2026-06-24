@@ -8,14 +8,7 @@ import { Separator } from "../ui/separator";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
-import { printersClient } from "../../lib/api/printers.client";
-import {
-  hasNativeBridge,
-  bridgePrint,
-  buildOrderReceipt,
-  repeatReceipt,
-} from "../../lib/printing/bridge";
-import { buildPrintPayload } from "../../lib/printing/order-receipt";
+import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
@@ -60,41 +53,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     setPrinting(true);
     setPrintMsg(null);
     try {
-      if (!hasNativeBridge()) {
-        throw new Error(
-          "Native printing only works inside the OrderHub Solutions tablet app.",
-        );
-      }
-      const printers = await printersClient.list();
-      const bt = printers.filter(
-        (p: any) =>
-          p.locationId === order.locationId &&
-          p.connectionType === "BLUETOOTH" &&
-          p.ipAddress &&
-          p.isActive !== false,
-      );
-      if (bt.length === 0) {
-        throw new Error(
-          "No Bluetooth printer configured for this location. Add one in Printers.",
-        );
-      }
-      for (const p of bt) {
-        // Manual button uses each printer's "reprint" copy count.
-        const copies = Math.max(
-          1,
-          Number((p as any).defaults?.copiesReprint ?? 1) || 1,
-        );
-        const single = buildOrderReceipt(
-          buildPrintPayload(order),
-          p.paperWidth ?? 80,
-        );
-        await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
-      }
-      // Clear this order's job(s) from the queue + bump "last print".
-      void printersClient.markOrderPrinted(order.id);
-      setPrintMsg(
-        bt.length === 1 ? "Printed" : `Printed to ${bt.length} printers`,
-      );
+      const msg = await printOrderViaBridge(order);
+      setPrintMsg(msg);
       setTimeout(() => setPrintMsg(null), 2500);
     } catch (e: any) {
       setPrintMsg(e?.message ?? "Print failed");
