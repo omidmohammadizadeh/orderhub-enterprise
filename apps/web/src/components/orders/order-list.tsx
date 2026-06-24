@@ -511,30 +511,9 @@ function OrderRow({
           <span className="text-[11px] text-zinc-500">
             {timeAgo(order.createdAt)}
           </span>
-          {/* Expected delivery / collection time — always shown. */}
-          {(() => {
-            const isDelivery = /DELIV/i.test(order.fulfillmentType ?? "");
-            const label = isDelivery ? "Delivery" : "Collection";
-            const when = order.scheduledFor ?? (order as any).estimatedReadyAt;
-            let value = "ASAP";
-            if (when) {
-              const d = new Date(when);
-              const time = d.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-              value = order.scheduledFor
-                ? `${d.toLocaleDateString([], { day: "2-digit", month: "short" })} ${time}`
-                : time;
-            }
-            return (
-              <span
-                className={`mt-0.5 text-[11px] font-semibold ${order.scheduledFor ? "text-amber-700" : "text-zinc-600"}`}
-              >
-                {label}: {value}
-              </span>
-            );
-          })()}
+          {/* Expected delivery / collection time lives in the order
+              detail popup now — keeping it out of the list row so the
+              Status column stays visible on small tablets. */}
         </div>
       </Td>
       <Td>
