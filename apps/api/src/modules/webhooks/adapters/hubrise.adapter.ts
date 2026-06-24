@@ -214,14 +214,26 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       discount: 0,
       total: total || subtotal,
       specialInstructions: order.customer_notes ?? undefined,
-      scheduledFor: order.expected_time
-        ? new Date(order.expected_time)
-        : undefined,
+      // HubRise `expected_time` is the promised ready/ETA time and is set
+      // on EVERY order — including ASAP ones (≈ now + prep). It is NOT a
+      // "scheduled for later" flag. Mapping it straight to scheduledFor
+      // made every HubRise ticket show as Scheduled. Only treat it as a
+      // genuine scheduled pre-order when it's well beyond normal prep
+      // (> 45 min out); otherwise it's an ASAP order and we leave
+      // scheduledFor unset. The raw ETA is kept in metadata for reference.
+      scheduledFor: (() => {
+        if (!order.expected_time) return undefined;
+        const t = new Date(order.expected_time);
+        if (!Number.isFinite(t.getTime())) return undefined;
+        const SCHEDULE_THRESHOLD_MS = 45 * 60_000;
+        return t.getTime() > Date.now() + SCHEDULE_THRESHOLD_MS ? t : undefined;
+      })(),
       idempotencyKey: undefined,
       metadata: {
         hubriseOrderId: order.id,
         hubriseChannel: order.channel,
         hubriseConnection: order.connection_name,
+        expectedTime: order.expected_time ?? null,
         originPlatform,
         deliveryType,
         collectionCode: order.collection_code,
