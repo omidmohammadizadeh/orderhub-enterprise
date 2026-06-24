@@ -216,6 +216,40 @@ export class OrdersService {
     locationId: string,
     options: { isSandbox?: boolean } = {},
   ): Promise<Order> {
+    // Marketplace multi-brand (HubRise etc.): when the order didn't
+    // arrive pre-pinned to a brand, match the payload's brand-name hint
+    // to one of the tenant's brands so the ticket + board show the right
+    // brand instead of the location default. Best-effort + logged.
+    if (!(canonical as any).brandId) {
+      const hint = String(
+        ((canonical.metadata as any) ?? {}).hubriseBrandName ?? "",
+      ).trim();
+      if (hint) {
+        try {
+          const match = await this.prisma.brand.findFirst({
+            where: {
+              tenantId,
+              deletedAt: null,
+              name: { equals: hint, mode: "insensitive" },
+            },
+            select: { id: true, name: true },
+          });
+          if (match) {
+            (canonical as any).brandId = match.id;
+            this.logger.log(
+              `Matched ${canonical.platform} order to brand "${match.name}" (${match.id}) from hint "${hint}"`,
+            );
+          } else {
+            this.logger.warn(
+              `No brand named "${hint}" for tenant ${tenantId} — ${canonical.platform} order stays on location default`,
+            );
+          }
+        } catch (e: any) {
+          this.logger.warn(`Brand hint resolve failed: ${e?.message ?? e}`);
+        }
+      }
+    }
+
     // Order creation and outbox event insertion are atomic. If the process dies
     // between DB commit and queue enqueue, the OutboxDispatcherCron picks up the
     // pending outbox event on its next tick and enqueues the job safely.

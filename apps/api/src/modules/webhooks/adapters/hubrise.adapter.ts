@@ -185,6 +185,28 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
           : "PLATFORM"
         : null;
 
+    // HubRise multi-brand: the order names the brand/store, but the
+    // exact field varies by marketplace + HubRise config. Pull the first
+    // non-empty of the likely candidates; OrdersService.ingestCanonical
+    // matches it (by name) to one of the tenant's brands and pins the
+    // order's brandId so the ticket/board show the right brand instead
+    // of the location's default. All raw candidates are kept in metadata
+    // so we can see which field actually carried it if a match misses.
+    const brandCandidates: Record<string, unknown> = {
+      brand_name: order.brand_name,
+      brand: typeof order.brand === "string" ? order.brand : order.brand?.name,
+      customer_list_name: order.customer_list_name,
+      catalog_name: order.catalog_name,
+      store_name: order.store_name,
+      location_name: order.location_name,
+      seller_name: order.seller_name,
+      connection_name: order.connection_name,
+    };
+    const brandHint =
+      Object.values(brandCandidates)
+        .map((v) => (typeof v === "string" ? v.trim() : ""))
+        .find((v) => v.length > 0) ?? undefined;
+
     return {
       externalId,
       platform: "HUBRISE",
@@ -242,6 +264,10 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
         // them onto the Order row when present.
         paymentMethod,
         paymentStatus,
+        // Raw brand-name candidates from the payload — lets us confirm
+        // which field carries the brand if the hint ever misses.
+        hubriseBrandName: brandHint ?? null,
+        hubriseBrandCandidates: brandCandidates,
       },
     };
   }
