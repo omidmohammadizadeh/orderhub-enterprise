@@ -280,17 +280,14 @@ export default function PosPage() {
         id: string;
       };
 
-      // Scheduled orders stay at PENDING — they show up in the Scheduled
-      // section of the Orders board and only transition to ACCEPTED (which
-      // fires the print pipeline) when the operator clicks "Start preparing
-      // now". For immediate orders we auto-accept here so the kitchen sees
-      // the ticket straight away.
-      if (!payload.isScheduled) {
-        await apiClient.patch(`/v1/orders/${created.id}/status`, {
-          status: "ACCEPTED",
-          note: "POS auto-accept",
-        });
-      }
+      // Accept every POS order on placement — including scheduled ones.
+      // Scheduled orders fire the print pipeline straight away with the
+      // scheduled date/time on the ticket, so the kitchen knows when
+      // it's for, rather than being parked until their slot.
+      await apiClient.patch(`/v1/orders/${created.id}/status`, {
+        status: "ACCEPTED",
+        note: "POS auto-accept",
+      });
 
       return { id: created.id, scheduled: payload.isScheduled, edited: false };
     },
@@ -299,7 +296,7 @@ export default function PosPage() {
         edited
           ? `Order ${editOrderNumber ?? `#${id.slice(-6)}`} updated. Reprint queued.`
           : scheduled
-            ? `Scheduled order saved (${id.slice(-6)}). It will appear in Scheduled.`
+            ? `Scheduled order placed (${id.slice(-6)}). Printed with its scheduled time.`
             : `Order placed (${id.slice(-6)}). Print job queued.`,
       );
       setCart([]);

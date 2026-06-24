@@ -379,8 +379,10 @@ export class OrdersService {
         ((canonical as any).integrationSource &&
           (canonical as any).integrationSource !== "DIRECT");
       const waitForOurAuth = !isPlatformOrder && isUnpaidCard;
-      const isScheduledFuture = this.isFutureScheduled(canonical.scheduledFor);
-      if (!waitForOurAuth && !isScheduledFuture) {
+      // Scheduled orders auto-accept on arrival too — the kitchen sees
+      // them straight away with the scheduled date/time on the ticket,
+      // rather than being parked until their slot.
+      if (!waitForOurAuth) {
         void this.maybeAutoAccept(order.id, tenantId, locationId);
       }
 
