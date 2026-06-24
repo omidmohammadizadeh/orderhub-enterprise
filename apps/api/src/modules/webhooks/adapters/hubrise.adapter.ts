@@ -151,8 +151,20 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
     const discount =
       Math.abs(
         discountList.reduce(
+          // HubRise discount lines carry the amount in `price_off`
+          // (a.k.a. `pricing_value` when `pricing_effect == "price_off"`),
+          // formatted "5.31 GBP". value/amount/price kept as fallbacks
+          // for other marketplaces.
           (acc: number, d: any) =>
-            acc + parseMoney(d?.value ?? d?.amount ?? d?.price ?? d?.total),
+            acc +
+            parseMoney(
+              d?.price_off ??
+                d?.pricing_value ??
+                d?.value ??
+                d?.amount ??
+                d?.price ??
+                d?.total,
+            ),
           0,
         ),
       ) || Math.abs(parseMoney(order.total_discount ?? order.discount ?? 0));
