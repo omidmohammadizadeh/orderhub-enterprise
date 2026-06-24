@@ -12,7 +12,10 @@ const ESC = 0x1b;
 const GS = 0x1d;
 const LF = 0x0a;
 
-const INIT = [ESC, 0x40];
+// Reset (ESC @) then select code page CP437 (ESC t 0). CP437 is the
+// power-on default on virtually all ESC/POS printers and puts the £
+// sign at byte 0x9C — which is how we render currency (see strBytes).
+const INIT = [ESC, 0x40, ESC, 0x74, 0x00];
 const ALIGN_LEFT = [ESC, 0x61, 0x00];
 const ALIGN_CENTER = [ESC, 0x61, 0x01];
 const BOLD_ON = [ESC, 0x45, 0x01];
@@ -30,10 +33,13 @@ function colsFor(paperWidth: number): number {
 function strBytes(s: string): number[] {
   // CP437 / ASCII subset only — non-ASCII becomes "?". Real menus
   // shouldn't have funky glyphs on a thermal printer anyway.
+  // Exception: £ (U+00A3) maps to 0x9C, its CP437 position, so prices
+  // print with the pound sign instead of "?".
   const out: number[] = [];
   for (let i = 0; i < s.length; i++) {
     const c = s.charCodeAt(i);
-    out.push(c < 0x80 ? c : 0x3f);
+    if (c === 0x00a3) out.push(0x9c); // £
+    else out.push(c < 0x80 ? c : 0x3f);
   }
   return out;
 }
@@ -198,7 +204,8 @@ function fmtWhen(iso: any): string {
 function money(n: any): string {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return "";
-  return v.toFixed(2);
+  // £ is encoded to its CP437 byte (0x9C) by strBytes so it prints.
+  return `£${v.toFixed(2)}`;
 }
 
 // Word-wrap a long string at column boundaries. Thermal printers
