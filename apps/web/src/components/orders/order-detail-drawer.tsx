@@ -189,9 +189,10 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Expected delivery / collection time (moved here from the
-            order card so the card stays uncluttered). */}
+            order card so the card stays uncluttered). Compact one-liner
+            so it doesn't push the status/action footer off small screens. */}
         {(() => {
           const isDelivery = /DELIV/i.test(order.fulfillmentType ?? "");
           const label = isDelivery ? "Expected delivery" : "Expected collection";
@@ -209,9 +210,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               : time;
           }
           return (
-            <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-zinc-100 bg-zinc-50">
-              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                <Clock className="h-4 w-4" />
+            <div className="flex items-center justify-between gap-2 px-5 py-2 border-b border-zinc-100 bg-zinc-50">
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                <Clock className="h-3.5 w-3.5" />
                 {label}
               </span>
               <span
