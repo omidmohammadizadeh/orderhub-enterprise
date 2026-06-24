@@ -226,14 +226,34 @@ export class OrdersService {
       ).trim();
       if (hint) {
         try {
-          const match = await this.prisma.brand.findFirst({
-            where: {
-              tenantId,
-              deletedAt: null,
-              name: { equals: hint, mode: "insensitive" },
-            },
-            select: { id: true, name: true },
-          });
+          // The same brand name can exist as multiple records across
+          // locations (e.g. a "-test" duplicate). Prefer the one that
+          // actually operates at THIS order's location — first by its
+          // primary location, then by a platform connection here — so we
+          // land on the record that carries the logo + storefront, not a
+          // stray namesake. Fall back to any name match.
+          const nameWhere = {
+            tenantId,
+            deletedAt: null,
+            name: { equals: hint, mode: "insensitive" as const },
+          };
+          const sel = { id: true, name: true };
+          const match =
+            (await this.prisma.brand.findFirst({
+              where: { ...nameWhere, primaryLocationId: locationId },
+              select: sel,
+            })) ??
+            (await this.prisma.brand.findFirst({
+              where: {
+                ...nameWhere,
+                platformConnections: { some: { locationId } },
+              },
+              select: sel,
+            })) ??
+            (await this.prisma.brand.findFirst({
+              where: nameWhere,
+              select: sel,
+            }));
           if (match) {
             (canonical as any).brandId = match.id;
             this.logger.log(

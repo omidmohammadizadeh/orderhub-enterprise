@@ -73,18 +73,27 @@ export class MarketingService {
       }),
       (this.prisma as any).brand.findFirst({
         where: { id: brandId, tenantId },
-        select: { logoUrl: true },
+        select: {
+          logoUrl: true,
+          onlineOrderingSlug: true,
+          directOrderingEnabled: true,
+        },
       }),
     ]);
-    const slug = loc?.onlineOrderingSlug ?? null;
     // Receipt logo: the order's brand first, else the location's own
     // logo (operators often upload the store logo at the location level).
     const logoUrl = brand?.logoUrl ?? loc?.logoUrl ?? null;
     const base = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com")
       .replace(/\/+$/, "");
-    const url = slug
-      ? `${base}/order/${slug}?brand=${encodeURIComponent(brandId)}`
-      : null;
+    // The storefront QR points at the brand's own direct-ordering page
+    // (/brand/<slug>). Fall back to a location-level /order/<slug> link
+    // for legacy setups that only configured ordering at the location.
+    const url =
+      brand?.directOrderingEnabled && brand?.onlineOrderingSlug
+        ? `${base}/brand/${brand.onlineOrderingSlug}`
+        : loc?.onlineOrderingSlug
+          ? `${base}/order/${loc.onlineOrderingSlug}?brand=${encodeURIComponent(brandId)}`
+          : null;
 
     const now = new Date();
     const campaigns = await (this.prisma as any).marketingCampaign.findMany({
