@@ -71,7 +71,7 @@ services:
       # no .onrender.com) which doesn't match the browser's Origin header.
       # This must match the exact URL users see in their browser.
       - key: CORS_ALLOWED_ORIGINS
-        value: https://orderhub-web.onrender.com
+        value: https://www.orderhubsolutions.com,https://orderhubsolutions.com,https://orderhub-web.onrender.com
       # ── Stripe (set manually) ──
       - key: STRIPE_SECRET_KEY
         sync: false

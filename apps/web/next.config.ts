@@ -69,9 +69,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/:path*",
+        // Canonicalize apex → www for PAGE loads only. `/api/*` must be
+        // excluded: those calls are served same-origin by the rewrite
+        // below, and a cross-origin 307 on a credentialed POST (e.g.
+        // /api/v1/auth/login) is silently blocked by the browser —
+        // which surfaced as "Something went wrong" on the login form.
+        // The negative lookahead skips anything under /api (no page
+        // route starts with "api", so this only spares the proxy).
+        source: "/:path((?!api).*)",
         has: [{ type: "host", value: "orderhubsolutions.com" }],
-        destination: "https://www.orderhubsolutions.com/:path*",
+        destination: "https://www.orderhubsolutions.com/:path",
         permanent: true,
       },
     ];
