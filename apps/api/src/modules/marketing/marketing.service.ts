@@ -66,11 +66,20 @@ export class MarketingService {
    *             orders). Generic fallback when nothing is live.
    */
   async receiptOffer(tenantId: string, brandId: string, locationId: string) {
-    const loc = await (this.prisma as any).location.findFirst({
-      where: { id: locationId, brand: { tenantId } },
-      select: { onlineOrderingSlug: true },
-    });
+    const [loc, brand] = await Promise.all([
+      (this.prisma as any).location.findFirst({
+        where: { id: locationId, brand: { tenantId } },
+        select: { onlineOrderingSlug: true, logoUrl: true },
+      }),
+      (this.prisma as any).brand.findFirst({
+        where: { id: brandId, tenantId },
+        select: { logoUrl: true },
+      }),
+    ]);
     const slug = loc?.onlineOrderingSlug ?? null;
+    // Receipt logo: the order's brand first, else the location's own
+    // logo (operators often upload the store logo at the location level).
+    const logoUrl = brand?.logoUrl ?? loc?.logoUrl ?? null;
     const base = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com")
       .replace(/\/+$/, "");
     const url = slug
@@ -93,7 +102,7 @@ export class MarketingService {
       campaigns[0] ??
       null;
 
-    return { url, caption: this.offerCaption(pick) };
+    return { url, caption: this.offerCaption(pick), logoUrl };
   }
 
   private offerCaption(c: any): string {

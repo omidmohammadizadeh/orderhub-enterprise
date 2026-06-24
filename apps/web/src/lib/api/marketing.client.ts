@@ -86,7 +86,7 @@ export const marketingClient = {
   // brand. Used by the tablet print path for marketplace tickets.
   receiptOffer: (brandId: string, locationId: string) =>
     apiClient
-      .get<{ url: string | null; caption: string }>(
+      .get<{ url: string | null; caption: string; logoUrl: string | null }>(
         "/v1/marketing/receipt-offer",
         { params: { brandId, locationId } },
       )

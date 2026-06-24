@@ -38,15 +38,29 @@ export function isMarketplaceOrder(order: any): boolean {
 
 // Cache the brand offer per (brandId|locationId) for the session so we
 // don't hit the API on every print.
-const offerCache = new Map<string, { url: string | null; caption: string }>();
+const offerCache = new Map<
+  string,
+  { url: string | null; caption: string; logoUrl: string | null }
+>();
 
-// Resolve the storefront QR + live marketing caption for a marketplace
-// order. Returns null for non-marketplace orders, when the brand has no
-// online ordering set up, or on any failure (so printing never breaks).
+export interface ReceiptOffer {
+  // Storefront QR target — only set when the brand/location has online
+  // ordering configured AND the order is a marketplace channel.
+  url: string | null;
+  caption: string;
+  // Receipt logo (brand logo, else the location's own logo). Resolved
+  // for ALL channels so the logo prints on every receipt without
+  // bloating the live-orders feed with a base64 data-URI per row.
+  logoUrl: string | null;
+  isMarketplace: boolean;
+}
+
+// Resolve the receipt logo + (for marketplace orders) the storefront QR
+// and live marketing caption. Returns null only when we can't key it
+// (no brand/location) or on failure, so printing never breaks.
 export async function resolveReceiptOffer(
   order: any,
-): Promise<{ url: string; caption: string } | null> {
-  if (!isMarketplaceOrder(order)) return null;
+): Promise<ReceiptOffer | null> {
   const brandId = order?.brandId ?? order?.brand?.id;
   const locationId = order?.locationId;
   if (!brandId || !locationId) return null;
@@ -57,10 +71,26 @@ export async function resolveReceiptOffer(
       offer = await marketingClient.receiptOffer(brandId, locationId);
       offerCache.set(key, offer);
     }
-    if (!offer?.url) return null;
-    return { url: offer.url, caption: offer.caption };
+    return {
+      url: offer.url ?? null,
+      caption: offer.caption,
+      logoUrl: offer.logoUrl ?? null,
+      isMarketplace: isMarketplaceOrder(order),
+    };
   } catch {
     return null;
+  }
+}
+
+// Apply a resolved offer onto a receipt payload: logo for every order,
+// QR + caption only for marketplace orders that actually have a
+// storefront URL.
+export function applyReceiptOffer(payload: any, offer: ReceiptOffer | null) {
+  if (!offer) return;
+  if (offer.logoUrl) payload.brandLogoUrl = offer.logoUrl;
+  if (offer.isMarketplace && offer.url) {
+    payload.qrData = offer.url;
+    payload.qrCaption = offer.caption;
   }
 }
 
@@ -86,13 +116,9 @@ export async function printOrderViaBridge(order: any): Promise<string> {
       "No reachable printer for this location. Add a Bluetooth or LAN printer in Printers.",
     );
   }
-  // Build the payload once + resolve the marketplace QR offer once.
+  // Build the payload once + resolve the receipt logo / QR offer once.
   const payload = buildPrintPayload(order);
-  const offer = await resolveReceiptOffer(order);
-  if (offer) {
-    payload.qrData = offer.url;
-    payload.qrCaption = offer.caption;
-  }
+  applyReceiptOffer(payload, await resolveReceiptOffer(order));
   for (const p of targets) {
     const copies = Math.max(
       1,
