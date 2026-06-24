@@ -394,14 +394,16 @@ export function OrderList({ locationId }: Props) {
           No orders match this filter.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-          <table className="min-w-full divide-y divide-zinc-200 text-sm">
+        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+          {/* Auto width (not w-full) so columns hug their content — on a
+              small tablet this removes the big inter-column gaps that
+              pushed the Status column off-screen. */}
+          <table className="divide-y divide-zinc-200 text-sm">
             <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <Th>Time</Th>
                 <Th>Order #</Th>
                 <Th>Channel</Th>
-                <Th>Brand</Th>
                 <Th>Type</Th>
                 <Th>Delivery</Th>
                 <Th>Customer</Th>
@@ -542,33 +544,8 @@ function OrderRow({
           }
         />
       </Td>
-      <Td>
-        {/* Brand badge — order.brand wins (set when the cart resolved to
-            a specific virtual brand). Otherwise fall through to the
-            location's primary brand (Phase AW): a POS walk-in or manual
-            order still belongs to *some* brand — the one that operates
-            from this kitchen — so the column should never be empty. */}
-        {(() => {
-          const b =
-            (order as any).brand ?? (order as any).location?.brand ?? null;
-          if (!b) return <span className="text-zinc-400">—</span>;
-          return (
-            <div className="flex items-center gap-1.5">
-              {b.logoUrl && (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={b.logoUrl}
-                  alt=""
-                  className="h-4 w-4 rounded object-cover"
-                />
-              )}
-              <span className="max-w-[120px] truncate text-zinc-700">
-                {b.name}
-              </span>
-            </div>
-          );
-        })()}
-      </Td>
+      {/* Brand column removed from the list (shown in the order popup) to
+          keep the table narrow enough that Status fits on 8" tablets. */}
       <Td>
         <FulfillmentBadge type={order.fulfillmentType} />
       </Td>
@@ -712,13 +689,13 @@ function ReprintMenu({
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-2 py-2.5 text-left font-semibold whitespace-nowrap">
+    <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
       {children}
     </th>
   );
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-2 py-2.5 align-middle">{children}</td>;
+  return <td className="px-1.5 py-2.5 align-middle">{children}</td>;
 }
 
 // Phase AV — small badge for the new Delivery column. We deliberately
