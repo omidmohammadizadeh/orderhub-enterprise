@@ -6,7 +6,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   hasNativeBridge,
-  bridgePrint,
+  bridgeSupportsPrinter,
+  writeToPrinter,
   buildTestReceipt,
 } from "@/lib/printing/bridge";
 import {
@@ -44,15 +45,19 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
 
   const testPrint = useMutation({
     mutationFn: async (printer: any) => {
-      // Bluetooth printer + native bridge available → send raw bytes
-      // straight to the printer via the WebView bridge. No API round
-      // trip, no PrintJob queue, no agent needed. The dashboard *is*
-      // the print engine in this path.
-      if (printer.connectionType === "BLUETOOTH" && hasNativeBridge()) {
-        const mac = printer.ipAddress; // BT MAC is stored in ipAddress
-        if (!mac) throw new Error("No Bluetooth address saved for this printer");
+      // Bluetooth or LAN printer + native bridge available → send raw
+      // bytes straight to the printer via the WebView bridge. No API
+      // round trip, no PrintJob queue, no agent needed. The dashboard
+      // *is* the print engine in this path.
+      if (
+        (printer.connectionType === "BLUETOOTH" ||
+          printer.connectionType === "LAN") &&
+        bridgeSupportsPrinter(printer)
+      ) {
+        if (!printer.ipAddress)
+          throw new Error("No address saved for this printer");
         const bytes = buildTestReceipt(printer.paperWidth ?? 80);
-        await bridgePrint(mac, bytes);
+        await writeToPrinter(printer, bytes);
         return { ok: true } as any;
       }
       return printersClient.testPrint(printer.id);
@@ -124,12 +129,10 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                   </Td>
                   <Td>
                     {p.isOnline ||
-                    (p.connectionType === "BLUETOOTH" &&
-                      hasNativeBridge() &&
-                      p.ipAddress) ? (
+                    (p.ipAddress && bridgeSupportsPrinter(p)) ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                         <Wifi className="h-3 w-3" />
-                        {p.connectionType === "BLUETOOTH" && hasNativeBridge()
+                        {bridgeSupportsPrinter(p) && !p.isOnline
                           ? "Online (tablet)"
                           : "Online"}
                       </span>

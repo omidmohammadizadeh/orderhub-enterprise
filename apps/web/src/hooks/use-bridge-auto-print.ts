@@ -16,7 +16,8 @@ import { useQuery } from "@tanstack/react-query";
 import { printersClient } from "../lib/api/printers.client";
 import { ordersClient } from "../lib/api/orders.client";
 import {
-  bridgePrint,
+  writeToPrinter,
+  bridgeSupportsPrinter,
   buildOrderReceipt,
   hasNativeBridge,
   repeatReceipt,
@@ -69,10 +70,11 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
     const btPrinters = (printersRef.current ?? []).filter(
       (p: any) =>
         (!locationId || p.locationId === locationId) &&
-        p.connectionType === "BLUETOOTH" &&
+        (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
         p.ipAddress &&
         p.isActive !== false &&
-        p.defaults?.autoPrint,
+        p.defaults?.autoPrint &&
+        bridgeSupportsPrinter(p),
     );
     setStatus((s) => ({ ...s, inApp, armedPrinters: btPrinters.length }));
 
@@ -106,7 +108,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         if (copies < 1) continue;
         try {
           const single = buildOrderReceipt(payload, p.paperWidth ?? 80);
-          await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
+          await writeToPrinter(p, repeatReceipt(single, copies));
           printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
             order.displayId ?? order.orderNumber ?? order.id?.slice(-4)

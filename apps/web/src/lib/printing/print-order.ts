@@ -9,7 +9,8 @@
 import { printersClient } from "../api/printers.client";
 import {
   hasNativeBridge,
-  bridgePrint,
+  bridgeSupportsPrinter,
+  writeToPrinter,
   buildOrderReceipt,
   repeatReceipt,
 } from "./bridge";
@@ -22,27 +23,30 @@ export async function printOrderViaBridge(order: any): Promise<string> {
     );
   }
   const printers = await printersClient.list(order.locationId);
-  const bt = printers.filter(
+  // Bluetooth or LAN printers at this location that the current app
+  // build can actually reach.
+  const targets = printers.filter(
     (p: any) =>
       p.locationId === order.locationId &&
-      p.connectionType === "BLUETOOTH" &&
+      (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
       p.ipAddress &&
-      p.isActive !== false,
+      p.isActive !== false &&
+      bridgeSupportsPrinter(p),
   );
-  if (bt.length === 0) {
+  if (targets.length === 0) {
     throw new Error(
-      "No Bluetooth printer configured for this location. Add one in Printers.",
+      "No reachable printer for this location. Add a Bluetooth or LAN printer in Printers.",
     );
   }
-  for (const p of bt) {
+  for (const p of targets) {
     const copies = Math.max(
       1,
       Number((p as any).defaults?.copiesReprint ?? 1) || 1,
     );
     const single = buildOrderReceipt(buildPrintPayload(order), p.paperWidth ?? 80);
-    await bridgePrint(p.ipAddress!, repeatReceipt(single, copies));
+    await writeToPrinter(p, repeatReceipt(single, copies));
   }
   // Clear this order's job(s) from the queue + bump "last print".
   void printersClient.markOrderPrinted(order.id);
-  return bt.length === 1 ? "Printed" : `Printed to ${bt.length} printers`;
+  return targets.length === 1 ? "Printed" : `Printed to ${targets.length} printers`;
 }

@@ -29,6 +29,7 @@ import {
   sendBytesOverBt,
   ensureBtPermissions,
 } from "@/print/transport/bluetooth";
+import { sendBytesOverTcp } from "@/print/transport/lan";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -106,6 +107,12 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           listDevices: function () { return request('bt:list'); },
           print: function (mac, base64Bytes) {
             return request('bt:print', { mac: mac, bytes: base64Bytes });
+          },
+          // LAN / network printer (raw TCP 9100). Same base64 byte
+          // transport as Bluetooth — native opens a socket to ip:port,
+          // writes the ESC/POS bytes, drains, and closes.
+          printLan: function (ip, port, base64Bytes) {
+            return request('lan:print', { ip: ip, port: port, bytes: base64Bytes });
           }
         };
         true;
@@ -153,6 +160,20 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           respond(msg.reqId, { ok: true });
         } catch (err: any) {
           reject(msg.reqId, err?.message ?? "Bluetooth print failed");
+        }
+      } else if (msg?.type === "lan:print" && msg?.reqId && msg?.payload) {
+        try {
+          const { ip, port, bytes } = msg.payload as {
+            ip: string;
+            port?: number;
+            bytes: string;
+          };
+          if (!ip || !bytes) throw new Error("ip + bytes required");
+          const buf = base64ToBytes(bytes);
+          await sendBytesOverTcp(ip, port, buf);
+          respond(msg.reqId, { ok: true });
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "LAN print failed");
         }
       }
     } catch {

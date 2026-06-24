@@ -56,12 +56,27 @@ export type BridgeWindow = Window & {
     isReady: boolean;
     listDevices(): Promise<Array<{ name: string; address: string }>>;
     print(mac: string, base64Bytes: string): Promise<{ ok: true }>;
+    // LAN / network printer over raw TCP (port 9100). Added in the
+    // tablet app alongside Bluetooth.
+    printLan?(
+      ip: string,
+      port: number,
+      base64Bytes: string,
+    ): Promise<{ ok: true }>;
   };
 };
 
 export function hasNativeBridge(): boolean {
   if (typeof window === "undefined") return false;
   return !!(window as BridgeWindow).OrderHubBT?.isReady;
+}
+
+// True if the installed app build supports LAN printing (older APKs
+// only expose Bluetooth).
+export function hasLanBridge(): boolean {
+  if (typeof window === "undefined") return false;
+  const bt = (window as BridgeWindow).OrderHubBT;
+  return !!bt?.isReady && typeof bt.printLan === "function";
 }
 
 export async function bridgePrint(
@@ -71,6 +86,44 @@ export async function bridgePrint(
   if (!hasNativeBridge()) throw new Error("Bluetooth bridge not available");
   const b64 = bytesToBase64(bytes);
   await (window as BridgeWindow).OrderHubBT!.print(mac, b64);
+}
+
+export async function bridgeLanPrint(
+  ip: string,
+  port: number,
+  bytes: Uint8Array,
+): Promise<void> {
+  const bt = (window as BridgeWindow).OrderHubBT;
+  if (!bt?.isReady || typeof bt.printLan !== "function") {
+    throw new Error(
+      "LAN printing needs the latest tablet app — please update the app.",
+    );
+  }
+  await bt.printLan(ip, port || 9100, bytesToBase64(bytes));
+}
+
+// Route a print to the right transport based on the printer's
+// connectionType: BLUETOOTH → bridgePrint(mac), LAN → bridgeLanPrint(ip).
+// `ipAddress` holds the MAC for Bluetooth and the IP for LAN.
+export async function writeToPrinter(
+  printer: { connectionType?: string; ipAddress?: string | null; port?: number | null },
+  bytes: Uint8Array,
+): Promise<void> {
+  const conn = String(printer?.connectionType ?? "").toUpperCase();
+  if (!printer?.ipAddress) throw new Error("Printer has no address configured");
+  if (conn === "LAN") {
+    await bridgeLanPrint(printer.ipAddress, printer.port ?? 9100, bytes);
+  } else {
+    await bridgePrint(printer.ipAddress, bytes);
+  }
+}
+
+// Can the current app build print to this printer?
+export function bridgeSupportsPrinter(printer: {
+  connectionType?: string;
+}): boolean {
+  const conn = String(printer?.connectionType ?? "").toUpperCase();
+  return conn === "LAN" ? hasLanBridge() : hasNativeBridge();
 }
 
 // Repeat a fully-rendered receipt N times into one buffer. Each copy
