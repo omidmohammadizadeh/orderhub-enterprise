@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Req,
   Res,
@@ -29,6 +30,11 @@ import { Request } from "express";
 import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
+import {
+  ChangePasswordDto,
+  UpdateProfileDto,
+  DeleteAccountDto,
+} from "./dto/account.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import {
   GoogleNativeAuthDto,
@@ -150,6 +156,46 @@ export class AuthController {
   @ApiResponse({ status: 200, type: UserProfileDto })
   async me(@CurrentUser() user: AuthenticatedUser): Promise<UserProfileDto> {
     return this.authService.getMe(user);
+  }
+
+  // ── PATCH /api/v1/auth/me — update own profile (name + avatar) ─────────
+  @UseGuards(JwtAuthGuard)
+  @Patch("me")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update the authenticated user's profile" })
+  @ApiResponse({ status: 200, type: UserProfileDto })
+  async updateProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<UserProfileDto> {
+    return this.authService.updateProfile(user, dto);
+  }
+
+  // ── POST /api/v1/auth/change-password ─────────────────────────────────
+  @UseGuards(JwtAuthGuard)
+  @Post("change-password")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Change the authenticated user's password" })
+  async changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.authService.changePassword(user, dto);
+  }
+
+  // ── DELETE /api/v1/auth/me — permanently delete own account ───────────
+  // Requires the typed confirmation phrase "DELETE MY ACCOUNT".
+  @UseGuards(JwtAuthGuard)
+  @Delete("me")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Permanently delete the authenticated user's account" })
+  async deleteAccount(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: DeleteAccountDto,
+  ): Promise<void> {
+    await this.authService.deleteAccount(user, dto.confirm);
   }
 
   // ── Google OAuth ────────────────────────────────────────────────────────

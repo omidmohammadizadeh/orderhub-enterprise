@@ -42,4 +42,27 @@ export const authClient = {
     const { data } = await apiClient.get<UserProfile>("/v1/auth/me");
     return data;
   },
+
+  // PATCH /api/v1/auth/me — update own profile (name + avatar)
+  async updateProfile(input: {
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string | null;
+  }): Promise<UserProfile> {
+    const { data } = await apiClient.patch<UserProfile>("/v1/auth/me", input);
+    return data;
+  },
+
+  // POST /api/v1/auth/change-password
+  async changePassword(input: {
+    currentPassword?: string;
+    newPassword: string;
+  }): Promise<void> {
+    await apiClient.post("/v1/auth/change-password", input);
+  },
+
+  // DELETE /api/v1/auth/me — permanently delete own account
+  async deleteAccount(confirm: string): Promise<void> {
+    await apiClient.delete("/v1/auth/me", { data: { confirm } });
+  },
 };

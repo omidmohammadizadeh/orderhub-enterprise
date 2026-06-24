@@ -2,13 +2,16 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { LogOut, User, ChevronDown, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
+import { ProfileDialog, DeleteAccountDialog } from "./account-dialogs";
 
 export function UserMenu() {
   const [open, setOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -90,11 +93,13 @@ export function UserMenu() {
 
           {/* Menu items */}
           <div className="py-1">
-            <MenuItem icon={User} label="Your profile" onClick={() => setOpen(false)} />
             <MenuItem
-              icon={Settings}
-              label="Security"
-              onClick={() => { setOpen(false); router.push("/dashboard/settings/security"); }}
+              icon={User}
+              label="Your profile"
+              onClick={() => {
+                setOpen(false);
+                setShowProfile(true);
+              }}
             />
           </div>
 
@@ -105,8 +110,22 @@ export function UserMenu() {
               onClick={handleLogout}
               className="text-red-600 hover:bg-red-50"
             />
+            <MenuItem
+              icon={Trash2}
+              label="Delete my account"
+              onClick={() => {
+                setOpen(false);
+                setShowDelete(true);
+              }}
+              className="text-red-600 hover:bg-red-50"
+            />
           </div>
         </div>
+      )}
+
+      {showProfile && <ProfileDialog onClose={() => setShowProfile(false)} />}
+      {showDelete && (
+        <DeleteAccountDialog onClose={() => setShowDelete(false)} />
       )}
     </div>
   );

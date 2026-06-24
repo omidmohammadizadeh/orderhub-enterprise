@@ -1,6 +1,7 @@
 import {
   Injectable,
   UnauthorizedException,
+  BadRequestException,
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -191,6 +192,69 @@ export class AuthService {
       brandId: firstBrand?.id ?? null,
       defaultLocationId: firstLocation?.id ?? null,
     };
+  }
+
+  // ── Account self-service (profile / password / delete) ───────────────
+
+  // Update the caller's own profile (display name + avatar). Returns the
+  // refreshed profile so the client can update its store in one round-trip.
+  async updateProfile(
+    user: AuthenticatedUser,
+    dto: { firstName?: string; lastName?: string; avatarUrl?: string },
+  ): Promise<UserProfileDto> {
+    const data: Record<string, unknown> = {};
+    if (dto.firstName !== undefined) data.firstName = dto.firstName.trim();
+    if (dto.lastName !== undefined) data.lastName = dto.lastName.trim();
+    if (dto.avatarUrl !== undefined) data.avatarUrl = dto.avatarUrl || null;
+    if (Object.keys(data).length > 0) {
+      await this.prisma.user.update({ where: { id: user.userId }, data });
+    }
+    return this.getMe(user);
+  }
+
+  // Change the caller's own password. OAuth-only accounts (no password set)
+  // can set one for the first time without supplying a current password.
+  async changePassword(
+    user: AuthenticatedUser,
+    dto: { currentPassword?: string; newPassword: string },
+  ): Promise<void> {
+    const record = await this.prisma.user.findUniqueOrThrow({
+      where: { id: user.userId },
+    });
+    if (record.password) {
+      if (!dto.currentPassword) {
+        throw new BadRequestException("Current password is required");
+      }
+      const ok = await this.passwordService.compare(
+        dto.currentPassword,
+        record.password,
+      );
+      if (!ok) throw new UnauthorizedException("Current password is incorrect");
+    }
+    const hash = await this.passwordService.hash(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: user.userId },
+      data: { password: hash },
+    });
+    this.logger.log(`Password changed for user ${user.userId}`);
+  }
+
+  // Permanently delete the caller's own account. Requires the exact typed
+  // confirmation phrase. Deleting the User row cascades to their personal
+  // records (sessions, location/brand assignments, audit logs) and nulls
+  // business references (invitations sent, leads submitted) — see the
+  // onDelete rules on those relations in schema.prisma.
+  async deleteAccount(
+    user: AuthenticatedUser,
+    confirm: string,
+  ): Promise<void> {
+    if (confirm !== "DELETE MY ACCOUNT") {
+      throw new BadRequestException(
+        'Type "DELETE MY ACCOUNT" exactly to confirm',
+      );
+    }
+    await this.prisma.user.delete({ where: { id: user.userId } });
+    this.logger.warn(`Account permanently deleted: user ${user.userId}`);
   }
 
   // Public wrapper used by native-OAuth controller endpoints that already
