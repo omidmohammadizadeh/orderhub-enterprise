@@ -69,6 +69,13 @@ export function buildPrintPayload(
       .join(", ") || null;
   return {
     banner: opts?.banner ?? null,
+    // Brand logo for the receipt header (rastered to ESC/POS by the
+    // bridge renderer). Brand wins, else the location's primary brand.
+    brandLogoUrl: brand?.logoUrl ?? loc?.brand?.logoUrl ?? null,
+    // QR payload — the order's customer-facing reference. Only printed
+    // when the printer has "Print QR code" enabled.
+    qrData:
+      (order as any).displayId ?? (order as any).orderNumber?.toString() ?? null,
     brandName: brand?.name ?? loc?.name ?? null,
     locationName: loc?.name ?? null,
     locationAddress,

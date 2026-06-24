@@ -18,7 +18,7 @@ import { ordersClient } from "../lib/api/orders.client";
 import {
   writeToPrinter,
   bridgeSupportsPrinter,
-  buildOrderReceipt,
+  renderReceiptBytes,
   hasNativeBridge,
   repeatReceipt,
 } from "../lib/printing/bridge";
@@ -107,7 +107,10 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         );
         if (copies < 1) continue;
         try {
-          const single = buildOrderReceipt(payload, p.paperWidth ?? 80);
+          const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
+            printLogo: p.defaults?.printLogo,
+            qrCode: p.defaults?.qrCode,
+          });
           await writeToPrinter(p, repeatReceipt(single, copies));
           printedAny = true;
           const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${

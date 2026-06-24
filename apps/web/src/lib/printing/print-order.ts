@@ -11,7 +11,7 @@ import {
   hasNativeBridge,
   bridgeSupportsPrinter,
   writeToPrinter,
-  buildOrderReceipt,
+  renderReceiptBytes,
   repeatReceipt,
 } from "./bridge";
 import { buildPrintPayload } from "./order-receipt";
@@ -43,7 +43,11 @@ export async function printOrderViaBridge(order: any): Promise<string> {
       1,
       Number((p as any).defaults?.copiesReprint ?? 1) || 1,
     );
-    const single = buildOrderReceipt(buildPrintPayload(order), p.paperWidth ?? 80);
+    const single = await renderReceiptBytes(
+      buildPrintPayload(order),
+      p.paperWidth ?? 80,
+      { printLogo: (p as any).defaults?.printLogo, qrCode: (p as any).defaults?.qrCode },
+    );
     await writeToPrinter(p, repeatReceipt(single, copies));
   }
   // Clear this order's job(s) from the queue + bump "last print".

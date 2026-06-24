@@ -222,6 +222,114 @@ function wrap(text: string, width: number): string[] {
   return lines.length ? lines : [""];
 }
 
+// ── Logo + QR (graphics) ────────────────────────────────────────────
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // Needed so we can read pixels back from the canvas (logo URLs are
+    // served from Supabase storage with permissive CORS).
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("logo image failed to load"));
+    img.src = url;
+  });
+}
+
+// Cache rastered logos per (url|width) so we don't re-decode the image
+// on every order print.
+const logoCache = new Map<string, number[] | null>();
+
+// Convert an image URL to an ESC/POS raster bitmap (GS v 0). Returns the
+// command bytes, or null if the image can't be loaded / pixels can't be
+// read — callers then just print the text receipt, so a bad logo never
+// stops the order printing.
+export async function imageToRaster(
+  url: string,
+  maxWidthDots: number,
+): Promise<number[] | null> {
+  const key = `${url}|${maxWidthDots}`;
+  if (logoCache.has(key)) return logoCache.get(key) ?? null;
+  let result: number[] | null = null;
+  try {
+    const img = await loadImage(url);
+    const srcW = img.width || maxWidthDots;
+    const srcH = img.height || maxWidthDots;
+    let w = Math.min(maxWidthDots, srcW);
+    w = Math.floor(w / 8) * 8; // width must be a multiple of 8 dots
+    if (w >= 8) {
+      let h = Math.round(w * (srcH / srcW));
+      if (h > 0) {
+        if (h > 1200) h = 1200; // sanity cap on logo height
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const data = ctx.getImageData(0, 0, w, h).data;
+          const bytesPerRow = w / 8;
+          const raster: number[] = [];
+          for (let y = 0; y < h; y++) {
+            for (let bx = 0; bx < bytesPerRow; bx++) {
+              let byte = 0;
+              for (let bit = 0; bit < 8; bit++) {
+                const x = bx * 8 + bit;
+                const i = (y * w + x) * 4;
+                const a = data[i + 3]!;
+                const lum =
+                  a < 32
+                    ? 255
+                    : 0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!;
+                if (lum < 160) byte |= 0x80 >> bit; // dark pixel → black dot
+              }
+              raster.push(byte);
+            }
+          }
+          result = [
+            GS,
+            0x76,
+            0x30,
+            0x00,
+            bytesPerRow & 0xff,
+            (bytesPerRow >> 8) & 0xff,
+            h & 0xff,
+            (h >> 8) & 0xff,
+            ...raster,
+          ];
+        }
+      }
+    }
+  } catch {
+    result = null;
+  }
+  logoCache.set(key, result);
+  return result;
+}
+
+// Native ESC/POS QR code (GS ( k). Supported by Epson TM-m30, Star, and
+// most modern thermal printers. EC level L, configurable module size.
+export function qrEscPos(data: string, size = 6): number[] {
+  const bytes = strBytes(data);
+  const s = Math.max(1, Math.min(16, size));
+  const storeLen = bytes.length + 3;
+  return [
+    // Model 2
+    GS, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00,
+    // Module size
+    GS, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, s,
+    // Error-correction level L
+    GS, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, 0x30,
+    // Store the data
+    GS, 0x28, 0x6b, storeLen & 0xff, (storeLen >> 8) & 0xff, 0x31, 0x50, 0x30,
+    ...bytes,
+    // Print
+    GS, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30,
+  ];
+}
+
 // Receipt from the PrintJob.payload structure that PrintJobsService
 // builds on the server. The shape is stable across renderers:
 //   - print-bridge desktop produces the same receipt from the same
@@ -237,10 +345,18 @@ function wrap(text: string, width: number): string[] {
 export function buildOrderReceipt(
   payload: any,
   paperWidth: number = 80,
+  opts?: { logoBytes?: number[] | null; qr?: string | null },
 ): Uint8Array {
   const cols = colsFor(paperWidth);
   const buf: number[] = [];
   buf.push(...INIT);
+
+  // ── Logo (top, centered) ──────────────────────────────────────────
+  if (opts?.logoBytes && opts.logoBytes.length) {
+    buf.push(...ALIGN_CENTER);
+    buf.push(...opts.logoBytes);
+    buf.push(LF);
+  }
 
   // ── Banner (e.g. ORDER CANCELLED) ─────────────────────────────────
   if (payload?.banner) {
@@ -426,8 +542,36 @@ export function buildOrderReceipt(
       line(buf, w);
   }
 
+  // ── QR code (e.g. order reference / reorder link) ─────────────────
+  if (opts?.qr) {
+    line(buf, "");
+    buf.push(...ALIGN_CENTER);
+    buf.push(...qrEscPos(String(opts.qr), paperWidth === 58 ? 5 : 6));
+    buf.push(LF);
+    buf.push(...ALIGN_LEFT);
+  }
+
   // ── Footer ────────────────────────────────────────────────────────
   buf.push(LF, LF, LF, LF);
   buf.push(...CUT);
   return new Uint8Array(buf);
+}
+
+// Async wrapper that prepares graphics (logo raster) then builds the
+// receipt. Logo prints by default when the payload carries a brand logo
+// (disable per-printer with defaults.printLogo === false); the QR prints
+// only when the printer has defaults.qrCode on and the payload has a
+// qrData value. Logo failures fall back to a clean text receipt.
+export async function renderReceiptBytes(
+  payload: any,
+  paperWidth: number = 80,
+  opts?: { printLogo?: boolean; qrCode?: boolean },
+): Promise<Uint8Array> {
+  let logoBytes: number[] | null = null;
+  if (opts?.printLogo !== false && payload?.brandLogoUrl) {
+    const maxDots = paperWidth === 58 ? 360 : 512;
+    logoBytes = await imageToRaster(String(payload.brandLogoUrl), maxDots);
+  }
+  const qr = opts?.qrCode && payload?.qrData ? String(payload.qrData) : null;
+  return buildOrderReceipt(payload, paperWidth, { logoBytes, qr });
 }
