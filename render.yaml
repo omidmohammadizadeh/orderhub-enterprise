@@ -96,6 +96,10 @@ services:
       # every refresh, so an actively-used device never drops out.
       - key: JWT_REFRESH_TTL
         value: 365d
+      # Sign in with Apple — audience the iOS identity token is verified
+      # against. Must equal the app's bundle id.
+      - key: APPLE_BUNDLE_ID
+        value: com.orderhubsolutions.pos
       # ── Logging ──
       - key: LOG_LEVEL
         value: info
