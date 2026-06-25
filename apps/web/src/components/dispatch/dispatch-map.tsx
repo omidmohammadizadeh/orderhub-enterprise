@@ -170,5 +170,13 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
     );
   }
 
-  return <div ref={containerRef} className="h-full w-full rounded-lg" />;
+  // Explicit height — Google Maps renders nothing if the container collapses
+  // to 0 (a percentage height with no definite parent height resolves to 0).
+  return (
+    <div
+      ref={containerRef}
+      className="w-full rounded-lg"
+      style={{ height: "100%", minHeight: "70vh" }}
+    />
+  );
 }

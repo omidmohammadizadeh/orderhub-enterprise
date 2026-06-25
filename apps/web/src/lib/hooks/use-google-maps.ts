@@ -12,6 +12,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     google?: any;
     __ohGoogleMapsPromise?: Promise<void>;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -25,6 +26,12 @@ export function useGoogleMaps(): { ready: boolean; error: string | null } {
       setError("Maps key not configured (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)");
       return;
     }
+    // Google calls this global if the key is rejected (bad referrer, API not
+    // enabled, billing off) — surface it instead of a silent blank map.
+    window.gm_authFailure = () =>
+      setError(
+        "Google rejected the Maps key — check it allows Maps JavaScript API and the website referrer (orderhubsolutions.com).",
+      );
     if (window.google?.maps) {
       setReady(true);
       return;
