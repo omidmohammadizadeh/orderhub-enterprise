@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
+import { DispatchController } from "./dispatch.controller";
+import { DispatchService } from "./dispatch.service";
+import { GeocodingService } from "./geocoding.service";
 
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  controllers: [DispatchController],
+  providers: [DispatchService, GeocodingService],
+  exports: [DispatchService, GeocodingService],
 })
 export class DispatchModule {}
