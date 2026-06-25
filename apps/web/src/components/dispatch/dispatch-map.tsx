@@ -64,13 +64,17 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
           map,
           position: { lat: loc.lat, lng: loc.lng },
           title: loc.name,
+          label: { text: "🏪", fontSize: "18px" }, // 🏪 storefront
           icon: {
-            path: "M 0,-12 3,-4 11,-4 5,2 7,10 0,5 -7,10 -5,2 -11,-4 -3,-4 z",
+            // Teardrop location pin (brand violet) with the shop glyph on top.
+            path: "M0,0 C-5,-9 -11,-13 -11,-21 A11,11 0 1,1 11,-21 C11,-13 5,-9 0,0 Z",
             fillColor: "#7c3aed",
             fillOpacity: 1,
             strokeColor: "#ffffff",
             strokeWeight: 1.5,
-            scale: 1.3,
+            scale: 1.2,
+            anchor: new g.maps.Point(0, 0),
+            labelOrigin: new g.maps.Point(0, -21),
           },
           zIndex: 50,
         });

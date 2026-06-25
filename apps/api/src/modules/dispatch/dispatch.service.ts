@@ -135,7 +135,21 @@ export class DispatchService {
     return new Date(order.createdAt.getTime() + mins * 60_000);
   }
 
-  /** Geocode + persist coords for any active delivery order missing them. */
+  /** Many platform payloads (Deliveroo/HubRise) carry the customer lat/lng
+   *  directly in deliveryAddress — use those before paying to geocode. */
+  private coordsFromAddress(deliveryAddress: unknown): { lat: number; lng: number } | null {
+    const a = deliveryAddress as Record<string, unknown> | null;
+    if (!a || typeof a !== "object") return null;
+    const lat = Number(a.lat ?? a.latitude ?? (a as Record<string, unknown>).Latitude);
+    const lng = Number(a.lng ?? a.lon ?? a.longitude ?? (a as Record<string, unknown>).Longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) {
+      return { lat, lng };
+    }
+    return null;
+  }
+
+  /** Resolve + persist coords for any active delivery order missing them:
+   *  embedded payload coords first, then geocode the address. */
   private async geocodeMissing(
     orders: Array<{
       id: string;
@@ -150,9 +164,18 @@ export class DispatchService {
     const missing = orders.filter((o) => o.deliveryLat == null);
     await Promise.all(
       missing.map(async (o) => {
-        const addr = this.orderAddressString(o);
-        if (!addr) return;
-        const point = await this.geocoder.geocode(addr);
+        const point =
+          this.coordsFromAddress(o.deliveryAddress) ??
+          (await (async () => {
+            const addr = this.orderAddressString(o);
+            if (!addr) {
+              this.logger.log(`dispatch: order ${o.id} has no geocodable address/coords — no pin`);
+              return null;
+            }
+            const p = await this.geocoder.geocode(addr);
+            if (!p) this.logger.warn(`dispatch: geocode returned nothing for order ${o.id} ("${addr}")`);
+            return p;
+          })());
         if (!point) return;
         resolved.set(o.id, point);
         try {
