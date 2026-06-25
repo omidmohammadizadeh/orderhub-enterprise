@@ -65,6 +65,13 @@
       ],
       "expo-notifications",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F172A",
+          "resizeMode": "contain"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
