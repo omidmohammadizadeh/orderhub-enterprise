@@ -17,14 +17,30 @@ function orderColor(deadlineAt: string | null, now: number): string {
   return "#16a34a"; // green — plenty of time
 }
 
+// Minutes shown INSIDE the order pin (OrderLord style). Negative = late.
+function minutesLabel(deadlineAt: string | null, now: number): string {
+  if (!deadlineAt) return "·";
+  const remaining = new Date(deadlineAt).getTime() - now;
+  const mins = Math.ceil(Math.abs(remaining) / 60_000);
+  return remaining < 0 ? `-${mins}` : `${mins}`;
+}
+
 function countdownLabel(deadlineAt: string | null, now: number): string {
   if (!deadlineAt) return "—";
   const remaining = new Date(deadlineAt).getTime() - now;
   const mins = Math.round(Math.abs(remaining) / 60_000);
-  return remaining >= 0 ? `${mins}m left` : `${mins}m late`;
+  return remaining >= 0 ? `${mins} min left` : `${mins} min late`;
 }
 
-export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now: number }) {
+export function DispatchMap({
+  feed,
+  now,
+  focusKey,
+}: {
+  feed: DispatchFeed | undefined;
+  now: number;
+  focusKey?: string;
+}) {
   const { ready, error } = useGoogleMaps();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -46,6 +62,12 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
     infoRef.current = new g.maps.InfoWindow();
   }, [ready]);
 
+  // Re-fit the viewport whenever the selected scope changes (e.g. "All
+  // locations" → a single shop), so the location + its orders auto-zoom in.
+  useEffect(() => {
+    fittedRef.current = false;
+  }, [focusKey]);
+
   // Sync markers whenever the feed or the 1s clock ticks.
   useEffect(() => {
     if (!ready || !mapRef.current || !feed) return;
@@ -53,7 +75,7 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
     const map = mapRef.current;
     const seen = new Set<string>();
 
-    // Location pins (stars).
+    // Location pins — violet teardrop with the location NAME beneath it.
     for (const loc of feed.locations) {
       if (loc.lat == null || loc.lng == null) continue;
       const key = `loc:${loc.id}`;
@@ -64,25 +86,31 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
           map,
           position: { lat: loc.lat, lng: loc.lng },
           title: loc.name,
-          label: { text: "🏪", fontSize: "18px" }, // 🏪 storefront
+          label: {
+            text: loc.name,
+            color: "#4c1d95",
+            fontSize: "12px",
+            fontWeight: "700",
+            className: "oh-loc-label",
+          },
           icon: {
-            // Teardrop location pin (brand violet) with the shop glyph on top.
             path: "M0,0 C-5,-9 -11,-13 -11,-21 A11,11 0 1,1 11,-21 C11,-13 5,-9 0,0 Z",
             fillColor: "#7c3aed",
             fillOpacity: 1,
             strokeColor: "#ffffff",
             strokeWeight: 1.5,
-            scale: 1.2,
+            scale: 1.3,
             anchor: new g.maps.Point(0, 0),
-            labelOrigin: new g.maps.Point(0, -21),
+            labelOrigin: new g.maps.Point(0, 14), // name sits below the pin tip
           },
-          zIndex: 50,
+          zIndex: 60,
         });
         markersRef.current.set(key, m);
       }
     }
 
-    // Order pins (colored circles by urgency).
+    // Order pins — BIG urgency-coloured circle with the countdown minutes in
+    // the centre (OrderLord style).
     for (const o of feed.orders) {
       if (o.lat == null || o.lng == null) continue;
       const key = `ord:${o.id}`;
@@ -90,15 +118,14 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
       const color = orderColor(o.deadlineAt, now);
       let m = markersRef.current.get(key);
       if (!m) {
-        m = new g.maps.Marker({ map, position: { lat: o.lat, lng: o.lng } });
+        m = new g.maps.Marker({ map, position: { lat: o.lat, lng: o.lng }, zIndex: 100 });
         m.addListener("click", () => {
-          const label = countdownLabel(o.deadlineAt, Date.now());
           infoRef.current.setContent(
-            `<div style="font-family:system-ui;font-size:13px;min-width:180px">
+            `<div style="font-family:system-ui;font-size:13px;min-width:190px">
               <strong>#${o.displayId ?? o.orderNumber ?? o.id.slice(-5)}</strong> · ${o.platform}<br/>
               ${o.customerName ?? "Customer"}<br/>
               £${o.total} · ${o.paymentMethod ?? "—"}<br/>
-              <span style="color:${orderColor(o.deadlineAt, Date.now())}">${label}</span> · ${o.status}
+              <span style="color:${orderColor(o.deadlineAt, Date.now())};font-weight:700">${countdownLabel(o.deadlineAt, Date.now())}</span> · ${o.status}
               <br/><button disabled style="margin-top:6px;opacity:.5">Dispatch (coming soon)</button>
             </div>`,
           );
@@ -112,8 +139,14 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
         fillColor: color,
         fillOpacity: 0.95,
         strokeColor: "#ffffff",
-        strokeWeight: 2,
-        scale: 9,
+        strokeWeight: 2.5,
+        scale: 17, // big pin
+      });
+      m.setLabel({
+        text: minutesLabel(o.deadlineAt, now),
+        color: "#ffffff",
+        fontSize: "13px",
+        fontWeight: "800",
       });
     }
 
@@ -124,7 +157,7 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
       seen.add(key);
       let m = markersRef.current.get(key);
       if (!m) {
-        m = new g.maps.Marker({ map, title: d.name });
+        m = new g.maps.Marker({ map, title: d.name, zIndex: 80 });
         markersRef.current.set(key, m);
       }
       m.setPosition({ lat: d.lat, lng: d.lng });
@@ -134,7 +167,7 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
         fillOpacity: 1,
         strokeColor: "#ffffff",
         strokeWeight: 1.5,
-        scale: 5,
+        scale: 6,
         rotation: d.heading ?? 0,
       });
     }
@@ -147,8 +180,9 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
       }
     }
 
-    // Fit bounds once, on first data with coordinates.
-    if (!fittedRef.current) {
+    // Auto-fit: on first data and whenever the scope changes (focusKey effect
+    // resets fittedRef). Pads the bounds and clamps zoom for single points.
+    if (!fittedRef.current && markersRef.current.size > 0) {
       const bounds = new g.maps.LatLngBounds();
       let any = false;
       for (const m of markersRef.current.values()) {
@@ -159,8 +193,16 @@ export function DispatchMap({ feed, now }: { feed: DispatchFeed | undefined; now
         }
       }
       if (any) {
-        map.fitBounds(bounds);
-        if (markersRef.current.size === 1) map.setZoom(14);
+        if (markersRef.current.size === 1) {
+          map.setCenter(bounds.getCenter());
+          map.setZoom(15);
+        } else {
+          map.fitBounds(bounds, 80);
+          const once = g.maps.event.addListenerOnce(map, "idle", () => {
+            if (map.getZoom() > 16) map.setZoom(16);
+          });
+          void once;
+        }
         fittedRef.current = true;
       }
     }

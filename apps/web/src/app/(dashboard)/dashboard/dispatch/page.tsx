@@ -128,7 +128,7 @@ export default function DispatchPage() {
                 Failed to load dispatch feed.
               </div>
             )}
-            <DispatchMap feed={feed} now={now} />
+            <DispatchMap feed={feed} now={now} focusKey={location} />
           </div>
         </>
       ) : (
