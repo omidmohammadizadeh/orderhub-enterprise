@@ -49,6 +49,11 @@ ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 # = undefined, regardless of what Render shows in the env var list.
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+# Phase AX — Google Maps browser key for the Dispatch console map. Same rule:
+# must be declared here or `next build` ships it as undefined regardless of
+# what the Render dashboard shows.
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
 RUN pnpm --filter @orderhub/shared build
 RUN pnpm --filter @orderhub/web build

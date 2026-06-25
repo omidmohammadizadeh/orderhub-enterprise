@@ -184,3 +184,7 @@ services:
       # Stripe publishable key (safe to expose to frontend)
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         sync: false
+      # Phase AX — Google Maps browser key (referrer-restricted) for the
+      # Dispatch console map. Value is set in the Render dashboard.
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        sync: false
