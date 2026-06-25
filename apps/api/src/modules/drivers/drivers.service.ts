@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { ExpoPushService } from "../driver-app/expo-push.service";
 
 export interface CreateDriverDto {
   firstName: string;
@@ -41,6 +42,7 @@ export class DriversService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
+    private readonly expoPush: ExpoPushService,
   ) {}
 
   async findAll(tenantId: string, activeOnly = true) {
@@ -143,6 +145,18 @@ export class DriversService {
       "dispatch:driver:assigned",
       assignment as any,
     );
+
+    // Push the new-job alert (with Accept / Reject buttons) to the driver's
+    // device — fires even when the driver app is closed.
+    const presence = await this.prisma.driverPresence.findUnique({
+      where: { driverId: dto.driverId },
+      select: { pushToken: true },
+    });
+    await this.expoPush.sendNewJob(presence?.pushToken, {
+      orderId: dto.orderId,
+      title: "New delivery waiting",
+      body: `Order #${assignment.order.displayId ?? dto.orderId.slice(-5)} is waiting for you — Accept or Reject`,
+    });
 
     return assignment;
   }
