@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "Order Hub Driver",
+    "slug": "orderhub-driver",
+    "scheme": "orderhubdriver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.orderhubsolutions.driver",
+      "buildNumber": "1",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["location", "remote-notification", "fetch"],
+        "NSLocationWhenInUseUsageDescription": "Order Hub Driver uses your location to show your position to dispatch and navigate deliveries.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Order Hub Driver shares your live location with dispatch while you are on a delivery, even in the background."
+      }
+    },
+    "android": {
+      "package": "com.orderhubsolutions.driver",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Order Hub Driver shares your live location with dispatch while you are on a delivery.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+      "googleWebClientId": "331572609147-vjm10k3ro6o0a0ce0g49g955bmkt4u7r.apps.googleusercontent.com",
+      "googleIosClientId": "331572609147-5o637k1bqjdam3md4h9b6ekmha7brp7m.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "REPLACE_WITH_DRIVER_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
