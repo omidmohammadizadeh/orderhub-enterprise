@@ -84,7 +84,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: STAFF_TIER },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER },
-  { href: "/dashboard/drivers", label: "Drivers", icon: Truck, roles: MANAGER_TIER },
+  // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: MANAGER_TIER },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
@@ -110,7 +110,7 @@ const primaryNav: NavItem[] = [
 
 const operationsNav: NavItem[] = [
   { href: "/dashboard/orders/kitchen", label: "Kitchen Display", icon: ChefHat, roles: MANAGER_TIER },
-  { href: "/dashboard/orders/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER },
+  { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: MANAGER_TIER },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];
 
