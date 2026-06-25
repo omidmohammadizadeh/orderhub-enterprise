@@ -30,14 +30,44 @@ export class DriverAppService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  // Resolve the current user to a Driver. If none is linked yet, auto-provision
+  // one: adopt an existing unlinked driver with the same email, otherwise create
+  // a fresh profile from the user's account. This means any user who signs into
+  // the Order Hub Driver app immediately has a usable driver profile.
   private async resolveDriver(user: AuthenticatedUser) {
-    const driver = await this.prisma.driver.findFirst({
+    const linked = await this.prisma.driver.findFirst({
       where: { userId: user.userId, tenantId: user.tenantId },
     });
-    if (!driver) {
-      throw new NotFoundException("No driver profile is linked to this account");
+    if (linked) return linked;
+
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { firstName: true, lastName: true, email: true },
+    });
+    if (!account) throw new NotFoundException("User not found");
+
+    // Adopt an existing operator-created driver row with the same email.
+    const unlinked = await this.prisma.driver.findFirst({
+      where: { tenantId: user.tenantId, userId: null, email: account.email },
+    });
+    if (unlinked) {
+      return this.prisma.driver.update({
+        where: { id: unlinked.id },
+        data: { userId: user.userId },
+      });
     }
-    return driver;
+
+    return this.prisma.driver.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.userId,
+        firstName: account.firstName,
+        lastName: account.lastName,
+        email: account.email,
+        phone: "",
+        isActive: true,
+      },
+    });
   }
 
   private async upsertPresence(
