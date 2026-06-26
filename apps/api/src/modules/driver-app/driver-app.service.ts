@@ -221,6 +221,55 @@ export class DriverAppService {
     };
   }
 
+  /** Cash-up totals (counts + £) split by cash/card for a date range. */
+  async cashUpRange(user: AuthenticatedUser, fromISO?: string, toISO?: string) {
+    const driver = await this.resolveDriver(user);
+    const start = fromISO
+      ? new Date(fromISO)
+      : (() => {
+          const d = new Date();
+          d.setHours(0, 0, 0, 0);
+          return d;
+        })();
+    const end = toISO ? new Date(toISO) : new Date();
+
+    const delivered = await this.prisma.driverAssignment.findMany({
+      where: {
+        driverId: driver.id,
+        status: DriverAssignmentStatus.DELIVERED,
+        deliveredAt: { gte: start, lte: end },
+      },
+      include: { order: { select: { total: true, paymentMethod: true } } },
+    });
+
+    let cashCount = 0;
+    let cardCount = 0;
+    let cashTotal = 0;
+    let cardTotal = 0;
+    for (const a of delivered) {
+      const t = Number(a.order.total);
+      const method = (a.order.paymentMethod ?? "").toUpperCase();
+      if (method.includes("CASH")) {
+        cashCount += 1;
+        cashTotal += t;
+      } else {
+        cardCount += 1;
+        cardTotal += t;
+      }
+    }
+
+    return {
+      from: start.toISOString(),
+      to: end.toISOString(),
+      deliveries: delivered.length,
+      cashCount,
+      cardCount,
+      cashTotal: cashTotal.toFixed(2),
+      cardTotal: cardTotal.toFixed(2),
+      total: (cashTotal + cardTotal).toFixed(2),
+    };
+  }
+
   async jobAction(user: AuthenticatedUser, orderId: string, action: JobAction) {
     const driver = await this.resolveDriver(user);
     const assignment = await this.prisma.driverAssignment.findFirst({

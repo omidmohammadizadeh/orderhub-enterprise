@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException, Logger } from "@nestj
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
+import { DriverPresenceStatus } from "@orderhub/database";
 
 export interface CreateDriverDto {
   firstName: string;
@@ -55,8 +56,41 @@ export class DriversService {
           select: { id: true, status: true, orderId: true },
           take: 1,
         },
+        presence: { select: { status: true, locationId: true, lastPingAt: true } },
       },
       orderBy: { firstName: "asc" },
+    });
+  }
+
+  /** Operator toggles a driver online/offline from the Fleet tab. */
+  async setPresence(tenantId: string, driverId: string, online: boolean) {
+    const driver = await this.prisma.driver.findFirst({
+      where: { id: driverId, tenantId },
+      select: { id: true },
+    });
+    if (!driver) throw new NotFoundException("Driver not found");
+
+    let locationId: string | null = null;
+    if (online) {
+      const loc = await this.prisma.location.findFirst({
+        where: { brand: { tenantId } },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+      locationId = loc?.id ?? null;
+    }
+
+    return this.prisma.driverPresence.upsert({
+      where: { driverId },
+      create: {
+        driverId,
+        tenantId,
+        status: online ? DriverPresenceStatus.ONLINE : DriverPresenceStatus.OFFLINE,
+        locationId,
+      },
+      update: online
+        ? { status: DriverPresenceStatus.ONLINE, locationId, lastPingAt: new Date() }
+        : { status: DriverPresenceStatus.OFFLINE, locationId: null, activeAssignmentId: null },
     });
   }
 

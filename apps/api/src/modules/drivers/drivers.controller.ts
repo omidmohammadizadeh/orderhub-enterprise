@@ -67,6 +67,17 @@ export class DriversController {
     return this.drivers.update(driverId, user.tenantId, dto);
   }
 
+  @Patch(":driverId/presence")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER")
+  @ApiOperation({ summary: "Operator: toggle a driver online/offline" })
+  setPresence(
+    @Param("driverId") driverId: string,
+    @Body() body: { online: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.drivers.setPresence(user.tenantId, driverId, body.online);
+  }
+
   @Post("assign")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)

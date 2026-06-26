@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -36,6 +37,16 @@ export class DriverAppController {
   @ApiOperation({ summary: "Today's active jobs + history + cash-up summary" })
   myDay(@CurrentUser() user: AuthenticatedUser) {
     return this.driverApp.getMyDay(user);
+  }
+
+  @Get("cash-up")
+  @ApiOperation({ summary: "Cash-up totals (cash/card counts + £) for a date range" })
+  cashUp(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.driverApp.cashUpRange(user, from, to);
   }
 
   @Post("online")
