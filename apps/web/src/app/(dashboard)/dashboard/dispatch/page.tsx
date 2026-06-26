@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Truck, Users, Loader2 } from "lucide-react";
 import { getDispatchFeed } from "@/lib/api/dispatch.client";
 import { apiClient } from "@/lib/api/client";
@@ -16,6 +16,7 @@ interface FleetDriver {
   phone: string | null;
   vehicleType: string | null;
   isActive: boolean;
+  presence?: { status: "OFFLINE" | "ONLINE" | "ON_JOB"; locationId: string | null } | null;
 }
 
 export default function DispatchPage() {
@@ -47,6 +48,17 @@ export default function DispatchPage() {
     queryFn: () => apiClient.get<FleetDriver[]>("/v1/drivers").then((r) => r.data),
     enabled: tab === "fleet",
   });
+
+  const queryClient = useQueryClient();
+  async function toggleDriver(driverId: string, online: boolean) {
+    try {
+      await apiClient.patch(`/v1/drivers/${driverId}/presence`, { online });
+      queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
+    } catch {
+      /* ignore */
+    }
+  }
 
   const feed = feedQuery.data;
   const locationOptions = optionsQuery.data?.locations ?? [];
@@ -132,7 +144,7 @@ export default function DispatchPage() {
           </div>
         </>
       ) : (
-        <FleetTab drivers={fleetQuery.data} loading={fleetQuery.isLoading} />
+        <FleetTab drivers={fleetQuery.data} loading={fleetQuery.isLoading} onToggle={toggleDriver} />
       )}
     </div>
   );
@@ -147,7 +159,15 @@ function Legend({ color, label }: { color: string; label: string }) {
   );
 }
 
-function FleetTab({ drivers, loading }: { drivers?: FleetDriver[]; loading: boolean }) {
+function FleetTab({
+  drivers,
+  loading,
+  onToggle,
+}: {
+  drivers?: FleetDriver[];
+  loading: boolean;
+  onToggle: (id: string, online: boolean) => void;
+}) {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -165,24 +185,53 @@ function FleetTab({ drivers, loading }: { drivers?: FleetDriver[]; loading: bool
             <th className="px-4 py-2">Phone</th>
             <th className="px-4 py-2">Vehicle</th>
             <th className="px-4 py-2">Status</th>
+            <th className="px-4 py-2"></th>
           </tr>
         </thead>
         <tbody>
           {list.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
+              <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
                 No drivers yet. Add your fleet to start dispatching.
               </td>
             </tr>
           )}
-          {list.map((d) => (
-            <tr key={d.id} className="border-t">
-              <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>
-              <td className="px-4 py-2">{d.phone ?? "—"}</td>
-              <td className="px-4 py-2">{d.vehicleType ?? "—"}</td>
-              <td className="px-4 py-2">{d.isActive ? "Active" : "Inactive"}</td>
-            </tr>
-          ))}
+          {list.map((d) => {
+            const status = d.presence?.status ?? "OFFLINE";
+            const isOnline = status === "ONLINE" || status === "ON_JOB";
+            const label = status === "ON_JOB" ? "On a job" : status === "ONLINE" ? "Online" : "Offline";
+            const dot = status === "ON_JOB" ? "#dc2626" : status === "ONLINE" ? "#16a34a" : "#94a3b8";
+            return (
+              <tr key={d.id} className="border-t">
+                <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>
+                <td className="px-4 py-2">{d.phone ?? "—"}</td>
+                <td className="px-4 py-2">{d.vehicleType ?? "—"}</td>
+                <td className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full" style={{ background: dot }} />
+                    {label}
+                  </span>
+                </td>
+                <td className="px-4 py-2 text-right">
+                  <button
+                    onClick={() => onToggle(d.id, !isOnline)}
+                    disabled={status === "ON_JOB"}
+                    className={cn(
+                      "rounded-md border px-3 py-1 text-xs font-medium",
+                      status === "ON_JOB"
+                        ? "opacity-40"
+                        : isOnline
+                          ? "border-red-300 text-red-600 hover:bg-red-50"
+                          : "border-green-300 text-green-700 hover:bg-green-50",
+                    )}
+                    title={status === "ON_JOB" ? "Driver is on a job" : undefined}
+                  >
+                    {isOnline ? "Set offline" : "Set online"}
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
