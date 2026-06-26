@@ -43,9 +43,9 @@ export class DriverAppController {
   @ApiOperation({ summary: "Go online at a location" })
   online(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { locationId: string },
+    @Body() body: { locationId?: string },
   ) {
-    return this.driverApp.goOnline(user, body.locationId);
+    return this.driverApp.goOnline(user, body?.locationId);
   }
 
   @Post("offline")

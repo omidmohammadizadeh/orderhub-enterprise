@@ -51,6 +51,7 @@ export interface DispatchOrderPin {
   // The moment this order is "due" — drives the countdown + colour on the map.
   deadlineAt: string | null;
   createdAt: string;
+  done: boolean; // delivered/completed in the last 10 min — render grey, then it drops off
 }
 
 export interface DispatchDriverDot {
@@ -227,7 +228,31 @@ export class DispatchService {
       return { scope: [], locations: [], orders: [], drivers: [] };
     }
 
-    const [locationRows, orderRows, presenceRows] = await Promise.all([
+    const orderSelect = {
+      id: true,
+      displayId: true,
+      orderNumber: true,
+      status: true,
+      platform: true,
+      deliveryType: true,
+      locationId: true,
+      customerName: true,
+      total: true,
+      paymentMethod: true,
+      deliveryLat: true,
+      deliveryLng: true,
+      addressLine1: true,
+      city: true,
+      postcode: true,
+      deliveryAddress: true,
+      scheduledFor: true,
+      estimatedReadyAt: true,
+      preparationMinutes: true,
+      createdAt: true,
+    } as const;
+    const doneSince = new Date(Date.now() - 10 * 60_000); // grey window: 10 min
+
+    const [locationRows, orderRows, doneRows, presenceRows] = await Promise.all([
       this.prisma.location.findMany({
         where: { id: { in: scope } },
         select: { id: true, name: true, addressLine1: true, city: true, postcode: true },
@@ -239,29 +264,20 @@ export class DispatchService {
           status: { in: ACTIVE_DISPATCH_STATUSES },
           fulfillmentType: { in: DELIVERY_FULFILLMENTS },
         },
-        select: {
-          id: true,
-          displayId: true,
-          orderNumber: true,
-          status: true,
-          platform: true,
-          deliveryType: true,
-          locationId: true,
-          customerName: true,
-          total: true,
-          paymentMethod: true,
-          deliveryLat: true,
-          deliveryLng: true,
-          addressLine1: true,
-          city: true,
-          postcode: true,
-          deliveryAddress: true,
-          scheduledFor: true,
-          estimatedReadyAt: true,
-          preparationMinutes: true,
-          createdAt: true,
-        },
+        select: orderSelect,
         orderBy: { createdAt: "asc" },
+      }),
+      // Recently-delivered orders — shown grey for 10 min, then they drop off.
+      this.prisma.order.findMany({
+        where: {
+          tenantId: user.tenantId,
+          locationId: { in: scope },
+          status: OrderStatus.COMPLETED,
+          fulfillmentType: { in: DELIVERY_FULFILLMENTS },
+          updatedAt: { gte: doneSince },
+        },
+        select: orderSelect,
+        orderBy: { updatedAt: "desc" },
       }),
       this.prisma.driverPresence.findMany({
         where: {
@@ -273,11 +289,11 @@ export class DispatchService {
       }),
     ]);
 
-    const geocoded = await this.geocodeMissing(orderRows);
+    const geocoded = await this.geocodeMissing([...orderRows, ...doneRows]);
 
     const locations = await Promise.all(locationRows.map((l) => this.locationPin(l)));
 
-    const orders: DispatchOrderPin[] = orderRows.map((o) => {
+    const toPin = (o: (typeof orderRows)[number], done: boolean): DispatchOrderPin => {
       const point = o.deliveryLat != null ? { lat: o.deliveryLat, lng: o.deliveryLng } : geocoded.get(o.id);
       const deadline = this.deadlineFor(o);
       return {
@@ -295,8 +311,14 @@ export class DispatchService {
         lng: point?.lng ?? null,
         deadlineAt: deadline ? deadline.toISOString() : null,
         createdAt: o.createdAt.toISOString(),
+        done,
       };
-    });
+    };
+
+    const orders: DispatchOrderPin[] = [
+      ...orderRows.map((o) => toPin(o, false)),
+      ...doneRows.map((o) => toPin(o, true)),
+    ];
 
     const drivers: DispatchDriverDot[] = presenceRows.map((p) => ({
       driverId: p.driverId,

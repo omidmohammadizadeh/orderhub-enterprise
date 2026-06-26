@@ -81,16 +81,31 @@ export class DriverAppService {
     });
   }
 
-  async goOnline(user: AuthenticatedUser, locationId: string) {
+  async goOnline(user: AuthenticatedUser, locationId?: string) {
     const driver = await this.resolveDriver(user);
-    const loc = await this.prisma.location.findFirst({
-      where: { id: locationId, brand: { tenantId: user.tenantId } },
-      select: { id: true },
-    });
-    if (!loc) throw new BadRequestException("Unknown location");
+    // Resolve the location server-side: use the requested one if it belongs to
+    // the tenant, otherwise default to the tenant's location. Drivers don't have
+    // UserLocation scoping, so they should never need to pick one to go online.
+    let resolved: string | null = null;
+    if (locationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: locationId, brand: { tenantId: user.tenantId } },
+        select: { id: true },
+      });
+      resolved = loc?.id ?? null;
+    }
+    if (!resolved) {
+      const fallback = await this.prisma.location.findFirst({
+        where: { brand: { tenantId: user.tenantId } },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+      resolved = fallback?.id ?? null;
+    }
+    if (!resolved) throw new BadRequestException("No location available for this account");
     return this.upsertPresence(driver, {
       status: DriverPresenceStatus.ONLINE,
-      locationId,
+      locationId: resolved,
       lastPingAt: new Date(),
     });
   }
