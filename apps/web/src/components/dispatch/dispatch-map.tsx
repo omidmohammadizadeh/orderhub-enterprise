@@ -9,11 +9,14 @@ import type { DispatchFeed } from "@/lib/api/dispatch.client";
 // UK fallback centre when no location has been geocoded yet.
 const UK_CENTER = { lat: 52.4814, lng: -1.8998 };
 
+// House-shaped marker (roof + body), centred so the countdown sits in the body.
+const HOUSE_PATH = "M0,-16 L14,-4 L10,-4 L10,12 L-10,12 L-10,-4 L-14,-4 Z";
+
 function orderColor(deadlineAt: string | null, now: number): string {
   if (!deadlineAt) return "#3b82f6"; // blue — no deadline known
   const remaining = new Date(deadlineAt).getTime() - now;
-  if (remaining <= 0) return "#dc2626"; // red — overdue
-  if (remaining <= 10 * 60_000) return "#f97316"; // orange — due soon
+  if (remaining <= 5 * 60_000) return "#dc2626"; // red — ≤5 min to promised time / overdue
+  if (remaining <= 15 * 60_000) return "#f97316"; // orange — ≤15 min
   return "#16a34a"; // green — plenty of time
 }
 
@@ -150,20 +153,23 @@ export function DispatchMap({
         markersRef.current.set(key, m);
       }
       m.setPosition({ lat: o.lat, lng: o.lng });
-      // Delivered (done) orders go grey with a tick, then drop off the feed
-      // after 10 min; live orders are urgency-coloured with the countdown.
+      // Customer pin = a HOUSE that recolours green → orange (≤15m) → red (≤5m)
+      // toward the promised time. Delivered (done) orders go grey with a tick,
+      // then drop off the feed after 10 min.
       m.setIcon({
-        path: g.maps.SymbolPath.CIRCLE,
+        path: HOUSE_PATH,
         fillColor: o.done ? "#9ca3af" : color,
-        fillOpacity: o.done ? 0.85 : 0.95,
+        fillOpacity: o.done ? 0.85 : 1,
         strokeColor: "#ffffff",
-        strokeWeight: 2.5,
-        scale: o.done ? 13 : 17,
+        strokeWeight: 1.5,
+        scale: o.done ? 1.1 : 1.5,
+        anchor: new g.maps.Point(0, 12), // base of the house sits on the address
+        labelOrigin: new g.maps.Point(0, 4), // countdown inside the body
       });
       m.setLabel({
         text: o.done ? "✓" : minutesLabel(o.deadlineAt, now),
         color: "#ffffff",
-        fontSize: "14px",
+        fontSize: "12px",
         fontWeight: "800",
       });
       m.setZIndex(o.done ? 40 : 100);
