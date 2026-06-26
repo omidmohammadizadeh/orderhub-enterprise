@@ -139,6 +139,21 @@ export async function getMyDay() {
   const res = await api.get<MyDay>("/v1/driver/my-day");
   return res.data;
 }
+
+export interface CashUp {
+  from: string;
+  to: string;
+  deliveries: number;
+  cashCount: number;
+  cardCount: number;
+  cashTotal: string;
+  cardTotal: string;
+  total: string;
+}
+export async function getCashUp(from?: string, to?: string) {
+  const res = await api.get<CashUp>("/v1/driver/cash-up", { params: { from, to } });
+  return res.data;
+}
 export async function goOnline(locationId?: string) {
   // locationId optional — the server resolves the tenant's location if omitted.
   await api.post("/v1/driver/online", locationId ? { locationId } : {});

@@ -35,10 +35,14 @@ export function HomeScreen({
   onOpenJob,
   onSignOut,
   onOpenProfile,
+  onOpenOrders,
+  onOpenCashUp,
 }: {
   onOpenJob: (job: Job) => void;
   onSignOut: () => void;
   onOpenProfile: () => void;
+  onOpenOrders: (tab: "active" | "delivered" | "history") => void;
+  onOpenCashUp: () => void;
 }) {
   const [me, setMe] = useState<DriverProfile | null>(null);
   const [day, setDay] = useState<MyDay | null>(null);
@@ -68,6 +72,10 @@ export function HomeScreen({
   // Initial position + data.
   useEffect(() => {
     (async () => {
+      // Load server presence FIRST so the toggle reflects the real status
+      // immediately on mount — the slow GPS fetch below must not gate it
+      // (that caused the toggle to flash Offline for ~30s on every remount).
+      await refresh();
       try {
         const locs = await getLocations();
         setLocations(locs);
@@ -86,7 +94,6 @@ export function HomeScreen({
       } catch {
         /* ignore */
       }
-      await refresh();
     })();
     const t = setInterval(refresh, 10_000);
     return () => {
@@ -209,9 +216,13 @@ export function HomeScreen({
           setDrawer(false);
           onOpenProfile();
         }}
-        onOpenJob={(j) => {
+        onOpenOrders={(tab) => {
           setDrawer(false);
-          onOpenJob(j);
+          onOpenOrders(tab);
+        }}
+        onOpenCashUp={() => {
+          setDrawer(false);
+          onOpenCashUp();
         }}
       />
     </View>

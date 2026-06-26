@@ -3,32 +3,36 @@ import {
   Animated,
   Dimensions,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { DriverProfile, Job, MyDay } from "@/services/auth";
+import { DriverProfile, MyDay } from "@/services/auth";
 
 const PANEL_W = Math.min(330, Dimensions.get("window").width * 0.85);
 
-// Hamburger side panel: account, cash-up, today's orders, history, profile, logout.
+export type OrdersTab = "active" | "delivered" | "history";
+
+// Hamburger side panel — a menu that opens the orders / cash-up / profile
+// screens. Counts come from the cached my-day payload.
 export function Drawer({
   open,
   onClose,
   me,
   day,
-  onSignOut,
+  onOpenOrders,
+  onOpenCashUp,
   onOpenProfile,
-  onOpenJob,
+  onSignOut,
 }: {
   open: boolean;
   onClose: () => void;
   me: DriverProfile | null;
   day: MyDay | null;
-  onSignOut: () => void;
+  onOpenOrders: (tab: OrdersTab) => void;
+  onOpenCashUp: () => void;
   onOpenProfile: () => void;
-  onOpenJob: (job: Job) => void;
+  onSignOut: () => void;
 }) {
   const x = useRef(new Animated.Value(-PANEL_W)).current;
 
@@ -40,9 +44,8 @@ export function Drawer({
     }).start();
   }, [open, x]);
 
-  const cash = day?.cashUp;
-  const today = day?.active ?? [];
-  const history = day?.history ?? [];
+  const activeCount = day?.active?.length ?? 0;
+  const deliveredCount = (day?.history ?? []).filter((j) => j.status === "DELIVERED").length;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents={open ? "auto" : "none"}>
@@ -66,33 +69,14 @@ export function Drawer({
           </Text>
         </View>
 
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <Text style={styles.section}>My deliveries (today)</Text>
-          <View style={styles.cashGrid}>
-            <Cash label="Deliveries" value={`${cash?.deliveries ?? 0}`} />
-            <Cash label="Cash" value={`£${cash?.cashTotal ?? "0.00"}`} />
-            <Cash label="Card" value={`£${cash?.cardTotal ?? "0.00"}`} />
-            <Cash label="Total" value={`£${cash?.total ?? "0.00"}`} big />
-          </View>
+        <Item label="Active orders" badge={activeCount} onPress={() => onOpenOrders("active")} />
+        <Item label="Delivered" badge={deliveredCount} onPress={() => onOpenOrders("delivered")} />
+        <Item label="History" onPress={() => onOpenOrders("history")} />
+        <Item label="Cash up" onPress={onOpenCashUp} />
 
-          <Text style={styles.section}>Today&apos;s orders</Text>
-          {today.length === 0 && <Text style={styles.empty}>No active deliveries.</Text>}
-          {today.map((j) => (
-            <JobRow key={j.id} job={j} onPress={() => onOpenJob(j)} />
-          ))}
+        <View style={{ flex: 1 }} />
 
-          <Text style={styles.section}>History</Text>
-          {history.length === 0 && <Text style={styles.empty}>No past deliveries yet.</Text>}
-          {history.slice(0, 30).map((j) => (
-            <JobRow key={j.id} job={j} muted />
-          ))}
-
-          <View style={{ height: 16 }} />
-        </ScrollView>
-
-        <Pressable style={styles.profileBtn} onPress={onOpenProfile}>
-          <Text style={styles.profileText}>Profile &amp; account</Text>
-        </Pressable>
+        <Item label="Profile & account" onPress={onOpenProfile} />
         <Pressable style={styles.logout} onPress={onSignOut}>
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>
@@ -101,34 +85,19 @@ export function Drawer({
   );
 }
 
-function JobRow({ job, onPress, muted }: { job: Job; onPress?: () => void; muted?: boolean }) {
-  const o = job.order;
-  const id = o.displayId ?? o.orderNumber ?? o.id.slice(-5);
-  const addr = [o.addressLine1, o.city].filter(Boolean).join(", ");
+function Item({ label, badge, onPress }: { label: string; badge?: number; onPress: () => void }) {
   return (
-    <Pressable style={styles.jobRow} onPress={onPress} disabled={!onPress}>
-      <Text style={[styles.jobId, muted && { color: "#64748b" }]}>#{id}</Text>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.jobName, muted && { color: "#94a3b8" }]} numberOfLines={1}>
-          {o.customerName ?? "Customer"}
-        </Text>
-        {!!addr && (
-          <Text style={styles.jobAddr} numberOfLines={1}>
-            {addr}
-          </Text>
+    <Pressable style={styles.item} onPress={onPress}>
+      <Text style={styles.itemText}>{label}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {badge != null && badge > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge}</Text>
+          </View>
         )}
+        <Text style={styles.chev}>›</Text>
       </View>
-      <Text style={styles.jobStatus}>{job.status}</Text>
     </Pressable>
-  );
-}
-
-function Cash({ label, value, big }: { label: string; value: string; big?: boolean }) {
-  return (
-    <View style={[styles.cashCell, big && styles.cashCellBig]}>
-      <Text style={[styles.cashValue, big && { fontSize: 22 }]}>{value}</Text>
-      <Text style={styles.cashLabel}>{label}</Text>
-    </View>
   );
 }
 
@@ -142,46 +111,24 @@ const styles = StyleSheet.create({
     width: PANEL_W,
     backgroundColor: "#0F172A",
     paddingTop: 64,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingBottom: 28,
   },
-  header: { borderBottomWidth: 1, borderBottomColor: "#1e293b", paddingBottom: 16 },
+  header: { borderBottomWidth: 1, borderBottomColor: "#1e293b", paddingBottom: 16, marginBottom: 8 },
   name: { color: "#fff", fontSize: 20, fontWeight: "800" },
   status: { fontSize: 13, fontWeight: "700", marginTop: 4 },
-  section: {
-    color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    marginTop: 22,
-    marginBottom: 10,
-  },
-  empty: { color: "#64748b", fontSize: 13 },
-  cashGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  cashCell: { backgroundColor: "#1e293b", borderRadius: 12, padding: 14, width: "47%" },
-  cashCellBig: { width: "100%", backgroundColor: "#f97316" },
-  cashValue: { color: "#fff", fontSize: 18, fontWeight: "800" },
-  cashLabel: { color: "#cbd5e1", fontSize: 12, marginTop: 4 },
-  jobRow: {
+  item: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingVertical: 9,
+    justifyContent: "space-between",
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#1e293b",
   },
-  jobId: { color: "#fff", fontWeight: "800", width: 56, fontSize: 13 },
-  jobName: { color: "#e2e8f0", fontWeight: "600", fontSize: 13 },
-  jobAddr: { color: "#64748b", fontSize: 11, marginTop: 1 },
-  jobStatus: { color: "#94a3b8", fontSize: 10, fontWeight: "700" },
-  profileBtn: {
-    backgroundColor: "#1e293b",
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  profileText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  logout: { backgroundColor: "#1e293b", borderRadius: 12, paddingVertical: 14, alignItems: "center" },
+  itemText: { color: "#e2e8f0", fontSize: 16, fontWeight: "600" },
+  badge: { backgroundColor: "#f97316", borderRadius: 999, minWidth: 22, paddingHorizontal: 6, paddingVertical: 2, alignItems: "center" },
+  badgeText: { color: "#fff", fontSize: 12, fontWeight: "800" },
+  chev: { color: "#64748b", fontSize: 20, fontWeight: "700" },
+  logout: { backgroundColor: "#1e293b", borderRadius: 12, paddingVertical: 14, alignItems: "center", marginTop: 8 },
   logoutText: { color: "#f87171", fontWeight: "800", fontSize: 15 },
 });
