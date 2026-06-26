@@ -87,7 +87,7 @@ export function DispatchMap({
           position: { lat: loc.lat, lng: loc.lng },
           title: loc.name,
           label: {
-            text: loc.name,
+            text: `🏢 ${loc.name}`,
             color: "#4c1d95",
             fontSize: "12px",
             fontWeight: "700",
@@ -134,20 +134,23 @@ export function DispatchMap({
         markersRef.current.set(key, m);
       }
       m.setPosition({ lat: o.lat, lng: o.lng });
+      // Delivered (done) orders go grey with a tick, then drop off the feed
+      // after 10 min; live orders are urgency-coloured with the countdown.
       m.setIcon({
         path: g.maps.SymbolPath.CIRCLE,
-        fillColor: color,
-        fillOpacity: 0.95,
+        fillColor: o.done ? "#9ca3af" : color,
+        fillOpacity: o.done ? 0.85 : 0.95,
         strokeColor: "#ffffff",
         strokeWeight: 2.5,
-        scale: 17, // big pin
+        scale: o.done ? 13 : 17,
       });
       m.setLabel({
-        text: minutesLabel(o.deadlineAt, now),
+        text: o.done ? "✓" : minutesLabel(o.deadlineAt, now),
         color: "#ffffff",
-        fontSize: "13px",
+        fontSize: "14px",
         fontWeight: "800",
       });
+      m.setZIndex(o.done ? 40 : 100);
     }
 
     // Driver dots (blue = available, amber = on a job).
@@ -161,15 +164,16 @@ export function DispatchMap({
         markersRef.current.set(key, m);
       }
       m.setPosition({ lat: d.lat, lng: d.lng });
+      // Car marker — green when available (ONLINE), red when busy (ON_JOB).
       m.setIcon({
-        path: g.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-        fillColor: d.status === "ON_JOB" ? "#d97706" : "#2563eb",
+        path: g.maps.SymbolPath.CIRCLE,
+        fillColor: d.status === "ON_JOB" ? "#dc2626" : "#16a34a",
         fillOpacity: 1,
         strokeColor: "#ffffff",
-        strokeWeight: 1.5,
-        scale: 6,
-        rotation: d.heading ?? 0,
+        strokeWeight: 2,
+        scale: 15,
       });
+      m.setLabel({ text: "🚗", fontSize: "16px" });
     }
 
     // Remove stale markers (e.g. completed orders that left the feed).

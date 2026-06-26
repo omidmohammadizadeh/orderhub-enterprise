@@ -37,6 +37,7 @@ export interface DispatchOrderPin {
   lng: number | null;
   deadlineAt: string | null;
   createdAt: string;
+  done: boolean;
 }
 
 export interface DispatchDriverDot {
