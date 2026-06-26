@@ -221,35 +221,60 @@ export default function DispatchPage() {
 
             {/* Driver assignment panel (own fleet) */}
             {dispatching && (
-              <div className="absolute right-3 top-3 z-20 w-64 rounded-lg border bg-background p-3 shadow-lg">
-                <div className="mb-1 text-sm font-semibold">Assign delivery</div>
-                <p className="mb-2 text-xs text-muted-foreground">
-                  {selected.length === 0
-                    ? "Tap orders on the map in delivery order (1, 2, 3…)."
-                    : `${selected.length} stop(s) selected — pick an available driver.`}
-                </p>
-                <div className="max-h-64 space-y-1 overflow-auto">
-                  {onlineDrivers.length === 0 && (
-                    <p className="text-xs text-muted-foreground">No available drivers online.</p>
-                  )}
-                  {onlineDrivers.map((d) => (
-                    <button
-                      key={d.driverId}
-                      disabled={!selected.length || assigning}
-                      onClick={() => assignTo(d.driverId)}
-                      className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-muted disabled:opacity-40"
-                    >
-                      <span>{d.name}</span>
-                      <span className="text-xs text-green-600">● available</span>
-                    </button>
-                  ))}
+              <div className="absolute right-3 top-3 z-20 flex max-h-[calc(100%-1.5rem)] w-72 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-neutral-900 shadow-2xl ring-1 ring-black/5 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
+                <div className="border-b border-neutral-200 px-4 py-3 dark:border-neutral-700">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Send className="h-4 w-4 text-primary" /> Assign delivery
+                  </div>
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    {selected.length === 0
+                      ? "Tap order houses on the map in delivery order (1, 2, 3…)."
+                      : `${selected.length} stop${selected.length > 1 ? "s" : ""} selected — pick an available driver.`}
+                  </p>
                 </div>
-                <button
-                  onClick={cancelDispatch}
-                  className="mt-2 w-full rounded-md border px-3 py-1.5 text-sm"
-                >
-                  Cancel
-                </button>
+                <div className="flex-1 space-y-1.5 overflow-auto p-2">
+                  {onlineDrivers.length === 0 && (
+                    <div className="px-2 py-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
+                      No drivers online right now.
+                    </div>
+                  )}
+                  {onlineDrivers.map((d) => {
+                    const initials = d.name
+                      .split(" ")
+                      .map((p) => p[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase();
+                    return (
+                      <button
+                        key={d.driverId}
+                        disabled={!selected.length || assigning}
+                        onClick={() => assignTo(d.driverId)}
+                        className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-left text-sm transition hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700/60"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {initials || "?"}
+                        </span>
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate font-medium">{d.name}</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Available
+                          </span>
+                        </span>
+                        <span className="text-xs font-medium text-primary">Assign ›</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="border-t border-neutral-200 p-2 dark:border-neutral-700">
+                  <button
+                    onClick={cancelDispatch}
+                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
