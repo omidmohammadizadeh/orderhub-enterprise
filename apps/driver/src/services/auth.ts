@@ -139,8 +139,9 @@ export async function getMyDay() {
   const res = await api.get<MyDay>("/v1/driver/my-day");
   return res.data;
 }
-export async function goOnline(locationId: string) {
-  await api.post("/v1/driver/online", { locationId });
+export async function goOnline(locationId?: string) {
+  // locationId optional — the server resolves the tenant's location if omitted.
+  await api.post("/v1/driver/online", locationId ? { locationId } : {});
 }
 export async function goOffline() {
   await api.post("/v1/driver/offline");
@@ -154,6 +155,15 @@ export async function registerPushToken(token: string) {
 export type JobActionType = "accept" | "start" | "delivered" | "skip" | "cancel";
 export async function jobAction(orderId: string, action: JobActionType) {
   await api.post(`/v1/driver/jobs/${orderId}/${action}`);
+}
+
+// ── Account (mirrors the web dashboard) ──────────────────────────────────────
+export async function changePassword(newPassword: string, currentPassword?: string) {
+  await api.post("/v1/auth/change-password", { newPassword, currentPassword });
+}
+export async function deleteMyAccount() {
+  // Backend requires the exact confirmation phrase.
+  await api.delete("/v1/auth/me", { data: { confirm: "DELETE MY ACCOUNT" } });
 }
 
 // Accessible locations for the online-at picker.

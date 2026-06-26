@@ -34,9 +34,11 @@ const UK_REGION = {
 export function HomeScreen({
   onOpenJob,
   onSignOut,
+  onOpenProfile,
 }: {
   onOpenJob: (job: Job) => void;
   onSignOut: () => void;
+  onOpenProfile: () => void;
 }) {
   const [me, setMe] = useState<DriverProfile | null>(null);
   const [day, setDay] = useState<MyDay | null>(null);
@@ -110,14 +112,10 @@ export function HomeScreen({
   }
 
   async function toggleOnline(next: boolean) {
-    if (next && !locationId) {
-      Alert.alert("No location", "No delivery location is available for your account.");
-      return;
-    }
     setBusy(true);
     try {
       if (next) {
-        await goOnline(locationId!);
+        await goOnline(locationId ?? undefined);
         await startLocationUpdates();
         await pingNow();
         await startWatch();
@@ -201,7 +199,21 @@ export function HomeScreen({
         <Text style={{ fontSize: 22 }}>💬</Text>
       </Pressable>
 
-      <Drawer open={drawer} onClose={() => setDrawer(false)} me={me} day={day} onSignOut={onSignOut} />
+      <Drawer
+        open={drawer}
+        onClose={() => setDrawer(false)}
+        me={me}
+        day={day}
+        onSignOut={onSignOut}
+        onOpenProfile={() => {
+          setDrawer(false);
+          onOpenProfile();
+        }}
+        onOpenJob={(j) => {
+          setDrawer(false);
+          onOpenJob(j);
+        }}
+      />
     </View>
   );
 }

@@ -21,10 +21,12 @@ import {
 import { LoginScreen } from "@/screens/LoginScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { JobScreen } from "@/screens/JobScreen";
+import { ProfileScreen } from "@/screens/ProfileScreen";
 
 export default function App() {
   const { tokens, hydrated, setTokens } = useAuth();
   const [job, setJob] = useState<Job | null>(null);
+  const [profile, setProfile] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -62,11 +64,20 @@ export default function App() {
             onBack={() => setJob(null)}
             onChanged={() => setRefreshKey((k) => k + 1)}
           />
+        ) : profile ? (
+          <ProfileScreen
+            onBack={() => setProfile(false)}
+            onSignOut={() => {
+              setProfile(false);
+              setTokens(null);
+            }}
+          />
         ) : (
           <HomeScreen
             key={refreshKey}
             onOpenJob={(j) => setJob(j)}
             onSignOut={() => setTokens(null)}
+            onOpenProfile={() => setProfile(true)}
           />
         )}
       </SafeAreaView>
