@@ -21,6 +21,21 @@ export interface PingDto {
 
 export type JobAction = "accept" | "start" | "arrived" | "delivered" | "skip" | "cancel";
 
+// Mirrors DispatchService.deadlineFor: when an order is "due" so the driver app
+// can show a minutes-to-deadline countdown that matches the dispatch console.
+const DEFAULT_PREP_MINUTES = 20;
+function deadlineFor(order: {
+  scheduledFor: Date | null;
+  estimatedReadyAt: Date | null;
+  preparationMinutes: number | null;
+  createdAt: Date;
+}): Date | null {
+  if (order.scheduledFor) return order.scheduledFor;
+  if (order.estimatedReadyAt) return order.estimatedReadyAt;
+  const mins = order.preparationMinutes ?? DEFAULT_PREP_MINUTES;
+  return new Date(order.createdAt.getTime() + mins * 60_000);
+}
+
 // The driver-facing API. Every endpoint resolves the *current* Driver from the
 // authenticated user (Driver.userId), so a driver only ever sees/acts on their
 // own presence + assignments. The operator-side CRUD stays in DriversModule.
@@ -183,6 +198,10 @@ export class DriverAppService {
             platform: true,
             courierPhone: true,
             courierPhoneAccessCode: true,
+            scheduledFor: true,
+            estimatedReadyAt: true,
+            preparationMinutes: true,
+            createdAt: true,
           },
         },
       },
@@ -193,8 +212,32 @@ export class DriverAppService {
       DriverAssignmentStatus.ACCEPTED,
       DriverAssignmentStatus.PICKED_UP,
     ];
-    const active = assignments.filter((a) => ACTIVE.includes(a.status));
-    const history = assignments.filter((a) => !ACTIVE.includes(a.status));
+    // Attach a computed deadlineAt to every order (drops the raw prep fields the
+    // app doesn't need), so the job card can render a minutes-to-deadline pill.
+    const withDeadline = assignments.map((a) => {
+      const {
+        scheduledFor,
+        estimatedReadyAt,
+        preparationMinutes,
+        createdAt,
+        ...orderRest
+      } = a.order;
+      return {
+        ...a,
+        order: {
+          ...orderRest,
+          deadlineAt: deadlineFor({
+            scheduledFor,
+            estimatedReadyAt,
+            preparationMinutes,
+            createdAt,
+          })?.toISOString() ?? null,
+        },
+      };
+    });
+
+    const active = withDeadline.filter((a) => ACTIVE.includes(a.status));
+    const history = withDeadline.filter((a) => !ACTIVE.includes(a.status));
 
     // Cash-up: today's delivered jobs, split by cash vs card.
     const deliveredToday = assignments.filter(

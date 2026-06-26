@@ -115,6 +115,14 @@ export interface JobOrder {
   deliveryLat: number | null;
   deliveryLng: number | null;
   specialInstructions: string | null;
+  // Platform + masked-call fields. Marketplace orders (Just Eat / Uber Eats /
+  // Deliveroo) hide the customer's real number behind courierPhone, and some
+  // require dialling courierPhoneAccessCode after a pause to connect.
+  platform: string | null;
+  courierPhone: string | null;
+  courierPhoneAccessCode: string | null;
+  // When the order is "due" (ISO) — mirrors the dispatch console countdown.
+  deadlineAt: string | null;
 }
 
 export interface Job {
@@ -122,6 +130,10 @@ export interface Job {
   orderId: string;
   status: string; // DriverAssignmentStatus
   assignedAt: string;
+  sequence: number | null; // stop number within a multi-drop run (1..N)
+  arrivedAt: string | null;
+  pickedUpAt: string | null;
+  deliveredAt: string | null;
   order: JobOrder;
 }
 
@@ -167,7 +179,7 @@ export async function sendPing(p: { lat: number; lng: number; heading?: number; 
 export async function registerPushToken(token: string) {
   await api.post("/v1/driver/push-token", { token });
 }
-export type JobActionType = "accept" | "start" | "delivered" | "skip" | "cancel";
+export type JobActionType = "accept" | "start" | "arrived" | "delivered" | "skip" | "cancel";
 export async function jobAction(orderId: string, action: JobActionType) {
   await api.post(`/v1/driver/jobs/${orderId}/${action}`);
 }
