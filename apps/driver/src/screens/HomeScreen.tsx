@@ -20,6 +20,7 @@ import {
   getMyDay,
   goOffline,
   goOnline,
+  sendPing,
 } from "@/services/auth";
 import { pingNow, startLocationUpdates, stopLocationUpdates } from "@/services/location";
 import { Drawer } from "@/components/Drawer";
@@ -55,6 +56,7 @@ export function HomeScreen({
 
   const mapRef = useRef<MapView | null>(null);
   const watchRef = useRef<Location.LocationSubscription | null>(null);
+  const lastPingRef = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -110,6 +112,18 @@ export function HomeScreen({
         const p = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
         setPos(p);
         mapRef.current?.animateCamera({ center: p }, { duration: 500 });
+        // Keep dispatch's dot in sync while the app is open (the background task
+        // covers the backgrounded/closed case). Throttle to ~10s.
+        const now = Date.now();
+        if (now - lastPingRef.current > 10_000) {
+          lastPingRef.current = now;
+          sendPing({
+            lat: loc.coords.latitude,
+            lng: loc.coords.longitude,
+            heading: loc.coords.heading ?? undefined,
+            speed: loc.coords.speed ?? undefined,
+          }).catch(() => {});
+        }
       },
     );
   }

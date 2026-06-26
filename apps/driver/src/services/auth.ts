@@ -36,7 +36,22 @@ async function persistTokens(next: AuthTokens | null) {
   onTokensChanged?.(next);
 }
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  // The background location task runs in a headless JS context where the React
+  // auth hydration never ran, so the in-memory token is empty there — fall back
+  // to secure store so background pings still authenticate.
+  if (!inMemoryAccess) {
+    try {
+      const stored = await SecureStore.getItemAsync(TOKEN_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as AuthTokens;
+        inMemoryAccess = parsed?.accessToken ?? null;
+        inMemoryRefresh = parsed?.refreshToken ?? null;
+      }
+    } catch {
+      // ignore — request just goes out unauthenticated
+    }
+  }
   if (inMemoryAccess) {
     config.headers = config.headers ?? {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
