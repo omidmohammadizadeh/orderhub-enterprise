@@ -88,8 +88,13 @@ export function JobScreen({
       : { latitude: 52.4814, longitude: -1.8998, latitudeDelta: 0.5, longitudeDelta: 0.5 };
 
   function navigate() {
+    // Prefer the full street address: it carries the door number + postcode, which
+    // Google resolves to the exact door. The stored lat/lng is geocoded server-side
+    // and can snap to the postcode centroid / a neighbouring house (e.g. routing to
+    // #6 for an order at #11). Only fall back to coords when there's no postcode.
     let target = "";
-    if (dest) target = `${dest.latitude},${dest.longitude}`;
+    if (address && o.postcode) target = encodeURIComponent(address);
+    else if (dest) target = `${dest.latitude},${dest.longitude}`;
     else if (address) target = encodeURIComponent(address);
     if (!target) {
       Alert.alert("No address", "This order has no address to navigate to.");
