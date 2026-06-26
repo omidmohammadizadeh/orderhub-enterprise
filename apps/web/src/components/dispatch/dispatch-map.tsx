@@ -75,37 +75,53 @@ export function DispatchMap({
     const map = mapRef.current;
     const seen = new Set<string>();
 
-    // Location pins — violet teardrop with the location NAME beneath it.
+    // Location markers — a BIG building glyph (no pin) + the name beneath it.
+    // Transparent icon host so only the emoji/name show (no purple teardrop).
+    const transparentIcon = {
+      path: g.maps.SymbolPath.CIRCLE,
+      scale: 1,
+      fillOpacity: 0,
+      strokeOpacity: 0,
+    };
     for (const loc of feed.locations) {
       if (loc.lat == null || loc.lng == null) continue;
-      const key = `loc:${loc.id}`;
-      seen.add(key);
-      let m = markersRef.current.get(key);
-      if (!m) {
-        m = new g.maps.Marker({
-          map,
-          position: { lat: loc.lat, lng: loc.lng },
-          title: loc.name,
-          label: {
-            text: `🏢 ${loc.name}`,
-            color: "#4c1d95",
-            fontSize: "12px",
-            fontWeight: "700",
-            className: "oh-loc-label",
-          },
-          icon: {
-            path: "M0,0 C-5,-9 -11,-13 -11,-21 A11,11 0 1,1 11,-21 C11,-13 5,-9 0,0 Z",
-            fillColor: "#7c3aed",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 1.5,
-            scale: 1.3,
-            anchor: new g.maps.Point(0, 0),
-            labelOrigin: new g.maps.Point(0, 14), // name sits below the pin tip
-          },
-          zIndex: 60,
-        });
-        markersRef.current.set(key, m);
+      const pos = { lat: loc.lat, lng: loc.lng };
+
+      const bKey = `locb:${loc.id}`;
+      seen.add(bKey);
+      if (!markersRef.current.get(bKey)) {
+        markersRef.current.set(
+          bKey,
+          new g.maps.Marker({
+            map,
+            position: pos,
+            title: loc.name,
+            icon: transparentIcon,
+            label: { text: "🏢", fontSize: "34px" },
+            zIndex: 60,
+          }),
+        );
+      }
+
+      const nKey = `locn:${loc.id}`;
+      seen.add(nKey);
+      if (!markersRef.current.get(nKey)) {
+        markersRef.current.set(
+          nKey,
+          new g.maps.Marker({
+            map,
+            position: pos,
+            icon: { ...transparentIcon, labelOrigin: new g.maps.Point(0, 28) },
+            label: {
+              text: loc.name,
+              color: "#0f172a",
+              fontSize: "13px",
+              fontWeight: "800",
+              className: "oh-loc-label",
+            },
+            zIndex: 59,
+          }),
+        );
       }
     }
 

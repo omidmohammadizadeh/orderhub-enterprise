@@ -251,6 +251,9 @@ export class DispatchService {
       createdAt: true,
     } as const;
     const doneSince = new Date(Date.now() - 10 * 60_000); // grey window: 10 min
+    // Live board only shows recent orders — drop stale ones stuck in an active
+    // status (e.g. an old test order left in RIDER_ARRIVED) so they don't linger.
+    const liveSince = new Date(Date.now() - 24 * 60 * 60_000);
 
     const [locationRows, orderRows, doneRows, presenceRows] = await Promise.all([
       this.prisma.location.findMany({
@@ -263,6 +266,7 @@ export class DispatchService {
           locationId: { in: scope },
           status: { in: ACTIVE_DISPATCH_STATUSES },
           fulfillmentType: { in: DELIVERY_FULFILLMENTS },
+          createdAt: { gte: liveSince },
         },
         select: orderSelect,
         orderBy: { createdAt: "asc" },
