@@ -10,6 +10,7 @@ import {
   OrderStatus,
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -43,7 +44,22 @@ function deadlineFor(order: {
 export class DriverAppService {
   private readonly logger = new Logger(DriverAppService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hubriseSync: HubRiseOrderSyncService,
+  ) {}
+
+  // Driver action → the OrderStatus we push back to HubRise. pushStatus itself
+  // no-ops for non-HubRise orders and for statuses HubRise doesn't model
+  // (e.g. RIDER_ARRIVED), so it's safe to call for every action.
+  private static readonly PUSH_STATUS_BY_ACTION: Record<JobAction, OrderStatus> = {
+    accept: OrderStatus.ACCEPTED_BY_DRIVER,
+    start: OrderStatus.OUT_FOR_DELIVERY,
+    arrived: OrderStatus.RIDER_ARRIVED,
+    delivered: OrderStatus.COMPLETED,
+    skip: OrderStatus.FAILED,
+    cancel: OrderStatus.READY,
+  };
 
   // Resolve the current user to a Driver. If none is linked yet, auto-provision
   // one: adopt an existing unlinked driver with the same email, otherwise create
@@ -418,6 +434,14 @@ export class DriverAppService {
 
       default:
         throw new BadRequestException(`Unknown action: ${action}`);
+    }
+
+    // Propagate the transition to HubRise (fire-and-forget; no-ops for
+    // non-HubRise orders) so connected channels see the same lifecycle the
+    // driver walks. Mirrors the operator-side OrdersService.updateStatus push.
+    const pushStatus = DriverAppService.PUSH_STATUS_BY_ACTION[action];
+    if (pushStatus) {
+      void this.hubriseSync.pushStatus({ orderId, newStatus: pushStatus });
     }
 
     return { ok: true, action };

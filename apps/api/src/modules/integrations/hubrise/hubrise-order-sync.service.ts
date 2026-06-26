@@ -37,6 +37,9 @@ const STATIC_MAP: Record<string, string> = {
   COLLECTED: "completed",
   CANCELLED: "cancelled",
   REJECTED: "rejected",
+  // Driver couldn't complete the drop (no answer / address issue). HubRise
+  // exposes delivery_failed so downstream channels reflect the failed attempt.
+  FAILED: "delivery_failed",
 };
 
 // Transitions that exist in our internal flow but don't have a HubRise

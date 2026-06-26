@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Linking,
+  Modal,
+  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -31,6 +33,10 @@ export function JobScreen({
   onBack,
   canMinimize,
   onMinimize,
+  index,
+  count,
+  onPrev,
+  onNext,
 }: {
   job: Job;
   total: number;
@@ -39,13 +45,37 @@ export function JobScreen({
   onBack?: () => void; // back to a list (manual view)
   canMinimize?: boolean; // peek the map (only before the stop is started)
   onMinimize?: () => void;
+  index?: number; // position in the multi-drop run (0-based)
+  count?: number; // number of active stops (for swipe between cards)
+  onPrev?: () => void;
+  onNext?: () => void;
 }) {
   // Local mirror so start/arrived advance the slider instantly (server confirms
   // via onChanged → poll).
   const [local, setLocal] = useState<Job>(job);
   const [submitting, setSubmitting] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [, tick] = useState(0); // re-render so the deadline pill counts down
   const mapRef = useRef<MapView | null>(null);
+
+  const stops = count ?? 1;
+  const idx = index ?? 0;
+  const canSwipe = stops > 1;
+
+  // Horizontal swipe over the details area → previous / next stop. Scoped to the
+  // details section so it never fights the bottom slide-to-confirm or the map.
+  const swipe = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_e, g) =>
+          canSwipe && Math.abs(g.dx) > 24 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+        onPanResponderRelease: (_e, g) => {
+          if (g.dx > 50) onPrev?.();
+          else if (g.dx < -50) onNext?.();
+        },
+      }),
+    [canSwipe, onPrev, onNext],
+  );
 
   useEffect(() => setLocal(job), [job]);
   useEffect(() => {
@@ -152,28 +182,18 @@ export function JobScreen({
     }
   }
 
-  function options() {
-    Alert.alert("Delivery options", undefined, [
-      { text: "Navigate", onPress: navigate },
-      {
-        text: "Skip (no answer)",
-        style: "destructive",
-        onPress: () =>
-          Alert.alert("Skip this delivery?", "Use when the customer didn't answer.", [
-            { text: "Cancel", style: "cancel" },
-            { text: "Skip", style: "destructive", onPress: () => act("skip") },
-          ]),
-      },
-      {
-        text: "Cancel job",
-        style: "destructive",
-        onPress: () =>
-          Alert.alert("Cancel this job?", "Returns the order to dispatch (use for incidents).", [
-            { text: "Back", style: "cancel" },
-            { text: "Cancel job", style: "destructive", onPress: () => act("cancel") },
-          ]),
-      },
-      { text: "Close", style: "cancel" },
+  function confirmSkip() {
+    setOptionsOpen(false);
+    Alert.alert("Skip this delivery?", "Use when the customer didn't answer.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Skip", style: "destructive", onPress: () => act("skip") },
+    ]);
+  }
+  function confirmCancel() {
+    setOptionsOpen(false);
+    Alert.alert("Cancel this job?", "Returns the order to dispatch (use for incidents).", [
+      { text: "Back", style: "cancel" },
+      { text: "Cancel job", style: "destructive", onPress: () => act("cancel") },
     ]);
   }
 
@@ -229,14 +249,34 @@ export function JobScreen({
         <Pressable style={styles.callBtn} onPress={call}>
           <Text style={styles.callIcon}>📞</Text>
         </Pressable>
-        <Pressable style={styles.sideAction} onPress={options}>
+        <Pressable style={styles.sideAction} onPress={() => setOptionsOpen(true)}>
           <Text style={styles.sideIcon}>☰</Text>
           <Text style={styles.sideLabel}>options</Text>
         </Pressable>
       </View>
 
-      {/* Details */}
-      <View style={styles.details}>
+      {/* Details (swipe left/right to see other stops in a multi-drop run) */}
+      <View style={styles.details} {...swipe.panHandlers}>
+        {canSwipe && (
+          <View style={styles.pager}>
+            <Pressable onPress={onPrev} hitSlop={10} disabled={idx === 0} style={{ opacity: idx === 0 ? 0.25 : 1 }}>
+              <Text style={styles.pagerChev}>‹</Text>
+            </Pressable>
+            <View style={styles.dots}>
+              {Array.from({ length: stops }).map((_, i) => (
+                <View key={i} style={[styles.dot, i === idx && styles.dotActive]} />
+              ))}
+            </View>
+            <Pressable
+              onPress={onNext}
+              hitSlop={10}
+              disabled={idx === stops - 1}
+              style={{ opacity: idx === stops - 1 ? 0.25 : 1 }}
+            >
+              <Text style={styles.pagerChev}>›</Text>
+            </Pressable>
+          </View>
+        )}
         <Text style={styles.orderLine}>
           <Text style={styles.stopNo}>{stopLabel} </Text>
           {orderRef} {extRef ? <Text style={styles.extRef}>{extRef}</Text> : null}
@@ -283,6 +323,34 @@ export function JobScreen({
           <SlideToConfirm label="Slide to delivered ✓" color="#475569" onConfirm={() => act("delivered")} />
         )}
       </View>
+
+      {/* Options sheet — dismissable (tap a row, the backdrop, or Close) */}
+      <Modal visible={optionsOpen} transparent animationType="slide" onRequestClose={() => setOptionsOpen(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setOptionsOpen(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Delivery options</Text>
+            <Pressable
+              style={styles.sheetRow}
+              onPress={() => {
+                setOptionsOpen(false);
+                navigate();
+              }}
+            >
+              <Text style={styles.sheetRowText}>Navigate</Text>
+            </Pressable>
+            <Pressable style={styles.sheetRow} onPress={confirmSkip}>
+              <Text style={[styles.sheetRowText, { color: "#b45309" }]}>Skip (no answer)</Text>
+            </Pressable>
+            <Pressable style={styles.sheetRow} onPress={confirmCancel}>
+              <Text style={[styles.sheetRowText, { color: "#dc2626" }]}>Cancel job</Text>
+            </Pressable>
+            <Pressable style={styles.sheetClose} onPress={() => setOptionsOpen(false)}>
+              <Text style={styles.sheetCloseText}>Close</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -363,6 +431,19 @@ const styles = StyleSheet.create({
   },
   callIcon: { fontSize: 26 },
   details: { paddingHorizontal: 18, paddingTop: 14 },
+  pager: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  pagerChev: { fontSize: 28, fontWeight: "800", color: "#2563eb", paddingHorizontal: 8 },
+  dots: { flexDirection: "row", gap: 6 },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#cbd5e1" },
+  dotActive: { backgroundColor: "#2563eb", width: 18 },
+  sheetBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 18, borderTopRightRadius: 18, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 28 },
+  sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#cbd5e1", marginBottom: 12 },
+  sheetTitle: { fontSize: 13, fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 },
+  sheetRow: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
+  sheetRowText: { fontSize: 17, fontWeight: "700", color: "#0F172A" },
+  sheetClose: { marginTop: 14, backgroundColor: "#f1f5f9", borderRadius: 12, paddingVertical: 15, alignItems: "center" },
+  sheetCloseText: { fontSize: 16, fontWeight: "800", color: "#334155" },
   orderLine: { fontSize: 18, fontWeight: "800", color: "#0F172A" },
   stopNo: { color: "#2563eb" },
   extRef: { color: "#94a3b8", fontWeight: "700", fontSize: 15 },

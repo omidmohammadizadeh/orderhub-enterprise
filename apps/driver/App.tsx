@@ -168,24 +168,30 @@ export default function App() {
   );
 
   // ── Active-job routing ──────────────────────────────────────────────────────
-  const active = day?.active ?? [];
-  const current = useMemo<Job | null>(() => {
-    // An in-progress stop (already picked up) wins, otherwise the lowest sequence.
-    const started = active.find((a) => a.status === "PICKED_UP");
-    if (started) return started;
-    return [...active].sort((a, b) => (a.sequence ?? 99) - (b.sequence ?? 99))[0] ?? null;
-  }, [active]);
+  // Stops ordered by their multi-drop sequence; the driver can swipe between them.
+  const activeSorted = useMemo<Job[]>(
+    () => [...(day?.active ?? [])].sort((a, b) => (a.sequence ?? 99) - (b.sequence ?? 99)),
+    [day],
+  );
+  const [viewIndex, setViewIndex] = useState(0);
+  // Keep the viewed index in range as stops complete / new ones arrive.
+  useEffect(() => {
+    setViewIndex((i) => Math.min(Math.max(0, i), Math.max(0, activeSorted.length - 1)));
+  }, [activeSorted.length]);
 
-  // Show the card whenever the current stop changes (a new dispatch arrives), and
-  // never allow the map peek once a stop has been started.
-  const currentId = current?.id ?? null;
-  const currentStarted = current?.status === "PICKED_UP";
+  const viewIdx = Math.min(viewIndex, Math.max(0, activeSorted.length - 1));
+  const current = activeSorted[viewIdx] ?? null;
+  const anyStarted = activeSorted.some((a) => a.status === "PICKED_UP");
+
+  // Show the card whenever the run changes (a new dispatch arrives), and never
+  // allow the map peek once any stop has been started.
+  const firstActiveId = activeSorted[0]?.id ?? null;
   useEffect(() => {
     setMinimized(false);
-  }, [currentId]);
+  }, [firstActiveId]);
   useEffect(() => {
-    if (currentStarted) setMinimized(false);
-  }, [currentStarted]);
+    if (anyStarted) setMinimized(false);
+  }, [anyStarted]);
 
   if (!hydrated) {
     return (
@@ -204,7 +210,7 @@ export default function App() {
         <JobScreen
           key={`manual-${manualJob.id}`}
           job={manualJob}
-          total={active.length}
+          total={activeSorted.length || 1}
           pos={pos}
           onChanged={refresh}
           onBack={() => setManualJob(null)}
@@ -237,17 +243,22 @@ export default function App() {
       );
     }
 
-    // A dispatched/active stop takes over the screen until it's done.
+    // A dispatched/active stop takes over the screen until it's done. Swipe (or
+    // the ‹ › arrows) moves between stops in a multi-drop run.
     if (current && !minimized) {
       return (
         <JobScreen
           key={current.id}
           job={current}
-          total={active.length}
+          total={activeSorted.length}
           pos={pos}
           onChanged={refresh}
-          canMinimize={!currentStarted}
+          canMinimize={!anyStarted}
           onMinimize={() => setMinimized(true)}
+          index={viewIdx}
+          count={activeSorted.length}
+          onPrev={() => setViewIndex((i) => Math.max(0, i - 1))}
+          onNext={() => setViewIndex((i) => Math.min(activeSorted.length - 1, i + 1))}
         />
       );
     }
