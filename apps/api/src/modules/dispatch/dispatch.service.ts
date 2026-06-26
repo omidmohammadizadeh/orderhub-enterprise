@@ -307,10 +307,14 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
+      // Drivers are a tenant-wide fleet, not bound to one location, so we scope
+      // them by tenant only — NOT by the selected order-location scope. (A driver
+      // goes online pinned to the tenant's oldest location; filtering by scope
+      // would hide them whenever the operator views a different location, which
+      // is why "0 drivers online" showed even though the Fleet tab listed them.)
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
-          locationId: { in: scope },
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
         },
         include: { driver: { select: { firstName: true, lastName: true } } },

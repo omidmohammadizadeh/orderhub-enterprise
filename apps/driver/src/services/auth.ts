@@ -21,6 +21,20 @@ export interface AuthTokens {
 }
 
 let inMemoryAccess: string | null = null;
+let inMemoryRefresh: string | null = null;
+// Lets the axios interceptor push rotated/cleared tokens back into React state
+// (so the UI logs out when the refresh token finally expires).
+let onTokensChanged: ((t: AuthTokens | null) => void) | null = null;
+
+// Single source of truth for persisting the token pair: in-memory (for the
+// request interceptor) + secure store + React state.
+async function persistTokens(next: AuthTokens | null) {
+  inMemoryAccess = next?.accessToken ?? null;
+  inMemoryRefresh = next?.refreshToken ?? null;
+  if (next) await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(next));
+  else await SecureStore.deleteItemAsync(TOKEN_KEY);
+  onTokensChanged?.(next);
+}
 
 api.interceptors.request.use((config) => {
   if (inMemoryAccess) {
@@ -31,11 +45,60 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Access tokens live ~15 min. On a 401 we rotate the pair via /auth/refresh once,
+// persist the new pair, and replay the original request. Concurrent 401s share a
+// single in-flight refresh. If refresh fails the session is cleared → re-login.
+let refreshInFlight: Promise<AuthTokens> | null = null;
+async function refreshTokens(): Promise<AuthTokens> {
+  if (!inMemoryRefresh) throw new Error("No refresh token");
+  // Bare axios (not `api`) so this request skips the interceptors below.
+  const res = await axios.post<{ accessToken: string; refreshToken: string }>(
+    `${API_URL}/v1/auth/refresh`,
+    { refreshToken: inMemoryRefresh },
+  );
+  const next: AuthTokens = {
+    accessToken: res.data.accessToken,
+    refreshToken: res.data.refreshToken,
+  };
+  await persistTokens(next);
+  return next;
+}
+
+api.interceptors.response.use(
+  (r) => r,
+  async (error) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const original = error?.config as any;
+    const status = error?.response?.status;
+    const url: string = original?.url ?? "";
+    const isAuthCall = url.includes("/auth/refresh") || url.includes("/auth/login");
+    if (status === 401 && original && !original._retry && !isAuthCall && inMemoryRefresh) {
+      original._retry = true;
+      try {
+        if (!refreshInFlight) {
+          refreshInFlight = refreshTokens().finally(() => {
+            refreshInFlight = null;
+          });
+        }
+        const next = await refreshInFlight;
+        original.headers = original.headers ?? {};
+        original.headers.Authorization = `Bearer ${next.accessToken}`;
+        return api(original);
+      } catch {
+        await persistTokens(null); // refresh token expired → force re-login
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export function useAuth() {
   const [tokens, setTokensState] = useState<AuthTokens | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Keep React state in sync when the interceptor rotates or clears tokens.
+    onTokensChanged = setTokensState;
     SecureStore.getItemAsync(TOKEN_KEY)
       .then((stored) => {
         if (!stored) return;
@@ -43,6 +106,7 @@ export function useAuth() {
           const parsed = JSON.parse(stored) as AuthTokens;
           if (parsed?.accessToken) {
             inMemoryAccess = parsed.accessToken;
+            inMemoryRefresh = parsed.refreshToken ?? null;
             setTokensState(parsed);
           }
         } catch {
@@ -50,13 +114,13 @@ export function useAuth() {
         }
       })
       .finally(() => setHydrated(true));
+    return () => {
+      onTokensChanged = null;
+    };
   }, []);
 
   const setTokens = useCallback(async (next: AuthTokens | null) => {
-    inMemoryAccess = next?.accessToken ?? null;
-    setTokensState(next);
-    if (next) await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(next));
-    else await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await persistTokens(next);
   }, []);
 
   return { tokens, hydrated, setTokens };
