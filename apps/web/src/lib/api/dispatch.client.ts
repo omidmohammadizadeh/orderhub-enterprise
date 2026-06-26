@@ -38,6 +38,7 @@ export interface DispatchOrderPin {
   deadlineAt: string | null;
   createdAt: string;
   done: boolean;
+  assigned: boolean;
 }
 
 export interface DispatchDriverDot {
@@ -57,6 +58,16 @@ export interface DispatchFeed {
   locations: DispatchLocationPin[];
   orders: DispatchOrderPin[];
   drivers: DispatchDriverDot[];
+}
+
+/** Own-fleet: assign an ordered list of orders to a driver (multi-drop). */
+export async function assignOrders(driverId: string, orderIds: string[]): Promise<void> {
+  await apiClient.post("/v1/dispatch/assign", { driverId, orderIds });
+}
+
+/** Pull an order back from its driver to the board. */
+export async function unassignOrder(orderId: string): Promise<void> {
+  await apiClient.post("/v1/dispatch/unassign", { orderId });
 }
 
 /** Location-scoped dispatch feed. Pass a locationId, or "all"/undefined. */

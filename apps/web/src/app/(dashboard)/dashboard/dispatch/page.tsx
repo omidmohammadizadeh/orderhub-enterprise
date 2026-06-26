@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Truck, Users, Loader2 } from "lucide-react";
-import { getDispatchFeed } from "@/lib/api/dispatch.client";
+import { MapPin, Truck, Users, Loader2, Send, LayoutDashboard } from "lucide-react";
+import { getDispatchFeed, assignOrders } from "@/lib/api/dispatch.client";
 import { apiClient } from "@/lib/api/client";
 import { DispatchMap } from "@/components/dispatch/dispatch-map";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,37 @@ export default function DispatchPage() {
   const feed = feedQuery.data;
   const locationOptions = optionsQuery.data?.locations ?? [];
 
+  // ── Own-fleet dispatch flow ──────────────────────────────────────────────
+  const [chooser, setChooser] = useState(false);
+  const [dispatching, setDispatching] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [assigning, setAssigning] = useState(false);
+
+  const onlineDrivers = (feed?.drivers ?? []).filter((d) => d.status === "ONLINE");
+
+  function toggleSelect(id: string) {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+  function cancelDispatch() {
+    setDispatching(false);
+    setChooser(false);
+    setSelected([]);
+  }
+  async function assignTo(driverId: string) {
+    if (!selected.length) return;
+    setAssigning(true);
+    try {
+      await assignOrders(driverId, selected);
+      cancelDispatch();
+      queryClient.invalidateQueries({ queryKey: ["dispatch-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["fleet-drivers"] });
+    } catch {
+      /* ignore */
+    } finally {
+      setAssigning(false);
+    }
+  }
+
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       {/* Header */}
@@ -74,6 +106,18 @@ export default function DispatchPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => (dispatching ? cancelDispatch() : setChooser((c) => !c))}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+          >
+            <Send className="h-4 w-4" /> {dispatching ? "Cancel dispatch" : "Dispatch"}
+          </button>
+          <Link
+            href="/dashboard/dispatch/operator"
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm"
+          >
+            <LayoutDashboard className="h-4 w-4" /> Operator dashboard
+          </Link>
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
@@ -109,6 +153,32 @@ export default function DispatchPage() {
         </div>
       </div>
 
+      {/* Provider chooser */}
+      {chooser && !dispatching && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-2 text-sm">
+          <span className="text-muted-foreground">Dispatch via:</span>
+          <button
+            onClick={() => {
+              setChooser(false);
+              setDispatching(true);
+              setSelected([]);
+            }}
+            className="rounded-md bg-primary px-3 py-1 text-primary-foreground"
+          >
+            Own fleet
+          </button>
+          <button disabled className="rounded-md border px-3 py-1 opacity-40">
+            Stuart (soon)
+          </button>
+          <button disabled className="rounded-md border px-3 py-1 opacity-40">
+            Uber Direct (soon)
+          </button>
+          <button onClick={() => setChooser(false)} className="ml-auto text-muted-foreground">
+            Cancel
+          </button>
+        </div>
+      )}
+
       {tab === "map" ? (
         <>
           {/* Stat strip + legend */}
@@ -140,7 +210,48 @@ export default function DispatchPage() {
                 Failed to load dispatch feed.
               </div>
             )}
-            <DispatchMap feed={feed} now={now} focusKey={location} />
+            <DispatchMap
+              feed={feed}
+              now={now}
+              focusKey={location}
+              selecting={dispatching}
+              selectedIds={selected}
+              onSelectOrder={toggleSelect}
+            />
+
+            {/* Driver assignment panel (own fleet) */}
+            {dispatching && (
+              <div className="absolute right-3 top-3 z-20 w-64 rounded-lg border bg-background p-3 shadow-lg">
+                <div className="mb-1 text-sm font-semibold">Assign delivery</div>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  {selected.length === 0
+                    ? "Tap orders on the map in delivery order (1, 2, 3…)."
+                    : `${selected.length} stop(s) selected — pick an available driver.`}
+                </p>
+                <div className="max-h-64 space-y-1 overflow-auto">
+                  {onlineDrivers.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No available drivers online.</p>
+                  )}
+                  {onlineDrivers.map((d) => (
+                    <button
+                      key={d.driverId}
+                      disabled={!selected.length || assigning}
+                      onClick={() => assignTo(d.driverId)}
+                      className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-muted disabled:opacity-40"
+                    >
+                      <span>{d.name}</span>
+                      <span className="text-xs text-green-600">● available</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={cancelDispatch}
+                  className="mt-2 w-full rounded-md border px-3 py-1.5 text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </>
       ) : (

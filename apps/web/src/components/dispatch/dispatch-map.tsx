@@ -39,10 +39,16 @@ export function DispatchMap({
   feed,
   now,
   focusKey,
+  selecting = false,
+  selectedIds = [],
+  onSelectOrder,
 }: {
   feed: DispatchFeed | undefined;
   now: number;
   focusKey?: string;
+  selecting?: boolean;
+  selectedIds?: string[];
+  onSelectOrder?: (id: string) => void;
 }) {
   const { ready, error } = useGoogleMaps();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -128,51 +134,64 @@ export function DispatchMap({
       }
     }
 
-    // Order pins — BIG urgency-coloured circle with the countdown minutes in
-    // the centre (OrderLord style).
+    // Order pins — colour-changing HOUSE with the countdown inside. In dispatch
+    // selection mode, tapping a free order selects it (blue + sequence number);
+    // delivered = grey ✓; a driver already on it = grey + locked.
     for (const o of feed.orders) {
       if (o.lat == null || o.lng == null) continue;
       const key = `ord:${o.id}`;
       seen.add(key);
       const color = orderColor(o.deadlineAt, now);
+      const selIdx = selectedIds.indexOf(o.id);
+      const selected = selIdx >= 0;
       let m = markersRef.current.get(key);
       if (!m) {
         m = new g.maps.Marker({ map, position: { lat: o.lat, lng: o.lng }, zIndex: 100 });
-        m.addListener("click", () => {
-          infoRef.current.setContent(
-            `<div style="font-family:system-ui;font-size:13px;min-width:190px">
-              <strong>#${o.displayId ?? o.orderNumber ?? o.id.slice(-5)}</strong> · ${o.platform}<br/>
-              ${o.customerName ?? "Customer"}<br/>
-              £${o.total} · ${o.paymentMethod ?? "—"}<br/>
-              <span style="color:${orderColor(o.deadlineAt, Date.now())};font-weight:700">${countdownLabel(o.deadlineAt, Date.now())}</span> · ${o.status}
-              <br/><button disabled style="margin-top:6px;opacity:.5">Dispatch (coming soon)</button>
-            </div>`,
-          );
-          infoRef.current.open(map, m);
-        });
         markersRef.current.set(key, m);
       }
+      // Re-bind click each pass so it reads the current selecting state.
+      g.maps.event.clearListeners(m, "click");
+      m.addListener("click", () => {
+        if (selecting && !o.assigned && !o.done && onSelectOrder) {
+          onSelectOrder(o.id);
+          return;
+        }
+        infoRef.current.setContent(
+          `<div style="font-family:system-ui;font-size:13px;min-width:190px">
+            <strong>#${o.displayId ?? o.orderNumber ?? o.id.slice(-5)}</strong> · ${o.platform}<br/>
+            ${o.customerName ?? "Customer"}<br/>
+            £${o.total} · ${o.paymentMethod ?? "—"}<br/>
+            <span style="color:${orderColor(o.deadlineAt, Date.now())};font-weight:700">${countdownLabel(o.deadlineAt, Date.now())}</span> · ${o.status}
+          </div>`,
+        );
+        infoRef.current.open(map, m);
+      });
+
       m.setPosition({ lat: o.lat, lng: o.lng });
-      // Customer pin = a HOUSE that recolours green → orange (≤15m) → red (≤5m)
-      // toward the promised time. Delivered (done) orders go grey with a tick,
-      // then drop off the feed after 10 min.
+      const fill = selected ? "#2563eb" : o.done || o.assigned ? "#9ca3af" : color;
       m.setIcon({
         path: HOUSE_PATH,
-        fillColor: o.done ? "#9ca3af" : color,
-        fillOpacity: o.done ? 0.85 : 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 1.5,
-        scale: o.done ? 1.1 : 1.5,
-        anchor: new g.maps.Point(0, 12), // base of the house sits on the address
-        labelOrigin: new g.maps.Point(0, 4), // countdown inside the body
+        fillColor: fill,
+        fillOpacity: o.done || o.assigned ? 0.9 : 1,
+        strokeColor: selected ? "#1e3a8a" : "#ffffff",
+        strokeWeight: selected ? 3 : 1.5,
+        scale: o.done ? 1.1 : selected ? 1.7 : 1.5,
+        anchor: new g.maps.Point(0, 12),
+        labelOrigin: new g.maps.Point(0, 4),
       });
       m.setLabel({
-        text: o.done ? "✓" : minutesLabel(o.deadlineAt, now),
+        text: selected
+          ? String(selIdx + 1)
+          : o.done
+            ? "✓"
+            : o.assigned
+              ? "•"
+              : minutesLabel(o.deadlineAt, now),
         color: "#ffffff",
         fontSize: "12px",
         fontWeight: "800",
       });
-      m.setZIndex(o.done ? 40 : 100);
+      m.setZIndex(selected ? 120 : o.done || o.assigned ? 40 : 100);
     }
 
     // Driver dots (blue = available, amber = on a job).
@@ -232,7 +251,7 @@ export function DispatchMap({
         fittedRef.current = true;
       }
     }
-  }, [ready, feed, now]);
+  }, [ready, feed, now, selecting, selectedIds]);
 
   if (error) {
     return (
