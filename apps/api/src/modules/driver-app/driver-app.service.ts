@@ -19,7 +19,7 @@ export interface PingDto {
   speed?: number;
 }
 
-export type JobAction = "accept" | "start" | "delivered" | "skip" | "cancel";
+export type JobAction = "accept" | "start" | "arrived" | "delivered" | "skip" | "cancel";
 
 // The driver-facing API. Every endpoint resolves the *current* Driver from the
 // authenticated user (Driver.userId), so a driver only ever sees/acts on their
@@ -180,6 +180,9 @@ export class DriverAppService {
             deliveryLat: true,
             deliveryLng: true,
             specialInstructions: true,
+            platform: true,
+            courierPhone: true,
+            courierPhoneAccessCode: true,
           },
         },
       },
@@ -303,6 +306,21 @@ export class DriverAppService {
         await this.prisma.order.update({
           where: { id: orderId },
           data: { status: OrderStatus.OUT_FOR_DELIVERY },
+        });
+        await this.upsertPresence(driver, {
+          status: DriverPresenceStatus.ON_JOB,
+          activeAssignmentId: assignment.id,
+        });
+        break;
+
+      case "arrived": // at the customer's door (between picked-up and delivered)
+        await this.prisma.driverAssignment.update({
+          where: { id: assignment.id },
+          data: { arrivedAt: now },
+        });
+        await this.prisma.order.update({
+          where: { id: orderId },
+          data: { status: OrderStatus.RIDER_ARRIVED },
         });
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ON_JOB,

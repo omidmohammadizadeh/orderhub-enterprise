@@ -1,8 +1,30 @@
-import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
-import { OrderStatus, FulfillmentType, DriverPresenceStatus } from "@orderhub/database";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  OrderStatus,
+  FulfillmentType,
+  DriverPresenceStatus,
+  DriverAssignmentStatus,
+} from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { GeocodingService } from "./geocoding.service";
+import { ExpoPushService } from "../driver-app/expo-push.service";
+
+// Order is "assigned" (a driver has it → grey + locked on the map) once it's
+// past dispatch into a driver-owned status.
+const ASSIGNED_STATUSES: OrderStatus[] = [
+  OrderStatus.ASSIGNED_DRIVER,
+  OrderStatus.ACCEPTED_BY_DRIVER,
+  OrderStatus.RIDER_ARRIVED,
+  OrderStatus.OUT_FOR_DELIVERY,
+  OrderStatus.DISPATCHED,
+];
 
 // Order statuses that still need a driver / are mid-delivery — i.e. everything
 // that should show on the dispatch map. Terminal + pre-acceptance states are
@@ -52,6 +74,7 @@ export interface DispatchOrderPin {
   deadlineAt: string | null;
   createdAt: string;
   done: boolean; // delivered/completed in the last 10 min — render grey, then it drops off
+  assigned: boolean; // a driver currently has this order — grey + locked on the map
 }
 
 export interface DispatchDriverDot {
@@ -83,6 +106,7 @@ export class DispatchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly geocoder: GeocodingService,
+    private readonly expoPush: ExpoPushService,
   ) {}
 
   /** Locations this user is allowed to see on the dispatch map. */
@@ -316,6 +340,7 @@ export class DispatchService {
         deadlineAt: deadline ? deadline.toISOString() : null,
         createdAt: o.createdAt.toISOString(),
         done,
+        assigned: ASSIGNED_STATUSES.includes(o.status),
       };
     };
 
@@ -337,5 +362,119 @@ export class DispatchService {
     }));
 
     return { scope, locations, orders, drivers };
+  }
+
+  /**
+   * Own-fleet dispatch: assign an ordered list of orders to one driver as a
+   * multi-drop run. orderIds[] are in the operator's chosen stop order →
+   * sequence 1..N. Marks orders ASSIGNED_DRIVER, flips the driver ON_JOB, and
+   * pushes one new-job alert (Accept/Reject).
+   */
+  async assignToDriver(user: AuthenticatedUser, driverId: string, orderIds: string[]) {
+    if (!orderIds?.length) throw new BadRequestException("No orders selected");
+
+    const driver = await this.prisma.driver.findFirst({
+      where: { id: driverId, tenantId: user.tenantId },
+      select: { id: true },
+    });
+    if (!driver) throw new NotFoundException("Driver not found");
+
+    const presence = await this.prisma.driverPresence.findUnique({
+      where: { driverId },
+      select: { pushToken: true },
+    });
+
+    let seq = 1;
+    let firstAssignmentId: string | null = null;
+    for (const orderId of orderIds) {
+      const order = await this.prisma.order.findFirst({
+        where: { id: orderId, tenantId: user.tenantId },
+        select: { id: true },
+      });
+      if (!order) continue;
+      const a = await this.prisma.driverAssignment.upsert({
+        where: { orderId },
+        create: { orderId, driverId, status: DriverAssignmentStatus.ASSIGNED, sequence: seq },
+        update: {
+          driverId,
+          status: DriverAssignmentStatus.ASSIGNED,
+          sequence: seq,
+          assignedAt: new Date(),
+          acceptedAt: null,
+          pickedUpAt: null,
+          arrivedAt: null,
+          deliveredAt: null,
+        },
+      });
+      firstAssignmentId = firstAssignmentId ?? a.id;
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.ASSIGNED_DRIVER },
+      });
+      seq += 1;
+    }
+
+    await this.prisma.driverPresence
+      .update({
+        where: { driverId },
+        data: { status: DriverPresenceStatus.ON_JOB, activeAssignmentId: firstAssignmentId },
+      })
+      .catch(() => undefined);
+
+    const n = orderIds.length;
+    await this.expoPush.sendNewJob(presence?.pushToken, {
+      orderId: orderIds[0] ?? "",
+      title: "New delivery run",
+      body: `${n} ${n === 1 ? "order" : "orders"} assigned to you — Accept or Reject`,
+    });
+
+    return { ok: true, count: n };
+  }
+
+  /** Remove an order from its driver and return it to the board for re-dispatch. */
+  async unassign(user: AuthenticatedUser, orderId: string) {
+    const a = await this.prisma.driverAssignment.findUnique({
+      where: { orderId },
+      select: { id: true, driverId: true },
+    });
+    if (!a) return { ok: true };
+
+    // Tenant guard via the order.
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId: user.tenantId },
+      select: { id: true },
+    });
+    if (!order) throw new ForbiddenException("No access to that order");
+
+    await this.prisma.driverAssignment.update({
+      where: { orderId },
+      data: { status: DriverAssignmentStatus.CANCELLED },
+    });
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.READY },
+    });
+
+    const remaining = await this.prisma.driverAssignment.count({
+      where: {
+        driverId: a.driverId,
+        status: {
+          in: [
+            DriverAssignmentStatus.ASSIGNED,
+            DriverAssignmentStatus.ACCEPTED,
+            DriverAssignmentStatus.PICKED_UP,
+          ],
+        },
+      },
+    });
+    if (remaining === 0) {
+      await this.prisma.driverPresence
+        .update({
+          where: { driverId: a.driverId },
+          data: { status: DriverPresenceStatus.ONLINE, activeAssignmentId: null },
+        })
+        .catch(() => undefined);
+    }
+    return { ok: true };
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { DispatchService } from "./dispatch.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -22,5 +22,24 @@ export class DispatchController {
     @Query("location") location?: string,
   ) {
     return this.dispatch.getFeed(user, location);
+  }
+
+  @Post("assign")
+  @HttpCode(HttpStatus.OK)
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @ApiOperation({ summary: "Own-fleet: assign ordered orders to a driver (multi-drop)" })
+  assign(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { driverId: string; orderIds: string[] },
+  ) {
+    return this.dispatch.assignToDriver(user, body.driverId, body.orderIds);
+  }
+
+  @Post("unassign")
+  @HttpCode(HttpStatus.OK)
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @ApiOperation({ summary: "Remove an order from its driver and return it to the board" })
+  unassign(@CurrentUser() user: AuthenticatedUser, @Body() body: { orderId: string }) {
+    return this.dispatch.unassign(user, body.orderId);
   }
 }
