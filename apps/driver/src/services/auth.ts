@@ -25,6 +25,12 @@ let inMemoryRefresh: string | null = null;
 // Lets the axios interceptor push rotated/cleared tokens back into React state
 // (so the UI logs out when the refresh token finally expires).
 let onTokensChanged: ((t: AuthTokens | null) => void) | null = null;
+// Refresh tokens are single-use (each refresh revokes the previous one). The app
+// has two JS contexts — the foreground UI and the headless background location
+// task — so only ONE may rotate the token, else they revoke each other's tokens.
+// useAuth (foreground only) sets this true; the background context leaves it
+// false and never refreshes (its pings just fail silently if the access expired).
+let canRefresh = false;
 
 // Single source of truth for persisting the token pair: in-memory (for the
 // request interceptor) + secure store + React state.
@@ -87,20 +93,28 @@ api.interceptors.response.use(
     const status = error?.response?.status;
     const url: string = original?.url ?? "";
     const isAuthCall = url.includes("/auth/refresh") || url.includes("/auth/login");
-    if (status === 401 && original && !original._retry && !isAuthCall && inMemoryRefresh) {
+    if (status === 401 && original && !original._retry && !isAuthCall) {
       original._retry = true;
-      try {
-        if (!refreshInFlight) {
-          refreshInFlight = refreshTokens().finally(() => {
-            refreshInFlight = null;
-          });
+      if (canRefresh && inMemoryRefresh) {
+        // Foreground: rotate the pair and replay the request.
+        try {
+          if (!refreshInFlight) {
+            refreshInFlight = refreshTokens().finally(() => {
+              refreshInFlight = null;
+            });
+          }
+          const next = await refreshInFlight;
+          original.headers = original.headers ?? {};
+          original.headers.Authorization = `Bearer ${next.accessToken}`;
+          return api(original);
+        } catch {
+          await persistTokens(null); // refresh token expired/revoked → force re-login
         }
-        const next = await refreshInFlight;
-        original.headers = original.headers ?? {};
-        original.headers.Authorization = `Bearer ${next.accessToken}`;
-        return api(original);
-      } catch {
-        await persistTokens(null); // refresh token expired → force re-login
+      } else {
+        // Background/headless: never rotate (that would revoke the foreground's
+        // token). Drop our cached token so the next request re-reads whatever the
+        // foreground has since refreshed into secure store.
+        inMemoryAccess = null;
       }
     }
     return Promise.reject(error);
@@ -114,6 +128,7 @@ export function useAuth() {
   useEffect(() => {
     // Keep React state in sync when the interceptor rotates or clears tokens.
     onTokensChanged = setTokensState;
+    canRefresh = true; // this is the foreground context — it owns token rotation
     SecureStore.getItemAsync(TOKEN_KEY)
       .then((stored) => {
         if (!stored) return;
@@ -131,6 +146,7 @@ export function useAuth() {
       .finally(() => setHydrated(true));
     return () => {
       onTokensChanged = null;
+      canRefresh = false;
     };
   }, []);
 
