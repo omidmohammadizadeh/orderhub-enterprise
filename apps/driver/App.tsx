@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, Alert, View } from "react-native";
 import * as Location from "expo-location";
+import * as SecureStore from "expo-secure-store";
 
 import {
   useAuth,
@@ -47,9 +48,12 @@ import { JobScreen } from "@/screens/JobScreen";
 import { ProfileScreen } from "@/screens/ProfileScreen";
 import { OrdersScreen } from "@/screens/OrdersScreen";
 import { CashUpScreen } from "@/screens/CashUpScreen";
+import { LocationDisclosure } from "@/components/LocationDisclosure";
 import type { OrdersTab } from "@/components/Drawer";
 
 export type LatLng = { latitude: number; longitude: number };
+
+const LOCATION_CONSENT_KEY = "orderhub.driver.locationConsent";
 
 export default function App() {
   const { tokens, hydrated, setTokens } = useAuth();
@@ -65,6 +69,15 @@ export default function App() {
   const [ordersTab, setOrdersTab] = useState<OrdersTab | null>(null);
   const [manualJob, setManualJob] = useState<Job | null>(null); // opened from a list
   const [minimized, setMinimized] = useState(false); // peek the map while a job is ASSIGNED (not started)
+
+  // Prominent location-disclosure gate (shown before the first permission prompt).
+  const [locationConsent, setLocationConsent] = useState(false);
+  const [showDisclosure, setShowDisclosure] = useState(false);
+  useEffect(() => {
+    SecureStore.getItemAsync(LOCATION_CONSENT_KEY)
+      .then((v) => setLocationConsent(v === "1"))
+      .catch(() => {});
+  }, []);
 
   // Live driver position — owned here so it survives screen changes.
   const [pos, setPos] = useState<LatLng | null>(null);
@@ -169,7 +182,7 @@ export default function App() {
     };
   }, [online, startWatch, stopWatch]);
 
-  const toggleOnline = useCallback(
+  const runOnline = useCallback(
     async (next: boolean) => {
       setBusy(true);
       try {
@@ -188,6 +201,30 @@ export default function App() {
     },
     [refresh],
   );
+
+  // Going online starts location sharing — show the prominent disclosure first
+  // (Google Play policy) before any system location prompt fires.
+  const toggleOnline = useCallback(
+    async (next: boolean) => {
+      if (next && !locationConsent) {
+        setShowDisclosure(true);
+        return;
+      }
+      await runOnline(next);
+    },
+    [locationConsent, runOnline],
+  );
+
+  async function acceptDisclosure() {
+    try {
+      await SecureStore.setItemAsync(LOCATION_CONSENT_KEY, "1");
+    } catch {
+      // proceed regardless — consent is captured for this session
+    }
+    setLocationConsent(true);
+    setShowDisclosure(false);
+    runOnline(true);
+  }
 
   // ── Active-job routing ──────────────────────────────────────────────────────
   // Stops ordered by their multi-drop sequence; the driver can swipe between them.
@@ -341,6 +378,11 @@ export default function App() {
       <SafeAreaView style={{ flex: 1, backgroundColor: "#0F172A" }} edges={["top"]}>
         <StatusBar style="light" />
         {renderBody()}
+        <LocationDisclosure
+          visible={showDisclosure}
+          onAccept={acceptDisclosure}
+          onDecline={() => setShowDisclosure(false)}
+        />
       </SafeAreaView>
     </SafeAreaProvider>
   );
