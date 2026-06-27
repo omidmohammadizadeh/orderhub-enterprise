@@ -7,6 +7,7 @@ import { MapPin, Truck, Users, Loader2, Send, LayoutDashboard } from "lucide-rea
 import { getDispatchFeed, assignOrders } from "@/lib/api/dispatch.client";
 import { apiClient } from "@/lib/api/client";
 import { DispatchMap } from "@/components/dispatch/dispatch-map";
+import { DispatchChatWidget } from "@/components/dispatch/chat-widget";
 import { cn } from "@/lib/utils";
 
 interface FleetDriver {
@@ -63,6 +64,14 @@ export default function DispatchPage() {
 
   const feed = feedQuery.data;
   const locationOptions = optionsQuery.data?.locations ?? [];
+  // Location scoping: a user with one accessible location is pinned to it (no
+  // "All locations"); multi-location users get the picker + an "All" view.
+  const multiLocation = locationOptions.length > 1;
+  useEffect(() => {
+    if (!multiLocation && locationOptions[0] && location === "all") {
+      setLocation(locationOptions[0].id);
+    }
+  }, [multiLocation, locationOptions, location]);
 
   // ── Own-fleet dispatch flow ──────────────────────────────────────────────
   const [chooser, setChooser] = useState(false);
@@ -118,18 +127,24 @@ export default function DispatchPage() {
           >
             <LayoutDashboard className="h-4 w-4" /> Operator dashboard
           </Link>
-          <select
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="rounded-md border bg-background px-3 py-1.5 text-sm"
-          >
-            <option value="all">All locations</option>
-            {locationOptions.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
+          {multiLocation ? (
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="rounded-md border bg-background px-3 py-1.5 text-sm"
+            >
+              <option value="all">All locations</option>
+              {locationOptions.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          ) : locationOptions[0] ? (
+            <span className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-sm">
+              <MapPin className="h-3.5 w-3.5 text-violet-600" /> {locationOptions[0].name}
+            </span>
+          ) : null}
           <div className="flex rounded-md border p-0.5">
             <button
               onClick={() => setTab("map")}
@@ -282,6 +297,9 @@ export default function DispatchPage() {
       ) : (
         <FleetTab drivers={fleetQuery.data} loading={fleetQuery.isLoading} onToggle={toggleDriver} />
       )}
+
+      {/* Floating driver chat */}
+      <DispatchChatWidget />
     </div>
   );
 }

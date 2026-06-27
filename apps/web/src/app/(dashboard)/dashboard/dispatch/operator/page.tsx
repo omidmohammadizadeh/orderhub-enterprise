@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -43,6 +43,14 @@ export default function OperatorDashboardPage() {
     staleTime: 60_000,
   });
   const locationOptions = optionsQuery.data?.locations ?? [];
+  // Scope to the user's accessible locations: one location → pinned (no "All");
+  // multiple → picker with an "All" view.
+  const multiLocation = locationOptions.length > 1;
+  useEffect(() => {
+    if (!multiLocation && locationOptions[0] && location === "all") {
+      setLocation(locationOptions[0].id);
+    }
+  }, [multiLocation, locationOptions, location]);
 
   const onlineDrivers = (data?.drivers ?? []).filter((d) => d.status === "ONLINE");
 
@@ -90,18 +98,24 @@ export default function OperatorDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-          <select
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="rounded-md border bg-background px-3 py-1.5 text-sm"
-          >
-            <option value="all">All locations</option>
-            {locationOptions.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
+          {multiLocation ? (
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="rounded-md border bg-background px-3 py-1.5 text-sm"
+            >
+              <option value="all">All locations</option>
+              {locationOptions.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          ) : locationOptions[0] ? (
+            <span className="rounded-md border bg-background px-3 py-1.5 text-sm">
+              {locationOptions[0].name}
+            </span>
+          ) : null}
         </div>
       </div>
 
