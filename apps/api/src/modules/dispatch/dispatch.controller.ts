@@ -24,6 +24,19 @@ export class DispatchController {
     return this.dispatch.getFeed(user, location);
   }
 
+  @Get("operator")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")
+  @ApiOperation({
+    summary:
+      "Operator dashboard: delivery analytics, out-for-delivery, overdue attention, online/busy drivers, per-driver active jobs + cash-up, recent failed/cancelled. ?location=all or a locationId.",
+  })
+  operator(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("location") location?: string,
+  ) {
+    return this.dispatch.getOperatorDashboard(user, location);
+  }
+
   @Post("assign")
   @HttpCode(HttpStatus.OK)
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "OWNER", "DARK_KITCHEN_MANAGER")

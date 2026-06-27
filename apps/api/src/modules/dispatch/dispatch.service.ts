@@ -96,6 +96,67 @@ export interface DispatchFeed {
   drivers: DispatchDriverDot[];
 }
 
+// ── Operator dashboard shapes ─────────────────────────────────────────────────
+export interface OperatorStats {
+  online: number;
+  busy: number;
+  outForDelivery: number;
+  deliveredToday: number;
+  attention: number;
+  failedToday: number;
+}
+export interface OperatorOrderRow {
+  id: string;
+  ref: string;
+  customerName: string | null;
+  status: OrderStatus;
+  deadlineAt: string | null;
+  minutesLate: number | null;
+  driverName: string | null;
+  address: string | null;
+}
+export interface OperatorDriverJob {
+  orderId: string;
+  ref: string;
+  customerName: string | null;
+  status: DriverAssignmentStatus;
+  sequence: number | null;
+  address: string | null;
+}
+export interface OperatorDriverRow {
+  id: string;
+  name: string;
+  status: DriverPresenceStatus;
+  lastPingAt: string | null;
+  activeJobs: OperatorDriverJob[];
+  delivered: number;
+  cashTotal: string;
+  cardTotal: string;
+  total: string;
+}
+export interface OperatorFailedRow {
+  id: string;
+  ref: string;
+  customerName: string | null;
+  status: OrderStatus;
+  reason: string | null;
+  at: string;
+}
+export interface OperatorDashboard {
+  scope: string[];
+  stats: OperatorStats;
+  attention: OperatorOrderRow[];
+  outForDelivery: OperatorOrderRow[];
+  drivers: OperatorDriverRow[];
+  recentFailed: OperatorFailedRow[];
+}
+
+const OUT_FOR_DELIVERY_STATUSES: OrderStatus[] = [
+  OrderStatus.OUT_FOR_DELIVERY,
+  OrderStatus.RIDER_ARRIVED,
+  OrderStatus.DISPATCHED,
+];
+
 @Injectable()
 export class DispatchService {
   private readonly logger = new Logger(DispatchService.name);
@@ -480,5 +541,226 @@ export class DispatchService {
         .catch(() => undefined);
     }
     return { ok: true };
+  }
+
+  /**
+   * Operator dashboard: location-scoped delivery analytics + a tenant-wide
+   * driver roster with per-driver active jobs and today's cash-up. Orders are
+   * scoped to the selected location(s); drivers are the whole fleet (they aren't
+   * bound to one location), mirroring the dispatch map.
+   */
+  async getOperatorDashboard(
+    user: AuthenticatedUser,
+    locationParam?: string,
+  ): Promise<OperatorDashboard> {
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    let scope: string[];
+    if (!locationParam || locationParam === "all") {
+      scope = accessible;
+    } else {
+      if (!accessible.includes(locationParam)) {
+        throw new ForbiddenException("No access to that location");
+      }
+      scope = [locationParam];
+    }
+    const emptyStats: OperatorStats = {
+      online: 0,
+      busy: 0,
+      outForDelivery: 0,
+      deliveredToday: 0,
+      attention: 0,
+      failedToday: 0,
+    };
+    if (scope.length === 0) {
+      return { scope: [], stats: emptyStats, attention: [], outForDelivery: [], drivers: [], recentFailed: [] };
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const liveSince = new Date(Date.now() - 24 * 60 * 60_000);
+    const now = Date.now();
+    const ref = (o: { displayId: string | null; orderNumber: number | null }, id: string) =>
+      `#${o.displayId ?? o.orderNumber ?? id.slice(-5)}`;
+    const addr = (o: { addressLine1: string | null; city: string | null; postcode: string | null }) =>
+      [o.addressLine1, o.city, o.postcode].filter(Boolean).join(", ") || null;
+
+    const [activeOrders, deliveredToday, failedRows, drivers] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          tenantId: user.tenantId,
+          locationId: { in: scope },
+          fulfillmentType: { in: DELIVERY_FULFILLMENTS },
+          status: { in: ACTIVE_DISPATCH_STATUSES },
+          createdAt: { gte: liveSince },
+        },
+        select: {
+          id: true,
+          displayId: true,
+          orderNumber: true,
+          customerName: true,
+          status: true,
+          scheduledFor: true,
+          estimatedReadyAt: true,
+          preparationMinutes: true,
+          createdAt: true,
+          addressLine1: true,
+          city: true,
+          postcode: true,
+          driverAssignment: { select: { driver: { select: { firstName: true, lastName: true } } } },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+      this.prisma.order.count({
+        where: {
+          tenantId: user.tenantId,
+          locationId: { in: scope },
+          fulfillmentType: { in: DELIVERY_FULFILLMENTS },
+          status: OrderStatus.COMPLETED,
+          updatedAt: { gte: startOfDay },
+        },
+      }),
+      this.prisma.order.findMany({
+        where: {
+          tenantId: user.tenantId,
+          locationId: { in: scope },
+          fulfillmentType: { in: DELIVERY_FULFILLMENTS },
+          status: { in: [OrderStatus.FAILED, OrderStatus.CANCELLED] },
+          updatedAt: { gte: startOfDay },
+        },
+        select: {
+          id: true,
+          displayId: true,
+          orderNumber: true,
+          customerName: true,
+          status: true,
+          failureReason: true,
+          updatedAt: true,
+        },
+        orderBy: { updatedAt: "desc" },
+      }),
+      this.prisma.driver.findMany({
+        where: { tenantId: user.tenantId, isActive: true },
+        include: {
+          presence: { select: { status: true, lastPingAt: true } },
+          assignments: {
+            where: {
+              OR: [
+                {
+                  status: {
+                    in: [
+                      DriverAssignmentStatus.ASSIGNED,
+                      DriverAssignmentStatus.ACCEPTED,
+                      DriverAssignmentStatus.PICKED_UP,
+                    ],
+                  },
+                },
+                { status: DriverAssignmentStatus.DELIVERED, deliveredAt: { gte: startOfDay } },
+              ],
+            },
+            select: {
+              orderId: true,
+              status: true,
+              sequence: true,
+              order: {
+                select: {
+                  displayId: true,
+                  orderNumber: true,
+                  customerName: true,
+                  total: true,
+                  paymentMethod: true,
+                  addressLine1: true,
+                  city: true,
+                  postcode: true,
+                },
+              },
+            },
+            orderBy: { sequence: "asc" },
+          },
+        },
+        orderBy: { firstName: "asc" },
+      }),
+    ]);
+
+    // Build the order rows (attention = overdue + still active).
+    const toRow = (o: (typeof activeOrders)[number]): OperatorOrderRow => {
+      const deadline = this.deadlineFor(o);
+      const late = deadline ? Math.round((now - deadline.getTime()) / 60_000) : null;
+      const d = o.driverAssignment?.driver;
+      return {
+        id: o.id,
+        ref: ref(o, o.id),
+        customerName: o.customerName,
+        status: o.status,
+        deadlineAt: deadline ? deadline.toISOString() : null,
+        minutesLate: late != null && late > 0 ? late : null,
+        driverName: d ? `${d.firstName} ${d.lastName}`.trim() : null,
+        address: addr(o),
+      };
+    };
+    const attention = activeOrders
+      .map(toRow)
+      .filter((r) => r.minutesLate != null)
+      .sort((a, b) => (b.minutesLate ?? 0) - (a.minutesLate ?? 0));
+    const outForDelivery = activeOrders
+      .filter((o) => OUT_FOR_DELIVERY_STATUSES.includes(o.status))
+      .map(toRow);
+
+    const driverRows: OperatorDriverRow[] = drivers
+      .filter(
+        (d) =>
+          d.presence?.status === DriverPresenceStatus.ONLINE ||
+          d.presence?.status === DriverPresenceStatus.ON_JOB ||
+          d.assignments.length > 0,
+      )
+      .map((d) => {
+        const active = d.assignments.filter((a) => a.status !== DriverAssignmentStatus.DELIVERED);
+        const delivered = d.assignments.filter((a) => a.status === DriverAssignmentStatus.DELIVERED);
+        let cash = 0;
+        let card = 0;
+        for (const a of delivered) {
+          const t = Number(a.order.total);
+          const method = (a.order.paymentMethod ?? "").toUpperCase();
+          if (method.includes("CASH")) cash += t;
+          else card += t;
+        }
+        return {
+          id: d.id,
+          name: `${d.firstName} ${d.lastName}`.trim(),
+          status: d.presence?.status ?? DriverPresenceStatus.OFFLINE,
+          lastPingAt: d.presence?.lastPingAt ? d.presence.lastPingAt.toISOString() : null,
+          activeJobs: active.map((a) => ({
+            orderId: a.orderId,
+            ref: ref(a.order, a.orderId),
+            customerName: a.order.customerName,
+            status: a.status,
+            sequence: a.sequence,
+            address: addr(a.order),
+          })),
+          delivered: delivered.length,
+          cashTotal: cash.toFixed(2),
+          cardTotal: card.toFixed(2),
+          total: (cash + card).toFixed(2),
+        };
+      });
+
+    const stats: OperatorStats = {
+      online: driverRows.filter((d) => d.status === DriverPresenceStatus.ONLINE).length,
+      busy: driverRows.filter((d) => d.status === DriverPresenceStatus.ON_JOB).length,
+      outForDelivery: outForDelivery.length,
+      deliveredToday,
+      attention: attention.length,
+      failedToday: failedRows.length,
+    };
+
+    const recentFailed: OperatorFailedRow[] = failedRows.map((o) => ({
+      id: o.id,
+      ref: ref(o, o.id),
+      customerName: o.customerName,
+      status: o.status,
+      reason: o.failureReason,
+      at: o.updatedAt.toISOString(),
+    }));
+
+    return { scope, stats, attention, outForDelivery, drivers: driverRows, recentFailed };
   }
 }

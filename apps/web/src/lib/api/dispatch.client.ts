@@ -77,3 +77,77 @@ export async function getDispatchFeed(location?: string): Promise<DispatchFeed> 
   });
   return res.data;
 }
+
+// ── Operator dashboard ────────────────────────────────────────────────────────
+export interface OperatorStats {
+  online: number;
+  busy: number;
+  outForDelivery: number;
+  deliveredToday: number;
+  attention: number;
+  failedToday: number;
+}
+export interface OperatorOrderRow {
+  id: string;
+  ref: string;
+  customerName: string | null;
+  status: DispatchOrderStatus;
+  deadlineAt: string | null;
+  minutesLate: number | null;
+  driverName: string | null;
+  address: string | null;
+}
+export type DriverAssignmentStatus =
+  | "ASSIGNED"
+  | "ACCEPTED"
+  | "PICKED_UP"
+  | "DELIVERED"
+  | "CANCELLED";
+export interface OperatorDriverJob {
+  orderId: string;
+  ref: string;
+  customerName: string | null;
+  status: DriverAssignmentStatus;
+  sequence: number | null;
+  address: string | null;
+}
+export interface OperatorDriverRow {
+  id: string;
+  name: string;
+  status: DriverPresenceStatus;
+  lastPingAt: string | null;
+  activeJobs: OperatorDriverJob[];
+  delivered: number;
+  cashTotal: string;
+  cardTotal: string;
+  total: string;
+}
+export interface OperatorFailedRow {
+  id: string;
+  ref: string;
+  customerName: string | null;
+  status: string;
+  reason: string | null;
+  at: string;
+}
+export interface OperatorDashboard {
+  scope: string[];
+  stats: OperatorStats;
+  attention: OperatorOrderRow[];
+  outForDelivery: OperatorOrderRow[];
+  drivers: OperatorDriverRow[];
+  recentFailed: OperatorFailedRow[];
+}
+
+export async function getOperatorDashboard(location?: string): Promise<OperatorDashboard> {
+  const res = await apiClient.get<OperatorDashboard>("/v1/dispatch/operator", {
+    params: location ? { location } : undefined,
+  });
+  return res.data;
+}
+
+/** Move an order from its current driver to another: pull it back, then assign. */
+export async function reassignOrder(orderId: string, driverId: string): Promise<void> {
+  await unassignOrder(orderId);
+  await assignOrders(driverId, [orderId]);
+}
