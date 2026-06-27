@@ -86,7 +86,9 @@ export default function OrderStatusPage() {
       const s = q.state.data?.status;
       const terminal =
         s === "COMPLETED" || s === "CANCELLED" || s === "REJECTED" || s === "FAILED";
-      return terminal ? false : 3000;
+      if (terminal) return false;
+      // Poll faster once the driver is moving so the live map keeps up.
+      return s === "OUT_FOR_DELIVERY" || s === "RIDER_ARRIVED" ? 2000 : 3000;
     },
   });
 
@@ -173,7 +175,11 @@ export default function OrderStatusPage() {
             </div>
 
             <h1 className="mt-5 text-center text-2xl font-bold text-zinc-900">
-              {isCancelled ? "Your order was cancelled" : "Tracking your order"}
+              {isCancelled
+                ? "Your order was cancelled"
+                : data.driver
+                  ? "Your order is on the way 🛵"
+                  : "Tracking your order"}
             </h1>
             <p className="mt-2 text-center text-sm text-zinc-600">
               {data.location?.name ?? "Your restaurant"}{" "}
@@ -187,6 +193,44 @@ export default function OrderStatusPage() {
                 Order number {orderRef}
               </span>
             </div>
+
+            {/* Live delivery tracking — shown front-and-centre the moment the
+                driver starts the job (status → out for delivery). */}
+            {!isCancelled && data.driver && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <div>
+                    <p className="text-xs font-medium text-emerald-700">Your driver</p>
+                    <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
+                  </div>
+                  {data.driver.phone && (
+                    <a
+                      href={`tel:${data.driver.phone}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+                    >
+                      <Phone className="h-4 w-4" /> Call
+                    </a>
+                  )}
+                </div>
+
+                {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
+                  <DeliveryTrackingMap
+                    driver={
+                      data.driver.lat != null && data.driver.lng != null
+                        ? { lat: data.driver.lat, lng: data.driver.lng }
+                        : null
+                    }
+                    destination={data.destination ?? null}
+                  />
+                ) : (
+                  <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
+                    Waiting for your driver&apos;s location…
+                  </p>
+                )}
+
+                <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
+              </div>
+            )}
 
             {isCancelled ? (
               <div className="mt-8 rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
@@ -238,45 +282,6 @@ export default function OrderStatusPage() {
                   );
                 })}
               </ol>
-            )}
-
-            {/* Live delivery tracking — driver map, call + chat */}
-            {!isCancelled && data.driver && (
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3">
-                  <div>
-                    <p className="text-xs text-zinc-500">Your driver</p>
-                    <p className="text-sm font-semibold text-zinc-900">
-                      {data.driver.name ?? "On the way"}
-                    </p>
-                  </div>
-                  {data.driver.phone && (
-                    <a
-                      href={`tel:${data.driver.phone}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
-                    >
-                      <Phone className="h-4 w-4" /> Call
-                    </a>
-                  )}
-                </div>
-
-                {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
-                  <DeliveryTrackingMap
-                    driver={
-                      data.driver.lat != null && data.driver.lng != null
-                        ? { lat: data.driver.lat, lng: data.driver.lng }
-                        : null
-                    }
-                    destination={data.destination ?? null}
-                  />
-                ) : (
-                  <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
-                    Waiting for your driver&apos;s location…
-                  </p>
-                )}
-
-                <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
-              </div>
             )}
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-2">

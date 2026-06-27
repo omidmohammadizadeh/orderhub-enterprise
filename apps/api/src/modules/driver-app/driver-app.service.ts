@@ -408,7 +408,9 @@ export class DriverAppService {
         });
         await this.prisma.order.update({
           where: { id: orderId },
-          data: { status: OrderStatus.OUT_FOR_DELIVERY },
+          // Stamp outForDeliveryAt so the customer tracking page lights up the
+          // "Out for delivery" step + live map the moment the driver starts.
+          data: { status: OrderStatus.OUT_FOR_DELIVERY, outForDeliveryAt: now },
         });
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ON_JOB,
@@ -438,7 +440,7 @@ export class DriverAppService {
         });
         await this.prisma.order.update({
           where: { id: orderId },
-          data: { status: OrderStatus.COMPLETED },
+          data: { status: OrderStatus.COMPLETED, deliveredAt: now },
         });
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ONLINE,
