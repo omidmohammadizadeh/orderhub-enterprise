@@ -95,10 +95,16 @@ export class NativeOAuthService {
     fallbackEmail?: string | null,
     fallbackFullName?: { givenName?: string | null; familyName?: string | null },
   ): Promise<OAuthProfile> {
-    const audience = this.config.get<string>("APPLE_BUNDLE_ID");
-    if (!audience) {
+    // APPLE_BUNDLE_ID may be a comma-separated list so multiple native apps
+    // (e.g. the POS app + the driver app, each with its own bundle id) all
+    // validate against the same API.
+    const audiences = (this.config.get<string>("APPLE_BUNDLE_ID") ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (audiences.length === 0) {
       throw new ServiceUnavailableException(
-        "Apple sign-in is not configured. Set APPLE_BUNDLE_ID on the API (e.g. com.orderhubsolutions.pos).",
+        "Apple sign-in is not configured. Set APPLE_BUNDLE_ID on the API (e.g. com.orderhubsolutions.pos,com.orderhubsolutions.driver).",
       );
     }
 
@@ -106,7 +112,7 @@ export class NativeOAuthService {
     try {
       const verified = await jwtVerify(idToken, this.appleJwks, {
         issuer: "https://appleid.apple.com",
-        audience,
+        audience: audiences,
       });
       payload = verified.payload as Record<string, unknown>;
     } catch (err: any) {
