@@ -169,18 +169,27 @@ export default function App() {
     watchRef.current = null;
   }, []);
 
+  // Location only ever starts once the driver has consented via the prominent
+  // disclosure — so no system location prompt can fire before it (Play policy).
   useEffect(() => {
-    if (online) {
+    if (online && locationConsent) {
       startWatch();
       startLocationUpdates().catch(() => {});
     } else {
       stopWatch();
       stopLocationUpdates().catch(() => {});
     }
-    return () => {
-      // App-level effect — only tears down on unmount.
-    };
-  }, [online, startWatch, stopWatch]);
+  }, [online, locationConsent, startWatch, stopWatch]);
+
+  // If the driver is online (e.g. the server auto-resumed them from a prior
+  // session) but hasn't accepted the disclosure yet, show it before any location
+  // starts. Transition-guarded so declining (→ offline) can't re-open it in a loop.
+  const prevOnlineRef = useRef(false);
+  useEffect(() => {
+    const was = prevOnlineRef.current;
+    prevOnlineRef.current = online;
+    if (online && !was && !locationConsent) setShowDisclosure(true);
+  }, [online, locationConsent]);
 
   const runOnline = useCallback(
     async (next: boolean) => {
@@ -224,6 +233,12 @@ export default function App() {
     setLocationConsent(true);
     setShowDisclosure(false);
     runOnline(true);
+  }
+
+  function declineDisclosure() {
+    setShowDisclosure(false);
+    // Being online requires location consent — if they decline, go offline.
+    if (online) runOnline(false);
   }
 
   // ── Active-job routing ──────────────────────────────────────────────────────
@@ -381,7 +396,7 @@ export default function App() {
         <LocationDisclosure
           visible={showDisclosure}
           onAccept={acceptDisclosure}
-          onDecline={() => setShowDisclosure(false)}
+          onDecline={declineDisclosure}
         />
       </SafeAreaView>
     </SafeAreaProvider>
