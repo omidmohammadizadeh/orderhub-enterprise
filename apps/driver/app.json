@@ -32,6 +32,7 @@
     "android": {
       "package": "com.orderhubsolutions.driver",
       "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDVjphs_XpsR449kqhwvC3BiO401g6OnY0"
