@@ -31,6 +31,23 @@ export class ExpoPushService {
       });
       if (!res.ok) {
         this.logger.warn(`Expo push HTTP ${res.status} for order ${opts.orderId}`);
+        return;
+      }
+      // Expo returns HTTP 200 even when the ticket itself errored (e.g. Android
+      // FCM not configured → "MismatchSenderId", or "DeviceNotRegistered").
+      // Surface that here so misconfigured push doesn't fail silently.
+      const json = (await res.json().catch(() => null)) as
+        | { data?: { status?: string; message?: string; details?: { error?: string } } }
+        | null;
+      const ticket = json?.data;
+      if (ticket?.status === "error") {
+        this.logger.error(
+          `Expo push ticket error for order ${opts.orderId}: ${ticket.message ?? "unknown"}` +
+            (ticket.details?.error ? ` [${ticket.details.error}]` : "") +
+            ` — Android delivery needs FCM credentials (eas credentials) + google-services.json.`,
+        );
+      } else {
+        this.logger.log(`Expo push queued for order ${opts.orderId} (ticket ${ticket?.status ?? "?"})`);
       }
     } catch (err) {
       this.logger.warn(`Expo push failed for order ${opts.orderId}: ${(err as Error).message}`);
