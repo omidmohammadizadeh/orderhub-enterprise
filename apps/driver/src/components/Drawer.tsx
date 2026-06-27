@@ -49,7 +49,6 @@ export function Drawer({
   }, [open, x]);
 
   const activeCount = day?.active?.length ?? 0;
-  const deliveredCount = (day?.history ?? []).filter((j) => j.status === "DELIVERED").length;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents={open ? "auto" : "none"}>
@@ -75,7 +74,7 @@ export function Drawer({
 
         <Item label="Chat with operator" badge={chatUnread} onPress={onOpenChat} />
         <Item label="Active orders" badge={activeCount} onPress={() => onOpenOrders("active")} />
-        <Item label="Delivered" badge={deliveredCount} onPress={() => onOpenOrders("delivered")} />
+        <Item label="Delivered" onPress={() => onOpenOrders("delivered")} />
         <Item label="History" onPress={() => onOpenOrders("history")} />
         <Item label="Cash up" onPress={onOpenCashUp} />
 

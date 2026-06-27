@@ -28,6 +28,21 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Clear the launcher icon badge + dismiss delivered notifications from the tray.
+// Call when the app opens / returns to the foreground.
+export async function clearNotificationBadges() {
+  try {
+    await Notifications.setBadgeCountAsync(0);
+  } catch {
+    // ignore
+  }
+  try {
+    await Notifications.dismissAllNotificationsAsync();
+  } catch {
+    // ignore
+  }
+}
+
 export async function setupJobCategory() {
   await Notifications.setNotificationCategoryAsync(JOB_CATEGORY, [
     { identifier: "ACCEPT", buttonTitle: "Accept", options: { opensAppToForeground: true } },

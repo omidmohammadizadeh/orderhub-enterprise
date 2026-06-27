@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, AppState, View } from "react-native";
 import * as Location from "expo-location";
 import * as SecureStore from "expo-secure-store";
 
@@ -39,6 +39,7 @@ import {
 } from "@/services/location";
 import {
   attachJobResponseHandler,
+  clearNotificationBadges,
   registerForPush,
   setupJobCategory,
 } from "@/services/notifications";
@@ -88,6 +89,16 @@ export default function App() {
 
   useEffect(() => {
     configureGoogleSignIn();
+  }, []);
+
+  // Clear the app-icon badge + tray notifications on launch and whenever the
+  // app returns to the foreground.
+  useEffect(() => {
+    clearNotificationBadges();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") clearNotificationBadges();
+    });
+    return () => sub.remove();
   }, []);
 
   const refresh = useCallback(async () => {
