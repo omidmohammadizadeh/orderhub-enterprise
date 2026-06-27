@@ -10,6 +10,12 @@ import { Platform } from "react-native";
 import { registerPushToken, jobAction } from "./auth";
 
 export const JOB_CATEGORY = "new-job";
+// Android caches a channel's sound/importance at creation — changing them
+// requires a NEW channel id. Bump this whenever the channel config changes.
+export const JOB_CHANNEL = "jobs-v2";
+// Bundled via app.json → expo-notifications.sounds — the same chime the
+// dashboard plays for new orders.
+const JOB_SOUND = "new_order.wav";
 
 // Foreground display: show the banner + play a sound so the driver notices.
 Notifications.setNotificationHandler({
@@ -39,11 +45,13 @@ export async function registerForPush(): Promise<string | null> {
   if (status !== "granted") return null;
 
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("jobs", {
-      name: "New jobs",
-      importance: Notifications.AndroidImportance.MAX,
-      sound: "default",
+    await Notifications.setNotificationChannelAsync(JOB_CHANNEL, {
+      name: "New delivery jobs",
+      importance: Notifications.AndroidImportance.MAX, // heads-up pop-up
+      sound: JOB_SOUND, // custom new-order chime (res/raw)
       vibrationPattern: [0, 250, 250, 250],
+      enableVibrate: true,
+      bypassDnd: true,
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
     });
   }

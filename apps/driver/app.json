@@ -72,7 +72,14 @@
           "isAndroidForegroundServiceEnabled": true
         }
       ],
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/new_order.wav"
+          ]
+        }
+      ],
       [
         "expo-splash-screen",
         {

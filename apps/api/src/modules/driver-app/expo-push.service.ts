@@ -20,9 +20,11 @@ export class ExpoPushService {
           to: pushToken,
           title: opts.title,
           body: opts.body,
-          sound: "default",
+          // iOS plays this bundled sound; Android plays the channel's sound.
+          // Keep channelId in sync with JOB_CHANNEL in the app.
+          sound: "new_order.wav",
           priority: "high",
-          channelId: "jobs",
+          channelId: "jobs-v2",
           categoryId: "new-job",
           data: { orderId: opts.orderId },
         }),
