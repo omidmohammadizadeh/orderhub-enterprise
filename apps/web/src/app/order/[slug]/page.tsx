@@ -47,8 +47,11 @@ import {
   Info,
   Receipt,
   Hourglass,
+  Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
+import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
 import {
   ModifierSelectionModal,
 } from "@/components/pos/modifier-selection-modal";
@@ -2500,6 +2503,14 @@ type StatusPayload = {
   cancelReason?: string | null;
   estimatedReadyAt?: string | null;
   location?: { name?: string } | null;
+  destination?: { lat: number; lng: number } | null;
+  driver?: {
+    name?: string | null;
+    phone?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    lastPingAt?: string | null;
+  } | null;
 };
 
 function OrderConfirmed({
@@ -2532,7 +2543,9 @@ function OrderConfirmed({
     refetchInterval: (q) => {
       const s = (q.state.data as StatusPayload | undefined)?.status;
       const terminal = ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"];
-      return s && terminal.includes(s) ? false : 3000;
+      if (s && terminal.includes(s)) return false;
+      // Poll faster while the driver is moving so the live map keeps up.
+      return s === "OUT_FOR_DELIVERY" || s === "RIDER_ARRIVED" ? 2000 : 3000;
     },
   });
 
@@ -2715,7 +2728,9 @@ function AcceptedScreen({
             ? isDelivery
               ? "Order delivered!"
               : "Order collected!"
-            : "Your order has been accepted"}
+            : data.driver
+              ? "Your order is on the way 🛵"
+              : "Your order has been accepted"}
         </h1>
         <p className="text-sm text-zinc-500 mb-6">
           {storeName} is on it. Track your order below — this page updates
@@ -2739,6 +2754,44 @@ function AcceptedScreen({
               })}
             </span>
           </p>
+        )}
+
+        {/* Live delivery tracking — appears the moment the driver starts the
+            job (status → out for delivery): map, call + chat, front-and-centre. */}
+        {data.driver && (
+          <div className="mb-8 space-y-4 text-left">
+            <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <div>
+                <p className="text-xs font-medium text-emerald-700">Your driver</p>
+                <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
+              </div>
+              {data.driver.phone && (
+                <a
+                  href={`tel:${data.driver.phone}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+                >
+                  <Phone className="h-4 w-4" /> Call
+                </a>
+              )}
+            </div>
+
+            {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
+              <DeliveryTrackingMap
+                driver={
+                  data.driver.lat != null && data.driver.lng != null
+                    ? { lat: data.driver.lat, lng: data.driver.lng }
+                    : null
+                }
+                destination={data.destination ?? null}
+              />
+            ) : (
+              <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
+                Waiting for your driver&apos;s location…
+              </p>
+            )}
+
+            <CustomerDriverChat orderId={data.id} driverName={data.driver.name} />
+          </div>
         )}
 
         {/* Vertical timeline — each step lights up as the POS marks it. */}
