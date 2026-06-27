@@ -151,3 +151,31 @@ export async function reassignOrder(orderId: string, driverId: string): Promise<
   await unassignOrder(orderId);
   await assignOrders(driverId, [orderId]);
 }
+
+// ── Operator ↔ driver chat ────────────────────────────────────────────────────
+export interface ChatMessageDto {
+  id: string;
+  senderType: "OPERATOR" | "DRIVER" | "CUSTOMER";
+  senderName: string | null;
+  body: string;
+  createdAt: string;
+}
+export interface ChatThread {
+  driverId: string;
+  name: string;
+  status: DriverPresenceStatus;
+  lastBody: string | null;
+  lastAt: string | null;
+  unread: number;
+}
+export async function getChatThreads(): Promise<ChatThread[]> {
+  const res = await apiClient.get<ChatThread[]>("/v1/chat/threads");
+  return res.data;
+}
+export async function getDriverChat(driverId: string): Promise<ChatMessageDto[]> {
+  const res = await apiClient.get<{ messages: ChatMessageDto[] }>(`/v1/chat/driver/${driverId}`);
+  return res.data.messages;
+}
+export async function sendDriverChat(driverId: string, body: string): Promise<void> {
+  await apiClient.post(`/v1/chat/driver/${driverId}`, { body });
+}

@@ -888,6 +888,23 @@ export class OrderingService {
         cancelReason: true,
         total: true,
         location: { select: { name: true } },
+        // Phase AX-4 — live delivery tracking: destination + the assigned
+        // driver's name/phone and last known GPS so the customer can watch
+        // the driver approach, call them, or chat.
+        deliveryLat: true,
+        deliveryLng: true,
+        driverAssignment: {
+          select: {
+            status: true,
+            driver: {
+              select: {
+                firstName: true,
+                phone: true,
+                presence: { select: { lat: true, lng: true, lastPingAt: true, status: true } },
+              },
+            },
+          },
+        },
         // Phase AR — surfaced so the standalone tracking page can
         // drive the "Order again" hand-off without an extra fetch.
         items: {
@@ -904,7 +921,32 @@ export class OrderingService {
       },
     });
     if (!order) throw new NotFoundException("Order not found");
-    return order;
+
+    // Shape a compact tracking summary; only expose the driver while the order
+    // is actually out for delivery (not before pickup or after completion).
+    const a = order.driverAssignment;
+    const live = order.status === "OUT_FOR_DELIVERY" || order.status === "RIDER_ARRIVED";
+    const driver =
+      live && a?.driver
+        ? {
+            name: a.driver.firstName,
+            phone: a.driver.phone,
+            lat: a.driver.presence?.lat ?? null,
+            lng: a.driver.presence?.lng ?? null,
+            lastPingAt: a.driver.presence?.lastPingAt
+              ? a.driver.presence.lastPingAt.toISOString()
+              : null,
+          }
+        : null;
+    const { driverAssignment: _ignored, ...rest } = order;
+    return {
+      ...rest,
+      destination:
+        order.deliveryLat != null && order.deliveryLng != null
+          ? { lat: order.deliveryLat, lng: order.deliveryLng }
+          : null,
+      driver,
+    };
   }
 
   /**

@@ -12,8 +12,9 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { Job, JobActionType, jobAction } from "@/services/auth";
+import { Job, JobActionType, jobAction, getCustomerChat, sendCustomerChat } from "@/services/auth";
 import { SlideToConfirm } from "@/components/SlideToConfirm";
+import { ChatScreen } from "@/screens/ChatScreen";
 import type { LatLng } from "../../App";
 
 // Deadline colours match the dispatch console house pins.
@@ -55,6 +56,7 @@ export function JobScreen({
   const [local, setLocal] = useState<Job>(job);
   const [submitting, setSubmitting] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [, tick] = useState(0); // re-render so the deadline pill counts down
   const mapRef = useRef<MapView | null>(null);
 
@@ -339,6 +341,15 @@ export function JobScreen({
             >
               <Text style={styles.sheetRowText}>Navigate</Text>
             </Pressable>
+            <Pressable
+              style={styles.sheetRow}
+              onPress={() => {
+                setOptionsOpen(false);
+                setChatOpen(true);
+              }}
+            >
+              <Text style={styles.sheetRowText}>Message customer</Text>
+            </Pressable>
             <Pressable style={styles.sheetRow} onPress={confirmSkip}>
               <Text style={[styles.sheetRowText, { color: "#b45309" }]}>Skip (no answer)</Text>
             </Pressable>
@@ -350,6 +361,18 @@ export function JobScreen({
             </Pressable>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Customer chat */}
+      <Modal visible={chatOpen} animationType="slide" onRequestClose={() => setChatOpen(false)}>
+        <ChatScreen
+          title={o.customerName ?? "Customer"}
+          subtitle={orderRef}
+          mine="DRIVER"
+          load={() => getCustomerChat(o.id)}
+          send={(text) => sendCustomerChat(o.id, text)}
+          onBack={() => setChatOpen(false)}
+        />
       </Modal>
     </View>
   );

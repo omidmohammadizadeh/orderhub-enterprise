@@ -21,6 +21,7 @@ import {
   type OperatorDriverRow,
   type OperatorOrderRow,
 } from "@/lib/api/dispatch.client";
+import { DispatchChatWidget } from "@/components/dispatch/chat-widget";
 
 // Phase AX-3b — Operator Dashboard. Live delivery ops: analytics, overdue
 // attention, out-for-delivery, per-driver active jobs + cash-up, reassignment,
@@ -181,6 +182,9 @@ export default function OperatorDashboardPage() {
           </div>
         )}
       </Section>
+
+      {/* Floating driver chat */}
+      <DispatchChatWidget />
     </div>
   );
 }

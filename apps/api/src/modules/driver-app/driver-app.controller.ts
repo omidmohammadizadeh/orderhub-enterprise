@@ -83,6 +83,43 @@ export class DriverAppController {
     return this.driverApp.registerPushToken(user, body.token);
   }
 
+  // ── Chat ─────────────────────────────────────────────────────────────────
+  @Get("chat")
+  @ApiOperation({ summary: "Conversation with the operator (marks read)" })
+  operatorChat(@CurrentUser() user: AuthenticatedUser) {
+    return this.driverApp.operatorChat(user);
+  }
+
+  @Get("chat/unread")
+  @ApiOperation({ summary: "Unread message count from the operator (menu badge)" })
+  operatorChatUnread(@CurrentUser() user: AuthenticatedUser) {
+    return this.driverApp.operatorChatUnread(user);
+  }
+
+  @Post("chat")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Send a message to the operator" })
+  sendOperatorChat(@CurrentUser() user: AuthenticatedUser, @Body() body: { body: string }) {
+    return this.driverApp.sendOperatorChat(user, body.body);
+  }
+
+  @Get("orders/:orderId/chat")
+  @ApiOperation({ summary: "Conversation with the customer for one of my orders (marks read)" })
+  customerChat(@CurrentUser() user: AuthenticatedUser, @Param("orderId") orderId: string) {
+    return this.driverApp.customerChat(user, orderId);
+  }
+
+  @Post("orders/:orderId/chat")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Send a message to the customer for one of my orders" })
+  sendCustomerChat(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("orderId") orderId: string,
+    @Body() body: { body: string },
+  ) {
+    return this.driverApp.sendCustomerChat(user, orderId, body.body);
+  }
+
   @Post("jobs/:orderId/:action")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

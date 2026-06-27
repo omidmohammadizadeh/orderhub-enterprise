@@ -2256,6 +2256,31 @@ model DeliveryTracking {
   @@map("delivery_tracking")
 }
 
+// Phase AX-4 — dispatch chat. Two channels share one table:
+//   • DRIVER_OPERATOR — keyed by (tenantId, driverId): operator ↔ driver.
+//   • CUSTOMER_DRIVER — keyed by orderId: the online-ordering customer ↔ driver.
+// Realtime is polling-based (matches the storefront tracker), so no socket auth
+// is needed on the driver app or the public customer page.
+model ChatMessage {
+  id         String  @id @default(cuid())
+  tenantId   String
+  channel    String // DRIVER_OPERATOR | CUSTOMER_DRIVER
+  driverId   String?
+  orderId    String?
+  senderType String // OPERATOR | DRIVER | CUSTOMER
+  senderName String?
+  body       String
+
+  createdAt        DateTime  @default(now())
+  readByOperatorAt DateTime?
+  readByDriverAt   DateTime?
+  readByCustomerAt DateTime?
+
+  @@index([tenantId, driverId, createdAt])
+  @@index([orderId, createdAt])
+  @@map("chat_messages")
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — PAYMENT & FINANCIAL SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════

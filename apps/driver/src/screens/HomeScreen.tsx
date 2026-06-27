@@ -34,6 +34,8 @@ export function HomeScreen({
   onOpenProfile,
   onOpenOrders,
   onOpenCashUp,
+  onOpenChat,
+  chatUnread,
 }: {
   me: DriverProfile | null;
   day: MyDay | null;
@@ -47,6 +49,8 @@ export function HomeScreen({
   onOpenProfile: () => void;
   onOpenOrders: (tab: "active" | "delivered" | "history") => void;
   onOpenCashUp: () => void;
+  onOpenChat: () => void;
+  chatUnread?: number;
 }) {
   const [drawer, setDrawer] = useState(false);
   const mapRef = useRef<MapView | null>(null);
@@ -111,7 +115,12 @@ export function HomeScreen({
         onClose={() => setDrawer(false)}
         me={me}
         day={day}
+        chatUnread={chatUnread}
         onSignOut={onSignOut}
+        onOpenChat={() => {
+          setDrawer(false);
+          onOpenChat();
+        }}
         onOpenProfile={() => {
           setDrawer(false);
           onOpenProfile();

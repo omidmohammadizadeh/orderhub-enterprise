@@ -20,18 +20,22 @@ export function Drawer({
   onClose,
   me,
   day,
+  chatUnread,
   onOpenOrders,
   onOpenCashUp,
   onOpenProfile,
+  onOpenChat,
   onSignOut,
 }: {
   open: boolean;
   onClose: () => void;
   me: DriverProfile | null;
   day: MyDay | null;
+  chatUnread?: number;
   onOpenOrders: (tab: OrdersTab) => void;
   onOpenCashUp: () => void;
   onOpenProfile: () => void;
+  onOpenChat: () => void;
   onSignOut: () => void;
 }) {
   const x = useRef(new Animated.Value(-PANEL_W)).current;
@@ -69,6 +73,7 @@ export function Drawer({
           </Text>
         </View>
 
+        <Item label="Chat with operator" badge={chatUnread} onPress={onOpenChat} />
         <Item label="Active orders" badge={activeCount} onPress={() => onOpenOrders("active")} />
         <Item label="Delivered" badge={deliveredCount} onPress={() => onOpenOrders("delivered")} />
         <Item label="History" onPress={() => onOpenOrders("history")} />

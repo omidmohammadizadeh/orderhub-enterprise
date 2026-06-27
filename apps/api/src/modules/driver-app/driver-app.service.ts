@@ -11,6 +11,7 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
+import { ChatService } from "../chat/chat.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -47,7 +48,50 @@ export class DriverAppService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hubriseSync: HubRiseOrderSyncService,
+    private readonly chat: ChatService,
   ) {}
+
+  // ── Chat ────────────────────────────────────────────────────────────────────
+  /** Driver ↔ operator conversation (marks operator messages read). */
+  async operatorChat(user: AuthenticatedUser) {
+    const driver = await this.resolveDriver(user);
+    const messages = await this.chat.driverThread(user.tenantId, driver.id);
+    await this.chat.readDriverThread(user.tenantId, driver.id, "DRIVER");
+    const unread = 0;
+    return { messages, unread };
+  }
+  async sendOperatorChat(user: AuthenticatedUser, body: string) {
+    const driver = await this.resolveDriver(user);
+    const name = `${driver.firstName} ${driver.lastName}`.trim();
+    return this.chat.postDriverOperator(user.tenantId, driver.id, "DRIVER", body, name);
+  }
+  async operatorChatUnread(user: AuthenticatedUser) {
+    const driver = await this.resolveDriver(user);
+    return { unread: await this.chat.driverUnread(user.tenantId, driver.id) };
+  }
+
+  /** Driver ↔ customer conversation for one of the driver's orders. */
+  async customerChat(user: AuthenticatedUser, orderId: string) {
+    const driver = await this.resolveDriver(user);
+    const assignment = await this.prisma.driverAssignment.findFirst({
+      where: { orderId, driverId: driver.id },
+      select: { id: true },
+    });
+    if (!assignment) throw new NotFoundException("No assignment for this order");
+    const messages = await this.chat.customerThread(orderId);
+    await this.chat.readCustomerThread(orderId, "DRIVER");
+    return { messages };
+  }
+  async sendCustomerChat(user: AuthenticatedUser, orderId: string, body: string) {
+    const driver = await this.resolveDriver(user);
+    const assignment = await this.prisma.driverAssignment.findFirst({
+      where: { orderId, driverId: driver.id },
+      select: { id: true },
+    });
+    if (!assignment) throw new NotFoundException("No assignment for this order");
+    const name = `${driver.firstName}`.trim() || "Driver";
+    return this.chat.postCustomerDriver(orderId, "DRIVER", body, name);
+  }
 
   // Driver action → the OrderStatus we push back to HubRise. pushStatus itself
   // no-ops for non-HubRise orders and for statuses HubRise doesn't model

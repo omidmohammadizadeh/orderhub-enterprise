@@ -23,7 +23,10 @@ import {
   XCircle,
   ChevronLeft,
   ShoppingBag,
+  Phone,
 } from "lucide-react";
+import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
+import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -46,6 +49,14 @@ interface StatusPayload {
   estimatedReadyAt?: string | null;
   total?: number | null;
   location?: { name?: string | null } | null;
+  destination?: { lat: number; lng: number } | null;
+  driver?: {
+    name?: string | null;
+    phone?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    lastPingAt?: string | null;
+  } | null;
   items?: Array<{
     id: string;
     menuItemId?: string | null;
@@ -227,6 +238,45 @@ export default function OrderStatusPage() {
                   );
                 })}
               </ol>
+            )}
+
+            {/* Live delivery tracking — driver map, call + chat */}
+            {!isCancelled && data.driver && (
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3">
+                  <div>
+                    <p className="text-xs text-zinc-500">Your driver</p>
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {data.driver.name ?? "On the way"}
+                    </p>
+                  </div>
+                  {data.driver.phone && (
+                    <a
+                      href={`tel:${data.driver.phone}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+                    >
+                      <Phone className="h-4 w-4" /> Call
+                    </a>
+                  )}
+                </div>
+
+                {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
+                  <DeliveryTrackingMap
+                    driver={
+                      data.driver.lat != null && data.driver.lng != null
+                        ? { lat: data.driver.lat, lng: data.driver.lng }
+                        : null
+                    }
+                    destination={data.destination ?? null}
+                  />
+                ) : (
+                  <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
+                    Waiting for your driver&apos;s location…
+                  </p>
+                )}
+
+                <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
+              </div>
             )}
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-2">

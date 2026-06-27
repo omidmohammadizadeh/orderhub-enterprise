@@ -23,7 +23,11 @@ import {
   goOffline,
   goOnline,
   sendPing,
+  getOperatorChat,
+  sendOperatorChat,
+  getOperatorChatUnread,
 } from "@/services/auth";
+import { ChatScreen } from "@/screens/ChatScreen";
 import { configureGoogleSignIn } from "@/services/google";
 import {
   pingNow,
@@ -53,7 +57,8 @@ export default function App() {
   const [busy, setBusy] = useState(false);
 
   // Navigation overlays (opened from the drawer menu).
-  const [overlay, setOverlay] = useState<null | "profile" | "cashup">(null);
+  const [overlay, setOverlay] = useState<null | "profile" | "cashup" | "chat">(null);
+  const [chatUnread, setChatUnread] = useState(0);
   const [ordersTab, setOrdersTab] = useState<OrdersTab | null>(null);
   const [manualJob, setManualJob] = useState<Job | null>(null); // opened from a list
   const [minimized, setMinimized] = useState(false); // peek the map while a job is ASSIGNED (not started)
@@ -76,6 +81,11 @@ export default function App() {
       setDay(d);
     } catch {
       // transient — keep showing what we have
+    }
+    try {
+      setChatUnread(await getOperatorChatUnread());
+    } catch {
+      // ignore
     }
   }, []);
 
@@ -230,6 +240,22 @@ export default function App() {
       );
     }
     if (overlay === "cashup") return <CashUpScreen onBack={() => setOverlay(null)} />;
+    if (overlay === "chat") {
+      return (
+        <ChatScreen
+          title="Operator"
+          subtitle="Dispatch chat"
+          mine="DRIVER"
+          load={getOperatorChat}
+          send={sendOperatorChat}
+          onBack={() => {
+            setOverlay(null);
+            setChatUnread(0);
+            refresh();
+          }}
+        />
+      );
+    }
     if (ordersTab) {
       return (
         <OrdersScreen
@@ -277,6 +303,8 @@ export default function App() {
         onOpenProfile={() => setOverlay("profile")}
         onOpenOrders={(t) => setOrdersTab(t)}
         onOpenCashUp={() => setOverlay("cashup")}
+        onOpenChat={() => setOverlay("chat")}
+        chatUnread={chatUnread}
       />
     );
   }

@@ -45,6 +45,7 @@ import { HubRiseModule } from "./modules/integrations/hubrise/hubrise.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { DriverAppModule } from "./modules/driver-app/driver-app.module";
+import { ChatModule } from "./modules/chat/chat.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { KdsModule } from "./modules/kds/kds.module";
 import { PrintersModule } from "./modules/printers/printers.module";
@@ -180,6 +181,7 @@ import { QUEUES } from "@orderhub/shared";
     WebhooksModule,
     DispatchModule,
     DriverAppModule,
+    ChatModule,
     AnalyticsModule,
     KdsModule,
     PrintersModule,

@@ -279,6 +279,33 @@ export async function jobAction(orderId: string, action: JobActionType) {
   await api.post(`/v1/driver/jobs/${orderId}/${action}`);
 }
 
+// ── Chat ─────────────────────────────────────────────────────────────────────
+export interface ChatMessage {
+  id: string;
+  senderType: "OPERATOR" | "DRIVER" | "CUSTOMER";
+  senderName: string | null;
+  body: string;
+  createdAt: string;
+}
+export async function getOperatorChat() {
+  const res = await api.get<{ messages: ChatMessage[] }>("/v1/driver/chat");
+  return res.data.messages;
+}
+export async function sendOperatorChat(body: string) {
+  await api.post("/v1/driver/chat", { body });
+}
+export async function getOperatorChatUnread() {
+  const res = await api.get<{ unread: number }>("/v1/driver/chat/unread");
+  return res.data.unread;
+}
+export async function getCustomerChat(orderId: string) {
+  const res = await api.get<{ messages: ChatMessage[] }>(`/v1/driver/orders/${orderId}/chat`);
+  return res.data.messages;
+}
+export async function sendCustomerChat(orderId: string, body: string) {
+  await api.post(`/v1/driver/orders/${orderId}/chat`, { body });
+}
+
 // ── Account (mirrors the web dashboard) ──────────────────────────────────────
 export async function changePassword(newPassword: string, currentPassword?: string) {
   await api.post("/v1/auth/change-password", { newPassword, currentPassword });
