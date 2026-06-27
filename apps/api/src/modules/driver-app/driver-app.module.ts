@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { DriverAppController } from "./driver-app.controller";
 import { DriverAppService } from "./driver-app.service";
-import { ExpoPushService } from "./expo-push.service";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { ChatModule } from "../chat/chat.module";
 
@@ -9,9 +8,10 @@ import { ChatModule } from "../chat/chat.module";
   // HubRiseModule provides HubRiseOrderSyncService so driver-driven status
   // transitions (out-for-delivery / delivered / failed) propagate back to
   // HubRise. ChatModule provides ChatService for operator + customer chat.
+  // ExpoPushService now comes from the global ExpoPushModule.
   imports: [HubRiseModule, ChatModule],
   controllers: [DriverAppController],
-  providers: [DriverAppService, ExpoPushService],
-  exports: [DriverAppService, ExpoPushService],
+  providers: [DriverAppService],
+  exports: [DriverAppService],
 })
 export class DriverAppModule {}

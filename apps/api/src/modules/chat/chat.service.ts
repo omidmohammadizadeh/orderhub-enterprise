@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { ExpoPushService } from "../driver-app/expo-push.service";
 
 export type ChatSender = "OPERATOR" | "DRIVER" | "CUSTOMER";
 
@@ -35,7 +36,28 @@ function toDto(m: RawMessage): ChatMessageDto {
 // Realtime is polling-based; these methods just read/write + track read state.
 @Injectable()
 export class ChatService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly expoPush: ExpoPushService,
+  ) {}
+
+  /** Best-effort push to a driver's device for a new chat message. */
+  private async pushToDriver(
+    driverId: string,
+    title: string,
+    body: string,
+    data: Record<string, unknown>,
+  ) {
+    const presence = await this.prisma.driverPresence.findUnique({
+      where: { driverId },
+      select: { pushToken: true },
+    });
+    await this.expoPush.sendMessage(presence?.pushToken, {
+      title,
+      body: body.length > 140 ? `${body.slice(0, 140)}…` : body,
+      data,
+    });
+  }
 
   // ── Operator ↔ Driver ───────────────────────────────────────────────────────
   async driverThread(tenantId: string, driverId: string): Promise<ChatMessageDto[]> {
@@ -57,6 +79,10 @@ export class ChatService {
     const row = await this.prisma.chatMessage.create({
       data: { tenantId, driverId, channel: "DRIVER_OPERATOR", senderType, senderName, body },
     });
+    // Notify the driver's device when the operator messages them.
+    if (senderType === "OPERATOR") {
+      await this.pushToDriver(driverId, "Dispatch", body, { channel: "DRIVER_OPERATOR" });
+    }
     return toDto(row);
   }
 
@@ -146,20 +172,35 @@ export class ChatService {
   ): Promise<ChatMessageDto> {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, tenantId: true, driverAssignment: { select: { driverId: true } } },
+      select: {
+        id: true,
+        tenantId: true,
+        displayId: true,
+        orderNumber: true,
+        driverAssignment: { select: { driverId: true } },
+      },
     });
     if (!order) throw new NotFoundException("Order not found");
+    const driverId = order.driverAssignment?.driverId ?? null;
     const row = await this.prisma.chatMessage.create({
       data: {
         tenantId: order.tenantId,
         orderId,
-        driverId: order.driverAssignment?.driverId ?? null,
+        driverId,
         channel: "CUSTOMER_DRIVER",
         senderType,
         senderName,
         body,
       },
     });
+    // Notify the driver's device when the customer messages them.
+    if (senderType === "CUSTOMER" && driverId) {
+      const ref = `#${order.displayId ?? order.orderNumber ?? order.id.slice(-5)}`;
+      await this.pushToDriver(driverId, `Customer · ${ref}`, body, {
+        channel: "CUSTOMER_DRIVER",
+        orderId: order.id,
+      });
+    }
     return toDto(row);
   }
 

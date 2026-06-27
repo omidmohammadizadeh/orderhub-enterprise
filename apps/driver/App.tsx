@@ -26,6 +26,8 @@ import {
   getOperatorChat,
   sendOperatorChat,
   getOperatorChatUnread,
+  getCustomerChat,
+  sendCustomerChat,
 } from "@/services/auth";
 import { ChatScreen } from "@/screens/ChatScreen";
 import { configureGoogleSignIn } from "@/services/google";
@@ -59,6 +61,7 @@ export default function App() {
   // Navigation overlays (opened from the drawer menu).
   const [overlay, setOverlay] = useState<null | "profile" | "cashup" | "chat">(null);
   const [chatUnread, setChatUnread] = useState(0);
+  const [customerChatOrderId, setCustomerChatOrderId] = useState<string | null>(null);
   const [ordersTab, setOrdersTab] = useState<OrdersTab | null>(null);
   const [manualJob, setManualJob] = useState<Job | null>(null); // opened from a list
   const [minimized, setMinimized] = useState(false); // peek the map while a job is ASSIGNED (not started)
@@ -106,7 +109,16 @@ export default function App() {
     if (!tokens) return;
     setupJobCategory();
     registerForPush();
-    const detach = attachJobResponseHandler(() => refresh());
+    const detach = attachJobResponseHandler({
+      onJobAccepted: () => refresh(),
+      onOpenChat: (info) => {
+        if (info.channel === "CUSTOMER_DRIVER" && info.orderId) {
+          setCustomerChatOrderId(info.orderId);
+        } else {
+          setOverlay("chat");
+        }
+      },
+    });
     return detach;
   }, [tokens, refresh]);
 
@@ -213,6 +225,21 @@ export default function App() {
 
   function renderBody() {
     if (!tokens) return <LoginScreen onSignedIn={(t) => setTokens(t)} />;
+
+    // Customer chat opened from a push tap.
+    if (customerChatOrderId) {
+      return (
+        <ChatScreen
+          key={`cust-${customerChatOrderId}`}
+          title="Customer"
+          subtitle="Delivery chat"
+          mine="DRIVER"
+          load={() => getCustomerChat(customerChatOrderId)}
+          send={(t) => sendCustomerChat(customerChatOrderId, t)}
+          onBack={() => setCustomerChatOrderId(null)}
+        />
+      );
+    }
 
     // A job opened explicitly from a list (active/history) — read/act, then back.
     if (manualJob) {

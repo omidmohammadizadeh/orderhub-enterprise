@@ -1,56 +1,81 @@
 import { Injectable, Logger } from "@nestjs/common";
 
 // Sends push notifications to the Order Hub Driver app via Expo's push service.
-// The "new-job" category + "jobs" channel make the alert render Accept / Reject
-// action buttons on the device, even when the app is closed.
+// Android delivery requires FCM credentials (eas credentials) + google-services.json.
 @Injectable()
 export class ExpoPushService {
   private readonly logger = new Logger(ExpoPushService.name);
 
+  /** New-job alert with Accept/Reject actions + the new-order chime. */
   async sendNewJob(
     pushToken: string | null | undefined,
     opts: { orderId: string; title: string; body: string },
+  ): Promise<void> {
+    await this.post(
+      pushToken,
+      {
+        title: opts.title,
+        body: opts.body,
+        // iOS plays this bundled sound; Android plays the channel's sound.
+        sound: "new_order.wav",
+        channelId: "jobs-v2",
+        categoryId: "new-job",
+        data: { orderId: opts.orderId },
+      },
+      `order ${opts.orderId}`,
+    );
+  }
+
+  /** Chat message alert (operator → driver, or customer → driver). */
+  async sendMessage(
+    pushToken: string | null | undefined,
+    opts: { title: string; body: string; data?: Record<string, unknown> },
+  ): Promise<void> {
+    await this.post(
+      pushToken,
+      {
+        title: opts.title,
+        body: opts.body,
+        sound: "default",
+        channelId: "messages",
+        data: { type: "chat", ...(opts.data ?? {}) },
+      },
+      "chat message",
+    );
+  }
+
+  private async post(
+    pushToken: string | null | undefined,
+    payload: Record<string, unknown>,
+    label: string,
   ): Promise<void> {
     if (!pushToken) return;
     try {
       const res = await fetch("https://exp.host/--/api/v2/push/send", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          to: pushToken,
-          title: opts.title,
-          body: opts.body,
-          // iOS plays this bundled sound; Android plays the channel's sound.
-          // Keep channelId in sync with JOB_CHANNEL in the app.
-          sound: "new_order.wav",
-          priority: "high",
-          channelId: "jobs-v2",
-          categoryId: "new-job",
-          data: { orderId: opts.orderId },
-        }),
+        body: JSON.stringify({ to: pushToken, priority: "high", ...payload }),
       });
       if (!res.ok) {
-        this.logger.warn(`Expo push HTTP ${res.status} for order ${opts.orderId}`);
+        this.logger.warn(`Expo push HTTP ${res.status} for ${label}`);
         return;
       }
-      // Expo returns HTTP 200 even when the ticket itself errored (e.g. Android
-      // FCM not configured → "MismatchSenderId", or "DeviceNotRegistered").
-      // Surface that here so misconfigured push doesn't fail silently.
+      // Expo returns HTTP 200 even when the ticket errored (e.g. Android FCM not
+      // configured → "MismatchSenderId", or "DeviceNotRegistered").
       const json = (await res.json().catch(() => null)) as
         | { data?: { status?: string; message?: string; details?: { error?: string } } }
         | null;
       const ticket = json?.data;
       if (ticket?.status === "error") {
         this.logger.error(
-          `Expo push ticket error for order ${opts.orderId}: ${ticket.message ?? "unknown"}` +
-            (ticket.details?.error ? ` [${ticket.details.error}]` : "") +
-            ` — Android delivery needs FCM credentials (eas credentials) + google-services.json.`,
+          `Expo push ticket error for ${label}: ${ticket.message ?? "unknown"}` +
+            (ticket.details?.error ? ` [${ticket.details.error}]` : ""),
         );
       } else {
-        this.logger.log(`Expo push queued for order ${opts.orderId} (ticket ${ticket?.status ?? "?"})`);
+        this.logger.log(`Expo push queued for ${label} (ticket ${ticket?.status ?? "?"})`);
       }
     } catch (err) {
-      this.logger.warn(`Expo push failed for order ${opts.orderId}: ${(err as Error).message}`);
+      this.logger.warn(`Expo push failed for ${label}: ${(err as Error).message}`);
     }
   }
 }
