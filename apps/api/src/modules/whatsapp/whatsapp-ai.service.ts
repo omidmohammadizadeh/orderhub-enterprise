@@ -1020,13 +1020,19 @@ export class WhatsAppAiService {
     const optionIds: string[] = Array.isArray(input.modifierOptionIds)
       ? input.modifierOptionIds.map(String)
       : [];
+    // Validate options against THIS item's own groups (options are shared
+    // across items, so the global option index can point at another item).
+    const itemOptions = new Map<string, { name: string; price: number }>();
+    for (const g of item.modifierGroups) {
+      for (const o of g.options) itemOptions.set(o.id, { name: o.name, price: o.price });
+    }
     const modifiers = [];
     for (const oid of optionIds) {
-      const entry = ctx.optionIndex.get(oid);
-      if (!entry || entry.itemId !== item.id) {
+      const opt = itemOptions.get(oid);
+      if (!opt) {
         return `Option ${oid} isn't valid for ${item.name}. Choose from its listed options.`;
       }
-      modifiers.push({ optionId: oid, name: entry.option.name, price: entry.option.price });
+      modifiers.push({ optionId: oid, name: opt.name, price: opt.price });
     }
 
     // Enforce required modifier groups so we never stage an invalid line.
