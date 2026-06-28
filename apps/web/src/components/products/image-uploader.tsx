@@ -19,6 +19,7 @@ import Image from "next/image";
 import { ImagePlus, Link as LinkIcon, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { uploadsClient } from "@/lib/api/catalog.client";
 
 interface Props {
   value: string | null;
@@ -57,8 +58,16 @@ export function ImageUploader({
     setBusy(true);
     setError(null);
     try {
-      const resized = await resizeToTarget(file, targetWidth, targetHeight);
-      onChange(resized);
+      // Resize/crop client-side, then upload to Supabase Storage via the API
+      // and save the public https URL. If storage isn't configured (or the
+      // upload fails), fall back to the data URL so the form still works.
+      const dataUrl = await resizeToTarget(file, targetWidth, targetHeight);
+      try {
+        const { publicUrl } = await uploadsClient.uploadProductImage({ dataUrl });
+        onChange(publicUrl);
+      } catch {
+        onChange(dataUrl);
+      }
     } catch (err: any) {
       setError(err.message ?? "Could not process image");
     } finally {

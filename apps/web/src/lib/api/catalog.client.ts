@@ -288,19 +288,16 @@ export const upsellGroupsClient = {
     apiClient.delete(`/v1/upsell-groups/${id}`).then((r) => r.data),
 };
 
-// ── Image upload (Phase AL — Supabase Storage signed URLs) ─────────────────
+// ── Image upload (Phase AL — Supabase Storage) ─────────────────────────────
 export const uploadsClient = {
   /**
-   * Asks the API for a signed upload URL pointing to the Supabase
-   * Storage bucket. The client then PUTs the file to that URL directly —
-   * no proxying through Render. Returns the public URL to save on the
-   * product/modifier row.
+   * Sends a resized image (data URL) to the API, which stores it in the
+   * Supabase Storage bucket and returns the public https URL to save on the
+   * product/modifier row. The uploader falls back to the data URL if this
+   * fails (e.g. storage not configured yet).
    */
-  signProductImage: (data: { fileName: string; contentType: string }) =>
+  uploadProductImage: (data: { dataUrl: string; folder?: string }) =>
     apiClient
-      .post<{ uploadUrl: string; publicUrl: string; path: string; token: string }>(
-        `/v1/uploads/product-image/sign`,
-        data,
-      )
+      .post<{ publicUrl: string }>(`/v1/uploads/product-image`, data)
       .then((r) => r.data),
 };
