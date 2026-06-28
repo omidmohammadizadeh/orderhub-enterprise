@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
+import type { CanonicalOrder } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { OrdersService } from "../orders/orders.service";
+import { PaymentsService } from "../payments/payments.service";
 import { WhatsAppMenuService, WaMenuContext } from "./whatsapp-menu.service";
 import { WhatsAppSendService } from "./whatsapp-send.service";
 import {
@@ -12,6 +15,8 @@ import {
   cartItemCount,
   cartSubtotal,
   summarizeCart,
+  lineUnitPrice,
+  lineTotal,
 } from "./whatsapp-cart";
 
 // Phase AY (P2) — the AI conversation engine. Maps free-text WhatsApp messages
@@ -79,6 +84,16 @@ const MENU_CMDS = new Set([
   "i want to order",
   "start order",
 ]);
+const CHECKOUT_CMDS = new Set([
+  "checkout",
+  "pay",
+  "pay now",
+  "place order",
+  "place my order",
+  "order now",
+  "confirm order",
+  "confirm",
+]);
 // Greetings open with the menu too — but the model often just says "tap below"
 // without actually sending the list, so we send it deterministically.
 const GREETING_CMDS = new Set([
@@ -111,6 +126,8 @@ export class WhatsAppAiService {
     private readonly prisma: PrismaService,
     private readonly menu: WhatsAppMenuService,
     private readonly send: WhatsAppSendService,
+    private readonly orders: OrdersService,
+    private readonly payments: PaymentsService,
   ) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -260,6 +277,12 @@ export class WhatsAppAiService {
       cart.pending = undefined;
       await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Pick a category.");
       await this.persistTurn(convo.id, history, text, "[Showed the menu]", cart, profileName, convo.customerName);
+      return;
+    }
+
+    // ── Checkout (card-only) → create the order + send a Stripe pay link ──
+    if (text === "checkout" || CHECKOUT_CMDS.has(cmd)) {
+      await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName);
       return;
     }
     // Category tapped → show that category's items.
@@ -828,6 +851,118 @@ export class WhatsAppAiService {
       }
     }
     return data;
+  }
+
+  // ── Checkout: create the order + Stripe payment link (card only) ─────────
+  private returnUrl(): string {
+    return this.config.get<string>("WHATSAPP_PAY_RETURN_URL") || "https://www.orderhubsolutions.com";
+  }
+
+  private async handleCheckout(
+    phoneNumberId: string,
+    from: string,
+    convo: { id: string; customerName: string | null },
+    cart: WaCart,
+    ctx: WaMenuContext,
+    profileName?: string,
+  ): Promise<void> {
+    if (cart.items.length === 0) {
+      await this.send.sendText(phoneNumberId, from, "Your cart's empty 🛒 Reply *menu* to start an order.");
+      return;
+    }
+    if (cart.fulfillmentType === "DELIVERY" && !cart.deliveryAddress?.line1) {
+      await this.send.sendText(phoneNumberId, from, "I still need your delivery address — reply *start over* and choose Delivery.");
+      return;
+    }
+
+    // 1) Create the order via the canonical pipeline (card, unpaid → hidden
+    //    until Stripe authorises, then it auto-accepts into the kitchen).
+    let order: { id: string; displayId?: string | null };
+    try {
+      order = await this.orders.ingestCanonical(
+        this.cartToCanonical(cart, from, convo.customerName ?? profileName),
+        ctx.tenantId,
+        ctx.locationId,
+      );
+    } catch (err: any) {
+      this.logger.error(`WhatsApp order create failed: ${err?.message ?? err}`);
+      await this.send.sendText(phoneNumberId, from, "Sorry, something went wrong placing your order. Please try again.");
+      return;
+    }
+
+    // 2) Stripe payment link (card / Apple Pay / Google Pay).
+    let url: string;
+    try {
+      const res = await this.payments.createCheckoutSession({
+        tenantId: ctx.tenantId,
+        orderId: order.id,
+        successUrl: this.returnUrl(),
+        cancelUrl: this.returnUrl(),
+      });
+      url = res.url;
+    } catch (err: any) {
+      this.logger.error(`WhatsApp checkout session failed (location ${ctx.locationId}): ${err?.message ?? err}`);
+      await this.send.sendText(
+        phoneNumberId,
+        from,
+        "Sorry — card payment isn't set up for this location yet. Please contact the restaurant.",
+      );
+      return;
+    }
+
+    await this.prisma.whatsAppConversation.update({
+      where: { id: convo.id },
+      data: { lastOrderId: order.id, state: "AWAITING_PAYMENT", cart: cart as any, lastOutboundAt: new Date() },
+    });
+
+    const total = cartSubtotal(cart);
+    const fulfil = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
+    await this.send.sendText(
+      phoneNumberId,
+      from,
+      `✅ Order received!\n\n${summarizeCart(cart)}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
+    );
+  }
+
+  /** Build a CanonicalOrder from the WhatsApp cart (card, unpaid). */
+  private cartToCanonical(cart: WaCart, waPhone: string, name?: string | null): CanonicalOrder {
+    const subtotal = cartSubtotal(cart);
+    const rnd = Math.random().toString(36).slice(2, 8);
+    return {
+      externalId: `wa_${Date.now()}_${rnd}`,
+      platform: "WHATSAPP",
+      orderSource: "WHATSAPP",
+      integrationSource: "DIRECT",
+      viaHubrise: false,
+      fulfillmentType: cart.fulfillmentType,
+      displayId: `WA-${rnd.toUpperCase()}`,
+      customerInfo: { name: name || "WhatsApp Customer", phone: waPhone },
+      deliveryAddress:
+        cart.fulfillmentType === "DELIVERY" && cart.deliveryAddress
+          ? {
+              line1: cart.deliveryAddress.line1 || "",
+              line2: cart.deliveryAddress.line2,
+              city: cart.deliveryAddress.city || "",
+              postcode: cart.deliveryAddress.postcode || "",
+              country: "GB",
+            }
+          : undefined,
+      items: cart.items.map((l) => ({
+        name: l.name,
+        quantity: l.quantity,
+        unitPrice: lineUnitPrice(l),
+        totalPrice: lineTotal(l),
+        modifiers: l.modifiers.map((m) => ({ name: m.name, price: m.price, quantity: 1 })),
+        notes: l.notes,
+      })),
+      subtotal,
+      taxAmount: 0,
+      deliveryFee: 0,
+      discount: 0,
+      total: subtotal,
+      idempotencyKey: `wa_${waPhone}_${Date.now()}`,
+      metadata: { source: "whatsapp", waPhone, paymentMethod: "CARD", paymentStatus: "PENDING" },
+    } as CanonicalOrder;
   }
 
   /** Persist cart + rolling transcript + derived state for one turn. */
