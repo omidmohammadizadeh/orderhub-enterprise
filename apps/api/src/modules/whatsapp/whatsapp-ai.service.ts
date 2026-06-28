@@ -67,8 +67,33 @@ const MENU_CMDS = new Set([
   "return to menu",
   "back to menu",
   "show menu",
+  "show me menu",
+  "show me the menu",
   "view menu",
   "see menu",
+  "browse",
+  "browse menu",
+  "order",
+  "i want to order",
+  "start order",
+]);
+// Greetings open with the menu too — but the model often just says "tap below"
+// without actually sending the list, so we send it deterministically.
+const GREETING_CMDS = new Set([
+  "hi",
+  "hii",
+  "hiya",
+  "hey",
+  "heya",
+  "hello",
+  "hello there",
+  "hi there",
+  "yo",
+  "start",
+  "get started",
+  "good morning",
+  "good afternoon",
+  "good evening",
 ]);
 
 @Injectable()
@@ -162,8 +187,11 @@ export class WhatsAppAiService {
       });
       return;
     }
-    if (MENU_CMDS.has(cmd)) {
-      await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Pick a category.");
+    if (MENU_CMDS.has(cmd) || GREETING_CMDS.has(cmd)) {
+      const body = GREETING_CMDS.has(cmd)
+        ? `Hi! 😊 Welcome to ${ctx.locationName}. Here's our menu — tap a category to start 👇`
+        : "Here's the menu 👇 Pick a category.";
+      await this.sendMenuList(phoneNumberId, from, ctx, body);
       await this.persistTurn(
         convo.id,
         history,
