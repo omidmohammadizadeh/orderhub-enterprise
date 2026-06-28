@@ -17,6 +17,7 @@ import {
   summarizeCart,
   lineUnitPrice,
   lineTotal,
+  round2,
 } from "./whatsapp-cart";
 
 // Phase AY (P2) — the AI conversation engine. Maps free-text WhatsApp messages
@@ -875,12 +876,39 @@ export class WhatsAppAiService {
       return;
     }
 
+    // Delivery fee from the postcode zones (POS setup); enforce min order +
+    // refuse postcodes outside the delivery zones.
+    let deliveryFee = 0;
+    const subtotal = cartSubtotal(cart);
+    if (cart.fulfillmentType === "DELIVERY") {
+      const postcode = cart.deliveryAddress?.postcode ?? "";
+      const zone = await this.resolveDeliveryFee(ctx, postcode);
+      if (zone.hasZones && !zone.matched) {
+        await this.send.sendText(
+          phoneNumberId,
+          from,
+          `Sorry, we don't deliver to *${postcode}* 😔 Reply *start over* to order for collection instead.`,
+        );
+        return;
+      }
+      if (zone.matched && zone.minOrder && subtotal < zone.minOrder) {
+        const need = round2(zone.minOrder - subtotal);
+        await this.send.sendText(
+          phoneNumberId,
+          from,
+          `The minimum for delivery to *${postcode}* is £${zone.minOrder.toFixed(2)}. Please add £${need.toFixed(2)} more — reply *menu* to add items.`,
+        );
+        return;
+      }
+      deliveryFee = zone.fee;
+    }
+
     // 1) Create the order via the canonical pipeline (card, unpaid → hidden
     //    until Stripe authorises, then it auto-accepts into the kitchen).
     let order: { id: string; displayId?: string | null };
     try {
       order = await this.orders.ingestCanonical(
-        this.cartToCanonical(cart, from, convo.customerName ?? profileName),
+        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee),
         ctx.tenantId,
         ctx.locationId,
       );
@@ -915,18 +943,25 @@ export class WhatsAppAiService {
       data: { lastOrderId: order.id, state: "AWAITING_PAYMENT", cart: cart as any, lastOutboundAt: new Date() },
     });
 
-    const total = cartSubtotal(cart);
+    const total = round2(subtotal + deliveryFee);
     const fulfil = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
+    const feeLine = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
     await this.send.sendText(
       phoneNumberId,
       from,
-      `✅ Order received!\n\n${summarizeCart(cart)}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
+      `✅ Order received!\n\n${summarizeCart(cart)}${feeLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
     );
   }
 
   /** Build a CanonicalOrder from the WhatsApp cart (card, unpaid). */
-  private cartToCanonical(cart: WaCart, waPhone: string, name?: string | null): CanonicalOrder {
+  private cartToCanonical(
+    cart: WaCart,
+    waPhone: string,
+    name: string | null | undefined,
+    deliveryFee: number,
+  ): CanonicalOrder {
     const subtotal = cartSubtotal(cart);
+    const total = round2(subtotal + deliveryFee);
     const rnd = Math.random().toString(36).slice(2, 8);
     return {
       externalId: `wa_${Date.now()}_${rnd}`,
@@ -957,12 +992,48 @@ export class WhatsAppAiService {
       })),
       subtotal,
       taxAmount: 0,
-      deliveryFee: 0,
+      deliveryFee,
       discount: 0,
-      total: subtotal,
+      total,
       idempotencyKey: `wa_${waPhone}_${Date.now()}`,
       metadata: { source: "whatsapp", waPhone, paymentMethod: "CARD", paymentStatus: "PENDING" },
     } as CanonicalOrder;
+  }
+
+  /** Postcode → delivery fee, mirroring the storefront (brand zones preferred,
+   *  then location zones; longest-prefix match). */
+  private async resolveDeliveryFee(
+    ctx: WaMenuContext,
+    postcode: string,
+  ): Promise<{ matched: boolean; hasZones: boolean; fee: number; minOrder: number | null }> {
+    const norm = (postcode || "").toUpperCase().replace(/\s+/g, "");
+    const pick = async (where: Record<string, unknown>) => {
+      const zones = await this.prisma.deliveryZone.findMany({
+        where: { ...where, isActive: true },
+        select: { postcodePrefix: true, fee: true, minOrderValue: true },
+      });
+      let best: { fee: number; minOrder: number | null; len: number } | null = null;
+      for (const z of zones) {
+        const zp = z.postcodePrefix.toUpperCase().replace(/\s+/g, "");
+        if (zp && norm.startsWith(zp) && (!best || zp.length > best.len)) {
+          best = {
+            fee: Number(z.fee),
+            minOrder: z.minOrderValue !== null ? Number(z.minOrderValue) : null,
+            len: zp.length,
+          };
+        }
+      }
+      return { hasZones: zones.length > 0, best };
+    };
+
+    if (ctx.brandId) {
+      const b = await pick({ brandId: ctx.brandId });
+      if (b.hasZones) {
+        return { matched: !!b.best, hasZones: true, fee: b.best?.fee ?? 0, minOrder: b.best?.minOrder ?? null };
+      }
+    }
+    const l = await pick({ locationId: ctx.locationId });
+    return { matched: !!l.best, hasZones: l.hasZones, fee: l.best?.fee ?? 0, minOrder: l.best?.minOrder ?? null };
   }
 
   /** Persist cart + rolling transcript + derived state for one turn. */
