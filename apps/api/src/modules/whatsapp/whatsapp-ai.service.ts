@@ -232,20 +232,27 @@ export class WhatsAppAiService {
       return;
     }
 
-    // ── Modifier wizard: option tap during an in-progress customisation ────
-    // Deterministic state machine (no AI) — asks each group once, in order,
-    // then adds to cart. Robust regardless of model; fixes the re-ask loop.
-    if (cart.pending && (text.startsWith("opt:") || text.startsWith("skip:"))) {
-      const { ask, doneBody } = this.wizardStep(text, ctx, cart);
-      if (ask && ask.kind === "list") {
-        await this.send.sendList(phoneNumberId, from, ask.body, ask.buttonLabel, ask.sections, ask.header);
-        await this.persistTurn(convo.id, history, text, "[Asked next option group]", cart, profileName, convo.customerName);
-      } else {
-        const body = doneBody ?? "Done.";
-        await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
-        await this.persistTurn(convo.id, history, text, body, cart, profileName, convo.customerName);
+    // ── Modifier wizard: option tap (deterministic — no AI, never loops) ───
+    // Asks each group once, in order, then adds to cart. Self-recovers if the
+    // pending state was lost (e.g. an option tapped after a redeploy).
+    if (text.startsWith("opt:") || text.startsWith("skip:")) {
+      if (!cart.pending && text.startsWith("opt:")) {
+        const entry = ctx.optionIndex.get(text.slice(4));
+        const item = entry ? ctx.itemIndex.get(entry.itemId) : undefined;
+        if (item && this.wizardEligible(item)) this.beginCustomisation(item, cart);
       }
-      return;
+      if (cart.pending) {
+        const { ask, doneBody } = this.wizardStep(text, ctx, cart);
+        if (ask && ask.kind === "list") {
+          await this.send.sendList(phoneNumberId, from, ask.body, ask.buttonLabel, ask.sections, ask.header);
+          await this.persistTurn(convo.id, history, text, "[Asked next option group]", cart, profileName, convo.customerName);
+        } else {
+          const body = doneBody ?? "Done.";
+          await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
+          await this.persistTurn(convo.id, history, text, body, cart, profileName, convo.customerName);
+        }
+        return;
+      }
     }
 
     // ── Item tapped → form (if unlocked), else deterministic option wizard ─
