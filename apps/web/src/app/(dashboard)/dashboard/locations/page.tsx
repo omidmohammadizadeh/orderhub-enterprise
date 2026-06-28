@@ -20,7 +20,10 @@ import {
   Settings,
   MoreHorizontal,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { locationsClient, type Location } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -245,6 +248,7 @@ function LocationCard({
             </span>
           </div>
           {address && <p className="mt-0.5 text-xs text-zinc-500 truncate">{address}</p>}
+          <LocationIdChip id={location.id} />
         </div>
         <button
           type="button"
@@ -288,6 +292,38 @@ function LocationCard({
 
       {expanded && <ExpandedSection locationId={location.id} />}
     </li>
+  );
+}
+
+// Copyable Location ID — shown on every location card so the id can be grabbed
+// for integrations (WhatsApp, API, webhooks) without digging into the URL.
+function LocationIdChip({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard
+      ?.writeText(id)
+      .then(() => {
+        setCopied(true);
+        toast.success("Location ID copied");
+        setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => toast.error("Couldn't copy — copy it manually"));
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Copy location ID"
+      className="mt-1 inline-flex max-w-full items-center gap-1 rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700"
+    >
+      <span className="truncate">ID: {id}</span>
+      {copied ? (
+        <Check className="h-3 w-3 flex-shrink-0 text-emerald-600" />
+      ) : (
+        <Copy className="h-3 w-3 flex-shrink-0" />
+      )}
+    </button>
   );
 }
 
