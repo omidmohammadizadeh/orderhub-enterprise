@@ -210,81 +210,95 @@ export class WhatsAppAiService {
       return;
     }
     if (MENU_CMDS.has(cmd) || GREETING_CMDS.has(cmd)) {
+      cart.pending = undefined; // abandon any in-progress customisation
       const body = GREETING_CMDS.has(cmd)
         ? `Hi! 😊 Welcome to ${ctx.locationName}. Here's our menu — tap a category to start 👇`
         : "Here's the menu 👇 Pick a category.";
       await this.sendMenuList(phoneNumberId, from, ctx, body);
-      await this.persistTurn(
-        convo.id,
-        history,
-        text,
-        "[Showed the menu]",
-        cart,
-        profileName,
-        convo.customerName,
-      );
+      await this.persistTurn(convo.id, history, text, "[Showed the menu]", cart, profileName, convo.customerName);
       return;
     }
     // Category tapped → show that category's items.
     if (text.startsWith("cat:")) {
+      cart.pending = undefined;
       const categoryName = text.slice(4);
       const { present } = this.itemsList(ctx, categoryName, `Our ${categoryName} 👇 Tap to choose.`);
       if (present && present.kind === "list") {
-        await this.send.sendList(
-          phoneNumberId,
-          from,
-          present.body,
-          present.buttonLabel,
-          present.sections,
-          present.header,
-        );
+        await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
       } else {
         await this.send.sendText(phoneNumberId, from, `Sorry, nothing in ${categoryName} right now.`);
       }
-      await this.persistTurn(
-        convo.id,
-        history,
-        `[Customer opened category ${categoryName}]`,
-        `[Showed ${categoryName} items]`,
-        cart,
-        profileName,
-        convo.customerName,
-      );
+      await this.persistTurn(convo.id, history, `[Customer opened category ${categoryName}]`, `[Showed ${categoryName} items]`, cart, profileName, convo.customerName);
       return;
     }
 
-    // ── Item tapped → open the native "Customise" form (WhatsApp Flow) ────
-    // When the menu picker returns an item id and the item's options fit the
-    // form (all single-select, ≤5 groups), send the Flow so the customer picks
-    // everything and taps one "Add to cart" — instead of a tap-per-group chat.
-    if (this.flowsEnabled && text.startsWith("item:")) {
+    // ── Modifier wizard: option tap during an in-progress customisation ────
+    // Deterministic state machine (no AI) — asks each group once, in order,
+    // then adds to cart. Robust regardless of model; fixes the re-ask loop.
+    if (cart.pending && (text.startsWith("opt:") || text.startsWith("skip:"))) {
+      const { ask, doneBody } = this.wizardStep(text, ctx, cart);
+      if (ask && ask.kind === "list") {
+        await this.send.sendList(phoneNumberId, from, ask.body, ask.buttonLabel, ask.sections, ask.header);
+        await this.persistTurn(convo.id, history, text, "[Asked next option group]", cart, profileName, convo.customerName);
+      } else {
+        const body = doneBody ?? "Done.";
+        await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
+        await this.persistTurn(convo.id, history, text, body, cart, profileName, convo.customerName);
+      }
+      return;
+    }
+
+    // ── Item tapped → form (if unlocked), else deterministic option wizard ─
+    if (text.startsWith("item:")) {
       const item = ctx.itemIndex.get(text.slice(5));
-      if (item && this.flowEligible(item)) {
-        for (const img of this.imageFor(item)) {
-          await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
+      if (item) {
+        // Native form when published (Business Verification done).
+        if (this.flowsEnabled && this.flowEligible(item)) {
+          for (const img of this.imageFor(item)) {
+            await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
+          }
+          await this.send.sendFlow(phoneNumberId, from, {
+            flowId: this.flowId!,
+            flowToken: `item_${item.id}`,
+            cta: "Customise",
+            header: item.name,
+            body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
+            screen: "CUSTOMISE",
+            data: this.buildFlowData(item),
+            mode: this.flowMode,
+          });
+          await this.persistTurn(convo.id, history, `[Customer opened ${item.name}]`, `[Sent the Customise form for ${item.name}]`, cart, profileName, convo.customerName);
+          return;
         }
-        await this.send.sendFlow(phoneNumberId, from, {
-          flowId: this.flowId!,
-          flowToken: `item_${item.id}`,
-          cta: "Customise",
-          header: item.name,
-          body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
-          screen: "CUSTOMISE",
-          data: this.buildFlowData(item),
-          mode: this.flowMode,
-        });
-        await this.persistTurn(
-          convo.id,
-          history,
-          `[Customer opened ${item.name}]`,
-          `[Sent the Customise form for ${item.name}]`,
-          cart,
-          profileName,
-          convo.customerName,
-        );
-        return;
+        // Single-select options → deterministic group-by-group wizard.
+        if (this.wizardEligible(item)) {
+          const { present, images } = this.beginCustomisation(item, cart);
+          for (const img of images) {
+            await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
+          }
+          if (present && present.kind === "list") {
+            await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
+          }
+          await this.persistTurn(convo.id, history, `[Customer opened ${item.name}]`, `[Customising ${item.name}]`, cart, profileName, convo.customerName);
+          return;
+        }
+        // No options → add straight away.
+        if (item.modifierGroups.length === 0) {
+          for (const img of this.imageFor(item)) {
+            await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
+          }
+          this.addToCart({ itemId: item.id, quantity: 1, modifierOptionIds: [] }, ctx, cart);
+          const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
+          await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
+          await this.persistTurn(convo.id, history, `[Customer added ${item.name}]`, body, cart, profileName, convo.customerName);
+          return;
+        }
+        // Otherwise (pick-many groups) fall through to the AI.
       }
     }
+
+    // Free text reaching the AI — abandon any half-finished tap customisation.
+    cart.pending = undefined;
 
     // ── Decode interactive taps, then run the Claude tool loop ────────────
     // WhatsApp list/button taps arrive as our row ids (item:<id> / opt:<id>).
@@ -528,6 +542,110 @@ export class WhatsAppAiService {
     return groups.every((g) => g.selectionType === "VARIANT" || g.max === 1);
   }
 
+  // ── Deterministic modifier wizard (no AI; never loops) ───────────────────
+
+  /** Item whose option groups are all single-select → drive group-by-group. */
+  private wizardEligible(item: WaMenuContext["items"][number]): boolean {
+    return (
+      item.modifierGroups.length > 0 &&
+      item.modifierGroups.every((g) => g.selectionType === "VARIANT" || g.max === 1)
+    );
+  }
+
+  private cartButtons(): { id: string; title: string }[] {
+    return [
+      { id: "checkout", title: "Checkout" },
+      { id: "menu", title: "Add more" },
+      { id: "reset", title: "Start over" },
+    ];
+  }
+
+  /** Start customising an item: set pending state + return the first group picker. */
+  private beginCustomisation(
+    item: WaMenuContext["items"][number],
+    cart: WaCart,
+  ): { present?: Presentation; images: { imageUrl: string; caption?: string }[] } {
+    const groups = item.modifierGroups;
+    cart.pending = { itemId: item.id, groupIds: groups.map((g) => g.id), chosen: {} };
+    const first = groups[0];
+    return {
+      present: first ? this.groupPickerPresent(item, first) : undefined,
+      images: this.imageFor(item),
+    };
+  }
+
+  /** Build a tappable list for one modifier group (rows = opt:<id>, + Skip if optional). */
+  private groupPickerPresent(
+    item: WaMenuContext["items"][number],
+    group: WaMenuContext["items"][number]["modifierGroups"][number],
+  ): Presentation {
+    const max = group.required ? 10 : 9;
+    const rows = group.options.slice(0, max).map((o) => ({
+      id: `opt:${o.id}`,
+      title: o.name,
+      ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
+    }));
+    if (!group.required) {
+      rows.push({ id: `skip:${group.id}`, title: `No ${group.name}`.slice(0, 24) } as any);
+    }
+    return {
+      kind: "list",
+      body: `Pick your ${group.name}`,
+      buttonLabel: "Choose",
+      header: group.name.slice(0, 60),
+      sections: [{ title: group.name.slice(0, 24), rows }],
+    };
+  }
+
+  private nextUnansweredGroup(
+    item: WaMenuContext["items"][number],
+    pending: NonNullable<WaCart["pending"]>,
+  ) {
+    const gid = pending.groupIds.find((id) => !(id in pending.chosen));
+    return gid ? item.modifierGroups.find((g) => g.id === gid) : undefined;
+  }
+
+  /** Process an option/skip tap: record it, ask the next group, or finalise. */
+  private wizardStep(
+    text: string,
+    ctx: WaMenuContext,
+    cart: WaCart,
+  ): { ask?: Presentation; doneBody?: string } {
+    const pending = cart.pending;
+    if (!pending) return {};
+    const item = ctx.itemIndex.get(pending.itemId);
+    if (!item) {
+      cart.pending = undefined;
+      return { doneBody: "Sorry, that item is no longer available." };
+    }
+    if (text.startsWith("opt:")) {
+      const optId = text.slice(4);
+      const entry = ctx.optionIndex.get(optId);
+      if (entry && entry.itemId === item.id && pending.groupIds.includes(entry.groupId)) {
+        pending.chosen[entry.groupId] = optId; // records (or changes) the choice
+      }
+    } else if (text.startsWith("skip:")) {
+      const gid = text.slice(5);
+      const group = item.modifierGroups.find((g) => g.id === gid);
+      if (group && !group.required) pending.chosen[gid] = "";
+    }
+
+    const next = this.nextUnansweredGroup(item, pending);
+    if (next) return { ask: this.groupPickerPresent(item, next) };
+
+    // All groups decided → add to cart.
+    const optionIds = Object.values(pending.chosen).filter((v) => v);
+    const before = cart.items.length;
+    const result = this.addToCart(
+      { itemId: item.id, quantity: 1, modifierOptionIds: optionIds },
+      ctx,
+      cart,
+    );
+    cart.pending = undefined;
+    if (cart.items.length === before) return { doneBody: result };
+    return { doneBody: `✅ Added ${item.name}.\n\n${summarizeCart(cart)}` };
+  }
+
   /** Build the Flow screen data (g0..g4 + notes) from an item's option groups. */
   private buildFlowData(item: WaMenuContext["items"][number]): Record<string, unknown> {
     const data: Record<string, unknown> = {
@@ -750,7 +868,7 @@ export class WhatsAppAiService {
       case "show_item":
         return this.showItem(input, ctx);
       case "open_item_form":
-        return this.openItemForm(input, ctx);
+        return this.openItemForm(input, ctx, cart);
       case "show_options":
         return this.showOptions(input, ctx);
       case "show_buttons":
@@ -812,23 +930,34 @@ export class WhatsAppAiService {
   private openItemForm(
     input: any,
     ctx: WaMenuContext,
+    cart: WaCart,
   ): { result: string; present?: Presentation; images?: { imageUrl: string; caption?: string }[] } {
     const item = ctx.itemIndex.get(String(input.itemId));
     if (!item) return { result: `No menu item with id ${input.itemId}.` };
-    if (!this.flowsEnabled || !this.flowEligible(item)) {
+    // Native form when published (after Business Verification).
+    if (this.flowsEnabled && this.flowEligible(item)) {
       return {
-        result: `The form isn't available for ${item.name} — fall back to show_options group-by-group.`,
+        result: `Opening the Customise form for ${item.name}. The customer picks options and taps Add to cart; you'll be told when it's added.`,
+        images: this.imageFor(item),
+        present: {
+          kind: "flow",
+          itemId: item.id,
+          header: item.name,
+          body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
+        },
+      };
+    }
+    // Otherwise start the deterministic group-by-group wizard (no AI loop).
+    if (this.wizardEligible(item)) {
+      const { present, images } = this.beginCustomisation(item, cart);
+      return {
+        result: `Started options for ${item.name}. The customer is choosing group-by-group and it will be added automatically — do not ask about its options.`,
+        present,
+        images,
       };
     }
     return {
-      result: `Opening the Customise form for ${item.name}. The customer will pick options and tap Add to cart; you'll be told when it's added.`,
-      images: this.imageFor(item),
-      present: {
-        kind: "flow",
-        itemId: item.id,
-        header: item.name,
-        body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
-      },
+      result: `${item.name} has no simple options — add it with add_to_cart, or use show_options for its groups.`,
     };
   }
 

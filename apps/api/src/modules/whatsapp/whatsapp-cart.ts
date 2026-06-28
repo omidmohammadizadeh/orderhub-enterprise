@@ -32,10 +32,22 @@ export interface WaDeliveryAddress {
   country?: string;
 }
 
+// In-progress, code-driven modifier selection for one item (wrap → sauce →
+// drink …). Asked one group at a time, deterministically — no AI, no loops.
+export interface WaPending {
+  itemId: string;
+  /** Group ids to ask, in order. */
+  groupIds: string[];
+  /** groupId -> chosen optionId ("" means skipped/none). */
+  chosen: Record<string, string>;
+}
+
 export interface WaCart {
   fulfillmentType: WaFulfillmentType;
   deliveryAddress?: WaDeliveryAddress;
   items: WaCartLine[];
+  /** Set while a customer is picking an item's options group-by-group. */
+  pending?: WaPending;
 }
 
 export function emptyCart(): WaCart {
@@ -49,6 +61,17 @@ export function coerceCart(raw: unknown): WaCart {
   return {
     fulfillmentType: c.fulfillmentType === "PICKUP" ? "PICKUP" : "DELIVERY",
     deliveryAddress: c.deliveryAddress,
+    pending:
+      c.pending && typeof c.pending === "object" && Array.isArray((c.pending as any).groupIds)
+        ? {
+            itemId: String((c.pending as any).itemId ?? ""),
+            groupIds: (c.pending as any).groupIds.map(String),
+            chosen:
+              (c.pending as any).chosen && typeof (c.pending as any).chosen === "object"
+                ? (c.pending as any).chosen
+                : {},
+          }
+        : undefined,
     items: Array.isArray(c.items)
       ? c.items.map((i) => ({
           lineId: String(i.lineId ?? ""),
