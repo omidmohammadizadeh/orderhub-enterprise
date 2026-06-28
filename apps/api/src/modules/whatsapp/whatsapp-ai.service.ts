@@ -279,7 +279,12 @@ export class WhatsAppAiService {
     // ── Modifier wizard: option tap (deterministic — no AI, never loops) ───
     // Asks each group once, in order, then adds to cart. Self-recovers if the
     // pending state was lost (e.g. an option tapped after a redeploy).
-    if (text.startsWith("opt:") || text.startsWith("skip:") || text === "wizback") {
+    if (
+      text.startsWith("opt:") ||
+      text.startsWith("skip:") ||
+      text === "wizback" ||
+      text === "wizdone"
+    ) {
       if (!cart.pending && text.startsWith("opt:")) {
         const entry = ctx.optionIndex.get(text.slice(4));
         const item = entry ? ctx.itemIndex.get(entry.itemId) : undefined;
@@ -631,12 +636,9 @@ export class WhatsAppAiService {
 
   // ── Deterministic modifier wizard (no AI; never loops) ───────────────────
 
-  /** Item whose option groups are all single-select → drive group-by-group. */
+  /** Any item with option groups is handled by the deterministic wizard. */
   private wizardEligible(item: WaMenuContext["items"][number]): boolean {
-    return (
-      item.modifierGroups.length > 0 &&
-      item.modifierGroups.every((g) => g.selectionType === "VARIANT" || g.max === 1)
-    );
+    return item.modifierGroups.length > 0;
   }
 
   private cartButtons(): { id: string; title: string }[] {
@@ -647,56 +649,59 @@ export class WhatsAppAiService {
     ];
   }
 
+  private isMultiSelect(g: WaMenuContext["items"][number]["modifierGroups"][number]): boolean {
+    return !(g.selectionType === "VARIANT" || g.max === 1);
+  }
+
   /** Start customising an item: set pending state + return the first group picker. */
   private beginCustomisation(
     item: WaMenuContext["items"][number],
     cart: WaCart,
   ): { present?: Presentation; images: { imageUrl: string; caption?: string }[] } {
     const groups = item.modifierGroups;
-    cart.pending = { itemId: item.id, groupIds: groups.map((g) => g.id), chosen: {} };
+    cart.pending = { itemId: item.id, groupIds: groups.map((g) => g.id), chosen: {}, done: [] };
     const first = groups[0];
     return {
-      present: first ? this.groupPickerPresent(item, first) : undefined,
+      present: first ? this.groupPickerPresent(item, first, []) : undefined,
       images: this.imageFor(item),
     };
   }
 
-  /** Build a tappable list for one modifier group (rows = opt:<id>, + Skip if optional). */
+  /** Build the tappable list for one modifier group. Single-select completes on
+   *  tap; multi-select accumulates (✅) until "Done". Always has Back. */
   private groupPickerPresent(
     item: WaMenuContext["items"][number],
     group: WaMenuContext["items"][number]["modifierGroups"][number],
+    selected: string[],
   ): Presentation {
-    // WhatsApp lists cap at 10 rows; reserve room for Back (+ Skip if optional).
-    const max = group.required ? 9 : 8;
+    const multi = this.isMultiSelect(group);
+    const reserve = 1 /* back */ + (multi ? 1 /* done */ : group.required ? 0 : 1 /* skip */);
     const rows: { id: string; title: string; description?: string }[] = group.options
-      .slice(0, max)
+      .slice(0, 10 - reserve)
       .map((o) => ({
         id: `opt:${o.id}`,
-        title: o.name,
+        title: `${selected.includes(o.id) ? "✅ " : ""}${o.name}`.slice(0, 24),
         ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
       }));
-    if (!group.required) {
+    if (multi) {
+      rows.push({ id: "wizdone", title: group.required ? "✅ Done" : "✅ Done / none" });
+    } else if (!group.required) {
       rows.push({ id: `skip:${group.id}`, title: `No ${group.name}`.slice(0, 24) });
     }
     rows.push({ id: "wizback", title: "⬅️ Back" });
+    const body = multi
+      ? `${group.name} — tap to add${group.required ? ` (pick ${group.min}+)` : ", then Done"}`
+      : `Pick your ${group.name}`;
     return {
       kind: "list",
-      body: `Pick your ${group.name}`,
+      body: body.slice(0, 1024),
       buttonLabel: "Choose",
       header: group.name.slice(0, 60),
       sections: [{ title: group.name.slice(0, 24), rows }],
     };
   }
 
-  private nextUnansweredGroup(
-    item: WaMenuContext["items"][number],
-    pending: NonNullable<WaCart["pending"]>,
-  ) {
-    const gid = pending.groupIds.find((id) => !(id in pending.chosen));
-    return gid ? item.modifierGroups.find((g) => g.id === gid) : undefined;
-  }
-
-  /** Process an option/skip tap: record it, ask the next group, or finalise. */
+  /** Process an option / done / skip / back tap; ask next group or finalise. */
   private wizardStep(
     text: string,
     ctx: WaMenuContext,
@@ -709,44 +714,81 @@ export class WhatsAppAiService {
       cart.pending = undefined;
       return { doneBody: "Sorry, that item is no longer available." };
     }
-    // Back → re-ask the previous group (or cancel the item at the first group).
+    const groupById = (id?: string) => item.modifierGroups.find((g) => g.id === id);
+    const curGid = pending.groupIds.find((id) => !pending.done.includes(id));
+    const curGroup = groupById(curGid);
+
+    // Back → re-open the previously completed group (or cancel at the start).
     if (text === "wizback") {
-      const firstUnanswered = pending.groupIds.findIndex((id) => !(id in pending.chosen));
-      const currentIdx = firstUnanswered === -1 ? pending.groupIds.length : firstUnanswered;
-      const prevIdx = currentIdx - 1;
-      if (prevIdx < 0) {
+      const prevGid = pending.done.pop();
+      if (!prevGid) {
         cart.pending = undefined;
         return { cancel: true };
       }
-      const prevGid = pending.groupIds[prevIdx]!;
-      delete pending.chosen[prevGid];
-      const group = item.modifierGroups.find((g) => g.id === prevGid);
-      return group ? { ask: this.groupPickerPresent(item, group) } : { cancel: true };
+      const prev = groupById(prevGid);
+      return prev
+        ? { ask: this.groupPickerPresent(item, prev, pending.chosen[prevGid] ?? []) }
+        : { cancel: true };
     }
+
+    if (!curGroup || !curGid) return this.finaliseWizard(item, pending, ctx, cart);
+
+    const sel = (pending.chosen[curGid] ??= []);
+
     if (text.startsWith("opt:")) {
       const optId = text.slice(4);
-      // Record under the group we JUST asked — options can be shared across
-      // groups (e.g. wrap-sauce vs gyros-sauce), so the option's indexed group
-      // isn't reliable. Fall back to whichever pending group owns the option.
-      const current = this.nextUnansweredGroup(item, pending);
-      const group =
-        current && current.options.some((o) => o.id === optId)
-          ? current
-          : item.modifierGroups.find(
-              (g) => pending.groupIds.includes(g.id) && g.options.some((o) => o.id === optId),
-            );
-      if (group) pending.chosen[group.id] = optId;
-    } else if (text.startsWith("skip:")) {
-      const gid = text.slice(5);
-      const group = item.modifierGroups.find((g) => g.id === gid);
-      if (group && !group.required) pending.chosen[gid] = "";
+      if (!curGroup.options.some((o) => o.id === optId)) {
+        return { ask: this.groupPickerPresent(item, curGroup, sel) }; // ignore stray tap
+      }
+      if (this.isMultiSelect(curGroup)) {
+        const i = sel.indexOf(optId);
+        if (i >= 0) sel.splice(i, 1); // toggle off
+        else if (!curGroup.max || sel.length < curGroup.max) sel.push(optId);
+        return { ask: this.groupPickerPresent(item, curGroup, sel) };
+      }
+      pending.chosen[curGid] = [optId]; // single-select → complete the group
+      pending.done.push(curGid);
+      return this.advance(item, pending, ctx, cart);
     }
 
-    const next = this.nextUnansweredGroup(item, pending);
-    if (next) return { ask: this.groupPickerPresent(item, next) };
+    if (text === "wizdone" && this.isMultiSelect(curGroup)) {
+      if (curGroup.required && sel.length < Math.max(1, curGroup.min)) {
+        return { ask: this.groupPickerPresent(item, curGroup, sel) }; // need more
+      }
+      pending.done.push(curGid);
+      return this.advance(item, pending, ctx, cart);
+    }
 
-    // All groups decided → add to cart.
-    const optionIds = Object.values(pending.chosen).filter((v) => v);
+    if (text.startsWith("skip:") && !curGroup.required) {
+      pending.chosen[curGid] = [];
+      pending.done.push(curGid);
+      return this.advance(item, pending, ctx, cart);
+    }
+
+    return { ask: this.groupPickerPresent(item, curGroup, sel) }; // re-show current
+  }
+
+  private advance(
+    item: WaMenuContext["items"][number],
+    pending: NonNullable<WaCart["pending"]>,
+    ctx: WaMenuContext,
+    cart: WaCart,
+  ): { ask?: Presentation; doneBody?: string; cancel?: boolean } {
+    const nextGid = pending.groupIds.find((id) => !pending.done.includes(id));
+    const next = item.modifierGroups.find((g) => g.id === nextGid);
+    if (next && nextGid) {
+      return { ask: this.groupPickerPresent(item, next, pending.chosen[nextGid] ?? []) };
+    }
+    return this.finaliseWizard(item, pending, ctx, cart);
+  }
+
+  private finaliseWizard(
+    item: WaMenuContext["items"][number],
+    pending: NonNullable<WaCart["pending"]>,
+    ctx: WaMenuContext,
+    cart: WaCart,
+  ): { doneBody: string } {
+    const optionIds = pending.groupIds.flatMap((g) => pending.chosen[g] ?? []);
     const before = cart.items.length;
     const result = this.addToCart(
       { itemId: item.id, quantity: 1, modifierOptionIds: optionIds },

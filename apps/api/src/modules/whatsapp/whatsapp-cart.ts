@@ -38,8 +38,10 @@ export interface WaPending {
   itemId: string;
   /** Group ids to ask, in order. */
   groupIds: string[];
-  /** groupId -> chosen optionId ("" means skipped/none). */
-  chosen: Record<string, string>;
+  /** groupId -> chosen optionIds (single-select = 0/1; multi-select = 0+). */
+  chosen: Record<string, string[]>;
+  /** Group ids the customer has finished (in completion order — used by Back). */
+  done: string[];
 }
 
 export interface WaCart {
@@ -56,6 +58,17 @@ export function emptyCart(): WaCart {
   return { fulfillmentType: "DELIVERY", items: [] };
 }
 
+/** Coerce a persisted `chosen` map into Record<groupId, optionId[]>. */
+function normaliseChosen(raw: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(v)) out[k] = v.filter(Boolean).map(String);
+    else if (typeof v === "string") out[k] = v ? [v] : []; // legacy single-value
+  }
+  return out;
+}
+
 /** Coerce whatever was persisted in the Json column back into a WaCart. */
 export function coerceCart(raw: unknown): WaCart {
   if (!raw || typeof raw !== "object") return emptyCart();
@@ -69,10 +82,10 @@ export function coerceCart(raw: unknown): WaCart {
         ? {
             itemId: String((c.pending as any).itemId ?? ""),
             groupIds: (c.pending as any).groupIds.map(String),
-            chosen:
-              (c.pending as any).chosen && typeof (c.pending as any).chosen === "object"
-                ? (c.pending as any).chosen
-                : {},
+            chosen: normaliseChosen((c.pending as any).chosen),
+            done: Array.isArray((c.pending as any).done)
+              ? (c.pending as any).done.map(String)
+              : [],
           }
         : undefined,
     items: Array.isArray(c.items)
