@@ -20,7 +20,7 @@ import {
 // (cart → ingestCanonical), payment, and status replies land in P3–P5; the
 // `checkout` tool here validates and stages the order, leaving a clean seam.
 
-const MODEL = "claude-opus-4-8";
+const DEFAULT_MODEL = "claude-opus-4-8";
 const MAX_TURN_ITERATIONS = 6;
 const HISTORY_LIMIT = 20; // turns kept in the rolling transcript
 
@@ -100,6 +100,7 @@ const GREETING_CMDS = new Set([
 export class WhatsAppAiService {
   private readonly logger = new Logger(WhatsAppAiService.name);
   private readonly anthropic: Anthropic | null;
+  private readonly model: string;
   private readonly flowId?: string;
   private readonly flowMode: "draft" | "published";
 
@@ -114,6 +115,9 @@ export class WhatsAppAiService {
     if (!this.anthropic) {
       this.logger.warn("ANTHROPIC_API_KEY not set — WhatsApp AI engine disabled");
     }
+    // Model is configurable so cost can be tuned (ordering is light NLU —
+    // Haiku 4.5 / Sonnet 4.6 handle it well at a fraction of Opus's cost).
+    this.model = this.config.get<string>("WHATSAPP_MODEL") || DEFAULT_MODEL;
     this.flowId = this.config.get<string>("WHATSAPP_FLOW_ID") || undefined;
     this.flowMode =
       this.config.get<string>("WHATSAPP_FLOW_MODE") === "published" ? "published" : "draft";
@@ -296,11 +300,23 @@ export class WhatsAppAiService {
     let finalText = "";
 
     try {
+      // Split the system prompt: the rules + full menu are STATIC per location
+      // and prompt-cached (charged ~once, then ~90% cheaper on every repeat
+      // call/loop iteration); only the small cart block is volatile.
+      const system: Anthropic.TextBlockParam[] = [
+        {
+          type: "text",
+          text: this.staticSystem(ctx),
+          cache_control: { type: "ephemeral" },
+        },
+        { type: "text", text: `=== CURRENT CART ===\n${summarizeCart(cart)}` },
+      ];
+
       for (let i = 0; i < MAX_TURN_ITERATIONS; i++) {
         const response = await this.anthropic.messages.create({
-          model: MODEL,
+          model: this.model,
           max_tokens: 1024,
-          system: this.systemPrompt(ctx, cart),
+          system,
           tools,
           messages,
         });
@@ -1028,8 +1044,8 @@ export class WhatsAppAiService {
     ].join("\n");
   }
 
-  // ── System prompt ────────────────────────────────────────────────────────
-  private systemPrompt(ctx: WaMenuContext, cart: WaCart): string {
+  // ── System prompt (static part — cached; the cart is sent separately) ────
+  private staticSystem(ctx: WaMenuContext): string {
     return [
       `You are the ordering assistant for ${ctx.locationName}, taking orders over WhatsApp.`,
       "Be warm but BRIEF and DECISIVE — 1-2 short sentences per reply. Don't ask permission for obvious next steps, don't offer to 'pick it up later', and never re-ask something already answered. Just do the helpful thing.",
@@ -1051,9 +1067,6 @@ export class WhatsAppAiService {
       "",
       "=== LIVE MENU ===",
       this.menu.renderMenuForAi(ctx),
-      "",
-      "=== CURRENT CART ===",
-      summarizeCart(cart),
     ].join("\n");
   }
 
