@@ -163,12 +163,39 @@ export class WhatsAppAiService {
       return;
     }
     if (MENU_CMDS.has(cmd)) {
-      await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Tap an item to add it.");
+      await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Pick a category.");
       await this.persistTurn(
         convo.id,
         history,
         text,
         "[Showed the menu]",
+        cart,
+        profileName,
+        convo.customerName,
+      );
+      return;
+    }
+    // Category tapped → show that category's items.
+    if (text.startsWith("cat:")) {
+      const categoryName = text.slice(4);
+      const { present } = this.itemsList(ctx, categoryName, `Our ${categoryName} 👇 Tap to choose.`);
+      if (present && present.kind === "list") {
+        await this.send.sendList(
+          phoneNumberId,
+          from,
+          present.body,
+          present.buttonLabel,
+          present.sections,
+          present.header,
+        );
+      } else {
+        await this.send.sendText(phoneNumberId, from, `Sorry, nothing in ${categoryName} right now.`);
+      }
+      await this.persistTurn(
+        convo.id,
+        history,
+        `[Customer opened category ${categoryName}]`,
+        `[Showed ${categoryName} items]`,
         cart,
         profileName,
         convo.customerName,
@@ -555,14 +582,14 @@ export class WhatsAppAiService {
       {
         name: "show_menu",
         description:
-          "Show the customer a tappable list of menu items (optionally filtered to one category) so they can pick. Provide a short body line. Use when the customer asks what's available or to browse.",
+          "Show a tappable list. With no category, shows the list of CATEGORIES to browse (the menu is too big for one list). Pass a category name to show that category's items. Use when the customer wants to browse or asks what's available. Tapping a category or item is handled automatically.",
         input_schema: {
           type: "object",
           properties: {
             body: { type: "string", description: "Short message shown above the list" },
             category: {
               type: "string",
-              description: "Optional category name to filter to",
+              description: "Optional exact category name to show that category's items",
             },
           },
           required: ["body"],
@@ -857,10 +884,54 @@ export class WhatsAppAiService {
     return "Set to pickup.";
   }
 
-  private showMenu(input: any, ctx: WaMenuContext): { result: string; present: Presentation } {
-    const category = input.category ? String(input.category).toLowerCase() : null;
-    const items = category
-      ? ctx.items.filter((i) => i.categoryName.toLowerCase() === category)
+  // show_menu: with a category → that category's items; without → a list of
+  // categories to browse (WhatsApp lists cap at 10 rows, so a full menu must be
+  // browsed by category rather than dumped into one list).
+  private showMenu(input: any, ctx: WaMenuContext): { result: string; present?: Presentation } {
+    if (input.category) {
+      return this.itemsList(ctx, String(input.category), String(input.body ?? `Our ${input.category} 👇`));
+    }
+    return this.categoryList(ctx, String(input.body ?? "Here's our menu — pick a category 👇"));
+  }
+
+  private categoryList(ctx: WaMenuContext, body: string): { result: string; present?: Presentation } {
+    const names: string[] = [];
+    const seen = new Set<string>();
+    for (const it of ctx.items) {
+      if (!seen.has(it.categoryName)) {
+        seen.add(it.categoryName);
+        names.push(it.categoryName);
+      }
+    }
+    // Single category (or none) — skip straight to items.
+    if (names.length <= 1) {
+      return this.itemsList(ctx, names[0] ?? "", body);
+    }
+    const rows = names.slice(0, 10).map((n) => ({
+      id: `cat:${n}`,
+      title: n,
+      description: `${ctx.items.filter((i) => i.categoryName === n).length} item(s)`,
+    }));
+    return {
+      result: `Showing ${rows.length} categories${names.length > 10 ? ` (of ${names.length})` : ""}.`,
+      present: {
+        kind: "list",
+        body,
+        buttonLabel: "Categories",
+        header: "Menu",
+        sections: [{ rows }],
+      },
+    };
+  }
+
+  private itemsList(
+    ctx: WaMenuContext,
+    categoryName: string,
+    body: string,
+  ): { result: string; present?: Presentation } {
+    const cat = categoryName.toLowerCase();
+    const items = cat
+      ? ctx.items.filter((i) => i.categoryName.toLowerCase() === cat)
       : ctx.items;
     const rows = items.slice(0, 10).map((i) => ({
       id: `item:${i.id}`,
@@ -868,16 +939,16 @@ export class WhatsAppAiService {
       description: `£${i.price.toFixed(2)}${i.description ? ` — ${i.description}` : ""}`,
     }));
     if (rows.length === 0) {
-      return { result: "No items matched — nothing to show.", present: undefined as any };
+      return { result: `No items found in ${categoryName || "the menu"}.`, present: undefined };
     }
     return {
-      result: `Showing ${rows.length} item(s) to the customer.`,
+      result: `Showing ${rows.length} item(s)${items.length > 10 ? ` (of ${items.length})` : ""} in ${categoryName || "the menu"}.`,
       present: {
         kind: "list",
-        body: String(input.body ?? "Here's our menu:"),
+        body,
         buttonLabel: "View items",
-        header: category ? input.category : "Menu",
-        sections: [{ title: category ? input.category : "Popular", rows }],
+        header: (categoryName || "Menu").slice(0, 60),
+        sections: [{ title: (categoryName || "Items").slice(0, 24), rows }],
       },
     };
   }
