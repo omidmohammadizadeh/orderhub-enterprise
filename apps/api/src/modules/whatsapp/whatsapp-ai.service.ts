@@ -20,7 +20,9 @@ import {
 // (cart → ingestCanonical), payment, and status replies land in P3–P5; the
 // `checkout` tool here validates and stages the order, leaving a clean seam.
 
-const DEFAULT_MODEL = "claude-opus-4-8";
+// Ordering is light NLU — Haiku 4.5 handles it well at ~1/5 the cost of Opus.
+// Override with WHATSAPP_MODEL (e.g. claude-sonnet-4-6 / claude-opus-4-8).
+const DEFAULT_MODEL = "claude-haiku-4-5";
 const MAX_TURN_ITERATIONS = 6;
 const HISTORY_LIMIT = 20; // turns kept in the rolling transcript
 
