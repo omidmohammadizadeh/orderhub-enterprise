@@ -283,6 +283,12 @@ export class WhatsAppAiService {
           for (const img of images) {
             await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
           }
+          // Full item details (WhatsApp list rows cap descriptions at 72 chars).
+          await this.send.sendText(
+            phoneNumberId,
+            from,
+            `*${item.name}* — £${item.price.toFixed(2)}${item.description ? `\n${item.description}` : ""}`,
+          );
           if (present && present.kind === "list") {
             await this.send.sendList(phoneNumberId, from, present.body, present.buttonLabel, present.sections, present.header);
           }
@@ -627,10 +633,17 @@ export class WhatsAppAiService {
     }
     if (text.startsWith("opt:")) {
       const optId = text.slice(4);
-      const entry = ctx.optionIndex.get(optId);
-      if (entry && entry.itemId === item.id && pending.groupIds.includes(entry.groupId)) {
-        pending.chosen[entry.groupId] = optId; // records (or changes) the choice
-      }
+      // Record under the group we JUST asked — options can be shared across
+      // groups (e.g. wrap-sauce vs gyros-sauce), so the option's indexed group
+      // isn't reliable. Fall back to whichever pending group owns the option.
+      const current = this.nextUnansweredGroup(item, pending);
+      const group =
+        current && current.options.some((o) => o.id === optId)
+          ? current
+          : item.modifierGroups.find(
+              (g) => pending.groupIds.includes(g.id) && g.options.some((o) => o.id === optId),
+            );
+      if (group) pending.chosen[group.id] = optId;
     } else if (text.startsWith("skip:")) {
       const gid = text.slice(5);
       const group = item.modifierGroups.find((g) => g.id === gid);
