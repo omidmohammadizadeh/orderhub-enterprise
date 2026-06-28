@@ -19,7 +19,7 @@
  *     npx ts-node -P apps/api/tsconfig.json apps/api/src/scripts/rotate-credential-encryption.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@orderhub/database";
 import * as crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";

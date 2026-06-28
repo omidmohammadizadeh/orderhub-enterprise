@@ -10,7 +10,7 @@
  *     apps/api/src/scripts/seed-billing-plans.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@orderhub/database";
 
 interface PlanSeed {
   name: string;

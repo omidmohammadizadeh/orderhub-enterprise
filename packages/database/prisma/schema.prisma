@@ -2296,8 +2296,13 @@ model WhatsAppConversation {
   phoneNumberId String?
   // IDLE | BROWSING | CART | CHECKOUT | AWAITING_PAYMENT
   state         String  @default("IDLE")
-  // In-progress cart + conversation memory (items, modifiers, fulfillment, address).
+  // In-progress cart (items, modifiers, fulfillment, address).
   cart          Json?
+  // Rolling chat transcript for the AI engine — last ~20 turns of
+  // [{ role: "user" | "assistant", content }]. Trimmed on every write so it
+  // never grows unbounded. Gives Claude multi-turn memory without re-deriving
+  // state from the cart alone.
+  messages      Json    @default("[]")
   customerName  String?
   lastOrderId   String?
 

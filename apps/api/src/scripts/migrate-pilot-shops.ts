@@ -10,7 +10,7 @@
  *     apps/api/src/scripts/migrate-pilot-shops.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@orderhub/database";
 
 const FREE_PILOT_ENDS_AT = new Date("2026-09-01T00:00:00.000Z");
 const STARTER_PLAN_NAME = "STARTER";

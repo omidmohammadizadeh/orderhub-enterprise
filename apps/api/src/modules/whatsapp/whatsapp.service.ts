@@ -1,16 +1,19 @@
 import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
+import { WhatsAppAiService } from "./whatsapp-ai.service";
 
-// Phase AY (P1) — WhatsApp Cloud API webhook plumbing. Handles Meta's GET
-// verification handshake and verifies + parses inbound POST events. The
-// conversation/ordering engine (cart state + Claude NLU + replies) lands in P2
-// and will be invoked from handleInbound().
+// Phase AY — WhatsApp Cloud API webhook plumbing. Handles Meta's GET
+// verification handshake, verifies + parses inbound POST events, and routes
+// customer messages into the AI conversation engine (P2).
 @Injectable()
 export class WhatsAppService {
   private readonly logger = new Logger(WhatsAppService.name);
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly ai: WhatsAppAiService,
+  ) {}
 
   /** Meta webhook verification (GET): echo the challenge when the token matches. */
   verifyWebhook(mode: string | undefined, token: string | undefined, challenge: string | undefined): string {
@@ -44,6 +47,8 @@ export class WhatsAppService {
         const value = change.value;
         if (!value) continue;
         const phoneNumberId = value.metadata?.phone_number_id;
+        // Profile name (if shared) — used to greet + prefill the customer name.
+        const profileName = value.contacts?.[0]?.profile?.name;
         // Delivery/read receipts come through `statuses` — ignore for now.
         for (const msg of value.messages ?? []) {
           const from = msg.from;
@@ -51,7 +56,16 @@ export class WhatsAppService {
           this.logger.log(
             `WhatsApp inbound: from=${from} phoneNumberId=${phoneNumberId} type=${msg.type} text=${body ?? "—"}`,
           );
-          // P2: route (phoneNumberId, from, body, msg) into the conversation engine.
+          if (!phoneNumberId || !from || !body) continue;
+          // Route into the AI conversation engine. Errors are swallowed so the
+          // webhook still returns 200 (the engine sends its own error reply).
+          try {
+            await this.ai.handleMessage({ phoneNumberId, from, text: body, profileName });
+          } catch (err: any) {
+            this.logger.error(
+              `WhatsApp engine error for ${from}: ${err?.message ?? err}`,
+            );
+          }
         }
       }
     }
@@ -110,6 +124,7 @@ interface WaMessage {
 }
 interface WaChangeValue {
   metadata?: { phone_number_id?: string; display_phone_number?: string };
+  contacts?: Array<{ profile?: { name?: string }; wa_id?: string }>;
   messages?: WaMessage[];
   statuses?: unknown[];
 }
