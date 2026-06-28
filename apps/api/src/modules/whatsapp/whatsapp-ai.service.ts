@@ -189,32 +189,76 @@ export class WhatsAppAiService {
     const cart = coerceCart(convo.cart);
     const history = this.coerceHistory(convo.messages);
 
-    // ── Deterministic commands (reset / back to menu) ─────────────────────
     const cmd = text.trim().toLowerCase().replace(/[!.?]+$/, "");
+
+    // ── Hard reset → restart from the welcome / fulfilment question ───────
     if (RESET_CMDS.has(cmd)) {
-      await this.sendMenuList(
-        phoneNumberId,
-        from,
-        ctx,
-        "Starting fresh 🧹 Your order's been cleared. Tap an item to begin.",
-      );
-      await this.prisma.whatsAppConversation.update({
-        where: { id: convo.id },
-        data: {
-          cart: emptyCart() as any,
-          messages: [] as any,
-          state: "BROWSING",
-          lastOutboundAt: new Date(),
-        },
-      });
+      await this.startFulfilment(phoneNumberId, from, convo.id, ctx);
       return;
     }
-    if (MENU_CMDS.has(cmd) || GREETING_CMDS.has(cmd)) {
-      cart.pending = undefined; // abandon any in-progress customisation
-      const body = GREETING_CMDS.has(cmd)
-        ? `Hi! 😊 Welcome to ${ctx.locationName}. Here's our menu — tap a category to start 👇`
-        : "Here's the menu 👇 Pick a category.";
-      await this.sendMenuList(phoneNumberId, from, ctx, body);
+
+    // ── Collection / delivery choice (up-front, before the menu) ──────────
+    if (text === "fulfil:pickup" || text === "fulfil:delivery") {
+      const fresh = emptyCart();
+      if (text === "fulfil:pickup") {
+        fresh.fulfillmentType = "PICKUP";
+        fresh.fulfillmentChosen = true;
+        await this.prisma.whatsAppConversation.update({
+          where: { id: convo.id },
+          data: { cart: fresh as any, state: "ORDERING", lastOutboundAt: new Date() },
+        });
+        await this.sendMenuList(phoneNumberId, from, ctx, "Collection it is 🛍️ Here's our menu — pick a category 👇");
+      } else {
+        fresh.fulfillmentType = "DELIVERY";
+        await this.prisma.whatsAppConversation.update({
+          where: { id: convo.id },
+          data: { cart: fresh as any, state: "ASK_ADDRESS", lastOutboundAt: new Date() },
+        });
+        await this.send.sendText(
+          phoneNumberId,
+          from,
+          "Delivery 🛵 What's your address? Please send your *house number and street* (e.g. 12 High Street).",
+        );
+      }
+      return;
+    }
+
+    // ── Delivery address capture (plain-text replies only) ────────────────
+    const plainText =
+      !/^(fulfil:|item:|cat:|opt:|skip:|wizback)/.test(text) &&
+      !MENU_CMDS.has(cmd) &&
+      !GREETING_CMDS.has(cmd);
+    if (convo.state === "ASK_ADDRESS" && plainText) {
+      cart.deliveryAddress = { line1: text.trim(), city: "", postcode: "", country: "GB" };
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: { cart: cart as any, state: "ASK_POSTCODE", lastOutboundAt: new Date() },
+      });
+      await this.send.sendText(phoneNumberId, from, "Thanks! 📮 And your postcode?");
+      return;
+    }
+    if (convo.state === "ASK_POSTCODE" && plainText) {
+      if (!cart.deliveryAddress) cart.deliveryAddress = { line1: "", city: "", postcode: "", country: "GB" };
+      cart.deliveryAddress.postcode = text.trim().toUpperCase();
+      cart.fulfillmentChosen = true;
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: { cart: cart as any, state: "ORDERING", lastOutboundAt: new Date() },
+      });
+      await this.sendMenuList(phoneNumberId, from, ctx, "Great, thanks! 📍 Here's our menu — pick a category 👇");
+      return;
+    }
+
+    // ── Not onboarded yet → ask collection/delivery first ─────────────────
+    if (!cart.fulfillmentChosen) {
+      await this.startFulfilment(phoneNumberId, from, convo.id, ctx);
+      return;
+    }
+
+    // ── Greeting / menu (already onboarded) → show the menu ───────────────
+    if (GREETING_CMDS.has(cmd) || MENU_CMDS.has(cmd)) {
+      cart.pending = undefined;
+      await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Pick a category.");
       await this.persistTurn(convo.id, history, text, "[Showed the menu]", cart, profileName, convo.customerName);
       return;
     }
@@ -235,15 +279,18 @@ export class WhatsAppAiService {
     // ── Modifier wizard: option tap (deterministic — no AI, never loops) ───
     // Asks each group once, in order, then adds to cart. Self-recovers if the
     // pending state was lost (e.g. an option tapped after a redeploy).
-    if (text.startsWith("opt:") || text.startsWith("skip:")) {
+    if (text.startsWith("opt:") || text.startsWith("skip:") || text === "wizback") {
       if (!cart.pending && text.startsWith("opt:")) {
         const entry = ctx.optionIndex.get(text.slice(4));
         const item = entry ? ctx.itemIndex.get(entry.itemId) : undefined;
         if (item && this.wizardEligible(item)) this.beginCustomisation(item, cart);
       }
       if (cart.pending) {
-        const { ask, doneBody } = this.wizardStep(text, ctx, cart);
-        if (ask && ask.kind === "list") {
+        const { ask, doneBody, cancel } = this.wizardStep(text, ctx, cart);
+        if (cancel) {
+          await this.sendMenuList(phoneNumberId, from, ctx, "No problem 👍 Here's the menu — pick a category.");
+          await this.persistTurn(convo.id, history, text, "[Cancelled item]", cart, profileName, convo.customerName);
+        } else if (ask && ask.kind === "list") {
           await this.send.sendList(phoneNumberId, from, ask.body, ask.buttonLabel, ask.sections, ask.header);
           await this.persistTurn(convo.id, history, text, "[Asked next option group]", cart, profileName, convo.customerName);
         } else {
@@ -526,6 +573,33 @@ export class WhatsAppAiService {
     );
   }
 
+  /** Greet + ask collection/delivery; resets the conversation to a fresh start. */
+  private async startFulfilment(
+    phoneNumberId: string,
+    from: string,
+    convoId: string,
+    ctx: WaMenuContext,
+  ): Promise<void> {
+    await this.prisma.whatsAppConversation.update({
+      where: { id: convoId },
+      data: {
+        cart: emptyCart() as any,
+        messages: [] as any,
+        state: "FULFILMENT",
+        lastOutboundAt: new Date(),
+      },
+    });
+    await this.send.sendButtons(
+      phoneNumberId,
+      from,
+      `Welcome to ${ctx.locationName}! 👋 Would you like to order for collection or delivery?`,
+      [
+        { id: "fulfil:pickup", title: "Collection" },
+        { id: "fulfil:delivery", title: "Delivery" },
+      ],
+    );
+  }
+
   /** Send the menu as a tappable list (used by the menu/back/reset commands). */
   private async sendMenuList(
     phoneNumberId: string,
@@ -592,15 +666,19 @@ export class WhatsAppAiService {
     item: WaMenuContext["items"][number],
     group: WaMenuContext["items"][number]["modifierGroups"][number],
   ): Presentation {
-    const max = group.required ? 10 : 9;
-    const rows = group.options.slice(0, max).map((o) => ({
-      id: `opt:${o.id}`,
-      title: o.name,
-      ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
-    }));
+    // WhatsApp lists cap at 10 rows; reserve room for Back (+ Skip if optional).
+    const max = group.required ? 9 : 8;
+    const rows: { id: string; title: string; description?: string }[] = group.options
+      .slice(0, max)
+      .map((o) => ({
+        id: `opt:${o.id}`,
+        title: o.name,
+        ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
+      }));
     if (!group.required) {
-      rows.push({ id: `skip:${group.id}`, title: `No ${group.name}`.slice(0, 24) } as any);
+      rows.push({ id: `skip:${group.id}`, title: `No ${group.name}`.slice(0, 24) });
     }
+    rows.push({ id: "wizback", title: "⬅️ Back" });
     return {
       kind: "list",
       body: `Pick your ${group.name}`,
@@ -623,13 +701,27 @@ export class WhatsAppAiService {
     text: string,
     ctx: WaMenuContext,
     cart: WaCart,
-  ): { ask?: Presentation; doneBody?: string } {
+  ): { ask?: Presentation; doneBody?: string; cancel?: boolean } {
     const pending = cart.pending;
     if (!pending) return {};
     const item = ctx.itemIndex.get(pending.itemId);
     if (!item) {
       cart.pending = undefined;
       return { doneBody: "Sorry, that item is no longer available." };
+    }
+    // Back → re-ask the previous group (or cancel the item at the first group).
+    if (text === "wizback") {
+      const firstUnanswered = pending.groupIds.findIndex((id) => !(id in pending.chosen));
+      const currentIdx = firstUnanswered === -1 ? pending.groupIds.length : firstUnanswered;
+      const prevIdx = currentIdx - 1;
+      if (prevIdx < 0) {
+        cart.pending = undefined;
+        return { cancel: true };
+      }
+      const prevGid = pending.groupIds[prevIdx]!;
+      delete pending.chosen[prevGid];
+      const group = item.modifierGroups.find((g) => g.id === prevGid);
+      return group ? { ask: this.groupPickerPresent(item, group) } : { cancel: true };
     }
     if (text.startsWith("opt:")) {
       const optId = text.slice(4);

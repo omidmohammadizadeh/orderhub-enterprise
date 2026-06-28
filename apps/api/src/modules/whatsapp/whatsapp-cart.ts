@@ -48,6 +48,8 @@ export interface WaCart {
   items: WaCartLine[];
   /** Set while a customer is picking an item's options group-by-group. */
   pending?: WaPending;
+  /** True once collection/delivery (+ address) has been completed up front. */
+  fulfillmentChosen?: boolean;
 }
 
 export function emptyCart(): WaCart {
@@ -61,6 +63,7 @@ export function coerceCart(raw: unknown): WaCart {
   return {
     fulfillmentType: c.fulfillmentType === "PICKUP" ? "PICKUP" : "DELIVERY",
     deliveryAddress: c.deliveryAddress,
+    fulfillmentChosen: c.fulfillmentChosen === true,
     pending:
       c.pending && typeof c.pending === "object" && Array.isArray((c.pending as any).groupIds)
         ? {
