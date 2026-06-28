@@ -119,6 +119,22 @@ export class WhatsAppAiService {
       this.config.get<string>("WHATSAPP_FLOW_MODE") === "published" ? "published" : "draft";
   }
 
+  /**
+   * The native Flow form can only be sent once the Flow is PUBLISHED (which
+   * requires Business Verification — draft sends are "Blocked by Integrity").
+   * Until then we fall back to step-by-step option lists.
+   */
+  private get flowsEnabled(): boolean {
+    return !!this.flowId && this.flowMode === "published";
+  }
+
+  /** Only send a photo when the menu has a real https image URL (WhatsApp rejects others). */
+  private imageFor(item: WaMenuContext["items"][number]): { imageUrl: string; caption?: string }[] {
+    return item.imageUrl && /^https:\/\//i.test(item.imageUrl)
+      ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }]
+      : [];
+  }
+
   /** Entry point from the webhook for one inbound text message. */
   async handleMessage(args: {
     phoneNumberId: string;
@@ -235,14 +251,14 @@ export class WhatsAppAiService {
     // When the menu picker returns an item id and the item's options fit the
     // form (all single-select, ≤5 groups), send the Flow so the customer picks
     // everything and taps one "Add to cart" — instead of a tap-per-group chat.
-    if (this.flowId && text.startsWith("item:")) {
+    if (this.flowsEnabled && text.startsWith("item:")) {
       const item = ctx.itemIndex.get(text.slice(5));
       if (item && this.flowEligible(item)) {
-        if (item.imageUrl) {
-          await this.send.sendImage(phoneNumberId, from, item.imageUrl, this.itemCaption(item));
+        for (const img of this.imageFor(item)) {
+          await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
         }
         await this.send.sendFlow(phoneNumberId, from, {
-          flowId: this.flowId,
+          flowId: this.flowId!,
           flowToken: `item_${item.id}`,
           cta: "Customise",
           header: item.name,
@@ -343,7 +359,7 @@ export class WhatsAppAiService {
       const item = ctx.itemIndex.get(presentation.itemId);
       if (this.flowId && item) {
         await this.send.sendFlow(phoneNumberId, from, {
-          flowId: this.flowId,
+          flowId: this.flowId!,
           flowToken: `item_${item.id}`,
           cta: "Customise",
           header: presentation.header,
@@ -737,9 +753,7 @@ export class WhatsAppAiService {
     if (text.startsWith("item:")) {
       const item = ctx.itemIndex.get(text.slice(5));
       if (item) {
-        if (item.imageUrl) {
-          imageSends.push({ imageUrl: item.imageUrl, caption: this.itemCaption(item) });
-        }
+        imageSends.push(...this.imageFor(item));
         const required = item.modifierGroups.filter((g) => g.required);
         const groups = item.modifierGroups
           .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : ""}`)
@@ -770,9 +784,10 @@ export class WhatsAppAiService {
       item.modifierGroups
         .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : " (optional)"}`)
         .join("; ") || "no options";
+    const images = this.imageFor(item);
     return {
-      result: `Showing ${item.name}${item.imageUrl ? " with its photo" : " (no photo on file)"}. Option groups: ${groups}.`,
-      images: item.imageUrl ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }] : [],
+      result: `Showing ${item.name}${images.length ? " with its photo" : " (no photo on file)"}. Option groups: ${groups}.`,
+      images,
     };
   }
 
@@ -782,14 +797,14 @@ export class WhatsAppAiService {
   ): { result: string; present?: Presentation; images?: { imageUrl: string; caption?: string }[] } {
     const item = ctx.itemIndex.get(String(input.itemId));
     if (!item) return { result: `No menu item with id ${input.itemId}.` };
-    if (!this.flowId || !this.flowEligible(item)) {
+    if (!this.flowsEnabled || !this.flowEligible(item)) {
       return {
         result: `The form isn't available for ${item.name} — fall back to show_options group-by-group.`,
       };
     }
     return {
       result: `Opening the Customise form for ${item.name}. The customer will pick options and tap Add to cart; you'll be told when it's added.`,
-      images: item.imageUrl ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }] : [],
+      images: this.imageFor(item),
       present: {
         kind: "flow",
         itemId: item.id,
