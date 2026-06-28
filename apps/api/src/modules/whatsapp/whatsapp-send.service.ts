@@ -124,6 +124,46 @@ export class WhatsAppSendService {
     });
   }
 
+  /** Send a WhatsApp Flow (native form) message. */
+  async sendFlow(
+    phoneNumberId: string,
+    to: string,
+    opts: {
+      flowId: string;
+      flowToken: string;
+      cta: string;
+      body: string;
+      header?: string;
+      screen: string;
+      data: Record<string, unknown>;
+      mode?: "draft" | "published";
+    },
+  ): Promise<void> {
+    await this.post(phoneNumberId, {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "flow",
+        ...(opts.header ? { header: { type: "text", text: truncate(opts.header, 60) } } : {}),
+        body: { text: truncate(opts.body, 1024) },
+        action: {
+          name: "flow",
+          parameters: {
+            flow_message_version: "3",
+            flow_token: opts.flowToken,
+            flow_id: opts.flowId,
+            flow_cta: truncate(opts.cta, 30),
+            flow_action: "navigate",
+            flow_action_payload: { screen: opts.screen, data: opts.data },
+            ...(opts.mode ? { mode: opts.mode } : {}),
+          },
+        },
+      },
+    });
+  }
+
   private async post(phoneNumberId: string, payload: unknown): Promise<void> {
     const token = this.token;
     if (!token) {

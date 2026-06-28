@@ -38,12 +38,17 @@ type Presentation =
       buttonLabel: string;
       header?: string;
       sections: { title?: string; rows: { id: string; title: string; description?: string }[] }[];
-    };
+    }
+  | { kind: "flow"; itemId: string; header: string; body: string };
+
+const FLOW_GROUP_SLOTS = 5; // radio groups supported by the "Customise item" Flow
 
 @Injectable()
 export class WhatsAppAiService {
   private readonly logger = new Logger(WhatsAppAiService.name);
   private readonly anthropic: Anthropic | null;
+  private readonly flowId?: string;
+  private readonly flowMode: "draft" | "published";
 
   constructor(
     private readonly config: ConfigService,
@@ -56,6 +61,9 @@ export class WhatsAppAiService {
     if (!this.anthropic) {
       this.logger.warn("ANTHROPIC_API_KEY not set — WhatsApp AI engine disabled");
     }
+    this.flowId = this.config.get<string>("WHATSAPP_FLOW_ID") || undefined;
+    this.flowMode =
+      this.config.get<string>("WHATSAPP_FLOW_MODE") === "published" ? "published" : "draft";
   }
 
   /** Entry point from the webhook for one inbound text message. */
@@ -105,6 +113,39 @@ export class WhatsAppAiService {
 
     const cart = coerceCart(convo.cart);
     const history = this.coerceHistory(convo.messages);
+
+    // ── Item tapped → open the native "Customise" form (WhatsApp Flow) ────
+    // When the menu picker returns an item id and the item's options fit the
+    // form (all single-select, ≤5 groups), send the Flow so the customer picks
+    // everything and taps one "Add to cart" — instead of a tap-per-group chat.
+    if (this.flowId && text.startsWith("item:")) {
+      const item = ctx.itemIndex.get(text.slice(5));
+      if (item && this.flowEligible(item)) {
+        if (item.imageUrl) {
+          await this.send.sendImage(phoneNumberId, from, item.imageUrl, this.itemCaption(item));
+        }
+        await this.send.sendFlow(phoneNumberId, from, {
+          flowId: this.flowId,
+          flowToken: `item_${item.id}`,
+          cta: "Customise",
+          header: item.name,
+          body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
+          screen: "CUSTOMISE",
+          data: this.buildFlowData(item),
+          mode: this.flowMode,
+        });
+        await this.persistTurn(
+          convo.id,
+          history,
+          `[Customer opened ${item.name}]`,
+          `[Sent the Customise form for ${item.name}]`,
+          cart,
+          profileName,
+          convo.customerName,
+        );
+        return;
+      }
+    }
 
     // ── Decode interactive taps, then run the Claude tool loop ────────────
     // WhatsApp list/button taps arrive as our row ids (item:<id> / opt:<id>).
@@ -180,7 +221,25 @@ export class WhatsAppAiService {
 
     // ── Send the reply (interactive presentation wins over plain text) ────
     let assistantRecord: string;
-    if (presentation) {
+    if (presentation && presentation.kind === "flow") {
+      assistantRecord = `[Sent the Customise form for ${presentation.header}]`;
+      const item = ctx.itemIndex.get(presentation.itemId);
+      if (this.flowId && item) {
+        await this.send.sendFlow(phoneNumberId, from, {
+          flowId: this.flowId,
+          flowToken: `item_${item.id}`,
+          cta: "Customise",
+          header: presentation.header,
+          body: presentation.body,
+          screen: "CUSTOMISE",
+          data: this.buildFlowData(item),
+          mode: this.flowMode,
+        });
+      } else {
+        assistantRecord = finalText || "What would you like?";
+        await this.send.sendText(phoneNumberId, from, assistantRecord);
+      }
+    } else if (presentation) {
       assistantRecord = presentation.body;
       if (presentation.kind === "buttons") {
         await this.send.sendButtons(
@@ -205,20 +264,149 @@ export class WhatsAppAiService {
     }
 
     // ── Persist cart, transcript, and derived state ───────────────────────
+    await this.persistTurn(
+      convo.id,
+      history,
+      userText,
+      assistantRecord,
+      cart,
+      profileName,
+      convo.customerName,
+    );
+  }
+
+  /** Handle a completed "Customise item" Flow: add the configured item to cart. */
+  async handleFlowReply(args: {
+    phoneNumberId: string;
+    from: string;
+    responseJson: string;
+    profileName?: string;
+  }): Promise<void> {
+    const { phoneNumberId, from, responseJson, profileName } = args;
+    const ctx = await this.menu.resolveContext(phoneNumberId);
+    if (!ctx) return;
+
+    const convo = await this.prisma.whatsAppConversation.upsert({
+      where: { phoneNumberId_waPhone: { phoneNumberId, waPhone: from } },
+      create: {
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId,
+        brandId: ctx.brandId ?? null,
+        waPhone: from,
+        phoneNumberId,
+        state: "CART",
+        cart: emptyCart() as any,
+        customerName: profileName ?? null,
+        lastInboundAt: new Date(),
+      },
+      update: { lastInboundAt: new Date() },
+    });
+    const cart = coerceCart(convo.cart);
+    const history = this.coerceHistory(convo.messages);
+
+    let parsed: Record<string, unknown> = {};
+    try {
+      parsed = JSON.parse(responseJson || "{}");
+    } catch {
+      /* ignore */
+    }
+    const itemId = String(parsed.item_id ?? "");
+    const item = ctx.itemIndex.get(itemId);
+    if (!item) {
+      await this.send.sendText(phoneNumberId, from, "Sorry, that item isn't available anymore.");
+      return;
+    }
+    const optionIds: string[] = [];
+    for (let i = 0; i < FLOW_GROUP_SLOTS; i++) {
+      const v = parsed[`g${i}`];
+      if (v && v !== "none" && v !== "_") optionIds.push(String(v));
+    }
+    const notes = parsed.notes ? String(parsed.notes) : undefined;
+
+    const before = cart.items.length;
+    const result = this.addToCart({ itemId, quantity: 1, modifierOptionIds: optionIds, notes }, ctx, cart);
+    if (cart.items.length === before) {
+      // addToCart rejected (e.g. an option no longer valid) — surface it.
+      await this.send.sendText(phoneNumberId, from, result);
+      return;
+    }
+
+    const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
+    await this.send.sendButtons(phoneNumberId, from, body, [
+      { id: "checkout", title: "Checkout" },
+      { id: "menu", title: "Add more" },
+    ]);
+    await this.persistTurn(
+      convo.id,
+      history,
+      `[Customer customised ${item.name} and added it]`,
+      body,
+      cart,
+      profileName,
+      convo.customerName,
+    );
+  }
+
+  /** Can this item's options be fully captured by the radio-only Flow form? */
+  private flowEligible(item: WaMenuContext["items"][number]): boolean {
+    const groups = item.modifierGroups;
+    if (groups.length === 0 || groups.length > FLOW_GROUP_SLOTS) return false;
+    return groups.every((g) => g.selectionType === "VARIANT" || g.max === 1);
+  }
+
+  /** Build the Flow screen data (g0..g4 + notes) from an item's option groups. */
+  private buildFlowData(item: WaMenuContext["items"][number]): Record<string, unknown> {
+    const data: Record<string, unknown> = {
+      item_id: item.id,
+      subtitle: (item.description ?? "Choose your options").slice(0, 80),
+      notes_visible: true,
+    };
+    const groups = item.modifierGroups.slice(0, FLOW_GROUP_SLOTS);
+    for (let i = 0; i < FLOW_GROUP_SLOTS; i++) {
+      const g = groups[i];
+      if (g) {
+        const opts = g.options.map((o) => ({
+          id: o.id,
+          title: `${o.name}${o.price ? ` (+£${o.price.toFixed(2)})` : ""}`.slice(0, 30),
+        }));
+        if (!g.required) opts.unshift({ id: "none", title: `No ${g.name}`.slice(0, 30) });
+        data[`g${i}_visible`] = true;
+        data[`g${i}_label`] = g.name.slice(0, 30);
+        data[`g${i}_required`] = g.required;
+        data[`g${i}_options`] = opts.length ? opts : [{ id: "_", title: "-" }];
+      } else {
+        data[`g${i}_visible`] = false;
+        data[`g${i}_label`] = "-";
+        data[`g${i}_required`] = false;
+        data[`g${i}_options`] = [{ id: "_", title: "-" }];
+      }
+    }
+    return data;
+  }
+
+  /** Persist cart + rolling transcript + derived state for one turn. */
+  private async persistTurn(
+    convoId: string,
+    history: TranscriptTurn[],
+    userText: string,
+    assistantText: string,
+    cart: WaCart,
+    profileName: string | undefined,
+    existingName: string | null,
+  ): Promise<void> {
     const nextHistory = [
       ...history,
       { role: "user" as const, content: userText },
-      { role: "assistant" as const, content: assistantRecord },
+      { role: "assistant" as const, content: assistantText },
     ].slice(-HISTORY_LIMIT);
-
     await this.prisma.whatsAppConversation.update({
-      where: { id: convo.id },
+      where: { id: convoId },
       data: {
         cart: cart as any,
         messages: nextHistory as any,
         state: cart.items.length > 0 ? "CART" : "BROWSING",
         lastOutboundAt: new Date(),
-        ...(profileName && !convo.customerName ? { customerName: profileName } : {}),
+        ...(profileName && !existingName ? { customerName: profileName } : {}),
       },
     });
   }
@@ -308,9 +496,21 @@ export class WhatsAppAiService {
         },
       },
       {
+        name: "open_item_form",
+        description:
+          "PREFERRED for any item that has option groups: opens a native form where the customer picks ALL options (wrap, sauce, drink, etc.) and taps one 'Add to cart'. Use this the moment the customer wants such an item. If it returns that the form isn't available, fall back to show_options group-by-group.",
+        input_schema: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", description: "Menu item id (the [id:...] value)" },
+          },
+          required: ["itemId"],
+        },
+      },
+      {
         name: "show_options",
         description:
-          "Show the tappable options for ONE modifier group of an item (e.g. the 'Sauce' group), so the customer can pick. Use the group id ([grp:...]). For items with several required groups, call this for one group at a time, in order, until all required groups are chosen — then add_to_cart with all chosen option ids.",
+          "Fallback when the form isn't available: show the tappable options for ONE modifier group of an item. Use the group id ([grp:...]). Call for one group at a time until all required groups are chosen — then add_to_cart with all chosen option ids.",
         input_schema: {
           type: "object",
           properties: {
@@ -375,6 +575,8 @@ export class WhatsAppAiService {
         return this.showMenu(input, ctx);
       case "show_item":
         return this.showItem(input, ctx);
+      case "open_item_form":
+        return this.openItemForm(input, ctx);
       case "show_options":
         return this.showOptions(input, ctx);
       case "show_buttons":
@@ -431,6 +633,29 @@ export class WhatsAppAiService {
     return {
       result: `Showing ${item.name}${item.imageUrl ? " with its photo" : " (no photo on file)"}. Option groups: ${groups}.`,
       images: item.imageUrl ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }] : [],
+    };
+  }
+
+  private openItemForm(
+    input: any,
+    ctx: WaMenuContext,
+  ): { result: string; present?: Presentation; images?: { imageUrl: string; caption?: string }[] } {
+    const item = ctx.itemIndex.get(String(input.itemId));
+    if (!item) return { result: `No menu item with id ${input.itemId}.` };
+    if (!this.flowId || !this.flowEligible(item)) {
+      return {
+        result: `The form isn't available for ${item.name} — fall back to show_options group-by-group.`,
+      };
+    }
+    return {
+      result: `Opening the Customise form for ${item.name}. The customer will pick options and tap Add to cart; you'll be told when it's added.`,
+      images: item.imageUrl ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }] : [],
+      present: {
+        kind: "flow",
+        itemId: item.id,
+        header: item.name,
+        body: `Customise your ${item.name} — pick your options, then tap Add to cart.`,
+      },
     };
   }
 
@@ -614,8 +839,9 @@ export class WhatsAppAiService {
       "- Understand what the customer wants and map it to the menu below. Use item ids in tool calls; never invent items or prices.",
       "- Messages in [square brackets] are system signals about taps (e.g. the customer tapped an item or chose an option) — act on them, don't repeat them back.",
       "- Browsing: use show_menu to show a tappable list of items.",
-      "- When the customer picks an item, call show_item to show its photo, then handle its options.",
-      "- MODIFIERS: if an item has REQUIRED option groups (e.g. wrap, sauce, drink), present them ONE GROUP AT A TIME with show_options (pass the item id + the group's [grp:...] id). After each choice, move to the next required group. Once every required group is chosen, call add_to_cart with the item id and ALL chosen option ids together. Optional groups: offer them, but it's fine to skip.",
+      "- When the customer wants an item that has option groups (e.g. a meal with wrap/sauce/drink), call open_item_form with its id — this opens a single form where they pick everything and tap Add to cart. You'll be told once it's added; don't ask about the options yourself.",
+      "- Only if open_item_form says the form isn't available: fall back to show_options group-by-group, then add_to_cart with all chosen option ids.",
+      "- For an item with NO options, just add_to_cart directly. Use show_item to show a photo when helpful.",
       "- Add items with add_to_cart, adjust with update_line, set delivery/pickup with set_fulfillment.",
       "- Use show_buttons for quick choices (e.g. Checkout / Add more / View menu).",
       "- When they're ready and you have items + fulfillment (+ address for delivery), call checkout.",

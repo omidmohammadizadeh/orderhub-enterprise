@@ -52,11 +52,32 @@ export class WhatsAppService {
         // Delivery/read receipts come through `statuses` — ignore for now.
         for (const msg of value.messages ?? []) {
           const from = msg.from;
+          if (!phoneNumberId || !from) continue;
+
+          // Flow completion (the native "customise item" form) — arrives as an
+          // interactive nfm_reply carrying the submitted form values.
+          const flowReply =
+            msg.interactive?.type === "nfm_reply" ? msg.interactive.nfm_reply : undefined;
+          if (flowReply?.response_json) {
+            this.logger.log(`WhatsApp flow reply: from=${from} phoneNumberId=${phoneNumberId}`);
+            try {
+              await this.ai.handleFlowReply({
+                phoneNumberId,
+                from,
+                responseJson: flowReply.response_json,
+                profileName,
+              });
+            } catch (err: any) {
+              this.logger.error(`WhatsApp flow-reply error for ${from}: ${err?.message ?? err}`);
+            }
+            continue;
+          }
+
           const body = this.extractText(msg);
           this.logger.log(
             `WhatsApp inbound: from=${from} phoneNumberId=${phoneNumberId} type=${msg.type} text=${body ?? "—"}`,
           );
-          if (!phoneNumberId || !from || !body) continue;
+          if (!body) continue;
           // Route into the AI conversation engine. Errors are swallowed so the
           // webhook still returns 200 (the engine sends its own error reply).
           try {
@@ -118,8 +139,10 @@ interface WaMessage {
   text?: { body?: string };
   button?: { text?: string; payload?: string };
   interactive?: {
+    type?: string;
     list_reply?: WaInteractiveReply;
     button_reply?: WaInteractiveReply;
+    nfm_reply?: { response_json?: string; name?: string };
   };
 }
 interface WaChangeValue {
