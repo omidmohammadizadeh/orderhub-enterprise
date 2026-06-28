@@ -43,6 +43,34 @@ type Presentation =
 
 const FLOW_GROUP_SLOTS = 5; // radio groups supported by the "Customise item" Flow
 
+// Deterministic navigation commands — handled in code so they always work,
+// regardless of what the model decides. Matched against the trimmed, lowercased
+// inbound text (trailing punctuation stripped).
+const RESET_CMDS = new Set([
+  "reset",
+  "restart",
+  "start over",
+  "start again",
+  "cancel",
+  "cancel order",
+  "clear",
+  "clear cart",
+  "exit",
+  "exit chat",
+  "quit",
+  "stop",
+]);
+const MENU_CMDS = new Set([
+  "menu",
+  "back",
+  "go back",
+  "return to menu",
+  "back to menu",
+  "show menu",
+  "view menu",
+  "see menu",
+]);
+
 @Injectable()
 export class WhatsAppAiService {
   private readonly logger = new Logger(WhatsAppAiService.name);
@@ -113,6 +141,40 @@ export class WhatsAppAiService {
 
     const cart = coerceCart(convo.cart);
     const history = this.coerceHistory(convo.messages);
+
+    // ── Deterministic commands (reset / back to menu) ─────────────────────
+    const cmd = text.trim().toLowerCase().replace(/[!.?]+$/, "");
+    if (RESET_CMDS.has(cmd)) {
+      await this.sendMenuList(
+        phoneNumberId,
+        from,
+        ctx,
+        "Starting fresh 🧹 Your order's been cleared. Tap an item to begin.",
+      );
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: {
+          cart: emptyCart() as any,
+          messages: [] as any,
+          state: "BROWSING",
+          lastOutboundAt: new Date(),
+        },
+      });
+      return;
+    }
+    if (MENU_CMDS.has(cmd)) {
+      await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Tap an item to add it.");
+      await this.persistTurn(
+        convo.id,
+        history,
+        text,
+        "[Showed the menu]",
+        cart,
+        profileName,
+        convo.customerName,
+      );
+      return;
+    }
 
     // ── Item tapped → open the native "Customise" form (WhatsApp Flow) ────
     // When the menu picker returns an item id and the item's options fit the
@@ -335,6 +397,7 @@ export class WhatsAppAiService {
     await this.send.sendButtons(phoneNumberId, from, body, [
       { id: "checkout", title: "Checkout" },
       { id: "menu", title: "Add more" },
+      { id: "reset", title: "Start over" },
     ]);
     await this.persistTurn(
       convo.id,
@@ -345,6 +408,28 @@ export class WhatsAppAiService {
       profileName,
       convo.customerName,
     );
+  }
+
+  /** Send the menu as a tappable list (used by the menu/back/reset commands). */
+  private async sendMenuList(
+    phoneNumberId: string,
+    from: string,
+    ctx: WaMenuContext,
+    body: string,
+  ): Promise<void> {
+    const { present } = this.showMenu({ body }, ctx);
+    if (present && present.kind === "list") {
+      await this.send.sendList(
+        phoneNumberId,
+        from,
+        present.body,
+        present.buttonLabel,
+        present.sections,
+        present.header,
+      );
+    } else {
+      await this.send.sendText(phoneNumberId, from, body);
+    }
   }
 
   /** Can this item's options be fully captured by the radio-only Flow form? */
@@ -833,9 +918,11 @@ export class WhatsAppAiService {
   private systemPrompt(ctx: WaMenuContext, cart: WaCart): string {
     return [
       `You are the ordering assistant for ${ctx.locationName}, taking orders over WhatsApp.`,
-      "Be warm, brief, and natural — this is a chat, not a form. Reply with short messages.",
+      "Be warm but BRIEF and DECISIVE — 1-2 short sentences per reply. Don't ask permission for obvious next steps, don't offer to 'pick it up later', and never re-ask something already answered. Just do the helpful thing.",
       "",
       "How to work:",
+      "- The words menu / back / start over / cancel are handled automatically before you see them — don't worry about navigation.",
+      "- At decision points (e.g. after adding an item) offer quick-reply buttons with show_buttons: typically Checkout, Add more, and Start over (id 'reset').",
       "- Understand what the customer wants and map it to the menu below. Use item ids in tool calls; never invent items or prices.",
       "- Messages in [square brackets] are system signals about taps (e.g. the customer tapped an item or chose an option) — act on them, don't repeat them back.",
       "- Browsing: use show_menu to show a tappable list of items.",
