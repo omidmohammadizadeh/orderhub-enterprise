@@ -2281,6 +2281,36 @@ model ChatMessage {
   @@map("chat_messages")
 }
 
+// Phase AY — WhatsApp ordering. One row per (business number, customer phone):
+// holds the in-progress cart + conversation state for the AI ordering bot. The
+// customer is identified by their WhatsApp phone; the business is identified by
+// the Meta phone_number_id (which maps to a location/integration).
+model WhatsAppConversation {
+  id            String  @id @default(cuid())
+  tenantId      String
+  locationId    String?
+  brandId       String?
+  // Customer's WhatsApp phone in E.164 (the conversation identity).
+  waPhone       String
+  // Meta business phone number id this conversation is on (maps to a location).
+  phoneNumberId String?
+  // IDLE | BROWSING | CART | CHECKOUT | AWAITING_PAYMENT
+  state         String  @default("IDLE")
+  // In-progress cart + conversation memory (items, modifiers, fulfillment, address).
+  cart          Json?
+  customerName  String?
+  lastOrderId   String?
+
+  lastInboundAt  DateTime?
+  lastOutboundAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([phoneNumberId, waPhone])
+  @@index([tenantId, waPhone])
+  @@map("whatsapp_conversations")
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — PAYMENT & FINANCIAL SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3170,6 +3200,7 @@ enum IntegrationPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum IntegrationStatus {
@@ -3191,6 +3222,7 @@ enum OrderPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum OrderSource {
@@ -3205,6 +3237,7 @@ enum OrderSource {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum IntegrationSource {

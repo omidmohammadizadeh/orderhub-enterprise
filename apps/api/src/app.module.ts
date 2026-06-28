@@ -47,6 +47,7 @@ import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { DriverAppModule } from "./modules/driver-app/driver-app.module";
 import { ExpoPushModule } from "./modules/driver-app/expo-push.module";
 import { ChatModule } from "./modules/chat/chat.module";
+import { WhatsAppModule } from "./modules/whatsapp/whatsapp.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { KdsModule } from "./modules/kds/kds.module";
 import { PrintersModule } from "./modules/printers/printers.module";
@@ -184,6 +185,7 @@ import { QUEUES } from "@orderhub/shared";
     ExpoPushModule,
     DriverAppModule,
     ChatModule,
+    WhatsAppModule,
     AnalyticsModule,
     KdsModule,
     PrintersModule,
