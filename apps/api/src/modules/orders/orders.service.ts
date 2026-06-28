@@ -9,6 +9,7 @@ import {
   Inject,
   forwardRef,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -85,6 +86,7 @@ export class OrdersService {
     // HubRiseModule transitively imports OrdersModule (via WebhooksModule).
     @Inject(forwardRef(() => HubRiseOrderSyncService))
     private readonly hubriseSync: HubRiseOrderSyncService,
+    private readonly events: EventEmitter2,
   ) {}
 
   /**
@@ -1084,6 +1086,16 @@ export class OrdersService {
           this.logger.error(`Stripe refund/cancel failed for ${orderId}: ${err.message}`),
         );
     }
+
+    // In-process event so channels (e.g. WhatsApp) can notify the customer of
+    // status changes. Best-effort, decoupled via EventEmitter (no module cycle).
+    this.events.emit("order.status_changed", {
+      orderId,
+      tenantId,
+      locationId: order.locationId,
+      fromStatus: order.status,
+      toStatus: newStatus,
+    });
 
     // Phase AU — push the new status back to HubRise so every
     // connected aggregator (Uber Eats, Deliveroo, Just Eat) walks the

@@ -4,6 +4,7 @@ import { WhatsAppService } from "./whatsapp.service";
 import { WhatsAppAiService } from "./whatsapp-ai.service";
 import { WhatsAppMenuService } from "./whatsapp-menu.service";
 import { WhatsAppSendService } from "./whatsapp-send.service";
+import { WhatsAppNotifyService } from "./whatsapp-notify.service";
 import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 
@@ -20,6 +21,7 @@ import { PaymentsModule } from "../payments/payments.module";
     WhatsAppAiService,
     WhatsAppMenuService,
     WhatsAppSendService,
+    WhatsAppNotifyService,
   ],
   exports: [WhatsAppService],
 })

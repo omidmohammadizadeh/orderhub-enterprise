@@ -6,6 +6,7 @@ import { BullModule } from "@nestjs/bull";
 import { WinstonModule } from "nest-winston";
 import { CacheModule } from "@nestjs/cache-manager";
 import { ScheduleModule } from "@nestjs/schedule";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 // cache-manager-redis-store removed — uses in-memory store for staging compatibility.
 // cache-manager v5 requires an async store factory for Redis; the legacy sync API
 // causes a silent hang at startup when connecting to Upstash rediss:// TLS URLs.
@@ -156,6 +157,9 @@ import { QUEUES } from "@orderhub/shared";
 
     // ── Scheduled Tasks ──────────────────────────────────
     ScheduleModule.forRoot(),
+
+    // ── In-process events (order status → WhatsApp notify, etc.) ─────────
+    EventEmitterModule.forRoot(),
 
     // ── Infrastructure ───────────────────────────────────
     DatabaseModule,

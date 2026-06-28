@@ -855,8 +855,10 @@ export class WhatsAppAiService {
   }
 
   // ── Checkout: create the order + Stripe payment link (card only) ─────────
+  // After paying, Stripe redirects here — a wa.me deep link sends the customer
+  // back to the WhatsApp chat. Override per business via WHATSAPP_PAY_RETURN_URL.
   private returnUrl(): string {
-    return this.config.get<string>("WHATSAPP_PAY_RETURN_URL") || "https://www.orderhubsolutions.com";
+    return this.config.get<string>("WHATSAPP_PAY_RETURN_URL") || "https://wa.me/15556619699";
   }
 
   private async handleCheckout(
@@ -908,7 +910,7 @@ export class WhatsAppAiService {
     let order: { id: string; displayId?: string | null };
     try {
       order = await this.orders.ingestCanonical(
-        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee),
+        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId),
         ctx.tenantId,
         ctx.locationId,
       );
@@ -959,6 +961,7 @@ export class WhatsAppAiService {
     waPhone: string,
     name: string | null | undefined,
     deliveryFee: number,
+    phoneNumberId: string,
   ): CanonicalOrder {
     const subtotal = cartSubtotal(cart);
     const total = round2(subtotal + deliveryFee);
@@ -996,7 +999,13 @@ export class WhatsAppAiService {
       discount: 0,
       total,
       idempotencyKey: `wa_${waPhone}_${Date.now()}`,
-      metadata: { source: "whatsapp", waPhone, paymentMethod: "CARD", paymentStatus: "PENDING" },
+      metadata: {
+        source: "whatsapp",
+        waPhone,
+        phoneNumberId,
+        paymentMethod: "CARD",
+        paymentStatus: "PENDING",
+      },
     } as CanonicalOrder;
   }
 
