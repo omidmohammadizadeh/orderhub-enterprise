@@ -47,6 +47,22 @@ export class WhatsAppSendService {
     });
   }
 
+  /** Send an image (by public URL) with an optional caption. */
+  async sendImage(
+    phoneNumberId: string,
+    to: string,
+    imageUrl: string,
+    caption?: string,
+  ): Promise<void> {
+    await this.post(phoneNumberId, {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "image",
+      image: { link: imageUrl, ...(caption ? { caption: truncate(caption, 1024) } : {}) },
+    });
+  }
+
   /** Up to 3 reply buttons under a body of text. */
   async sendButtons(
     phoneNumberId: string,

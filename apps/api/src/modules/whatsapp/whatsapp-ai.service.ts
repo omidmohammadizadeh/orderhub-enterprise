@@ -106,11 +106,17 @@ export class WhatsAppAiService {
     const cart = coerceCart(convo.cart);
     const history = this.coerceHistory(convo.messages);
 
-    // ── Run the Claude tool loop ──────────────────────────────────────────
+    // ── Decode interactive taps, then run the Claude tool loop ────────────
+    // WhatsApp list/button taps arrive as our row ids (item:<id> / opt:<id>).
+    // Translate them into explicit instructions so the model knows what was
+    // picked, and queue the item photo to send alongside the reply.
+    const imageSends: { imageUrl: string; caption?: string }[] = [];
+    const userText = this.decodeInbound(text, ctx, imageSends);
+
     let presentation: Presentation | null = null;
     const messages: Anthropic.MessageParam[] = [
       ...history.map((t) => ({ role: t.role, content: t.content })),
-      { role: "user" as const, content: text },
+      { role: "user" as const, content: userText },
     ];
     const tools = this.toolDefs();
     let finalText = "";
@@ -143,8 +149,9 @@ export class WhatsAppAiService {
         messages.push({ role: "assistant", content: response.content });
         const results: Anthropic.ToolResultBlockParam[] = [];
         for (const tu of toolUses) {
-          const { result, present } = this.runTool(tu.name, tu.input, ctx, cart);
+          const { result, present, images } = this.runTool(tu.name, tu.input, ctx, cart);
           if (present) presentation = present;
+          if (images) imageSends.push(...images);
           results.push({
             type: "tool_result",
             tool_use_id: tu.id,
@@ -161,6 +168,14 @@ export class WhatsAppAiService {
         "Sorry, something went wrong on our side. Could you say that again?",
       );
       return;
+    }
+
+    // ── Send any item photos first (deduped), then the reply ──────────────
+    const sentImages = new Set<string>();
+    for (const img of imageSends) {
+      if (!img.imageUrl || sentImages.has(img.imageUrl)) continue;
+      sentImages.add(img.imageUrl);
+      await this.send.sendImage(phoneNumberId, from, img.imageUrl, img.caption);
     }
 
     // ── Send the reply (interactive presentation wins over plain text) ────
@@ -192,7 +207,7 @@ export class WhatsAppAiService {
     // ── Persist cart, transcript, and derived state ───────────────────────
     const nextHistory = [
       ...history,
-      { role: "user" as const, content: text },
+      { role: "user" as const, content: userText },
       { role: "assistant" as const, content: assistantRecord },
     ].slice(-HISTORY_LIMIT);
 
@@ -281,6 +296,32 @@ export class WhatsAppAiService {
         },
       },
       {
+        name: "show_item",
+        description:
+          "Show the customer a single item's photo (if it has one) with a caption. Use when they tap or ask about a specific item, before walking through its options.",
+        input_schema: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", description: "Menu item id (the [id:...] value)" },
+          },
+          required: ["itemId"],
+        },
+      },
+      {
+        name: "show_options",
+        description:
+          "Show the tappable options for ONE modifier group of an item (e.g. the 'Sauce' group), so the customer can pick. Use the group id ([grp:...]). For items with several required groups, call this for one group at a time, in order, until all required groups are chosen — then add_to_cart with all chosen option ids.",
+        input_schema: {
+          type: "object",
+          properties: {
+            itemId: { type: "string", description: "Menu item id" },
+            groupId: { type: "string", description: "Modifier group id (the [grp:...] value)" },
+            body: { type: "string", description: "Short prompt, e.g. 'Choose your sauce'" },
+          },
+          required: ["itemId", "groupId"],
+        },
+      },
+      {
         name: "show_buttons",
         description:
           "Show up to 3 quick-reply buttons under a message (e.g. Checkout / Add more / View menu). Provide the body and button titles.",
@@ -319,7 +360,7 @@ export class WhatsAppAiService {
     input: any,
     ctx: WaMenuContext,
     cart: WaCart,
-  ): { result: string; present?: Presentation } {
+  ): { result: string; present?: Presentation; images?: { imageUrl: string; caption?: string }[] } {
     switch (name) {
       case "add_to_cart":
         return { result: this.addToCart(input, ctx, cart) };
@@ -332,6 +373,10 @@ export class WhatsAppAiService {
         return { result: this.setFulfillment(input, cart) };
       case "show_menu":
         return this.showMenu(input, ctx);
+      case "show_item":
+        return this.showItem(input, ctx);
+      case "show_options":
+        return this.showOptions(input, ctx);
       case "show_buttons":
         return this.showButtons(input);
       case "checkout":
@@ -339,6 +384,85 @@ export class WhatsAppAiService {
       default:
         return { result: `Unknown tool ${name}.` };
     }
+  }
+
+  /** Translate a WhatsApp tap (our row id) into an explicit instruction. */
+  private decodeInbound(
+    text: string,
+    ctx: WaMenuContext,
+    imageSends: { imageUrl: string; caption?: string }[],
+  ): string {
+    if (text.startsWith("item:")) {
+      const item = ctx.itemIndex.get(text.slice(5));
+      if (item) {
+        if (item.imageUrl) {
+          imageSends.push({ imageUrl: item.imageUrl, caption: this.itemCaption(item) });
+        }
+        const required = item.modifierGroups.filter((g) => g.required);
+        const groups = item.modifierGroups
+          .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : ""}`)
+          .join("; ");
+        return required.length > 0
+          ? `[The customer tapped "${item.name}" (item:${item.id}). It needs choices for: ${groups}. Walk them through each required group one at a time using show_options, then add_to_cart with all chosen options.]`
+          : `[The customer tapped "${item.name}" (item:${item.id}). Confirm and add it to the cart${
+              groups ? `; optional extras: ${groups}` : ""
+            }.]`;
+      }
+    }
+    if (text.startsWith("opt:")) {
+      const entry = ctx.optionIndex.get(text.slice(4));
+      if (entry) {
+        return `[The customer selected "${entry.option.name}" (opt:${text.slice(4)}) for item ${entry.itemId}.]`;
+      }
+    }
+    return text;
+  }
+
+  private showItem(
+    input: any,
+    ctx: WaMenuContext,
+  ): { result: string; images?: { imageUrl: string; caption?: string }[] } {
+    const item = ctx.itemIndex.get(String(input.itemId));
+    if (!item) return { result: `No menu item with id ${input.itemId}.` };
+    const groups =
+      item.modifierGroups
+        .map((g) => `${g.name} [grp:${g.id}]${g.required ? " (required)" : " (optional)"}`)
+        .join("; ") || "no options";
+    return {
+      result: `Showing ${item.name}${item.imageUrl ? " with its photo" : " (no photo on file)"}. Option groups: ${groups}.`,
+      images: item.imageUrl ? [{ imageUrl: item.imageUrl, caption: this.itemCaption(item) }] : [],
+    };
+  }
+
+  private showOptions(input: any, ctx: WaMenuContext): { result: string; present?: Presentation } {
+    const item = ctx.itemIndex.get(String(input.itemId));
+    if (!item) return { result: `No menu item with id ${input.itemId}.` };
+    const gid = String(input.groupId ?? "");
+    const group =
+      item.modifierGroups.find((g) => g.id === gid) ??
+      item.modifierGroups.find((g) => g.name.toLowerCase() === gid.toLowerCase());
+    if (!group) return { result: `No option group ${gid} on ${item.name}.` };
+    const rows = group.options.slice(0, 10).map((o) => ({
+      id: `opt:${o.id}`,
+      title: o.name,
+      ...(o.price ? { description: `+£${o.price.toFixed(2)}` } : {}),
+    }));
+    if (rows.length === 0) return { result: `${group.name} has no available options.` };
+    const body = String(input.body ?? `Choose your ${group.name}`);
+    return {
+      result: `Showing ${rows.length} ${group.name} option(s) to the customer.`,
+      present: {
+        kind: "list",
+        body,
+        buttonLabel: "Choose",
+        header: group.name,
+        sections: [{ title: group.name, rows }],
+      },
+    };
+  }
+
+  private itemCaption(item: { name: string; price: number; description?: string }): string {
+    return `${item.name} — £${item.price.toFixed(2)}${item.description ? `\n${item.description}` : ""}`;
   }
 
   private addToCart(input: any, ctx: WaMenuContext, cart: WaCart): string {
@@ -488,9 +612,12 @@ export class WhatsAppAiService {
       "",
       "How to work:",
       "- Understand what the customer wants and map it to the menu below. Use item ids in tool calls; never invent items or prices.",
-      "- When an item has REQUIRED modifier groups, ask the customer to choose before adding it. Offer the options.",
+      "- Messages in [square brackets] are system signals about taps (e.g. the customer tapped an item or chose an option) — act on them, don't repeat them back.",
+      "- Browsing: use show_menu to show a tappable list of items.",
+      "- When the customer picks an item, call show_item to show its photo, then handle its options.",
+      "- MODIFIERS: if an item has REQUIRED option groups (e.g. wrap, sauce, drink), present them ONE GROUP AT A TIME with show_options (pass the item id + the group's [grp:...] id). After each choice, move to the next required group. Once every required group is chosen, call add_to_cart with the item id and ALL chosen option ids together. Optional groups: offer them, but it's fine to skip.",
       "- Add items with add_to_cart, adjust with update_line, set delivery/pickup with set_fulfillment.",
-      "- Use show_menu to let them browse, and show_buttons for quick choices (e.g. Checkout / Add more).",
+      "- Use show_buttons for quick choices (e.g. Checkout / Add more / View menu).",
       "- When they're ready and you have items + fulfillment (+ address for delivery), call checkout.",
       "- Confirm the running total in pounds (£). Only state prices that come from the menu or cart state.",
       "- Respond ONLY with the customer-facing message — no internal reasoning, no markdown headings.",

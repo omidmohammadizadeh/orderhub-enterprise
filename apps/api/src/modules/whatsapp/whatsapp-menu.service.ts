@@ -32,6 +32,7 @@ export interface WaMenuItem {
   name: string;
   description?: string;
   price: number;
+  imageUrl?: string;
   categoryName: string;
   modifierGroups: WaMenuModifierGroup[];
 }
@@ -179,6 +180,7 @@ export class WhatsAppMenuService {
           name: item.name,
           description: item.description ?? undefined,
           price,
+          imageUrl: item.imageUrl ?? undefined,
           categoryName: category.name,
           modifierGroups,
         };
@@ -240,7 +242,7 @@ export class WhatsAppMenuService {
           const rule = g.required
             ? `required, pick ${g.min}${g.max ? `-${g.max}` : "+"}`
             : `optional${g.max ? `, up to ${g.max}` : ""}`;
-          lines.push(`    • ${g.name} (${rule}):`);
+          lines.push(`    • ${g.name} [grp:${g.id}] (${rule}):`);
           for (const o of g.options) {
             const p = o.price ? ` +£${o.price.toFixed(2)}` : "";
             lines.push(`        - ${o.name}${p} [opt:${o.id}]`);
