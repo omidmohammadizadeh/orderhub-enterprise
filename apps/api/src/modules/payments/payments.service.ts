@@ -1256,10 +1256,32 @@ export class PaymentsService {
       paymentStatus: "AUTHORIZED",
     } as any);
 
-    // Card is now authorised — let the location's auto-accept setting kick in
-    // (OrdersService listens and runs maybeAutoAccept, which captures + prints).
-    // Decoupled via the event bus to avoid an Orders↔Payments module cycle.
-    if (order?.locationId) {
+    // Card is now authorised. Two paths:
+    //
+    //  • Order ALREADY accepted (e.g. a WhatsApp order is visible on the board
+    //    pre-payment, and an operator accepted it before the card authorised —
+    //    or auto-accept fired earlier). The accept-time captureForOrder() had
+    //    nothing to capture back then, and maybeAutoAccept won't re-fire on an
+    //    already-accepted order — so capture NOW, or the money stays held.
+    //
+    //  • Order still PENDING → emit payment.authorized so the location's
+    //    auto-accept setting kicks in (OrdersService listens → maybeAutoAccept
+    //    → updateStatus(ACCEPTED) → captureForOrder). If auto-accept is off it
+    //    stays PENDING and capture happens when staff tap Accept.
+    const ACCEPTED_STATES = [
+      "ACCEPTED",
+      "PREPARING",
+      "READY",
+      "OUT_FOR_DELIVERY",
+      "COMPLETED",
+    ];
+    if (order && ACCEPTED_STATES.includes(order.status as string)) {
+      await this.captureForOrder(payment.orderId).catch((err: any) =>
+        this.logger.error(
+          `capture-on-authorize failed for ${payment.orderId}: ${err.message}`,
+        ),
+      );
+    } else if (order?.locationId) {
       this.events.emit("payment.authorized", {
         orderId: payment.orderId,
         tenantId: payment.tenantId,
