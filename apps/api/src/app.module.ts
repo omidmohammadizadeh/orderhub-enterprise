@@ -80,6 +80,25 @@ import { SecretsModule } from "./modules/secrets/secrets.module";
 import { BrandConnectionsModule } from "./modules/brand-connections/brand-connections.module";
 import { QUEUES } from "@orderhub/shared";
 
+// Bull/ioredis connection options derived from a redis(s):// URL. We pass an
+// options object (not the bare `url`) so we can set maxRetriesPerRequest:null
+// + enableReadyCheck:false — required for Bull and for managed Redis like
+// Upstash, which drops idle connections. Without this, a command issued
+// during a reconnect window dies with "Reached the max retries per request
+// limit (which is 20)" and the queue add/outbox dispatch fails.
+function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
+  const url = new URL(raw ?? "redis://localhost:6379");
+  return {
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 6379,
+    username: decodeURIComponent(url.username || "default"),
+    password: decodeURIComponent(url.password || ""),
+    ...(url.protocol === "rediss:" ? { tls: {} } : {}),
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  };
+}
+
 @Module({
   imports: [
     // ── Configuration ──────────────────────────────────
@@ -136,7 +155,7 @@ import { QUEUES } from "@orderhub/shared";
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        url: config.get<string>("QUEUE_REDIS_URL"),
+        redis: bullRedisOptions(config.get<string>("QUEUE_REDIS_URL")),
         defaultJobOptions: {
           attempts: 3,
           backoff: { type: "exponential", delay: 2000 },

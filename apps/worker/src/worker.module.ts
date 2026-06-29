@@ -21,6 +21,21 @@ import { TokenRefreshService } from "./sync/token-refresh.service";
 import { rateLimitAwareBackoff } from "./sync/backoff-strategies";
 import { CredentialEncryptionService } from "./infrastructure/credential-encryption.service";
 
+// See app.module.ts — pass ioredis options (not bare url) so we can set
+// maxRetriesPerRequest:null + enableReadyCheck:false for Bull + Upstash.
+function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
+  const url = new URL(raw ?? "redis://localhost:6379");
+  return {
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 6379,
+    username: decodeURIComponent(url.username || "default"),
+    password: decodeURIComponent(url.password || ""),
+    ...(url.protocol === "rediss:" ? { tls: {} } : {}),
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  };
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -45,7 +60,7 @@ import { CredentialEncryptionService } from "./infrastructure/credential-encrypt
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        url: config.get<string>("QUEUE_REDIS_URL") ?? "redis://localhost:6379",
+        redis: bullRedisOptions(config.get<string>("QUEUE_REDIS_URL")),
         defaultJobOptions: {
           attempts: 3,
           backoff: { type: "exponential", delay: 2000 },
