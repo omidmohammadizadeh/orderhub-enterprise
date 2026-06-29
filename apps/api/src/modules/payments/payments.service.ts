@@ -1275,18 +1275,28 @@ export class PaymentsService {
       "OUT_FOR_DELIVERY",
       "COMPLETED",
     ];
+    // Always announce authorisation. Listeners:
+    //  • WhatsAppNotifyService → sends the customer a "payment received" msg
+    //    (so when the wa.me redirect drops them back in the chat they see it).
+    //  • OrdersService → runs the location's auto-accept (no-op if the order
+    //    is already accepted), which captures + prints.
+    if (order?.locationId) {
+      this.events.emit("payment.authorized", {
+        orderId: payment.orderId,
+        tenantId: payment.tenantId,
+        locationId: order.locationId,
+      });
+    }
+    // If the order was already accepted before the card authorised, the
+    // accept-time capture had nothing to capture and auto-accept won't re-fire
+    // — so capture now. (For still-PENDING orders the auto-accept path above
+    // captures on accept instead. captureForOrder is idempotent.)
     if (order && ACCEPTED_STATES.includes(order.status as string)) {
       await this.captureForOrder(payment.orderId).catch((err: any) =>
         this.logger.error(
           `capture-on-authorize failed for ${payment.orderId}: ${err.message}`,
         ),
       );
-    } else if (order?.locationId) {
-      this.events.emit("payment.authorized", {
-        orderId: payment.orderId,
-        tenantId: payment.tenantId,
-        locationId: order.locationId,
-      });
     }
   }
 

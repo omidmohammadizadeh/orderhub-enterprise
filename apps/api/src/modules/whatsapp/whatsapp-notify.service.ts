@@ -24,6 +24,40 @@ export class WhatsAppNotifyService {
     private readonly send: WhatsAppSendService,
   ) {}
 
+  // Fires the moment Stripe authorises the card (PaymentsService.markAuthorized
+  // emits "payment.authorized"). Sends an immediate "payment received" so the
+  // customer — just bounced back to the chat by the wa.me redirect — sees
+  // confirmation without waiting for the kitchen to accept.
+  @OnEvent("payment.authorized")
+  async onPaymentAuthorized(ev: { orderId: string }): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: ev.orderId },
+        select: {
+          orderSource: true,
+          customerPhone: true,
+          displayId: true,
+          metadata: true,
+        },
+      });
+      if (!order || (order.orderSource as string) !== "WHATSAPP") return;
+      const meta = (order.metadata as any) ?? {};
+      const phoneNumberId: string | undefined = meta.phoneNumberId;
+      const to: string | undefined = order.customerPhone ?? meta.waPhone;
+      if (!phoneNumberId || !to) return;
+      const id = order.displayId ? `#${order.displayId}` : "your order";
+      await this.send.sendText(
+        phoneNumberId,
+        to,
+        `✅ Payment received for ${id} — thank you! 🎉 We're sending it to the kitchen now; you'll get a message the moment it's confirmed.`,
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `WhatsApp payment-authorized notify failed for ${ev.orderId}: ${err?.message ?? err}`,
+      );
+    }
+  }
+
   @OnEvent("order.status_changed")
   async onStatusChange(ev: OrderStatusEvent): Promise<void> {
     try {
@@ -62,7 +96,7 @@ export class WhatsAppNotifyService {
     const shop = order.location?.name;
     switch (toStatus) {
       case "ACCEPTED":
-        return `✅ Payment received and ${id} is confirmed! The kitchen is preparing it now. 🧑‍🍳`;
+        return `👨‍🍳 ${id} is confirmed — the kitchen is preparing it now!`;
       case "READY":
         return delivery
           ? `🎉 ${id} is ready and heading out for delivery shortly!`

@@ -209,8 +209,11 @@ export class WhatsAppAiService {
 
     const cmd = text.trim().toLowerCase().replace(/[!.?]+$/, "");
 
-    // ── Hard reset → restart from the welcome / fulfilment question ───────
-    if (RESET_CMDS.has(cmd)) {
+    // ── Hard reset OR a greeting → always restart from a clean slate ──────
+    // A greeting ("hi", "hello", …) means a new visit: wipe the old cart and
+    // re-ask collection/delivery so a returning customer never inherits items
+    // or modifier picks from a previous order.
+    if (RESET_CMDS.has(cmd) || GREETING_CMDS.has(cmd)) {
       await this.startFulfilment(phoneNumberId, from, convo.id, ctx);
       return;
     }
@@ -243,7 +246,7 @@ export class WhatsAppAiService {
 
     // ── Delivery address capture (plain-text replies only) ────────────────
     const plainText =
-      !/^(fulfil:|item:|cat:|opt:|skip:|wizback)/.test(text) &&
+      !/^(fulfil:|item:|cat:|opt:|skip:|wizback|rm:|editcart)/.test(text) &&
       !MENU_CMDS.has(cmd) &&
       !GREETING_CMDS.has(cmd);
     if (convo.state === "ASK_ADDRESS" && plainText) {
@@ -273,8 +276,9 @@ export class WhatsAppAiService {
       return;
     }
 
-    // ── Greeting / menu (already onboarded) → show the menu ───────────────
-    if (GREETING_CMDS.has(cmd) || MENU_CMDS.has(cmd)) {
+    // ── Menu (already onboarded) → show the menu, keep the cart ───────────
+    // (Greetings are handled at the top as a full reset.)
+    if (MENU_CMDS.has(cmd)) {
       cart.pending = undefined;
       await this.sendMenuList(phoneNumberId, from, ctx, "Here's the menu 👇 Pick a category.");
       await this.persistTurn(convo.id, history, text, "[Showed the menu]", cart, profileName, convo.customerName);
@@ -286,6 +290,50 @@ export class WhatsAppAiService {
       await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName);
       return;
     }
+
+    // ── Edit cart → list the items so the customer can remove one ─────────
+    if (text === "editcart" || cmd === "edit cart" || cmd === "edit") {
+      cart.pending = undefined;
+      if (cart.items.length === 0) {
+        await this.send.sendText(phoneNumberId, from, "Your cart's empty 🛒 Reply *menu* to add items.");
+      } else {
+        const rows = cart.items.map((l, i) => ({
+          id: `rm:${i}`,
+          title: `${l.quantity}× ${l.name}`,
+          description: `£${lineTotal(l).toFixed(2)} — tap to remove`,
+        }));
+        await this.send.sendList(
+          phoneNumberId,
+          from,
+          "Tap an item to remove it from your order 👇",
+          "Remove item",
+          [{ title: "Your items", rows }],
+          "Edit cart",
+        );
+      }
+      await this.persistTurn(convo.id, history, text, "[Showed edit cart]", cart, profileName, convo.customerName);
+      return;
+    }
+
+    // ── Remove a specific cart line (rm:<index>) ──────────────────────────
+    if (text.startsWith("rm:")) {
+      const idx = parseInt(text.slice(3), 10);
+      if (!Number.isNaN(idx) && cart.items[idx]) {
+        const removed = cart.items[idx].name;
+        cart.items.splice(idx, 1);
+        cart.pending = undefined;
+        if (cart.items.length === 0) {
+          await this.send.sendText(phoneNumberId, from, `Removed *${removed}*. Your cart's empty now 🛒 Reply *menu* to add items.`);
+        } else {
+          await this.sendCartActions(phoneNumberId, from, `Removed *${removed}*.\n\n${summarizeCart(cart)}`);
+        }
+        await this.persistTurn(convo.id, history, text, `[Removed ${removed}]`, cart, profileName, convo.customerName);
+      } else {
+        await this.send.sendText(phoneNumberId, from, "That item's no longer in your cart.");
+      }
+      return;
+    }
+
     // Category tapped → show that category's items.
     if (text.startsWith("cat:")) {
       cart.pending = undefined;
@@ -324,7 +372,7 @@ export class WhatsAppAiService {
           await this.persistTurn(convo.id, history, text, "[Asked next option group]", cart, profileName, convo.customerName);
         } else {
           const body = doneBody ?? "Done.";
-          await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
+          await this.sendCartActions(phoneNumberId, from, body);
           await this.persistTurn(convo.id, history, text, body, cart, profileName, convo.customerName);
         }
         return;
@@ -378,7 +426,7 @@ export class WhatsAppAiService {
           }
           this.addToCart({ itemId: item.id, quantity: 1, modifierOptionIds: [] }, ctx, cart);
           const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
-          await this.send.sendButtons(phoneNumberId, from, body, this.cartButtons());
+          await this.sendCartActions(phoneNumberId, from, body);
           await this.persistTurn(convo.id, history, `[Customer added ${item.name}]`, body, cart, profileName, convo.customerName);
           return;
         }
@@ -586,11 +634,7 @@ export class WhatsAppAiService {
     }
 
     const body = `✅ Added ${item.name}.\n\n${summarizeCart(cart)}`;
-    await this.send.sendButtons(phoneNumberId, from, body, [
-      { id: "checkout", title: "Checkout" },
-      { id: "menu", title: "Add more" },
-      { id: "reset", title: "Start over" },
-    ]);
+    await this.sendCartActions(phoneNumberId, from, body);
     await this.persistTurn(
       convo.id,
       history,
@@ -665,12 +709,30 @@ export class WhatsAppAiService {
     return item.modifierGroups.length > 0;
   }
 
-  private cartButtons(): { id: string; title: string }[] {
-    return [
-      { id: "checkout", title: "Checkout" },
-      { id: "menu", title: "Add more" },
-      { id: "reset", title: "Start over" },
-    ];
+  /** Cart summary + the manage-order actions. A LIST (not buttons) so all four
+   *  actions fit — WhatsApp caps reply buttons at 3. */
+  private async sendCartActions(
+    phoneNumberId: string,
+    from: string,
+    body: string,
+  ): Promise<void> {
+    await this.send.sendList(
+      phoneNumberId,
+      from,
+      body,
+      "Options",
+      [
+        {
+          title: "Manage order",
+          rows: [
+            { id: "checkout", title: "✅ Checkout", description: "Pay & place your order" },
+            { id: "menu", title: "➕ Add more items", description: "Back to the menu" },
+            { id: "editcart", title: "✏️ Edit cart", description: "Remove an item" },
+            { id: "reset", title: "🔄 Start over", description: "Clear cart & restart" },
+          ],
+        },
+      ],
+    );
   }
 
   private isMultiSelect(g: WaMenuContext["items"][number]["modifierGroups"][number]): boolean {
@@ -940,9 +1002,17 @@ export class WhatsAppAiService {
       return;
     }
 
+    // Order is placed — clear the cart so the next order (or a returning
+    // customer) starts from scratch and never inherits these items/options.
     await this.prisma.whatsAppConversation.update({
       where: { id: convo.id },
-      data: { lastOrderId: order.id, state: "AWAITING_PAYMENT", cart: cart as any, lastOutboundAt: new Date() },
+      data: {
+        lastOrderId: order.id,
+        state: "AWAITING_PAYMENT",
+        cart: emptyCart() as any,
+        messages: [] as any,
+        lastOutboundAt: new Date(),
+      },
     });
 
     // Service charge = the fixed application-fee surcharge Stripe adds as a
