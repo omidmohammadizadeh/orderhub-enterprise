@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 import { WhatsAppController } from "./whatsapp.controller";
+import { WhatsAppConnectionController } from "./whatsapp-connection.controller";
+import { WhatsAppConnectionService } from "./whatsapp-connection.service";
 import { WhatsAppService } from "./whatsapp.service";
 import { WhatsAppAiService } from "./whatsapp-ai.service";
 import { WhatsAppMenuService } from "./whatsapp-menu.service";
@@ -16,9 +18,10 @@ import { PaymentsModule } from "../payments/payments.module";
 //   P3+: order creation, payments, status replies, dashboard connect.
 @Module({
   imports: [OrdersModule, PaymentsModule],
-  controllers: [WhatsAppController],
+  controllers: [WhatsAppController, WhatsAppConnectionController],
   providers: [
     WhatsAppService,
+    WhatsAppConnectionService,
     WhatsAppAiService,
     WhatsAppMenuService,
     WhatsAppSendService,

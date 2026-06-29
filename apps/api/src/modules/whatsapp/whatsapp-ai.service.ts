@@ -918,8 +918,11 @@ export class WhatsAppAiService {
 
   // ── Checkout: create the order + Stripe payment link (card only) ─────────
   // After paying, Stripe redirects here — a wa.me deep link sends the customer
-  // back to the WhatsApp chat. Override per business via WHATSAPP_PAY_RETURN_URL.
-  private returnUrl(): string {
+  // back to THIS location's WhatsApp chat (built from its display number).
+  // Falls back to the WHATSAPP_PAY_RETURN_URL env, then the pilot number.
+  private returnUrl(ctx: WaMenuContext): string {
+    const digits = (ctx.displayPhoneNumber ?? "").replace(/\D/g, "");
+    if (digits) return `https://wa.me/${digits}`;
     return this.config.get<string>("WHATSAPP_PAY_RETURN_URL") || "https://wa.me/15556619699";
   }
 
@@ -988,8 +991,8 @@ export class WhatsAppAiService {
       const res = await this.payments.createCheckoutSession({
         tenantId: ctx.tenantId,
         orderId: order.id,
-        successUrl: this.returnUrl(),
-        cancelUrl: this.returnUrl(),
+        successUrl: this.returnUrl(ctx),
+        cancelUrl: this.returnUrl(ctx),
       });
       url = res.url;
     } catch (err: any) {

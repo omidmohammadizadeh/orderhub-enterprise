@@ -42,6 +42,8 @@ export interface WaMenuContext {
   locationId: string;
   brandId?: string;
   locationName: string;
+  /** This location's WhatsApp business number (for the wa.me return link). */
+  displayPhoneNumber?: string;
   menuId: string;
   items: WaMenuItem[];
   /** id -> item, for O(1) cart validation. */
@@ -93,7 +95,8 @@ export class WhatsAppMenuService {
 
   /** Resolve the location + live menu for an inbound WhatsApp message. */
   async resolveContext(phoneNumberId?: string): Promise<WaMenuContext | null> {
-    const locationId = await this.resolveLocationId(phoneNumberId);
+    const resolved = await this.resolveConnection(phoneNumberId);
+    const locationId = resolved?.locationId ?? null;
     if (!locationId) {
       this.logger.warn(
         `No WhatsApp location for phoneNumberId=${phoneNumberId ?? "—"} (set WHATSAPP_LOCATION_ID or connect an integration)`,
@@ -197,6 +200,7 @@ export class WhatsAppMenuService {
       locationId: location.id,
       brandId: location.brandId ?? undefined,
       locationName: location.name,
+      displayPhoneNumber: resolved?.displayPhoneNumber,
       menuId: menu.id,
       items,
       itemIndex,
@@ -204,21 +208,34 @@ export class WhatsAppMenuService {
     };
   }
 
-  /** Map a Meta phone-number-id to one of our locations. */
-  private async resolveLocationId(phoneNumberId?: string): Promise<string | null> {
+  /**
+   * Map a Meta phone-number-id → location (+ its display number for the
+   * wa.me return link). Routing key lives in Integration.settings.phoneNumberId
+   * (non-secret, unencrypted). A matching but disabled (status≠ACTIVE)
+   * integration returns null so the channel is truly off. No match → the
+   * single-number WHATSAPP_LOCATION_ID env fallback (the original pilot).
+   */
+  private async resolveConnection(
+    phoneNumberId?: string,
+  ): Promise<{ locationId: string; displayPhoneNumber?: string } | null> {
     if (phoneNumberId) {
-      // P6 writes phoneNumberId into Integration.credentials. Filter in JS —
-      // there are very few WhatsApp integrations and credentials is opaque JSON.
       const integrations = await this.prisma.integration.findMany({
         where: { platform: "WHATSAPP" as any, deletedAt: null },
-        select: { locationId: true, credentials: true },
+        select: { locationId: true, status: true, settings: true, credentials: true },
       });
-      const match = integrations.find(
-        (i) => (i.credentials as any)?.phoneNumberId === phoneNumberId,
-      );
-      if (match) return match.locationId;
+      const match = integrations.find((i) => {
+        const s = (i.settings as any) ?? {};
+        const c = (i.credentials as any) ?? {};
+        return s.phoneNumberId === phoneNumberId || c.phoneNumberId === phoneNumberId;
+      });
+      if (match) {
+        if ((match.status as string) !== "ACTIVE") return null; // connected but disabled
+        const s = (match.settings as any) ?? {};
+        return { locationId: match.locationId, displayPhoneNumber: s.displayPhoneNumber };
+      }
     }
-    return this.config.get<string>("WHATSAPP_LOCATION_ID") ?? null;
+    const envLoc = this.config.get<string>("WHATSAPP_LOCATION_ID");
+    return envLoc ? { locationId: envLoc } : null;
   }
 
   /** Compact menu rendering for the AI system prompt (names, prices, ids). */

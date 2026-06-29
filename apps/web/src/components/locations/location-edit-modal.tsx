@@ -23,6 +23,7 @@ import {
 } from "@/lib/api/locations.client";
 import { OpeningHoursEditor } from "./opening-hours-editor";
 import { BrandPlatformGrid } from "./brand-platform-grid";
+import { WhatsAppConnectionSection } from "./whatsapp-connection-section";
 import { ImageUploader } from "@/components/products/image-uploader";
 
 interface Props {
@@ -508,6 +509,9 @@ function GeneralTab({
           </div>
         </details>
       </div>
+
+      {/* Phase AY (P6) — per-location WhatsApp activation. */}
+      {location?.id && <WhatsAppConnectionSection locationId={location.id} />}
 
       {/* Phase AW — Stripe Connect + application fee live on the brand,
           not the location. A single kitchen running three virtual brands
