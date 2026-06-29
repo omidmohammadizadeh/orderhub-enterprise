@@ -9,7 +9,7 @@ import {
   Inject,
   forwardRef,
 } from "@nestjs/common";
-import { EventEmitter2 } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -161,6 +161,23 @@ export class OrdersService {
    * background so a slow accept never blocks the ingest path. Failures
    * are logged and swallowed; the operator can still tap Accept manually.
    */
+  /**
+   * Phase AY — once a card payment is authorised (Stripe webhook →
+   * PaymentsService.markAuthorized emits "payment.authorized"), run the
+   * location's auto-accept toggle. Card orders skip auto-accept at ingest
+   * (they wait for our Stripe authorisation), so this is the point where an
+   * auto-accept location captures + prints + accepts the order. Covers both
+   * the online storefront and WhatsApp card orders.
+   */
+  @OnEvent("payment.authorized")
+  async onPaymentAuthorized(ev: {
+    orderId: string;
+    tenantId: string;
+    locationId: string;
+  }): Promise<void> {
+    await this.maybeAutoAccept(ev.orderId, ev.tenantId, ev.locationId);
+  }
+
   private async maybeAutoAccept(
     orderId: string,
     tenantId: string,

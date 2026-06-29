@@ -5,6 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
@@ -111,6 +112,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
     private readonly config: ConfigService,
+    private readonly events: EventEmitter2,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -1253,6 +1255,17 @@ export class PaymentsService {
       orderId: payment.orderId,
       paymentStatus: "AUTHORIZED",
     } as any);
+
+    // Card is now authorised — let the location's auto-accept setting kick in
+    // (OrdersService listens and runs maybeAutoAccept, which captures + prints).
+    // Decoupled via the event bus to avoid an Orders↔Payments module cycle.
+    if (order?.locationId) {
+      this.events.emit("payment.authorized", {
+        orderId: payment.orderId,
+        tenantId: payment.tenantId,
+        locationId: order.locationId,
+      });
+    }
   }
 
   /**
