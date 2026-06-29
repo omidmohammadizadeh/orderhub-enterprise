@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
+import { CloudflareService } from "./cloudflare.service";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -81,6 +82,7 @@ export class BrandsService {
     // forwardRef in case the integration module ever imports brands.
     @Inject(forwardRef(() => HubRiseLocationPauseService))
     private readonly hubrise: HubRiseLocationPauseService,
+    private readonly cloudflare: CloudflareService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -403,6 +405,123 @@ export class BrandsService {
         phone: brand.phone ?? fallbackLocation.phone,
       },
     };
+  }
+
+  // ── Custom domains (Cloudflare for SaaS) ─────────────────────────────────
+
+  private normaliseDomain(raw?: string | null): string {
+    return (raw ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "")
+      .replace(/\.$/, "");
+  }
+
+  private domainPayload(domain: string, status: string) {
+    const fallbackOrigin = this.cloudflare.fallbackOrigin;
+    return {
+      configured: !!domain,
+      domain,
+      status, // not_configured | pending | verified | failed
+      fallbackOrigin,
+      dnsRecords:
+        domain && fallbackOrigin
+          ? [{ type: "CNAME", name: domain, value: fallbackOrigin }]
+          : [],
+    };
+  }
+
+  /** Register a brand's domain as a Cloudflare custom hostname (HTTP DCV). */
+  async connectDomain(brandId: string, tenantId: string, rawDomain: string) {
+    await this.assertAccess(brandId, tenantId);
+    if (!this.cloudflare.configured) {
+      throw new BadRequestException(
+        "Custom domains aren't configured on the server yet (missing Cloudflare settings).",
+      );
+    }
+    const domain = this.normaliseDomain(rawDomain);
+    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(domain)) {
+      throw new BadRequestException("Enter a valid domain, e.g. order.yourshop.com");
+    }
+    const clash = await this.prisma.brand.findFirst({
+      where: { customDomain: domain, id: { not: brandId }, deletedAt: null },
+      select: { id: true },
+    });
+    if (clash) throw new BadRequestException("That domain is already connected to another brand.");
+
+    const cf = await this.cloudflare.createHostname(domain);
+    const status = cf.status === "active" && cf.sslStatus === "active" ? "verified" : "pending";
+    await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { customDomain: domain, customDomainStatus: status },
+    });
+    return this.domainPayload(domain, status);
+  }
+
+  /** Re-check the live Cloudflare status for the brand's domain. */
+  async domainStatus(brandId: string, tenantId: string) {
+    await this.assertAccess(brandId, tenantId);
+    const brand = await this.prisma.brand.findUnique({
+      where: { id: brandId },
+      select: { customDomain: true, customDomainStatus: true },
+    });
+    if (!brand?.customDomain) return this.domainPayload("", "not_configured");
+
+    let status = brand.customDomainStatus;
+    if (this.cloudflare.configured) {
+      const cf = await this.cloudflare.findByHostname(brand.customDomain).catch(() => null);
+      if (cf) {
+        status = cf.status === "active" && cf.sslStatus === "active" ? "verified" : "pending";
+        if (status !== brand.customDomainStatus) {
+          await this.prisma.brand.update({
+            where: { id: brandId },
+            data: { customDomainStatus: status },
+          });
+        }
+      }
+    }
+    return this.domainPayload(brand.customDomain, status);
+  }
+
+  async disconnectDomain(brandId: string, tenantId: string) {
+    await this.assertAccess(brandId, tenantId);
+    const brand = await this.prisma.brand.findUnique({
+      where: { id: brandId },
+      select: { customDomain: true },
+    });
+    if (brand?.customDomain && this.cloudflare.configured) {
+      await this.cloudflare.deleteHostname(brand.customDomain).catch(() => undefined);
+    }
+    await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { customDomain: null, customDomainStatus: "not_configured" },
+    });
+    return this.domainPayload("", "not_configured");
+  }
+
+  /** Public: map an inbound Host → the brand's storefront (slug + brandId).
+   *  Used by the web middleware to render a custom domain as the storefront. */
+  async resolveCustomDomain(host: string): Promise<{ slug: string; brandId: string } | null> {
+    const domain = this.normaliseDomain(host);
+    if (!domain) return null;
+    const brand = await this.prisma.brand.findFirst({
+      where: {
+        customDomain: domain,
+        customDomainStatus: "verified",
+        directOrderingEnabled: true,
+        deletedAt: null,
+      },
+      select: { id: true, primaryLocationId: true },
+    });
+    if (!brand?.primaryLocationId) return null;
+    const loc = await this.prisma.location.findUnique({
+      where: { id: brand.primaryLocationId },
+      select: { id: true, slug: true, onlineOrderingSlug: true },
+    });
+    if (!loc) return null;
+    const slug = loc.onlineOrderingSlug ?? loc.slug ?? loc.id;
+    return { slug, brandId: brand.id };
   }
 
   async remove(brandId: string, tenantId: string) {

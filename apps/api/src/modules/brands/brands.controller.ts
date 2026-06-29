@@ -113,6 +113,45 @@ export class BrandsController {
     return this.brands.publishHours(brandId, user.tenantId, body.channel);
   }
 
+  // ── Custom domains (Cloudflare for SaaS) ──────────────────────────────
+  @Post(":brandId/domain/connect")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Connect a custom domain to the brand storefront" })
+  connectDomain(
+    @Param("brandId") brandId: string,
+    @Body() body: { domain: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.connectDomain(brandId, user.tenantId, body?.domain);
+  }
+
+  @Get(":brandId/domain")
+  @ApiOperation({ summary: "Get / re-check the brand's custom domain status" })
+  domainStatus(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.domainStatus(brandId, user.tenantId);
+  }
+
+  @Delete(":brandId/domain")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Disconnect the brand's custom domain" })
+  disconnectDomain(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.disconnectDomain(brandId, user.tenantId);
+  }
+
+  // Public — used by the web middleware to route a custom domain → storefront.
+  @Get("public/resolve-host")
+  @Public()
+  @ApiOperation({ summary: "Resolve a custom domain host to a brand storefront" })
+  resolveHost(@Query("host") host: string) {
+    return this.brands.resolveCustomDomain(host);
+  }
+
   @Delete(":brandId")
   @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)

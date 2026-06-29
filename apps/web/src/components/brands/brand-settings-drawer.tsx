@@ -23,6 +23,7 @@ import {
   type DeliveryZone,
 } from "@/lib/api/pos.client";
 import { ImageUploader } from "@/components/products/image-uploader";
+import { BrandCustomDomainPanel } from "./brand-custom-domain-panel";
 import { useAuthStore } from "@/stores/auth.store";
 
 const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
@@ -47,7 +48,6 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
 
   // ── Storefront URL ────────────────────────────────────────────────
   const [orderingSlug, setOrderingSlug] = useState(brand.onlineOrderingSlug ?? "");
-  const [customDomain, setCustomDomain] = useState(brand.customDomain ?? "");
   const [slugErr, setSlugErr] = useState<string | null>(null);
 
   // ── Contact + address ─────────────────────────────────────────────
@@ -149,7 +149,6 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
     setCuisine(brand.cuisine ?? "");
     setLogoUrl(brand.logoUrl ?? null);
     setOrderingSlug(brand.onlineOrderingSlug ?? "");
-    setCustomDomain(brand.customDomain ?? "");
     setPhone(brand.phone ?? "");
     setAddressLine1(brand.addressLine1 ?? "");
     setAddressLine2(brand.addressLine2 ?? "");
@@ -192,7 +191,6 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
           logoUrl: logoUrl ?? null,
           onlineOrderingSlug: orderingSlug || null,
           directOrderingEnabled: !!orderingSlug,
-          customDomain: customDomain || null,
           phone: phone || null,
           addressLine1: addressLine1 || null,
           addressLine2: addressLine2 || null,
@@ -342,19 +340,7 @@ export function BrandSettingsDrawer({ brand, open, onClose, onSaved }: Props) {
                 </p>
               )}
             </Field>
-            <Field label="Custom domain (optional)">
-              <input
-                value={customDomain}
-                onChange={(e) => setCustomDomain(e.target.value)}
-                disabled={!isAdmin}
-                placeholder="order.greekgyros.co.uk"
-                className="input"
-              />
-              <p className="mt-1 text-[11px] text-zinc-500">
-                Point the domain at our CNAME — we'll provision an SSL
-                certificate once DNS verifies.
-              </p>
-            </Field>
+            <BrandCustomDomainPanel brandId={brand.id} disabled={!isAdmin} />
           </Section>
 
           {/* ── Contact + address ────────────────────────────────── */}
