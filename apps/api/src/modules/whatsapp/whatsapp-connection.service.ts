@@ -35,17 +35,29 @@ export class WhatsAppConnectionService {
     return `${base.replace(/\/$/, "")}/api/v1/whatsapp/webhook`;
   }
 
-  private async assertLocation(locationId: string, tenantId: string) {
-    const loc = await this.prisma.location.findFirst({
-      where: { id: locationId, brand: { tenantId } },
-      select: { id: true },
+  /**
+   * Resolve the location's owning tenant. A tenant-scoped caller may only
+   * touch their own locations; a platform caller (no tenantId on the JWT) may
+   * touch any. Returns the tenant the Integration row must belong to — we
+   * derive it from the location, never trust the caller's (a Platform Admin
+   * has no single tenantId, which previously 500'd the create).
+   */
+  private async resolveTenant(locationId: string, callerTenantId?: string): Promise<string> {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { brand: { select: { tenantId: true } } },
     });
-    if (!loc) throw new NotFoundException("Location not found");
+    const tenantId = loc?.brand?.tenantId;
+    if (!tenantId) throw new NotFoundException("Location not found");
+    if (callerTenantId && callerTenantId !== tenantId) {
+      throw new NotFoundException("Location not found");
+    }
+    return tenantId;
   }
 
   /** Current WhatsApp connection for a location (+ the values to paste into Meta). */
-  async getConnection(locationId: string, tenantId: string) {
-    await this.assertLocation(locationId, tenantId);
+  async getConnection(locationId: string, callerTenantId?: string) {
+    await this.resolveTenant(locationId, callerTenantId);
     const integ = await this.prisma.integration.findUnique({
       where: { locationId_platform: { locationId, platform: "WHATSAPP" as any } },
       select: { status: true, settings: true, lastSyncAt: true, lastError: true },
@@ -68,8 +80,8 @@ export class WhatsAppConnectionService {
   }
 
   /** Create / update the connection. status ACTIVE only when enabled + a number is set. */
-  async saveConnection(tenantId: string, dto: WhatsAppConnectionDto) {
-    await this.assertLocation(dto.locationId, tenantId);
+  async saveConnection(callerTenantId: string | undefined, dto: WhatsAppConnectionDto) {
+    const tenantId = await this.resolveTenant(dto.locationId, callerTenantId);
     const phoneNumberId = (dto.phoneNumberId ?? "").trim();
     const displayPhoneNumber = (dto.displayPhoneNumber ?? "").trim();
     const wabaId = (dto.wabaId ?? "").trim();
@@ -77,17 +89,20 @@ export class WhatsAppConnectionService {
     if (dto.enabled && !phoneNumberId) {
       throw new BadRequestException("A Phone Number ID is required to enable WhatsApp ordering.");
     }
-    // Guard against two locations claiming the same number.
+    // Guard against two locations claiming the same number (filter in JS to
+    // avoid any JSON-path query edge cases).
     if (phoneNumberId) {
-      const clash = await this.prisma.integration.findFirst({
+      const others = await this.prisma.integration.findMany({
         where: {
           platform: "WHATSAPP" as any,
           deletedAt: null,
           locationId: { not: dto.locationId },
-          settings: { path: ["phoneNumberId"], equals: phoneNumberId },
         },
-        select: { locationId: true },
+        select: { settings: true },
       });
+      const clash = others.some(
+        (i) => ((i.settings as any) ?? {}).phoneNumberId === phoneNumberId,
+      );
       if (clash) {
         throw new BadRequestException(
           "That Phone Number ID is already connected to another location.",
@@ -122,8 +137,8 @@ export class WhatsAppConnectionService {
   }
 
   /** Validate the number against Meta using the shared platform token. */
-  async testConnection(locationId: string, tenantId: string) {
-    await this.assertLocation(locationId, tenantId);
+  async testConnection(locationId: string, callerTenantId?: string) {
+    await this.resolveTenant(locationId, callerTenantId);
     const integ = await this.prisma.integration.findUnique({
       where: { locationId_platform: { locationId, platform: "WHATSAPP" as any } },
       select: { settings: true },
