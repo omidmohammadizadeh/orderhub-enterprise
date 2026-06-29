@@ -945,13 +945,22 @@ export class WhatsAppAiService {
       data: { lastOrderId: order.id, state: "AWAITING_PAYMENT", cart: cart as any, lastOutboundAt: new Date() },
     });
 
-    const total = round2(subtotal + deliveryFee);
+    // Service charge = the fixed application-fee surcharge Stripe adds as a
+    // "Service charge" line. Show it so the quoted total matches Stripe.
+    let serviceCharge = 0;
+    try {
+      serviceCharge = await this.payments.customerServiceChargeGbp(ctx.locationId, subtotal);
+    } catch {
+      serviceCharge = 0;
+    }
+    const total = round2(subtotal + deliveryFee + serviceCharge);
     const fulfil = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
     const feeLine = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
+    const svcLine = serviceCharge > 0 ? `\nService charge: £${serviceCharge.toFixed(2)}` : "";
     await this.send.sendText(
       phoneNumberId,
       from,
-      `✅ Order received!\n\n${summarizeCart(cart)}${feeLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
+      `✅ Order received!\n\n${summarizeCart(cart)}${feeLine}${svcLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
     );
   }
 

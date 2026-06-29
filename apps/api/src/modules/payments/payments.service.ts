@@ -574,6 +574,39 @@ export class PaymentsService {
   }
 
   /**
+   * Customer-facing fixed service charge (GBP) for a location — the same
+   * "Service charge" line createCheckoutSession adds to the Stripe page.
+   * Lets a channel (e.g. WhatsApp) show it in its own checkout summary so
+   * the total it quotes matches what Stripe charges. Brand fee config wins
+   * over the location's, mirroring createCheckoutSession's feeSource rule.
+   */
+  async customerServiceChargeGbp(locationId: string, basketGbp: number): Promise<number> {
+    const location = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: {
+        applicationFeeMode: true,
+        applicationFeeFixedAmount: true,
+        applicationFeePercentage: true,
+        brand: {
+          select: {
+            applicationFeeMode: true,
+            applicationFeeFixedAmount: true,
+            applicationFeePercentage: true,
+          },
+        },
+      },
+    });
+    if (!location) return 0;
+    const brand = (location as any).brand;
+    const feeSource =
+      brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
+        ? brand
+        : location;
+    const { customerSurchargePence } = this.computeFeeBreakdownPence(feeSource, basketGbp);
+    return Math.round(customerSurchargePence) / 100;
+  }
+
+  /**
    * Create a Stripe Checkout Session in manual-capture mode for the given
    * order. Returns the hosted-checkout URL the storefront should redirect
    * the customer to.

@@ -1340,7 +1340,10 @@ export class OrdersService {
             // "ONLINE", DIRECT predates the AP flows. Hide both until
             // Stripe authorisation lands. Marketplace sources stay
             // visible because those orders arrive already paid.
-            { orderSource: { in: ["DIRECT", "ONLINE"] } },
+            // Phase AY — WhatsApp orders are also our own card-collect
+            // flow, so they hide until authorised exactly like the
+            // storefront.
+            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP"] } },
           ],
         },
         OR: [
