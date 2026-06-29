@@ -5,6 +5,7 @@ import { WhatsAppAiService } from "./whatsapp-ai.service";
 import { WhatsAppMenuService } from "./whatsapp-menu.service";
 import { WhatsAppSendService } from "./whatsapp-send.service";
 import { WhatsAppNotifyService } from "./whatsapp-notify.service";
+import { WhatsAppReconcileCron } from "./whatsapp-reconcile.cron";
 import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 
@@ -22,6 +23,7 @@ import { PaymentsModule } from "../payments/payments.module";
     WhatsAppMenuService,
     WhatsAppSendService,
     WhatsAppNotifyService,
+    WhatsAppReconcileCron,
   ],
   exports: [WhatsAppService],
 })

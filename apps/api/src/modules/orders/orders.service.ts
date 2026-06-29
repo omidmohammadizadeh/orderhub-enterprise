@@ -1357,10 +1357,11 @@ export class OrdersService {
             // "ONLINE", DIRECT predates the AP flows. Hide both until
             // Stripe authorisation lands. Marketplace sources stay
             // visible because those orders arrive already paid.
-            // Phase AY — WhatsApp orders are also our own card-collect
-            // flow, so they hide until authorised exactly like the
-            // storefront.
-            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP"] } },
+            // NOTE: WhatsApp is intentionally NOT hidden here yet — its
+            // Stripe authorise webhook isn't reliably flipping orders to
+            // AUTHORIZED, so hiding them made paid orders vanish. Keep
+            // WhatsApp visible until the webhook delivery is confirmed.
+            { orderSource: { in: ["DIRECT", "ONLINE"] } },
           ],
         },
         OR: [
