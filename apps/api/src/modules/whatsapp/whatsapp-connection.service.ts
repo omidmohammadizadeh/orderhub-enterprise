@@ -57,20 +57,12 @@ export class WhatsAppConnectionService {
     return tenantId;
   }
 
-  /** Menus selectable for a location (its own + its brand's). */
+  /** Menus that belong to THIS location only — mirrors the Menu Manager's
+   *  findAllByLocation (strictly Menu.locationId). Brand-level menus aren't
+   *  listed; leaving the picker on "Auto" already falls back to the brand menu. */
   private async menusForLocation(locationId: string): Promise<{ id: string; name: string }[]> {
-    const loc = await this.prisma.location.findUnique({
-      where: { id: locationId },
-      select: { brandId: true },
-    });
     const menus = await this.prisma.menu.findMany({
-      where: {
-        deletedAt: null,
-        OR: [
-          { locationId },
-          ...(loc?.brandId ? [{ brandId: loc.brandId, locationId: null }] : []),
-        ],
-      },
+      where: { locationId, deletedAt: null },
       select: { id: true, name: true, isActive: true },
       orderBy: { updatedAt: "desc" },
     });
