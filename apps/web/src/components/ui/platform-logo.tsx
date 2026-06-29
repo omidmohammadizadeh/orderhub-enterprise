@@ -161,6 +161,23 @@ function HubRiseLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function WhatsAppLogo({ size, rounded = true }: LogoProps) {
+  // WhatsApp fallback — green tile + white speech-bubble with a phone glyph.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="WhatsApp">
+      <rect width="100" height="100" fill="#25D366" />
+      <path
+        fill="white"
+        d="M 50 20 Q 76 20 76 46 Q 76 72 50 72 Q 43 72 37 69 L 24 73 L 28 60 Q 24 54 24 46 Q 24 20 50 20 Z"
+      />
+      <path
+        fill="#25D366"
+        d="M 41 38 Q 40 36 42 35 L 45 35 Q 46 35 46 37 Q 47 41 48 43 Q 49 45 47 46 L 45 47 Q 47 52 53 55 L 55 53 Q 56 51 58 52 Q 60 53 64 54 Q 66 54 66 56 L 66 59 Q 66 61 64 62 Q 56 64 48 58 Q 41 53 41 44 Z"
+      />
+    </svg>
+  );
+}
+
 // Map each canonical platform key to:
 //   slug  — the PNG filename the operator uploads at /brand-logos/{slug}.png
 //   bg    — brand background colour (sits behind the PNG; if the PNG has
@@ -180,6 +197,8 @@ const PLATFORM_META: Record<
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   ONLINE:      { slug: "online",     bg: "#f97316", svg: (p) => <OnlineLogo {...p} /> },
+  // Phase AY — WhatsApp ordering channel.
+  WHATSAPP:    { slug: "whatsapp",   bg: "#25D366", svg: (p) => <WhatsAppLogo {...p} /> },
   // Phase AW — brand-level direct online ordering. Same wordmark as
   // DIRECT/POS so the Order Hub identity stays consistent across the
   // three sister channels.
@@ -193,6 +212,7 @@ const LABELS: Record<string, string> = {
   POS: "POS",
   DIRECT: "Direct",
   ONLINE: "Online ordering",
+  WHATSAPP: "WhatsApp",
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
