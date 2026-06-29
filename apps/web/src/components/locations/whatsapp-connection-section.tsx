@@ -42,6 +42,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
   const [wabaId, setWabaId] = useState("");
+  const [menuId, setMenuId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -58,6 +59,7 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
         setPhoneNumberId(c.phoneNumberId);
         setDisplayPhoneNumber(c.displayPhoneNumber);
         setWabaId(c.wabaId);
+        setMenuId(c.menuId);
       })
       .catch(() => {})
       .finally(() => live && setLoading(false));
@@ -70,10 +72,11 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
     setMsg(null);
     setSaving(true);
     try {
-      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId });
+      const c = await whatsappClient.save({ locationId, enabled, phoneNumberId, displayPhoneNumber, wabaId, menuId });
       setConn(c);
       setEnabled(c.enabled);
       setDisplayPhoneNumber(c.displayPhoneNumber);
+      setMenuId(c.menuId);
       setMsg({ kind: "ok", text: "Saved." });
     } catch (err: any) {
       setMsg({ kind: "err", text: err?.response?.data?.message ?? err?.message ?? "Couldn't save." });
@@ -165,6 +168,25 @@ export function WhatsAppConnectionSection({ locationId }: { locationId: string }
             />
             <span className="text-[10px] text-zinc-400">
               Used to send the customer back to this chat after payment. Auto-filled by Test connection.
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[11px] font-medium text-zinc-600">Menu</span>
+            <select
+              value={menuId}
+              onChange={(e) => setMenuId(e.target.value)}
+              className={inputCls}
+            >
+              <option value="">Auto (location menu, then brand menu)</option>
+              {(conn?.menus ?? []).map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-[10px] text-zinc-400">
+              Which menu WhatsApp serves. Leave on Auto to follow the storefront's menu.
             </span>
           </div>
 

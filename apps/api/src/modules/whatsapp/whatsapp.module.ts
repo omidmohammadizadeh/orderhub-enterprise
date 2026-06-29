@@ -10,6 +10,8 @@ import { WhatsAppNotifyService } from "./whatsapp-notify.service";
 import { WhatsAppReconcileCron } from "./whatsapp-reconcile.cron";
 import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
+import { PauseModule } from "../pauses/pause.module";
+import { MarketingModule } from "../marketing/marketing.module";
 
 // Phase AY — WhatsApp ordering channel (Meta Cloud API).
 //   P1: webhook verify + inbound parse.
@@ -17,7 +19,7 @@ import { PaymentsModule } from "../payments/payments.module";
 //       interactive replies (this module's services).
 //   P3+: order creation, payments, status replies, dashboard connect.
 @Module({
-  imports: [OrdersModule, PaymentsModule],
+  imports: [OrdersModule, PaymentsModule, PauseModule, MarketingModule],
   controllers: [WhatsAppController, WhatsAppConnectionController],
   providers: [
     WhatsAppService,

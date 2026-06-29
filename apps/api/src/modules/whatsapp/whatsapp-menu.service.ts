@@ -118,23 +118,33 @@ export class WhatsAppMenuService {
       return null;
     }
 
-    // Location-scoped menu first, then brand-scoped — mirrors the storefront.
-    const menu =
-      (await this.prisma.menu.findFirst({
-        where: { locationId: location.id, isActive: true, deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-        include: MENU_INCLUDE,
-      })) ??
-      (await this.prisma.menu.findFirst({
-        where: {
-          brandId: location.brandId,
-          isActive: true,
-          deletedAt: null,
-          locationId: null,
-        },
-        orderBy: { updatedAt: "desc" },
-        include: MENU_INCLUDE,
-      }));
+    // Operator-pinned menu wins (set in the WhatsApp panel). Falls back to the
+    // storefront rule: location-scoped active menu, then brand-scoped.
+    let menu =
+      resolved?.menuId
+        ? await this.prisma.menu.findFirst({
+            where: { id: resolved.menuId, deletedAt: null },
+            include: MENU_INCLUDE,
+          })
+        : null;
+    if (!menu) {
+      menu =
+        (await this.prisma.menu.findFirst({
+          where: { locationId: location.id, isActive: true, deletedAt: null },
+          orderBy: { updatedAt: "desc" },
+          include: MENU_INCLUDE,
+        })) ??
+        (await this.prisma.menu.findFirst({
+          where: {
+            brandId: location.brandId,
+            isActive: true,
+            deletedAt: null,
+            locationId: null,
+          },
+          orderBy: { updatedAt: "desc" },
+          include: MENU_INCLUDE,
+        }));
+    }
 
     if (!menu) {
       this.logger.warn(`No active menu for location ${location.id}`);
@@ -217,7 +227,7 @@ export class WhatsAppMenuService {
    */
   private async resolveConnection(
     phoneNumberId?: string,
-  ): Promise<{ locationId: string; displayPhoneNumber?: string } | null> {
+  ): Promise<{ locationId: string; displayPhoneNumber?: string; menuId?: string } | null> {
     if (phoneNumberId) {
       const integrations = await this.prisma.integration.findMany({
         where: { platform: "WHATSAPP" as any, deletedAt: null },
@@ -231,7 +241,11 @@ export class WhatsAppMenuService {
       if (match) {
         if ((match.status as string) !== "ACTIVE") return null; // connected but disabled
         const s = (match.settings as any) ?? {};
-        return { locationId: match.locationId, displayPhoneNumber: s.displayPhoneNumber };
+        return {
+          locationId: match.locationId,
+          displayPhoneNumber: s.displayPhoneNumber,
+          menuId: s.menuId || undefined,
+        };
       }
     }
     const envLoc = this.config.get<string>("WHATSAPP_LOCATION_ID");

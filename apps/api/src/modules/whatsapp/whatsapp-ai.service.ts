@@ -5,6 +5,9 @@ import type { CanonicalOrder } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PaymentsService } from "../payments/payments.service";
+import { PauseService } from "../pauses/pause.service";
+import { MarketingService } from "../marketing/marketing.service";
+import { isCurrentlyOpen, hoursConfigured } from "../../common/opening-hours.util";
 import { WhatsAppMenuService, WaMenuContext } from "./whatsapp-menu.service";
 import { WhatsAppSendService } from "./whatsapp-send.service";
 import {
@@ -129,6 +132,8 @@ export class WhatsAppAiService {
     private readonly send: WhatsAppSendService,
     private readonly orders: OrdersService,
     private readonly payments: PaymentsService,
+    private readonly pauses: PauseService,
+    private readonly marketing: MarketingService,
   ) {
     const apiKey = this.config.get<string>("ANTHROPIC_API_KEY");
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -653,6 +658,12 @@ export class WhatsAppAiService {
     convoId: string,
     ctx: WaMenuContext,
   ): Promise<void> {
+    // Closed / paused → tell the customer and don't start an order.
+    const avail = await this.checkAvailability(ctx);
+    if (!avail.open) {
+      await this.send.sendText(phoneNumberId, from, avail.message!);
+      return;
+    }
     await this.prisma.whatsAppConversation.update({
       where: { id: convoId },
       data: {
@@ -916,6 +927,90 @@ export class WhatsAppAiService {
     return data;
   }
 
+  // ── Store availability (opening hours + "stop taking orders" pause) ──────
+  // Same rules as the storefront: a paused channel (incl. the Orders-tab
+  // "stop taking orders" which pauses the whole location) or being outside
+  // opening hours blocks ordering. Returns a customer-facing message when shut.
+  private async checkAvailability(ctx: WaMenuContext): Promise<{ open: boolean; message?: string }> {
+    // 1) Pause (location-wide stop, brand pause, or WhatsApp-specific pause).
+    try {
+      const pause = await this.pauses.isPaused({
+        locationId: ctx.locationId,
+        brandId: ctx.brandId ?? null,
+        channel: "WHATSAPP",
+      });
+      if (pause?.paused) {
+        return {
+          open: false,
+          message: pause.reason
+            ? `Sorry, we're not taking orders right now — ${pause.reason} 🙏`
+            : "Sorry, we're not taking orders right now. Please try again a little later 🙏",
+        };
+      }
+    } catch (err: any) {
+      this.logger.warn(`WhatsApp pause check failed: ${err?.message ?? err}`);
+    }
+
+    // 2) Opening hours (brand hours override the location's, like the storefront).
+    const loc = await this.prisma.location.findUnique({
+      where: { id: ctx.locationId },
+      select: { timezone: true, openingHours: true, brand: { select: { openingHours: true } } },
+    });
+    if (loc) {
+      const brandHours = (loc.brand as any)?.openingHours;
+      const hours = hoursConfigured(brandHours) ? brandHours : loc.openingHours;
+      if (!isCurrentlyOpen(hours, loc.timezone ?? "Europe/London")) {
+        return {
+          open: false,
+          message: `Sorry, ${ctx.locationName} is closed right now and not taking orders 🕐 Please order during our opening hours.`,
+        };
+      }
+    }
+    return { open: true };
+  }
+
+  // ── Auto-applied WhatsApp offers (order-level marketing campaigns) ───────
+  // Mirrors the storefront: picks the best ACTIVE campaign on the WHATSAPP
+  // channel. Order-level only (% off / £ off / free delivery); item-level
+  // offers (BOGO, free item) aren't applied in the chat flow yet.
+  private async resolveOffer(
+    ctx: WaMenuContext,
+    subtotalGbp: number,
+  ): Promise<{ discount: number; freeDelivery: boolean; label?: string }> {
+    if (!ctx.brandId) return { discount: 0, freeDelivery: false };
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: ctx.locationId },
+        select: { timezone: true },
+      });
+      const campaigns: any[] = await this.marketing.resolveActiveForBrandChannel(
+        ctx.brandId,
+        "WHATSAPP",
+        loc?.timezone ?? "Europe/London",
+      );
+      let discount = 0;
+      let freeDelivery = false;
+      let label: string | undefined;
+      for (const c of campaigns) {
+        const minOrder = c.minOrder != null ? Number(c.minOrder) : 0;
+        if (subtotalGbp < minOrder) continue;
+        if (c.type === "PERCENTAGE_OFF" && c.percentageOff != null) {
+          const d = round2((subtotalGbp * Number(c.percentageOff)) / 100);
+          if (d > discount) { discount = d; label = c.name; }
+        } else if (c.type === "AMOUNT_OFF_ORDER" && c.amountOff != null) {
+          const d = round2(Math.min(Number(c.amountOff), subtotalGbp));
+          if (d > discount) { discount = d; label = c.name; }
+        } else if (c.type === "FREE_DELIVERY") {
+          freeDelivery = true;
+        }
+      }
+      return { discount, freeDelivery, label };
+    } catch (err: any) {
+      this.logger.warn(`WhatsApp offer resolution failed: ${err?.message ?? err}`);
+      return { discount: 0, freeDelivery: false };
+    }
+  }
+
   // ── Checkout: create the order + Stripe payment link (card only) ─────────
   // After paying, Stripe redirects here — a wa.me deep link sends the customer
   // back to THIS location's WhatsApp chat (built from its display number).
@@ -940,6 +1035,14 @@ export class WhatsAppAiService {
     }
     if (cart.fulfillmentType === "DELIVERY" && !cart.deliveryAddress?.line1) {
       await this.send.sendText(phoneNumberId, from, "I still need your delivery address — reply *start over* and choose Delivery.");
+      return;
+    }
+
+    // Closed / paused → don't place the order (defence — the start guard
+    // usually catches this, but the shop may have closed mid-order).
+    const avail = await this.checkAvailability(ctx);
+    if (!avail.open) {
+      await this.send.sendText(phoneNumberId, from, avail.message!);
       return;
     }
 
@@ -970,12 +1073,17 @@ export class WhatsAppAiService {
       deliveryFee = zone.fee;
     }
 
+    // Auto-apply any WhatsApp marketing offer (order-level), same as online.
+    const offer = await this.resolveOffer(ctx, subtotal);
+    const discount = Math.min(offer.discount, subtotal);
+    if (offer.freeDelivery) deliveryFee = 0;
+
     // 1) Create the order via the canonical pipeline (card, unpaid → hidden
     //    until Stripe authorises, then it auto-accepts into the kitchen).
     let order: { id: string; displayId?: string | null };
     try {
       order = await this.orders.ingestCanonical(
-        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId),
+        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId, discount),
         ctx.tenantId,
         ctx.locationId,
       );
@@ -1026,14 +1134,15 @@ export class WhatsAppAiService {
     } catch {
       serviceCharge = 0;
     }
-    const total = round2(subtotal + deliveryFee + serviceCharge);
+    const total = round2(subtotal - discount + deliveryFee + serviceCharge);
     const fulfil = cart.fulfillmentType === "DELIVERY" ? "Delivery" : "Collection";
+    const discountLine = discount > 0 ? `\nDiscount${offer.label ? ` (${offer.label})` : ""}: -£${discount.toFixed(2)}` : "";
     const feeLine = deliveryFee > 0 ? `\nDelivery fee: £${deliveryFee.toFixed(2)}` : "";
     const svcLine = serviceCharge > 0 ? `\nService charge: £${serviceCharge.toFixed(2)}` : "";
     await this.send.sendText(
       phoneNumberId,
       from,
-      `✅ Order received!\n\n${summarizeCart(cart)}${feeLine}${svcLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
+      `✅ Order received!\n\n${summarizeCart(cart)}${discountLine}${feeLine}${svcLine}\n\n${fulfil} • Total *£${total.toFixed(2)}*\n\nTap to pay securely (Apple Pay, Google Pay or card) 👇\n${url}\n\nWe'll start preparing it as soon as payment's confirmed 🧑‍🍳`,
     );
   }
 
@@ -1044,9 +1153,10 @@ export class WhatsAppAiService {
     name: string | null | undefined,
     deliveryFee: number,
     phoneNumberId: string,
+    discount = 0,
   ): CanonicalOrder {
     const subtotal = cartSubtotal(cart);
-    const total = round2(subtotal + deliveryFee);
+    const total = round2(subtotal - discount + deliveryFee);
     const rnd = Math.random().toString(36).slice(2, 8);
     return {
       externalId: `wa_${Date.now()}_${rnd}`,
@@ -1078,7 +1188,7 @@ export class WhatsAppAiService {
       subtotal,
       taxAmount: 0,
       deliveryFee,
-      discount: 0,
+      discount,
       total,
       idempotencyKey: `wa_${waPhone}_${Date.now()}`,
       metadata: {

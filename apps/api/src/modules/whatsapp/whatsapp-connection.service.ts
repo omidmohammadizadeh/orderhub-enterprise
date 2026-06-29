@@ -14,6 +14,8 @@ export interface WhatsAppConnectionDto {
   phoneNumberId: string;
   displayPhoneNumber?: string;
   wabaId?: string;
+  /** Operator-pinned menu for WhatsApp; blank = auto (location then brand). */
+  menuId?: string;
 }
 
 const GRAPH_VERSION = "v21.0";
@@ -55,6 +57,26 @@ export class WhatsAppConnectionService {
     return tenantId;
   }
 
+  /** Menus selectable for a location (its own + its brand's). */
+  private async menusForLocation(locationId: string): Promise<{ id: string; name: string }[]> {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { brandId: true },
+    });
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { locationId },
+          ...(loc?.brandId ? [{ brandId: loc.brandId, locationId: null }] : []),
+        ],
+      },
+      select: { id: true, name: true, isActive: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    return menus.map((m) => ({ id: m.id, name: m.isActive ? m.name : `${m.name} (inactive)` }));
+  }
+
   /** Current WhatsApp connection for a location (+ the values to paste into Meta). */
   async getConnection(locationId: string, callerTenantId?: string) {
     await this.resolveTenant(locationId, callerTenantId);
@@ -70,6 +92,8 @@ export class WhatsAppConnectionService {
       phoneNumberId: s.phoneNumberId ?? "",
       displayPhoneNumber: s.displayPhoneNumber ?? "",
       wabaId: s.wabaId ?? "",
+      menuId: s.menuId ?? "",
+      menus: await this.menusForLocation(locationId),
       verifiedName: s.verifiedName ?? null,
       lastTestedAt: integ?.lastSyncAt ?? null,
       lastError: integ?.lastError ?? null,
@@ -113,6 +137,8 @@ export class WhatsAppConnectionService {
     const status = dto.enabled && phoneNumberId ? "ACTIVE" : "INACTIVE";
     const settings: Record<string, string> = { phoneNumberId, displayPhoneNumber };
     if (wabaId) settings.wabaId = wabaId;
+    const menuId = (dto.menuId ?? "").trim();
+    if (menuId) settings.menuId = menuId;
 
     await this.prisma.integration.upsert({
       where: { locationId_platform: { locationId: dto.locationId, platform: "WHATSAPP" as any } },
