@@ -87,16 +87,27 @@ import { QUEUES } from "@orderhub/shared";
 // during a reconnect window dies with "Reached the max retries per request
 // limit (which is 20)" and the queue add/outbox dispatch fails.
 function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
-  const url = new URL(raw ?? "redis://localhost:6379");
-  return {
-    host: url.hostname,
-    port: url.port ? Number(url.port) : 6379,
-    username: decodeURIComponent(url.username || "default"),
-    password: decodeURIComponent(url.password || ""),
-    ...(url.protocol === "rediss:" ? { tls: {} } : {}),
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  };
+  const base = { maxRetriesPerRequest: null, enableReadyCheck: false };
+  // Strip accidental surrounding quotes/whitespace (a common env-var paste
+  // mistake — Upstash shows the URL as REDIS_URL="rediss://…", and copying
+  // the quotes makes new URL() throw and crash boot).
+  const cleaned = (raw ?? "").trim().replace(/^['"]|['"]$/g, "");
+  try {
+    const url = new URL(cleaned || "redis://localhost:6379");
+    return {
+      host: url.hostname,
+      port: url.port ? Number(url.port) : 6379,
+      username: decodeURIComponent(url.username || "default"),
+      password: decodeURIComponent(url.password || ""),
+      ...(url.protocol === "rediss:" ? { tls: {} } : {}),
+      ...base,
+    };
+  } catch {
+    // Never crash the app on a malformed URL — boot and let the queue
+    // connection retry in the background (the direct order flow doesn't
+    // need Redis). Falls back to localhost.
+    return { host: "127.0.0.1", port: 6379, ...base };
+  }
 }
 
 @Module({

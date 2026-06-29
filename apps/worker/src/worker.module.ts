@@ -24,16 +24,22 @@ import { CredentialEncryptionService } from "./infrastructure/credential-encrypt
 // See app.module.ts — pass ioredis options (not bare url) so we can set
 // maxRetriesPerRequest:null + enableReadyCheck:false for Bull + Upstash.
 function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
-  const url = new URL(raw ?? "redis://localhost:6379");
-  return {
-    host: url.hostname,
-    port: url.port ? Number(url.port) : 6379,
-    username: decodeURIComponent(url.username || "default"),
-    password: decodeURIComponent(url.password || ""),
-    ...(url.protocol === "rediss:" ? { tls: {} } : {}),
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  };
+  const base = { maxRetriesPerRequest: null, enableReadyCheck: false };
+  // Strip accidental surrounding quotes/whitespace; never crash on a bad URL.
+  const cleaned = (raw ?? "").trim().replace(/^['"]|['"]$/g, "");
+  try {
+    const url = new URL(cleaned || "redis://localhost:6379");
+    return {
+      host: url.hostname,
+      port: url.port ? Number(url.port) : 6379,
+      username: decodeURIComponent(url.username || "default"),
+      password: decodeURIComponent(url.password || ""),
+      ...(url.protocol === "rediss:" ? { tls: {} } : {}),
+      ...base,
+    };
+  } catch {
+    return { host: "127.0.0.1", port: 6379, ...base };
+  }
 }
 
 @Module({

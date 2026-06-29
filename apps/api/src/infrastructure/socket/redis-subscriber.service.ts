@@ -27,7 +27,9 @@ export class RedisSubscriberService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    const url = this.config.get<string>("QUEUE_REDIS_URL") ?? "redis://localhost:6379";
+    const url = (this.config.get<string>("QUEUE_REDIS_URL") ?? "redis://localhost:6379")
+      .trim()
+      .replace(/^['"]|['"]$/g, "");
     // maxRetriesPerRequest:null + enableReadyCheck:false — survive Upstash
     // dropping idle connections without "max retries per request" errors.
     this.redis = new Redis(url, {
