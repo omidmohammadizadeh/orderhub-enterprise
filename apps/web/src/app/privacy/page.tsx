@@ -60,9 +60,10 @@ export default function PrivacyPage() {
               <LegalList
                 items={[
                   "Online ordering systems",
+                  "WhatsApp ordering",
                   "Delivery platform integrations",
                   "POS systems",
-                  "Dispatch and driver management",
+                  "Dispatch, driver management, and our driver mobile app",
                   "Menu and restaurant operations management",
                 ]}
               />
@@ -140,6 +141,53 @@ export default function PrivacyPage() {
                 promotional content. You can unsubscribe at any time.
               </p>
               <LegalBasis>Consent or legitimate interest</LegalBasis>
+
+              <LegalSubHeading>VII. WhatsApp Ordering</LegalSubHeading>
+              <p>
+                When a customer places an order through our WhatsApp ordering
+                channel, we process their WhatsApp phone number, the name shown
+                on their WhatsApp profile, and the content of the messages
+                exchanged with us (for example menu selections, delivery
+                address, and order notes).
+              </p>
+              <p className="mt-2">
+                We use this data only to take and fulfil the order, send order
+                confirmations and order or payment status updates, and provide
+                customer support. These messages are handled through the
+                WhatsApp Business Platform provided by Meta Platforms, Inc.; we
+                do <strong>not</strong> use WhatsApp message content for
+                advertising or marketing. Where you order from a specific
+                restaurant, we act as a processor on that restaurant&rsquo;s
+                behalf.
+              </p>
+              <LegalBasis>
+                Contract performance and legitimate interest
+              </LegalBasis>
+
+              <LegalSubHeading>
+                VIII. Driver App, Dispatch &amp; Delivery Tracking
+              </LegalSubHeading>
+              <p>
+                Our dispatch system and driver mobile app process information
+                about drivers and deliveries. For drivers, this includes name
+                and contact details and, while a driver is signed in and on an
+                active shift or assigned to a delivery, their device&rsquo;s
+                geographic location.
+              </p>
+              <p className="mt-2">
+                We use location data to assign jobs, calculate routes and
+                estimated arrival times, and allow restaurants and customers to
+                track a delivery in real time. Location is collected only while
+                the driver is on shift or has an active delivery &mdash; it is
+                not used to monitor drivers outside of working time. We also
+                process delivery details such as pickup and drop-off addresses,
+                timestamps, and delivery status, and a customer awaiting a
+                delivery may be shown the driver&rsquo;s approximate live
+                location and estimated arrival time.
+              </p>
+              <LegalBasis>
+                Contract performance and legitimate interest
+              </LegalBasis>
             </>
           ),
         },
@@ -174,9 +222,12 @@ export default function PrivacyPage() {
 
               <LegalSubHeading>II. Delivery &amp; Integration Partners</LegalSubHeading>
               <p>
-                To provide our services, we may connect with delivery
-                platforms, POS systems, and courier services. Data is only
-                shared as necessary to deliver functionality.
+                To provide our services, we may connect with delivery platforms,
+                POS systems, courier services, messaging providers (including the
+                WhatsApp Business Platform provided by Meta, for WhatsApp
+                ordering), and mapping and routing providers (such as Google
+                Maps, for driver navigation and live delivery tracking). Data is
+                only shared as necessary to deliver functionality.
               </p>
 
               <LegalSubHeading>III. Legal Requirements</LegalSubHeading>
@@ -284,8 +335,11 @@ export default function PrivacyPage() {
           body: (
             <p>
               We may use tools such as Google Analytics, Meta (Facebook Ads),
-              CRM systems, and customer support tools. These providers process
-              data according to their own privacy policies.
+              the WhatsApp Business Platform provided by Meta (for WhatsApp
+              ordering), Google Maps (for driver navigation and live delivery
+              tracking), payment processors such as Stripe, CRM systems, and
+              customer support tools. These providers process data according to
+              their own privacy policies.
             </p>
           ),
         },
