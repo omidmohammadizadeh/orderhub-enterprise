@@ -947,7 +947,7 @@ function formatHubRisePrice(amount: number, currency: string): string {
  * SKU↔group ref resolution, so multi-SKU products whose groups only
  * live in productSkus JSON still link correctly.
  */
-function transformMenuToCatalog(
+export function transformMenuToCatalog(
   menu: any,
   groupById: Map<string, any>,
 ): {
