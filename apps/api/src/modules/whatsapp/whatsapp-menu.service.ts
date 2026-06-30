@@ -181,49 +181,113 @@ export class WhatsAppMenuService {
       { groupId: string; itemId: string; option: WaMenuModifierOption }
     >();
 
+    // Resolve modifier groups attached per-SKU. Multi-SKU products store
+    // their groups as IDs in productSkus[].modifierGroups (no FK), and those
+    // groups can belong to a different brand, so resolve them by id —
+    // brand-drift safe, same fix the storefront uses. Flat products use the
+    // FK-joined modifierGroupLinks already in the menu include.
+    const groupById = new Map<string, any>();
+    for (const category of menu.categories)
+      for (const link of category.items)
+        for (const gl of (link.item as any)?.modifierGroupLinks ?? [])
+          if (gl.group?.id) groupById.set(gl.group.id, gl.group);
+    const skuGroupIds = new Set<string>();
+    for (const category of menu.categories)
+      for (const link of category.items) {
+        const it = link.item as any;
+        if (it?.hasMultipleSkus && Array.isArray(it.productSkus))
+          for (const s of it.productSkus)
+            for (const gid of s?.modifierGroups ?? [])
+              if (typeof gid === "string" && gid && !groupById.has(gid))
+                skuGroupIds.add(gid);
+      }
+    if (skuGroupIds.size) {
+      const extra = await this.prisma.modifierGroup.findMany({
+        where: { id: { in: [...skuGroupIds] } },
+        include: {
+          options: {
+            where: { isAvailable: true },
+            orderBy: { sortOrder: "asc" as const },
+          },
+        },
+      });
+      for (const g of extra) groupById.set(g.id, g);
+    }
+
+    const toWaGroups = (groups: any[], waItemId: string): WaMenuModifierGroup[] => {
+      const out: WaMenuModifierGroup[] = [];
+      for (const g of groups) {
+        if (!g || !g.visibleToCustomers) continue;
+        const options: WaMenuModifierOption[] = (g.options ?? [])
+          .filter((o: any) => o.visibleToCustomers)
+          .map((o: any) => {
+            const opt = { id: o.id, name: o.name, price: Number(o.priceAdjustment) };
+            optionIndex.set(o.id, { groupId: g.id, itemId: waItemId, option: opt });
+            return opt;
+          });
+        out.push({
+          id: g.id,
+          name: g.name,
+          required: g.isRequired,
+          min: g.minSelections,
+          max: g.maxSelections ?? null,
+          selectionType: g.selectionType,
+          options,
+        });
+      }
+      return out;
+    };
+
+    const pushItem = (waItem: WaMenuItem) => {
+      // De-dupe: an item (or size) can appear in multiple categories.
+      if (!itemIndex.has(waItem.id)) {
+        items.push(waItem);
+        itemIndex.set(waItem.id, waItem);
+      }
+    };
+
     for (const category of menu.categories) {
       for (const link of category.items) {
-        const item = link.item;
+        const item = link.item as any;
         if (!item) continue;
-        const price = Number(link.priceOverride ?? item.basePrice);
-        const modifierGroups: WaMenuModifierGroup[] = [];
-        for (const gl of item.modifierGroupLinks) {
-          const g = gl.group;
-          if (!g || !g.visibleToCustomers) continue;
-          const options: WaMenuModifierOption[] = g.options
-            .filter((o) => o.visibleToCustomers)
-            .map((o) => {
-              const opt = {
-                id: o.id,
-                name: o.name,
-                price: Number(o.priceAdjustment),
-              };
-              optionIndex.set(o.id, { groupId: g.id, itemId: item.id, option: opt });
-              return opt;
+        const multi =
+          !!item.hasMultipleSkus &&
+          Array.isArray(item.productSkus) &&
+          item.productSkus.length > 0;
+
+        if (multi) {
+          // One selectable entry per size, each with its own price + the
+          // modifier groups attached to that size. e.g. "Margherita (10")".
+          item.productSkus.forEach((sku: any, i: number) => {
+            const waId = `${item.id}::${i}`;
+            const sizeName =
+              (sku?.name && String(sku.name).trim()) || `Size ${i + 1}`;
+            const groups = (sku?.modifierGroups ?? [])
+              .map((gid: string) => groupById.get(gid))
+              .filter(Boolean);
+            pushItem({
+              id: waId,
+              name: `${item.name} (${sizeName})`,
+              description: item.description ?? undefined,
+              price: Number(sku?.price ?? 0),
+              imageUrl: item.imageUrl ?? undefined,
+              categoryName: category.name,
+              modifierGroups: toWaGroups(groups, waId),
             });
-          modifierGroups.push({
-            id: g.id,
-            name: g.name,
-            required: g.isRequired,
-            min: g.minSelections,
-            max: g.maxSelections ?? null,
-            selectionType: g.selectionType,
-            options,
           });
-        }
-        const waItem: WaMenuItem = {
-          id: item.id,
-          name: item.name,
-          description: item.description ?? undefined,
-          price,
-          imageUrl: item.imageUrl ?? undefined,
-          categoryName: category.name,
-          modifierGroups,
-        };
-        // De-dupe: an item can appear in multiple categories.
-        if (!itemIndex.has(item.id)) {
-          items.push(waItem);
-          itemIndex.set(item.id, waItem);
+        } else {
+          const groups = (item.modifierGroupLinks ?? [])
+            .map((gl: any) => gl.group)
+            .filter(Boolean);
+          pushItem({
+            id: item.id,
+            name: item.name,
+            description: item.description ?? undefined,
+            price: Number(link.priceOverride ?? item.basePrice),
+            imageUrl: item.imageUrl ?? undefined,
+            categoryName: category.name,
+            modifierGroups: toWaGroups(groups, item.id),
+          });
         }
       }
     }
