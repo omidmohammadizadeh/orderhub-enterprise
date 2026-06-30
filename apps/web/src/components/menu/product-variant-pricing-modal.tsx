@@ -12,7 +12,12 @@
 // which publish to HubRise as variants[] + price_overrides[].
 
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { X, Plus, Store } from "lucide-react";
 import {
   CHANNEL_VARIANT_PRESETS,
@@ -89,33 +94,41 @@ export function ProductVariantPricingModal({
     Array.isArray(product?.productSkus) &&
     product.productSkus.length > 0;
 
-  // Multi-SKU products attach modifier groups per size (productSkus[].
-  // modifierGroups holds IDs), so we resolve them from the brand's catalog
-  // groups (which carry options + platformPricingOverrides).
-  const { data: brandGroups = [] } = useQuery({
-    queryKey: ["catalog", "modifier-groups", product?.brandId],
-    queryFn: () => modifierGroupsClient.list(product.brandId),
-    enabled: open && !!product?.brandId,
-  });
-
-  const modGroups = useMemo(() => {
-    const map = new Map<string, any>();
-    for (const g of brandGroups) map.set(g.id, g);
-    for (const l of product?.modifierGroupLinks ?? [])
-      if (l.group?.id) map.set(l.group.id, l.group);
-
+  // The modifier groups this product uses. Multi-SKU products attach groups
+  // per size (productSkus[].modifierGroups holds IDs); single products via
+  // modifierGroupLinks. Resolve by ID (brand-drift safe — a SKU group can
+  // belong to a different brand than the product) so the rows always show.
+  const referencedGroupIds = useMemo<string[]>(() => {
     const ids = new Set<string>();
     if (multi) {
-      for (const s of product.productSkus ?? [])
+      for (const s of product?.productSkus ?? [])
         for (const gid of s.modifierGroups ?? []) if (gid) ids.add(gid);
     } else {
       for (const l of product?.modifierGroupLinks ?? [])
         if (l.group?.id) ids.add(l.group.id);
     }
-    return Array.from(ids)
-      .map((id) => map.get(id))
+    return Array.from(ids);
+  }, [multi, product]);
+
+  const groupQueries = useQueries({
+    queries: referencedGroupIds.map((id) => ({
+      queryKey: ["catalog", "modifier-group", id],
+      queryFn: () => modifierGroupsClient.get(id),
+      enabled: open,
+    })),
+  });
+
+  const modGroups = useMemo(() => {
+    // Prefer the fetched group (carries options + platformPricingOverrides);
+    // fall back to the link's embedded group object while it loads.
+    const linkById = new Map<string, any>();
+    for (const l of product?.modifierGroupLinks ?? [])
+      if (l.group?.id) linkById.set(l.group.id, l.group);
+    return referencedGroupIds
+      .map((id, i) => groupQueries[i]?.data ?? linkById.get(id))
       .filter((g: any) => g && Array.isArray(g.options));
-  }, [multi, product, brandGroups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [referencedGroupIds, groupQueries.map((q) => q.data), product]);
 
   // The brand(s) this product belongs to (set on the product form).
   const productBrandIds = useMemo<string[]>(() => {
