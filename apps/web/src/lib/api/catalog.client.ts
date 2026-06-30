@@ -25,6 +25,7 @@ export interface CatalogProduct {
     plu: string;
     price: number;
     modifierGroups: string[];
+    priceOverrides?: Record<string, number>;
   }>;
   deliveryTax: string | number;
   takeawayTax: string | number;
@@ -32,6 +33,9 @@ export interface CatalogProduct {
   dietaryTags: string[];
   allergens: string[];
   menuIds: string[];
+  // Brands this product belongs to (multi-brand / dark kitchen). Drives
+  // HubRise per-brand variant restrictions on publish.
+  brandIds?: string[];
   platformPricingOverrides: Record<string, number>;
   modifierGroupLinks?: Array<{
     groupId: string;

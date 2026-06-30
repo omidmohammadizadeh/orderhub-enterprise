@@ -9,6 +9,7 @@ import {
   modifierGroupsClient,
   type CatalogProduct,
 } from "@/lib/api/catalog.client";
+import { brandsClient } from "@/lib/api/menus.client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -66,6 +67,12 @@ export function ProductForm({
     enabled: !!brandId,
   });
 
+  // ── Load brands for the per-product brand tagging (Phase AZ) ────────
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => brandsClient.list(),
+  });
+
   // ── Form state ──────────────────────────────────────────────────────
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -104,8 +111,17 @@ export function ProductForm({
       plu: string;
       price: string;
       modifierGroupIds: string[];
+      // Preserved opaquely so editing the product here doesn't wipe the
+      // per-channel size prices set in the Channel-pricing matrix.
+      priceOverrides?: Record<string, number>;
     }>
   >([]);
+  // Phase AZ — which brands this product belongs to. New products default
+  // to the brand the form is scoped to; the publisher uses this to restrict
+  // the product to its brand's HubRise variants.
+  const [brandIds, setBrandIds] = useState<string[]>(
+    productId ? [] : brandId ? [brandId] : [],
+  );
 
   // Hydrate from server for edit mode.
   useEffect(() => {
@@ -134,8 +150,16 @@ export function ProductForm({
             modifierGroupIds: Array.isArray(s.modifierGroups)
               ? s.modifierGroups
               : [],
+            ...(s.priceOverrides ? { priceOverrides: s.priceOverrides } : {}),
           }))
         : [],
+    );
+    setBrandIds(
+      Array.isArray((existing as any).brandIds) && (existing as any).brandIds.length
+        ? (existing as any).brandIds
+        : existing.brandId
+          ? [existing.brandId]
+          : [],
     );
   }, [existing]);
 
@@ -148,6 +172,8 @@ export function ProductForm({
           plu: s.plu.trim(),
           price: Number(s.price) || 0,
           modifierGroups: s.modifierGroupIds,
+          // Keep any per-channel size prices set in the Channel-pricing matrix.
+          ...(s.priceOverrides ? { priceOverrides: s.priceOverrides } : {}),
         }));
       const payload = {
         name: name.trim(),
@@ -161,6 +187,7 @@ export function ProductForm({
         isAvailable,
         outOfStock,
         visibleToCustomers,
+        brandIds,
         hasMultipleSkus: hasMultipleSkus && cleanedSkus.length > 0,
         productSkus: hasMultipleSkus ? cleanedSkus : [],
       };
@@ -605,6 +632,44 @@ export function ProductForm({
               </div>
             </div>
           </Card>
+
+          {brands.length > 1 && (
+            <Card className="p-5">
+              <h3 className="text-sm font-semibold text-zinc-900 mb-1">
+                Brands
+              </h3>
+              <p className="text-[11px] text-zinc-500 mb-3">
+                Which brands sell this product. Used to keep each brand's items
+                (and prices) separate when publishing to a shared HubRise
+                catalog. Most products belong to one brand.
+              </p>
+              <div className="space-y-1.5">
+                {brands.map((b) => {
+                  const checked = brandIds.includes(b.id);
+                  return (
+                    <label
+                      key={b.id}
+                      className="flex items-center gap-2 rounded-md border border-zinc-200 px-2.5 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) =>
+                          setBrandIds(
+                            e.target.checked
+                              ? [...brandIds, b.id]
+                              : brandIds.filter((id) => id !== b.id),
+                          )
+                        }
+                        className="h-4 w-4 accent-violet-600"
+                      />
+                      {b.name}
+                    </label>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
 
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-zinc-900 mb-4">

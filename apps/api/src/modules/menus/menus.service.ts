@@ -526,6 +526,7 @@ export class MenusService {
         eatInTax: (dto as any).eatInTax ?? 0,
         dietary: ((dto as any).dietary ?? []) as any,
         menuIds: ((dto as any).menuIds ?? []) as any,
+        brandIds: ((dto as any).brandIds ?? []) as any,
       },
       include: {
         variants: true,
