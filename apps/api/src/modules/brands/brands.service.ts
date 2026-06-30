@@ -574,13 +574,13 @@ export class BrandsService {
             "No HubRise-connected location found for this brand. Connect HubRise on the location first.",
           );
         }
-        // Brand hours win when set (per-virtual-brand schedule); otherwise
-        // fall back to the location's own hours/prep — same precedence the
-        // WhatsApp bot uses.
-        const openingHours = hoursConfigured(brand.openingHours)
-          ? brand.openingHours
-          : (location as any).openingHours;
-        const prepTime = brand.prepTime ?? (location as any).prepTime ?? null;
+        // Location hours/prep are the source of truth for HubRise (the
+        // HubRise location is the physical store). Fall back to the brand's
+        // own schedule only when the location hasn't set one.
+        const openingHours = hoursConfigured((location as any).openingHours)
+          ? (location as any).openingHours
+          : brand.openingHours;
+        const prepTime = (location as any).prepTime ?? brand.prepTime ?? null;
         await this.hubrise.publishHours({
           locationId: location.id,
           openingHours,

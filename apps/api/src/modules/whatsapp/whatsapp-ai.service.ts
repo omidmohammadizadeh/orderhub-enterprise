@@ -787,7 +787,11 @@ export class WhatsAppAiService {
     }
     rows.push({ id: "wizback", title: "⬅️ Back" });
     const body = multi
-      ? `${group.name} — tap to add${group.required ? ` (pick ${group.min}+)` : ", then Done"}`
+      ? `${group.name} — tap to add${
+          group.max ? ` (up to ${group.max})` : ""
+        }, or type a few at once like "cheese, ham". Then tap Done${
+          group.required ? ` (pick ${group.min}+)` : ""
+        }.`
       : `Pick your ${group.name}`;
     return {
       kind: "list",
@@ -860,6 +864,32 @@ export class WhatsAppAiService {
       pending.chosen[curGid] = [];
       pending.done.push(curGid);
       return this.advance(item, pending, ctx, cart);
+    }
+
+    // Free-text multi-select: WhatsApp lists are single-tap, so to pick
+    // several add-ons in one go the customer can type them, e.g.
+    // "cheese, ham and peppers". Add every match (up to max), then they tap
+    // Done (or type "done"). Single-select groups still complete on tap.
+    if (this.isMultiSelect(curGroup)) {
+      const low = text.trim().toLowerCase();
+      if (/^(done|that'?s? ?(it|all)|finished?|no more|nothing(?: else)?)$/.test(low)) {
+        if (!curGroup.required || sel.length >= Math.max(1, curGroup.min)) {
+          pending.done.push(curGid);
+          return this.advance(item, pending, ctx, cart);
+        }
+      }
+      let added = 0;
+      for (const o of curGroup.options) {
+        if (sel.includes(o.id)) continue;
+        if (curGroup.max && sel.length >= curGroup.max) break;
+        if (low.includes(o.name.toLowerCase())) {
+          sel.push(o.id);
+          added++;
+        }
+      }
+      if (added > 0) {
+        return { ask: this.groupPickerPresent(item, curGroup, sel) };
+      }
     }
 
     return { ask: this.groupPickerPresent(item, curGroup, sel) }; // re-show current
@@ -951,14 +981,16 @@ export class WhatsAppAiService {
       this.logger.warn(`WhatsApp pause check failed: ${err?.message ?? err}`);
     }
 
-    // 2) Opening hours (brand hours override the location's, like the storefront).
+    // 2) Opening hours — location is the source of truth; fall back to the
+    //    brand's schedule only when the location hasn't set one.
     const loc = await this.prisma.location.findUnique({
       where: { id: ctx.locationId },
       select: { timezone: true, openingHours: true, brand: { select: { openingHours: true } } },
     });
     if (loc) {
-      const brandHours = (loc.brand as any)?.openingHours;
-      const hours = hoursConfigured(brandHours) ? brandHours : loc.openingHours;
+      const hours = hoursConfigured(loc.openingHours)
+        ? loc.openingHours
+        : (loc.brand as any)?.openingHours;
       if (!isCurrentlyOpen(hours, loc.timezone ?? "Europe/London")) {
         return {
           open: false,
