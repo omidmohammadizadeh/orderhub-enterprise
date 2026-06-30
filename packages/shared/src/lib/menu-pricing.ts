@@ -42,6 +42,12 @@ export interface ProductSku {
   price: number;
   /** Modifier-group IDs that apply when this SKU is selected. */
   modifierGroups: string[];
+  /**
+   * Per-variant price overrides, keyed by pricing-variant ref
+   * (e.g. { "UBER_EATS": 11.99, "var_kiosk": 9.5 }). Empty/absent =
+   * this size uses its default `price` everywhere. See pricing-variants.ts.
+   */
+  priceOverrides?: Record<string, number>;
 }
 
 /** Minimal shape needed for pricing — accepts both DB rows and DTOs. */

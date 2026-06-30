@@ -85,6 +85,8 @@ export interface CatalogModifier {
   deliveryTax: string | number;
   takeawayTax: string | number;
   eatInTax: string | number;
+  // Per-variant price overrides keyed by pricing-variant ref.
+  platformPricingOverrides?: Record<string, number>;
 }
 
 export interface MealDeal {

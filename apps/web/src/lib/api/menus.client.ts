@@ -1,5 +1,8 @@
 "use client";
 import { apiClient } from "./client";
+import type { PricingVariant } from "@orderhub/shared";
+
+export type { PricingVariant } from "@orderhub/shared";
 
 export interface Brand {
   id: string;
@@ -30,6 +33,9 @@ export interface Menu {
   logoImage?: string | null;
   heroImage?: string | null;
   publishedTo?: string[];
+  // Phase AZ — named pricing variants (channel presets + custom) for
+  // one-menu-controls-all per-channel/brand pricing.
+  pricingVariants?: PricingVariant[];
   createdAt: string;
   updatedAt: string;
   _count?: { categories: number };
@@ -75,6 +81,8 @@ export interface ProductSku {
   plu: string;
   price: number;
   modifierGroups: string[];
+  // Per-variant price overrides for this size, keyed by variant ref.
+  priceOverrides?: Record<string, number>;
 }
 
 export interface MenuItem {
@@ -118,6 +126,7 @@ export interface MenuItem {
         plu?: string | null;
         pricesBySize?: Record<string, number> | null;
         skuPlus?: Record<string, string> | null;
+        platformPricingOverrides?: Record<string, number> | null;
         isAvailable?: boolean;
         visibleToCustomers?: boolean;
       }>;
@@ -265,6 +274,8 @@ export const menusClient = {
       // different virtual brand without making the operator delete
       // and re-create it.
       brandId: string;
+      // Phase AZ — named pricing variants.
+      pricingVariants: PricingVariant[];
     }>,
   ) => apiClient.patch<Menu>(`/v1/menus/${menuId}`, data).then((r) => r.data),
 

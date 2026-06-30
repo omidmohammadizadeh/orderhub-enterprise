@@ -714,6 +714,14 @@ model Menu {
   autoScheduleEnabled Boolean @default(false)
   autoSchedule        Json    @default("{}")
 
+  // Pricing variants — named price lists on this menu (channel presets
+  // like Uber Eats/Deliveroo + custom ones). Shape: [{ ref, name,
+  // channelKey? }]. Per-variant prices live as overrides on each item
+  // (platformPricingOverrides), SKU (productSkus[].priceOverrides) and
+  // modifier option (platformPricingOverrides), keyed by variant ref.
+  // Published to HubRise as data.variants[] + price_overrides[].
+  pricingVariants Json @default("[]")
+
   categories MenuCategory[]
   versions   MenuVersion[]
 
@@ -1068,6 +1076,10 @@ model ModifierOption {
   //     priceAdjustment.
   pricesBySize       Json          @default("{}")
   skuPlus            Json          @default("{}")
+  // Per-variant price overrides keyed by pricing-variant ref, e.g.
+  // { "UBER_EATS": 0.75, "var_kiosk": 0.50 }. Empty = this option costs
+  // priceAdjustment on every variant. Published as option price_overrides.
+  platformPricingOverrides Json     @default("{}")
   imageUrl           String?
   allergens          String[]
   isDefault          Boolean       @default(false)

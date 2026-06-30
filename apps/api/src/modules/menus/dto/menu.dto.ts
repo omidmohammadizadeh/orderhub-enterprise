@@ -22,6 +22,8 @@ export class ModifierOptionDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isDefault?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
+  // Per-variant price overrides keyed by pricing-variant ref.
+  @ApiPropertyOptional() @IsOptional() @IsObject() platformPricingOverrides?: Record<string, number>;
 }
 
 // ── Modifier group ─────────────────────────────────────────────────────────────
@@ -92,6 +94,11 @@ export class UpdateMenuDto {
   // shows brands at the menu's current location; the service verifies
   // the destination brand belongs to the caller's tenant before moving.
   @ApiPropertyOptional() @IsOptional() @IsString() brandId?: string;
+  // Phase AZ — named pricing variants on this menu. Each is
+  // { ref, name, channelKey? }; the service normalises + dedupes.
+  // Plain-object array (no nested DTO) so the elements pass through the
+  // global ValidationPipe untouched.
+  @ApiPropertyOptional() @IsOptional() @IsArray() pricingVariants?: Array<Record<string, unknown>>;
 }
 
 // ── Create category ───────────────────────────────────────────────────────────
@@ -122,6 +129,10 @@ export class ProductSkuDto {
   @IsArray()
   @IsString({ each: true })
   modifierGroups?: string[];
+  // Per-variant price overrides for THIS size, keyed by pricing-variant
+  // ref, e.g. { "UBER_EATS": 11.99 }. Whitelisted so the nested object
+  // survives the global ValidationPipe.
+  @ApiPropertyOptional() @IsOptional() @IsObject() priceOverrides?: Record<string, number>;
 }
 
 // ── Create menu item ──────────────────────────────────────────────────────────

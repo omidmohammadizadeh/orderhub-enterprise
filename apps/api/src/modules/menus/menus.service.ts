@@ -13,7 +13,7 @@ import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PluService } from "./plu.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
-import { QUEUES, MENU_JOBS } from "@orderhub/shared";
+import { QUEUES, MENU_JOBS, normalizePricingVariants } from "@orderhub/shared";
 import type {
   CreateMenuDto,
   UpdateMenuDto,
@@ -210,6 +210,13 @@ export class MenusService {
           ...(dto.publishedTo.length > 0 && {
             lastPublishedAt: new Date(),
           }),
+        }),
+        // Phase AZ — pricing variants. Normalise + dedupe before storing
+        // so a malformed client payload can't corrupt the publish path.
+        ...((dto as any).pricingVariants !== undefined && {
+          pricingVariants: normalizePricingVariants(
+            (dto as any).pricingVariants,
+          ) as any,
         }),
       },
     });
@@ -938,6 +945,7 @@ export class MenusService {
       plu?: string;
       pricesBySize?: Record<string, number>;
       skuPlus?: Record<string, string>;
+      platformPricingOverrides?: Record<string, number>;
       menuIds?: string[];
     },
   ) {
@@ -956,6 +964,7 @@ export class MenusService {
         priceAdjustment: dto.priceAdjustment ?? 0,
         pricesBySize: (dto.pricesBySize ?? {}) as any,
         skuPlus: (dto.skuPlus ?? {}) as any,
+        platformPricingOverrides: (dto.platformPricingOverrides ?? {}) as any,
         isDefault: dto.isDefault ?? false,
         imageUrl: dto.imageUrl ?? null,
         allergens: dto.allergens ?? [],
@@ -982,6 +991,7 @@ export class MenusService {
       plu?: string;
       pricesBySize?: Record<string, number>;
       skuPlus?: Record<string, string>;
+      platformPricingOverrides?: Record<string, number>;
       visibleToCustomers?: boolean;
       deliveryTax?: number;
       takeawayTax?: number;
@@ -1010,6 +1020,9 @@ export class MenusService {
           pricesBySize: dto.pricesBySize as any,
         }),
         ...(dto.skuPlus !== undefined && { skuPlus: dto.skuPlus as any }),
+        ...(dto.platformPricingOverrides !== undefined && {
+          platformPricingOverrides: dto.platformPricingOverrides as any,
+        }),
         ...(dto.visibleToCustomers !== undefined && {
           visibleToCustomers: dto.visibleToCustomers,
         }),

@@ -659,7 +659,7 @@ export class MenusController {
   @ApiOperation({ summary: "Add an option to a modifier group" })
   addModifierOption(
     @Param("groupId") groupId: string,
-    @Body() dto: { name: string; priceAdjustment?: number; isDefault?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string },
+    @Body() dto: { name: string; priceAdjustment?: number; isDefault?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string; platformPricingOverrides?: Record<string, number> },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.addModifierOption(groupId, user.tenantId, dto);
@@ -670,7 +670,7 @@ export class MenusController {
   @ApiOperation({ summary: "Update a modifier option" })
   updateModifierOption(
     @Param("optionId") optionId: string,
-    @Body() dto: { name?: string; priceAdjustment?: number; isDefault?: boolean; isAvailable?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string | null; sortOrder?: number },
+    @Body() dto: { name?: string; priceAdjustment?: number; isDefault?: boolean; isAvailable?: boolean; imageUrl?: string; allergens?: string[]; nestedGroupId?: string | null; sortOrder?: number; platformPricingOverrides?: Record<string, number> },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.updateModifierOption(optionId, user.tenantId, dto);

@@ -38,8 +38,12 @@ import {
   Eye,
   Search,
   Settings,
+  Tag,
+  SlidersHorizontal,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
+import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
+import { ProductVariantPricingModal } from "@/components/menu/product-variant-pricing-modal";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +82,9 @@ export default function MenuEditorPage() {
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Phase AZ — pricing variants manager + per-product channel pricing.
+  const [variantsOpen, setVariantsOpen] = useState(false);
+  const [pricingTarget, setPricingTarget] = useState<any | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -266,6 +273,15 @@ export default function MenuEditorPage() {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5"
+            onClick={() => setVariantsOpen(true)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Pricing variants
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5"
             onClick={() => setSettingsOpen(true)}
           >
             <Settings className="h-4 w-4" />
@@ -297,6 +313,20 @@ export default function MenuEditorPage() {
       {/* Phase AP — menu Settings drawer. Edit name/description/menuType
           + hero/banner/logo images here. Categories, products, modifier
           groups remain in the sidebar + main panel. */}
+      <VariantsManagerModal
+        open={variantsOpen}
+        menuId={menuId}
+        variants={(menu as any)?.pricingVariants ?? []}
+        onClose={() => setVariantsOpen(false)}
+      />
+      <ProductVariantPricingModal
+        open={pricingTarget !== null}
+        menuId={menuId}
+        product={pricingTarget}
+        variants={(menu as any)?.pricingVariants ?? []}
+        onClose={() => setPricingTarget(null)}
+      />
+
       {settingsOpen && (
         <MenuSettingsDrawer
           menu={menu as any}
@@ -500,6 +530,13 @@ export default function MenuEditorPage() {
                         className="group relative p-4 bg-white cursor-move hover:shadow-md transition-shadow"
                       >
                         <div className="absolute top-3 right-3 flex items-center gap-1">
+                          <button
+                            onClick={() => setPricingTarget(p)}
+                            className="p-1 text-zinc-300 hover:text-violet-600"
+                            title="Channel pricing"
+                          >
+                            <Tag className="h-3.5 w-3.5" />
+                          </button>
                           <button
                             onClick={() => setProductEditorTarget(p.id)}
                             className="p-1 text-zinc-300 hover:text-zinc-900"

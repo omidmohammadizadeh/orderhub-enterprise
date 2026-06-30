@@ -21,6 +21,11 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from "@nes
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
+import {
+  normalizePricingVariants,
+  buildHubRisePriceOverrides,
+  type HubRisePriceOverride,
+} from "@orderhub/shared";
 
 // ── HubRise types (subset we read / write) ────────────────────────────
 
@@ -91,6 +96,8 @@ interface HubRiseSku {
   product_id?: string;
   name?: string | null;
   price: string; // "10.30 GBP"
+  // Per-variant price rules: [{ variant_refs: ["UBER_EATS"], price: "11.99 GBP" }]
+  price_overrides?: HubRisePriceOverride[];
   option_list_ids?: string[];
   option_list_refs?: string[];
   tags?: string[];
@@ -114,6 +121,7 @@ interface HubRiseOption {
   option_list_id?: string;
   name: string;
   price: string;
+  price_overrides?: HubRisePriceOverride[];
   default?: boolean;
   tags?: string[];
 }
@@ -730,15 +738,13 @@ export class HubRiseCatalogService {
       allGroups.map((g: any) => [g.id, g] as [string, any]),
     );
 
-    const { categories, products, optionLists } = transformMenuToCatalog(
-      menu,
-      groupById,
-    );
+    const { categories, products, optionLists, variants } =
+      transformMenuToCatalog(menu, groupById);
 
     this.logger.log(
       `HubRise publish: menu=${args.menuId} categories=${categories.length} ` +
         `products=${products.length} optionLists=${optionLists.length} ` +
-        `referencedGroups=${referencedGroupIds.size}`,
+        `variants=${variants.length} referencedGroups=${referencedGroupIds.size}`,
     );
 
     // Sample the first product + its SKUs so we can verify the
@@ -756,6 +762,9 @@ export class HubRiseCatalogService {
     }
 
     const data: HubRiseCatalogData = {
+      // Only send variants[] when the menu actually defines some — an
+      // empty array is harmless but noise in HubRise's UI.
+      ...(variants.length ? { variants } : {}),
       categories,
       products,
       option_lists: optionLists,
@@ -940,8 +949,17 @@ function transformMenuToCatalog(
   categories: HubRiseCategory[];
   products: HubRiseProduct[];
   optionLists: HubRiseOptionList[];
+  variants: Array<{ ref: string; name: string }>;
 } {
   const currency = "GBP";
+
+  // Phase AZ — pricing variants. One menu, per-channel/brand prices.
+  // Build the catalog `variants[]` and a ref-set used to gate every
+  // price-override rule so a stale override (variant since removed) is
+  // dropped rather than published.
+  const variants = normalizePricingVariants(menu.pricingVariants);
+  const variantRefs = new Set(variants.map((v) => v.ref));
+  const fmtPrice = (n: number) => formatHubRisePrice(n, currency);
 
   // Categories
   const categories: HubRiseCategory[] = (menu.categories ?? []).map(
@@ -974,12 +992,22 @@ function transformMenuToCatalog(
       min_selections: g.minSelections ?? 0,
       max_selections: g.maxSelections ?? null,
       multiple_selection: g.selectionType === "ADDON",
-      options: (g.options ?? []).map((o: any) => ({
-        ref: o.externalId ?? `opt_${o.id}`,
-        name: o.name,
-        price: formatHubRisePrice(Number(o.priceAdjustment ?? 0), currency),
-        default: o.isDefault === true,
-      })),
+      options: (g.options ?? []).map((o: any) => {
+        const optBase = Number(o.priceAdjustment ?? 0);
+        const overrides = buildHubRisePriceOverrides(
+          o.platformPricingOverrides as Record<string, number> | undefined,
+          variantRefs,
+          optBase,
+          fmtPrice,
+        );
+        return {
+          ref: o.externalId ?? `opt_${o.id}`,
+          name: o.name,
+          price: formatHubRisePrice(optBase, currency),
+          ...(overrides.length ? { price_overrides: overrides } : {}),
+          default: o.isDefault === true,
+        };
+      }),
     });
   }
 
@@ -991,26 +1019,49 @@ function transformMenuToCatalog(
       const item = link.item;
       const multi = !!item.hasMultipleSkus && Array.isArray(item.productSkus);
       const skus: HubRiseSku[] = multi
-        ? (item.productSkus as any[]).map((s, i) => ({
-            ref: s.plu ?? `${item.id}_sku_${i}`,
-            name: s.name,
-            price: formatHubRisePrice(Number(s.price ?? 0), currency),
-            option_list_refs: (s.modifierGroups ?? [])
-              .map((gid: string) => groupById.get(gid))
-              .filter(Boolean)
-              .map(groupRefFor),
-          }))
-        : [
-            {
-              ref: item.plu ?? item.externalId ?? `${item.id}_sku`,
-              name: null,
-              price: formatHubRisePrice(Number(item.basePrice ?? 0), currency),
-              option_list_refs: (item.modifierGroupLinks ?? [])
-                .map((l: any) => l.group)
+        ? (item.productSkus as any[]).map((s, i) => {
+            const base = Number(s.price ?? 0);
+            // Per-size overrides live on the SKU row itself.
+            const overrides = buildHubRisePriceOverrides(
+              s.priceOverrides as Record<string, number> | undefined,
+              variantRefs,
+              base,
+              fmtPrice,
+            );
+            return {
+              ref: s.plu ?? `${item.id}_sku_${i}`,
+              name: s.name,
+              price: formatHubRisePrice(base, currency),
+              ...(overrides.length ? { price_overrides: overrides } : {}),
+              option_list_refs: (s.modifierGroups ?? [])
+                .map((gid: string) => groupById.get(gid))
                 .filter(Boolean)
                 .map(groupRefFor),
-            },
-          ];
+            };
+          })
+        : (() => {
+            const base = Number(item.basePrice ?? 0);
+            // Single-SKU items carry their per-channel prices at the item
+            // level (MenuItem.platformPricingOverrides).
+            const overrides = buildHubRisePriceOverrides(
+              item.platformPricingOverrides as Record<string, number> | undefined,
+              variantRefs,
+              base,
+              fmtPrice,
+            );
+            return [
+              {
+                ref: item.plu ?? item.externalId ?? `${item.id}_sku`,
+                name: null,
+                price: formatHubRisePrice(base, currency),
+                ...(overrides.length ? { price_overrides: overrides } : {}),
+                option_list_refs: (item.modifierGroupLinks ?? [])
+                  .map((l: any) => l.group)
+                  .filter(Boolean)
+                  .map(groupRefFor),
+              },
+            ];
+          })();
       // Phase AW-12.1 — round-trip the HubRise image id. Import wrote
       // imageUrl=/api/v1/menus/hubrise-image/<catalogId>/<imageId>;
       // pull the imageId back out so we re-reference the existing
@@ -1034,5 +1085,10 @@ function transformMenuToCatalog(
     }
   }
 
-  return { categories, products, optionLists };
+  return {
+    categories,
+    products,
+    optionLists,
+    variants: variants.map((v) => ({ ref: v.ref, name: v.name })),
+  };
 }
