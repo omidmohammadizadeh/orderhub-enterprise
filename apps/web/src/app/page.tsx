@@ -70,7 +70,11 @@ async function resolveCustomDomain(host: string): Promise<string | null> {
   return null;
 }
 
-export default async function MarketingHomePage() {
+export default async function MarketingHomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   noStore();
 
   // Brand custom domain (e.g. order.pizzauno.com): resolve the host → that
@@ -81,6 +85,29 @@ export default async function MarketingHomePage() {
   // (possibly comma-separated); fall back to host.
   const rawHost = hdrs.get("x-forwarded-host") || hdrs.get("host") || "";
   const host = (rawHost.split(",")[0] ?? "").trim().split(":")[0]?.toLowerCase() ?? "";
+
+  // Diagnostic: /?debughost shows what the server actually sees. Temporary.
+  const sp = (await searchParams) ?? {};
+  if (sp.debughost !== undefined) {
+    const primary = isPrimaryHost(host);
+    const target = primary ? null : await resolveCustomDomain(host);
+    return (
+      <pre style={{ padding: 24, fontFamily: "monospace", fontSize: 13 }}>
+        {JSON.stringify(
+          {
+            hostHeader: hdrs.get("host"),
+            xForwardedHost: hdrs.get("x-forwarded-host"),
+            resolvedHost: host,
+            isPrimary: primary,
+            redirectTarget: target,
+          },
+          null,
+          2,
+        )}
+      </pre>
+    );
+  }
+
   if (!isPrimaryHost(host)) {
     const target = await resolveCustomDomain(host);
     if (target) redirect(target);
