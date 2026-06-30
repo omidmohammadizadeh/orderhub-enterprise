@@ -231,6 +231,9 @@ export function ProductForm({
       // — it's just the stale cache lying to the form.
       qc.invalidateQueries({ queryKey: ["catalog", "products", brandId] });
       qc.invalidateQueries({ queryKey: ["catalog", "product", saved.id] });
+      // Phase AZ — the menu editor's product cards (and the Channel-pricing
+      // modal) read brandIds off the menu detail, so refresh it too.
+      qc.invalidateQueries({ queryKey: ["menu"] });
       // Also seed the single-product cache with the just-saved object so
       // a fast re-edit before the refetch completes still shows the
       // correct state instead of a flash of the stale snapshot.

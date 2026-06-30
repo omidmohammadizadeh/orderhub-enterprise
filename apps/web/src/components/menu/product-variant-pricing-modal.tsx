@@ -1,45 +1,69 @@
 "use client";
 
-// Phase AZ — per-product variant pricing matrix. Rows = the product's base
-// price (or each size) plus every modifier option; columns = the menu's
-// pricing variants. Each cell overrides that row's price for that variant;
-// blank falls back to the default. Saves item overrides (single-price ->
-// MenuItem.platformPricingOverrides; multi-size -> productSkus[].priceOverrides)
-// and modifier overrides (ModifierOption.platformPricingOverrides). These
-// publish to HubRise as price_overrides.
+// Phase AZ — per-product channel pricing. Driven by the PRODUCT's brand(s)
+// (set on the product form): for each brand you add the channels it sells on
+// (Uber Eats / Deliveroo / Just Eat) right here, which creates the
+// "Brand — Channel" variant (e.g. "Pizza Uno — Uber Eats") and registers it
+// on the menu. Rows = base price (or each size) + every modifier option;
+// columns = the brand's channels. Blank cell = default price. Saves:
+//   - menu.pricingVariants (merges this product's brand×channel leaves)
+//   - item overrides (single -> platformPricingOverrides; multi -> productSkus[].priceOverrides)
+//   - modifier overrides (ModifierOption.platformPricingOverrides)
+// which publish to HubRise as variants[] + price_overrides[].
 
-import { Fragment, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
-import { CHANNEL_VARIANT_PRESETS, type PricingVariant } from "@orderhub/shared";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { X, Plus, Store } from "lucide-react";
+import {
+  CHANNEL_VARIANT_PRESETS,
+  brandChannelRef,
+  type PricingVariant,
+} from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
 import { productsClient, modifiersClient } from "@/lib/api/catalog.client";
+import { brandsClient, menusClient } from "@/lib/api/menus.client";
 
 interface Props {
   open: boolean;
   menuId: string;
-  /** Product row from the menu detail (carries productSkus, modifierGroupLinks). */
+  /** Product row from the menu detail (carries brandIds, productSkus, modifierGroupLinks). */
   product: any;
+  /** The menu's current pricing variants (so we merge, not clobber, other brands). */
   variants: PricingVariant[];
   onClose: () => void;
 }
 
 type OvMap = Record<string, string>; // variantRef -> input string
 
-const numify = (m: OvMap = {}): Record<string, number> => {
-  const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(m)) {
-    const n = Number(v);
-    if (v !== "" && Number.isFinite(n) && n >= 0) out[k] = n;
-  }
-  return out;
-};
-
 const toStr = (m: Record<string, number> | null | undefined): OvMap => {
   const out: OvMap = {};
   for (const [k, v] of Object.entries(m ?? {})) out[k] = String(v);
   return out;
 };
+
+// Module-scope so its identity is stable across renders (a component defined
+// inside the parent remounts every keystroke and drops input focus).
+function Cell({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <input
+      type="number"
+      step="0.01"
+      min="0"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="h-8 w-24 rounded-md border border-zinc-200 px-2 text-sm tabular-nums focus:border-violet-400 focus:outline-none"
+    />
+  );
+}
 
 export function ProductVariantPricingModal({
   open,
@@ -50,11 +74,18 @@ export function ProductVariantPricingModal({
 }: Props) {
   const qc = useQueryClient();
 
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => brandsClient.list(),
+    enabled: open,
+  });
+
   const multi =
-    !!product?.hasMultipleSkus && Array.isArray(product?.productSkus) &&
+    !!product?.hasMultipleSkus &&
+    Array.isArray(product?.productSkus) &&
     product.productSkus.length > 0;
 
-  const groups = useMemo(
+  const modGroups = useMemo(
     () =>
       (product?.modifierGroupLinks ?? [])
         .map((l: any) => l.group)
@@ -62,60 +93,131 @@ export function ProductVariantPricingModal({
     [product],
   );
 
-  // Order columns brand-by-brand and build the grouped (brand) header.
-  const orderedVariants = useMemo(() => {
-    const order: string[] = [];
-    const byBrand = new Map<string, PricingVariant[]>();
+  // The brand(s) this product belongs to (set on the product form).
+  const productBrandIds = useMemo<string[]>(() => {
+    const ids =
+      Array.isArray(product?.brandIds) && product.brandIds.length
+        ? product.brandIds
+        : product?.brandId
+          ? [product.brandId]
+          : [];
+    return Array.from(new Set(ids.filter(Boolean)));
+  }, [product]);
+
+  const brandLabel = (id: string) => {
+    const matches = brands.filter((b) => b.name === brands.find((x) => x.id === id)?.name);
+    const b = brands.find((x) => x.id === id);
+    if (!b) return "Brand";
+    // Disambiguate when two brands share a name (e.g. two "MONSTER BURGERZ").
+    return matches.length > 1 ? `${b.name} · ${b.slug}` : b.name;
+  };
+
+  // Which channels are active per brand (init from the menu's existing
+  // variants for these brands; operator can add more inline).
+  const [active, setActive] = useState<Record<string, string[]>>({});
+  const [itemOv, setItemOv] = useState<OvMap>({});
+  const [skuOv, setSkuOv] = useState<OvMap[]>([]);
+  const [optOv, setOptOv] = useState<Record<string, OvMap>>({});
+
+  useEffect(() => {
+    if (!open) return;
+    const init: Record<string, string[]> = {};
+    for (const bId of productBrandIds) init[bId] = [];
     for (const v of variants ?? []) {
-      const key = v.brandId ?? "__none";
-      if (!byBrand.has(key)) {
-        byBrand.set(key, []);
-        order.push(key);
-      }
-      byBrand.get(key)!.push(v);
+      const arr = v.brandId ? init[v.brandId] : undefined;
+      if (arr && v.channelKey && !arr.includes(v.channelKey)) arr.push(v.channelKey);
     }
-    return order.flatMap((k) => byBrand.get(k)!);
-  }, [variants]);
+    setActive(init);
+    setItemOv(toStr(product?.platformPricingOverrides));
+    setSkuOv(
+      multi
+        ? (product.productSkus as any[]).map((s) => toStr(s.priceOverrides))
+        : [],
+    );
+    const o: Record<string, OvMap> = {};
+    for (const g of modGroups)
+      for (const opt of g.options) o[opt.id] = toStr(opt.platformPricingOverrides);
+    setOptOv(o);
+  }, [open, variants, productBrandIds, product, multi, modGroups]);
+
+  // Flattened brand×channel leaves currently shown (columns), grouped by brand.
+  const leaves = useMemo(() => {
+    const out: Array<{
+      ref: string;
+      brandId: string;
+      brandName: string;
+      channelKey: string;
+      channelName: string;
+    }> = [];
+    for (const bId of productBrandIds) {
+      const bName = brandLabel(bId);
+      for (const ch of active[bId] ?? []) {
+        const preset = CHANNEL_VARIANT_PRESETS.find((c) => c.channelKey === ch);
+        out.push({
+          ref: brandChannelRef(bId, ch),
+          brandId: bId,
+          brandName: bName,
+          channelKey: ch,
+          channelName: preset?.name ?? ch,
+        });
+      }
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productBrandIds, active, brands]);
 
   const brandHeader = useMemo(() => {
     const out: { label: string; count: number }[] = [];
-    for (const v of orderedVariants) {
-      const label = v.brandName ?? "Other";
+    for (const l of leaves) {
       const last = out[out.length - 1];
-      if (last && last.label === label) last.count++;
-      else out.push({ label, count: 1 });
+      if (last && last.label === l.brandName) last.count++;
+      else out.push({ label: l.brandName, count: 1 });
     }
     return out;
-  }, [orderedVariants]);
+  }, [leaves]);
 
-  const channelLabel = (v: PricingVariant) =>
-    CHANNEL_VARIANT_PRESETS.find((c) => c.channelKey === v.channelKey)?.name ??
-    v.name;
+  const activeRefs = useMemo(() => new Set(leaves.map((l) => l.ref)), [leaves]);
+  const numify = (m: OvMap = {}): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const [k, v] of Object.entries(m)) {
+      const n = Number(v);
+      if (activeRefs.has(k) && v !== "" && Number.isFinite(n) && n >= 0) out[k] = n;
+    }
+    return out;
+  };
 
-  // ── State ──
-  // Single-price item base overrides.
-  const [itemOv, setItemOv] = useState<OvMap>(() =>
-    toStr(product?.platformPricingOverrides),
-  );
-  // Per-size overrides (index-aligned with productSkus).
-  const [skuOv, setSkuOv] = useState<OvMap[]>(() =>
-    multi
-      ? (product.productSkus as any[]).map((s) => toStr(s.priceOverrides))
-      : [],
-  );
-  // Per-option overrides keyed by option id.
-  const [optOv, setOptOv] = useState<Record<string, OvMap>>(() => {
-    const init: Record<string, OvMap> = {};
-    for (const g of groups)
-      for (const o of g.options)
-        init[o.id] = toStr(o.platformPricingOverrides);
-    return init;
-  });
+  const addChannel = (brandId: string, channelKey: string) =>
+    setActive((prev) => ({
+      ...prev,
+      [brandId]: [...(prev[brandId] ?? []), channelKey],
+    }));
+
+  const removeChannel = (brandId: string, channelKey: string) =>
+    setActive((prev) => ({
+      ...prev,
+      [brandId]: (prev[brandId] ?? []).filter((c) => c !== channelKey),
+    }));
 
   const save = useMutation({
     mutationFn: async () => {
-      const tasks: Promise<any>[] = [];
+      // 1) Merge this product's brand×channel leaves into the menu's variants
+      //    (preserve variants belonging to other brands).
+      const others = (variants ?? []).filter(
+        (v) => !v.brandId || !productBrandIds.includes(v.brandId),
+      );
+      const merged: PricingVariant[] = [
+        ...others,
+        ...leaves.map((l) => ({
+          ref: l.ref,
+          name: `${l.brandName} — ${l.channelName}`,
+          channelKey: l.channelKey,
+          brandId: l.brandId,
+          brandName: brands.find((b) => b.id === l.brandId)?.name ?? l.brandName,
+        })),
+      ];
+      await menusClient.updateMenu(menuId, { pricingVariants: merged });
 
+      // 2) Item / size overrides.
       const productPatch: any = {};
       if (multi) {
         productPatch.hasMultipleSkus = true;
@@ -129,16 +231,14 @@ export function ProductVariantPricingModal({
       } else {
         productPatch.platformPricingOverrides = numify(itemOv);
       }
-      tasks.push(productsClient.update(product.id, productPatch));
+      await productsClient.update(product.id, productPatch);
 
+      // 3) Modifier option overrides.
       for (const [optId, map] of Object.entries(optOv)) {
-        tasks.push(
-          modifiersClient.update(optId, {
-            platformPricingOverrides: numify(map),
-          } as any),
-        );
+        await modifiersClient.update(optId, {
+          platformPricingOverrides: numify(map),
+        } as any);
       }
-      await Promise.all(tasks);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu", menuId] });
@@ -150,27 +250,7 @@ export function ProductVariantPricingModal({
 
   if (!open) return null;
 
-  const noVariants = !variants || variants.length === 0;
-
-  const Cell = ({
-    value,
-    onChange,
-    placeholder,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-    placeholder: string;
-  }) => (
-    <input
-      type="number"
-      step="0.01"
-      min="0"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="h-8 w-24 rounded-md border border-zinc-200 px-2 text-sm tabular-nums focus:border-violet-400 focus:outline-none"
-    />
-  );
+  const noBrand = productBrandIds.length === 0;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
@@ -181,7 +261,8 @@ export function ProductVariantPricingModal({
               Channel pricing — {product?.name}
             </h2>
             <p className="text-[11px] text-zinc-500">
-              Blank = uses the default price for that channel.
+              Add the channels each brand sells on, then set the price. Blank =
+              default price.
             </p>
           </div>
           <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700">
@@ -189,143 +270,197 @@ export function ProductVariantPricingModal({
           </button>
         </div>
 
-        {noVariants ? (
+        {noBrand ? (
           <div className="p-8 text-center text-sm text-zinc-500">
-            No pricing variants defined yet. Add some from the{" "}
-            <span className="font-medium">Pricing variants</span> button on the
-            menu first.
+            Tag this product's brand on the product form first (Edit product →
+            Brands), then come back to set channel prices.
           </div>
         ) : (
-          <div className="max-h-[60vh] overflow-auto p-5">
-            <table className="w-full border-separate border-spacing-y-1">
-              <thead>
-                <tr>
-                  <th
-                    rowSpan={2}
-                    className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-                  >
-                    Item / size
-                  </th>
-                  {brandHeader.map((b, i) => (
-                    <th
-                      key={i}
-                      colSpan={b.count}
-                      className="border-b border-zinc-100 px-2 pb-1 text-left text-[11px] font-bold text-zinc-700"
-                    >
-                      {b.label}
-                    </th>
-                  ))}
-                </tr>
-                <tr>
-                  {orderedVariants.map((v) => (
-                    <th
-                      key={v.ref}
-                      className="px-2 pb-2 text-left text-[11px] font-medium text-zinc-500"
-                    >
-                      {channelLabel(v)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {/* Base / size rows */}
-                {!multi ? (
+          <div className="max-h-[62vh] space-y-4 overflow-auto p-5">
+            {/* Per-brand channel pickers */}
+            {productBrandIds.map((bId) => {
+              const used = new Set(active[bId] ?? []);
+              const addable = CHANNEL_VARIANT_PRESETS.filter(
+                (c) => !used.has(c.channelKey),
+              );
+              return (
+                <div
+                  key={bId}
+                  className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-3"
+                >
+                  <div className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-zinc-800">
+                    <Store className="h-3.5 w-3.5 text-zinc-400" />
+                    {brandLabel(bId)}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {(active[bId] ?? []).map((ch) => {
+                      const preset = CHANNEL_VARIANT_PRESETS.find(
+                        (c) => c.channelKey === ch,
+                      );
+                      return (
+                        <span
+                          key={ch}
+                          className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700"
+                        >
+                          {preset?.name ?? ch}
+                          <button
+                            onClick={() => removeChannel(bId, ch)}
+                            className="text-violet-400 hover:text-violet-700"
+                            aria-label="Remove channel"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                    {addable.map((c) => (
+                      <button
+                        key={c.channelKey}
+                        onClick={() => addChannel(bId, c.channelKey)}
+                        className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
+                      >
+                        <Plus className="h-3 w-3" /> {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Pricing matrix */}
+            {leaves.length === 0 ? (
+              <p className="rounded-md border border-dashed border-zinc-200 bg-white px-3 py-6 text-center text-xs text-zinc-500">
+                Add a channel above to set prices for it.
+              </p>
+            ) : (
+              <table className="w-full border-separate border-spacing-y-1">
+                <thead>
                   <tr>
-                    <td className="sticky left-0 z-10 bg-white px-2">
-                      <div className="text-sm font-medium text-zinc-800">
-                        Base price
-                      </div>
-                      <div className="text-[10px] text-zinc-400">
-                        default £{Number(product?.basePrice ?? 0).toFixed(2)}
-                      </div>
-                    </td>
-                    {orderedVariants.map((v) => (
-                      <td key={v.ref} className="px-2">
-                        <Cell
-                          value={itemOv[v.ref] ?? ""}
-                          onChange={(val) =>
-                            setItemOv({ ...itemOv, [v.ref]: val })
-                          }
-                          placeholder={Number(product?.basePrice ?? 0).toFixed(2)}
-                        />
-                      </td>
+                    <th
+                      rowSpan={2}
+                      className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
+                    >
+                      Item / size
+                    </th>
+                    {brandHeader.map((b, i) => (
+                      <th
+                        key={i}
+                        colSpan={b.count}
+                        className="border-b border-zinc-100 px-2 pb-1 text-left text-[11px] font-bold text-zinc-700"
+                      >
+                        {b.label}
+                      </th>
                     ))}
                   </tr>
-                ) : (
-                  (product.productSkus as any[]).map((s, i) => (
-                    <tr key={i}>
+                  <tr>
+                    {leaves.map((l) => (
+                      <th
+                        key={l.ref}
+                        className="px-2 pb-2 text-left text-[11px] font-medium text-zinc-500"
+                      >
+                        {l.channelName}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {!multi ? (
+                    <tr>
                       <td className="sticky left-0 z-10 bg-white px-2">
                         <div className="text-sm font-medium text-zinc-800">
-                          {s.name || `Size ${i + 1}`}
+                          Base price
                         </div>
                         <div className="text-[10px] text-zinc-400">
-                          default £{(Number(s.price) || 0).toFixed(2)}
+                          default £{Number(product?.basePrice ?? 0).toFixed(2)}
                         </div>
                       </td>
-                      {orderedVariants.map((v) => (
-                        <td key={v.ref} className="px-2">
+                      {leaves.map((l) => (
+                        <td key={l.ref} className="px-2">
                           <Cell
-                            value={skuOv[i]?.[v.ref] ?? ""}
+                            value={itemOv[l.ref] ?? ""}
                             onChange={(val) =>
-                              setSkuOv(
-                                skuOv.map((row, idx) =>
-                                  idx === i ? { ...row, [v.ref]: val } : row,
-                                ),
-                              )
+                              setItemOv({ ...itemOv, [l.ref]: val })
                             }
-                            placeholder={(Number(s.price) || 0).toFixed(2)}
+                            placeholder={Number(product?.basePrice ?? 0).toFixed(2)}
                           />
                         </td>
                       ))}
                     </tr>
-                  ))
-                )}
-
-                {/* Modifier option rows */}
-                {groups.map((g: any) => (
-                  <Fragment key={`g-${g.id}`}>
-                    <tr>
-                      <td
-                        colSpan={orderedVariants.length + 1}
-                        className="sticky left-0 bg-white px-2 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-                      >
-                        {g.name}
-                      </td>
-                    </tr>
-                    {g.options.map((o: any) => {
-                      const base = Number(o.priceAdjustment ?? 0);
-                      return (
-                        <tr key={o.id}>
-                          <td className="sticky left-0 z-10 bg-white px-2 pl-4">
-                            <div className="text-sm text-zinc-700">{o.name}</div>
-                            <div className="text-[10px] text-zinc-400">
-                              default +£{base.toFixed(2)}
-                            </div>
+                  ) : (
+                    (product.productSkus as any[]).map((s, i) => (
+                      <tr key={i}>
+                        <td className="sticky left-0 z-10 bg-white px-2">
+                          <div className="text-sm font-medium text-zinc-800">
+                            {s.name || `Size ${i + 1}`}
+                          </div>
+                          <div className="text-[10px] text-zinc-400">
+                            default £{(Number(s.price) || 0).toFixed(2)}
+                          </div>
+                        </td>
+                        {leaves.map((l) => (
+                          <td key={l.ref} className="px-2">
+                            <Cell
+                              value={skuOv[i]?.[l.ref] ?? ""}
+                              onChange={(val) =>
+                                setSkuOv(
+                                  skuOv.map((row, idx) =>
+                                    idx === i ? { ...row, [l.ref]: val } : row,
+                                  ),
+                                )
+                              }
+                              placeholder={(Number(s.price) || 0).toFixed(2)}
+                            />
                           </td>
-                          {orderedVariants.map((v) => (
-                            <td key={v.ref} className="px-2">
-                              <Cell
-                                value={optOv[o.id]?.[v.ref] ?? ""}
-                                onChange={(val) =>
-                                  setOptOv({
-                                    ...optOv,
-                                    [o.id]: { ...optOv[o.id], [v.ref]: val },
-                                  })
-                                }
-                                placeholder={base.toFixed(2)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+                        ))}
+                      </tr>
+                    ))
+                  )}
 
-            {groups.length > 0 && (
-              <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+                  {modGroups.map((g: any) => (
+                    <Fragment key={`g-${g.id}`}>
+                      <tr>
+                        <td
+                          colSpan={leaves.length + 1}
+                          className="sticky left-0 bg-white px-2 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
+                        >
+                          {g.name}
+                        </td>
+                      </tr>
+                      {g.options.map((o: any) => {
+                        const base = Number(o.priceAdjustment ?? 0);
+                        return (
+                          <tr key={o.id}>
+                            <td className="sticky left-0 z-10 bg-white px-2 pl-4">
+                              <div className="text-sm text-zinc-700">{o.name}</div>
+                              <div className="text-[10px] text-zinc-400">
+                                default +£{base.toFixed(2)}
+                              </div>
+                            </td>
+                            {leaves.map((l) => (
+                              <td key={l.ref} className="px-2">
+                                <Cell
+                                  value={optOv[o.id]?.[l.ref] ?? ""}
+                                  onChange={(val) =>
+                                    setOptOv({
+                                      ...optOv,
+                                      [o.id]: { ...optOv[o.id], [l.ref]: val },
+                                    })
+                                  }
+                                  placeholder={base.toFixed(2)}
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {modGroups.length > 0 && leaves.length > 0 && (
+              <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
                 Modifier prices are shared wherever that option is used — editing
                 here updates its channel price everywhere.
               </p>
@@ -337,7 +472,7 @@ export function ProductVariantPricingModal({
           <Button variant="outline" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          {!noVariants && (
+          {!noBrand && (
             <Button
               size="sm"
               onClick={() => save.mutate()}
