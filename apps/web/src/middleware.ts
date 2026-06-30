@@ -7,7 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 // Primary/app hosts pass straight through. Storefront sub-paths (/order/...)
 // already resolve by path on any host, so only the root needs rewriting.
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+// Absolute API base. NEXT_PUBLIC_API_URL may be unset in the edge-middleware
+// bundle (the client can use a relative "/api" proxy), so fall back to the
+// known API origin — the middleware can't use a relative URL.
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_PUBLIC_URL ||
+  "https://orderhub-api-0re6.onrender.com/api"
+).replace(/\/$/, "");
 
 const PRIMARY_HOSTS = (
   process.env.NEXT_PUBLIC_PRIMARY_HOSTS ??
