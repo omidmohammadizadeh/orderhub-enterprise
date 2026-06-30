@@ -118,6 +118,8 @@ export function ProductVariantPricingModal({
   const [itemOv, setItemOv] = useState<OvMap>({});
   const [skuOv, setSkuOv] = useState<OvMap[]>([]);
   const [optOv, setOptOv] = useState<Record<string, OvMap>>({});
+  // Which brand's pricing table is expanded (one at a time).
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -128,6 +130,9 @@ export function ProductVariantPricingModal({
       if (arr && v.channelKey && !arr.includes(v.channelKey)) arr.push(v.channelKey);
     }
     setActive(init);
+    setSelectedBrand((cur) =>
+      cur && productBrandIds.includes(cur) ? cur : (productBrandIds[0] ?? ""),
+    );
     setItemOv(toStr(product?.platformPricingOverrides));
     setSkuOv(
       multi
@@ -166,15 +171,11 @@ export function ProductVariantPricingModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productBrandIds, active, brands]);
 
-  const brandHeader = useMemo(() => {
-    const out: { label: string; count: number }[] = [];
-    for (const l of leaves) {
-      const last = out[out.length - 1];
-      if (last && last.label === l.brandName) last.count++;
-      else out.push({ label: l.brandName, count: 1 });
-    }
-    return out;
-  }, [leaves]);
+  // Only the expanded brand's columns are shown in the table.
+  const visibleLeaves = useMemo(
+    () => leaves.filter((l) => l.brandId === selectedBrand),
+    [leaves, selectedBrand],
+  );
 
   const activeRefs = useMemo(() => new Set(leaves.map((l) => l.ref)), [leaves]);
   const numify = (m: OvMap = {}): Record<string, number> => {
@@ -277,189 +278,195 @@ export function ProductVariantPricingModal({
           </div>
         ) : (
           <div className="max-h-[62vh] space-y-4 overflow-auto p-5">
-            {/* Per-brand channel pickers */}
-            {productBrandIds.map((bId) => {
-              const used = new Set(active[bId] ?? []);
-              const addable = CHANNEL_VARIANT_PRESETS.filter(
-                (c) => !used.has(c.channelKey),
-              );
-              return (
-                <div
-                  key={bId}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-3"
-                >
-                  <div className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-zinc-800">
-                    <Store className="h-3.5 w-3.5 text-zinc-400" />
+            {/* Brand tabs — click a brand to expand its pricing table. */}
+            <div className="flex flex-wrap gap-1.5">
+              {productBrandIds.map((bId) => {
+                const isSel = bId === selectedBrand;
+                const count = (active[bId] ?? []).length;
+                return (
+                  <button
+                    key={bId}
+                    onClick={() => setSelectedBrand(bId)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${
+                      isSel
+                        ? "border-violet-300 bg-violet-50 text-violet-700"
+                        : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                    }`}
+                  >
+                    <Store className="h-3.5 w-3.5 opacity-70" />
                     {brandLabel(bId)}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {(active[bId] ?? []).map((ch) => {
-                      const preset = CHANNEL_VARIANT_PRESETS.find(
-                        (c) => c.channelKey === ch,
-                      );
-                      return (
-                        <span
-                          key={ch}
-                          className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700"
-                        >
-                          {preset?.name ?? ch}
-                          <button
-                            onClick={() => removeChannel(bId, ch)}
-                            className="text-violet-400 hover:text-violet-700"
-                            aria-label="Remove channel"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      );
-                    })}
-                    {addable.map((c) => (
-                      <button
-                        key={c.channelKey}
-                        onClick={() => addChannel(bId, c.channelKey)}
-                        className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
+                    {count > 0 && (
+                      <span
+                        className={`rounded-full px-1.5 text-[10px] ${
+                          isSel ? "bg-violet-200 text-violet-800" : "bg-zinc-100 text-zinc-500"
+                        }`}
                       >
-                        <Plus className="h-3 w-3" /> {c.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Pricing matrix */}
-            {leaves.length === 0 ? (
-              <p className="rounded-md border border-dashed border-zinc-200 bg-white px-3 py-6 text-center text-xs text-zinc-500">
-                Add a channel above to set prices for it.
-              </p>
-            ) : (
-              <table className="w-full border-separate border-spacing-y-1">
-                <thead>
-                  <tr>
-                    <th
-                      rowSpan={2}
-                      className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
+            {selectedBrand && (
+              <>
+                {/* Channel chips for the selected brand */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {(active[selectedBrand] ?? []).map((ch) => {
+                    const preset = CHANNEL_VARIANT_PRESETS.find(
+                      (c) => c.channelKey === ch,
+                    );
+                    return (
+                      <span
+                        key={ch}
+                        className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700"
+                      >
+                        {preset?.name ?? ch}
+                        <button
+                          onClick={() => removeChannel(selectedBrand, ch)}
+                          className="text-violet-400 hover:text-violet-700"
+                          aria-label="Remove channel"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                  {CHANNEL_VARIANT_PRESETS.filter(
+                    (c) => !(active[selectedBrand] ?? []).includes(c.channelKey),
+                  ).map((c) => (
+                    <button
+                      key={c.channelKey}
+                      onClick={() => addChannel(selectedBrand, c.channelKey)}
+                      className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
                     >
-                      Item / size
-                    </th>
-                    {brandHeader.map((b, i) => (
-                      <th
-                        key={i}
-                        colSpan={b.count}
-                        className="border-b border-zinc-100 px-2 pb-1 text-left text-[11px] font-bold text-zinc-700"
-                      >
-                        {b.label}
-                      </th>
-                    ))}
-                  </tr>
-                  <tr>
-                    {leaves.map((l) => (
-                      <th
-                        key={l.ref}
-                        className="px-2 pb-2 text-left text-[11px] font-medium text-zinc-500"
-                      >
-                        {l.channelName}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {!multi ? (
-                    <tr>
-                      <td className="sticky left-0 z-10 bg-white px-2">
-                        <div className="text-sm font-medium text-zinc-800">
-                          Base price
-                        </div>
-                        <div className="text-[10px] text-zinc-400">
-                          default £{Number(product?.basePrice ?? 0).toFixed(2)}
-                        </div>
-                      </td>
-                      {leaves.map((l) => (
-                        <td key={l.ref} className="px-2">
-                          <Cell
-                            value={itemOv[l.ref] ?? ""}
-                            onChange={(val) =>
-                              setItemOv({ ...itemOv, [l.ref]: val })
-                            }
-                            placeholder={Number(product?.basePrice ?? 0).toFixed(2)}
-                          />
-                        </td>
-                      ))}
-                    </tr>
-                  ) : (
-                    (product.productSkus as any[]).map((s, i) => (
-                      <tr key={i}>
-                        <td className="sticky left-0 z-10 bg-white px-2">
-                          <div className="text-sm font-medium text-zinc-800">
-                            {s.name || `Size ${i + 1}`}
-                          </div>
-                          <div className="text-[10px] text-zinc-400">
-                            default £{(Number(s.price) || 0).toFixed(2)}
-                          </div>
-                        </td>
-                        {leaves.map((l) => (
-                          <td key={l.ref} className="px-2">
-                            <Cell
-                              value={skuOv[i]?.[l.ref] ?? ""}
-                              onChange={(val) =>
-                                setSkuOv(
-                                  skuOv.map((row, idx) =>
-                                    idx === i ? { ...row, [l.ref]: val } : row,
-                                  ),
-                                )
-                              }
-                              placeholder={(Number(s.price) || 0).toFixed(2)}
-                            />
-                          </td>
+                      <Plus className="h-3 w-3" /> {c.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Pricing table for the selected brand */}
+                {visibleLeaves.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-zinc-200 bg-white px-3 py-6 text-center text-xs text-zinc-500">
+                    Add a channel above to set prices for {brandLabel(selectedBrand)}.
+                  </p>
+                ) : (
+                  <table className="w-full border-separate border-spacing-y-1">
+                    <thead>
+                      <tr>
+                        <th className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                          Item / size
+                        </th>
+                        {visibleLeaves.map((l) => (
+                          <th
+                            key={l.ref}
+                            className="px-2 pb-2 text-left text-[11px] font-medium text-zinc-600"
+                          >
+                            {l.channelName}
+                          </th>
                         ))}
                       </tr>
-                    ))
-                  )}
-
-                  {modGroups.map((g: any) => (
-                    <Fragment key={`g-${g.id}`}>
-                      <tr>
-                        <td
-                          colSpan={leaves.length + 1}
-                          className="sticky left-0 bg-white px-2 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
-                        >
-                          {g.name}
-                        </td>
-                      </tr>
-                      {g.options.map((o: any) => {
-                        const base = Number(o.priceAdjustment ?? 0);
-                        return (
-                          <tr key={o.id}>
-                            <td className="sticky left-0 z-10 bg-white px-2 pl-4">
-                              <div className="text-sm text-zinc-700">{o.name}</div>
+                    </thead>
+                    <tbody>
+                      {!multi ? (
+                        <tr>
+                          <td className="sticky left-0 z-10 bg-white px-2">
+                            <div className="text-sm font-medium text-zinc-800">
+                              Base price
+                            </div>
+                            <div className="text-[10px] text-zinc-400">
+                              default £{Number(product?.basePrice ?? 0).toFixed(2)}
+                            </div>
+                          </td>
+                          {visibleLeaves.map((l) => (
+                            <td key={l.ref} className="px-2">
+                              <Cell
+                                value={itemOv[l.ref] ?? ""}
+                                onChange={(val) =>
+                                  setItemOv({ ...itemOv, [l.ref]: val })
+                                }
+                                placeholder={Number(product?.basePrice ?? 0).toFixed(2)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ) : (
+                        (product.productSkus as any[]).map((s, i) => (
+                          <tr key={i}>
+                            <td className="sticky left-0 z-10 bg-white px-2">
+                              <div className="text-sm font-medium text-zinc-800">
+                                {s.name || `Size ${i + 1}`}
+                              </div>
                               <div className="text-[10px] text-zinc-400">
-                                default +£{base.toFixed(2)}
+                                default £{(Number(s.price) || 0).toFixed(2)}
                               </div>
                             </td>
-                            {leaves.map((l) => (
+                            {visibleLeaves.map((l) => (
                               <td key={l.ref} className="px-2">
                                 <Cell
-                                  value={optOv[o.id]?.[l.ref] ?? ""}
+                                  value={skuOv[i]?.[l.ref] ?? ""}
                                   onChange={(val) =>
-                                    setOptOv({
-                                      ...optOv,
-                                      [o.id]: { ...optOv[o.id], [l.ref]: val },
-                                    })
+                                    setSkuOv(
+                                      skuOv.map((row, idx) =>
+                                        idx === i ? { ...row, [l.ref]: val } : row,
+                                      ),
+                                    )
                                   }
-                                  placeholder={base.toFixed(2)}
+                                  placeholder={(Number(s.price) || 0).toFixed(2)}
                                 />
                               </td>
                             ))}
                           </tr>
-                        );
-                      })}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
+                        ))
+                      )}
+
+                      {modGroups.map((g: any) => (
+                        <Fragment key={`g-${g.id}`}>
+                          <tr>
+                            <td
+                              colSpan={visibleLeaves.length + 1}
+                              className="sticky left-0 bg-white px-2 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
+                            >
+                              {g.name}
+                            </td>
+                          </tr>
+                          {g.options.map((o: any) => {
+                            const base = Number(o.priceAdjustment ?? 0);
+                            return (
+                              <tr key={o.id}>
+                                <td className="sticky left-0 z-10 bg-white px-2 pl-4">
+                                  <div className="text-sm text-zinc-700">{o.name}</div>
+                                  <div className="text-[10px] text-zinc-400">
+                                    default +£{base.toFixed(2)}
+                                  </div>
+                                </td>
+                                {visibleLeaves.map((l) => (
+                                  <td key={l.ref} className="px-2">
+                                    <Cell
+                                      value={optOv[o.id]?.[l.ref] ?? ""}
+                                      onChange={(val) =>
+                                        setOptOv({
+                                          ...optOv,
+                                          [o.id]: { ...optOv[o.id], [l.ref]: val },
+                                        })
+                                      }
+                                      placeholder={base.toFixed(2)}
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
             )}
 
-            {modGroups.length > 0 && leaves.length > 0 && (
+            {modGroups.length > 0 && visibleLeaves.length > 0 && (
               <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
                 Modifier prices are shared wherever that option is used — editing
                 here updates its channel price everywhere.

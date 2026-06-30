@@ -134,11 +134,17 @@ export function PublishMenuModal({
       }
     },
     onSuccess: () => {
-      const brandName =
-        (brandsQuery.data ?? []).find((b: Brand) => b.id === brandId)?.name ??
-        "brand";
       const channelLabel = describeSelection(selected);
-      toast.success(`Published "${menuName}" to ${channelLabel} for ${brandName}`);
+      if (!needsBrandStep) {
+        toast.success(
+          `Published "${menuName}" to ${channelLabel} — each brand priced via its variants.`,
+        );
+      } else {
+        const brandName =
+          (brandsQuery.data ?? []).find((b: Brand) => b.id === brandId)?.name ??
+          "brand";
+        toast.success(`Published "${menuName}" to ${channelLabel} for ${brandName}`);
+      }
       onConfirmed(Array.from(selected));
     },
     onError: (err: any) => {
@@ -160,6 +166,9 @@ export function PublishMenuModal({
 
   const canContinue = selected.size > 0;
   const canPublish = !!brandId && selected.size > 0 && !saveMutation.isPending;
+  // HubRise self-routes to each brand via catalog variants, so there's no
+  // single brand to pick — skip Step 2 when it's selected.
+  const needsBrandStep = !selected.has("HUBRISE");
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -194,12 +203,14 @@ export function PublishMenuModal({
           </button>
         </header>
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-2">
-          <StepPill index={1} label="Channels" active={step === "channels"} done={step === "brand"} />
-          <span className="h-px flex-1 bg-zinc-200" />
-          <StepPill index={2} label="Brand" active={step === "brand"} done={false} />
-        </div>
+        {/* Step indicator — Brand step is skipped when HubRise is selected. */}
+        {needsBrandStep && (
+          <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-2">
+            <StepPill index={1} label="Channels" active={step === "channels"} done={step === "brand"} />
+            <span className="h-px flex-1 bg-zinc-200" />
+            <StepPill index={2} label="Brand" active={step === "brand"} done={false} />
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
           {step === "channels" ? (
@@ -306,14 +317,31 @@ export function PublishMenuModal({
             Cancel
           </Button>
           {step === "channels" ? (
-            <Button
-              size="sm"
-              onClick={() => setStep("brand")}
-              disabled={!canContinue}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white"
-            >
-              Next: pick brand
-            </Button>
+            needsBrandStep ? (
+              <Button
+                size="sm"
+                onClick={() => setStep("brand")}
+                disabled={!canContinue}
+                className="bg-zinc-900 hover:bg-zinc-800 text-white"
+              >
+                Next: pick brand
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => saveMutation.mutate()}
+                disabled={!canContinue || saveMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {saveMutation.isPending ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing…
+                  </span>
+                ) : (
+                  "Publish to HubRise"
+                )}
+              </Button>
+            )
           ) : (
             <Button
               size="sm"
