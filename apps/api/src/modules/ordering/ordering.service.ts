@@ -387,6 +387,37 @@ export class OrderingService {
       },
     });
 
+    // A multi-SKU product's per-size modifier groups can belong to a
+    // DIFFERENT brand than the menu's brand (multi-brand catalogs), so the
+    // brand-scoped query above misses them and the storefront modal shows no
+    // modifiers for that size. Resolve any SKU-referenced groups by id and
+    // merge them in (brand-drift safe — same fix the dashboard uses).
+    const skuGroupIds = new Set<string>();
+    for (const cat of (menu as any)?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        const skus = link?.item?.productSkus;
+        if (Array.isArray(skus)) {
+          for (const s of skus)
+            for (const gid of s?.modifierGroups ?? [])
+              if (typeof gid === "string" && gid) skuGroupIds.add(gid);
+        }
+      }
+    }
+    const haveIds = new Set(brandModifierGroups.map((g) => g.id));
+    const missingIds = [...skuGroupIds].filter((id) => !haveIds.has(id));
+    if (missingIds.length) {
+      const extra = await this.prisma.modifierGroup.findMany({
+        where: { id: { in: missingIds } },
+        include: {
+          options: {
+            where: { isAvailable: true },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      });
+      brandModifierGroups.push(...extra);
+    }
+
     // Phase AW-30 — brand-level opening hours win when configured.
     // Brand.openingHours default is `{}` which we treat as "not set"
     // (legacy single-brand kitchens keep using their location hours).
