@@ -67,20 +67,15 @@ export class MenuAvailabilityService {
     //       MenuItemOnCategory → MenuItem  (a menu the operator
     //       reassigned to this brand at publish time, whose items still
     //       carry their original brandId).
-    // Path (b) is what's happening for HubRise-imported menus that get
-    // republished under a virtual brand — the items keep their import-
-    // time brandId, but the operator expects them on the inventory
-    // board for the brand they published the menu under.
+    // An item belongs to this brand when it's its primary brand OR it's
+    // shared to it (brandIds). We deliberately do NOT match by the menu's
+    // brandId: a shared HubRise menu has one Menu.brandId for all brands, so
+    // matching on it would lump every item under that one brand. Tagging each
+    // product's brand (product form → Brands) is what scopes it here — so
+    // Margherita shows under Pizza Uno and Cheese Burger under Monster Burgerz.
     const menuItemIds = await this.prisma.menuItem.findMany({
       where: {
-        OR: [
-          { brandId },
-          {
-            categories: {
-              some: { category: { menu: { brandId } } },
-            },
-          },
-        ],
+        OR: [{ brandId }, { brandIds: { has: brandId } }],
       },
       select: { id: true },
     });

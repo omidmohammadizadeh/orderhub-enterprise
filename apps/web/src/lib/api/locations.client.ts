@@ -206,6 +206,14 @@ export const brandsClient = {
         { channel },
       )
       .then((r) => r.data),
+  /** Publish a location's hours to HubRise — no brand needed. */
+  publishLocationHoursToHubRise: (locationId: string) =>
+    apiClient
+      .post<{ status: string; pushed: boolean }>(
+        `/v1/brands/locations/${locationId}/publish-hours`,
+        {},
+      )
+      .then((r) => r.data),
 };
 
 // ── Brand-platform connections ──

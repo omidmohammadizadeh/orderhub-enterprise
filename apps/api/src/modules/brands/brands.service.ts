@@ -601,6 +601,39 @@ export class BrandsService {
     }
   }
 
+  /**
+   * Publish a LOCATION's opening hours + prep time to HubRise — no brand
+   * needed. HubRise uses one catalog/location for all brands at the site, so
+   * its hours are location-level. (Brand selection is reserved for the future
+   * direct per-brand channel pushes: Uber Eats / Deliveroo / Just Eat.)
+   */
+  async publishLocationHoursToHubRise(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId },
+      select: {
+        id: true,
+        openingHours: true,
+        prepTime: true,
+        hubriseLocationId: true,
+        brand: { select: { tenantId: true } },
+      },
+    });
+    if (!location || (location as any).brand?.tenantId !== tenantId) {
+      throw new NotFoundException("Location not found");
+    }
+    if (!location.hubriseLocationId) {
+      throw new BadRequestException(
+        "HubRise isn't connected on this location yet.",
+      );
+    }
+    await this.hubrise.publishHours({
+      locationId: location.id,
+      openingHours: (location as any).openingHours,
+      prepTime: (location as any).prepTime ?? null,
+    });
+    return { status: "ok", pushed: true };
+  }
+
   private async assertAccess(brandId: string, tenantId: string) {
     const brand = await this.prisma.brand.findFirst({
       where: { id: brandId, tenantId, deletedAt: null },

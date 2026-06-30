@@ -1,15 +1,16 @@
 "use client";
 
-// Phase AW-16 / AZ — Publish a brand's opening hours + prep time to HubRise.
+// Phase AW-16 / AZ — Publish opening hours + prep time.
 //
-// One step: pick the brand, publish. HubRise is the only channel that needs a
-// push (POS + direct online ordering read the hours live, no publish needed),
-// so there's no channel picker — clicking "Publish to HubRise" on a brand row
-// sends that brand's hours straight through.
+//   • HubRise — one catalog/location for every brand at the site, so its
+//     hours are location-level. Click it → publishes straight away, no brand,
+//     no channel picker.
+//   • A brand — reserved for future DIRECT per-brand pushes (Uber Eats /
+//     Deliveroo / Just Eat). Selecting a brand shows those channels.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
@@ -21,8 +22,17 @@ interface Props {
   onClose: () => void;
 }
 
+// Future direct per-brand channels (HubRise already fans out to these, so
+// these are for operators who want to bypass HubRise later).
+const BRAND_CHANNELS = [
+  { id: "JUST_EAT", title: "Just Eat" },
+  { id: "UBER_EATS", title: "Uber Eats" },
+  { id: "DELIVEROO", title: "Deliveroo" },
+];
+
 export function PublishHoursModal({ open, locationId, onClose }: Props) {
-  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [brand, setBrand] = useState<Brand | null>(null); // null = home step
+  const [busy, setBusy] = useState<string | null>(null);
 
   const brandsQuery = useQuery({
     queryKey: ["brands", locationId ?? "tenant"],
@@ -31,18 +41,41 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
   });
   const brands = brandsQuery.data ?? [];
 
-  const publish = useMutation({
-    mutationFn: (brandId: string) => brandsClient.publishHours(brandId, "HUBRISE"),
-    onMutate: (brandId) => setPublishingId(brandId),
-    onSuccess: (_res, brandId) => {
-      const name = brands.find((b: Brand) => b.id === brandId)?.name ?? "brand";
-      toast.success(`Published ${name} hours to HubRise`);
+  useEffect(() => {
+    if (open) setBrand(null);
+  }, [open]);
+
+  const publishHubRise = useMutation({
+    mutationFn: () => {
+      if (!locationId) throw new Error("No location selected.");
+      return brandsClient.publishLocationHoursToHubRise(locationId);
+    },
+    onMutate: () => setBusy("HUBRISE"),
+    onSuccess: () => toast.success("Published this location's hours to HubRise"),
+    onError: (err: any) =>
+      toast.error(
+        `Failed: ${err?.response?.data?.message ?? err?.message ?? "Unknown error"}`,
+      ),
+    onSettled: () => setBusy(null),
+  });
+
+  const publishBrandChannel = useMutation({
+    mutationFn: (channel: string) =>
+      brandsClient.publishHours(brand!.id, channel),
+    onMutate: (channel) => setBusy(channel),
+    onSuccess: (res, channel) => {
+      const label = BRAND_CHANNELS.find((c) => c.id === channel)?.title ?? channel;
+      if (res.status === "pending_integration") {
+        toast(`Recorded for ${label} — direct push wires up later`, { icon: "ℹ️" });
+      } else {
+        toast.success(`Published ${brand?.name} hours to ${label}`);
+      }
     },
     onError: (err: any) =>
       toast.error(
         `Failed: ${err?.response?.data?.message ?? err?.message ?? "Unknown error"}`,
       ),
-    onSettled: () => setPublishingId(null),
+    onSettled: () => setBusy(null),
   });
 
   if (!open) return null;
@@ -58,14 +91,23 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
       >
         <header className="flex items-center justify-between border-b border-zinc-100 px-5 py-3">
           <div className="flex items-center gap-2">
-            <PlatformLogo platform="HUBRISE" size={32} />
+            {brand && (
+              <button
+                onClick={() => setBrand(null)}
+                className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100"
+                title="Back"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
             <div>
               <h2 className="text-base font-semibold text-zinc-900">
-                Publish hours to HubRise
+                Publish hours
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">
-                Sends each brand's opening hours + prep time. HubRise fans out
-                to the connected marketplaces.
+                {brand
+                  ? `Pick a channel for ${brand.name}.`
+                  : "Publish to HubRise, or pick a brand for direct channels."}
               </p>
             </div>
           </div>
@@ -75,48 +117,91 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
         </header>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
-          {brandsQuery.isLoading ? (
-            <div className="flex h-32 items-center justify-center text-zinc-400">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </div>
-          ) : brands.length === 0 ? (
-            <p className="py-12 text-center text-sm text-zinc-500">
-              No brands at this location yet.
-            </p>
-          ) : (
-            brands.map((b: Brand) => (
-              <div
-                key={b.id}
-                className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3"
-              >
-                {b.logoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={b.logoUrl}
-                    alt=""
-                    className="h-9 w-9 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="grid h-9 w-9 place-items-center rounded-md bg-zinc-100 text-sm font-bold text-zinc-500">
-                    {b.name.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
+          {!brand ? (
+            <>
+              {/* HubRise — direct, no brand/channel needed */}
+              <div className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3">
+                <PlatformLogo platform="HUBRISE" size={36} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-zinc-900">{b.name}</p>
-                  <p className="text-[11px] text-zinc-500">
-                    prep {b.prepTime ?? "—"} min
+                  <p className="text-sm font-semibold text-zinc-900">HubRise</p>
+                  <p className="text-xs text-zinc-500">
+                    Publishes this location's hours + prep. Fans out to every
+                    connected marketplace.
                   </p>
                 </div>
                 <Button
                   size="sm"
-                  disabled={publish.isPending}
-                  onClick={() => publish.mutate(b.id)}
+                  disabled={publishHubRise.isPending}
+                  onClick={() => publishHubRise.mutate()}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  {publishingId === b.id ? (
+                  {busy === "HUBRISE" ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    "Publish to HubRise"
+                    "Publish"
+                  )}
+                </Button>
+              </div>
+
+              <p className="px-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Direct to a brand's channels (future)
+              </p>
+              {brandsQuery.isLoading ? (
+                <div className="flex h-20 items-center justify-center text-zinc-400">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+              ) : brands.length === 0 ? (
+                <p className="py-6 text-center text-sm text-zinc-500">
+                  No brands at this location yet.
+                </p>
+              ) : (
+                brands.map((b: Brand) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setBrand(b)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 p-3 text-left hover:border-zinc-300 hover:bg-zinc-50"
+                  >
+                    {b.logoUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={b.logoUrl} alt="" className="h-9 w-9 rounded-md object-cover" />
+                    ) : (
+                      <div className="grid h-9 w-9 place-items-center rounded-md bg-zinc-100 text-sm font-bold text-zinc-500">
+                        {b.name.slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-900">{b.name}</p>
+                      <p className="text-[11px] text-zinc-500">prep {b.prepTime ?? "—"} min</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-zinc-400" />
+                  </button>
+                ))
+              )}
+            </>
+          ) : (
+            BRAND_CHANNELS.map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3"
+              >
+                <PlatformLogo platform={c.id} size={36} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-zinc-900">{c.title}</p>
+                  <p className="text-[10px] text-amber-700">
+                    Direct push not wired yet — publishing records intent.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={publishBrandChannel.isPending}
+                  onClick={() => publishBrandChannel.mutate(c.id)}
+                >
+                  {busy === c.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    "Publish"
                   )}
                 </Button>
               </div>

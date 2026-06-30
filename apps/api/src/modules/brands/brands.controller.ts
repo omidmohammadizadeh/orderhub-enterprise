@@ -113,6 +113,19 @@ export class BrandsController {
     return this.brands.publishHours(brandId, user.tenantId, body.channel);
   }
 
+  // Publish a LOCATION's hours to HubRise (no brand — HubRise is one
+  // catalog/location for all brands at the site).
+  @Post("locations/:locationId/publish-hours")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Publish a location's hours + prep to HubRise" })
+  publishLocationHours(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.publishLocationHoursToHubRise(locationId, user.tenantId);
+  }
+
   // ── Custom domains (Cloudflare for SaaS) ──────────────────────────────
   @Post(":brandId/domain/connect")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
