@@ -9,6 +9,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { LoggedInBanner } from "@/components/marketing/logged-in-banner";
 import { SiteNav } from "@/components/marketing/site-nav";
@@ -26,13 +28,60 @@ export const metadata: Metadata = {
     "POS, online ordering, and every delivery platform — Uber Eats, Deliveroo, HubRise — unified. Built for UK takeaways and multi-location restaurants.",
 };
 
-export default function MarketingHomePage() {
-  // noStore() opts the page out of route-level caching so the
-  // process.env reads below resolve against Render's RUNTIME env
-  // rather than the empty-at-build-time snapshot Next.js would
-  // otherwise bake in. The page still renders fast (it's not doing
-  // anything async) — we just skip the static cache step.
+// Hosts that should render the marketing site (everything else is treated as
+// a brand custom domain and redirected to its storefront).
+const PRIMARY_HOSTS = (
+  process.env.NEXT_PUBLIC_PRIMARY_HOSTS ??
+  "orderhubsolutions.com,www.orderhubsolutions.com"
+)
+  .split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
+function isPrimaryHost(host: string): boolean {
+  return (
+    !host ||
+    host === "localhost" ||
+    host.endsWith(".onrender.com") ||
+    host.endsWith(".vercel.app") ||
+    PRIMARY_HOSTS.includes(host)
+  );
+}
+
+async function resolveCustomDomain(host: string): Promise<string | null> {
+  const apiUrl = (
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.API_PUBLIC_URL ||
+    "https://orderhub-api-0re6.onrender.com/api"
+  ).replace(/\/$/, "");
+  try {
+    const res = await fetch(
+      `${apiUrl}/v1/brands/public/resolve-host?host=${encodeURIComponent(host)}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    if (j?.slug && j?.brandId) {
+      return `/order/${j.slug}?brand=${encodeURIComponent(j.brandId)}`;
+    }
+  } catch {
+    /* network blip — fall through to marketing render */
+  }
+  return null;
+}
+
+export default async function MarketingHomePage() {
   noStore();
+
+  // Brand custom domain (e.g. order.pizzauno.com): resolve the host → that
+  // brand's storefront and redirect. Mirrors /brand/[slug] but driven by the
+  // incoming Host instead of a path slug. Primary hosts render marketing.
+  const host = ((await headers()).get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+  if (!isPrimaryHost(host)) {
+    const target = await resolveCustomDomain(host);
+    if (target) redirect(target);
+  }
+
   const contactWebhookUrl =
     process.env.CONTACT_WEBHOOK_URL ??
     process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL ??
