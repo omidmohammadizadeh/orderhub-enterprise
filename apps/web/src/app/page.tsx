@@ -89,18 +89,26 @@ export default async function MarketingHomePage({
   // Diagnostic: /?debughost shows what the server actually sees. Temporary.
   const sp = (await searchParams) ?? {};
   if (sp.debughost !== undefined) {
-    const primary = isPrimaryHost(host);
-    const target = primary ? null : await resolveCustomDomain(host);
+    const envApi = process.env.NEXT_PUBLIC_API_URL ?? null;
+    const apiUrl = (
+      envApi ||
+      process.env.API_PUBLIC_URL ||
+      "https://orderhub-api-0re6.onrender.com/api"
+    ).replace(/\/$/, "");
+    const fetchUrl = `${apiUrl}/v1/brands/public/resolve-host?host=${encodeURIComponent(host)}`;
+    let status = 0;
+    let body = "";
+    try {
+      const r = await fetch(fetchUrl, { cache: "no-store" });
+      status = r.status;
+      body = (await r.text()).slice(0, 300);
+    } catch (e: any) {
+      body = "FETCH ERROR: " + (e?.message ?? String(e));
+    }
     return (
       <pre style={{ padding: 24, fontFamily: "monospace", fontSize: 13 }}>
         {JSON.stringify(
-          {
-            hostHeader: hdrs.get("host"),
-            xForwardedHost: hdrs.get("x-forwarded-host"),
-            resolvedHost: host,
-            isPrimary: primary,
-            redirectTarget: target,
-          },
+          { resolvedHost: host, isPrimary: isPrimaryHost(host), envApi, apiUrl, fetchUrl, status, body },
           null,
           2,
         )}
