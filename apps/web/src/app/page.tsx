@@ -48,12 +48,20 @@ function isPrimaryHost(host: string): boolean {
   );
 }
 
+// Absolute API base for SERVER-side fetches. NEXT_PUBLIC_API_URL is "/api"
+// here (a relative browser proxy path), which server fetch() can't parse — so
+// only use it when it's absolute, else fall back to the API's real origin.
+function apiBase(): string {
+  const env = process.env.NEXT_PUBLIC_API_URL;
+  const base =
+    env && env.startsWith("http")
+      ? env
+      : process.env.API_PUBLIC_URL || "https://orderhub-api-0re6.onrender.com/api";
+  return base.replace(/\/$/, "");
+}
+
 async function resolveCustomDomain(host: string): Promise<string | null> {
-  const apiUrl = (
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.API_PUBLIC_URL ||
-    "https://orderhub-api-0re6.onrender.com/api"
-  ).replace(/\/$/, "");
+  const apiUrl = apiBase();
   try {
     const res = await fetch(
       `${apiUrl}/v1/brands/public/resolve-host?host=${encodeURIComponent(host)}`,
@@ -90,11 +98,7 @@ export default async function MarketingHomePage({
   const sp = (await searchParams) ?? {};
   if (sp.debughost !== undefined) {
     const envApi = process.env.NEXT_PUBLIC_API_URL ?? null;
-    const apiUrl = (
-      envApi ||
-      process.env.API_PUBLIC_URL ||
-      "https://orderhub-api-0re6.onrender.com/api"
-    ).replace(/\/$/, "");
+    const apiUrl = apiBase();
     const fetchUrl = `${apiUrl}/v1/brands/public/resolve-host?host=${encodeURIComponent(host)}`;
     let status = 0;
     let body = "";
