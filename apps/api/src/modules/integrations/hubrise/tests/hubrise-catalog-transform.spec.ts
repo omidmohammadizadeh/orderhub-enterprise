@@ -123,3 +123,42 @@ describe("transformMenuToCatalog — brand×channel variants", () => {
     expect(bySku("P10").option_list_refs).toEqual(["grp_g1"]);
   });
 });
+
+describe("transformMenuToCatalog — multiple_selection vs max_selections", () => {
+  const build = (selectionType: string, maxSelections: number | null) => {
+    const g = {
+      id: "g",
+      name: "Group",
+      selectionType,
+      minSelections: 0,
+      maxSelections,
+      options: [{ id: "o", name: "Opt", priceAdjustment: 0, isDefault: false }],
+    };
+    const menu = { pricingVariants: [], categories: [] };
+    return transformMenuToCatalog(menu, new Map([["g", g]])).optionLists[0]!;
+  };
+
+  it("ADDON with max>1 is multi-select", () => {
+    const ol = build("ADDON", 3);
+    expect(ol.multiple_selection).toBe(true);
+    expect(ol.max_selections).toBe(3);
+  });
+
+  it("ADDON with no max is multi-select", () => {
+    expect(build("ADDON", null).multiple_selection).toBe(true);
+  });
+
+  it("ADDON with max 1 is NOT multi-select (HubRise 422 guard)", () => {
+    const ol = build("ADDON", 1);
+    expect(ol.multiple_selection).toBe(false);
+    expect(ol.max_selections).toBe(1);
+  });
+
+  it("ADDON with max 0 is NOT multi-select (HubRise 422 guard)", () => {
+    expect(build("ADDON", 0).multiple_selection).toBe(false);
+  });
+
+  it("VARIANT (radio) is never multi-select", () => {
+    expect(build("VARIANT", 5).multiple_selection).toBe(false);
+  });
+});

@@ -991,12 +991,19 @@ export function transformMenuToCatalog(
   // are not silently dropped.
   const optionLists: HubRiseOptionList[] = [];
   for (const g of groupById.values()) {
+    const maxSel = g.maxSelections ?? null;
+    // HubRise rejects multiple_selection=true when max_selections is 0 or 1
+    // (422: "cannot be true when max_selections is 0 or 1") — those are
+    // single-select. Only an ADDON group with room for >1 pick (or no max)
+    // is genuinely multi-select.
+    const multipleSelection =
+      g.selectionType === "ADDON" && (maxSel === null || maxSel > 1);
     optionLists.push({
       ref: groupRefFor(g),
       name: g.name,
       min_selections: g.minSelections ?? 0,
-      max_selections: g.maxSelections ?? null,
-      multiple_selection: g.selectionType === "ADDON",
+      max_selections: maxSel,
+      multiple_selection: multipleSelection,
       options: (g.options ?? []).map((o: any) => {
         const optBase = Number(o.priceAdjustment ?? 0);
         const overrides = buildHubRisePriceOverrides(
