@@ -76,7 +76,11 @@ export default async function MarketingHomePage() {
   // Brand custom domain (e.g. order.pizzauno.com): resolve the host → that
   // brand's storefront and redirect. Mirrors /brand/[slug] but driven by the
   // incoming Host instead of a path slug. Primary hosts render marketing.
-  const host = ((await headers()).get("host") ?? "").split(":")[0]?.toLowerCase() ?? "";
+  const hdrs = await headers();
+  // Behind Render's proxy the real client host can arrive in x-forwarded-host
+  // (possibly comma-separated); fall back to host.
+  const rawHost = hdrs.get("x-forwarded-host") || hdrs.get("host") || "";
+  const host = (rawHost.split(",")[0] ?? "").trim().split(":")[0]?.toLowerCase() ?? "";
   if (!isPrimaryHost(host)) {
     const target = await resolveCustomDomain(host);
     if (target) redirect(target);
