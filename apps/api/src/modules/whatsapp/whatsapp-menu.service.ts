@@ -128,7 +128,30 @@ export class WhatsAppMenuService {
           })
         : null;
     if (!menu) {
+      // Prefer a menu explicitly published to WhatsApp (Publish → WhatsApp),
+      // location-scoped first then brand-scoped, before the generic
+      // active-menu fallback so "publish to WhatsApp" actually selects it.
       menu =
+        (await this.prisma.menu.findFirst({
+          where: {
+            locationId: location.id,
+            isActive: true,
+            deletedAt: null,
+            publishedTo: { has: "WHATSAPP" },
+          },
+          orderBy: { updatedAt: "desc" },
+          include: MENU_INCLUDE,
+        })) ??
+        (await this.prisma.menu.findFirst({
+          where: {
+            brandId: location.brandId,
+            isActive: true,
+            deletedAt: null,
+            publishedTo: { has: "WHATSAPP" },
+          },
+          orderBy: { updatedAt: "desc" },
+          include: MENU_INCLUDE,
+        })) ??
         (await this.prisma.menu.findFirst({
           where: { locationId: location.id, isActive: true, deletedAt: null },
           orderBy: { updatedAt: "desc" },

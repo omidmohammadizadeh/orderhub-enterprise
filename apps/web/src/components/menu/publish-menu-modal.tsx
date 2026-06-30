@@ -64,6 +64,13 @@ const TARGETS: Target[] = [
     wired: true,
   },
   {
+    id: "WHATSAPP",
+    title: "WhatsApp ordering",
+    description:
+      "Serve this menu in the WhatsApp chat bot. Uses your default prices (same as POS / online ordering) — no brand needed.",
+    wired: true,
+  },
+  {
     id: "JUST_EAT",
     title: "Just Eat",
     description: "Direct Just Eat push (skip via HubRise).",
@@ -136,9 +143,7 @@ export function PublishMenuModal({
     onSuccess: () => {
       const channelLabel = describeSelection(selected);
       if (!needsBrandStep) {
-        toast.success(
-          `Published "${menuName}" to ${channelLabel} — each brand priced via its variants.`,
-        );
+        toast.success(`Published "${menuName}" to ${channelLabel}.`);
       } else {
         const brandName =
           (brandsQuery.data ?? []).find((b: Brand) => b.id === brandId)?.name ??
@@ -166,9 +171,11 @@ export function PublishMenuModal({
 
   const canContinue = selected.size > 0;
   const canPublish = !!brandId && selected.size > 0 && !saveMutation.isPending;
-  // HubRise self-routes to each brand via catalog variants, so there's no
-  // single brand to pick — skip Step 2 when it's selected.
-  const needsBrandStep = !selected.has("HUBRISE");
+  // HubRise self-routes to each brand via catalog variants, and WhatsApp
+  // serves the location's active menu at default prices — neither needs a
+  // single brand picked, so skip Step 2 when either is selected.
+  const needsBrandStep =
+    !selected.has("HUBRISE") && !selected.has("WHATSAPP");
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -338,7 +345,7 @@ export function PublishMenuModal({
                     <Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing…
                   </span>
                 ) : (
-                  "Publish to HubRise"
+                  "Publish"
                 )}
               </Button>
             )
@@ -406,6 +413,7 @@ function describeSelection(s: Set<string>): string {
     ONLINE: "Online ordering",
     POS: "POS",
     HUBRISE: "HubRise",
+    WHATSAPP: "WhatsApp",
     JUST_EAT: "Just Eat",
     UBER_EATS: "Uber Eats",
     DELIVEROO: "Deliveroo",
