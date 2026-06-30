@@ -119,7 +119,10 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
             )
           )}
           {tab === "hours" && locationId && (
-            <OpeningHoursEditor locationId={locationId} />
+            <div className="space-y-5">
+              <OpeningHoursEditor locationId={locationId} />
+              <PrepTimeSection locationId={locationId} />
+            </div>
           )}
           {tab === "brands" && locationId && (
             <BrandsTab locationId={locationId} />
@@ -558,6 +561,95 @@ function GeneralTab({
 
 // Phase AW — feeModeHelp() retired alongside the Stripe Connect block.
 // Brand settings drawer hosts the equivalent copy.
+
+// ── Prep time (location-level) ─────────────────────────────────────────────
+// Mirrors the brand online-ordering modal's prep section. HubRise + WhatsApp
+// fall back to these when the brand hasn't set its own prep/hours.
+function PrepTimeSection({ locationId }: { locationId: string }) {
+  const qc = useQueryClient();
+  const detail = useQuery({
+    queryKey: ["locations", "detail", locationId],
+    queryFn: () => locationsClient.get(locationId),
+  });
+  const [prep, setPrep] = useState("");
+  const [busy, setBusy] = useState("");
+  const [seeded, setSeeded] = useState(false);
+
+  useEffect(() => {
+    if (detail.data && !seeded) {
+      setPrep(detail.data.prepTime != null ? String(detail.data.prepTime) : "");
+      setBusy(
+        detail.data.busyExtraPrepTime != null
+          ? String(detail.data.busyExtraPrepTime)
+          : "",
+      );
+      setSeeded(true);
+    }
+  }, [detail.data, seeded]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      locationsClient.update(locationId, {
+        prepTime: prep === "" ? null : Number(prep),
+        busyExtraPrepTime: busy === "" ? null : Number(busy),
+      } as any),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["locations", "detail", locationId] });
+      qc.invalidateQueries({ queryKey: ["locations"] });
+    },
+  });
+
+  return (
+    <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        Prep time
+      </h3>
+      <p className="mb-3 text-[11px] text-zinc-500">
+        Used by HubRise and WhatsApp when this brand has no prep time of its
+        own. Minutes.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Base prep time (mins)">
+          <input
+            type="number"
+            min="0"
+            value={prep}
+            onChange={(e) => setPrep(e.target.value)}
+            placeholder="15"
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm tabular-nums focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+        <Field label="Busy mode adds (mins)">
+          <input
+            type="number"
+            min="0"
+            value={busy}
+            onChange={(e) => setBusy(e.target.value)}
+            placeholder="10"
+            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm tabular-nums focus:border-zinc-900 focus:outline-none"
+          />
+        </Field>
+      </div>
+      <div className="mt-3 flex justify-end">
+        <button
+          onClick={() => save.mutate()}
+          disabled={save.isPending}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          Save prep time
+        </button>
+      </div>
+      {save.isError && (
+        <p className="mt-1 text-[11px] text-red-600">
+          {(save.error as any)?.response?.data?.message ??
+            (save.error as any)?.message ??
+            "Failed to save"}
+        </p>
+      )}
+    </div>
+  );
+}
 
 // ── Brands tab ────────────────────────────────────────────────────────────
 

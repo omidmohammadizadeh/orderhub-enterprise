@@ -64,6 +64,10 @@ export interface UpdateLocationDto {
   status?: "active" | "suspended" | "closed";
   timezone?: string;
   isActive?: boolean;
+  // Phase AZ — location-level prep time (minutes). HubRise + WhatsApp fall
+  // back to these when the brand hasn't set its own.
+  prepTime?: number | null;
+  busyExtraPrepTime?: number | null;
   // Free-form Json blob persisted on Location.settings. Merged shallow
   // into whatever is already stored so unrelated keys (set by other
   // tabs) aren't clobbered. Currently used for:
@@ -433,6 +437,10 @@ export class LocationsService {
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.timezone !== undefined && { timezone: dto.timezone }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.prepTime !== undefined && { prepTime: dto.prepTime }),
+        ...(dto.busyExtraPrepTime !== undefined && {
+          busyExtraPrepTime: dto.busyExtraPrepTime,
+        }),
         // Phase AU — HubRise per-location credentials.
         ...(hubriseCredentialsPatch ?? {}),
         ...(dto.hubriseCatalogId !== undefined && {

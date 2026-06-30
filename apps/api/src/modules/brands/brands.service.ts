@@ -10,6 +10,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
+import { hoursConfigured } from "../../common/opening-hours.util";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -566,17 +567,24 @@ export class BrandsService {
             ],
             hubriseLocationId: { not: null },
           },
-          select: { id: true },
+          select: { id: true, openingHours: true, prepTime: true },
         });
         if (!location) {
           throw new BadRequestException(
             "No HubRise-connected location found for this brand. Connect HubRise on the location first.",
           );
         }
+        // Brand hours win when set (per-virtual-brand schedule); otherwise
+        // fall back to the location's own hours/prep — same precedence the
+        // WhatsApp bot uses.
+        const openingHours = hoursConfigured(brand.openingHours)
+          ? brand.openingHours
+          : (location as any).openingHours;
+        const prepTime = brand.prepTime ?? (location as any).prepTime ?? null;
         await this.hubrise.publishHours({
           locationId: location.id,
-          openingHours: brand.openingHours,
-          prepTime: brand.prepTime ?? null,
+          openingHours,
+          prepTime,
         });
         return { channel, status: "ok", pushed: true };
       }

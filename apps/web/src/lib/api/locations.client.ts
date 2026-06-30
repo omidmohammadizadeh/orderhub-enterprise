@@ -52,6 +52,10 @@ export interface Location {
   busyMode: boolean;
   busyModeJson?: Record<string, any>;
   openingHours?: OpeningHoursMap;
+  // Phase AZ — location-level prep time (minutes). HubRise + WhatsApp fall
+  // back to these when the brand hasn't set its own.
+  prepTime?: number | null;
+  busyExtraPrepTime?: number | null;
   _count?: { platformConnections?: number };
 }
 

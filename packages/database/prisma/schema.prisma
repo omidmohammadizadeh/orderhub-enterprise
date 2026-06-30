@@ -560,6 +560,11 @@ model Location {
   slug           String? @unique
   openingHours   Json    @default("[]")
   deliveryConfig Json    @default("{}")
+  // Phase AZ — location-level prep time (base + busy-mode extra), mirroring
+  // the brand fields. HubRise + WhatsApp fall back to these when the brand
+  // hasn't set its own hours/prep.
+  prepTime          Int?
+  busyExtraPrepTime Int?
   onboardingStep Int     @default(0)
 
   // ── Go-live lifecycle ─────────────────────────────────
