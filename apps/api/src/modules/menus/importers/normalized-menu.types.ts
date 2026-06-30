@@ -17,7 +17,7 @@
 
 import type { ProductSku } from "@orderhub/shared";
 
-export type PlatformSource = "uber" | "deliveroo" | "hubrise" | "justeat";
+export type PlatformSource = "uber" | "deliveroo" | "hubrise" | "justeat" | "ai";
 
 /**
  * The whole normalized result of one import call.

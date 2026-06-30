@@ -129,6 +129,67 @@ export interface MenuWithCategories extends Menu {
   categories: MenuCategory[];
 }
 
+// ── AI menu import (upload a PDF/photo, AI builds the menu) ─────────────────
+
+export interface AiMenuSize {
+  name: string;
+  price: number;
+  sku?: string | null;
+}
+export interface AiMenuOptionSizePrice {
+  sizeName: string;
+  price: number;
+}
+export interface AiMenuOption {
+  name: string;
+  priceAdjustment?: number;
+  pricesBySize?: AiMenuOptionSizePrice[];
+}
+export interface AiMenuGroup {
+  key: string;
+  name: string;
+  selectionType: "VARIANT" | "ADDON";
+  minSelections?: number;
+  maxSelections?: number;
+  options: AiMenuOption[];
+}
+export interface AiMenuItem {
+  name: string;
+  description?: string | null;
+  price?: number;
+  sku?: string | null;
+  sizes?: AiMenuSize[];
+  modifierGroupKeys?: string[];
+}
+export interface AiMenuCategory {
+  name: string;
+  description?: string | null;
+  items: AiMenuItem[];
+}
+export interface AiMenuDraft {
+  menuName?: string;
+  currency?: string;
+  categories: AiMenuCategory[];
+  modifierGroups?: AiMenuGroup[];
+  warnings?: string[];
+}
+
+/** A file to send for parsing — `data` is base64 or a `data:` URL. */
+export interface AiMenuFile {
+  mediaType?: string;
+  data: string;
+}
+
+export interface AiMenuCommitResult {
+  menuId: string;
+  menuName: string;
+  createdCount: number;
+  updatedCount: number;
+  staleCount: number;
+  warnings: string[];
+  unchanged?: boolean;
+}
+
 export const menusClient = {
   listMenus: (brandId: string) =>
     apiClient.get<Menu[]>(`/v1/brands/${brandId}/menus`).then((r) => r.data),
@@ -163,6 +224,26 @@ export const menusClient = {
   ) =>
     apiClient
       .post<Menu>(`/v1/brands/${brandId}/menus`, data)
+      .then((r) => r.data),
+
+  // AI menu import — step 1: parse the uploaded files into a reviewable draft.
+  aiParseMenu: (brandId: string, files: AiMenuFile[]) =>
+    apiClient
+      .post<AiMenuDraft>(`/v1/brands/${brandId}/menus/import/ai/parse`, { files })
+      .then((r) => r.data),
+
+  // AI menu import — step 2: create the menu from the reviewed draft.
+  aiCommitMenu: (
+    brandId: string,
+    body: {
+      menuName?: string;
+      menuType?: string;
+      locationId?: string;
+      draft: AiMenuDraft;
+    },
+  ) =>
+    apiClient
+      .post<AiMenuCommitResult>(`/v1/brands/${brandId}/menus/import/ai/commit`, body)
       .then((r) => r.data),
 
   updateMenu: (

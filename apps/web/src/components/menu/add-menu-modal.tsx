@@ -4,9 +4,9 @@
 // Selecting one routes to the matching follow-up modal (which the
 // parent renders) — we just emit the chosen kind here.
 
-import { X, BookOpen, Folder, Calculator } from "lucide-react";
+import { X, BookOpen, Folder, Calculator, Sparkles } from "lucide-react";
 
-type MenuKind = "create" | "import-channel" | "import-pos";
+type MenuKind = "create" | "import-ai" | "import-channel" | "import-pos";
 
 interface Props {
   open: boolean;
@@ -37,6 +37,13 @@ export function AddMenuModal({ open, onPick, onCancel }: Props) {
             onClick={() => onPick("create")}
           />
           <Card
+            icon={<Sparkles className="h-5 w-5" />}
+            title="Import from photo or PDF"
+            description="Upload your menu — AI builds the categories, items, prices and options for you"
+            badge="AI"
+            onClick={() => onPick("import-ai")}
+          />
+          <Card
             icon={<Folder className="h-5 w-5" />}
             title="Import from channel"
             description="Import your menu from a connected channel (Uber Eats, Deliveroo, etc.)"
@@ -59,11 +66,13 @@ function Card({
   title,
   description,
   onClick,
+  badge,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   onClick: () => void;
+  badge?: string;
 }) {
   return (
     <button
@@ -75,7 +84,14 @@ function Card({
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-zinc-900">{title}</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          {title}
+          {badge && (
+            <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-violet-700">
+              {badge}
+            </span>
+          )}
+        </p>
         <p className="text-xs text-zinc-500">{description}</p>
       </span>
     </button>

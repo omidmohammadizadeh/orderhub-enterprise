@@ -6,6 +6,8 @@ import { PluService } from './plu.service';
 import { UberMenuImporter } from './importers/uber-menu.importer';
 import { DeliverooMenuImporter } from './importers/deliveroo-menu.importer';
 import { MenuWriterService } from './importers/menu-writer.service';
+import { AiMenuParseService } from './importers/ai-menu.service';
+import { AiMenuImporter } from './importers/ai-menu.importer';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { QUEUES } from '@orderhub/shared';
@@ -28,6 +30,8 @@ import { QUEUES } from '@orderhub/shared';
     MenuWriterService,
     UberMenuImporter,
     DeliverooMenuImporter,
+    AiMenuParseService,
+    AiMenuImporter,
   ],
   exports: [
     MenusService,

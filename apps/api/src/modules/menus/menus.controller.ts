@@ -19,6 +19,9 @@ import { MenusService } from "./menus.service";
 import { PluService } from "./plu.service";
 import { UberMenuImporter } from "./importers/uber-menu.importer";
 import { DeliverooMenuImporter } from "./importers/deliveroo-menu.importer";
+import { AiMenuParseService, type AiMenuFile } from "./importers/ai-menu.service";
+import { AiMenuImporter } from "./importers/ai-menu.importer";
+import type { AiMenuDraft } from "./importers/ai-menu.classifier";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import {
   CreateMenuDto,
@@ -43,6 +46,8 @@ export class MenusController {
     private readonly plu: PluService,
     private readonly uberImporter: UberMenuImporter,
     private readonly deliverooImporter: DeliverooMenuImporter,
+    private readonly aiParse: AiMenuParseService,
+    private readonly aiImporter: AiMenuImporter,
     private readonly hubriseCatalog: HubRiseCatalogService,
   ) {}
 
@@ -71,6 +76,47 @@ export class MenusController {
       payload: body.payload,
       storeId: body.storeId,
       accessToken: body.accessToken,
+    });
+  }
+
+  // ── AI menu import (upload a PDF/photo, AI builds the menu) ───────────
+
+  @Post("brands/:brandId/menus/import/ai/parse")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Parse an uploaded menu (PDF/JPEG/PNG) with AI into a structured draft for review — no DB writes",
+  })
+  parseAiMenu(
+    @Param("brandId") _brandId: string,
+    @Body() body: { files: AiMenuFile[] },
+  ) {
+    return this.aiParse.parse(body?.files);
+  }
+
+  @Post("brands/:brandId/menus/import/ai/commit")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Create a menu from a reviewed AI-parsed draft",
+  })
+  commitAiMenu(
+    @Param("brandId") brandId: string,
+    @Body()
+    body: {
+      menuName?: string;
+      menuType?: string;
+      locationId?: string;
+      draft: AiMenuDraft;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.aiImporter.commit({
+      tenantId: user.tenantId,
+      brandId,
+      menuName: body?.menuName,
+      menuType: body?.menuType,
+      locationId: body?.locationId,
+      draft: body?.draft,
     });
   }
 
