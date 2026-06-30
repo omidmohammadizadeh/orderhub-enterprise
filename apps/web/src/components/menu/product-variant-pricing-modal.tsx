@@ -11,7 +11,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import type { PricingVariant } from "@orderhub/shared";
+import { CHANNEL_VARIANT_PRESETS, type PricingVariant } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
 import { productsClient, modifiersClient } from "@/lib/api/catalog.client";
 
@@ -61,6 +61,36 @@ export function ProductVariantPricingModal({
         .filter((g: any) => g && Array.isArray(g.options)),
     [product],
   );
+
+  // Order columns brand-by-brand and build the grouped (brand) header.
+  const orderedVariants = useMemo(() => {
+    const order: string[] = [];
+    const byBrand = new Map<string, PricingVariant[]>();
+    for (const v of variants ?? []) {
+      const key = v.brandId ?? "__none";
+      if (!byBrand.has(key)) {
+        byBrand.set(key, []);
+        order.push(key);
+      }
+      byBrand.get(key)!.push(v);
+    }
+    return order.flatMap((k) => byBrand.get(k)!);
+  }, [variants]);
+
+  const brandHeader = useMemo(() => {
+    const out: { label: string; count: number }[] = [];
+    for (const v of orderedVariants) {
+      const label = v.brandName ?? "Other";
+      const last = out[out.length - 1];
+      if (last && last.label === label) last.count++;
+      else out.push({ label, count: 1 });
+    }
+    return out;
+  }, [orderedVariants]);
+
+  const channelLabel = (v: PricingVariant) =>
+    CHANNEL_VARIANT_PRESETS.find((c) => c.channelKey === v.channelKey)?.name ??
+    v.name;
 
   // ── State ──
   // Single-price item base overrides.
@@ -170,15 +200,29 @@ export function ProductVariantPricingModal({
             <table className="w-full border-separate border-spacing-y-1">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <th
+                    rowSpan={2}
+                    className="sticky left-0 z-10 bg-white px-2 pb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
+                  >
                     Item / size
                   </th>
-                  {variants.map((v) => (
+                  {brandHeader.map((b, i) => (
+                    <th
+                      key={i}
+                      colSpan={b.count}
+                      className="border-b border-zinc-100 px-2 pb-1 text-left text-[11px] font-bold text-zinc-700"
+                    >
+                      {b.label}
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  {orderedVariants.map((v) => (
                     <th
                       key={v.ref}
-                      className="px-2 pb-2 text-left text-[11px] font-semibold text-zinc-600"
+                      className="px-2 pb-2 text-left text-[11px] font-medium text-zinc-500"
                     >
-                      {v.name}
+                      {channelLabel(v)}
                     </th>
                   ))}
                 </tr>
@@ -195,7 +239,7 @@ export function ProductVariantPricingModal({
                         default £{Number(product?.basePrice ?? 0).toFixed(2)}
                       </div>
                     </td>
-                    {variants.map((v) => (
+                    {orderedVariants.map((v) => (
                       <td key={v.ref} className="px-2">
                         <Cell
                           value={itemOv[v.ref] ?? ""}
@@ -218,7 +262,7 @@ export function ProductVariantPricingModal({
                           default £{(Number(s.price) || 0).toFixed(2)}
                         </div>
                       </td>
-                      {variants.map((v) => (
+                      {orderedVariants.map((v) => (
                         <td key={v.ref} className="px-2">
                           <Cell
                             value={skuOv[i]?.[v.ref] ?? ""}
@@ -242,7 +286,7 @@ export function ProductVariantPricingModal({
                   <Fragment key={`g-${g.id}`}>
                     <tr>
                       <td
-                        colSpan={variants.length + 1}
+                        colSpan={orderedVariants.length + 1}
                         className="sticky left-0 bg-white px-2 pt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400"
                       >
                         {g.name}
@@ -258,7 +302,7 @@ export function ProductVariantPricingModal({
                               default +£{base.toFixed(2)}
                             </div>
                           </td>
-                          {variants.map((v) => (
+                          {orderedVariants.map((v) => (
                             <td key={v.ref} className="px-2">
                               <Cell
                                 value={optOv[o.id]?.[v.ref] ?? ""}

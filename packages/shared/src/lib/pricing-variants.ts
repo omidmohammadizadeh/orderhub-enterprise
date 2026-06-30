@@ -14,27 +14,46 @@
 // The variant a given order/channel uses is chosen in the HubRise
 // connection, not the catalog.
 
-/** A named price list on a menu. `ref` is the stable key used everywhere
- *  overrides are stored, and the ref sent to HubRise. */
+/** A named price list on a menu — one brand×channel leaf. `ref` is the
+ *  stable key used everywhere overrides are stored, and the ref sent to
+ *  HubRise. In a shared catalog, brand is encoded into the variant (name +
+ *  `brandId`) so HubRise can tell brands apart and products can be scoped
+ *  to their brand via `restrictions.variant_refs`. */
 export interface PricingVariant {
-  /** Stable unique key. Channel presets reuse the channel key (e.g.
-   *  "UBER_EATS"); custom variants get a generated ref (e.g. "var_ab12cd"). */
+  /** Stable unique key. Brand×channel leaves use `${brandId}__${channelKey}`;
+   *  custom variants get a generated ref (e.g. "var_ab12cd"). */
   ref: string;
-  /** Display name shown to the operator and published to HubRise. */
+  /** Display name published to HubRise, e.g. "Monster Burgerz — Uber Eats". */
   name: string;
-  /** Set for the built-in channel presets so the UI can badge them and
-   *  the publisher knows the delivery channel. Absent for custom variants. */
+  /** Delivery channel for this leaf (UBER_EATS/DELIVEROO/JUST_EAT). Absent
+   *  for fully custom variants. */
   channelKey?: string;
+  /** The OrderHub brand this variant belongs to. Products are restricted to
+   *  the variants whose brandId matches the product's brand, so a brand's
+   *  connector only sees that brand's products. Absent = global variant. */
+  brandId?: string;
+  /** Cached brand display name (for the variant label + UI grouping). */
+  brandName?: string;
+}
+
+/** Build the stable ref for a brand×channel leaf. */
+export function brandChannelRef(brandId: string, channelKey: string): string {
+  return `${brandId}__${channelKey}`;
 }
 
 /** Built-in channel presets an operator can one-click add as variants.
  *  Refs deliberately equal the keys already used in
  *  MenuItem.platformPricingOverrides so existing per-channel prices map
  *  straight onto the matching preset variant with no data migration. */
-export const CHANNEL_VARIANT_PRESETS: ReadonlyArray<Required<PricingVariant>> = [
-  { ref: "UBER_EATS", name: "Uber Eats", channelKey: "UBER_EATS" },
-  { ref: "DELIVEROO", name: "Deliveroo", channelKey: "DELIVEROO" },
-  { ref: "JUST_EAT", name: "Just Eat", channelKey: "JUST_EAT" },
+export interface ChannelPreset {
+  channelKey: string;
+  name: string;
+}
+
+export const CHANNEL_VARIANT_PRESETS: ReadonlyArray<ChannelPreset> = [
+  { channelKey: "UBER_EATS", name: "Uber Eats" },
+  { channelKey: "DELIVEROO", name: "Deliveroo" },
+  { channelKey: "JUST_EAT", name: "Just Eat" },
 ];
 
 /** Coerce a stored JSON value into a clean PricingVariant[]. Tolerates
@@ -50,15 +69,32 @@ export function normalizePricingVariants(value: unknown): PricingVariant[] {
     if (!ref || !name || seen.has(ref)) continue;
     seen.add(ref);
     const channelKey = (raw as any).channelKey;
+    const brandId = (raw as any).brandId;
+    const brandName = (raw as any).brandName;
     out.push({
       ref,
       name,
-      ...(typeof channelKey === "string" && channelKey
-        ? { channelKey }
-        : {}),
+      ...(typeof channelKey === "string" && channelKey ? { channelKey } : {}),
+      ...(typeof brandId === "string" && brandId ? { brandId } : {}),
+      ...(typeof brandName === "string" && brandName ? { brandName } : {}),
     });
   }
   return out;
+}
+
+/**
+ * The variant refs that apply to a product given the brand(s) it belongs
+ * to. Used to set HubRise `restrictions.variant_refs` so a product only
+ * appears under its own brand's connectors. Returns [] when no brand-tagged
+ * variant matches (caller should then leave the product unrestricted).
+ */
+export function variantRefsForBrands(
+  variants: ReadonlyArray<PricingVariant>,
+  brandIds: ReadonlyArray<string | null | undefined>,
+): string[] {
+  const set = new Set(brandIds.filter((b): b is string => !!b));
+  if (set.size === 0) return [];
+  return variants.filter((v) => v.brandId && set.has(v.brandId)).map((v) => v.ref);
 }
 
 /** One HubRise price-override rule. */

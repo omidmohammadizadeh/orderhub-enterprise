@@ -1,21 +1,22 @@
 "use client";
 
-// Phase AZ — pricing variants manager. Define the named price lists for a
-// menu (channel presets like Uber Eats / Deliveroo + custom ones such as
-// "Kiosk" or "Brand A"). Each item, size and modifier can then carry a
-// per-variant price; on HubRise publish these become catalog variants +
-// price_overrides. One menu, every channel/brand its own price.
+// Phase AZ — pricing variants manager (brand → channels). For a shared
+// HubRise catalog serving multiple brands, each variant is a brand×channel
+// leaf ("Monster Burgerz — Uber Eats"). The brand tag is what lets HubRise
+// (and our publisher's restrictions) keep each brand's products + prices
+// apart. Operator: add a brand, then the channels it sells on; set the
+// actual prices from each product's "Channel pricing" button.
 
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Plus, Trash2, Sparkles } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { X, Plus, Trash2, Sparkles, Store } from "lucide-react";
 import {
   CHANNEL_VARIANT_PRESETS,
+  brandChannelRef,
   type PricingVariant,
 } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { menusClient } from "@/lib/api/menus.client";
+import { brandsClient, menusClient } from "@/lib/api/menus.client";
 
 interface Props {
   open: boolean;
@@ -24,33 +25,44 @@ interface Props {
   onClose: () => void;
 }
 
-function customRef(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 20);
-  return `var_${slug || "x"}_${Date.now().toString(36).slice(-4)}`;
+interface BrandGroup {
+  brandId: string;
+  brandName: string;
 }
 
 export function VariantsManagerModal({ open, menuId, variants, onClose }: Props) {
   const qc = useQueryClient();
-  const [list, setList] = useState<PricingVariant[]>([]);
-  const [customName, setCustomName] = useState("");
+  const [leaves, setLeaves] = useState<PricingVariant[]>([]);
+  const [groups, setGroups] = useState<BrandGroup[]>([]);
+  const [addBrandId, setAddBrandId] = useState("");
+
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => brandsClient.list(),
+    enabled: open,
+  });
 
   useEffect(() => {
-    if (open) setList(variants ?? []);
+    if (!open) return;
+    const ls = variants ?? [];
+    setLeaves(ls);
+    // Seed brand groups from the brands that already have leaves.
+    const seen = new Map<string, string>();
+    for (const v of ls) if (v.brandId) seen.set(v.brandId, v.brandName ?? v.brandId);
+    setGroups(Array.from(seen, ([brandId, brandName]) => ({ brandId, brandName })));
   }, [open, variants]);
 
   const save = useMutation({
     mutationFn: () =>
       menusClient.updateMenu(menuId, {
-        pricingVariants: list
+        pricingVariants: leaves
           .filter((v) => v.ref && v.name.trim())
           .map((v) => ({
             ref: v.ref,
             name: v.name.trim(),
             ...(v.channelKey ? { channelKey: v.channelKey } : {}),
+            ...(v.brandId ? { brandId: v.brandId } : {}),
+            ...(v.brandName ? { brandName: v.brandName } : {}),
           })),
       }),
     onSuccess: () => {
@@ -62,20 +74,38 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
 
   if (!open) return null;
 
-  const usedRefs = new Set(list.map((v) => v.ref));
-  const availablePresets = CHANNEL_VARIANT_PRESETS.filter(
-    (p) => !usedRefs.has(p.ref),
-  );
+  const groupedBrandIds = new Set(groups.map((g) => g.brandId));
+  const addableBrands = brands.filter((b) => !groupedBrandIds.has(b.id));
 
-  const addPreset = (p: (typeof CHANNEL_VARIANT_PRESETS)[number]) =>
-    setList([...list, { ref: p.ref, name: p.name, channelKey: p.channelKey }]);
-
-  const addCustom = () => {
-    const name = customName.trim();
-    if (!name) return;
-    setList([...list, { ref: customRef(name), name }]);
-    setCustomName("");
+  const addBrand = () => {
+    const b = brands.find((x) => x.id === addBrandId);
+    if (!b) return;
+    setGroups([...groups, { brandId: b.id, brandName: b.name }]);
+    setAddBrandId("");
   };
+
+  const removeBrand = (brandId: string) => {
+    setGroups(groups.filter((g) => g.brandId !== brandId));
+    setLeaves(leaves.filter((l) => l.brandId !== brandId));
+  };
+
+  const addChannel = (g: BrandGroup, channelKey: string, name: string) => {
+    const ref = brandChannelRef(g.brandId, channelKey);
+    if (leaves.some((l) => l.ref === ref)) return;
+    setLeaves([
+      ...leaves,
+      {
+        ref,
+        name: `${g.brandName} — ${name}`,
+        channelKey,
+        brandId: g.brandId,
+        brandName: g.brandName,
+      },
+    ]);
+  };
+
+  const removeLeaf = (ref: string) =>
+    setLeaves(leaves.filter((l) => l.ref !== ref));
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
@@ -90,7 +120,7 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
                 Pricing variants
               </h2>
               <p className="text-[11px] text-zinc-500">
-                One menu, a different price per channel or brand.
+                One menu, a price per brand and channel.
               </p>
             </div>
           </div>
@@ -100,92 +130,112 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
         </div>
 
         <div className="space-y-4 p-5">
-          {/* Current variants */}
-          {list.length === 0 ? (
+          {groups.length === 0 ? (
             <p className="rounded-md border border-dashed border-zinc-200 bg-zinc-50 px-3 py-6 text-center text-xs text-zinc-500">
-              No variants yet. Add a channel preset or a custom variant below.
+              No brands added yet. Add a brand below, then the channels it sells
+              on.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {list.map((v, i) => (
-                <li
-                  key={v.ref}
-                  className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white p-2"
-                >
-                  <Input
-                    value={v.name}
-                    onChange={(e) =>
-                      setList(
-                        list.map((row, idx) =>
-                          idx === i ? { ...row, name: e.target.value } : row,
-                        ),
-                      )
-                    }
-                    className="h-8 flex-1 text-sm"
-                  />
-                  {v.channelKey ? (
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-700">
-                      Channel
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-bold uppercase text-zinc-500">
-                      Custom
-                    </span>
-                  )}
-                  <code className="max-w-[120px] truncate font-mono text-[10px] text-zinc-400">
-                    {v.ref}
-                  </code>
-                  <button
-                    onClick={() => setList(list.filter((_, idx) => idx !== i))}
-                    className="text-zinc-300 hover:text-red-600"
-                    aria-label="Remove variant"
+            <div className="space-y-3">
+              {groups.map((g) => {
+                const brandLeaves = leaves.filter((l) => l.brandId === g.brandId);
+                const usedChannels = new Set(
+                  brandLeaves.map((l) => l.channelKey),
+                );
+                const addableChannels = CHANNEL_VARIANT_PRESETS.filter(
+                  (c) => !usedChannels.has(c.channelKey),
+                );
+                return (
+                  <div
+                    key={g.brandId}
+                    className="rounded-lg border border-zinc-200 bg-white"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Add presets */}
-          {availablePresets.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {availablePresets.map((p) => (
-                <button
-                  key={p.ref}
-                  onClick={() => addPreset(p)}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:border-violet-300 hover:bg-violet-50"
-                >
-                  <Plus className="h-3 w-3" /> {p.name}
-                </button>
-              ))}
+                    <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-zinc-800">
+                        <Store className="h-3.5 w-3.5 text-zinc-400" />
+                        {g.brandName}
+                      </span>
+                      <button
+                        onClick={() => removeBrand(g.brandId)}
+                        className="text-zinc-300 hover:text-red-600"
+                        aria-label="Remove brand"
+                        title="Remove brand + its channels"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="space-y-1.5 p-2.5">
+                      {brandLeaves.length === 0 && (
+                        <p className="px-1 text-[11px] text-zinc-400">
+                          Add the channels this brand sells on.
+                        </p>
+                      )}
+                      {brandLeaves.map((l) => (
+                        <div
+                          key={l.ref}
+                          className="flex items-center gap-2 rounded-md bg-zinc-50 px-2.5 py-1.5"
+                        >
+                          <span className="flex-1 text-sm text-zinc-700">
+                            {l.name}
+                          </span>
+                          <button
+                            onClick={() => removeLeaf(l.ref)}
+                            className="text-zinc-300 hover:text-red-600"
+                            aria-label="Remove channel"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {addableChannels.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {addableChannels.map((c) => (
+                            <button
+                              key={c.channelKey}
+                              onClick={() => addChannel(g, c.channelKey, c.name)}
+                              className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:border-violet-300 hover:bg-violet-50"
+                            >
+                              <Plus className="h-3 w-3" /> {c.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* Add custom */}
+          {/* Add brand */}
           <div className="flex gap-2 border-t border-zinc-100 pt-3">
-            <Input
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addCustom()}
-              placeholder="Custom variant name (e.g. Kiosk, Brand A)"
-              className="h-9 flex-1 text-sm"
-            />
+            <select
+              value={addBrandId}
+              onChange={(e) => setAddBrandId(e.target.value)}
+              className="h-9 flex-1 rounded-md border border-zinc-200 bg-white px-3 text-sm"
+            >
+              <option value="">Add a brand…</option>
+              {addableBrands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
             <Button
               variant="outline"
               size="sm"
-              onClick={addCustom}
-              disabled={!customName.trim()}
+              onClick={addBrand}
+              disabled={!addBrandId}
             >
-              <Plus className="mr-1 h-3.5 w-3.5" /> Add
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add brand
             </Button>
           </div>
 
           <p className="rounded-md bg-zinc-50 px-3 py-2 text-[11px] text-zinc-500">
-            Set the actual prices per item, size and modifier from each
-            product's <span className="font-medium">Channel pricing</span>{" "}
-            button. On HubRise publish these become catalog variants — choose
-            which variant each connection uses in HubRise.
+            On HubRise publish each brand×channel becomes a catalog variant,
+            and every product is restricted to its brand's variants — so Brand
+            A's Uber connector only sees Brand A's items at Brand A's price.
+            Tag each product's brand on the product form for the scoping to work.
           </p>
         </div>
 

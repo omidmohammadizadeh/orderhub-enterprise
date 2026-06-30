@@ -1,6 +1,8 @@
 import {
   normalizePricingVariants,
   buildHubRisePriceOverrides,
+  variantRefsForBrands,
+  brandChannelRef,
   CHANNEL_VARIANT_PRESETS,
 } from "@orderhub/shared";
 
@@ -64,7 +66,59 @@ describe("buildHubRisePriceOverrides", () => {
 });
 
 describe("CHANNEL_VARIANT_PRESETS", () => {
-  it("refs equal channel keys so existing per-channel prices map straight on", () => {
-    for (const p of CHANNEL_VARIANT_PRESETS) expect(p.ref).toBe(p.channelKey);
+  it("carries a channelKey + name for each delivery channel", () => {
+    expect(CHANNEL_VARIANT_PRESETS.map((p) => p.channelKey)).toEqual([
+      "UBER_EATS",
+      "DELIVEROO",
+      "JUST_EAT",
+    ]);
+  });
+});
+
+describe("brand×channel variants", () => {
+  const mbUber = {
+    ref: brandChannelRef("brandMB", "UBER_EATS"),
+    name: "Monster Burgerz — Uber Eats",
+    channelKey: "UBER_EATS",
+    brandId: "brandMB",
+    brandName: "Monster Burgerz",
+  };
+  const mbDel = {
+    ref: brandChannelRef("brandMB", "DELIVEROO"),
+    name: "Monster Burgerz — Deliveroo",
+    channelKey: "DELIVEROO",
+    brandId: "brandMB",
+    brandName: "Monster Burgerz",
+  };
+  const bbUber = {
+    ref: brandChannelRef("brandB", "UBER_EATS"),
+    name: "Brand B — Uber Eats",
+    channelKey: "UBER_EATS",
+    brandId: "brandB",
+    brandName: "Brand B",
+  };
+  const variants = [mbUber, mbDel, bbUber];
+
+  it("brandChannelRef is stable + namespaced", () => {
+    expect(brandChannelRef("brandMB", "UBER_EATS")).toBe("brandMB__UBER_EATS");
+  });
+
+  it("normalize preserves brandId/brandName/channelKey", () => {
+    expect(normalizePricingVariants([mbUber])).toEqual([mbUber]);
+  });
+
+  it("restricts a product to only its brand's variant refs", () => {
+    expect(variantRefsForBrands(variants, ["brandMB"])).toEqual([
+      mbUber.ref,
+      mbDel.ref,
+    ]);
+    // Shared product (two brands) → union of both brands' refs.
+    expect(variantRefsForBrands(variants, ["brandMB", "brandB"])).toEqual([
+      mbUber.ref,
+      mbDel.ref,
+      bbUber.ref,
+    ]);
+    // Untagged product → [] (publisher leaves it unrestricted).
+    expect(variantRefsForBrands(variants, [null, undefined])).toEqual([]);
   });
 });

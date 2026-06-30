@@ -24,6 +24,7 @@ import { CredentialEncryptionService } from "../credential-encryption.service";
 import {
   normalizePricingVariants,
   buildHubRisePriceOverrides,
+  variantRefsForBrands,
   type HubRisePriceOverride,
 } from "@orderhub/shared";
 
@@ -98,6 +99,10 @@ interface HubRiseSku {
   price: string; // "10.30 GBP"
   // Per-variant price rules: [{ variant_refs: ["UBER_EATS"], price: "11.99 GBP" }]
   price_overrides?: HubRisePriceOverride[];
+  // Brand scoping in a shared catalog — this SKU is only enabled for the
+  // listed variant refs (its brand's channels), so a brand's connector
+  // only sees that brand's products.
+  restrictions?: { variant_refs: string[] };
   option_list_ids?: string[];
   option_list_refs?: string[];
   tags?: string[];
@@ -1017,6 +1022,16 @@ function transformMenuToCatalog(
     const catRef = cat.externalId ?? `cat_${cat.id}`;
     for (const link of cat.items ?? []) {
       const item = link.item;
+      // Brand scoping: restrict this product to the variants of the brand(s)
+      // it belongs to, so a brand's connector only sees its own products in
+      // the shared catalog. Empty (untagged product) → left unrestricted.
+      const restrictRefs = variantRefsForBrands(variants, [
+        item.brandId,
+        ...(Array.isArray(item.brandIds) ? item.brandIds : []),
+      ]);
+      const restrictions = restrictRefs.length
+        ? { restrictions: { variant_refs: restrictRefs } }
+        : {};
       const multi = !!item.hasMultipleSkus && Array.isArray(item.productSkus);
       const skus: HubRiseSku[] = multi
         ? (item.productSkus as any[]).map((s, i) => {
@@ -1033,6 +1048,7 @@ function transformMenuToCatalog(
               name: s.name,
               price: formatHubRisePrice(base, currency),
               ...(overrides.length ? { price_overrides: overrides } : {}),
+              ...restrictions,
               option_list_refs: (s.modifierGroups ?? [])
                 .map((gid: string) => groupById.get(gid))
                 .filter(Boolean)
@@ -1055,6 +1071,7 @@ function transformMenuToCatalog(
                 name: null,
                 price: formatHubRisePrice(base, currency),
                 ...(overrides.length ? { price_overrides: overrides } : {}),
+                ...restrictions,
                 option_list_refs: (item.modifierGroupLinks ?? [])
                   .map((l: any) => l.group)
                   .filter(Boolean)
