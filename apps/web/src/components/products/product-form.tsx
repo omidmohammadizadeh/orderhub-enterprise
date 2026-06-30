@@ -104,6 +104,10 @@ export function ProductForm({
   // Reuses the same ModifierGroupForm shell as Create New, just with
   // groupId set so the form hydrates from the server.
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  // Per-SKU modifier modals: which SKU index the Add-Existing / Create-New
+  // dialog is currently targeting (multi-SKU products attach groups per size).
+  const [skuAttachTarget, setSkuAttachTarget] = useState<number | null>(null);
+  const [skuCreateTarget, setSkuCreateTarget] = useState<number | null>(null);
   const [hasMultipleSkus, setHasMultipleSkus] = useState(false);
   const [skus, setSkus] = useState<
     Array<{
@@ -445,6 +449,9 @@ export function ProductForm({
                     onRemove={() =>
                       setSkus(skus.filter((_, idx) => idx !== i))
                     }
+                    onAddExisting={() => setSkuAttachTarget(i)}
+                    onCreateNew={() => setSkuCreateTarget(i)}
+                    onEditGroup={(id) => setEditingGroupId(id)}
                   />
                 ))}
                 {skus.length === 0 && (
@@ -816,6 +823,82 @@ export function ProductForm({
           </div>
         </div>
       )}
+
+      {/* Per-SKU "Add Existing" — same picker as the flat product, scoped to
+          one size's modifierGroupIds. */}
+      {skuAttachTarget !== null && (
+        <AttachModal
+          open
+          title="Add Modifier Groups to this size"
+          rows={allGroups.map((g) => ({
+            id: g.id,
+            name: g.name,
+            subtitle: g.plu ?? "",
+            meta: `${g.options?.length ?? 0} modifier${g.options?.length === 1 ? "" : "s"}`,
+          }))}
+          initiallyAttachedIds={skus[skuAttachTarget]?.modifierGroupIds ?? []}
+          onConfirm={(ids) => {
+            setSkus((cur) =>
+              cur.map((r, idx) =>
+                idx === skuAttachTarget ? { ...r, modifierGroupIds: ids } : r,
+              ),
+            );
+            setSkuAttachTarget(null);
+          }}
+          onCancel={() => setSkuAttachTarget(null)}
+        />
+      )}
+
+      {/* Per-SKU "Create New" — create a group and auto-attach it to this
+          size. */}
+      {skuCreateTarget !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-8"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSkuCreateTarget(null);
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Create a new modifier group
+              </h2>
+              <button
+                onClick={() => setSkuCreateTarget(null)}
+                className="text-zinc-400 hover:text-zinc-700 text-2xl leading-none"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <ModifierGroupForm
+              brandId={brandId}
+              onCancel={() => setSkuCreateTarget(null)}
+              onSaved={(saved) => {
+                if (saved?.id) {
+                  const newId = saved.id;
+                  setSkus((cur) =>
+                    cur.map((r, idx) =>
+                      idx === skuCreateTarget
+                        ? {
+                            ...r,
+                            modifierGroupIds: r.modifierGroupIds.includes(newId)
+                              ? r.modifierGroupIds
+                              : [...r.modifierGroupIds, newId],
+                          }
+                        : r,
+                    ),
+                  );
+                }
+                qc.invalidateQueries({
+                  queryKey: ["catalog", "modifier-groups", brandId],
+                });
+                setSkuCreateTarget(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -832,6 +915,9 @@ function SkuRow({
   allGroups,
   onChange,
   onRemove,
+  onAddExisting,
+  onCreateNew,
+  onEditGroup,
 }: {
   sku: {
     name: string;
@@ -847,13 +933,12 @@ function SkuRow({
     modifierGroupIds: string[];
   }) => void;
   onRemove: () => void;
+  onAddExisting: () => void;
+  onCreateNew: () => void;
+  onEditGroup: (groupId: string) => void;
 }) {
-  const [pickingGroup, setPickingGroup] = useState(false);
   const attached = allGroups.filter((g) =>
     sku.modifierGroupIds.includes(g.id),
-  );
-  const available = allGroups.filter(
-    (g) => !sku.modifierGroupIds.includes(g.id),
   );
 
   return (
@@ -894,23 +979,40 @@ function SkuRow({
           <p className="text-[11px] uppercase tracking-wider text-zinc-400">
             {attached.length} modifier group{attached.length === 1 ? "" : "s"}
           </p>
-          <button
-            type="button"
-            onClick={() => setPickingGroup(!pickingGroup)}
-            disabled={available.length === 0}
-            className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50 disabled:opacity-50"
-          >
-            <Plus className="h-3 w-3" />
-            {pickingGroup ? "Done" : "Attach group"}
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={onAddExisting}
+              className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
+            >
+              <Plus className="h-3 w-3" /> Add Existing
+            </button>
+            <button
+              type="button"
+              onClick={onCreateNew}
+              className="inline-flex items-center gap-1 rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-white hover:bg-zinc-800"
+            >
+              <Plus className="h-3 w-3" /> Create New
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {attached.map((g) => (
             <span
               key={g.id}
-              className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-800"
+              className="group inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-800"
             >
-              {g.name}
+              <button
+                type="button"
+                onClick={() => onEditGroup(g.id)}
+                className="hover:underline"
+                title="Edit this modifier group + its modifiers"
+              >
+                {g.name}
+                <span className="ml-1 font-normal text-orange-600">
+                  ({g.options?.length ?? 0})
+                </span>
+              </button>
               <button
                 type="button"
                 onClick={() =>
@@ -922,6 +1024,7 @@ function SkuRow({
                   })
                 }
                 className="text-orange-600 hover:text-orange-900"
+                title="Detach from this size"
               >
                 <X className="h-2.5 w-2.5" />
               </button>
@@ -929,35 +1032,11 @@ function SkuRow({
           ))}
           {attached.length === 0 && (
             <span className="text-[11px] italic text-zinc-400">
-              No groups attached to this SKU yet.
+              No groups attached to this size yet — use Add Existing or Create
+              New.
             </span>
           )}
         </div>
-        {pickingGroup && available.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-zinc-100">
-            <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1.5">
-              Pick a group to attach
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {available.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => {
-                    onChange({
-                      ...sku,
-                      modifierGroupIds: [...sku.modifierGroupIds, g.id],
-                    });
-                  }}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:border-orange-300 hover:bg-orange-50"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  {g.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
