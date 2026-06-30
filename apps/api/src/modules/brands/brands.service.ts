@@ -505,10 +505,13 @@ export class BrandsService {
   async resolveCustomDomain(host: string): Promise<{ slug: string; brandId: string } | null> {
     const domain = this.normaliseDomain(host);
     if (!domain) return null;
+    // Resolve on customDomain match + ordering enabled. We deliberately do NOT
+    // gate on customDomainStatus: the request only reaches us if the domain's
+    // DNS already points at our origin, and status tracking varies by provider
+    // (Render-native vs the older Cloudflare flow).
     const brand = await this.prisma.brand.findFirst({
       where: {
         customDomain: domain,
-        customDomainStatus: "verified",
         directOrderingEnabled: true,
         deletedAt: null,
       },
