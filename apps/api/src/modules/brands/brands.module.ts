@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { BrandsController } from './brands.controller';
 import { BrandsService } from './brands.service';
 import { CloudflareService } from './cloudflare.service';
+import { RenderDomainsService } from './render-domains.service';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 
 @Module({
@@ -10,7 +11,7 @@ import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
   // HubRise side ever wants brands back.
   imports: [forwardRef(() => HubRiseModule)],
   controllers: [BrandsController],
-  providers: [BrandsService, CloudflareService],
+  providers: [BrandsService, CloudflareService, RenderDomainsService],
   exports: [BrandsService],
 })
 export class BrandsModule {}

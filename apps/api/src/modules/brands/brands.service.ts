@@ -9,6 +9,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { CloudflareService } from "./cloudflare.service";
+import { RenderDomainsService } from "./render-domains.service";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -83,6 +84,7 @@ export class BrandsService {
     @Inject(forwardRef(() => HubRiseLocationPauseService))
     private readonly hubrise: HubRiseLocationPauseService,
     private readonly cloudflare: CloudflareService,
+    private readonly render: RenderDomainsService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -407,7 +409,7 @@ export class BrandsService {
     };
   }
 
-  // ── Custom domains (Cloudflare for SaaS) ─────────────────────────────────
+  // ── Custom domains (Render native custom domains) ────────────────────────
 
   private normaliseDomain(raw?: string | null): string {
     return (raw ?? "")
@@ -419,25 +421,22 @@ export class BrandsService {
   }
 
   private domainPayload(domain: string, status: string) {
-    const fallbackOrigin = this.cloudflare.fallbackOrigin;
     return {
       configured: !!domain,
       domain,
-      status, // not_configured | pending | verified | failed
-      fallbackOrigin,
-      dnsRecords:
-        domain && fallbackOrigin
-          ? [{ type: "CNAME", name: domain, value: fallbackOrigin }]
-          : [],
+      status, // not_configured | pending | verified
+      // Kept for the existing panel shape; unused with Render.
+      fallbackOrigin: "",
+      dnsRecords: domain ? this.render.dnsRecordsFor(domain) : [],
     };
   }
 
-  /** Register a brand's domain as a Cloudflare custom hostname (HTTP DCV). */
+  /** Register a brand's domain on the Render web service (auto-SSL). */
   async connectDomain(brandId: string, tenantId: string, rawDomain: string) {
     await this.assertAccess(brandId, tenantId);
-    if (!this.cloudflare.configured) {
+    if (!this.render.configured) {
       throw new BadRequestException(
-        "Custom domains aren't configured on the server yet (missing Cloudflare settings).",
+        "Custom domains aren't configured on the server yet (missing Render API settings).",
       );
     }
     const domain = this.normaliseDomain(rawDomain);
@@ -450,8 +449,8 @@ export class BrandsService {
     });
     if (clash) throw new BadRequestException("That domain is already connected to another brand.");
 
-    const cf = await this.cloudflare.createHostname(domain);
-    const status = cf.status === "active" && cf.sslStatus === "active" ? "verified" : "pending";
+    const rd = await this.render.create(domain);
+    const status = rd.verified ? "verified" : "pending";
     await this.prisma.brand.update({
       where: { id: brandId },
       data: { customDomain: domain, customDomainStatus: status },
@@ -459,7 +458,7 @@ export class BrandsService {
     return this.domainPayload(domain, status);
   }
 
-  /** Re-check the live Cloudflare status for the brand's domain. */
+  /** Re-check the domain's verification status on Render. */
   async domainStatus(brandId: string, tenantId: string) {
     await this.assertAccess(brandId, tenantId);
     const brand = await this.prisma.brand.findUnique({
@@ -469,10 +468,11 @@ export class BrandsService {
     if (!brand?.customDomain) return this.domainPayload("", "not_configured");
 
     let status = brand.customDomainStatus;
-    if (this.cloudflare.configured) {
-      const cf = await this.cloudflare.findByHostname(brand.customDomain).catch(() => null);
-      if (cf) {
-        status = cf.status === "active" && cf.sslStatus === "active" ? "verified" : "pending";
+    if (this.render.configured) {
+      await this.render.triggerVerify(brand.customDomain);
+      const rd = await this.render.findByName(brand.customDomain).catch(() => null);
+      if (rd) {
+        status = rd.verified ? "verified" : "pending";
         if (status !== brand.customDomainStatus) {
           await this.prisma.brand.update({
             where: { id: brandId },
@@ -490,8 +490,8 @@ export class BrandsService {
       where: { id: brandId },
       select: { customDomain: true },
     });
-    if (brand?.customDomain && this.cloudflare.configured) {
-      await this.cloudflare.deleteHostname(brand.customDomain).catch(() => undefined);
+    if (brand?.customDomain && this.render.configured) {
+      await this.render.remove(brand.customDomain).catch(() => undefined);
     }
     await this.prisma.brand.update({
       where: { id: brandId },

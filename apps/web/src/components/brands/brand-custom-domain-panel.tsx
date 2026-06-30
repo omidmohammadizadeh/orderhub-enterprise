@@ -144,7 +144,9 @@ export function BrandCustomDomainPanel({
       </div>
       <p className="text-[11px] text-zinc-500">
         Serve this brand's storefront on its own domain (e.g. order.greekgyros.co.uk).
-        Enter it, add the one CNAME we show, and we auto-provision the SSL certificate.
+        Enter it, add the DNS record we show at the domain's registrar, and we
+        auto-provision the SSL certificate. (Subdomains use a CNAME; a root domain
+        uses an A record.)
       </p>
 
       {loading ? (
