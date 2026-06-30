@@ -19,6 +19,59 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
 
+const HUBRISE_DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+/**
+ * Normalise our internal opening-hours into HubRise's shape:
+ *   { monday: [{ from: "09:00", to: "22:00" }], … }
+ * Handles all three shapes we store:
+ *   - location editor map:  { monday: { enabled, slots: [{from,to}] } }
+ *   - brand map:            { monday: [{from,to}] }
+ *   - legacy array:         [{ day, open, close }]
+ * Disabled days / empty slots are dropped (HubRise treats an omitted day as
+ * closed). Returns null when nothing is configured.
+ */
+export function toHubRiseOpeningHours(
+  hours: any,
+): Record<string, { from: string; to: string }[]> | null {
+  if (!hours) return null;
+  const out: Record<string, { from: string; to: string }[]> = {};
+
+  if (Array.isArray(hours)) {
+    for (const h of hours) {
+      const day = String(h?.day ?? "").toLowerCase();
+      const from = h?.open ?? h?.from;
+      const to = h?.close ?? h?.to;
+      if (!(HUBRISE_DAYS as readonly string[]).includes(day) || !from || !to) continue;
+      (out[day] ??= []).push({ from: String(from), to: String(to) });
+    }
+    return Object.keys(out).length ? out : null;
+  }
+
+  if (typeof hours !== "object") return null;
+  for (const day of HUBRISE_DAYS) {
+    const d = (hours as any)[day];
+    if (!d) continue;
+    let slots: any[];
+    if (Array.isArray(d)) slots = d;
+    else if (d.enabled === false) continue;
+    else slots = Array.isArray(d.slots) ? d.slots : [];
+    const clean = slots
+      .filter((s) => s && s.from && s.to)
+      .map((s) => ({ from: String(s.from), to: String(s.to) }));
+    if (clean.length) out[day] = clean;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 @Injectable()
 export class HubRiseLocationPauseService {
   private readonly logger = new Logger(HubRiseLocationPauseService.name);
@@ -141,9 +194,8 @@ export class HubRiseLocationPauseService {
     if (!accessToken) return;
 
     const body: Record<string, any> = {};
-    if (args.openingHours && typeof args.openingHours === "object") {
-      body.opening_hours = args.openingHours;
-    }
+    const oh = toHubRiseOpeningHours(args.openingHours);
+    if (oh) body.opening_hours = oh;
     if (args.prepTime != null && args.prepTime > 0) {
       body.preparation_time = args.prepTime;
     }
