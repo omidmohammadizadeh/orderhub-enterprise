@@ -20,7 +20,11 @@ import {
   type PricingVariant,
 } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
-import { productsClient, modifiersClient } from "@/lib/api/catalog.client";
+import {
+  productsClient,
+  modifiersClient,
+  modifierGroupsClient,
+} from "@/lib/api/catalog.client";
 import { brandsClient, menusClient } from "@/lib/api/menus.client";
 
 interface Props {
@@ -85,13 +89,33 @@ export function ProductVariantPricingModal({
     Array.isArray(product?.productSkus) &&
     product.productSkus.length > 0;
 
-  const modGroups = useMemo(
-    () =>
-      (product?.modifierGroupLinks ?? [])
-        .map((l: any) => l.group)
-        .filter((g: any) => g && Array.isArray(g.options)),
-    [product],
-  );
+  // Multi-SKU products attach modifier groups per size (productSkus[].
+  // modifierGroups holds IDs), so we resolve them from the brand's catalog
+  // groups (which carry options + platformPricingOverrides).
+  const { data: brandGroups = [] } = useQuery({
+    queryKey: ["catalog", "modifier-groups", product?.brandId],
+    queryFn: () => modifierGroupsClient.list(product.brandId),
+    enabled: open && !!product?.brandId,
+  });
+
+  const modGroups = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const g of brandGroups) map.set(g.id, g);
+    for (const l of product?.modifierGroupLinks ?? [])
+      if (l.group?.id) map.set(l.group.id, l.group);
+
+    const ids = new Set<string>();
+    if (multi) {
+      for (const s of product.productSkus ?? [])
+        for (const gid of s.modifierGroups ?? []) if (gid) ids.add(gid);
+    } else {
+      for (const l of product?.modifierGroupLinks ?? [])
+        if (l.group?.id) ids.add(l.group.id);
+    }
+    return Array.from(ids)
+      .map((id) => map.get(id))
+      .filter((g: any) => g && Array.isArray(g.options));
+  }, [multi, product, brandGroups]);
 
   // The brand(s) this product belongs to (set on the product form).
   const productBrandIds = useMemo<string[]>(() => {
@@ -139,11 +163,22 @@ export function ProductVariantPricingModal({
         ? (product.productSkus as any[]).map((s) => toStr(s.priceOverrides))
         : [],
     );
-    const o: Record<string, OvMap> = {};
-    for (const g of modGroups)
-      for (const opt of g.options) o[opt.id] = toStr(opt.platformPricingOverrides);
-    setOptOv(o);
-  }, [open, variants, productBrandIds, product, multi, modGroups]);
+    setOptOv({});
+  }, [open, variants, productBrandIds, product, multi]);
+
+  // Seed modifier-option overrides separately: modGroups can arrive late
+  // (brand groups load async for SKU-attached groups). Merge so a late load
+  // adds rows without wiping any in-progress edits.
+  useEffect(() => {
+    if (!open) return;
+    setOptOv((prev) => {
+      const next = { ...prev };
+      for (const g of modGroups)
+        for (const opt of g.options)
+          if (!(opt.id in next)) next[opt.id] = toStr(opt.platformPricingOverrides);
+      return next;
+    });
+  }, [open, modGroups]);
 
   // Flattened brand×channel leaves currently shown (columns), grouped by brand.
   const leaves = useMemo(() => {
