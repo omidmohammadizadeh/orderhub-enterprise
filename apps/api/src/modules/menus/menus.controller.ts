@@ -169,6 +169,24 @@ export class MenusController {
     res.send(buffer);
   }
 
+  // Phase BA-5 — public menu cover-image proxy. Menu banners are stored as
+  // inline data: URLs which Deliveroo (and other platforms) can't fetch, so
+  // we decode + stream them here to give the menu a real, public https URL
+  // for its cover photo. Public by opaque menu id, same as the HubRise proxy.
+  @Public()
+  @Get("menus/:menuId/cover-image")
+  @ApiOperation({ summary: "Proxy a menu's cover image (banner/logo)" })
+  async menuCoverImage(
+    @Param("menuId") menuId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, contentType } = await this.menus.getMenuCoverImage(menuId);
+    res.setHeader("Content-Type", contentType);
+    // The banner can change, so cache modestly rather than immutably.
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.send(buffer);
+  }
+
   @Post("menus/:menuId/publish/hubrise")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({

@@ -1261,4 +1261,57 @@ export class MenusService {
     if (!group) throw new NotFoundException("Modifier group not found");
     return group;
   }
+
+  /**
+   * Phase BA-5 — public cover-image proxy.
+   *
+   * Menu banners are uploaded inline and stored as `data:` URLs (no cloud
+   * storage yet), which external platforms like Deliveroo can't fetch. This
+   * resolves the menu's cover (banner → hero → logo → brand logo) and returns
+   * the raw image bytes so a stable, public https URL points at a real image.
+   * `http(s)` sources are proxied through; `data:` URLs are decoded. Public by
+   * opaque menu id — same trust model as the HubRise image proxy.
+   */
+  async getMenuCoverImage(
+    menuId: string,
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: menuId, deletedAt: null },
+      select: {
+        bannerImage: true,
+        heroImage: true,
+        logoImage: true,
+        brand: { select: { logoUrl: true } },
+      },
+    });
+    if (!menu) throw new NotFoundException("Menu not found");
+    const src =
+      menu.bannerImage ||
+      menu.heroImage ||
+      menu.logoImage ||
+      menu.brand?.logoUrl ||
+      "";
+
+    // data:[<mime>][;base64],<data>
+    const dataUrl = /^data:([^;,]*)(;base64)?,([\s\S]*)$/i.exec(src);
+    if (dataUrl) {
+      const contentType = dataUrl[1] || "image/jpeg";
+      const buffer = dataUrl[2]
+        ? Buffer.from(dataUrl[3], "base64")
+        : Buffer.from(decodeURIComponent(dataUrl[3]), "utf8");
+      return { buffer, contentType };
+    }
+
+    if (/^https?:\/\//i.test(src)) {
+      const res = await fetch(src);
+      if (!res.ok) {
+        throw new NotFoundException(`Cover image fetch failed (${res.status})`);
+      }
+      const contentType = res.headers.get("content-type") ?? "image/jpeg";
+      const buffer = Buffer.from(await res.arrayBuffer());
+      return { buffer, contentType };
+    }
+
+    throw new NotFoundException("No usable cover image for this menu");
+  }
 }

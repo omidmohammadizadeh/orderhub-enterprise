@@ -96,20 +96,26 @@ export class DeliverooMenuPublishService {
       );
     }
 
-    // Cover photo for the mealtime (Deliveroo requires one). Prefer an
-    // operator-set menu banner / brand logo; fall back to the first product
-    // image so a menu with photos always has a valid cover.
+    // Cover photo for the mealtime (Deliveroo requires one). Prefer the
+    // operator-set menu banner/logo — but those are stored as inline data:
+    // URLs Deliveroo can't fetch, so route them through our public cover-image
+    // proxy which decodes + streams the bytes. Fall back to the first product
+    // image (already an absolute HubRise URL) when no menu-level image exists.
+    const proxyCoverUrl = `${this.apiOrigin()}/api/v1/menus/${encodeURIComponent(menuId)}/cover-image`;
     const firstProductImage = categories
       .flatMap((c) => c.products)
       .map((p) => p.imageUrl)
       .find((u) => !!u);
+    // Priority: an operator-set banner/hero is the intended cover (served via
+    // the proxy since it's usually a data: URL) → else a real food photo from
+    // the first product → else a logo (menu or brand) as a last resort.
     const coverImageUrl =
-      this.absolutiseImage(menu.heroImage) ??
-      this.absolutiseImage(menu.bannerImage) ??
-      this.absolutiseImage(menu.logoImage) ??
-      this.absolutiseImage((menu as any).brand?.logoUrl) ??
-      firstProductImage ?? // already absolutised in loadCategories
-      null;
+      menu.bannerImage || menu.heroImage
+        ? proxyCoverUrl
+        : firstProductImage ??
+          (menu.logoImage || (menu as any).brand?.logoUrl
+            ? proxyCoverUrl
+            : null);
 
     const { payload, stats, warnings } = buildDeliverooMenu({
       menuName: menu.name,
