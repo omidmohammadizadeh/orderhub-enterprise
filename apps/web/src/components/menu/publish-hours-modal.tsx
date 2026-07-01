@@ -22,12 +22,13 @@ interface Props {
   onClose: () => void;
 }
 
-// Future direct per-brand channels (HubRise already fans out to these, so
-// these are for operators who want to bypass HubRise later).
+// Direct per-brand channels (HubRise already fans out to these, so these are
+// for operators who bypass HubRise). `wired` = the direct push is live;
+// otherwise the click only records intent until that channel is built.
 const BRAND_CHANNELS = [
-  { id: "JUST_EAT", title: "Just Eat" },
-  { id: "UBER_EATS", title: "Uber Eats" },
-  { id: "DELIVEROO", title: "Deliveroo" },
+  { id: "JUST_EAT", title: "Just Eat", wired: false },
+  { id: "UBER_EATS", title: "Uber Eats", wired: false },
+  { id: "DELIVEROO", title: "Deliveroo", wired: true },
 ];
 
 export function PublishHoursModal({ open, locationId, onClose }: Props) {
@@ -188,15 +189,26 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
                 <PlatformLogo platform={c.id} size={36} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-900">{c.title}</p>
-                  <p className="text-[10px] text-amber-700">
-                    Direct push not wired yet — publishing records intent.
-                  </p>
+                  {c.wired ? (
+                    <p className="text-[10px] text-emerald-700">
+                      Pushes this brand's opening hours + prep time to Deliveroo.
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-amber-700">
+                      Direct push not wired yet — publishing records intent.
+                    </p>
+                  )}
                 </div>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant={c.wired ? "default" : "outline"}
                   disabled={publishBrandChannel.isPending}
                   onClick={() => publishBrandChannel.mutate(c.id)}
+                  className={
+                    c.wired
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : undefined
+                  }
                 >
                   {busy === c.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

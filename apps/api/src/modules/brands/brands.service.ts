@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
+import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
 import { hoursConfigured } from "../../common/opening-hours.util";
@@ -86,6 +87,8 @@ export class BrandsService {
     private readonly hubrise: HubRiseLocationPauseService,
     private readonly cloudflare: CloudflareService,
     private readonly render: RenderDomainsService,
+    // Phase BA-2 — direct Deliveroo hours/prep push from the Publish Hours flow.
+    private readonly deliveroo: DeliverooConnectionService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -589,9 +592,32 @@ export class BrandsService {
         return { channel, status: "ok", pushed: true };
       }
 
+      case "DELIVEROO": {
+        // Phase BA-2 — direct Deliveroo push. Find the brand's connected
+        // Deliveroo store (per-brand BrandPlatformConnection carrying the
+        // Site ID + Deliveroo Brand ID) and push the location's hours +
+        // prep through DeliverooConnectionService.
+        const conn = await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId,
+            tenantId,
+            platform: "DELIVEROO",
+            externalStoreId: { not: null },
+            externalBrandId: { not: null },
+          },
+          select: { id: true },
+        });
+        if (!conn) {
+          throw new BadRequestException(
+            "Deliveroo isn't connected for this brand yet. Connect it under Store Status → Deliveroo first.",
+          );
+        }
+        await this.deliveroo.publishHours(tenantId, conn.id);
+        return { channel, status: "ok", pushed: true };
+      }
+
       case "JUST_EAT":
       case "UBER_EATS":
-      case "DELIVEROO":
       case "WHATSAPP":
         // Intent recorded; direct push lands in a future phase.
         return { channel, status: "pending_integration", pushed: false };
