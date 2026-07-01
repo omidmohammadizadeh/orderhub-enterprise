@@ -85,8 +85,9 @@ const TARGETS: Target[] = [
   {
     id: "DELIVEROO",
     title: "Deliveroo",
-    description: "Direct Deliveroo push (skip via HubRise).",
-    wired: false,
+    description:
+      "Direct Deliveroo push — uploads this menu to the brand's connected Deliveroo store.",
+    wired: true,
   },
 ];
 
@@ -133,11 +134,16 @@ export function PublishMenuModal({
         brandId,
         ...(anyWired && { status: "PUBLISHED" as const, isActive: true }),
       } as any);
-      // Step 2 — if HubRise is ticked, do the actual catalog push.
-      // POS / Online ordering need no external call — they read straight
-      // off the publishedTo array on every storefront / POS load.
+      // Step 2 — fire the real external pushes. POS / Online ordering need
+      // no external call — they read straight off the publishedTo array on
+      // every storefront / POS load.
       if (next.includes("HUBRISE")) {
         await menusClient.publishToHubRise(menuId);
+      }
+      // Direct Deliveroo upload (create-or-update + publish) for the brand
+      // we just persisted onto the menu row above.
+      if (next.includes("DELIVEROO")) {
+        await menusClient.publishToDeliveroo(menuId);
       }
     },
     onSuccess: () => {

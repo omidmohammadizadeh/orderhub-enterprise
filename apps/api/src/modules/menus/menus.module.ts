@@ -9,18 +9,22 @@ import { MenuWriterService } from './importers/menu-writer.service';
 import { AiMenuParseService } from './importers/ai-menu.service';
 import { AiMenuImporter } from './importers/ai-menu.importer';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
+import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { QUEUES } from '@orderhub/shared';
 
 @Module({
   // HubRiseModule exports the catalog service used by the AW-11
   // /v1/menus/import/hubrise + /v1/menus/:id/publish/hubrise endpoints.
+  // DeliverooModule exports DeliverooMenuPublishService for the direct
+  // /v1/menus/:id/publish/deliveroo push (one-way import, no cycle).
   // InventoryModule provides MenuAvailabilityService — needed so the
   // POS menu strip-on-snooze in findActiveMenuForLocation resolves.
   // forwardRef breaks the InventoryModule → HubRise → Menus cycle.
   imports: [
     BullModule.registerQueue({ name: QUEUES.MENU_SYNC }),
     HubRiseModule,
+    DeliverooModule,
     forwardRef(() => InventoryModule),
   ],
   controllers: [MenusController],

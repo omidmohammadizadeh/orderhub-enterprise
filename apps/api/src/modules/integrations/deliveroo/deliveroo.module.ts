@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { DeliverooClientService } from "./deliveroo-client.service";
 import { DeliverooConnectionService } from "./deliveroo-connection.service";
 import { DeliverooOrderService } from "./deliveroo-order.service";
+import { DeliverooMenuPublishService } from "./deliveroo-menu-publish.service";
 import { DeliverooController } from "./deliveroo.controller";
 import { DeliverooWebhookController } from "./deliveroo-webhook.controller";
 import { OrdersModule } from "../../orders/orders.module";
@@ -24,8 +25,13 @@ import { DeliverooAdapter } from "../../webhooks/adapters/deliveroo.adapter";
     DeliverooClientService,
     DeliverooConnectionService,
     DeliverooOrderService,
+    DeliverooMenuPublishService,
     DeliverooAdapter,
   ],
-  exports: [DeliverooClientService, DeliverooConnectionService],
+  exports: [
+    DeliverooClientService,
+    DeliverooConnectionService,
+    DeliverooMenuPublishService,
+  ],
 })
 export class DeliverooModule {}

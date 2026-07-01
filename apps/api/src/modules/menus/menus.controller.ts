@@ -23,6 +23,7 @@ import { AiMenuParseService, type AiMenuFile } from "./importers/ai-menu.service
 import { AiMenuImporter } from "./importers/ai-menu.importer";
 import type { AiMenuDraft } from "./importers/ai-menu.classifier";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
+import { DeliverooMenuPublishService } from "../integrations/deliveroo/deliveroo-menu-publish.service";
 import {
   CreateMenuDto,
   UpdateMenuDto,
@@ -49,6 +50,7 @@ export class MenusController {
     private readonly aiParse: AiMenuParseService,
     private readonly aiImporter: AiMenuImporter,
     private readonly hubriseCatalog: HubRiseCatalogService,
+    private readonly deliverooMenu: DeliverooMenuPublishService,
   ) {}
 
   // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
@@ -178,6 +180,22 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.hubriseCatalog.publishMenu({
+      tenantId: user.tenantId,
+      menuId,
+    });
+  }
+
+  @Post("menus/:menuId/publish/deliveroo")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Push this menu directly to Deliveroo (create-or-update + publish) for the brand's connected Deliveroo store.",
+  })
+  publishDeliveroo(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.deliverooMenu.publishMenu({
       tenantId: user.tenantId,
       menuId,
     });

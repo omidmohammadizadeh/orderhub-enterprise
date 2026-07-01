@@ -302,6 +302,18 @@ export const menusClient = {
       )
       .then((r) => r.data),
 
+  publishToDeliveroo: (menuId: string) =>
+    apiClient
+      .post<{
+        ok: boolean;
+        categories: number;
+        products: number;
+        groups: number;
+        options: number;
+        warnings: string[];
+      }>(`/v1/menus/${menuId}/publish/deliveroo`, {})
+      .then((r) => r.data),
+
   archiveMenu: (menuId: string) =>
     apiClient.post<Menu>(`/v1/menus/${menuId}/archive`, {}).then((r) => r.data),
 
