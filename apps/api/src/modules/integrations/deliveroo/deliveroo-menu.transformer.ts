@@ -18,6 +18,7 @@ export interface SrcOption {
   name: string;
   price: number; // pounds
   plu?: string | null;
+  taxRate?: number | null; // percentage points, e.g. 20
   available?: boolean;
 }
 export interface SrcGroup {
@@ -35,6 +36,7 @@ export interface SrcProduct {
   description?: string | null;
   price: number; // pounds
   plu?: string | null;
+  taxRate?: number | null; // percentage points, e.g. 20
   imageUrl?: string | null;
   available?: boolean;
   groups: SrcGroup[];
@@ -74,7 +76,8 @@ export interface DeliverooMenuUpload {
       type: "ITEM" | "CHOICE";
       name: Loc;
       description?: Loc;
-      plu?: string;
+      plu: string;
+      tax_rate: string;
       price_info: { price: number };
       image?: { url: string };
       modifier_ids?: string[];
@@ -93,6 +96,17 @@ export interface DeliverooMenuUpload {
 
 const toPence = (pounds: number): number =>
   Math.max(0, Math.round((Number(pounds) || 0) * 100));
+
+// Deliveroo requires a non-blank tax_rate string on every item. Our items
+// store per-channel tax as percentage points (delivery tax), defaulting to
+// 0 when the operator never set one — so we fall back to standard UK VAT
+// rather than publishing a 0% rate for unconfigured items.
+const DEFAULT_TAX_RATE = 20;
+const formatTaxRate = (rate?: number | null): string => {
+  const r = rate != null && Number(rate) > 0 ? Number(rate) : DEFAULT_TAX_RATE;
+  // "20" not "20.00"; keep decimals only when meaningful (e.g. "12.5").
+  return String(Number(r.toFixed(2)));
+};
 
 // Every day, all day. Deliveroo gates real ordering on the site's own
 // opening hours (published separately), so an always-on mealtime just
@@ -148,7 +162,8 @@ export function buildDeliverooMenu(input: {
                   id: o.id,
                   type: "CHOICE",
                   name: { en: o.name },
-                  ...(o.plu ? { plu: String(o.plu) } : {}),
+                  plu: String(o.plu || o.id),
+                  tax_rate: formatTaxRate(o.taxRate),
                   price_info: { price: toPence(o.price) },
                 });
               }
@@ -175,7 +190,8 @@ export function buildDeliverooMenu(input: {
           type: "ITEM",
           name: { en: p.name },
           ...(p.description ? { description: { en: p.description } } : {}),
-          ...(p.plu ? { plu: String(p.plu) } : {}),
+          plu: String(p.plu || p.id),
+          tax_rate: formatTaxRate(p.taxRate),
           price_info: { price: toPence(p.price) },
           ...(p.imageUrl ? { image: { url: p.imageUrl } } : {}),
           ...(groupIds.length ? { modifier_ids: groupIds } : {}),

@@ -74,11 +74,22 @@ export class DeliverooMenuPublishService {
 
     // PUT create-or-update-and-publish. Deliveroo menu id = our menu id
     // (stable, so a re-publish updates the same menu instead of duplicating).
-    await this.client.request(
-      "PUT",
-      `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(menuId)}`,
-      payload,
-    );
+    try {
+      await this.client.request(
+        "PUT",
+        `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(menuId)}`,
+        payload,
+      );
+    } catch (e: any) {
+      // Deliveroo rate-limits menu upload to 1 request per minute per site.
+      const msg = String(e?.message ?? "");
+      if (msg.includes("429") || msg.includes("too_many_requests")) {
+        throw new BadRequestException(
+          "Deliveroo only allows one menu publish per minute per site. Wait a minute and try again.",
+        );
+      }
+      throw e;
+    }
 
     // Stamp the outbound publish so the Menu Manager shows it landed.
     await this.prisma.menu
@@ -144,6 +155,7 @@ export class DeliverooMenuPublishService {
             description: it.description ?? null,
             price,
             plu: it.plu ?? it.sku ?? null,
+            taxRate: Number(it.deliveryTax),
             imageUrl: it.imageUrl ?? null,
             available: it.isAvailable !== false,
             groups: groupsByItem.get(it.id) ?? [],
@@ -188,6 +200,7 @@ export class DeliverooMenuPublishService {
           name: o.name,
           price: Number(o.priceAdjustment),
           plu: o.plu ?? null,
+          taxRate: Number(o.deliveryTax),
           available: o.isAvailable !== false,
         })),
       };

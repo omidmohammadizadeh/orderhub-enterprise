@@ -70,17 +70,20 @@ describe("buildDeliverooMenu", () => {
       name: { en: "Cheeseburger" },
       description: { en: "Classic" },
       plu: "CB1",
+      tax_rate: "20", // unconfigured → default UK VAT
       price_info: { price: 750 },
       image: { url: "https://img/cb.jpg" },
       modifier_ids: ["grp-1"],
     });
 
-    // Options are CHOICE items with pence prices.
+    // Options are CHOICE items with pence prices + required plu/tax_rate.
     const mayo = payload.menu.items.find((i) => i.id === "opt-2")!;
     expect(mayo).toMatchObject({
       id: "opt-2",
       type: "CHOICE",
       name: { en: "Mayo" },
+      plu: "opt-2", // no plu set → falls back to the id
+      tax_rate: "20",
       price_info: { price: 50 },
     });
 
@@ -173,6 +176,35 @@ describe("buildDeliverooMenu", () => {
     const grp = payload.menu.modifiers[0]!;
     expect(grp.max_selection).toBe(2); // clamped to number of options
     expect(grp.repeatable).toBe(true);
+  });
+
+  it("always sends a non-blank plu + tax_rate (Deliveroo requires both)", () => {
+    const { payload } = buildDeliverooMenu({
+      menuName: "M",
+      siteId: "s",
+      categories: [
+        {
+          id: "c",
+          name: "C",
+          products: [
+            // no plu, explicit 12.5% tax
+            { id: "i1", name: "A", price: 5, taxRate: 12.5, groups: [] },
+            // no plu, no tax → default 20
+            { id: "i2", name: "B", price: 5, groups: [] },
+          ],
+        },
+      ],
+    });
+    const a = payload.menu.items.find((i) => i.id === "i1")!;
+    const b = payload.menu.items.find((i) => i.id === "i2")!;
+    expect(a.plu).toBe("i1"); // falls back to id
+    expect(a.tax_rate).toBe("12.5");
+    expect(b.tax_rate).toBe("20");
+    // Every item carries both fields.
+    for (const it of payload.menu.items) {
+      expect(it.plu).toBeTruthy();
+      expect(it.tax_rate).toBeTruthy();
+    }
   });
 
   it("floors negative/garbage prices to 0 pence", () => {
