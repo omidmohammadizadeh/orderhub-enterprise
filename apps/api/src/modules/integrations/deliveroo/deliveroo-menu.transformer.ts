@@ -59,6 +59,7 @@ export interface DeliverooMenuUpload {
     mealtimes: Array<{
       id: string;
       name: Loc;
+      image?: { url: string };
       category_ids: string[];
       schedule: Array<{
         day_of_week: number;
@@ -127,6 +128,9 @@ export function buildDeliverooMenu(input: {
   menuName: string;
   siteId: string;
   categories: SrcCategory[];
+  // Deliveroo requires a cover photo on the mealtime — an absolute,
+  // publicly-fetchable image URL.
+  coverImageUrl?: string | null;
 }): TransformResult {
   const warnings: string[] = [];
   const categories: DeliverooMenuUpload["menu"]["categories"] = [];
@@ -213,11 +217,19 @@ export function buildDeliverooMenu(input: {
   }
 
   const categoryIds = categories.map((c) => c.id);
+  if (categoryIds.length && !input.coverImageUrl) {
+    warnings.push(
+      "No cover image available for the menu — Deliveroo requires one on the mealtime and will reject the upload. Set a menu banner or brand logo.",
+    );
+  }
   const mealtimes = categoryIds.length
     ? [
         {
           id: "all-day",
           name: { en: "All Day" },
+          ...(input.coverImageUrl
+            ? { image: { url: input.coverImageUrl } }
+            : {}),
           category_ids: categoryIds,
           schedule: ALL_WEEK,
         },

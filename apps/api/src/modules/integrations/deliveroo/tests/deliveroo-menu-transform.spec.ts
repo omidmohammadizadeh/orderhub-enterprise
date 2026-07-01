@@ -116,6 +116,29 @@ describe("buildDeliverooMenu", () => {
     });
   });
 
+  it("puts the cover image on the mealtime when provided", () => {
+    const { payload, warnings } = buildDeliverooMenu({
+      menuName: "M",
+      siteId: "s",
+      categories: [catWithBurger()],
+      coverImageUrl: "https://cdn/cover.jpg",
+    });
+    expect(payload.menu.mealtimes[0]!.image).toEqual({
+      url: "https://cdn/cover.jpg",
+    });
+    expect(warnings.some((w) => w.includes("cover image"))).toBe(false);
+  });
+
+  it("warns when no cover image is available (Deliveroo requires one)", () => {
+    const { payload, warnings } = buildDeliverooMenu({
+      menuName: "M",
+      siteId: "s",
+      categories: [catWithBurger()],
+    });
+    expect(payload.menu.mealtimes[0]!.image).toBeUndefined();
+    expect(warnings.some((w) => w.includes("cover image"))).toBe(true);
+  });
+
   it("emits a shared group/option only once but lists the product under each category", () => {
     const shared = catWithBurger().products[0]!;
     const { payload, stats } = buildDeliverooMenu({

@@ -8,6 +8,7 @@
 // from the brand's BrandPlatformConnection (Phase BA-2).
 
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { DeliverooClientService } from "./deliveroo-client.service";
 import {
@@ -16,6 +17,11 @@ import {
   type SrcGroup,
 } from "./deliveroo-menu.transformer";
 
+// Item images imported from HubRise are stored as same-origin relative paths
+// (/api/v1/menus/hubrise-image/…). Deliveroo fetches image URLs from the
+// public internet, so they must be absolutised to our public API origin.
+const PROD_API_ORIGIN = "https://orderhub-api-0re6.onrender.com";
+
 @Injectable()
 export class DeliverooMenuPublishService {
   private readonly logger = new Logger(DeliverooMenuPublishService.name);
@@ -23,14 +29,44 @@ export class DeliverooMenuPublishService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: DeliverooClientService,
+    private readonly config: ConfigService,
   ) {}
+
+  /** Public API origin used to absolutise same-origin image paths. */
+  private apiOrigin(): string {
+    const raw = this.config.get<string>("app.apiUrl") ?? "";
+    // API_URL defaults to localhost in dev/when unset — Deliveroo can't reach
+    // that, so fall back to the known production origin (the same one the
+    // HubRise callback hard-codes).
+    if (!raw || raw.includes("localhost")) return PROD_API_ORIGIN;
+    return raw.replace(/\/+$/, "");
+  }
+
+  /** Make an image URL absolute + fetchable, or return null if unusable. */
+  private absolutiseImage(url?: string | null): string | null {
+    const u = (url ?? "").trim();
+    if (!u) return null;
+    if (/^https?:\/\//i.test(u)) return u;
+    if (u.startsWith("data:")) return null; // Deliveroo can't fetch data URLs
+    if (u.startsWith("/")) return `${this.apiOrigin()}${u}`;
+    return null;
+  }
 
   async publishMenu(args: { tenantId: string; menuId: string }) {
     const { tenantId, menuId } = args;
 
     const menu = await this.prisma.menu.findFirst({
       where: { id: menuId, brand: { tenantId }, deletedAt: null },
-      select: { id: true, name: true, brandId: true, locationId: true },
+      select: {
+        id: true,
+        name: true,
+        brandId: true,
+        locationId: true,
+        heroImage: true,
+        bannerImage: true,
+        logoImage: true,
+        brand: { select: { logoUrl: true } },
+      },
     });
     if (!menu) throw new BadRequestException("Menu not found");
 
@@ -60,10 +96,26 @@ export class DeliverooMenuPublishService {
       );
     }
 
+    // Cover photo for the mealtime (Deliveroo requires one). Prefer an
+    // operator-set menu banner / brand logo; fall back to the first product
+    // image so a menu with photos always has a valid cover.
+    const firstProductImage = categories
+      .flatMap((c) => c.products)
+      .map((p) => p.imageUrl)
+      .find((u) => !!u);
+    const coverImageUrl =
+      this.absolutiseImage(menu.heroImage) ??
+      this.absolutiseImage(menu.bannerImage) ??
+      this.absolutiseImage(menu.logoImage) ??
+      this.absolutiseImage((menu as any).brand?.logoUrl) ??
+      firstProductImage ?? // already absolutised in loadCategories
+      null;
+
     const { payload, stats, warnings } = buildDeliverooMenu({
       menuName: menu.name,
       siteId: conn.externalStoreId!,
       categories,
+      coverImageUrl,
     });
     for (const w of warnings) this.logger.warn(`Deliveroo menu publish: ${w}`);
 
@@ -156,7 +208,7 @@ export class DeliverooMenuPublishService {
             price,
             plu: it.plu ?? it.sku ?? null,
             taxRate: Number(it.deliveryTax),
-            imageUrl: it.imageUrl ?? null,
+            imageUrl: this.absolutiseImage(it.imageUrl),
             available: it.isAvailable !== false,
             groups: groupsByItem.get(it.id) ?? [],
           };
