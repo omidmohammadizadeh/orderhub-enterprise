@@ -1296,9 +1296,10 @@ export class MenusService {
     const dataUrl = /^data:([^;,]*)(;base64)?,([\s\S]*)$/i.exec(src);
     if (dataUrl) {
       const contentType = dataUrl[1] || "image/jpeg";
+      const payload = dataUrl[3] ?? "";
       const buffer = dataUrl[2]
-        ? Buffer.from(dataUrl[3], "base64")
-        : Buffer.from(decodeURIComponent(dataUrl[3]), "utf8");
+        ? Buffer.from(payload, "base64")
+        : Buffer.from(decodeURIComponent(payload), "utf8");
       return { buffer, contentType };
     }
 
