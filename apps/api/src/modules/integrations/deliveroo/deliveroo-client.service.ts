@@ -116,6 +116,9 @@ export class DeliverooClientService {
         `Deliveroo ${method} ${path} → ${res.status}: ${text.slice(0, 200)}`,
       );
     }
+    // Log the successful call too — silent 2xx made a wrong-shaped
+    // opening_hours body look like a working publish (see BA-2 fix).
+    this.logger.log(`Deliveroo ${method} ${path} → ${res.status}`);
     return (text ? JSON.parse(text) : null) as T;
   }
 

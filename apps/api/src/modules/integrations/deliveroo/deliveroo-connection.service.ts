@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { DeliverooClientService } from "./deliveroo-client.service";
 
@@ -67,6 +72,8 @@ export function toDeliverooOpeningHours(
 
 @Injectable()
 export class DeliverooConnectionService {
+  private readonly logger = new Logger(DeliverooConnectionService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: DeliverooClientService,
@@ -196,15 +203,27 @@ export class DeliverooConnectionService {
         ? (loc as any).openingHours
         : (loc?.brand as any)?.openingHours;
     const hours = toDeliverooOpeningHours(rawHours);
-    if (Object.keys(hours).length) {
+    const days = Object.keys(hours);
+    // Deliveroo's Site API wants the map WRAPPED under `opening_hours`:
+    //   { "opening_hours": { "monday": [{ local_start_time, local_end_time }] } }
+    // Posting the bare map is accepted (2xx) but silently ignored — which is
+    // why "publish" reported success yet nothing changed on Deliveroo.
+    if (days.length) {
+      this.logger.log(
+        `Deliveroo publishHours conn=${connectionId} brand=${c.externalBrandId} site=${c.externalStoreId} days=[${days.join(",")}]`,
+      );
       await this.client.request(
         "POST",
         `/site/v1/brands/${c.externalBrandId}/sites/${c.externalStoreId}/opening_hours`,
-        hours,
+        { opening_hours: hours },
+      );
+    } else {
+      this.logger.warn(
+        `Deliveroo publishHours conn=${connectionId}: no opening hours to send (location + brand both empty) — pushing prep only`,
       );
     }
     await this.pushPrepTime(c, loc);
-    return { ok: true };
+    return { ok: true, daysPublished: days.length };
   }
 
   private async pushPrepTime(c: any, loc: any) {
