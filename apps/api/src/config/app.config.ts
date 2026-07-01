@@ -37,6 +37,9 @@ export const appConfig = registerAs("app", () => ({
       clientSecret: process.env.DELIVEROO_CLIENT_SECRET ?? "",
       webhookSecret: process.env.DELIVEROO_WEBHOOK_SECRET ?? "",
       baseUrl: process.env.DELIVEROO_BASE_URL ?? "https://api.developers.deliveroo.com",
+      authUrl:
+        process.env.DELIVEROO_AUTH_URL ??
+        "https://auth.developers.deliveroo.com/oauth2/token",
     },
     justEat: {
       apiKey: process.env.JUST_EAT_API_KEY ?? "",
