@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
+import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 
 export type SupportedChannel =
   | "ONLINE"
@@ -61,6 +62,9 @@ export class PauseService {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => HubRiseLocationPauseService))
     private readonly hubrise: HubRiseLocationPauseService,
+    // Phase BA-2 — mirror pauses onto the brand's DIRECT Deliveroo store,
+    // exactly like the per-brand Open/Pause buttons on the channels grid.
+    private readonly deliveroo: DeliverooConnectionService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -220,6 +224,11 @@ export class PauseService {
         );
     }
 
+    // Mirror onto the direct Deliveroo store (fire-and-forget, fully
+    // swallowed — never block or fail the operator's pause on a Deliveroo
+    // API hiccup). Reconcile picks up the row we just wrote.
+    void this.reconcileDeliveroo(args.scope, args.tenantId);
+
     return row;
   }
 
@@ -256,6 +265,11 @@ export class PauseService {
             `HubRise resume sync failed: ${err?.message ?? err}`,
           ),
         );
+      // Reopen the direct Deliveroo store if nothing else keeps it paused.
+      void this.reconcileDeliveroo(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
       return { ok: true };
     }
     if (!args.scope) throw new BadRequestException("rowId or scope required");
@@ -267,7 +281,68 @@ export class PauseService {
         channel: args.scope.channel ?? undefined,
       },
     });
+    void this.reconcileDeliveroo(args.scope, args.tenantId);
     return { ok: true };
+  }
+
+  /**
+   * Mirror the current pause state onto the brand's DIRECT Deliveroo
+   * store(s) so "Stop taking orders" closes Deliveroo — and Resume reopens
+   * it — exactly like the per-brand Open/Pause buttons on the channels grid.
+   *
+   * Reconcile (not a blind toggle): for every connected Deliveroo store in
+   * scope we recompute whether that brand's Deliveroo channel is paused and
+   * push OPEN/CLOSED to match. Idempotent, and correct under overlapping
+   * rows + busy mode (busy ≠ paused → the store stays open).
+   *
+   * Fully best-effort: any failure is logged and swallowed so a Deliveroo
+   * API hiccup never breaks the operator's pause/resume.
+   */
+  private async reconcileDeliveroo(
+    scope: PauseScope,
+    tenantId: string,
+  ): Promise<void> {
+    try {
+      // A channel-scoped pause only touches Deliveroo when it IS Deliveroo.
+      if (scope.channel && scope.channel !== "DELIVEROO") return;
+
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "DELIVEROO",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          externalStoreId: { not: null },
+          externalBrandId: { not: null },
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { id: true, brandId: true, tenantId: true },
+      });
+
+      for (const c of conns) {
+        const snap = await this.isPaused({
+          locationId: scope.locationId,
+          brandId: c.brandId,
+          channel: "DELIVEROO",
+        });
+        const shouldBeOpen = !snap.paused;
+        try {
+          await this.deliveroo.setStoreOpen(
+            c.tenantId ?? tenantId,
+            c.id,
+            shouldBeOpen,
+          );
+          this.logger.log(
+            `Deliveroo store ${shouldBeOpen ? "opened" : "closed"} for conn ${c.id} via pause reconcile`,
+          );
+        } catch (e: any) {
+          this.logger.warn(
+            `Deliveroo store ${shouldBeOpen ? "open" : "close"} failed for conn ${c.id}: ${e?.message ?? e}`,
+          );
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Deliveroo pause reconcile failed: ${e?.message ?? e}`);
+    }
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────
