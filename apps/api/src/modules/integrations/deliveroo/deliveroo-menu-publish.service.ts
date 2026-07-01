@@ -15,7 +15,15 @@ import {
   buildDeliverooMenu,
   type SrcCategory,
   type SrcGroup,
+  type SrcProduct,
 } from "./deliveroo-menu.transformer";
+import {
+  extractSizeKey,
+  getModifierPrice,
+  getModifierPlu,
+  isModifierAvailable,
+  type ProductSku,
+} from "@orderhub/shared";
 
 // Item images imported from HubRise are stored as same-origin relative paths
 // (/api/v1/menus/hubrise-image/…). Deliveroo fetches image URLs from the
@@ -89,7 +97,7 @@ export class DeliverooMenuPublishService {
       );
     }
 
-    const categories = await this.loadCategories(menuId, menu.brandId);
+    const categories = await this.loadCategories(menuId);
     if (categories.length === 0) {
       throw new BadRequestException(
         "This menu has no categories/items to publish.",
@@ -166,11 +174,14 @@ export class DeliverooMenuPublishService {
    * Load the menu's categories with their products, each product's modifier
    * groups, and each group's options — flattened into the transformer's
    * source shape. Prices come out in pounds (Prisma Decimal → Number).
+   *
+   * Multi-SKU products (a pizza with sizes, each size carrying its own price,
+   * PLU and modifier groups) are FLATTENED to one Deliveroo item per size —
+   * Deliveroo has no native size concept, so "Margherita - 12 inch" ships as
+   * its own item at the 12-inch price with the 12-inch modifier groups (each
+   * option priced from the size-aware pricesBySize map).
    */
-  private async loadCategories(
-    menuId: string,
-    brandId: string,
-  ): Promise<SrcCategory[]> {
+  private async loadCategories(menuId: string): Promise<SrcCategory[]> {
     const cats = await this.prisma.menuCategory.findMany({
       where: { menuId, isVisible: true },
       orderBy: { sortOrder: "asc" },
@@ -182,18 +193,30 @@ export class DeliverooMenuPublishService {
       },
     });
 
-    // Collect the visible products, keeping their category grouping.
-    const allItemIds = new Set<string>();
+    // Split items into single-price vs multi-SKU, and collect the modifier
+    // groups each needs so we can batch-load. Single-price items link groups
+    // via ModifierGroupOnItem; multi-SKU items name their groups by id in
+    // each SKU's `modifierGroups`.
+    const singleItemIds = new Set<string>();
+    const skuGroupIds = new Set<string>();
+    const skusByItem = new Map<string, ProductSku[]>();
     for (const c of cats) {
       for (const link of c.items) {
-        if (link.isVisible && link.item) {
-          allItemIds.add(link.item.id);
+        const it = link.item;
+        if (!link.isVisible || !it) continue;
+        const skus = this.readSkus(it);
+        if (skus.length > 0) {
+          skusByItem.set(it.id, skus);
+          for (const s of skus)
+            for (const gid of s.modifierGroups ?? []) skuGroupIds.add(gid);
+        } else {
+          singleItemIds.add(it.id);
         }
       }
     }
 
-    // One query for every product's modifier groups + options.
-    const groupsByItem = await this.loadGroupsByItem(Array.from(allItemIds));
+    const groupsByItem = await this.loadGroupsByItem(Array.from(singleItemIds));
+    const groupsById = await this.loadGroupsById(Array.from(skuGroupIds));
 
     return cats.map((c) => ({
       id: c.id,
@@ -201,25 +224,128 @@ export class DeliverooMenuPublishService {
       description: c.description ?? null,
       products: c.items
         .filter((l) => l.isVisible && l.item)
-        .map((l) => {
-          const it = l.item;
-          const price =
-            l.priceOverride != null
-              ? Number(l.priceOverride)
-              : Number(it.basePrice);
-          return {
-            id: it.id,
-            name: it.name,
-            description: it.description ?? null,
-            price,
-            plu: it.plu ?? it.sku ?? null,
-            taxRate: Number(it.deliveryTax),
-            imageUrl: this.absolutiseImage(it.imageUrl),
-            available: it.isAvailable !== false,
-            groups: groupsByItem.get(it.id) ?? [],
-          };
-        }),
+        .flatMap((l) =>
+          this.toSrcProducts(l, skusByItem, groupsByItem, groupsById),
+        ),
     }));
+  }
+
+  /** Parse the productSkus JSON into typed rows (only for multi-SKU items). */
+  private readSkus(it: any): ProductSku[] {
+    if (!it?.hasMultipleSkus) return [];
+    const raw = Array.isArray(it.productSkus) ? it.productSkus : [];
+    return raw
+      .filter((s: any) => s && typeof s.name === "string")
+      .map((s: any) => ({
+        name: String(s.name),
+        plu: s.plu ? String(s.plu) : "",
+        price: Number(s.price) || 0,
+        modifierGroups: Array.isArray(s.modifierGroups)
+          ? s.modifierGroups.map(String)
+          : [],
+        priceOverrides: s.priceOverrides ?? undefined,
+      }));
+  }
+
+  /** One menu item → one Deliveroo product, or N (one per SKU) if multi-SKU. */
+  private toSrcProducts(
+    link: any,
+    skusByItem: Map<string, ProductSku[]>,
+    groupsByItem: Map<string, SrcGroup[]>,
+    groupsById: Map<string, any>,
+  ): SrcProduct[] {
+    const it = link.item;
+    const taxRate = Number(it.deliveryTax);
+    const imageUrl = this.absolutiseImage(it.imageUrl);
+    const available = it.isAvailable !== false;
+    const skus = skusByItem.get(it.id);
+
+    if (skus && skus.length > 0) {
+      return skus.map((sku, i) => {
+        const sizeKey = extractSizeKey(sku.name) ?? sku.name;
+        const groups: SrcGroup[] = [];
+        for (const gid of sku.modifierGroups ?? []) {
+          const g = groupsById.get(gid);
+          if (!g) continue;
+          const options = (g.options ?? [])
+            .filter((o: any) =>
+              isModifierAvailable(o, sizeKey, { audience: "customer" }),
+            )
+            .map((o: any) => ({
+              id: `${o.id}__${this.sizeSlug(sizeKey)}`,
+              name: o.name,
+              price: getModifierPrice(o, sizeKey),
+              plu: getModifierPlu(o, sizeKey) ?? o.id,
+              taxRate: Number(o.deliveryTax),
+              available: o.isAvailable !== false,
+            }));
+          if (options.length === 0) continue;
+          groups.push({
+            id: `${g.id}__${this.sizeSlug(sizeKey)}`,
+            name: g.name,
+            minSelections: g.minSelections,
+            maxSelections: g.maxSelections,
+            selectionType: g.selectionType,
+            allowDuplicateSelections: g.allowDuplicateSelections,
+            options,
+          });
+        }
+        return {
+          id: `${it.id}__s${i}`,
+          name: `${it.name} - ${sku.name}`,
+          description: it.description ?? null,
+          price: Number(sku.price) || 0,
+          plu: sku.plu || it.plu || it.id,
+          taxRate,
+          imageUrl,
+          available,
+          groups,
+        };
+      });
+    }
+
+    // Single-price item.
+    const price =
+      link.priceOverride != null
+        ? Number(link.priceOverride)
+        : Number(it.basePrice);
+    return [
+      {
+        id: it.id,
+        name: it.name,
+        description: it.description ?? null,
+        price,
+        plu: it.plu ?? it.sku ?? null,
+        taxRate,
+        imageUrl,
+        available,
+        groups: groupsByItem.get(it.id) ?? [],
+      },
+    ];
+  }
+
+  /** Deliveroo ids must be simple tokens — slugify a size key for suffixes. */
+  private sizeSlug(key: string): string {
+    return String(key).replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "x";
+  }
+
+  /** Load modifier groups (with options) by id — for multi-SKU SKU groups. */
+  private async loadGroupsById(
+    groupIds: string[],
+  ): Promise<Map<string, any>> {
+    const out = new Map<string, any>();
+    if (groupIds.length === 0) return out;
+    const groups = await this.prisma.modifierGroup.findMany({
+      where: { id: { in: groupIds } },
+      include: {
+        options: {
+          where: { isAvailable: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+    for (const g of groups) out.set(g.id, g);
+    return out;
   }
 
   private async loadGroupsByItem(
