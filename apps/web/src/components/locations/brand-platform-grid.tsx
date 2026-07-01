@@ -26,6 +26,8 @@ import {
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
+import { deliverooClient } from "@/lib/api/deliveroo.client";
+import toast from "react-hot-toast";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
 // token is generated against a HubRise location, not a brand. It's
@@ -105,6 +107,21 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
             );
           }
           const conn = conns.find((c) => c.platform === platform);
+          // Deliveroo is a real API connection: connecting resolves the
+          // Deliveroo Brand ID from the Site ID and unlocks store controls.
+          if (platform === "DELIVEROO") {
+            return (
+              <DeliverooRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
           return (
             <ConnectionRow
               key={platform}
@@ -302,6 +319,179 @@ function ConnectionRow({
                 </button>
               </>
             )}
+          </div>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function DeliverooRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const connected =
+    connection?.status === "connected" || connection?.status === "suspended";
+  const [editing, setEditing] = useState(false);
+  const [storeId, setStoreId] = useState(connection?.externalStoreId ?? "");
+  const [dBrandId, setDBrandId] = useState(connection?.externalBrandId ?? "");
+
+  useEffect(() => {
+    setStoreId(connection?.externalStoreId ?? "");
+    setDBrandId(connection?.externalBrandId ?? "");
+  }, [connection?.externalStoreId, connection?.externalBrandId]);
+
+  const err = (e: any) =>
+    toast.error(
+      e?.response?.data?.message ?? e?.message ?? "Deliveroo request failed",
+    );
+
+  const connect = useMutation({
+    mutationFn: () =>
+      deliverooClient.connect({
+        brandId,
+        locationId,
+        storeId: storeId.trim(),
+        deliverooBrandId: dBrandId.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.success("Deliveroo store connected");
+      setEditing(false);
+      onChanged();
+    },
+    onError: err,
+  });
+  const disconnect = useMutation({
+    mutationFn: () => deliverooClient.disconnect(connection!.id!),
+    onSuccess: () => {
+      toast.success("Deliveroo disconnected");
+      onChanged();
+    },
+    onError: err,
+  });
+  const pause = useMutation({
+    mutationFn: () => deliverooClient.pause(connection!.id!),
+    onSuccess: () => {
+      toast.success("Deliveroo store paused (closed)");
+      onChanged();
+    },
+    onError: err,
+  });
+  const resume = useMutation({
+    mutationFn: () => deliverooClient.resume(connection!.id!),
+    onSuccess: () => {
+      toast.success("Deliveroo store resumed (open)");
+      onChanged();
+    },
+    onError: err,
+  });
+  const publishHours = useMutation({
+    mutationFn: () => deliverooClient.publishHours(connection!.id!),
+    onSuccess: () => toast.success("Opening hours + prep pushed to Deliveroo"),
+    onError: err,
+  });
+
+  const showForm = !connected || editing;
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-start gap-3">
+        <PlatformLogo platform="DELIVEROO" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Deliveroo</span>
+            <StatusChip status={connection?.status ?? "not_connected"} />
+          </div>
+
+          {showForm ? (
+            <div className="mt-1.5 space-y-1.5">
+              <input
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                placeholder="Site ID (e.g. rest-12345)"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+              />
+              <input
+                value={dBrandId}
+                onChange={(e) => setDBrandId(e.target.value)}
+                placeholder="Deliveroo Brand ID (optional — auto-resolved)"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+              />
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => connect.mutate()}
+                  disabled={connect.isPending || !storeId.trim()}
+                  className="rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  {connect.isPending ? "Connecting…" : "Connect"}
+                </button>
+                {editing && (
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="rounded-md border border-zinc-200 px-2 py-1 text-[10px] hover:bg-zinc-50"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              Site {connection?.externalStoreId} · Brand{" "}
+              {connection?.externalBrandId}
+            </p>
+          )}
+        </div>
+
+        {connected && !editing && (
+          <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
+            <button
+              onClick={() => resume.mutate()}
+              disabled={resume.isPending}
+              className="rounded-md border border-emerald-200 px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+            >
+              Open
+            </button>
+            <button
+              onClick={() => pause.mutate()}
+              disabled={pause.isPending}
+              className="rounded-md border border-orange-200 px-2 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+            >
+              Pause
+            </button>
+            <button
+              onClick={() => publishHours.mutate()}
+              disabled={publishHours.isPending}
+              className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+            >
+              {publishHours.isPending ? "…" : "Push hours"}
+            </button>
+            <button
+              onClick={() => setEditing(true)}
+              className="rounded p-1 text-zinc-500 hover:bg-zinc-100"
+              title="Edit"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => disconnect.mutate()}
+              disabled={disconnect.isPending}
+              className="rounded p-1 text-zinc-500 hover:bg-red-50 hover:text-red-600"
+              title="Disconnect"
+            >
+              {disconnect.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3" />
+              )}
+            </button>
           </div>
         )}
       </div>
