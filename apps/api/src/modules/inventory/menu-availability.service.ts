@@ -61,28 +61,47 @@ export class MenuAvailabilityService {
     });
     if (!brand) throw new NotFoundException("Brand not found");
 
-    // Phase AW-14 fix — items can live on this brand via two paths:
-    //   (a) MenuItem.brandId === brand.id  (created directly under it)
-    //   (b) reachable via Menu.brandId === brand.id → MenuCategory →
-    //       MenuItemOnCategory → MenuItem  (a menu the operator
-    //       reassigned to this brand at publish time, whose items still
-    //       carry their original brandId).
-    // An item belongs to this brand when it's its primary brand OR it's
-    // shared to it (brandIds). We deliberately do NOT match by the menu's
-    // brandId: a shared HubRise menu has one Menu.brandId for all brands, so
-    // matching on it would lump every item under that one brand. Tagging each
-    // product's brand (product form → Brands) is what scopes it here — so
-    // Margherita shows under Pizza Uno and Cheese Burger under Monster Burgerz.
-    const menuItemIds = await this.prisma.menuItem.findMany({
-      where: {
-        OR: [{ brandId }, { brandIds: { has: brandId } }],
-      },
-      select: { id: true },
+    // Scope to the brand's MOST RECENTLY PUBLISHED menu: the 86 board should
+    // mirror what customers actually see on the live menu (whichever channel
+    // it was last published to — Deliveroo / HubRise / storefront), not every
+    // product ever tagged to the brand. The publish flow stamps Menu.brandId +
+    // lastPublishedAt, so "latest published menu for this brand" is a direct
+    // lookup. We take that menu's items via its categories.
+    //
+    // Fallback: a brand with no published menu yet keeps the old behaviour —
+    // items tagged to the brand (primary brandId or shared via brandIds) — so
+    // the board isn't empty before the first publish.
+    const lastPublished = await this.prisma.menu.findFirst({
+      where: { brandId, deletedAt: null, lastPublishedAt: { not: null } },
+      orderBy: { lastPublishedAt: "desc" },
+      select: { id: true, name: true },
     });
-    if (menuItemIds.length === 0) return { items: [] };
+
+    let itemIds: string[];
+    if (lastPublished) {
+      const cats = await this.prisma.menuCategory.findMany({
+        where: { menuId: lastPublished.id, isVisible: true },
+        select: {
+          items: {
+            where: { isVisible: true },
+            select: { itemId: true },
+          },
+        },
+      });
+      itemIds = Array.from(
+        new Set(cats.flatMap((c) => c.items.map((l) => l.itemId))),
+      );
+    } else {
+      const tagged = await this.prisma.menuItem.findMany({
+        where: { OR: [{ brandId }, { brandIds: { has: brandId } }] },
+        select: { id: true },
+      });
+      itemIds = tagged.map((r) => r.id);
+    }
+    if (itemIds.length === 0) return { items: [] };
 
     const items = await this.prisma.menuItem.findMany({
-      where: { id: { in: menuItemIds.map((r) => r.id) } },
+      where: { id: { in: itemIds } },
       select: {
         id: true,
         name: true,
@@ -116,6 +135,12 @@ export class MenuAvailabilityService {
     }
 
     return {
+      // Which menu these items came from, so the board can show
+      // "Showing: <last published menu>" (null when falling back to
+      // brand-tagged items before the first publish).
+      sourceMenu: lastPublished
+        ? { id: lastPublished.id, name: lastPublished.name }
+        : null,
       items: items.map((it) => ({
         ...it,
         snoozes: byItem.get(it.id) ?? {},

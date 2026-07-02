@@ -213,13 +213,24 @@ export default function InventoryPage() {
         )}
       </div>
 
+      {brandId && matrixQuery.data?.sourceMenu ? (
+        <p className="text-xs text-zinc-500">
+          Showing the last published menu:{" "}
+          <span className="font-semibold text-zinc-700">
+            {matrixQuery.data.sourceMenu.name}
+          </span>
+        </p>
+      ) : null}
+
       {!brandId ? null : matrixQuery.isLoading ? (
         <div className="flex h-40 items-center justify-center text-zinc-400">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
-          No products in this brand yet.
+          {matrixQuery.data?.sourceMenu
+            ? "This menu has no products yet."
+            : "No published menu for this brand yet — publish a menu to manage its availability here."}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">

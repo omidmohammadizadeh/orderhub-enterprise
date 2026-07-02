@@ -53,7 +53,10 @@ export interface InventoryItem {
 export const menuAvailabilityClient = {
   getMatrix: (brandId: string) =>
     apiClient
-      .get<{ items: InventoryItem[] }>(`/v1/menu-availability/brands/${brandId}`)
+      .get<{
+        sourceMenu: { id: string; name: string } | null;
+        items: InventoryItem[];
+      }>(`/v1/menu-availability/brands/${brandId}`)
       .then((r) => r.data),
 
   snooze: (
