@@ -125,21 +125,19 @@ export class DeliverooMenuImporter {
 
     const normalized = classifyDeliverooMenu(payload);
 
-    // Diagnostic: how many products carried an image through. If zero while
-    // the menu has products, log the first item's keys so we can see the
-    // shape Deliveroo actually returned (image field naming varies).
+    // Diagnostic: how many products carried an image, plus a sample of what we
+    // extracted AND the raw Deliveroo image field on the first item — so we
+    // can see the exact URL shape (and whether it's publicly loadable) without
+    // guessing.
     const withImg = normalized.products.filter((p) => p.imageUrl).length;
+    const sample = normalized.products.find((p) => p.imageUrl)?.imageUrl;
+    const firstItem: any = (payload?.menu?.items ?? [])[0];
     this.logger.log(
-      `Deliveroo import menu=${menu.id}: ${normalized.products.length} products, ${withImg} with images`,
+      `Deliveroo import menu=${menu.id}: ${normalized.products.length} products, ${withImg} with images; ` +
+        `sample=${sample ?? "none"}; rawImage=${JSON.stringify(
+          firstItem?.image ?? firstItem?.images ?? firstItem?.image_url ?? null,
+        )?.slice(0, 300)}`,
     );
-    if (withImg === 0 && normalized.products.length > 0) {
-      const firstItem = (payload?.menu?.items ?? [])[0];
-      this.logger.warn(
-        `Deliveroo import: no product images found. First item keys=[${Object.keys(
-          firstItem ?? {},
-        ).join(",")}] image=${JSON.stringify((firstItem as any)?.image ?? (firstItem as any)?.images ?? null)?.slice(0, 200)}`,
-      );
-    }
 
     return this.writer.apply({
       menuId: menu.id,
