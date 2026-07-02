@@ -244,6 +244,81 @@ export class CustomersService {
     };
   }
 
+  // ── Caller-ID lookup ──────────────────────────────────────────────────────
+  //
+  // Match a ringing landline number against past orders so the POS can
+  // autofill the name and offer previous delivery addresses. Phone formats
+  // vary (spaces, +44 vs 0), so match on the digit-normalised suffix.
+  async lookupByPhone(tenantId: string, rawPhone: string) {
+    const digits = (rawPhone ?? "").replace(/\D/g, "");
+    if (digits.length < 6) return null;
+    // Last 9 digits uniquely identify a UK number across 0/+44 forms.
+    const suffix = digits.slice(-9);
+
+    const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        isSandbox: false,
+        customerPhone: { not: null },
+        createdAt: { gte: oneYearAgo },
+      },
+      select: {
+        customerName: true,
+        customerPhone: true,
+        customerInfo: true,
+        deliveryAddress: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5_000,
+    });
+
+    const mine = orders.filter(
+      (o) => (o.customerPhone ?? "").replace(/\D/g, "").endsWith(suffix),
+    );
+    if (mine.length === 0) return null;
+
+    const name =
+      mine.find((o) => (o.customerName ?? "").trim())?.customerName?.trim() ??
+      "Customer";
+    const email =
+      (mine
+        .map((o) => ((o.customerInfo ?? {}) as Record<string, any>).email)
+        .find(Boolean) as string) ?? null;
+
+    // Distinct previous addresses, newest first, capped for the popup.
+    const seen = new Set<string>();
+    const addresses: Array<{
+      line1: string;
+      line2: string | null;
+      city: string | null;
+      postcode: string | null;
+    }> = [];
+    for (const o of mine) {
+      const a = (o.deliveryAddress ?? {}) as Record<string, any>;
+      const line1 = (a.line1 ?? o.addressLine1 ?? "").trim();
+      if (!line1) continue;
+      const addr = {
+        line1,
+        line2: (a.line2 ?? o.addressLine2 ?? null) || null,
+        city: (a.city ?? o.city ?? null) || null,
+        postcode: (a.postcode ?? o.postcode ?? null) || null,
+      };
+      const key = `${line1}|${addr.postcode ?? ""}`.toLowerCase().replace(/\s+/g, "");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      addresses.push(addr);
+      if (addresses.length >= 4) break;
+    }
+
+    return { name, orders: mine.length, email, addresses };
+  }
+
   async findOne(customerId: string, tenantId: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id: customerId, tenantId },

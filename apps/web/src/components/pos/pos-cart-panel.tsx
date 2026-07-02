@@ -150,6 +150,38 @@ export function PosCartPanel(props: CartPanelProps) {
   const [pcLookupLoading, setPcLookupLoading] = useState(false);
   const [pcLookupNote, setPcLookupNote] = useState<string | null>(null);
 
+  // Caller-ID autofill: the incoming-call popup (caller-id-popup.tsx)
+  // dispatches "pos:callerid-fill" when the operator taps "Start order" —
+  // prefill the caller number, name, and (for known customers) the chosen
+  // previous delivery address.
+  useEffect(() => {
+    const onFill = (e: Event) => {
+      const d = (e as CustomEvent).detail as {
+        phone: string;
+        name: string | null;
+        address: {
+          line1: string;
+          line2: string | null;
+          city: string | null;
+          postcode: string | null;
+        } | null;
+      };
+      if (!d?.phone) return;
+      setCallerId(d.phone);
+      setCustomerPhone(d.phone);
+      if (d.name) setCustomerName(d.name);
+      if (d.address) {
+        setFulfillmentType("DELIVERY");
+        setAddrLine1(d.address.line1);
+        setAddrLine2(d.address.line2 ?? "");
+        setCity(d.address.city ?? "");
+        setPostcode(d.address.postcode ?? "");
+      }
+    };
+    window.addEventListener("pos:callerid-fill", onFill);
+    return () => window.removeEventListener("pos:callerid-fill", onFill);
+  }, []);
+
   // Delivery fee lookup
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const [deliveryFeeOverride, setDeliveryFeeOverride] = useState<number | null>(null);

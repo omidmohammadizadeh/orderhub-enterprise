@@ -27,6 +27,7 @@ import {
   type PartialDraft,
 } from "@/components/pos/pos-cart-panel";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
+import { CallerIdPopup } from "@/components/pos/caller-id-popup";
 import { PromosModal } from "@/components/pos/promos-modal";
 // Phase AP follow-up (AP-NAV-1): Direct online ordering moved to its
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
@@ -506,6 +507,10 @@ export default function PosPage() {
           </div>
         </div>
       )}
+
+      {/* Landline caller-ID popup — fires on the "callerid:ring" socket
+          event and prefills the cart via "pos:callerid-fill". */}
+      <CallerIdPopup locationId={selectedLocationId} />
 
       {showFeeModal && selectedLocationId && (
         <DeliveryFeeModal

@@ -33,6 +33,28 @@ export interface ServerToClientEvents {
   "dispatch:driver:assigned": (payload: DriverAssignedPayload) => void;
   "dispatch:assignment:updated": (payload: DriverAssignedPayload) => void;
   "dispatch:tracking:update": (payload: TrackingUpdatePayload) => void;
+  // Landline caller-ID: the shop's phone is ringing (from the Comet USB
+  // reader via the caller-ID hub tablet). POS tablets pop the caller card.
+  "callerid:ring": (payload: CallerIdRingPayload) => void;
+}
+
+export interface CallerIdRingPayload {
+  locationId: string;
+  /** Raw number as reported by the caller-ID unit. */
+  phone: string;
+  at: string; // ISO timestamp
+  /** Known-customer match (by phone across past orders), null for new callers. */
+  match: null | {
+    name: string;
+    orders: number;
+    email: string | null;
+    addresses: Array<{
+      line1: string;
+      line2: string | null;
+      city: string | null;
+      postcode: string | null;
+    }>;
+  };
 }
 
 export interface ClientToServerEvents {

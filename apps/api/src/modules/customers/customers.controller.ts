@@ -22,12 +22,43 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { SocketService } from "../../infrastructure/socket/socket.service";
 
 @ApiTags("customers")
 @ApiBearerAuth()
 @Controller({ path: "customers", version: "1" })
 export class CustomersController {
-  constructor(private readonly customers: CustomersService) {}
+  constructor(
+    private readonly customers: CustomersService,
+    private readonly socket: SocketService,
+  ) {}
+
+  // ── Caller-ID ─────────────────────────────────────────────────────────
+  // The caller-ID hub tablet (Comet USB reader) posts here when the shop's
+  // landline rings. We match the number against past orders and broadcast
+  // the caller card to every POS tablet in the location's room.
+  @Post("caller-id/ring")
+  @ApiOperation({
+    summary:
+      "Landline is ringing — look up the caller and broadcast to the location's POS tablets",
+  })
+  async callerIdRing(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { locationId: string; phone: string },
+  ) {
+    const match = await this.customers.lookupByPhone(
+      user.tenantId,
+      body.phone,
+    );
+    const payload = {
+      locationId: body.locationId,
+      phone: body.phone,
+      at: new Date().toISOString(),
+      match,
+    };
+    this.socket.emitToLocation(body.locationId, "callerid:ring", payload);
+    return payload;
+  }
 
   @Get()
   @ApiOperation({ summary: "List customers with optional search" })
