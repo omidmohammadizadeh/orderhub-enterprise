@@ -101,16 +101,19 @@ export class DeliverooWebhookController {
           `Deliveroo webhook REJECTED: DELIVEROO_WEBHOOK_SECRET is not set on the API — set it (the webhook secret from the Deliveroo portal, distinct from the client secret) and redeploy.`,
         );
       } else {
-        // Show enough to tell a wrong-secret (hex lengths match, values
-        // differ) from an encoding mismatch (received isn't 64-char lower
-        // hex — e.g. base64 or a "sha256=" prefix, which would need a
-        // verifier change rather than a secret change).
+        // Definitive test: does ANY plausible signing scheme match Deliveroo's
+        // signature with the deployed secret? A named match → secret is RIGHT,
+        // only our format is off (code fix). "no_match" → the secret VALUE is
+        // wrong (env fix).
+        const variant = this.client.diagnoseSignatureVariant(
+          sequenceGuid,
+          raw,
+          signature,
+        );
         this.logger.error(
-          `Deliveroo webhook REJECTED: signature did not verify with the deployed DELIVEROO_WEBHOOK_SECRET. ` +
-            `received(len=${signature.length})=${signature.slice(0, 16)}… ` +
-            `expectedStd(len=${diag.expectedStandard?.length})=${diag.expectedStandard?.slice(0, 16)}… ` +
-            `expectedLegacy=${diag.expectedLegacy?.slice(0, 16)}… ` +
-            `seq=${sequenceGuid} rawLen=${raw.length}`,
+          `Deliveroo webhook REJECTED: signature did not verify. variantMatch=${variant} ` +
+            `(a named scheme ⇒ secret is correct, format needs fixing; "no_match" ⇒ wrong DELIVEROO_WEBHOOK_SECRET). ` +
+            `received=${signature.slice(0, 16)}… seq=${sequenceGuid} rawLen=${raw.length}`,
         );
       }
     }

@@ -162,6 +162,47 @@ export class DeliverooClientService {
     };
   }
 
+  /**
+   * Try every plausible signing scheme against Deliveroo's actual signature.
+   * Returns the name of the scheme that matches (proving the deployed secret
+   * is CORRECT and only the signing-input format is off), or "no_match"
+   * (proving the secret value itself is wrong), or "no_secret".
+   *
+   * Purely diagnostic — never used for auth. Logged so we can tell a
+   * wrong-secret from a wrong-format without another guess.
+   */
+  diagnoseSignatureVariant(
+    sequenceGuid: string,
+    rawBody: Buffer | string,
+    received: string | undefined,
+  ): string {
+    const secret = this.cfg("webhookSecret");
+    if (!secret) return "no_secret";
+    if (!received) return "no_signature";
+    const body = typeof rawBody === "string" ? Buffer.from(rawBody) : rawBody;
+    const guid = Buffer.from(sequenceGuid ?? "");
+    const B = (s: string) => Buffer.from(s);
+    const hmac = (...parts: Buffer[]): string => {
+      const h = crypto.createHmac("sha256", secret);
+      for (const p of parts) h.update(p);
+      return h.digest("hex");
+    };
+    const variants: Record<string, Buffer[]> = {
+      "guid+space+body": [guid, B(" "), body],
+      "guid+ \\n +body": [guid, B(" \n "), body],
+      "guid+\\n+body": [guid, B("\n"), body],
+      "guid+body": [guid, body],
+      body_only: [body],
+      "body+space+guid": [body, B(" "), guid],
+      "guid+space+body+nl": [guid, B(" "), body, B("\n")],
+    };
+    const want = received.toLowerCase();
+    for (const [name, parts] of Object.entries(variants)) {
+      if (hmac(...parts) === want) return name;
+    }
+    return "no_match";
+  }
+
   verifyWebhookSignature(
     sequenceGuid: string,
     rawBody: Buffer | string,
