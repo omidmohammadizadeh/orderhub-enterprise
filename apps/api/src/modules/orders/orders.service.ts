@@ -1112,6 +1112,9 @@ export class OrdersService {
       locationId: order.locationId,
       fromStatus: order.status,
       toStatus: newStatus,
+      // Lets platform-sync listeners (Deliveroo) skip echoing an inbound
+      // webhook-driven transition straight back to the platform it came from.
+      actorType,
     });
 
     // Phase AU — push the new status back to HubRise so every

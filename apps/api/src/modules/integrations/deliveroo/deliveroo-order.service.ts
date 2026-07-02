@@ -100,13 +100,17 @@ export class DeliverooOrderService {
     }
 
     // Direct integration: we know the brand from the connection (no name
-    // hint needed), and a Deliveroo delivery is driven by Deliveroo's own
-    // rider — mark it PLATFORM so the operator UI gates post-READY steps
-    // and the rider.status_update events drive them instead. Pickup orders
-    // stay un-gated (the customer collects).
+    // hint needed). deliveryType comes from the adapter's fulfillment_type
+    // mapping (deliveroo rider → PLATFORM so the operator UI gates post-READY
+    // steps and rider webhooks drive them; restaurant fleet → MERCHANT;
+    // pickup/dine-in → none). Fallback keeps older payloads gated.
     (canonical as any).brandId = conn.brandId ?? undefined;
     (canonical as any).deliveryType =
-      canonical.fulfillmentType === "PICKUP" ? undefined : "PLATFORM";
+      (canonical.metadata as any)?.deliveryType ??
+      (canonical.fulfillmentType === "PICKUP" ||
+      canonical.fulfillmentType === "DINE_IN"
+        ? undefined
+        : "PLATFORM");
 
     const created = await this.orders.ingestCanonical(
       canonical,
