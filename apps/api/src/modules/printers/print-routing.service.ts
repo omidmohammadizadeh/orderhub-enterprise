@@ -262,7 +262,7 @@ export class PrintRoutingService {
           platform: order.platform ?? null,
           orderSource: order.orderSource ?? null,
           customerName: order.customerName ?? null,
-          customerPhone: order.customerPhone ?? null,
+          customerPhone: this.phoneWithAccessCode(order),
           fulfillmentType: order.fulfillmentType,
           deliveryAddress: this.formatDeliveryAddress(order),
           specialInstructions: order.specialInstructions ?? null,
@@ -504,7 +504,7 @@ export class PrintRoutingService {
       platform: order.platform ?? null,
       orderSource: order.orderSource ?? null,
       customerName: order.customerName ?? null,
-      customerPhone: order.customerPhone ?? null,
+      customerPhone: this.phoneWithAccessCode(order),
       fulfillmentType: order.fulfillmentType,
       receivedAt: order.receivedAt ?? order.createdAt,
       deliveryAddress: this.formatDeliveryAddress(order),
@@ -526,6 +526,19 @@ export class PrintRoutingService {
     };
   }
 
+  /**
+   * Marketplace orders (Deliveroo / HubRise) mask the customer's number —
+   * dialling it only connects when the caller keys in the per-order access
+   * code, so the ticket must carry the PIN next to the number. Stored on
+   * customerInfo.phoneAccessCode by the webhook adapters.
+   */
+  private phoneWithAccessCode(order: any): string | null {
+    const phone = order.customerPhone ?? null;
+    if (!phone) return null;
+    const code = (order.customerInfo as any)?.phoneAccessCode;
+    return code ? `${phone} PIN ${code}` : phone;
+  }
+
   private buildDriverSlipPayload(
     order: any,
     header: HeaderContext = EMPTY_HEADER,
@@ -540,7 +553,7 @@ export class PrintRoutingService {
       platform: order.platform ?? null,
       orderSource: order.orderSource ?? null,
       customerName: order.customerName ?? null,
-      customerPhone: order.customerPhone ?? null,
+      customerPhone: this.phoneWithAccessCode(order),
       fulfillmentType: order.fulfillmentType,
       deliveryAddress: this.formatDeliveryAddress(order),
       address: {
