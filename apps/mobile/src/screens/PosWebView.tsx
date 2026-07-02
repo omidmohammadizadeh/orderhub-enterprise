@@ -15,7 +15,7 @@
 //      and for { type: "openExternal", url } (so external links open
 //      in the system browser, not inside the WebView).
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
@@ -30,6 +30,7 @@ import {
   ensureBtPermissions,
 } from "@/print/transport/bluetooth";
 import { sendBytesOverTcp } from "@/print/transport/lan";
+import { startCometReader, stopCometReader } from "@/callerid/comet";
 
 const WEB_URL =
   (Constants.expoConfig?.extra?.webUrl as string | undefined) ??
@@ -43,6 +44,24 @@ interface Props {
 export function PosWebView({ tokens, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
+
+  // Caller-ID hub (Android only, no-ops elsewhere): read the CTI Comet USB
+  // box on the shop's analogue line and hand every ring to the web app,
+  // which POSTs /v1/customers/caller-id/ring with its own auth + selected
+  // location — the API then broadcasts the popup to EVERY tablet.
+  useEffect(() => {
+    startCometReader(
+      (phone, rawLine) => {
+        webRef.current?.injectJavaScript(
+          `window.dispatchEvent(new CustomEvent('native:callerid', { detail: ${JSON.stringify(
+            { phone, rawLine },
+          )} })); true;`,
+        );
+      },
+      (msg) => console.log(msg),
+    );
+    return () => stopCometReader();
+  }, []);
 
   // Hand both tokens to the web via its existing OAuth-callback page —
   // that page sets the Zustand store + fetches /me, then router.replace

@@ -244,6 +244,15 @@ export class CustomersService {
     };
   }
 
+  /** Resolve a location's tenant — used by the public VoIP ring webhook. */
+  async tenantForLocation(locationId: string): Promise<string | null> {
+    const loc = await this.prisma.location.findFirst({
+      where: { id: locationId, deletedAt: null },
+      select: { brand: { select: { tenantId: true } } },
+    });
+    return loc?.brand.tenantId ?? null;
+  }
+
   // ── Caller-ID lookup ──────────────────────────────────────────────────────
   //
   // Match a ringing landline number against past orders so the POS can

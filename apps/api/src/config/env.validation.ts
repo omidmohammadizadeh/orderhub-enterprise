@@ -45,6 +45,11 @@ const envSchema = z.object({
   // refresh, so this means "log out after a year of NO use", not a fixed cap.
   JWT_REFRESH_TTL: z.string().default("365d"),
 
+  // Caller-ID: shared secret for VoIP providers' incoming-call webhooks
+  // (POST /v1/customers/caller-id/voip/:locationId?key=…). Unset = endpoint
+  // disabled (403) so it can never be an open relay.
+  VOIP_WEBHOOK_KEY: z.string().optional(),
+
   // Encryption — Phase I primary key (still accepted; superseded by _CURRENT in Phase J)
   ENCRYPTION_KEY: z
     .string()

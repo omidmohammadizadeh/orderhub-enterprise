@@ -13,6 +13,7 @@ import { Phone, X } from "lucide-react";
 import type { CallerIdRingPayload } from "@orderhub/shared";
 import { getSocket } from "@/lib/socket/socket.client";
 import { useAuthStore } from "@/stores/auth.store";
+import { apiClient } from "@/lib/api/client";
 
 /** Payload the POS cart panel consumes via the "pos:callerid-fill" event. */
 export interface CallerIdFill {
@@ -54,6 +55,32 @@ export function CallerIdPopup({ locationId }: { locationId: string | null }) {
     const t = setTimeout(() => setRing(null), 60_000);
     return () => clearTimeout(t);
   }, [ring]);
+
+  // Caller-ID HUB role: when this tablet is the one physically hosting the
+  // Comet USB reader, the native shell dispatches "native:callerid" with the
+  // ringing number. Forward it to the API (which matches the customer and
+  // broadcasts "callerid:ring" back to every tablet — including this one, so
+  // the popup path stays identical for hub and non-hub devices).
+  useEffect(() => {
+    if (!locationId) return;
+    const recent = new Map<string, number>();
+    const onNative = (e: Event) => {
+      const d = (e as CustomEvent).detail as { phone?: string };
+      const phone = d?.phone?.trim();
+      if (!phone) return;
+      // Belt-and-braces dedupe on top of the native reader's own.
+      const now = Date.now();
+      if (now - (recent.get(phone) ?? 0) < 10_000) return;
+      recent.set(phone, now);
+      apiClient
+        .post("/v1/customers/caller-id/ring", { locationId, phone })
+        .catch(() => {
+          /* ring is best-effort; the next ring retries */
+        });
+    };
+    window.addEventListener("native:callerid", onNative);
+    return () => window.removeEventListener("native:callerid", onNative);
+  }, [locationId]);
 
   if (!ring) return null;
   const { phone, match } = ring;

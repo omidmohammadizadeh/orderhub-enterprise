@@ -23,6 +23,8 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { extractVoipPhone } from "./voip-phone.util";
+import { ForbiddenException, BadRequestException, NotFoundException, Headers } from "@nestjs/common";
 
 @ApiTags("customers")
 @ApiBearerAuth()
@@ -58,6 +60,41 @@ export class CustomersController {
     };
     this.socket.emitToLocation(body.locationId, "callerid:ring", payload);
     return payload;
+  }
+
+  // VoIP variant (Phase BB-3): shops on digital lines skip the Comet — the
+  // provider (Twilio / sipgate / Telnyx / generic) calls this webhook on an
+  // incoming call. Public + shared-secret because providers can't do our JWT;
+  // unset VOIP_WEBHOOK_KEY disables the endpoint entirely.
+  @Public()
+  @Post("caller-id/voip/:locationId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "VoIP incoming-call webhook — same caller popup as the Comet path, no hardware",
+  })
+  async voipRing(
+    @Param("locationId") locationId: string,
+    @Body() body: Record<string, unknown>,
+    @Query("key") key?: string,
+    @Headers("x-voip-key") headerKey?: string,
+  ) {
+    const expected = process.env.VOIP_WEBHOOK_KEY;
+    if (!expected) throw new ForbiddenException("VoIP caller-ID is not enabled");
+    if (key !== expected && headerKey !== expected) {
+      throw new ForbiddenException("Bad key");
+    }
+
+    const phone = extractVoipPhone(body);
+    if (!phone) throw new BadRequestException("No caller number in payload");
+
+    const tenantId = await this.customers.tenantForLocation(locationId);
+    if (!tenantId) throw new NotFoundException("Unknown location");
+
+    const match = await this.customers.lookupByPhone(tenantId, phone);
+    const payload = { locationId, phone, at: new Date().toISOString(), match };
+    this.socket.emitToLocation(locationId, "callerid:ring", payload);
+    return { ok: true };
   }
 
   @Get()
