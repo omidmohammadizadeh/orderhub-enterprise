@@ -243,9 +243,21 @@ export default function App() {
     }
     setLocationConsent(true);
     setShowDisclosure(false);
+    // App Review Guideline 5.1.1(iv): the system permission request must
+    // ALWAYS follow the pre-permission message. Fire it directly rather than
+    // relying on the go-online chain, which can bail early (e.g. network
+    // error) and leave the message with no prompt after it.
+    try {
+      await Location.requestForegroundPermissionsAsync();
+    } catch {
+      // the online flow re-requests; never block going online on this
+    }
     runOnline(true);
   }
 
+  // Android-only: Google Play's prominent-disclosure policy requires a
+  // decline path. On iOS the modal has no exit affordance (Guideline
+  // 5.1.1(iv)) so this never fires there.
   function declineDisclosure() {
     setShowDisclosure(false);
     // Being online requires location consent — if they decline, go offline.

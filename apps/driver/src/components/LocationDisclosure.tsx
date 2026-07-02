@@ -1,8 +1,16 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-// Google Play "prominent disclosure" for background location. Must be shown
-// BEFORE the system location permission prompt, naming the data (location), that
-// it's collected in the background / when the app isn't in use, and why.
+// Pre-permission location notice, shown BEFORE the system location prompt.
+//
+// The two stores have CONFLICTING rules here, so behaviour is platform-split:
+//   • Android — Google Play's "prominent disclosure" policy REQUIRES an
+//     explicit consent step for background location, i.e. the driver must be
+//     able to decline ("Not now" → stays offline).
+//   • iOS — App Review Guideline 5.1.1(iv) FORBIDS an exit/close affordance
+//     on a message shown before a permission request: the user must always
+//     proceed to the system prompt (rejection 02 Jul 2026). So on iOS there
+//     is a single Continue button, no "Not now", and no dismiss — the place
+//     to decline is Apple's own permission dialog that follows.
 export function LocationDisclosure({
   visible,
   onAccept,
@@ -12,8 +20,16 @@ export function LocationDisclosure({
   onAccept: () => void;
   onDecline: () => void;
 }) {
+  const canDecline = Platform.OS !== "ios";
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDecline}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      // Android hardware back = decline; on iOS the message must not be
+      // dismissible without proceeding to the permission request.
+      onRequestClose={canDecline ? onDecline : () => {}}
+    >
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text style={styles.icon}>📍</Text>
@@ -35,9 +51,11 @@ export function LocationDisclosure({
           <Pressable style={styles.accept} onPress={onAccept}>
             <Text style={styles.acceptText}>Continue</Text>
           </Pressable>
-          <Pressable style={styles.decline} onPress={onDecline} hitSlop={8}>
-            <Text style={styles.declineText}>Not now</Text>
-          </Pressable>
+          {canDecline && (
+            <Pressable style={styles.decline} onPress={onDecline} hitSlop={8}>
+              <Text style={styles.declineText}>Not now</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </Modal>
