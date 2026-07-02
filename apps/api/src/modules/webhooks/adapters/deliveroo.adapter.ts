@@ -105,18 +105,41 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
     const customerName =
       customer.name ?? (fullName || delivery.customer_name || "Deliveroo Customer");
     // Live Orders API: masked callback number + the access code the carrier
-    // needs to route the call to this order.
+    // needs to route the call to this order. On restaurant-fulfillment
+    // (own-fleet) orders these ride on the delivery object rather than
+    // customer, so probe both.
     const customerPhone =
       customer.contact_number ??
       customer.contact_phone_number ??
       customer.phone_number ??
       customer.phone ??
+      delivery.contact_number ??
+      delivery.contact_phone_number ??
+      delivery.phone_number ??
       undefined;
     const phoneAccessCode =
-      customer.contact_access_code ?? customer.phone_access_code ?? undefined;
+      customer.contact_access_code ??
+      customer.phone_access_code ??
+      delivery.contact_access_code ??
+      delivery.phone_access_code ??
+      undefined;
 
-    const address = delivery.address ?? {};
-    const hasAddress = address.address_line_1 || address.address1;
+    // Address arrives in several layouts: an object under delivery.address
+    // (address_line_1 / address1 / line1 / street), a plain string, or on
+    // the order itself.
+    const rawAddress =
+      delivery.address ?? order.delivery_address ?? order.address ?? {};
+    const address =
+      typeof rawAddress === "string" ? { line1: rawAddress } : rawAddress;
+    const addrLine1 =
+      address.address_line_1 ??
+      address.address1 ??
+      address.line1 ??
+      address.line_1 ??
+      address.street_address ??
+      address.street ??
+      "";
+    const hasAddress = !!addrLine1;
 
     // fulfillment_type (verified): "deliveroo" = Deliveroo rider delivers,
     // "customer" = customer collects, "restaurant" = merchant's own fleet
@@ -170,10 +193,15 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       } as any,
       deliveryAddress: hasAddress
         ? {
-            line1: address.address_line_1 ?? address.address1 ?? "",
-            line2: address.address_line_2 ?? address.address2 ?? undefined,
-            city: address.city ?? "",
-            postcode: address.postcode ?? address.zip_code ?? "",
+            line1: addrLine1,
+            line2:
+              address.address_line_2 ??
+              address.address2 ??
+              address.line2 ??
+              undefined,
+            city: address.city ?? address.town ?? "",
+            postcode:
+              address.postcode ?? address.post_code ?? address.zip_code ?? "",
             country: "GB",
             ...(delivery.location?.latitude != null
               ? {

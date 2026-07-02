@@ -58,8 +58,27 @@ export class DeliverooOrderService {
 
   // ── order.new → ingestCanonical ─────────────────────────
 
+  /**
+   * Shape probe — Deliveroo's customer/delivery layouts vary by
+   * fulfillment_type and the docs don't enumerate them. Logging the raw
+   * objects (truncated) lets us pin the real field names from production
+   * traffic instead of guessing. Remove once the shapes are confirmed.
+   */
+  private logPayloadShape(kind: string, order: any): void {
+    try {
+      const j = (v: unknown) => JSON.stringify(v ?? null)?.slice(0, 500);
+      this.logger.log(
+        `Deliveroo ${kind} shape: fulfillment_type=${order?.fulfillment_type ?? "?"} ` +
+          `customer=${j(order?.customer)} delivery=${j(order?.delivery)}`,
+      );
+    } catch {
+      /* diagnostics only */
+    }
+  }
+
   async handleOrderNew(body: any): Promise<{ handled: boolean; reason?: string; orderId?: string }> {
     const order = body?.body?.order ?? body?.order ?? body?.body ?? body;
+    this.logPayloadShape("order.new", order);
     const externalId = deliverooOrderIdFrom(order, body?.body ?? body);
     if (!externalId) {
       this.logger.warn(
@@ -130,6 +149,7 @@ export class DeliverooOrderService {
     eventName = "",
   ): Promise<{ handled: boolean; reason?: string; orderId?: string }> {
     const order = body?.body?.order ?? body?.order ?? body?.body ?? body;
+    this.logPayloadShape("status_update", order);
     const externalId = deliverooOrderIdFrom(order, body?.body ?? body);
     if (!externalId) return { handled: false, reason: "no_order_id" };
 

@@ -102,6 +102,44 @@ describe("DeliverooAdapter — live Orders API payload", () => {
     expect(c.deliveryFee).toBe(0.79);
   });
 
+  it("reads phone/code/address off the delivery object (restaurant fulfillment)", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        fulfillment_type: "restaurant",
+        customer: { first_name: "Omid" }, // no contact fields on customer
+        delivery: {
+          contact_number: "442033195035",
+          contact_access_code: "087310323",
+          delivery_fee: { fractional: 100, currency_code: "GBP" },
+          address: {
+            line1: "15 Front Street",
+            city: "Newcastle",
+            post_code: "DH2 1LY",
+          },
+        },
+      }),
+      "loc-1",
+    )!;
+    expect(c.customerInfo.phone).toBe("442033195035");
+    expect((c.customerInfo as any).phoneAccessCode).toBe("087310323");
+    expect(c.deliveryAddress).toMatchObject({
+      line1: "15 Front Street",
+      city: "Newcastle",
+      postcode: "DH2 1LY",
+    });
+  });
+
+  it("accepts a plain-string delivery address", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        fulfillment_type: "restaurant",
+        delivery: { address: "15 Front Street; Newcastle DH21LY" },
+      }),
+      "loc-1",
+    )!;
+    expect(c.deliveryAddress?.line1).toBe("15 Front Street; Newcastle DH21LY");
+  });
+
   it("extracts customer name, masked number and access code", () => {
     const c = adapter.normalize(liveOrder(), "loc-1")!;
     expect(c.customerInfo.name).toBe("Omid");
