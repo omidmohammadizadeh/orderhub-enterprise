@@ -35,7 +35,7 @@
     "react-native-tcp-socket": "6.2.0",
     "react-native-screens": "3.31.1",
     "react-native-webview": "13.8.6",
-    "react-native-usb-serialport-for-android": "^2.1.0"
+    "react-native-usb-serialport-for-android": "^0.5.1"
   },
   "devDependencies": {
     "@types/react": "~18.2.79",
