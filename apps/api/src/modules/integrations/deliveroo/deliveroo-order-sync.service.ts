@@ -143,30 +143,23 @@ export class DeliverooOrderSyncService {
         );
       case "OUT_FOR_DELIVERY":
       case "DISPATCHED": {
-        // Merchant-delivery (fulfillment_type=restaurant → our fleet): WE
-        // drive the delivery stages on Deliveroo. Rider-delivered orders get
-        // these inbound from Deliveroo instead, so pushing would just echo.
+        // Merchant-delivery (fulfillment_type=restaurant → our fleet): the
+        // prep_stage enum ends at "collected" (verified — en_route_to_customer
+        // was rejected with 400 "unknown stage"). "collected" = the order left
+        // the restaurant with our driver; Deliveroo has no API stage for the
+        // delivery movement itself on restaurant-fulfilled orders.
         if (fulfillmentType === "DELIVERY") {
-          return this.prepStage(
-            deliverooOrderId,
-            "en_route_to_customer",
-            occurred_at,
-          );
-        }
-        return;
-      }
-      case "COMPLETED": {
-        // PICKUP → customer collected; merchant DELIVERY → we delivered it.
-        // Rider orders complete via Deliveroo's own rider events.
-        if (fulfillmentType === "PICKUP") {
           return this.prepStage(deliverooOrderId, "collected", occurred_at);
         }
-        if (fulfillmentType === "DELIVERY") {
-          return this.prepStage(
-            deliverooOrderId,
-            "completed_delivery",
-            occurred_at,
-          );
+        return; // rider orders get these inbound from Deliveroo
+      }
+      case "COMPLETED": {
+        // PICKUP → customer collected. Merchant DELIVERY → ensure "collected"
+        // went out (covers READY→COMPLETED jumps; a duplicate is tolerated by
+        // the 4xx-tolerant prepStage). Rider orders complete via Deliveroo's
+        // own rider events. There is NO "delivered" stage in the API.
+        if (fulfillmentType === "PICKUP" || fulfillmentType === "DELIVERY") {
+          return this.prepStage(deliverooOrderId, "collected", occurred_at);
         }
         return;
       }

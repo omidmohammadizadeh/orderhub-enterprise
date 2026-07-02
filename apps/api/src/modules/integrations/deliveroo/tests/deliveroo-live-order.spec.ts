@@ -237,17 +237,18 @@ describe("DeliverooOrderSyncService", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("merchant delivery: OUT_FOR_DELIVERY → en_route, COMPLETED → completed_delivery", async () => {
+  it("merchant delivery: OUT_FOR_DELIVERY and COMPLETED both send collected (the terminal API stage)", async () => {
+    // Verified against the live API: the prep_stage enum ends at "collected"
+    // (en_route_to_customer / completed_delivery were rejected with 400
+    // "unknown stage"). Deliveroo has no API stage for the delivery movement
+    // of restaurant-fulfilled orders.
     const { svc, calls } = makeSync({
       ...directOrder,
       fulfillmentType: "DELIVERY", // fulfillment_type=restaurant → our fleet
     });
     await svc.onStatusChanged(ev("OUT_FOR_DELIVERY"));
     await svc.onStatusChanged(ev("COMPLETED"));
-    expect(calls.map((c) => c.body.stage)).toEqual([
-      "en_route_to_customer",
-      "completed_delivery",
-    ]);
+    expect(calls.map((c) => c.body.stage)).toEqual(["collected", "collected"]);
   });
 
   it("rider orders never push OUT_FOR_DELIVERY (comes inbound from Deliveroo)", async () => {

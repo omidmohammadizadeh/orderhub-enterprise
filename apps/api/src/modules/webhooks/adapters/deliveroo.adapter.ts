@@ -131,6 +131,9 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       delivery.address ?? order.delivery_address ?? order.address ?? {};
     const address =
       typeof rawAddress === "string" ? { line1: rawAddress } : rawAddress;
+    const addressLines: string[] = Array.isArray(address.address_lines)
+      ? address.address_lines.filter(Boolean).map(String)
+      : [];
     const addrLine1 =
       address.address_line_1 ??
       address.address1 ??
@@ -138,6 +141,9 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       address.line_1 ??
       address.street_address ??
       address.street ??
+      address.address_line ??
+      address.formatted_address ??
+      addressLines[0] ??
       "";
     const hasAddress = !!addrLine1;
 
@@ -198,6 +204,7 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
               address.address_line_2 ??
               address.address2 ??
               address.line2 ??
+              addressLines[1] ??
               undefined,
             city: address.city ?? address.town ?? "",
             postcode:

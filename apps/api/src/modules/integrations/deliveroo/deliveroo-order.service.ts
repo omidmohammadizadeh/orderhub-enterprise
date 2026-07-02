@@ -159,11 +159,17 @@ export class DeliverooOrderService {
     const mapped =
       mapDeliverooOrderStatus(rawStatus) ??
       (eventName === "cancel_order" ? "CANCELLED" : null);
-    if (!mapped) return { handled: false, reason: `unmapped_status:${rawStatus}` };
 
     const row = await this.prisma.order.findFirst({
       where: { externalId, platform: "DELIVEROO" },
-      select: { id: true, tenantId: true, status: true },
+      select: {
+        id: true,
+        tenantId: true,
+        status: true,
+        deliveryAddress: true,
+        customerPhone: true,
+        customerInfo: true,
+      },
     });
     if (!row) {
       // status_update can race ahead of order.new — 200 + ignore; the
@@ -173,6 +179,15 @@ export class DeliverooOrderService {
       );
       return { handled: false, reason: "order_not_found" };
     }
+
+    // Backfill customer address/contact from this event. Deliveroo can omit
+    // these on order.new (privacy hold until acceptance) or the order may
+    // predate an adapter fix — later status_updates carry the full order, so
+    // fill whatever the row is still missing. Runs even for unmapped/no-op
+    // statuses.
+    await this.backfillCustomerFields(row, order, externalId);
+
+    if (!mapped) return { handled: false, reason: `unmapped_status:${rawStatus}` };
     if (row.status === mapped) return { handled: false, reason: "no_change" };
 
     try {
@@ -201,6 +216,62 @@ export class DeliverooOrderService {
         `Deliveroo status_update ${externalId} → ${mapped} rejected: ${err?.message}`,
       );
       return { handled: false, reason: "transition_rejected", orderId: row.id };
+    }
+  }
+
+  /**
+   * Fill customer address / phone / access code the row is still missing,
+   * using this event's order payload (parsed by the same adapter as
+   * order.new). Best-effort — never fails the webhook.
+   */
+  private async backfillCustomerFields(
+    row: {
+      id: string;
+      deliveryAddress: unknown;
+      customerPhone: string | null;
+      customerInfo: unknown;
+    },
+    order: any,
+    externalId: string,
+  ): Promise<void> {
+    try {
+      const canonical = this.adapter.normalize({ order }, "");
+      if (!canonical) return;
+      const updates: Record<string, any> = {};
+      if (canonical.deliveryAddress && !row.deliveryAddress) {
+        updates.deliveryAddress = canonical.deliveryAddress;
+      }
+      const phone = canonical.customerInfo?.phone;
+      if (phone && !row.customerPhone) {
+        updates.customerPhone = phone;
+      }
+      const accessCode = (canonical.customerInfo as any)?.phoneAccessCode;
+      const existingInfo = (row.customerInfo ?? {}) as Record<string, any>;
+      if (
+        (phone && !existingInfo.phone) ||
+        (accessCode && !existingInfo.phoneAccessCode)
+      ) {
+        updates.customerInfo = {
+          ...existingInfo,
+          ...(phone && !existingInfo.phone ? { phone } : {}),
+          ...(accessCode && !existingInfo.phoneAccessCode
+            ? { phoneAccessCode: accessCode }
+            : {}),
+        };
+      }
+      if (Object.keys(updates).length) {
+        await this.prisma.order.update({
+          where: { id: row.id },
+          data: updates as any,
+        });
+        this.logger.log(
+          `Deliveroo ${externalId}: backfilled ${Object.keys(updates).join(",")} from status_update`,
+        );
+      }
+    } catch (e: any) {
+      this.logger.warn(
+        `Deliveroo ${externalId}: customer backfill failed: ${e?.message}`,
+      );
     }
   }
 
