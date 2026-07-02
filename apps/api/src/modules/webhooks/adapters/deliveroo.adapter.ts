@@ -127,8 +127,13 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
     // Address arrives in several layouts: an object under delivery.address
     // (address_line_1 / address1 / line1 / street), a plain string, or on
     // the order itself.
+    // Verified production shape (restaurant fulfillment): the address fields
+    // live DIRECTLY on the delivery object — delivery.line1 / line2 / city /
+    // postcode — with no nested address container. Older/other layouts nest
+    // under delivery.address, so try those first and fall back to delivery
+    // itself.
     const rawAddress =
-      delivery.address ?? order.delivery_address ?? order.address ?? {};
+      delivery.address ?? order.delivery_address ?? order.address ?? delivery;
     const address =
       typeof rawAddress === "string" ? { line1: rawAddress } : rawAddress;
     const addressLines: string[] = Array.isArray(address.address_lines)
@@ -232,7 +237,20 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       total: parseMoney(
         order.partner_order_total ?? order.total_price ?? order.total,
       ),
-      specialInstructions: order.notes ?? order.special_instructions ?? undefined,
+      // Verified fields: order_notes (customer note), cutlery_notes
+      // ("NO CUTLERY"), delivery.delivery_notes ("ring the bell…"). Join the
+      // non-empty ones so kitchen + driver see everything on one line.
+      specialInstructions:
+        [
+          order.notes,
+          order.special_instructions,
+          order.order_notes,
+          order.cutlery_notes,
+          delivery.delivery_notes,
+        ]
+          .map((s: unknown) => (typeof s === "string" ? s.trim() : ""))
+          .filter(Boolean)
+          .join(" · ") || undefined,
       scheduledFor: order.scheduled_for ? new Date(order.scheduled_for) : undefined,
       idempotencyKey: undefined,
       metadata: {

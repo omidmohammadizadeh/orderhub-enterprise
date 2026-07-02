@@ -102,6 +102,49 @@ describe("DeliverooAdapter — live Orders API payload", () => {
     expect(c.deliveryFee).toBe(0.79);
   });
 
+  it("parses the VERIFIED production restaurant-fulfillment shape (flat delivery fields)", () => {
+    // Exact shape from a real prod order (webhook_events.rawPayload): the
+    // address lives DIRECTLY on delivery (line1/line2/city/postcode), with
+    // contact + notes alongside; customer object has no name/contact at all.
+    const c = adapter.normalize(
+      liveOrder({
+        fulfillment_type: "restaurant",
+        customer: {
+          loyalty: { loyalty_id: "", card_number: "" },
+          order_frequency_at_site: "FREQUENT CUSTOMER 5+ ORDERS FROM YOU",
+        },
+        order_notes: "",
+        cutlery_notes: "NO CUTLERY",
+        delivery: {
+          city: "Newcastle",
+          line1: "15 Front Street",
+          line2: "",
+          location: { latitude: 54.87215, longitude: -1.6142 },
+          postcode: "DH21LY",
+          deliver_by: "2026-07-02T16:00:52Z",
+          delivery_fee: { fractional: 100, currency_code: "GBP" },
+          customer_name: "Omid M.",
+          contact_number: "442033195035",
+          delivery_notes: "",
+          contact_access_code: "934770330",
+        },
+      }),
+      "loc-1",
+    )!;
+    expect(c.deliveryAddress).toMatchObject({
+      line1: "15 Front Street",
+      city: "Newcastle",
+      postcode: "DH21LY",
+      coordinates: { lat: 54.87215, lng: -1.6142 },
+    });
+    expect(c.customerInfo.name).toBe("Omid M.");
+    expect(c.customerInfo.phone).toBe("442033195035");
+    expect((c.customerInfo as any).phoneAccessCode).toBe("934770330");
+    expect(c.deliveryFee).toBe(1);
+    expect(c.fulfillmentType).toBe("DELIVERY");
+    expect(c.specialInstructions).toBe("NO CUTLERY");
+  });
+
   it("reads phone/code/address off the delivery object (restaurant fulfillment)", () => {
     const c = adapter.normalize(
       liveOrder({
