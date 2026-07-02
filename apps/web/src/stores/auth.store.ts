@@ -120,6 +120,41 @@ export const useAuthStore = create<AuthStore>()(
   ),
 );
 
+// Cross-tab token freshness.
+//
+// Refresh tokens ROTATE server-side: when tab A refreshes, the token tab B
+// holds in memory becomes stale, and replaying it used to trip the server's
+// theft detection and log the user out of EVERYTHING ("the app randomly
+// logs me out"). zustand's persist middleware does not sync between tabs on
+// its own, so:
+//   1. getRefreshToken reads the freshest persisted value straight from
+//      localStorage (another tab may have rotated it after this tab loaded);
+//   2. a `storage` listener rehydrates this tab's store whenever another tab
+//      writes new tokens, keeping the access token current too.
+const PERSIST_KEY = "orderhub-auth";
+
+function freshestRefreshToken(): string | null {
+  try {
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const persisted = parsed?.state?.refreshToken;
+      if (typeof persisted === "string" && persisted) return persisted;
+    }
+  } catch {
+    /* fall through to in-memory state */
+  }
+  return useAuthStore.getState().refreshToken;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === PERSIST_KEY) {
+      void useAuthStore.persist.rehydrate();
+    }
+  });
+}
+
 // Register Axios token callbacks using live store state.
 //
 // IMPORTANT: do NOT capture a state snapshot here (e.g. via onRehydrateStorage).
@@ -131,7 +166,7 @@ export const useAuthStore = create<AuthStore>()(
 // token, whether the user just logged in or the page was reloaded from localStorage.
 registerAuthCallbacks({
   getAccessToken: () => useAuthStore.getState().accessToken,
-  getRefreshToken: () => useAuthStore.getState().refreshToken,
+  getRefreshToken: freshestRefreshToken,
   setTokens: (accessToken, refreshToken) =>
     useAuthStore.getState().setTokens(accessToken, refreshToken),
   clearTokens: () => useAuthStore.getState().clearTokens(),

@@ -93,7 +93,13 @@ apiClient.interceptors.response.use(
 
     try {
       const refreshToken = tokenCallbacks?.getRefreshToken();
-      if (!refreshToken) throw new Error("No refresh token");
+      if (!refreshToken) {
+        // Genuinely signed out — nothing to preserve, go to login.
+        processQueue(new Error("No refresh token"), null);
+        tokenCallbacks?.clearTokens();
+        if (typeof window !== "undefined") window.location.href = "/login";
+        return Promise.reject(error);
+      }
 
       const { data } = await axios.post<{
         accessToken: string;
@@ -107,10 +113,18 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
-      tokenCallbacks?.clearTokens();
-      // Redirect to login — works in Next.js client components
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
+      // Only a DEFINITIVE rejection from the auth server means the session is
+      // dead. A network error (tablet wifi still reconnecting after sleep) or
+      // a transient 5xx must NOT log the user out — keep the tokens and let
+      // the next request retry the refresh.
+      const status = (refreshError as { response?: { status?: number } })
+        ?.response?.status;
+      if (status === 401 || status === 403) {
+        tokenCallbacks?.clearTokens();
+        // Redirect to login — works in Next.js client components
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
       }
       return Promise.reject(refreshError);
     } finally {

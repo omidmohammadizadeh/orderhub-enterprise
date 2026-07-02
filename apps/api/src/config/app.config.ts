@@ -12,7 +12,7 @@ export const appConfig = registerAs("app", () => ({
     secret: process.env.JWT_SECRET!,
     refreshSecret: process.env.JWT_REFRESH_SECRET!,
     accessTtl: process.env.JWT_ACCESS_TTL ?? "15m",
-    refreshTtl: process.env.JWT_REFRESH_TTL ?? "7d",
+    refreshTtl: process.env.JWT_REFRESH_TTL ?? "365d",
   },
 
   encryptionKey: process.env.ENCRYPTION_KEY!,

@@ -82,17 +82,29 @@ export class TokenService {
       throw new UnauthorizedException("Refresh token not found");
     }
 
-    // Token theft detection: a token that was already rotated is being replayed.
-    // This means either the old client is still using it (clock skew / bug)
-    // or it was stolen and used before the legitimate client could rotate.
-    // Either way: revoke all sessions for this user.
+    // Token theft detection: a token that was already rotated is being
+    // replayed. BUT the common benign cause is a multi-tab / multi-window
+    // race: two tabs wake from idle, both get a 401, and the loser presents
+    // the token the winner just rotated. Nuking every session for that made
+    // the product "randomly log me out everywhere". So: replays within a
+    // short grace window of the rotation are treated as the same client and
+    // get a fresh pair; replays after the window are treated as theft and
+    // revoke everything (the real-theft signal is a REPLAY LONG AFTER the
+    // legitimate client rotated).
     if (stored.revokedAt !== null) {
-      this.logger.warn(
-        `Refresh token reuse detected for user ${stored.userId} — revoking all sessions`,
-      );
-      await this.revokeAllUserRefreshTokens(stored.userId);
-      throw new UnauthorizedException(
-        "Refresh token has already been used. All sessions have been invalidated.",
+      const GRACE_MS = 60_000;
+      const sinceRevoke = Date.now() - stored.revokedAt.getTime();
+      if (sinceRevoke > GRACE_MS) {
+        this.logger.warn(
+          `Refresh token reuse detected for user ${stored.userId} (${Math.round(sinceRevoke / 1000)}s after rotation) — revoking all sessions`,
+        );
+        await this.revokeAllUserRefreshTokens(stored.userId);
+        throw new UnauthorizedException(
+          "Refresh token has already been used. All sessions have been invalidated.",
+        );
+      }
+      this.logger.log(
+        `Refresh token replay within grace window for user ${stored.userId} (${sinceRevoke}ms) — issuing fresh pair (multi-tab race)`,
       );
     }
 
@@ -115,11 +127,14 @@ export class TokenService {
       await this.generateRefreshToken();
     const newExpiresAt = addMilliseconds(new Date(), this.refreshTtlMs);
 
-    // Atomic: revoke old token and create new one in a transaction
+    // Atomic: revoke old token and create new one in a transaction.
+    // Keep the ORIGINAL revokedAt on grace-window replays — re-stamping it
+    // would reset the theft-detection clock and make the grace window
+    // infinitely renewable.
     const [, newToken] = await this.prisma.$transaction([
       this.prisma.refreshToken.update({
         where: { id: stored.id },
-        data: { revokedAt: new Date() },
+        data: { revokedAt: stored.revokedAt ?? new Date() },
       }),
       this.prisma.refreshToken.create({
         data: {

@@ -40,7 +40,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_REFRESH_SECRET: z.string().min(32, "JWT_REFRESH_SECRET must be at least 32 characters"),
   JWT_ACCESS_TTL: z.string().default("15m"),
-  JWT_REFRESH_TTL: z.string().default("7d"),
+  // Long-lived by design: operators expect the POS/dashboard to stay signed
+  // in until they explicitly log out. Rotation slides the expiry on every
+  // refresh, so this means "log out after a year of NO use", not a fixed cap.
+  JWT_REFRESH_TTL: z.string().default("365d"),
 
   // Encryption — Phase I primary key (still accepted; superseded by _CURRENT in Phase J)
   ENCRYPTION_KEY: z
