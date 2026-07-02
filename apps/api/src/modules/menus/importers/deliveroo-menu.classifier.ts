@@ -184,12 +184,13 @@ export function classifyDeliverooMenu(
       const groupIds = extractModifierGroupIds(item);
       if (groupIds.length === 0) itemsWithoutModifierIdsCount++;
 
+      const image = imageFrom(item);
       products.push({
         externalId: item.id,
         name: localized(item.name) || item.id,
         description: localized(item.description) || null,
         price,
-        imageUrl: imageFrom(item),
+        imageUrl: image,
         plu,
         isAvailable: item.available !== false,
         outOfStock: false,
@@ -197,7 +198,10 @@ export function classifyDeliverooMenu(
         hasMultipleSkus: false,
         productSkus: [],
         modifierGroupExternalIds: groupIds,
-        syncHash: sha(JSON.stringify({ name: item.name, plu, price, groupIds, available: item.available })),
+        // image is part of the hash so an image change (or a URL-form fix,
+        // e.g. absolute→relative) updates the existing item on re-import
+        // instead of being skipped as "unchanged".
+        syncHash: sha(JSON.stringify({ name: item.name, plu, price, groupIds, available: item.available, image })),
       });
 
       for (const grpExt of groupIds) {

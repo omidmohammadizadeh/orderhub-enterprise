@@ -25,15 +25,23 @@ const DELIVEROO_RESTAURANT_URL = (storeId: string) =>
 const DELIVEROO_MENU_URL = (brandId: string, storeId: string) =>
   `https://api.developers.deliveroo.com/menu/v2/brands/${brandId}/sites/${storeId}/menu`;
 
-// Our public API origin — used to absolutise any relative /api image path a
-// Deliveroo menu might still carry (e.g. images published before we started
-// absolutising). Matches the origin the HubRise callback hard-codes.
+// Our public API origin. Menus we published to Deliveroo carry ABSOLUTE
+// image URLs pointing back at this origin (Deliveroo's servers must be able
+// to fetch them). But the DASHBOARD must NOT use that absolute form: the web
+// app deliberately proxies /api/* through Next (Render strips CORS headers,
+// and helmet's default Cross-Origin-Resource-Policy: same-origin makes
+// browsers discard cross-origin <img> loads — the API logs 200, the image
+// shows broken). So on import we RELATIVISE our own URLs back to /api/...,
+// matching how HubRise imports store them. Truly external URLs (Deliveroo
+// CDN etc.) pass through untouched.
 const PROD_API_ORIGIN = "https://orderhub-api-0re6.onrender.com";
-const absolutiseImage = (url: string | null | undefined): string | null => {
+export const relativiseImage = (url: string | null | undefined): string | null => {
   const u = (url ?? "").trim();
   if (!u) return null;
-  if (u.startsWith("/")) return `${PROD_API_ORIGIN}${u}`;
-  return u; // already absolute (http/https) or a data URL — leave as-is
+  if (u.startsWith(`${PROD_API_ORIGIN}/`)) {
+    return u.slice(PROD_API_ORIGIN.length);
+  }
+  return u; // relative already, or a genuinely external host
 };
 
 interface ImportArgs {
@@ -136,10 +144,11 @@ export class DeliverooMenuImporter {
 
     const normalized = classifyDeliverooMenu(payload);
 
-    // Belt-and-suspenders: absolutise any relative image path so the dashboard
-    // + storefront render it against the API origin, not the web origin.
+    // Relativise our own API-origin image URLs back to /api/... so the
+    // dashboard/storefront load them same-origin via the Next rewrite (see
+    // relativiseImage above for why absolute breaks in the browser).
     for (const p of normalized.products) {
-      p.imageUrl = absolutiseImage(p.imageUrl);
+      p.imageUrl = relativiseImage(p.imageUrl);
     }
 
     // Diagnostic: how many products carried an image, plus a sample of what we
