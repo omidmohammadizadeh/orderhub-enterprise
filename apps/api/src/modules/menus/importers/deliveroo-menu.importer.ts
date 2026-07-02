@@ -25,6 +25,17 @@ const DELIVEROO_RESTAURANT_URL = (storeId: string) =>
 const DELIVEROO_MENU_URL = (brandId: string, storeId: string) =>
   `https://api.developers.deliveroo.com/menu/v2/brands/${brandId}/sites/${storeId}/menu`;
 
+// Our public API origin — used to absolutise any relative /api image path a
+// Deliveroo menu might still carry (e.g. images published before we started
+// absolutising). Matches the origin the HubRise callback hard-codes.
+const PROD_API_ORIGIN = "https://orderhub-api-0re6.onrender.com";
+const absolutiseImage = (url: string | null | undefined): string | null => {
+  const u = (url ?? "").trim();
+  if (!u) return null;
+  if (u.startsWith("/")) return `${PROD_API_ORIGIN}${u}`;
+  return u; // already absolute (http/https) or a data URL — leave as-is
+};
+
 interface ImportArgs {
   menuId: string;
   tenantId: string;
@@ -124,6 +135,12 @@ export class DeliverooMenuImporter {
     }
 
     const normalized = classifyDeliverooMenu(payload);
+
+    // Belt-and-suspenders: absolutise any relative image path so the dashboard
+    // + storefront render it against the API origin, not the web origin.
+    for (const p of normalized.products) {
+      p.imageUrl = absolutiseImage(p.imageUrl);
+    }
 
     // Diagnostic: how many products carried an image, plus a sample of what we
     // extracted AND the raw Deliveroo image field on the first item — so we
