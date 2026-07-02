@@ -46,11 +46,15 @@ export interface DeliverooMenuPayload {
   [key: string]: unknown;
 }
 
+// Deliveroo v2 menu returns localised name/description objects ({ en: "…" }),
+// but pasted exports may still use plain strings — accept both.
+type Localised = string | Record<string, string>;
+
 interface DeliverooItem {
   id: string;
   type?: "ITEM" | "CHOICE";
-  name?: string;
-  description?: string;
+  name?: Localised;
+  description?: Localised;
   plu?: string;
   price_info?: { price?: number };
   image?: { url?: string };
@@ -61,12 +65,12 @@ interface DeliverooItem {
 }
 interface DeliverooCategory {
   id: string;
-  name?: string;
+  name?: Localised;
   item_ids?: string[];
 }
 interface DeliverooModifierGroup {
   id: string;
-  name?: string;
+  name?: Localised;
   item_ids?: string[];
   min_selection?: number;
   max_selection?: number;
@@ -79,6 +83,21 @@ const sha = (s: string): string =>
   createHash("sha256").update(s).digest("hex").slice(0, 32);
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Deliveroo's Menu API returns `name`/`description` as localised objects
+ * (`{ en: "…" }`), though older/pasted exports sometimes use a plain string.
+ * Coerce either to a plain string (prefer `en`, else the first locale value).
+ */
+function localized(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    const pick = o.en ?? o.en_GB ?? Object.values(o)[0];
+    return typeof pick === "string" ? pick : "";
+  }
+  return "";
+}
 
 /**
  * Deliveroo returns prices in minor currency units (pence for GBP). Always
@@ -144,8 +163,8 @@ export function classifyDeliverooMenu(
 
       products.push({
         externalId: item.id,
-        name: item.name ?? item.id,
-        description: item.description ?? null,
+        name: localized(item.name) || item.id,
+        description: localized(item.description) || null,
         price,
         imageUrl: item.image?.url ?? null,
         plu,
@@ -169,7 +188,7 @@ export function classifyDeliverooMenu(
       const plu = (item.plu ?? item.id).toString();
       modifiers.push({
         externalId: item.id,
-        name: item.name ?? item.id,
+        name: localized(item.name) || item.id,
         plu,
         priceAdjustment: price,
         pricesBySize: {},
@@ -188,7 +207,7 @@ export function classifyDeliverooMenu(
     );
     return {
       externalId: cat.id,
-      name: cat.name ?? cat.id,
+      name: localized(cat.name) || cat.id,
       sortOrder: idx,
       available: true,
       visibleToCustomers: true,
@@ -212,7 +231,7 @@ export function classifyDeliverooMenu(
     }
     return {
       externalId: mg.id,
-      name: mg.name ?? mg.id,
+      name: localized(mg.name) || mg.id,
       plu: mg.id,
       selectionType,
       minSelections: min,

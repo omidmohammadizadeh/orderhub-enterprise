@@ -131,4 +131,31 @@ describe("classifyDeliverooMenu", () => {
     const b = classifyDeliverooMenu(fixture());
     expect(a.menuPatch.syncHash).toBe(b.menuPatch.syncHash);
   });
+
+  it("coerces localised name/description objects to plain strings", () => {
+    // The live Deliveroo menu API returns { en: "…" } objects, not strings.
+    const payload: any = {
+      menu: {
+        categories: [{ id: "c1", name: { en: "Wraps" }, item_ids: ["p1"] }],
+        items: [
+          {
+            id: "p1",
+            type: "ITEM",
+            name: { en: "Chicken Gyros Wrap" },
+            description: { en: "Tasty" },
+            price_info: { price: 999 },
+            modifier_ids: ["mg1"],
+          },
+          { id: "o1", type: "CHOICE", name: { en: "Extra Cheese" }, price_info: { price: 50 } },
+        ],
+        modifiers: [{ id: "mg1", name: { en: "Toppings" }, item_ids: ["o1"] }],
+      },
+    };
+    const r = classifyDeliverooMenu(payload);
+    expect(r.products[0]!.name).toBe("Chicken Gyros Wrap");
+    expect(r.products[0]!.description).toBe("Tasty");
+    expect(r.categories[0]!.name).toBe("Wraps");
+    expect(r.modifierGroups[0]!.name).toBe("Toppings");
+    expect(r.modifiers[0]!.name).toBe("Extra Cheese");
+  });
 });
