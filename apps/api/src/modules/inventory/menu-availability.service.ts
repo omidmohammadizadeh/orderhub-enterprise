@@ -228,9 +228,9 @@ export class MenuAvailabilityService {
 
     // Fire-and-forget direct Deliveroo sync (replace-all snapshot).
     if (args.channel === "DELIVEROO") {
-      this.syncDeliverooAvailability(item.brandId, args.tenantId).catch((err) =>
+      this.syncDeliverooAvailability(args.itemId, args.tenantId).catch((err) =>
         this.logger.warn(
-          `Deliveroo item_unavailabilities sync failed for brand ${item.brandId}: ${err?.message ?? err}`,
+          `Deliveroo item_unavailabilities sync failed for item ${args.itemId}: ${err?.message ?? err}`,
         ),
       );
     }
@@ -264,9 +264,9 @@ export class MenuAvailabilityService {
     );
 
     if (args.channel === "DELIVEROO") {
-      this.syncDeliverooAvailability(item.brandId, args.tenantId).catch((err) =>
+      this.syncDeliverooAvailability(args.itemId, args.tenantId).catch((err) =>
         this.logger.warn(
-          `Deliveroo item_unavailabilities sync failed for brand ${item.brandId}: ${err?.message ?? err}`,
+          `Deliveroo item_unavailabilities sync failed for item ${args.itemId}: ${err?.message ?? err}`,
         ),
       );
     }
@@ -288,12 +288,33 @@ export class MenuAvailabilityService {
    * menu published there — nothing to sync.
    */
   private async syncDeliverooAvailability(
-    brandId: string,
+    itemId: string,
     tenantId: string,
   ): Promise<void> {
+    // Resolve the Deliveroo-published menu that CONTAINS this item — not by
+    // the item's own brandId, which in a multi-brand kitchen can differ from
+    // the brand the menu was published under (that brand owns the Deliveroo
+    // connection). Its Deliveroo menu id = our Menu.id.
+    const menu = await this.prisma.menu.findFirst({
+      where: {
+        deletedAt: null,
+        publishedTo: { has: "DELIVEROO" },
+        brand: { tenantId },
+        categories: { some: { items: { some: { itemId } } } },
+      },
+      orderBy: { lastPublishedAt: "desc" },
+      select: { id: true, brandId: true },
+    });
+    if (!menu) {
+      this.logger.log(
+        `Deliveroo 86 skip: item ${itemId} isn't on a Deliveroo-published menu`,
+      );
+      return;
+    }
+
     const conn = await this.prisma.brandPlatformConnection.findFirst({
       where: {
-        brandId,
+        brandId: menu.brandId,
         tenantId,
         platform: "DELIVEROO",
         externalStoreId: { not: null },
@@ -301,15 +322,12 @@ export class MenuAvailabilityService {
       },
       select: { externalStoreId: true, externalBrandId: true },
     });
-    if (!conn) return;
-
-    // The menu live on Deliveroo (its Deliveroo menu id = our Menu.id).
-    const menu = await this.prisma.menu.findFirst({
-      where: { brandId, deletedAt: null, publishedTo: { has: "DELIVEROO" } },
-      orderBy: { lastPublishedAt: "desc" },
-      select: { id: true },
-    });
-    if (!menu) return;
+    if (!conn) {
+      this.logger.warn(
+        `Deliveroo 86 skip: brand ${menu.brandId} (menu ${menu.id}) has no connected Deliveroo store`,
+      );
+      return;
+    }
 
     const cats = await this.prisma.menuCategory.findMany({
       where: { menuId: menu.id },
