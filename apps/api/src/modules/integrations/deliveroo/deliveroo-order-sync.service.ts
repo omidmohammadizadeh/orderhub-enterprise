@@ -141,11 +141,32 @@ export class DeliverooOrderSyncService {
           "ready_for_collection",
           occurred_at,
         );
+      case "OUT_FOR_DELIVERY":
+      case "DISPATCHED": {
+        // Merchant-delivery (fulfillment_type=restaurant → our fleet): WE
+        // drive the delivery stages on Deliveroo. Rider-delivered orders get
+        // these inbound from Deliveroo instead, so pushing would just echo.
+        if (fulfillmentType === "DELIVERY") {
+          return this.prepStage(
+            deliverooOrderId,
+            "en_route_to_customer",
+            occurred_at,
+          );
+        }
+        return;
+      }
       case "COMPLETED": {
-        // Rider-delivered orders complete via Deliveroo's rider events; only
-        // customer-collection orders are completed from our side.
+        // PICKUP → customer collected; merchant DELIVERY → we delivered it.
+        // Rider orders complete via Deliveroo's own rider events.
         if (fulfillmentType === "PICKUP") {
           return this.prepStage(deliverooOrderId, "collected", occurred_at);
+        }
+        if (fulfillmentType === "DELIVERY") {
+          return this.prepStage(
+            deliverooOrderId,
+            "completed_delivery",
+            occurred_at,
+          );
         }
         return;
       }

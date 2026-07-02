@@ -237,6 +237,25 @@ describe("DeliverooOrderSyncService", () => {
     expect(calls).toHaveLength(0);
   });
 
+  it("merchant delivery: OUT_FOR_DELIVERY → en_route, COMPLETED → completed_delivery", async () => {
+    const { svc, calls } = makeSync({
+      ...directOrder,
+      fulfillmentType: "DELIVERY", // fulfillment_type=restaurant → our fleet
+    });
+    await svc.onStatusChanged(ev("OUT_FOR_DELIVERY"));
+    await svc.onStatusChanged(ev("COMPLETED"));
+    expect(calls.map((c) => c.body.stage)).toEqual([
+      "en_route_to_customer",
+      "completed_delivery",
+    ]);
+  });
+
+  it("rider orders never push OUT_FOR_DELIVERY (comes inbound from Deliveroo)", async () => {
+    const { svc, calls } = makeSync(directOrder); // PLATFORM_COURIER
+    await svc.onStatusChanged(ev("OUT_FOR_DELIVERY"));
+    expect(calls).toHaveLength(0);
+  });
+
   it("skips inbound webhook-driven transitions (no echo)", async () => {
     const { svc, calls } = makeSync(directOrder);
     await svc.onStatusChanged(ev("ACCEPTED", "WEBHOOK"));
