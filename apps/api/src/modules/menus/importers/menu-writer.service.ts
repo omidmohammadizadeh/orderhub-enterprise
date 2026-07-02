@@ -306,11 +306,16 @@ export class MenuWriterService {
           const itemId = productExtToLocal.get(link.productExternalId);
           const groupId = groupExtToLocal.get(link.modifierGroupExternalId);
           if (!itemId || !groupId) continue;
-          await tx.modifierGroupOnItem
-            .create({ data: { itemId, groupId, sortOrder: 0 } })
-            .catch(() => {
-              // Already linked (composite PK collision) — fine, no-op.
-            });
+          // Upsert, not create-catch: a unique-violation raised inside a
+          // Postgres transaction ABORTS the whole transaction (every later
+          // statement then fails with 25P02), and catching it in JS doesn't
+          // un-abort it. On re-import the link already exists, so create-catch
+          // silently killed the transaction. Upsert never raises.
+          await tx.modifierGroupOnItem.upsert({
+            where: { itemId_groupId: { itemId, groupId } },
+            create: { itemId, groupId, sortOrder: 0 },
+            update: {},
+          });
         }
 
         // --- Categories ---
