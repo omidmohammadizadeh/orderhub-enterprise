@@ -90,6 +90,24 @@ export class DeliverooWebhookController {
       `Deliveroo webhook event=${event} valid=${valid} first=${firstSeen} seq=${sequenceGuid ?? "—"}`,
     );
 
+    // Diagnose signature failures: distinguish "secret not set" from "secret
+    // set but wrong" (our signing format is verified against Deliveroo's spec,
+    // so a configured-but-mismatched secret means the wrong DELIVEROO_WEBHOOK_
+    // SECRET is deployed). Logs HMAC prefixes only — safe, they're not secrets.
+    if (!valid && sequenceGuid && signature) {
+      const diag = this.client.signatureDiagnostics(sequenceGuid, raw);
+      if (!diag.configured) {
+        this.logger.error(
+          `Deliveroo webhook REJECTED: DELIVEROO_WEBHOOK_SECRET is not set on the API — set it (the webhook secret from the Deliveroo portal, distinct from the client secret) and redeploy.`,
+        );
+      } else {
+        this.logger.error(
+          `Deliveroo webhook REJECTED: signature mismatch — the deployed DELIVEROO_WEBHOOK_SECRET doesn't match Deliveroo's. ` +
+            `received=${signature.slice(0, 12)}… expectedStd=${diag.expectedStandard?.slice(0, 12)}… expectedLegacy=${diag.expectedLegacy?.slice(0, 12)}…`,
+        );
+      }
+    }
+
     // Route the first valid delivery. Best-effort: any handler error is
     // swallowed + logged so Deliveroo still gets its 200 (and retries the
     // same guid, which we'll then treat as a duplicate — the underlying

@@ -128,6 +128,40 @@ export class DeliverooClientService {
    * a valid HMAC. Never throws — a bad signature is a boolean, so the caller
    * can log + 200 without leaking timing.
    */
+  /**
+   * Diagnostics for a failed webhook verification — lets the receiver log
+   * WHY it failed (secret missing vs the deployed secret not matching
+   * Deliveroo's). Returns the two expected HMACs (both separators) so a
+   * mismatch is visible without leaking the secret itself.
+   */
+  signatureDiagnostics(
+    sequenceGuid: string,
+    rawBody: Buffer | string,
+  ): {
+    configured: boolean;
+    expectedStandard: string | null;
+    expectedLegacy: string | null;
+  } {
+    const secret = this.cfg("webhookSecret");
+    if (!secret) {
+      return { configured: false, expectedStandard: null, expectedLegacy: null };
+    }
+    const buf =
+      typeof rawBody === "string" ? Buffer.from(rawBody) : rawBody;
+    const sign = (sep: string) => {
+      const h = crypto.createHmac("sha256", secret);
+      h.update(sequenceGuid);
+      h.update(sep);
+      h.update(buf);
+      return h.digest("hex");
+    };
+    return {
+      configured: true,
+      expectedStandard: sign(" "),
+      expectedLegacy: sign(" \n "),
+    };
+  }
+
   verifyWebhookSignature(
     sequenceGuid: string,
     rawBody: Buffer | string,
