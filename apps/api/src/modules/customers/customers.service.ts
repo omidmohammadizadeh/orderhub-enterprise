@@ -89,6 +89,161 @@ export class CustomersService {
     return { data, total, limit, offset };
   }
 
+  // ── Customer directory (order-derived) ────────────────────────────────────
+  //
+  // The Customer table only holds direct/online signups — marketplace buyers
+  // (Deliveroo / Uber Eats / Just Eat / HubRise) exist purely as order rows.
+  // The directory aggregates the last 365 days of orders into one row per
+  // customer identity so the dashboard can show EVERY customer, filterable by
+  // channel and by segment (new = single order, returning = 2+).
+  //
+  // Identity mirrors OrdersService.attachCustomerVisitCounts: marketplaces
+  // rotate a masked phone per order, so those key on name+postcode; our own
+  // channels key on name+phone+postcode.
+  async directory(
+    tenantId: string,
+    opts: { channel?: string; segment?: string; search?: string } = {},
+  ) {
+    const MARKETPLACES = new Set(["JUST_EAT", "UBER_EATS", "DELIVEROO", "HUBRISE"]);
+    const channel = (opts.channel ?? "").toUpperCase();
+    const channelSources: Record<string, string[]> = {
+      POS: ["POS"],
+      ONLINE: ["ONLINE", "DIRECT"],
+      DELIVEROO: ["DELIVEROO"],
+      UBER_EATS: ["UBER_EATS"],
+      JUST_EAT: ["JUST_EAT"],
+      HUBRISE: ["HUBRISE"],
+      WHATSAPP: ["WHATSAPP"],
+    };
+
+    const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        isSandbox: false,
+        status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
+        createdAt: { gte: oneYearAgo },
+        ...(channelSources[channel]
+          ? { orderSource: { in: channelSources[channel] as any } }
+          : {}),
+      },
+      select: {
+        customerName: true,
+        customerPhone: true,
+        customerInfo: true,
+        deliveryAddress: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        orderSource: true,
+        platform: true,
+        integrationSource: true,
+        viaHubrise: true,
+        total: true,
+        createdAt: true,
+      },
+      // newest first → the first row seen per identity carries the freshest
+      // contact details, older rows only backfill gaps
+      orderBy: { createdAt: "desc" },
+      take: 20_000,
+    });
+
+    const norm = (s: string | null | undefined) =>
+      (s ?? "").replace(/\s+/g, "").toLowerCase();
+
+    interface Row {
+      id: string;
+      name: string;
+      phone: string | null;
+      email: string | null;
+      address: string | null;
+      orders: number;
+      totalSpend: number;
+      channels: Set<string>;
+      firstOrderAt: Date;
+      lastOrderAt: Date;
+    }
+    const byId = new Map<string, Row>();
+
+    for (const o of orders) {
+      const name = (o.customerName ?? "").trim();
+      if (!name) continue;
+      const isMarketplace =
+        MARKETPLACES.has(o.integrationSource as any) ||
+        MARKETPLACES.has(o.platform as any) ||
+        o.viaHubrise;
+      const addr = (o.deliveryAddress ?? {}) as Record<string, any>;
+      const postcode = o.postcode ?? addr.postcode ?? "";
+      const id = isMarketplace
+        ? `mkt|${norm(name)}|${norm(postcode)}`
+        : `dir|${norm(name)}|${norm(o.customerPhone)}|${norm(postcode)}`;
+
+      const info = (o.customerInfo ?? {}) as Record<string, any>;
+      const addressStr =
+        [
+          addr.line1 ?? o.addressLine1,
+          addr.line2 ?? o.addressLine2,
+          addr.city ?? o.city,
+          addr.postcode ?? o.postcode,
+        ]
+          .filter(Boolean)
+          .join(", ") || null;
+
+      const existing = byId.get(id);
+      if (existing) {
+        existing.orders += 1;
+        existing.totalSpend += Number(o.total ?? 0);
+        existing.channels.add(o.orderSource);
+        if (o.createdAt < existing.firstOrderAt) existing.firstOrderAt = o.createdAt;
+        existing.phone ||= o.customerPhone ?? null;
+        existing.email ||= (info.email as string) ?? null;
+        existing.address ||= addressStr;
+      } else {
+        byId.set(id, {
+          id,
+          name,
+          phone: o.customerPhone ?? null,
+          email: (info.email as string) ?? null,
+          address: addressStr,
+          orders: 1,
+          totalSpend: Number(o.total ?? 0),
+          channels: new Set([o.orderSource]),
+          firstOrderAt: o.createdAt,
+          lastOrderAt: o.createdAt,
+        });
+      }
+    }
+
+    let rows = Array.from(byId.values());
+
+    const segment = (opts.segment ?? "all").toLowerCase();
+    if (segment === "new") rows = rows.filter((r) => r.orders === 1);
+    else if (segment === "returning") rows = rows.filter((r) => r.orders > 1);
+
+    const q = (opts.search ?? "").trim().toLowerCase();
+    if (q) {
+      rows = rows.filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          (r.phone ?? "").toLowerCase().includes(q) ||
+          (r.email ?? "").toLowerCase().includes(q) ||
+          (r.address ?? "").toLowerCase().includes(q),
+      );
+    }
+
+    rows.sort((a, b) => b.lastOrderAt.getTime() - a.lastOrderAt.getTime());
+
+    return {
+      data: rows.slice(0, 500).map((r) => ({
+        ...r,
+        channels: Array.from(r.channels),
+        totalSpend: Math.round(r.totalSpend * 100) / 100,
+      })),
+      total: rows.length,
+    };
+  }
+
   async findOne(customerId: string, tenantId: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id: customerId, tenantId },

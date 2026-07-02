@@ -44,6 +44,21 @@ export class CustomersController {
     });
   }
 
+  // NB: declared before ":customerId" so "directory" isn't captured as an id.
+  @Get("directory")
+  @ApiOperation({
+    summary:
+      "Order-derived customer directory — every customer across channels, filterable by channel + new/returning segment",
+  })
+  directory(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("channel") channel?: string,
+    @Query("segment") segment?: string,
+    @Query("search") search?: string,
+  ) {
+    return this.customers.directory(user.tenantId, { channel, segment, search });
+  }
+
   @Get(":customerId")
   @ApiOperation({ summary: "Get customer profile" })
   findOne(

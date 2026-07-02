@@ -25,7 +25,6 @@ import {
   PoundSterling,
   Search,
   ShoppingBag,
-  Star,
   Tag,
   Users,
 } from "lucide-react";
@@ -631,33 +630,58 @@ function GroupCard({
   );
 }
 
-// ── CRM list tab ─────────────────────────────────────────────────────────────
+// ── All-customers directory tab ──────────────────────────────────────────────
+//
+// Order-derived: every customer across every channel (the Customer table only
+// has direct signups — marketplace buyers exist as order rows). Segments
+// (All / New / Returning), a channel filter, and the operator's requested
+// columns: name, address, phone, order count, email.
 
-interface Customer {
+interface DirectoryRow {
   id: string;
-  email: string | null;
+  name: string;
   phone: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  totalOrders: number;
-  totalSpend: string;
-  createdAt: string;
-  loyaltyAccount: {
-    points: number;
-    tier: string;
-    lifetimeSpend: string;
-  } | null;
+  email: string | null;
+  address: string | null;
+  orders: number;
+  totalSpend: number;
+  channels: string[];
+  firstOrderAt: string;
+  lastOrderAt: string;
 }
 
-const TIER_COLORS: Record<string, string> = {
-  BRONZE: "text-amber-700 bg-amber-100",
-  SILVER: "text-zinc-600 bg-zinc-100",
-  GOLD: "text-yellow-700 bg-yellow-100",
-  PLATINUM: "text-purple-700 bg-purple-100",
+const SEGMENTS = [
+  { id: "all", label: "All" },
+  { id: "new", label: "New customers" },
+  { id: "returning", label: "Returning customers" },
+] as const;
+
+const CHANNEL_OPTIONS = [
+  { id: "ALL", label: "All channels" },
+  { id: "POS", label: "POS" },
+  { id: "ONLINE", label: "Online ordering" },
+  { id: "DELIVEROO", label: "Deliveroo" },
+  { id: "UBER_EATS", label: "Uber Eats" },
+  { id: "JUST_EAT", label: "Just Eat" },
+  { id: "HUBRISE", label: "HubRise" },
+  { id: "WHATSAPP", label: "WhatsApp" },
+];
+
+const CHANNEL_LABELS: Record<string, string> = {
+  POS: "POS",
+  ONLINE: "Online",
+  DIRECT: "Online",
+  DELIVEROO: "Deliveroo",
+  UBER_EATS: "Uber Eats",
+  JUST_EAT: "Just Eat",
+  HUBRISE: "HubRise",
+  WHATSAPP: "WhatsApp",
 };
 
 function CrmListTab() {
   const { user } = useAuthStore();
+  const [segment, setSegment] = useState<(typeof SEGMENTS)[number]["id"]>("all");
+  const [channel, setChannel] = useState("ALL");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -666,22 +690,21 @@ function CrmListTab() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data: customers, isLoading } = useQuery({
-    queryKey: ["customers", debouncedSearch],
-    queryFn: () =>
-      apiClient
-        .get(
-          `/v1/customers${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
-        )
-        .then((r) => {
-          // The API returns a paging envelope { data, total, limit, offset } —
-          // unwrap it (and tolerate a bare array) so .map below can't explode
-          // into a white-page client exception.
-          const body = r.data as { data?: Customer[] } | Customer[];
-          return (Array.isArray(body) ? body : (body?.data ?? [])) as Customer[];
-        }),
+  const { data, isLoading } = useQuery({
+    queryKey: ["customers-directory", segment, channel, debouncedSearch],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (segment !== "all") params.set("segment", segment);
+      if (channel !== "ALL") params.set("channel", channel);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const qs = params.toString();
+      return apiClient
+        .get(`/v1/customers/directory${qs ? `?${qs}` : ""}`)
+        .then((r) => r.data as { data: DirectoryRow[]; total: number });
+    },
     enabled: !!user?.tenantId,
   });
+  const customers = data?.data ?? [];
 
   return (
     <div className="space-y-4">
@@ -694,9 +717,9 @@ function CrmListTab() {
           <Megaphone className="h-4 w-4 text-amber-600" />
           <div>
             <p className="text-sm font-semibold text-amber-900">
-              Promotions now live in Marketing
+              Looking for promo codes?
             </p>
-            <p className="text-[11px] text-amber-800">
+            <p className="text-xs text-amber-800">
               Build percentage / amount / item / BOGO / free-delivery /
               happy-hour offers from the new Marketing section.
             </p>
@@ -705,21 +728,55 @@ function CrmListTab() {
         <ChevronRight className="h-4 w-4 text-amber-600" />
       </Link>
 
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, email, or phone…"
-          className="w-full rounded-md border border-zinc-200 bg-white pl-8 pr-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
-        />
+      {/* Segment pills + channel filter + search */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white p-1">
+          {SEGMENTS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSegment(s.id)}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                segment === s.id
+                  ? "bg-zinc-900 text-white"
+                  : "text-zinc-600 hover:bg-zinc-100"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={channel}
+          onChange={(e) => setChannel(e.target.value)}
+          className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
+        >
+          {CHANNEL_OPTIONS.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <div className="relative min-w-[220px] flex-1 max-w-md">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name, phone, email, address…"
+            className="w-full rounded-md border border-zinc-200 bg-white pl-8 pr-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
+          />
+        </div>
+        {data && (
+          <span className="text-xs text-zinc-500">
+            {data.total} customer{data.total === 1 ? "" : "s"}
+          </span>
+        )}
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-zinc-400">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
-      ) : !customers || customers.length === 0 ? (
+      ) : customers.length === 0 ? (
         <p className="text-sm text-zinc-500 py-10 text-center">
           No customers found.
         </p>
@@ -728,59 +785,53 @@ function CrmListTab() {
           <table className="min-w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wider text-zinc-500">
               <tr className="border-b border-zinc-100">
-                <th className="px-3 py-2 text-left font-semibold">Customer</th>
-                <th className="px-3 py-2 text-left font-semibold">Contact</th>
+                <th className="px-3 py-2 text-left font-semibold">Name</th>
+                <th className="px-3 py-2 text-left font-semibold">Address</th>
+                <th className="px-3 py-2 text-left font-semibold">Phone</th>
                 <th className="px-3 py-2 text-right font-semibold">Orders</th>
-                <th className="px-3 py-2 text-right font-semibold">
-                  Total spend
-                </th>
-                <th className="px-3 py-2 text-left font-semibold">Loyalty</th>
+                <th className="px-3 py-2 text-left font-semibold">Email</th>
               </tr>
             </thead>
             <tbody>
               {customers.map((c) => (
                 <tr key={c.id} className="border-b border-zinc-50 last:border-0">
                   <td className="px-3 py-3 text-zinc-900">
-                    <p className="font-medium">
-                      {(c.firstName || "") + " " + (c.lastName || "")}
-                    </p>
-                    <p className="text-[11px] text-zinc-500">
-                      Since {new Date(c.createdAt).toLocaleDateString("en-GB")}
+                    <p className="font-medium">{c.name}</p>
+                    <p className="mt-0.5 flex flex-wrap gap-1">
+                      {c.channels.map((ch) => (
+                        <span
+                          key={ch}
+                          className="inline-flex rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600"
+                        >
+                          {CHANNEL_LABELS[ch] ?? ch}
+                        </span>
+                      ))}
                     </p>
                   </td>
-                  <td className="px-3 py-3 text-zinc-700 text-xs">
-                    {c.email && (
-                      <p className="flex items-center gap-1">
-                        <Mail className="h-3 w-3 text-zinc-400" />
-                        {c.email}
-                      </p>
-                    )}
-                    {c.phone && (
-                      <p className="flex items-center gap-1 mt-0.5">
+                  <td className="px-3 py-3 text-zinc-700 text-xs max-w-[260px]">
+                    {c.address ?? <span className="text-zinc-400">—</span>}
+                  </td>
+                  <td className="px-3 py-3 text-zinc-700 text-xs whitespace-nowrap">
+                    {c.phone ? (
+                      <span className="flex items-center gap-1">
                         <Phone className="h-3 w-3 text-zinc-400" />
                         {c.phone}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-3 py-3 text-right text-zinc-800">
-                    {c.totalOrders}
-                  </td>
-                  <td className="px-3 py-3 text-right text-zinc-800 font-semibold">
-                    £{Number(c.totalSpend).toFixed(2)}
-                  </td>
-                  <td className="px-3 py-3">
-                    {c.loyaltyAccount ? (
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          TIER_COLORS[c.loyaltyAccount.tier] ??
-                          "bg-zinc-100 text-zinc-700"
-                        }`}
-                      >
-                        <Star className="h-3 w-3" />
-                        {c.loyaltyAccount.tier}
                       </span>
                     ) : (
-                      <span className="text-[11px] text-zinc-400">—</span>
+                      <span className="text-zinc-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-3 text-right text-zinc-800 font-semibold">
+                    {c.orders}
+                  </td>
+                  <td className="px-3 py-3 text-zinc-700 text-xs">
+                    {c.email ? (
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3 w-3 text-zinc-400" />
+                        {c.email}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400">—</span>
                     )}
                   </td>
                 </tr>
