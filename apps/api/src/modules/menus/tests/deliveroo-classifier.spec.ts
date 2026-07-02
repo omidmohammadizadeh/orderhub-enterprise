@@ -132,6 +132,22 @@ describe("classifyDeliverooMenu", () => {
     expect(a.menuPatch.syncHash).toBe(b.menuPatch.syncHash);
   });
 
+  it("extracts product images from the various Deliveroo field shapes", () => {
+    const mk = (id: string, image: any): any => ({
+      menu: {
+        categories: [{ id: "c", name: "C", item_ids: [id] }],
+        items: [{ id, type: "ITEM", name: "X", price_info: { price: 100 }, ...image }],
+      },
+    });
+    const url = "https://img/x.jpg";
+    expect(classifyDeliverooMenu(mk("a", { image: { url } })).products[0]!.imageUrl).toBe(url);
+    expect(classifyDeliverooMenu(mk("b", { image: url })).products[0]!.imageUrl).toBe(url);
+    expect(classifyDeliverooMenu(mk("c", { image_url: url })).products[0]!.imageUrl).toBe(url);
+    expect(classifyDeliverooMenu(mk("d", { images: [{ url }] })).products[0]!.imageUrl).toBe(url);
+    expect(classifyDeliverooMenu(mk("e", { images: [url] })).products[0]!.imageUrl).toBe(url);
+    expect(classifyDeliverooMenu(mk("f", {})).products[0]!.imageUrl).toBeNull();
+  });
+
   it("coerces localised name/description objects to plain strings", () => {
     // The live Deliveroo menu API returns { en: "…" } objects, not strings.
     const payload: any = {

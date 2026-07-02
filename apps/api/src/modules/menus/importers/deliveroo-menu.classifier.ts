@@ -115,6 +115,29 @@ function priceFrom(item: { price_info?: { price?: number } }): number {
   return round2(p / 100);
 }
 
+/**
+ * Deliveroo's image field shape varies (menu-manager vs API-built menus):
+ *   image: { url }          | image: "https://…"
+ *   image_url: "https://…"  | images: [{ url }] | images: ["https://…"]
+ * Probe them all; return null when none present.
+ */
+function imageFrom(item: any): string | null {
+  const single = item.image ?? item.image_url ?? item.imageUrl;
+  if (typeof single === "string") return single || null;
+  if (single && typeof single === "object" && typeof single.url === "string") {
+    return single.url || null;
+  }
+  const arr = item.images ?? item.media;
+  if (Array.isArray(arr) && arr.length > 0) {
+    const first = arr[0];
+    if (typeof first === "string") return first || null;
+    if (first && typeof first === "object" && typeof first.url === "string") {
+      return first.url || null;
+    }
+  }
+  return null;
+}
+
 function extractModifierGroupIds(item: DeliverooItem): string[] {
   return (
     item.modifier_ids ??
@@ -166,7 +189,7 @@ export function classifyDeliverooMenu(
         name: localized(item.name) || item.id,
         description: localized(item.description) || null,
         price,
-        imageUrl: item.image?.url ?? null,
+        imageUrl: imageFrom(item),
         plu,
         isAvailable: item.available !== false,
         outOfStock: false,

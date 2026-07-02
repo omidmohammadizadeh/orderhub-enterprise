@@ -124,6 +124,23 @@ export class DeliverooMenuImporter {
     }
 
     const normalized = classifyDeliverooMenu(payload);
+
+    // Diagnostic: how many products carried an image through. If zero while
+    // the menu has products, log the first item's keys so we can see the
+    // shape Deliveroo actually returned (image field naming varies).
+    const withImg = normalized.products.filter((p) => p.imageUrl).length;
+    this.logger.log(
+      `Deliveroo import menu=${menu.id}: ${normalized.products.length} products, ${withImg} with images`,
+    );
+    if (withImg === 0 && normalized.products.length > 0) {
+      const firstItem = (payload?.menu?.items ?? [])[0];
+      this.logger.warn(
+        `Deliveroo import: no product images found. First item keys=[${Object.keys(
+          firstItem ?? {},
+        ).join(",")}] image=${JSON.stringify((firstItem as any)?.image ?? (firstItem as any)?.images ?? null)?.slice(0, 200)}`,
+      );
+    }
+
     return this.writer.apply({
       menuId: menu.id,
       tenantId: args.tenantId,
