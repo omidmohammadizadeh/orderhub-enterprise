@@ -673,7 +673,13 @@ function CrmListTab() {
         .get(
           `/v1/customers${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
         )
-        .then((r) => r.data as Customer[]),
+        .then((r) => {
+          // The API returns a paging envelope { data, total, limit, offset } —
+          // unwrap it (and tolerate a bare array) so .map below can't explode
+          // into a white-page client exception.
+          const body = r.data as { data?: Customer[] } | Customer[];
+          return (Array.isArray(body) ? body : (body?.data ?? [])) as Customer[];
+        }),
     enabled: !!user?.tenantId,
   });
 
