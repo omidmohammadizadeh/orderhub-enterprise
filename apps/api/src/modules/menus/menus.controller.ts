@@ -219,6 +219,23 @@ export class MenusController {
     });
   }
 
+  @Post("menus/import/deliveroo")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Create a new menu for the brand/location and import it from the brand's connected Deliveroo store.",
+  })
+  importFromDeliveroo(
+    @Body() body: { brandId: string; locationId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.deliverooImporter.importFromConnection({
+      tenantId: user.tenantId,
+      brandId: body.brandId,
+      locationId: body.locationId,
+    });
+  }
+
   @Post("menus/:menuId/import/deliveroo")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Import Deliveroo menu into the selected menu" })

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MenuWriterService } from "./menu-writer.service";
+import { DeliverooClientService } from "../../integrations/deliveroo/deliveroo-client.service";
 import {
   classifyDeliverooMenu,
   type DeliverooMenuPayload,
@@ -41,7 +42,63 @@ export class DeliverooMenuImporter {
   constructor(
     private readonly prisma: PrismaService,
     private readonly writer: MenuWriterService,
+    private readonly client: DeliverooClientService,
   ) {}
+
+  /**
+   * Create a fresh menu for the brand/location and import the brand's
+   * connected Deliveroo store into it — the "Create menu → Import from
+   * channel → Deliveroo" flow. Uses the platform OAuth client (no per-user
+   * access token needed); the Site ID + Deliveroo Brand ID come from the
+   * BrandPlatformConnection saved when the operator connected Deliveroo.
+   */
+  async importFromConnection(args: {
+    tenantId: string;
+    brandId: string;
+    locationId: string;
+  }) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: args.brandId, tenantId: args.tenantId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!brand) throw new BadRequestException("Brand not found");
+
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        brandId: args.brandId,
+        tenantId: args.tenantId,
+        platform: "DELIVEROO",
+        externalStoreId: { not: null },
+        externalBrandId: { not: null },
+      },
+      select: { externalStoreId: true, externalBrandId: true },
+    });
+    if (!conn) {
+      throw new BadRequestException(
+        "Deliveroo isn't connected for this brand yet. Connect it under Locations → Brands → Deliveroo first.",
+      );
+    }
+
+    const menu = await this.prisma.menu.create({
+      data: {
+        brandId: args.brandId,
+        locationId: args.locationId,
+        name: `${brand.name} — Deliveroo`,
+        platformSource: "deliveroo",
+        externalParentId: conn.externalBrandId,
+      },
+      select: { id: true },
+    });
+
+    await this.import({
+      menuId: menu.id,
+      tenantId: args.tenantId,
+      storeId: conn.externalStoreId!,
+      deliverooBrandId: conn.externalBrandId!,
+    });
+
+    return this.prisma.menu.findUnique({ where: { id: menu.id } });
+  }
 
   async import(args: ImportArgs) {
     const menu = await this.prisma.menu.findFirst({
@@ -81,9 +138,27 @@ export class DeliverooMenuImporter {
     deliverooBrandId: string | undefined,
     accessToken: string | undefined,
   ): Promise<DeliverooMenuPayload> {
+    // Preferred path: the platform OAuth client (client-credentials) — used by
+    // the connection-based import. `accessToken` is the legacy per-call path
+    // kept for the raw-token importer.
     if (!accessToken) {
-      throw new BadRequestException(
-        "Deliveroo access token required (configure the Integration first)",
+      let brandId = deliverooBrandId;
+      if (!brandId) {
+        const json = await this.client.request<{ brand_id?: string | string[] }>(
+          "GET",
+          `/site/v1/restaurant_locations/${encodeURIComponent(storeId)}`,
+        );
+        const b = Array.isArray(json?.brand_id) ? json.brand_id[0] : json?.brand_id;
+        if (!b) {
+          throw new BadRequestException(
+            "Deliveroo didn't return a Brand ID for that Site ID.",
+          );
+        }
+        brandId = b;
+      }
+      return this.client.request<DeliverooMenuPayload>(
+        "GET",
+        `/menu/v2/brands/${brandId}/sites/${encodeURIComponent(storeId)}/menu`,
       );
     }
 

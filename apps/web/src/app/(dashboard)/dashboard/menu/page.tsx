@@ -366,6 +366,7 @@ export default function MenuPage() {
         open={addStep === "import-channel"}
         source="channel"
         onCancel={() => setAddStep(null)}
+        onImported={(menuId) => router.push(`/dashboard/menu/${menuId}`)}
       />
       <ImportMenuModal
         open={addStep === "import-pos"}

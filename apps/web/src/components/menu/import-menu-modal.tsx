@@ -9,16 +9,19 @@
 // channel/POS source, then warns that the source needs configuring.
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { X, AlertCircle } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { X, AlertCircle, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { brandsClient } from "@/lib/api/menus.client";
+import { brandsClient, menusClient } from "@/lib/api/menus.client";
 import { locationsClient } from "@/lib/api/locations.client";
 
 interface Props {
   open: boolean;
   source: "channel" | "pos";
   onCancel: () => void;
+  /** Called with the new menu's id after a successful import. */
+  onImported?: (menuId: string) => void;
 }
 
 const CHANNELS = [
@@ -34,7 +37,8 @@ const POS_SYSTEMS = [
   { id: "lightspeed", label: "Lightspeed" },
 ];
 
-export function ImportMenuModal({ open, source, onCancel }: Props) {
+export function ImportMenuModal({ open, source, onCancel, onImported }: Props) {
+  const qc = useQueryClient();
   const { data: brands = [] } = useQuery({
     queryKey: ["brands"],
     queryFn: () => brandsClient.list(),
@@ -50,7 +54,27 @@ export function ImportMenuModal({ open, source, onCancel }: Props) {
   const [locationId, setLocationId] = useState("");
   const [sourceId, setSourceId] = useState("");
 
+  const importMutation = useMutation({
+    mutationFn: () =>
+      menusClient.importFromDeliveroo({ brandId, locationId }),
+    onSuccess: (menu) => {
+      toast.success(`Imported "${menu.name}" from Deliveroo`);
+      qc.invalidateQueries({ predicate: (q) => q.queryKey.includes("menus") });
+      onImported?.(menu.id);
+      onCancel();
+    },
+    onError: (err: any) =>
+      toast.error(
+        `Import failed: ${err?.response?.data?.message ?? err?.message ?? "Unknown error"}`,
+      ),
+  });
+
   if (!open) return null;
+
+  // Deliveroo is wired end-to-end (pull via its API using the brand's saved
+  // connection); the other channels are still connect-first placeholders.
+  const isWired = source === "channel" && sourceId === "deliveroo";
+  const canImport = isWired && !!brandId && !!locationId;
 
   const options = source === "channel" ? CHANNELS : POS_SYSTEMS;
   const title =
@@ -122,14 +146,25 @@ export function ImportMenuModal({ open, source, onCancel }: Props) {
             </select>
           </label>
 
-          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-            <p>
-              {source === "channel"
-                ? "The selected channel needs to be connected in Integrations first. Once connected, this importer will pull menus directly from its API."
-                : "POS integrations are not yet connected. Configure your POS in Integrations to enable import."}
-            </p>
-          </div>
+          {isWired ? (
+            <div className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <p>
+                Pulls the brand&apos;s live Deliveroo menu into a new menu here.
+                Make sure Deliveroo is connected for this brand (Locations →
+                Brands → Deliveroo).
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <p>
+                {source === "channel"
+                  ? "This channel isn't wired for direct import yet. Deliveroo is available today — pick it above."
+                  : "POS integrations are not yet connected. Configure your POS in Integrations to enable import."}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 p-4 border-t border-zinc-100">
@@ -138,11 +173,22 @@ export function ImportMenuModal({ open, source, onCancel }: Props) {
           </Button>
           <Button
             size="sm"
-            disabled
-            title="Connect the integration in the Integrations tab first."
-            className="bg-zinc-900 text-white opacity-50 cursor-not-allowed"
+            disabled={!canImport || importMutation.isPending}
+            onClick={() => importMutation.mutate()}
+            title={
+              canImport
+                ? "Import the menu from Deliveroo"
+                : "Pick Deliveroo, a brand and a location"
+            }
+            className="bg-zinc-900 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Import menu
+            {importMutation.isPending ? (
+              <span className="inline-flex items-center gap-1">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Importing…
+              </span>
+            ) : (
+              "Import menu"
+            )}
           </Button>
         </div>
       </div>

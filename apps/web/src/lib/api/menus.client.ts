@@ -302,6 +302,14 @@ export const menusClient = {
       )
       .then((r) => r.data),
 
+  importFromDeliveroo: (body: { brandId: string; locationId: string }) =>
+    apiClient
+      .post<{ id: string; name: string }>(
+        `/v1/menus/import/deliveroo`,
+        body,
+      )
+      .then((r) => r.data),
+
   publishToDeliveroo: (menuId: string) =>
     apiClient
       .post<{
