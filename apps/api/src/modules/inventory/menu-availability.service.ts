@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
+import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-client.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
 // so adding (e.g.) CAREEM later doesn't need a migration.
@@ -46,6 +47,7 @@ export class MenuAvailabilityService {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => HubRiseCatalogService))
     private readonly hubrise: HubRiseCatalogService,
+    private readonly deliverooClient: DeliverooClientService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -224,6 +226,15 @@ export class MenuAvailabilityService {
       ),
     );
 
+    // Fire-and-forget direct Deliveroo sync (replace-all snapshot).
+    if (args.channel === "DELIVEROO") {
+      this.syncDeliverooAvailability(item.brandId, args.tenantId).catch((err) =>
+        this.logger.warn(
+          `Deliveroo item_unavailabilities sync failed for brand ${item.brandId}: ${err?.message ?? err}`,
+        ),
+      );
+    }
+
     return row;
   }
 
@@ -252,7 +263,97 @@ export class MenuAvailabilityService {
       ),
     );
 
+    if (args.channel === "DELIVEROO") {
+      this.syncDeliverooAvailability(item.brandId, args.tenantId).catch((err) =>
+        this.logger.warn(
+          `Deliveroo item_unavailabilities sync failed for brand ${item.brandId}: ${err?.message ?? err}`,
+        ),
+      );
+    }
+
     return { ok: true };
+  }
+
+  /**
+   * Push the brand's current DELIVEROO 86 state to Deliveroo.
+   *
+   * Deliveroo's item_unavailabilities endpoint is a COMPLETE OVERRIDE — one
+   * PUT replaces the whole unavailable set for the menu/site. So on every
+   * DELIVEROO snooze/unsnooze we recompute the full set of currently-snoozed
+   * items in the brand's Deliveroo-published menu and send them all. Item ids
+   * mirror what the menu publish emitted: our MenuItem.id for single-price
+   * items, and `${id}__s{n}` per size for multi-SKU products.
+   *
+   * No-ops (silently) when the brand isn't connected to Deliveroo or has no
+   * menu published there — nothing to sync.
+   */
+  private async syncDeliverooAvailability(
+    brandId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        brandId,
+        tenantId,
+        platform: "DELIVEROO",
+        externalStoreId: { not: null },
+        externalBrandId: { not: null },
+      },
+      select: { externalStoreId: true, externalBrandId: true },
+    });
+    if (!conn) return;
+
+    // The menu live on Deliveroo (its Deliveroo menu id = our Menu.id).
+    const menu = await this.prisma.menu.findFirst({
+      where: { brandId, deletedAt: null, publishedTo: { has: "DELIVEROO" } },
+      orderBy: { lastPublishedAt: "desc" },
+      select: { id: true },
+    });
+    if (!menu) return;
+
+    const cats = await this.prisma.menuCategory.findMany({
+      where: { menuId: menu.id },
+      select: { items: { select: { itemId: true } } },
+    });
+    const itemIds = Array.from(
+      new Set(cats.flatMap((c) => c.items.map((l) => l.itemId))),
+    );
+
+    const snoozedIds = await this.getSnoozedItemIdsForChannel(
+      "DELIVEROO",
+      itemIds,
+    );
+
+    // Expand multi-SKU products to their per-size Deliveroo item ids.
+    const unavailable: string[] = [];
+    if (snoozedIds.size > 0) {
+      const items = await this.prisma.menuItem.findMany({
+        where: { id: { in: Array.from(snoozedIds) } },
+        select: { id: true, hasMultipleSkus: true, productSkus: true },
+      });
+      for (const it of items) {
+        const skus =
+          it.hasMultipleSkus && Array.isArray(it.productSkus)
+            ? (it.productSkus as any[])
+            : [];
+        if (skus.length > 0) {
+          skus.forEach((_, i) => unavailable.push(`${it.id}__s${i}`));
+        } else {
+          unavailable.push(it.id);
+        }
+      }
+    }
+
+    await this.deliverooClient.request(
+      "PUT",
+      `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(
+        menu.id,
+      )}/item_unavailabilities/${conn.externalStoreId}`,
+      { unavailable_ids: unavailable, hidden_ids: [] },
+    );
+    this.logger.log(
+      `Deliveroo item_unavailabilities menu=${menu.id} site=${conn.externalStoreId}: ${unavailable.length} unavailable`,
+    );
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────

@@ -27,7 +27,7 @@ function makeService(overrides: {
     },
     menuItemChannelAvailability: { findMany: jest.fn().mockResolvedValue([]) },
   } as any;
-  return new MenuAvailabilityService(prisma, {} as any);
+  return new MenuAvailabilityService(prisma, {} as any, {} as any);
 }
 
 const item = (id: string, name: string) => ({
