@@ -10,6 +10,7 @@ import { AiMenuParseService } from './importers/ai-menu.service';
 import { AiMenuImporter } from './importers/ai-menu.importer';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
+import { UberEatsModule } from '../integrations/ubereats/ubereats.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { QUEUES } from '@orderhub/shared';
 
@@ -25,6 +26,7 @@ import { QUEUES } from '@orderhub/shared';
     BullModule.registerQueue({ name: QUEUES.MENU_SYNC }),
     HubRiseModule,
     DeliverooModule,
+    UberEatsModule,
     forwardRef(() => InventoryModule),
   ],
   controllers: [MenusController],

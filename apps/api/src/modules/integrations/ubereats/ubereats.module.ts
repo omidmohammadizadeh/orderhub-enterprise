@@ -5,6 +5,7 @@ import { IntegrationsModule } from "../integrations.module";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
+import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
 import { UberEatsController } from "./ubereats.controller";
 import { UberEatsWebhookController } from "./ubereats-webhook.controller";
 
@@ -23,11 +24,13 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
     UberEatsClientService,
     UberEatsOauthService,
     UberEatsConnectionService,
+    UberEatsMenuPublishService,
   ],
   exports: [
     UberEatsClientService,
     UberEatsOauthService,
     UberEatsConnectionService,
+    UberEatsMenuPublishService,
   ],
 })
 export class UberEatsModule {}

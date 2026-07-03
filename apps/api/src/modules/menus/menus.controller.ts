@@ -24,6 +24,7 @@ import { AiMenuImporter } from "./importers/ai-menu.importer";
 import type { AiMenuDraft } from "./importers/ai-menu.classifier";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooMenuPublishService } from "../integrations/deliveroo/deliveroo-menu-publish.service";
+import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import {
   CreateMenuDto,
   UpdateMenuDto,
@@ -51,6 +52,7 @@ export class MenusController {
     private readonly aiImporter: AiMenuImporter,
     private readonly hubriseCatalog: HubRiseCatalogService,
     private readonly deliverooMenu: DeliverooMenuPublishService,
+    private readonly uberEatsMenu: UberEatsMenuPublishService,
   ) {}
 
   // ── Phase AK — PLU + Imports ──────────────────────────────────────────────
@@ -214,6 +216,22 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.deliverooMenu.publishMenu({
+      tenantId: user.tenantId,
+      menuId,
+    });
+  }
+
+  @Post("menus/:menuId/publish/ubereats")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Push this menu directly to Uber Eats (v2 upsert) for the brand's connected Uber Eats store.",
+  })
+  publishUberEats(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.uberEatsMenu.publishMenu({
       tenantId: user.tenantId,
       menuId,
     });

@@ -15,6 +15,7 @@ import { BillingExempt } from "../../../common/guards/billing.guard";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
+import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
 
 // Phase UE-1 — Uber Eats inbound webhook receiver.
 //
@@ -37,6 +38,7 @@ export class UberEatsWebhookController {
     private readonly client: UberEatsClientService,
     private readonly prisma: PrismaService,
     private readonly connections: UberEatsConnectionService,
+    private readonly menuPublish: UberEatsMenuPublishService,
   ) {}
 
   @Public()
@@ -60,7 +62,11 @@ export class UberEatsWebhookController {
 
     const event: string = body?.event_type ?? body?.type ?? "unknown";
     const eventId: string =
-      body?.event_id ?? body?.id ?? requestUuid ?? "";
+      body?.event_id ??
+      body?.webhook_meta?.webhook_msg_uuid ??
+      body?.id ??
+      requestUuid ??
+      "";
     const valid = this.client.verifyWebhookSignature(raw, signature);
 
     // Idempotent record — Uber retries reuse the same event id, so a
@@ -150,8 +156,14 @@ export class UberEatsWebhookController {
         );
         return { handled: true, connectionId };
       }
+      case "store.menu_refresh_request": {
+        const storeId: string = body?.store_id ?? body?.resource_id ?? "";
+        if (!storeId) return { handled: false, reason: "no_store_id" };
+        const result = await this.menuPublish.republishForStore(storeId);
+        return { handled: true, ...result };
+      }
       default:
-        // orders.notification / orders.cancel / menu refresh → UE-4, UE-3.
+        // orders.notification / orders.cancel → UE-4.
         return { handled: false, reason: "no_handler_yet" };
     }
   }
