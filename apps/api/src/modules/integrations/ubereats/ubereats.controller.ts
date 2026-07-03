@@ -190,6 +190,17 @@ export class UberEatsController {
     return this.connections.disconnect(user.tenantId, connectionId);
   }
 
+  @Get(":connectionId/orders")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "List the store's active orders on Uber Eats (recovery)" })
+  listOrders(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.listStoreOrders(user.tenantId, connectionId);
+  }
+
   @Get(":connectionId/status")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")

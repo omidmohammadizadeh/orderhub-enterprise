@@ -16,6 +16,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
 import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
+import { UberEatsOrderService } from "./ubereats-order.service";
 
 // Phase UE-1 — Uber Eats inbound webhook receiver.
 //
@@ -39,6 +40,7 @@ export class UberEatsWebhookController {
     private readonly prisma: PrismaService,
     private readonly connections: UberEatsConnectionService,
     private readonly menuPublish: UberEatsMenuPublishService,
+    private readonly orderRouter: UberEatsOrderService,
   ) {}
 
   @Public()
@@ -162,9 +164,15 @@ export class UberEatsWebhookController {
         const result = await this.menuPublish.republishForStore(storeId);
         return { handled: true, ...result };
       }
-      default:
-        // orders.notification / orders.cancel → UE-4.
-        return { handled: false, reason: "no_handler_yet" };
+      default: {
+        // orders.notification / orders.cancel / orders.release /
+        // order.fulfillment_issues.resolved → the order router.
+        if (event.startsWith("order")) {
+          const result = await this.orderRouter.route(event, body);
+          return { ...result };
+        }
+        return { handled: false, reason: "no_handler" };
+      }
     }
   }
 }

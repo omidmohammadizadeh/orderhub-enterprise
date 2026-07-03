@@ -2,10 +2,13 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "../../auth/auth.module";
 import { IntegrationsModule } from "../integrations.module";
+import { OrdersModule } from "../../orders/orders.module";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
 import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
+import { UberEatsOrderService } from "./ubereats-order.service";
+import { UberEatsOrderSyncService } from "./ubereats-order-sync.service";
 import { UberEatsController } from "./ubereats.controller";
 import { UberEatsWebhookController } from "./ubereats-webhook.controller";
 
@@ -18,13 +21,18 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
 // param; IntegrationsModule provides CredentialEncryptionService for the
 // stored merchant-token envelope.
 @Module({
-  imports: [ConfigModule, AuthModule, IntegrationsModule],
+  // OrdersModule is a one-way import (nothing in Orders reaches back into
+  // UberEats — the outbound sync listens to the order.status_changed event),
+  // so no forwardRef is needed, same as DeliverooModule.
+  imports: [ConfigModule, AuthModule, IntegrationsModule, OrdersModule],
   controllers: [UberEatsController, UberEatsWebhookController],
   providers: [
     UberEatsClientService,
     UberEatsOauthService,
     UberEatsConnectionService,
     UberEatsMenuPublishService,
+    UberEatsOrderService,
+    UberEatsOrderSyncService,
   ],
   exports: [
     UberEatsClientService,

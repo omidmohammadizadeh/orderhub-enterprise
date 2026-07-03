@@ -222,6 +222,17 @@ export class UberEatsConnectionService {
     return { ok: true, defaultPrepTimeSeconds: seconds };
   }
 
+  /** Active orders on Uber's side (recovery/reconciliation + verification). */
+  async listStoreOrders(tenantId: string, connectionId: string) {
+    const c = await this.connected(tenantId, connectionId);
+    const json = await this.client.request<any>(
+      "GET",
+      `/v1/delivery/store/${c.externalStoreId}/orders`,
+      { scopes: ["eats.order"] },
+    );
+    return json ?? { orders: [] };
+  }
+
   /** Connection row for the dashboard card. */
   async get(tenantId: string, brandId: string, locationId: string) {
     const row = await this.prisma.brandPlatformConnection.findFirst({
