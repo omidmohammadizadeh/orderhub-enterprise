@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
 import { UberEatsClientService } from "./ubereats-client.service";
@@ -100,6 +101,8 @@ export class UberEatsOauthService {
       );
     }
 
+    // Prisma's InputJsonValue rejects Record<string, unknown> — the envelope
+    // is plain JSON (string fields only) so the assertion is safe.
     const envelope = this.credentials.encrypt({
       merchantAccessToken: token.access_token,
       merchantRefreshToken: token.refresh_token ?? "",
@@ -123,12 +126,12 @@ export class UberEatsOauthService {
         locationId: decoded.l,
         platform: "UBER_EATS",
         status: "pending", // connected once a store is provisioned
-        metadata: { credentials: envelope },
+        metadata: { credentials: envelope } as Prisma.InputJsonValue,
       },
       update: {
         status: "pending",
         lastError: null,
-        metadata: { credentials: envelope },
+        metadata: { credentials: envelope } as Prisma.InputJsonValue,
       },
     });
 
