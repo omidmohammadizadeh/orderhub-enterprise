@@ -50,6 +50,11 @@ const envSchema = z.object({
   // disabled (403) so it can never be an open relay.
   VOIP_WEBHOOK_KEY: z.string().optional(),
 
+  // Stripe Terminal "test drive": a TEST-mode key used ONLY for simulated
+  // card readers (Stripe refuses simulated readers on live keys). Real
+  // readers + all other payments keep using STRIPE_SECRET_KEY.
+  STRIPE_TEST_SECRET_KEY: z.string().optional(),
+
   // Encryption — Phase I primary key (still accepted; superseded by _CURRENT in Phase J)
   ENCRYPTION_KEY: z
     .string()

@@ -27,7 +27,10 @@ export interface StoredReader {
   addedAt: string;
 }
 interface TerminalConfig {
-  stripeLocationId: string | null; // tml_…
+  stripeLocationId: string | null; // tml_… (LIVE mode)
+  // Stripe Terminal locations are per-mode; simulated readers register
+  // against a separate TEST-mode location.
+  stripeTestLocationId?: string | null;
   readers: StoredReader[];
 }
 
@@ -51,6 +54,12 @@ interface TerminalConfig {
 export class TerminalService {
   private readonly logger = new Logger(TerminalService.name);
   private readonly stripe: any;
+  // "Test drive" client: production runs a LIVE main key (which Stripe
+  // rightly refuses to pair with simulated readers), so simulated readers +
+  // their charges run on a separate TEST-mode client from
+  // STRIPE_TEST_SECRET_KEY. When the main key is already a test key, the
+  // same client serves both roles.
+  private readonly stripeTest: any;
 
   constructor(
     private readonly config: ConfigService,
@@ -59,6 +68,14 @@ export class TerminalService {
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     this.stripe = key && Stripe ? new Stripe(key, { apiVersion: "2024-06-20" }) : null;
+    const mainIsTest =
+      (key ?? "").startsWith("sk_test") || (key ?? "").startsWith("rk_test");
+    const testKey = this.config.get<string>("STRIPE_TEST_SECRET_KEY");
+    this.stripeTest = mainIsTest
+      ? this.stripe
+      : testKey && Stripe
+        ? new Stripe(testKey, { apiVersion: "2024-06-20" })
+        : null;
   }
 
   private assertStripe() {
@@ -69,10 +86,23 @@ export class TerminalService {
     }
   }
 
-  /** True in Stripe test mode — gates the simulated-reader helpers. */
+  /** Pick the Stripe client for a reader: simulated readers live in test mode. */
+  private client(simulated: boolean): any {
+    if (!simulated) {
+      this.assertStripe();
+      return this.stripe;
+    }
+    if (!this.stripeTest) {
+      throw new BadRequestException(
+        "Simulated readers need Stripe test mode — set STRIPE_TEST_SECRET_KEY in the server env (the live key stays for real payments).",
+      );
+    }
+    return this.stripeTest;
+  }
+
+  /** True when the simulated-reader test drive is available. */
   get isTestMode(): boolean {
-    const key = this.config.get<string>("STRIPE_SECRET_KEY") ?? "";
-    return key.startsWith("sk_test") || key.startsWith("rk_test");
+    return !!this.stripeTest;
   }
 
   // ── Config persistence (Location.settings.terminal — no schema change) ────
@@ -91,6 +121,7 @@ export class TerminalService {
     const t = (s.terminal ?? {}) as Partial<TerminalConfig>;
     return {
       stripeLocationId: t.stripeLocationId ?? null,
+      stripeTestLocationId: t.stripeTestLocationId ?? null,
       readers: Array.isArray(t.readers) ? (t.readers as StoredReader[]) : [],
     };
   }
@@ -112,11 +143,13 @@ export class TerminalService {
   private async ensureStripeLocation(
     loc: { id: string; name: string; address: unknown; settings: unknown },
     cfg: TerminalConfig,
+    opts: { test: boolean },
   ): Promise<string> {
-    if (cfg.stripeLocationId) return cfg.stripeLocationId;
-    this.assertStripe();
+    const existing = opts.test ? cfg.stripeTestLocationId : cfg.stripeLocationId;
+    if (existing) return existing;
+    const stripe = this.client(opts.test);
     const a = (loc.address ?? {}) as Record<string, any>;
-    const created = await this.stripe.terminal.locations.create({
+    const created = await stripe.terminal.locations.create({
       display_name: loc.name || "Order Hub location",
       address: {
         line1: a.line1 || a.addressLine1 || "1 High Street",
@@ -126,9 +159,12 @@ export class TerminalService {
       },
       metadata: { orderhubLocationId: loc.id },
     });
-    cfg.stripeLocationId = created.id;
+    if (opts.test) cfg.stripeTestLocationId = created.id;
+    else cfg.stripeLocationId = created.id;
     await this.saveConfig(loc.id, loc.settings, cfg);
-    this.logger.log(`Stripe Terminal location ${created.id} created for ${loc.id}`);
+    this.logger.log(
+      `Stripe Terminal ${opts.test ? "TEST " : ""}location ${created.id} created for ${loc.id}`,
+    );
     return created.id;
   }
 
@@ -140,12 +176,17 @@ export class TerminalService {
     registrationCode: string;
     label?: string;
   }): Promise<StoredReader> {
-    this.assertStripe();
+    // Simulated registration codes live in Stripe TEST mode; real S700
+    // codes register against the live account.
+    const simulated = args.registrationCode.includes("simulated");
+    const stripe = this.client(simulated);
     const loc = await this.loadLocation(args.tenantId, args.locationId);
     const cfg = this.configFrom(loc);
-    const stripeLocationId = await this.ensureStripeLocation(loc, cfg);
+    const stripeLocationId = await this.ensureStripeLocation(loc, cfg, {
+      test: simulated,
+    });
 
-    const reader = await this.stripe.terminal.readers.create({
+    const reader = await stripe.terminal.readers.create({
       registration_code: args.registrationCode.trim(),
       location: stripeLocationId,
       label: args.label?.trim() || "Counter reader",
@@ -155,22 +196,19 @@ export class TerminalService {
       id: reader.id,
       label: reader.label ?? args.label ?? "Counter reader",
       deviceType: reader.device_type ?? null,
-      simulated: !!reader.metadata?.simulated || args.registrationCode.includes("simulated"),
+      simulated,
       addedAt: new Date().toISOString(),
     };
     cfg.readers = [...cfg.readers.filter((r) => r.id !== stored.id), stored];
     await this.saveConfig(loc.id, loc.settings, cfg);
-    this.logger.log(`Reader ${reader.id} registered at location ${loc.id}`);
+    this.logger.log(
+      `Reader ${reader.id}${simulated ? " (simulated/test)" : ""} registered at location ${loc.id}`,
+    );
     return stored;
   }
 
-  /** Convenience: register Stripe's built-in simulated reader (test mode). */
+  /** Convenience: register Stripe's built-in simulated reader (test drive). */
   async registerSimulatedReader(tenantId: string, locationId: string) {
-    if (!this.isTestMode) {
-      throw new BadRequestException(
-        "Simulated readers only work with a Stripe TEST key.",
-      );
-    }
     return this.registerReader({
       tenantId,
       locationId,
@@ -185,9 +223,10 @@ export class TerminalService {
     // Best-effort live status; fall back to stored data if Stripe is down.
     const enriched = await Promise.all(
       cfg.readers.map(async (r) => {
-        if (!this.stripe) return { ...r, status: "unknown" };
+        const stripe = r.simulated ? this.stripeTest : this.stripe;
+        if (!stripe) return { ...r, status: "unknown" };
         try {
-          const live = await this.stripe.terminal.readers.retrieve(r.id);
+          const live = await stripe.terminal.readers.retrieve(r.id);
           return { ...r, status: live.status, deviceType: live.device_type ?? r.deviceType };
         } catch {
           return { ...r, status: "offline" };
@@ -200,10 +239,12 @@ export class TerminalService {
   async removeReader(tenantId: string, locationId: string, readerId: string) {
     const loc = await this.loadLocation(tenantId, locationId);
     const cfg = this.configFrom(loc);
+    const removed = cfg.readers.find((r) => r.id === readerId);
     cfg.readers = cfg.readers.filter((r) => r.id !== readerId);
     await this.saveConfig(loc.id, loc.settings, cfg);
-    if (this.stripe) {
-      await this.stripe.terminal.readers.del(readerId).catch(() => {
+    const stripe = removed?.simulated ? this.stripeTest : this.stripe;
+    if (stripe) {
+      await stripe.terminal.readers.del(readerId).catch(() => {
         /* already gone / not deletable */
       });
     }
@@ -247,13 +288,7 @@ export class TerminalService {
     const amountPence = Math.round(basketGbp * 100);
     if (amountPence <= 0) throw new BadRequestException("Order total must be > 0");
 
-    // Connect routing — same destination-charge model + application fee as
-    // online orders. Falls back to a plain platform charge if unconnected.
-    const connect = await this.payments.resolveConnectAccount(
-      args.tenantId,
-      order.locationId,
-      order.brandId,
-    );
+    const stripe = this.client(reader.simulated);
 
     const intentParams: any = {
       amount: amountPence,
@@ -265,22 +300,36 @@ export class TerminalService {
         tenantId: order.tenantId,
         locationId: order.locationId,
         source: "terminal",
+        ...(reader.simulated ? { testDrive: "1" } : {}),
       },
     };
-    if (connect?.stripeAccountId) {
-      const feePence = await this.payments.applicationFeePenceForBasket(
+
+    // Connect routing — same destination-charge model + application fee as
+    // online orders. SKIPPED for simulated readers: they run on the TEST
+    // client, and live-mode connected accounts don't exist there ("No such
+    // account"). The test drive exercises the POS→reader→paid flow, not
+    // payout routing.
+    if (!reader.simulated) {
+      const connect = await this.payments.resolveConnectAccount(
+        args.tenantId,
         order.locationId,
-        basketGbp,
+        order.brandId,
       );
-      intentParams.on_behalf_of = connect.stripeAccountId;
-      intentParams.transfer_data = { destination: connect.stripeAccountId };
-      if (feePence > 0) intentParams.application_fee_amount = feePence;
+      if (connect?.stripeAccountId) {
+        const feePence = await this.payments.applicationFeePenceForBasket(
+          order.locationId,
+          basketGbp,
+        );
+        intentParams.on_behalf_of = connect.stripeAccountId;
+        intentParams.transfer_data = { destination: connect.stripeAccountId };
+        if (feePence > 0) intentParams.application_fee_amount = feePence;
+      }
     }
 
-    const pi = await this.stripe.paymentIntents.create(intentParams);
+    const pi = await stripe.paymentIntents.create(intentParams);
 
     // Push the PaymentIntent to the reader — it prompts the customer.
-    await this.stripe.terminal.readers.processPaymentIntent(args.readerId, {
+    await stripe.terminal.readers.processPaymentIntent(args.readerId, {
       payment_intent: pi.id,
     });
 
@@ -310,13 +359,10 @@ export class TerminalService {
     };
   }
 
-  /** Test-mode only: play the customer tapping their card on a simulated reader. */
+  /** Test drive: play the customer tapping their card on a simulated reader. */
   async simulatePresent(readerId: string) {
-    this.assertStripe();
-    if (!this.isTestMode) {
-      throw new BadRequestException("Card simulation only works in Stripe test mode.");
-    }
-    await this.stripe.testHelpers.terminal.readers.presentPaymentMethod(readerId);
+    const stripe = this.client(true); // simulated readers live on the test client
+    await stripe.testHelpers.terminal.readers.presentPaymentMethod(readerId);
     return { ok: true };
   }
 
@@ -324,10 +370,20 @@ export class TerminalService {
    * Poll a terminal PaymentIntent. When Stripe reports success we settle it
    * (mark the order PAID) inline — so the POS gets a definitive answer even
    * before the webhook lands. Idempotent with the webhook path.
+   *
+   * The PI can live on either client (live for real readers, test for the
+   * simulated test drive — where no webhook fires at all, making this poll
+   * the ONLY settle path), so try live first and fall back to test.
    */
   async status(tenantId: string, paymentIntentId: string) {
     this.assertStripe();
-    const pi = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    let pi: any;
+    try {
+      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    } catch (err) {
+      if (!this.stripeTest || this.stripeTest === this.stripe) throw err;
+      pi = await this.stripeTest.paymentIntents.retrieve(paymentIntentId);
+    }
     if (pi.metadata?.tenantId && pi.metadata.tenantId !== tenantId) {
       throw new NotFoundException("Payment not found");
     }

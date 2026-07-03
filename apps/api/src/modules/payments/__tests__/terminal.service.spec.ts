@@ -18,6 +18,7 @@ function makeService(opts: {
   connect?: any;
   feePence?: number;
   testKey?: boolean;
+  withTestKey?: boolean;
 }) {
   const order = opts.order ?? {
     id: "ord-1",
@@ -36,6 +37,7 @@ function makeService(opts: {
         stripeLocationId: "tml_1",
         readers: [
           { id: "tmr_sim", label: "Sim", deviceType: "simulated_wisepos_e", simulated: true, addedAt: "x" },
+          { id: "tmr_real", label: "Counter", deviceType: "stripe_s700", simulated: false, addedAt: "x" },
         ],
       },
     },
@@ -52,7 +54,11 @@ function makeService(opts: {
   } as any;
 
   const config = {
-    get: (k: string) => (k === "STRIPE_SECRET_KEY" ? (opts.testKey === false ? "sk_live_x" : "sk_test_x") : undefined),
+    get: (k: string) => {
+      if (k === "STRIPE_SECRET_KEY") return opts.testKey === false ? "sk_live_x" : "sk_test_x";
+      if (k === "STRIPE_TEST_SECRET_KEY") return opts.withTestKey ? "sk_test_y" : undefined;
+      return undefined;
+    },
   } as any;
 
   const payments = {
@@ -71,19 +77,29 @@ function makeService(opts: {
       retrieve: jest.fn(),
     },
     terminal: {
-      readers: { processPaymentIntent: jest.fn().mockResolvedValue({}) },
-      locations: { create: jest.fn() },
+      readers: {
+        processPaymentIntent: jest.fn().mockResolvedValue({}),
+        create: jest.fn().mockResolvedValue({
+          id: "tmr_new",
+          label: "Simulated reader",
+          device_type: "simulated_wisepos_e",
+        }),
+      },
+      locations: { create: jest.fn().mockResolvedValue({ id: "tml_test" }) },
     },
     testHelpers: { terminal: { readers: { presentPaymentMethod: jest.fn().mockResolvedValue({}) } } },
   };
   (svc as any).stripe = stripe;
+  // stripeTest aliases the main client at construction; re-point it at the
+  // mock too (unless the scenario wants it absent — live key, no test key).
+  if ((svc as any).stripeTest) (svc as any).stripeTest = stripe;
   return { svc, stripe, prisma, payments, paymentCreate };
 }
 
 describe("TerminalService.chargeOrder", () => {
   it("creates a card_present PI with Connect destination + application fee and pushes it to the reader", async () => {
     const { svc, stripe, paymentCreate } = makeService({});
-    const out = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_sim" });
+    const out = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real" });
 
     const pi = stripe.paymentIntents.create.mock.calls[0][0];
     expect(pi).toMatchObject({
@@ -97,19 +113,32 @@ describe("TerminalService.chargeOrder", () => {
     });
     expect(pi.metadata).toMatchObject({ orderId: "ord-1", source: "terminal" });
 
-    expect(stripe.terminal.readers.processPaymentIntent).toHaveBeenCalledWith("tmr_sim", {
+    expect(stripe.terminal.readers.processPaymentIntent).toHaveBeenCalledWith("tmr_real", {
       payment_intent: "pi_1",
     });
     expect(paymentCreate).toHaveBeenCalled();
-    expect(out).toMatchObject({ paymentIntentId: "pi_1", readerId: "tmr_sim", simulated: true });
+    expect(out).toMatchObject({ paymentIntentId: "pi_1", readerId: "tmr_real", simulated: false });
   });
 
   it("charges without Connect routing when the location isn't connected", async () => {
     const { svc, stripe } = makeService({ connect: null });
-    await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_sim" });
+    await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_real" });
     const pi = stripe.paymentIntents.create.mock.calls[0][0];
     expect(pi.transfer_data).toBeUndefined();
     expect(pi.application_fee_amount).toBeUndefined();
+  });
+
+  it("simulated reader (test drive): charges on the TEST client, SKIPS Connect routing, tags testDrive", async () => {
+    // Live connected accounts don't exist in Stripe test mode, so routing a
+    // simulated charge to one would throw "No such account".
+    const { svc, stripe, payments } = makeService({});
+    const out = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", readerId: "tmr_sim" });
+    const pi = stripe.paymentIntents.create.mock.calls[0][0];
+    expect(pi.transfer_data).toBeUndefined();
+    expect(pi.application_fee_amount).toBeUndefined();
+    expect(pi.metadata.testDrive).toBe("1");
+    expect(payments.resolveConnectAccount).not.toHaveBeenCalled();
+    expect(out).toMatchObject({ readerId: "tmr_sim", simulated: true });
   });
 
   it("rejects an already-paid order", async () => {
@@ -146,8 +175,19 @@ describe("TerminalService.status", () => {
 });
 
 describe("TerminalService simulated reader guard", () => {
-  it("blocks simulated reader registration on a live key", async () => {
+  it("blocks simulated reader registration on a live key without a test-drive key", async () => {
     const { svc } = makeService({ testKey: false });
     await expect(svc.registerSimulatedReader("t-1", "loc-1")).rejects.toThrow(/test/i);
+  });
+
+  it("allows the test drive on a live key when STRIPE_TEST_SECRET_KEY is set", async () => {
+    const { svc, stripe } = makeService({ testKey: false, withTestKey: true });
+    const reader = await svc.registerSimulatedReader("t-1", "loc-1");
+    expect(reader).toMatchObject({ id: "tmr_new", simulated: true });
+    // Registered against a TEST-mode terminal location, not the live one.
+    expect(stripe.terminal.readers.create).toHaveBeenCalledWith(
+      expect.objectContaining({ location: "tml_test", registration_code: "simulated-wpe" }),
+    );
+    expect((svc as any).isTestMode).toBe(true);
   });
 });
