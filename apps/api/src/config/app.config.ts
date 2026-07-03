@@ -31,6 +31,14 @@ export const appConfig = registerAs("app", () => ({
       clientSecret: process.env.UBER_EATS_CLIENT_SECRET ?? "",
       webhookSecret: process.env.UBER_EATS_WEBHOOK_SECRET ?? "",
       baseUrl: process.env.UBER_EATS_BASE_URL ?? "https://api.uber.com/v2",
+      // Phase UE — direct integration. The marketplace surface is rooted at
+      // the bare host (…/v1/delivery/…, /v2/eats/…); baseUrl above is the
+      // legacy HubRise-era default kept for the old webhook adapter.
+      apiBase: process.env.UBER_EATS_API_BASE ?? "https://api.uber.com",
+      authUrl: process.env.UBER_EATS_AUTH_URL ?? "https://auth.uber.com/oauth/v2",
+      redirectUri:
+        process.env.UBER_EATS_REDIRECT_URI ??
+        `${(process.env.API_URL ?? "http://localhost:4000").replace(/\/$/, "")}/api/v1/integrations/ubereats/oauth/callback`,
     },
     deliveroo: {
       clientId: process.env.DELIVEROO_CLIENT_ID ?? "",

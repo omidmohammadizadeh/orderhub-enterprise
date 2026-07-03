@@ -90,6 +90,9 @@ const envSchema = z.object({
   UBER_EATS_CLIENT_SECRET: z.string().optional(),
   UBER_EATS_WEBHOOK_SECRET: z.string().optional(),
   UBER_EATS_BASE_URL: z.string().url().default("https://api.uber.com/v2"),
+  UBER_EATS_API_BASE: z.string().url().default("https://api.uber.com"),
+  UBER_EATS_AUTH_URL: z.string().url().default("https://auth.uber.com/oauth/v2"),
+  UBER_EATS_REDIRECT_URI: z.string().url().optional(),
 
   DELIVEROO_CLIENT_ID: z.string().optional(),
   DELIVEROO_CLIENT_SECRET: z.string().optional(),
