@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, Alert, AppState, Platform, View } from "react-native";
 import * as Location from "expo-location";
+import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 
 import {
@@ -198,16 +199,6 @@ export default function App() {
     }
   }, [online, locationConsent, startWatch, stopWatch]);
 
-  // If the driver is online (e.g. the server auto-resumed them from a prior
-  // session) but hasn't accepted the disclosure yet, show it before any location
-  // starts. Transition-guarded so declining (→ offline) can't re-open it in a loop.
-  const prevOnlineRef = useRef(false);
-  useEffect(() => {
-    const was = prevOnlineRef.current;
-    prevOnlineRef.current = online;
-    if (online && !was && !locationConsent) setShowDisclosure(true);
-  }, [online, locationConsent]);
-
   const runOnline = useCallback(
     async (next: boolean) => {
       setBusy(true);
@@ -228,13 +219,54 @@ export default function App() {
     [refresh],
   );
 
-  // Going online starts location sharing — show the prominent disclosure first
-  // (Google Play policy) before any system location prompt fires.
+  // The server can auto-resume presence=ONLINE from a previous session.
+  // Going online must ALWAYS be the driver's own tap — an uninvited system
+  // location prompt at first launch is exactly what App Review keeps
+  // rejecting (5.1.1(iv)) and it confused drivers. On launch, if we come up
+  // ONLINE without a usable location grant on THIS device, quietly drop to
+  // OFFLINE; the driver flips the toggle when ready, and THAT tap triggers
+  // the permission dialogs.
+  const reconciledRef = useRef(false);
+  useEffect(() => {
+    if (reconciledRef.current || !online) return;
+    reconciledRef.current = true;
+    (async () => {
+      try {
+        const fg = await Location.getForegroundPermissionsAsync();
+        const deviceReady =
+          fg.status === "granted" &&
+          (Platform.OS === "ios" || locationConsent);
+        if (!deviceReady) await runOnline(false);
+      } catch {
+        /* leave presence as-is */
+      }
+    })();
+  }, [online, locationConsent, runOnline]);
+
+  // Going online starts location sharing. Android: prominent disclosure
+  // first (Google Play policy), which then requests permission. iOS: the
+  // driver's tap leads STRAIGHT to Apple's own permission dialog — no custom
+  // UI before it (Guideline 5.1.1(iv)); a denial gets an informational
+  // alert with a Settings link, which Apple's guidance explicitly allows.
   const toggleOnline = useCallback(
     async (next: boolean) => {
-      if (next && !locationConsent) {
+      if (next && Platform.OS !== "ios" && !locationConsent) {
         setShowDisclosure(true);
         return;
+      }
+      if (next && Platform.OS === "ios") {
+        const fg = await Location.requestForegroundPermissionsAsync();
+        if (fg.status !== "granted") {
+          Alert.alert(
+            "Location needed to go online",
+            "Order Hub Driver shares your live location with dispatch and customers while you're online. Allow location access in Settings to go online.",
+            [
+              { text: "Not now", style: "cancel" },
+              { text: "Open Settings", onPress: () => Linking.openSettings() },
+            ],
+          );
+          return;
+        }
       }
       await runOnline(next);
     },
