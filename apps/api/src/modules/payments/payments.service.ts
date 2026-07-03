@@ -609,6 +609,77 @@ export class PaymentsService {
   }
 
   /**
+   * Application-fee amount (pence) the platform keeps on a basket for a
+   * location — brand fee config wins over the location's, same rule as
+   * createCheckoutSession. Public so the Terminal (card-present) flow can
+   * apply the identical Connect application fee as online orders.
+   */
+  async applicationFeePenceForBasket(
+    locationId: string,
+    basketGbp: number,
+  ): Promise<number> {
+    const location = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: {
+        applicationFeeMode: true,
+        applicationFeeFixedAmount: true,
+        applicationFeePercentage: true,
+        brand: {
+          select: {
+            applicationFeeMode: true,
+            applicationFeeFixedAmount: true,
+            applicationFeePercentage: true,
+          },
+        },
+      },
+    });
+    if (!location) return 0;
+    const brand = (location as any).brand;
+    const feeSource =
+      brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
+        ? brand
+        : location;
+    const { applicationFeePence } = this.computeFeeBreakdownPence(
+      feeSource,
+      basketGbp,
+    );
+    return Math.max(0, Math.round(applicationFeePence));
+  }
+
+  /**
+   * Settle a card-present (Terminal) PaymentIntent — mark the linked Payment
+   * SUCCEEDED and the Order PAID, then broadcast. Idempotent: re-settling an
+   * already-paid order is a no-op. Called from the poll endpoint AND the
+   * payment_intent.succeeded webhook (which branches here when the PI carries
+   * metadata.source === "terminal"). Terminal charges capture immediately, so
+   * this goes straight to PAID (unlike the online hold→AUTHORIZED flow).
+   */
+  async settleTerminalPi(pi: any): Promise<void> {
+    const payment = await this.findPaymentForPi(pi);
+    if (!payment) return;
+    if (payment.status === PaymentRecordStatus.SUCCEEDED) return; // idempotent
+
+    await this.prisma.$transaction([
+      (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentRecordStatus.SUCCEEDED },
+      }),
+      this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: { paymentStatus: "PAID" as any },
+      }),
+    ]);
+
+    this.socket.emitToTenant(payment.tenantId, "order:updated" as any, {
+      orderId: payment.orderId,
+      paymentStatus: "PAID",
+    } as any);
+    this.logger.log(
+      `Terminal payment settled: order ${payment.orderId} → PAID (pi ${pi?.id})`,
+    );
+  }
+
+  /**
    * Create a Stripe Checkout Session in manual-capture mode for the given
    * order. Returns the hosted-checkout URL the storefront should redirect
    * the customer to.
@@ -2005,7 +2076,13 @@ export class PaymentsService {
       case "payment_intent.succeeded": {
         const pi = event.data.object;
         const tenantId = pi.metadata?.tenantId;
-        if (tenantId) {
+        // Card-present (Terminal) charges capture immediately → mark PAID.
+        // Online charges keep their hold→AUTHORIZED→capture flow.
+        if (pi.metadata?.source === "terminal") {
+          await this.settleTerminalPi(pi).catch((err: any) =>
+            this.logger.error(`settleTerminalPi via webhook failed: ${err.message}`),
+          );
+        } else if (tenantId) {
           await this.confirmPayment(tenantId, pi.id).catch((err: any) =>
             this.logger.error(`confirmPayment via webhook failed: ${err.message}`),
           );

@@ -192,4 +192,20 @@ export class OrdersController {
   ) {
     return this.orders.updateStatus(id, user.tenantId, dto, user.userId);
   }
+
+  // ── PATCH /api/v1/orders/:id/payment-status ──────────
+  // Operator marks a POS order paid/unpaid (e.g. paid on a separate card
+  // terminal). The Stripe Terminal flow settles PAID automatically; this is
+  // the manual fallback.
+  @Patch(":id/payment-status")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "CASHIER")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set an order's payment status (PAID / PENDING)" })
+  async setPaymentStatus(
+    @Param("id") id: string,
+    @Body() body: { paymentStatus: "PAID" | "PENDING" | "FAILED" },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orders.setPaymentStatus(id, user.tenantId, body.paymentStatus);
+  }
 }

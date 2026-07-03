@@ -606,7 +606,9 @@ export function PosCartPanel(props: CartPanelProps) {
           ? promoApplied.code
           : undefined,
       paymentMethod,
-      paymentStatus: paymentMethod === "CARD_TERMINAL" ? "PAID" : "PENDING",
+      // Card-terminal orders start PENDING; the reader charge (or the manual
+      // "mark paid" fallback) settles them to PAID after placement.
+      paymentStatus: "PENDING",
       subtotal,
       deliveryFee: effectiveDeliveryFee,
       total,

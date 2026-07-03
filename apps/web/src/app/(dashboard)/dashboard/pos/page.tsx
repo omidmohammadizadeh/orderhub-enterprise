@@ -28,6 +28,7 @@ import {
 } from "@/components/pos/pos-cart-panel";
 import { DeliveryFeeModal } from "@/components/pos/delivery-fee-modal";
 import { CallerIdPopup } from "@/components/pos/caller-id-popup";
+import { ChargeReaderModal } from "@/components/pos/charge-reader-modal";
 import { PromosModal } from "@/components/pos/promos-modal";
 // Phase AP follow-up (AP-NAV-1): Direct online ordering moved to its
 // own sidebar entry (/dashboard/direct-ordering). The modal import and
@@ -67,6 +68,7 @@ export default function PosPage() {
   // Phase AM — manager-side modals on the POS top bar.
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showPromosModal, setShowPromosModal] = useState(false);
+  const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   // Phase AW-22 — Edit-mode. When set from ?editOrderId=, we replace
   // the create flow with a PATCH /:id/edit that swaps the order's
   // items + customer in place and triggers a reprint. The banner
@@ -290,9 +292,19 @@ export default function PosPage() {
         note: "POS auto-accept",
       });
 
-      return { id: created.id, scheduled: payload.isScheduled, edited: false };
+      return {
+        id: created.id,
+        scheduled: payload.isScheduled,
+        edited: false,
+        paymentMethod: payload.paymentMethod,
+        total: payload.total,
+      };
     },
-    onSuccess: ({ id, scheduled, edited }) => {
+    onSuccess: ({ id, scheduled, edited, paymentMethod, total }) => {
+      // Card-terminal orders: pop the reader charge modal for the new order.
+      if (!edited && paymentMethod === "CARD_TERMINAL" && id) {
+        setChargeOrder({ id, amount: Number(total ?? 0) });
+      }
       setSubmitFeedback(
         edited
           ? `Order ${editOrderNumber ?? `#${id.slice(-6)}`} updated. Reprint queued.`
@@ -511,6 +523,18 @@ export default function PosPage() {
       {/* Landline caller-ID popup — fires on the "callerid:ring" socket
           event and prefills the cart via "pos:callerid-fill". */}
       <CallerIdPopup locationId={selectedLocationId} />
+
+      {/* Stripe Terminal charge modal — opens after a "Card terminal" order
+          is placed; charges it to the S700/WisePOS reader. */}
+      {selectedLocationId && (
+        <ChargeReaderModal
+          open={!!chargeOrder}
+          orderId={chargeOrder?.id ?? null}
+          amount={chargeOrder?.amount ?? 0}
+          locationId={selectedLocationId}
+          onClose={() => setChargeOrder(null)}
+        />
+      )}
 
       {showFeeModal && selectedLocationId && (
         <DeliveryFeeModal

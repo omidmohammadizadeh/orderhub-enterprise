@@ -1158,6 +1158,43 @@ export class OrdersService {
     return updated;
   }
 
+  /**
+   * Manually set an order's payment status (e.g. paid on a separate card
+   * terminal). The Stripe Terminal flow sets PAID automatically; this is the
+   * operator fallback. Broadcasts so the board's payment chip updates live.
+   */
+  async setPaymentStatus(
+    orderId: string,
+    tenantId: string,
+    paymentStatus: "PAID" | "PENDING" | "FAILED",
+  ): Promise<Order> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { id: true, locationId: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: paymentStatus as any },
+    });
+    this.socket.emitOrderUpdated(order.locationId, {
+      orderId,
+      tenantId,
+      locationId: order.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      itemCount: 0,
+      customerName: updated.customerName ?? "",
+      scheduledFor: updated.scheduledFor?.toISOString() ?? null,
+      createdAt: updated.createdAt.toISOString(),
+    });
+    return updated;
+  }
+
   // ── Queries ───────────────────────────────────────────
 
   async findMany(tenantId: string, filters: OrderFilters) {
