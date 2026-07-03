@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, Alert, AppState, View } from "react-native";
+import { ActivityIndicator, Alert, AppState, Platform, View } from "react-native";
 import * as Location from "expo-location";
 import * as SecureStore from "expo-secure-store";
 
@@ -71,10 +71,16 @@ export default function App() {
   const [manualJob, setManualJob] = useState<Job | null>(null); // opened from a list
   const [minimized, setMinimized] = useState(false); // peek the map while a job is ASSIGNED (not started)
 
-  // Prominent location-disclosure gate (shown before the first permission prompt).
-  const [locationConsent, setLocationConsent] = useState(false);
+  // Prominent location-disclosure gate — ANDROID ONLY (Google Play's
+  // background-location policy requires it there). iOS shows NO custom
+  // message before the permission request: App Review rejected pre-permission
+  // UI twice under Guideline 5.1.1(iv) (any message with an exit path), so on
+  // iOS going online proceeds DIRECTLY to Apple's own permission dialogs —
+  // the Info.plist purpose strings carry the explanation.
+  const [locationConsent, setLocationConsent] = useState(Platform.OS === "ios");
   const [showDisclosure, setShowDisclosure] = useState(false);
   useEffect(() => {
+    if (Platform.OS === "ios") return; // no disclosure gate on iOS
     SecureStore.getItemAsync(LOCATION_CONSENT_KEY)
       .then((v) => setLocationConsent(v === "1"))
       .catch(() => {});
