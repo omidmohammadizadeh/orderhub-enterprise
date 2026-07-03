@@ -18,6 +18,7 @@ import { Roles } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
+import { UberEatsClientService } from "./ubereats-client.service";
 
 // Phase UE-1/2 — operator-facing Uber Eats endpoints.
 //
@@ -34,7 +35,32 @@ export class UberEatsController {
     private readonly oauth: UberEatsOauthService,
     private readonly connections: UberEatsConnectionService,
     private readonly config: ConfigService,
+    private readonly client: UberEatsClientService,
   ) {}
+
+  // Public config/connectivity probe — booleans + a live token-mint check
+  // (safe: tokens are cached per scope-set, so repeated hits can't burn
+  // Uber's 100/hr mint limit; no secrets are ever echoed).
+  @Public()
+  @Get("health")
+  @ApiOperation({ summary: "Uber Eats integration config + token-mint check" })
+  async health() {
+    const configured = this.client.configured;
+    const redirectUriSet = !!this.oauth.redirectUri;
+    if (!configured) {
+      return { configured, redirectUriSet, tokenMint: "skipped (no credentials)" };
+    }
+    try {
+      await this.client.getToken(["eats.store"]);
+      return { configured, redirectUriSet, tokenMint: "ok" };
+    } catch (err: any) {
+      return {
+        configured,
+        redirectUriSet,
+        tokenMint: `failed: ${String(err?.message ?? err).slice(0, 200)}`,
+      };
+    }
+  }
 
   @Get("connect")
   @ApiBearerAuth()
