@@ -17,7 +17,9 @@ try {
   /* mock mode */
 }
 
-interface StoredReader {
+// Exported: the controller's method return types reference this, and
+// declaration emit (TS4053) fails if it can't be named from outside.
+export interface StoredReader {
   id: string; // tmr_…
   label: string;
   deviceType: string | null;
