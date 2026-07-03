@@ -102,7 +102,11 @@ export class UberEatsController {
     let base = (this.config.get<string>("app.appUrl") ?? "").trim();
     if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
     try {
-      return new URL(`${base.replace(/\/$/, "")}${path}`);
+      const u = new URL(`${base.replace(/\/$/, "")}${path}`);
+      // "orderhub-web" (a bare Render service name) parses but isn't a real
+      // public host — no dot means the operator would land on a dead URL.
+      if (!u.hostname.includes(".")) throw new Error("not a public host");
+      return u;
     } catch {
       return new URL(`https://www.orderhubsolutions.com${path}`);
     }
