@@ -27,13 +27,12 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }: any) => {
 });
 
 export async function startLocationUpdates(): Promise<boolean> {
-  const fg = await Location.requestForegroundPermissionsAsync();
+  // Passive: only CHECK permissions here. This is called from an effect
+  // whenever presence goes online (including a session resumed at launch),
+  // so requesting would pop the system dialog without a driver tap —
+  // Guideline 5.1.1(iv). The go-online tap paths own the requests.
+  const fg = await Location.getForegroundPermissionsAsync();
   if (fg.status !== "granted") return false;
-  try {
-    await Location.requestBackgroundPermissionsAsync();
-  } catch {
-    // background optional — foreground pings still work while app is open
-  }
   const already = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK).catch(() => false);
   if (!already) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK, {

@@ -156,7 +156,10 @@ export default function App() {
   // ── Persistent location watch (tied to online status, not to a screen) ──────
   const startWatch = useCallback(async () => {
     if (watchRef.current) return;
-    const fg = await Location.requestForegroundPermissionsAsync();
+    // NEVER request here — this runs from an effect (e.g. presence resumed
+    // ONLINE from a previous session), so a request would pop Apple's dialog
+    // without a driver tap (Guideline 5.1.1(iv)). Tap paths do the requesting.
+    const fg = await Location.getForegroundPermissionsAsync();
     if (fg.status !== "granted") return;
     try {
       const cur = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
@@ -267,6 +270,14 @@ export default function App() {
           );
           return;
         }
+        // Always/background upgrade — must ride the same tap; the location
+        // start-up code is deliberately passive and never requests. Optional:
+        // "Keep Only While Using" still goes online (foreground pings work).
+        try {
+          await Location.requestBackgroundPermissionsAsync();
+        } catch {
+          // optional
+        }
       }
       await runOnline(next);
     },
@@ -286,9 +297,12 @@ export default function App() {
     // relying on the go-online chain, which can bail early (e.g. network
     // error) and leave the message with no prompt after it.
     try {
-      await Location.requestForegroundPermissionsAsync();
+      const fg = await Location.requestForegroundPermissionsAsync();
+      // Background permission must also be requested from the tap chain —
+      // the location start-up code is passive and never requests.
+      if (fg.status === "granted") await Location.requestBackgroundPermissionsAsync();
     } catch {
-      // the online flow re-requests; never block going online on this
+      // never block going online on this
     }
     runOnline(true);
   }
