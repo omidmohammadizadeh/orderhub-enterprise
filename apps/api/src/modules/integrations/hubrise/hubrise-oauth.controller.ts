@@ -84,19 +84,18 @@ export class HubRiseOauthController {
     @Query("error_description") errorDescription: string | undefined,
     @Res() res: Response,
   ) {
-    const appUrl = this.config.get<string>("app.appUrl") ?? "/";
     // If HubRise itself rejected the consent (operator cancelled,
     // app suspended, etc.), bounce back to the dashboard with the
     // reason in the query string so the UI can show it.
     if (error) {
-      const back = new URL(`${appUrl}/dashboard/locations`);
+      const back = this.dashboardUrl("/dashboard/locations");
       back.searchParams.set("hubrise_error", error);
       if (errorDescription)
         back.searchParams.set("hubrise_error_description", errorDescription);
       return res.redirect(back.toString());
     }
     if (!code || !state) {
-      const back = new URL(`${appUrl}/dashboard/locations`);
+      const back = this.dashboardUrl("/dashboard/locations");
       back.searchParams.set(
         "hubrise_error",
         "missing_code_or_state",
@@ -106,17 +105,33 @@ export class HubRiseOauthController {
 
     try {
       const { locationId } = await this.oauth.handleCallback({ code, state });
-      const back = new URL(`${appUrl}/dashboard/locations`);
+      const back = this.dashboardUrl("/dashboard/locations");
       back.searchParams.set("hubrise_connected", locationId);
       return res.redirect(back.toString());
     } catch (err: any) {
-      const back = new URL(`${appUrl}/dashboard/locations`);
+      const back = this.dashboardUrl("/dashboard/locations");
       back.searchParams.set("hubrise_error", "callback_failed");
       back.searchParams.set(
         "hubrise_error_description",
         err?.message ?? "Unknown error",
       );
       return res.redirect(back.toString());
+    }
+  }
+
+  /**
+   * APP_URL in production may be scheme-less ("www.example.com") — bare
+   * `new URL(appUrl + path)` throws Invalid URL, which turned every OAuth
+   * landing into a 500 JSON page (the connect itself still saved). Normalise
+   * the scheme and fall back to the public site if it's still unparseable.
+   */
+  private dashboardUrl(path: string): URL {
+    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
+    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
+    try {
+      return new URL(`${base.replace(/\/$/, "")}${path}`);
+    } catch {
+      return new URL(`https://www.orderhubsolutions.com${path}`);
     }
   }
 

@@ -64,8 +64,7 @@ export class UberEatsController {
     @Query("error") error: string | undefined,
     @Res() res: Response,
   ) {
-    const appUrl = this.config.get<string>("app.appUrl") ?? "/";
-    const back = new URL(`${appUrl}/dashboard/integrations`);
+    const back = this.dashboardUrl("/dashboard/integrations");
     if (error) {
       back.searchParams.set("ubereats_error", error);
       return res.redirect(back.toString());
@@ -90,6 +89,22 @@ export class UberEatsController {
         err?.message ?? "Unknown error",
       );
       return res.redirect(back.toString());
+    }
+  }
+
+  /**
+   * APP_URL in production may be scheme-less ("www.example.com") — bare
+   * `new URL(appUrl + path)` throws Invalid URL and turned the OAuth landing
+   * into a 500 (same latent bug existed in the HubRise callback). Normalise
+   * the scheme and fall back to the public site if it's still unparseable.
+   */
+  private dashboardUrl(path: string): URL {
+    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
+    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
+    try {
+      return new URL(`${base.replace(/\/$/, "")}${path}`);
+    } catch {
+      return new URL(`https://www.orderhubsolutions.com${path}`);
     }
   }
 
