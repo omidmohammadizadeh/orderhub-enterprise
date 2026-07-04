@@ -25,9 +25,20 @@ import { cn } from "@/lib/utils";
 interface KdsScreenSettings {
   stationType?: "STATION" | "EXPO";
   categoryIds?: string[];
+  itemIds?: string[];
   channels?: string[];
   slaWarnMinutes?: number;
   slaLateMinutes?: number;
+}
+
+interface RoutingMenu {
+  id: string;
+  name: string;
+  categories: Array<{
+    id: string;
+    name: string;
+    items: Array<{ id: string; name: string }>;
+  }>;
 }
 
 interface KdsScreen {
@@ -78,21 +89,25 @@ export default function KitchenScreensPage() {
       staleTime: 60_000,
     })),
   });
-  const categories = useMemo(() => {
-    const out: Array<{ id: string; label: string }> = [];
+  const routingMenus = useMemo<RoutingMenu[]>(() => {
+    const out: RoutingMenu[] = [];
     for (const q of menuDetails) {
       const menu: any = q.data;
       if (!menu) continue;
-      for (const c of menu.categories ?? []) {
-        out.push({
+      out.push({
+        id: menu.id,
+        name: menu.name,
+        categories: (menu.categories ?? []).map((c: any) => ({
           id: c.id,
-          label:
-            (menus as any[]).length > 1 ? `${menu.name} · ${c.name}` : c.name,
-        });
-      }
+          name: c.name,
+          items: (c.items ?? [])
+            .filter((l: any) => l.item)
+            .map((l: any) => ({ id: l.item.id, name: l.item.name })),
+        })),
+      });
     }
     return out;
-  }, [menuDetails, menus]);
+  }, [menuDetails]);
 
   const [editing, setEditing] = useState<KdsScreen | "new" | null>(null);
 
@@ -182,8 +197,17 @@ export default function KitchenScreensPage() {
                     )}
                   </p>
                   <p className="text-xs text-zinc-500 mt-0.5 truncate">
-                    {st.categoryIds?.length
-                      ? `${st.categoryIds.length} categories routed`
+                    {st.categoryIds?.length || st.itemIds?.length
+                      ? [
+                          st.categoryIds?.length
+                            ? `${st.categoryIds.length} categories`
+                            : null,
+                          st.itemIds?.length
+                            ? `${st.itemIds.length} items`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" + ") + " routed"
                       : "Shows every item"}
                     {st.channels?.length
                       ? ` · ${st.channels.length} channels`
@@ -233,7 +257,7 @@ export default function KitchenScreensPage() {
       {editing && (
         <ScreenForm
           locationId={location}
-          categories={categories}
+          menus={routingMenus}
           screen={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
@@ -250,13 +274,13 @@ export default function KitchenScreensPage() {
 
 function ScreenForm({
   locationId,
-  categories,
+  menus,
   screen,
   onClose,
   onSaved,
 }: {
   locationId: string;
-  categories: Array<{ id: string; label: string }>;
+  menus: RoutingMenu[];
   screen: KdsScreen | null;
   onClose: () => void;
   onSaved: () => void;
@@ -269,15 +293,21 @@ function ScreenForm({
   const [categoryIds, setCategoryIds] = useState<string[]>(
     st.categoryIds ?? [],
   );
+  const [itemIds, setItemIds] = useState<string[]>(st.itemIds ?? []);
+  const [menuId, setMenuId] = useState<string>("");
+  const [openCategory, setOpenCategory] = useState<string>("");
   const [channels, setChannels] = useState<string[]>(st.channels ?? []);
   const [warn, setWarn] = useState(st.slaWarnMinutes ?? 5);
   const [late, setLate] = useState(st.slaLateMinutes ?? 10);
+  const selectedMenu =
+    menus.find((m) => m.id === menuId) ?? menus[0] ?? null;
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       const settings: KdsScreenSettings = {
         stationType,
         categoryIds: stationType === "EXPO" ? [] : categoryIds,
+        itemIds: stationType === "EXPO" ? [] : itemIds,
         channels,
         slaWarnMinutes: warn,
         slaLateMinutes: late,
@@ -362,31 +392,113 @@ function ScreenForm({
         {stationType === "STATION" && (
           <>
             <label className="block text-xs font-semibold text-zinc-600 mb-1">
-              Route these categories here{" "}
+              Route to this station{" "}
               <span className="font-normal text-zinc-400">
-                (none selected = every item)
+                (nothing selected = every item)
               </span>
             </label>
-            <div className="max-h-40 overflow-y-auto rounded-md border border-zinc-200 p-2 mb-4 grid grid-cols-2 gap-1">
-              {categories.length === 0 && (
-                <p className="text-xs text-zinc-400 col-span-2 p-1">
-                  No menu categories found for this location.
-                </p>
-              )}
-              {categories.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex items-center gap-2 text-xs text-zinc-700 rounded px-1.5 py-1 hover:bg-zinc-50 cursor-pointer"
+            {menus.length === 0 ? (
+              <p className="text-xs text-zinc-400 mb-4">
+                No menus found for this location.
+              </p>
+            ) : (
+              <>
+                <select
+                  value={selectedMenu?.id ?? ""}
+                  onChange={(e) => {
+                    setMenuId(e.target.value);
+                    setOpenCategory("");
+                  }}
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm mb-2"
                 >
-                  <input
-                    type="checkbox"
-                    checked={categoryIds.includes(c.id)}
-                    onChange={() => toggle(categoryIds, c.id, setCategoryIds)}
-                  />
-                  <span className="truncate">{c.label}</span>
-                </label>
-              ))}
-            </div>
+                  {menus.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="max-h-56 overflow-y-auto rounded-md border border-zinc-200 divide-y divide-zinc-100 mb-1.5">
+                  {(selectedMenu?.categories ?? []).map((c) => {
+                    const catOn = categoryIds.includes(c.id);
+                    const pickedInCat = c.items.filter((i) =>
+                      itemIds.includes(i.id),
+                    ).length;
+                    const open = openCategory === c.id;
+                    return (
+                      <div key={c.id}>
+                        <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-50">
+                          <input
+                            type="checkbox"
+                            checked={catOn}
+                            onChange={() => {
+                              toggle(categoryIds, c.id, setCategoryIds);
+                              // Whole category routed → drop redundant
+                              // per-item picks inside it.
+                              if (!catOn)
+                                setItemIds((prev) =>
+                                  prev.filter(
+                                    (id) => !c.items.some((i) => i.id === id),
+                                  ),
+                                );
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setOpenCategory(open ? "" : c.id)}
+                            className="flex-1 flex items-center justify-between text-left"
+                          >
+                            <span className="text-sm text-zinc-800">
+                              {c.name}
+                              <span className="text-zinc-400 text-xs ml-1.5">
+                                {c.items.length} items
+                              </span>
+                            </span>
+                            <span className="text-xs text-zinc-400">
+                              {catOn
+                                ? "whole category"
+                                : pickedInCat
+                                  ? `${pickedInCat} picked`
+                                  : ""}{" "}
+                              {open ? "▾" : "▸"}
+                            </span>
+                          </button>
+                        </div>
+                        {open && !catOn && (
+                          <div className="pl-8 pr-2 pb-1.5 grid grid-cols-2 gap-0.5">
+                            {c.items.map((i) => (
+                              <label
+                                key={i.id}
+                                className="flex items-center gap-2 text-xs text-zinc-600 rounded px-1.5 py-1 hover:bg-zinc-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={itemIds.includes(i.id)}
+                                  onChange={() =>
+                                    toggle(itemIds, i.id, setItemIds)
+                                  }
+                                />
+                                <span className="truncate">{i.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                        {open && catOn && (
+                          <p className="pl-8 pb-1.5 text-[11px] text-zinc-400">
+                            Whole category routed — untick it to pick single
+                            items.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-zinc-400 mb-4">
+                  {categoryIds.length + itemIds.length === 0
+                    ? "Nothing selected — this station will show every item."
+                    : `${categoryIds.length} categories + ${itemIds.length} single items routed (selections cover all menus).`}
+                </p>
+              </>
+            )}
           </>
         )}
 
