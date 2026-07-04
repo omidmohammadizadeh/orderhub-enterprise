@@ -57,7 +57,10 @@ export function LoginForm() {
     setServerError(null);
     try {
       await login({ email: data.email, password: data.password });
-      router.replace("/dashboard/orders");
+      // Honour ?next= (e.g. a kitchen tablet re-authing back to its display),
+      // but only same-origin relative paths — never an open redirect.
+      const next = search.get("next");
+      router.replace(next && next.startsWith("/") ? next : "/dashboard/orders");
     } catch (err: unknown) {
       const message =
         err instanceof Error && err.message.includes("401")

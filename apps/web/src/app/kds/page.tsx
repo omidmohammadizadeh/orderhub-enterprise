@@ -25,6 +25,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { useAuthStore } from "@/stores/auth.store";
 import { socketClient } from "@/lib/socket/socket.client";
 import { cn } from "@/lib/utils";
 
@@ -199,6 +200,55 @@ export default function KdsPage() {
 function KdsPageInner() {
   const params = useSearchParams();
   const screenId = params.get("screen") ?? "";
+
+  // /kds is its own root — a full page load here doesn't mount the dashboard
+  // tree, so we import the auth store directly (which registers the Axios
+  // token callbacks) and wait for its persisted tokens to rehydrate before
+  // firing any API call. Without this, a fresh load logs the operator out.
+  const [ready, setReady] = useState(false);
+  const [authed, setAuthed] = useState(true);
+  useEffect(() => {
+    const check = () => {
+      const st = useAuthStore.getState();
+      setAuthed(!!st.accessToken);
+      setReady(true);
+    };
+    // Rehydrate from localStorage, then read the live token.
+    const p = (useAuthStore as any).persist?.rehydrate?.();
+    if (p && typeof p.then === "function") p.then(check);
+    else check();
+  }, []);
+
+  if (!ready) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-zinc-950">
+        <div className="h-8 w-8 rounded-full border-2 border-zinc-700 border-t-emerald-500 animate-spin" />
+      </div>
+    );
+  }
+  if (!authed) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-zinc-950 text-white">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-1">Please sign in</p>
+          <p className="text-sm text-zinc-500 mb-4">
+            Your session isn't active on this device.
+          </p>
+          <button
+            onClick={() =>
+              window.location.assign(
+                `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+              )
+            }
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500"
+          >
+            Go to sign in
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!screenId) return <ScreenPicker />;
   return <StationView screenId={screenId} />;
 }
