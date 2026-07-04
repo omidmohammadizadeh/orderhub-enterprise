@@ -127,7 +127,7 @@ export class UberEatsReportingService {
           metadata: {
             ...meta,
             reportJobs: jobs.slice(0, 50),
-          } as Prisma.InputJsonValue,
+          } as unknown as Prisma.InputJsonValue,
         },
       })
       .catch(() => {
