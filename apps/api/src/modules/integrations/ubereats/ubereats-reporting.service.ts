@@ -16,6 +16,7 @@ import {
   Injectable,
   Logger,
 } from "@nestjs/common";
+import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 
@@ -107,7 +108,7 @@ export class UberEatsReportingService {
     );
 
     // Track the job on the tenant's first connection (bounded list).
-    const anchor = conns[0];
+    const anchor = conns[0]!;
     const meta = (anchor.metadata ?? {}) as Record<string, any>;
     const jobs: ReportJob[] = Array.isArray(meta.reportJobs)
       ? meta.reportJobs
@@ -122,7 +123,12 @@ export class UberEatsReportingService {
     await this.prisma.brandPlatformConnection
       .update({
         where: { id: anchor.id },
-        data: { metadata: { ...meta, reportJobs: jobs.slice(0, 50) } },
+        data: {
+          metadata: {
+            ...meta,
+            reportJobs: jobs.slice(0, 50),
+          } as Prisma.InputJsonValue,
+        },
       })
       .catch(() => {
         /* best-effort bookkeeping */
@@ -152,15 +158,17 @@ export class UberEatsReportingService {
         platform: "UBER_EATS",
         metadata: { path: ["event"], equals: "eats.report.success" },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { receivedAt: "desc" },
       take: 200,
-      select: { rawPayload: true, createdAt: true },
+      select: { rawPayload: true, receivedAt: true },
     });
     const byJob = new Map<string, any>();
     for (const e of events) {
       const p = e.rawPayload as any;
       const key = String(p?.job_id ?? p?.workflow_id ?? "");
-      if (key && !byJob.has(key)) byJob.set(key, { ...p, receivedAt: e.createdAt });
+      if (key && !byJob.has(key)) {
+        byJob.set(key, { ...p, receivedAt: e.receivedAt });
+      }
     }
 
     return {
