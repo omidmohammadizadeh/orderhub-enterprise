@@ -1,202 +1,181 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChefHat, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+// Phase KD — Kitchen Display launcher (sidebar → Kitchen Display).
+//
+// Pick a station to open its fullscreen display (/kds?screen=<id>).
+// Tiles show live open-ticket counts; screens are managed under
+// Settings → Kitchen screens.
 
-interface OrderItem {
-  name: string;
-  quantity: number;
-  notes?: string;
-}
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { ChefHat, Monitor, Settings, ExternalLink, Flame } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
+import { locationsClient } from "@/lib/api/locations.client";
+import { cn } from "@/lib/utils";
 
-interface Order {
+interface KdsScreen {
   id: string;
-  displayId: string;
-  platform: string;
-  status: string;
-  items: OrderItem[];
-  createdAt: string;
+  name: string;
+  station: string;
+  isActive: boolean;
+  settings: {
+    stationType?: "STATION" | "EXPO";
+    categoryIds?: string[];
+    itemIds?: string[];
+    channels?: string[];
+    slaWarnMinutes?: number;
+    slaLateMinutes?: number;
+  } | null;
+  _count?: { tickets: number };
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
-async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    ...opts,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(opts?.headers ?? {}) },
+export default function KitchenLauncherPage() {
+  const router = useRouter();
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: locationsClient.list,
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
+  const [locationId, setLocationId] = useState("");
+  const location = locationId || (locations[0] as any)?.id || "";
 
-function ageSeconds(createdAt: string) {
-  return Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000);
-}
-
-function bgColor(ageS: number): string {
-  if (ageS > 420) return "bg-red-900 border-red-700";
-  if (ageS > 240) return "bg-orange-900 border-orange-700";
-  return "bg-gray-900 border-gray-700";
-}
-
-function timeLabel(ageS: number) {
-  const m = Math.floor(ageS / 60);
-  const s = ageS % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function KdsCard({
-  order,
-  focused,
-  onBump,
-  onClick,
-}: {
-  order: Order;
-  focused: boolean;
-  onBump: (id: string) => void;
-  onClick: () => void;
-}) {
-  const [age, setAge] = useState(ageSeconds(order.createdAt));
-
-  useEffect(() => {
-    const t = setInterval(() => setAge(ageSeconds(order.createdAt)), 1000);
-    return () => clearInterval(t);
-  }, [order.createdAt]);
-
-  return (
-    <div
-      onClick={onClick}
-      className={`rounded-2xl border-2 p-5 cursor-pointer transition-all
-        ${bgColor(age)}
-        ${focused ? "ring-2 ring-white ring-offset-2 ring-offset-gray-950" : ""}`}
-    >
-      {/* Ticket header */}
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-2xl font-black text-white">#{order.displayId}</span>
-        <span className={`text-xl font-bold tabular-nums ${age > 420 ? "text-red-300 animate-pulse" : age > 240 ? "text-orange-300" : "text-gray-400"}`}>
-          {timeLabel(age)}
-        </span>
-      </div>
-
-      {/* Items — large, readable across kitchen */}
-      <div className="space-y-2 mb-5">
-        {order.items.map((item, i) => (
-          <div key={i}>
-            <p className="text-xl font-bold text-white">
-              <span className="text-yellow-400">{item.quantity}×</span> {item.name}
-            </p>
-            {item.notes && (
-              <p className="text-sm text-orange-300 ml-6 mt-0.5">{item.notes}</p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* BUMP button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onBump(order.id); }}
-        className="w-full py-4 rounded-xl bg-green-500 hover:bg-green-400 active:scale-95 text-white text-xl font-black transition-all flex items-center justify-center gap-2"
-      >
-        <CheckCircle className="w-6 h-6" />
-        BUMP {focused && <span className="text-sm opacity-70">Space</span>}
-      </button>
-    </div>
-  );
-}
-
-export default function KitchenPage() {
-  const qc = useQueryClient();
-  const [focusedIdx, setFocusedIdx] = useState(0);
-
-  const { data: orders } = useQuery<Order[]>({
-    queryKey: ["orders-kitchen"],
+  const { data: screens = [], isLoading } = useQuery<KdsScreen[]>({
+    queryKey: ["kds-screens", location],
     queryFn: () =>
-      apiFetch("/v1/orders?status=ACCEPTED,PREPARING&limit=20&sort=createdAt:asc"),
-    refetchInterval: 8_000,
+      apiClient
+        .get(`/v1/kds/screens?locationId=${location}`)
+        .then((r) => r.data),
+    enabled: !!location,
+    refetchInterval: 15_000,
   });
 
-  const bump = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/v1/orders/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: "READY" }),
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["orders-kitchen"] }),
-  });
-
-  const active = orders ?? [];
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!active.length) return;
-      const focused = active[focusedIdx];
-      switch (e.key) {
-        case "ArrowRight":
-          e.preventDefault();
-          setFocusedIdx((i) => Math.min(i + 1, active.length - 1));
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          setFocusedIdx((i) => Math.max(i - 1, 0));
-          break;
-        case " ":
-          e.preventDefault();
-          if (focused) bump.mutate(focused.id);
-          break;
-      }
-    },
-    [active, focusedIdx, bump],
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (active.length > 0) setFocusedIdx((i) => Math.min(i, active.length - 1));
-  }, [active.length]);
+  const active = screens.filter((s) => s.isActive);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <ChefHat className="w-6 h-6 text-yellow-400" />
-          <span className="text-xl font-black">Kitchen Display</span>
+    <div className="px-6 py-6 max-w-5xl">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-900 flex items-center gap-2">
+            <ChefHat className="h-5 w-5" /> Kitchen Display
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Pick a station to open its fullscreen display — run it on any
+            tablet at the pass. Orders appear the moment they're accepted.
+          </p>
         </div>
-        {active.length > 0 && (
-          <span className="text-gray-400 text-sm">{active.length} tickets</span>
-        )}
-        <div className="ml-auto text-xs text-gray-500 hidden md:block">
-          ← → navigate · Space BUMP
-        </div>
+        <button
+          onClick={() => router.push("/dashboard/settings/kitchen")}
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3.5 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+        >
+          <Settings className="h-4 w-4" /> Manage screens
+        </button>
       </div>
 
-      {/* Ticket grid */}
-      <div className="p-4">
-        {active.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[70vh] text-gray-700">
-            <ChefHat className="w-16 h-16 mb-4" />
-            <p className="text-2xl font-bold">Kitchen is clear</p>
-            <p className="text-sm mt-1">No orders in preparation.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-            {active.map((order, i) => (
-              <KdsCard
-                key={order.id}
-                order={order}
-                focused={focusedIdx === i}
-                onBump={(id) => bump.mutate(id)}
-                onClick={() => setFocusedIdx(i)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {locations.length > 1 && (
+        <select
+          value={location}
+          onChange={(e) => setLocationId(e.target.value)}
+          className="mb-5 rounded-md border border-zinc-300 px-3 py-2 text-sm"
+        >
+          {(locations as any[]).map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {isLoading ? (
+        <p className="text-sm text-zinc-400 py-10">Loading…</p>
+      ) : active.length === 0 ? (
+        <div className="rounded-xl border-2 border-dashed border-zinc-200 px-6 py-16 text-center">
+          <Monitor className="h-10 w-10 mx-auto text-zinc-300 mb-3" />
+          <p className="font-medium text-zinc-500">No kitchen screens yet</p>
+          <p className="text-sm text-zinc-400 mt-1 mb-4">
+            Create your first screen — start with one named "Kitchen" that
+            shows every item.
+          </p>
+          <button
+            onClick={() => router.push("/dashboard/settings/kitchen")}
+            className="inline-flex items-center gap-2 rounded-md bg-zinc-900 text-white px-4 py-2 text-sm font-semibold hover:bg-zinc-800"
+          >
+            <Settings className="h-4 w-4" /> Set up screens
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {active.map((s) => {
+            const st = s.settings ?? {};
+            const open = s._count?.tickets ?? 0;
+            const isExpo = st.stationType === "EXPO";
+            return (
+              <button
+                key={s.id}
+                onClick={() => router.push(`/kds?screen=${s.id}`)}
+                className={cn(
+                  "group relative rounded-2xl border-2 p-5 text-left transition-all hover:-translate-y-0.5",
+                  isExpo
+                    ? "border-violet-200 bg-violet-50/40 hover:border-violet-400"
+                    : "border-zinc-200 bg-white hover:border-emerald-400",
+                )}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div
+                    className={cn(
+                      "h-11 w-11 rounded-xl flex items-center justify-center",
+                      isExpo
+                        ? "bg-violet-100 text-violet-600"
+                        : "bg-emerald-100 text-emerald-700",
+                    )}
+                  >
+                    {isExpo ? (
+                      <Monitor className="h-5 w-5" />
+                    ) : (
+                      <Flame className="h-5 w-5" />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-xs font-bold",
+                      open > 0
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-zinc-100 text-zinc-500",
+                    )}
+                  >
+                    {open} open
+                  </span>
+                </div>
+                <p className="text-lg font-semibold text-zinc-900">{s.name}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  {isExpo
+                    ? "Expo — whole orders, serves them"
+                    : st.categoryIds?.length || st.itemIds?.length
+                      ? `Station — ${[
+                          st.categoryIds?.length
+                            ? `${st.categoryIds.length} categories`
+                            : null,
+                          st.itemIds?.length
+                            ? `${st.itemIds.length} items`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" + ")}`
+                      : "Station — every item"}
+                </p>
+                <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 group-hover:text-emerald-800">
+                  Open display <ExternalLink className="h-3.5 w-3.5" />
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="text-xs text-zinc-400 mt-6">
+        Tip: on a kitchen tablet, open a station and add it to the home screen
+        (or bookmark it) — the URL keeps the station selected, and the display
+        goes fullscreen from the expand icon in its header.
+      </p>
     </div>
   );
 }
