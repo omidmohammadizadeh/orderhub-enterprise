@@ -15,6 +15,7 @@ import {
   Check,
   RotateCcw,
   Maximize2,
+  X,
   Volume2,
   VolumeX,
   WifiOff,
@@ -227,7 +228,13 @@ function ScreenPicker() {
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-3 mb-6">
           <Monitor className="h-7 w-7 text-emerald-400" />
-          <h1 className="text-2xl font-semibold">Kitchen display</h1>
+          <h1 className="text-2xl font-semibold flex-1">Kitchen display</h1>
+          <button
+            onClick={() => router.push("/dashboard/orders/kitchen")}
+            className="text-sm text-zinc-400 hover:text-zinc-200"
+          >
+            Back to dashboard
+          </button>
         </div>
         {locations.length > 1 && (
           <select
@@ -427,6 +434,18 @@ function StationView({ screenId }: { screenId: string }) {
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-3 py-2 bg-zinc-900 border-b border-zinc-800 flex-shrink-0 gap-3">
         <div className="flex items-center gap-1 overflow-x-auto">
+          <button
+            onClick={() => {
+              if (document.fullscreenElement) {
+                void document.exitFullscreen().catch(() => {});
+              }
+              router.push("/dashboard/orders/kitchen");
+            }}
+            title="Close display"
+            className="flex-shrink-0 p-1.5 mr-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
+          >
+            <X className="h-5 w-5" />
+          </button>
           {siblingScreens
             .filter((s) => s.isActive)
             .map((s) => (

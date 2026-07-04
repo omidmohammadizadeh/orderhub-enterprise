@@ -37,7 +37,34 @@ export default function KitchenLauncherPage() {
     queryFn: locationsClient.list,
   });
   const [locationId, setLocationId] = useState("");
-  const location = locationId || (locations[0] as any)?.id || "";
+
+  // Until the operator picks a location, default to the first one that
+  // actually has active screens (a tenant's first location is often an
+  // empty shell like "Main Location").
+  const { data: screensByLocation = {} } = useQuery<Record<string, number>>({
+    queryKey: ["kds-screen-counts", (locations as any[]).map((l) => l.id).join(",")],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        (locations as any[]).map(async (l) => {
+          try {
+            const r = await apiClient.get(`/v1/kds/screens?locationId=${l.id}`);
+            counts[l.id] = (r.data as any[]).filter((s) => s.isActive).length;
+          } catch {
+            counts[l.id] = 0;
+          }
+        }),
+      );
+      return counts;
+    },
+    enabled: locations.length > 0,
+    staleTime: 30_000,
+  });
+  const defaultLocation =
+    (locations as any[]).find((l) => (screensByLocation[l.id] ?? 0) > 0)?.id ||
+    (locations[0] as any)?.id ||
+    "";
+  const location = locationId || defaultLocation;
 
   const { data: screens = [], isLoading } = useQuery<KdsScreen[]>({
     queryKey: ["kds-screens", location],
