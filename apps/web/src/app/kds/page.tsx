@@ -230,7 +230,7 @@ function ScreenPicker() {
           <Monitor className="h-7 w-7 text-emerald-400" />
           <h1 className="text-2xl font-semibold flex-1">Kitchen display</h1>
           <button
-            onClick={() => router.push("/dashboard/orders/kitchen")}
+            onClick={() => window.location.assign("/dashboard/orders/kitchen")}
             className="text-sm text-zinc-400 hover:text-zinc-200"
           >
             Back to dashboard
@@ -439,7 +439,9 @@ function StationView({ screenId }: { screenId: string }) {
               if (document.fullscreenElement) {
                 void document.exitFullscreen().catch(() => {});
               }
-              router.push("/dashboard/orders/kitchen");
+              // Full page load, not client nav: the tab may predate the
+              // latest deploy and stale chunk fetches crash client routing.
+              window.location.assign("/dashboard/orders/kitchen");
             }}
             title="Close display"
             className="flex-shrink-0 p-1.5 mr-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"

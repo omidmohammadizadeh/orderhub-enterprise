@@ -138,7 +138,7 @@ export default function KitchenLauncherPage() {
             return (
               <button
                 key={s.id}
-                onClick={() => router.push(`/kds?screen=${s.id}`)}
+                onClick={() => window.location.assign(`/kds?screen=${s.id}`)}
                 className={cn(
                   "group relative rounded-2xl border-2 p-5 text-left transition-all hover:-translate-y-0.5",
                   isExpo
