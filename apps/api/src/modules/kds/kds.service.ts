@@ -66,7 +66,11 @@ const TICKET_INCLUDE = {
   screen: { select: { id: true, name: true, station: true, settings: true } },
 } satisfies Prisma.KdsTicketInclude;
 
-const ACTIVE_ORDER_STATUSES = ["ACCEPTED", "PREPARING"] as const;
+// A ticket is "active" (shown on the rail) while its order hasn't finished.
+// READY is included so a recalled ticket reappears even after a single-
+// station bump already moved the order to READY; COMPLETED/CANCELLED/
+// REJECTED/FAILED tickets are bumped or voided, so they never show.
+const ACTIVE_ORDER_STATUSES = ["ACCEPTED", "PREPARING", "READY"] as const;
 
 @Injectable()
 export class KdsService {

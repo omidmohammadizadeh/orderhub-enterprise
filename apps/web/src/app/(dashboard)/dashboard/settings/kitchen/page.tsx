@@ -38,7 +38,7 @@ interface RoutingMenu {
   categories: Array<{
     id: string;
     name: string;
-    items: Array<{ id: string; name: string }>;
+    items: Array<{ id: string; name: string; modifiers: string[] }>;
   }>;
 }
 
@@ -103,35 +103,26 @@ export default function KitchenScreensPage() {
           name: c.name,
           items: (c.items ?? [])
             .filter((l: any) => l.item)
-            .map((l: any) => ({ id: l.item.id, name: l.item.name })),
+            .map((l: any) => {
+              const groups =
+                l.item.modifierGroupLinks?.map((g: any) => g.group) ??
+                l.item.modifierGroups ??
+                [];
+              const modifiers = Array.from(
+                new Set(
+                  groups.flatMap((g: any) =>
+                    (g?.options ?? [])
+                      .map((o: any) => o?.name)
+                      .filter(Boolean),
+                  ),
+                ),
+              ) as string[];
+              return { id: l.item.id, name: l.item.name, modifiers };
+            }),
         })),
       });
     }
     return out;
-  }, [menuDetails]);
-
-  // Unique modifier option names across the location's menus (routing by
-  // modifier is name-based — order lines only carry modifier names).
-  const modifierNames = useMemo<string[]>(() => {
-    const set = new Set<string>();
-    for (const q of menuDetails) {
-      const menu: any = q.data;
-      if (!menu) continue;
-      for (const c of menu.categories ?? []) {
-        for (const l of c.items ?? []) {
-          const groups =
-            l.item?.modifierGroupLinks?.map((g: any) => g.group) ??
-            l.item?.modifierGroups ??
-            [];
-          for (const g of groups) {
-            for (const o of g?.options ?? []) {
-              if (o?.name) set.add(String(o.name));
-            }
-          }
-        }
-      }
-    }
-    return [...set].sort((a, b) => a.localeCompare(b));
   }, [menuDetails]);
 
   const [editing, setEditing] = useState<KdsScreen | "new" | null>(null);
@@ -288,7 +279,6 @@ export default function KitchenScreensPage() {
         <ScreenForm
           locationId={location}
           menus={routingMenus}
-          modifierNames={modifierNames}
           screen={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
@@ -306,14 +296,12 @@ export default function KitchenScreensPage() {
 function ScreenForm({
   locationId,
   menus,
-  modifierNames: allModifierNames,
   screen,
   onClose,
   onSaved,
 }: {
   locationId: string;
   menus: RoutingMenu[];
-  modifierNames: string[];
   screen: KdsScreen | null;
   onClose: () => void;
   onSaved: () => void;
@@ -330,9 +318,9 @@ function ScreenForm({
   const [modifierNames, setModifierNames] = useState<string[]>(
     st.modifierNames ?? [],
   );
-  const [modSearch, setModSearch] = useState("");
   const [menuId, setMenuId] = useState<string>("");
   const [openCategory, setOpenCategory] = useState<string>("");
+  const [openItem, setOpenItem] = useState<string>("");
   const [channels, setChannels] = useState<string[]>(st.channels ?? []);
   const [warn, setWarn] = useState(st.slaWarnMinutes ?? 5);
   const [late, setLate] = useState(st.slaLateMinutes ?? 10);
@@ -502,22 +490,71 @@ function ScreenForm({
                           </button>
                         </div>
                         {open && !catOn && (
-                          <div className="pl-8 pr-2 pb-1.5 grid grid-cols-2 gap-0.5">
-                            {c.items.map((i) => (
-                              <label
-                                key={i.id}
-                                className="flex items-center gap-2 text-xs text-zinc-600 rounded px-1.5 py-1 hover:bg-zinc-50 cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={itemIds.includes(i.id)}
-                                  onChange={() =>
-                                    toggle(itemIds, i.id, setItemIds)
-                                  }
-                                />
-                                <span className="truncate">{i.name}</span>
-                              </label>
-                            ))}
+                          <div className="pl-8 pr-2 pb-1.5 space-y-0.5">
+                            {c.items.map((i) => {
+                              const itemOn = itemIds.includes(i.id);
+                              const modsOpen = openItem === i.id;
+                              const pickedMods = i.modifiers.filter((m) =>
+                                modifierNames.includes(m),
+                              ).length;
+                              return (
+                                <div key={i.id}>
+                                  <div className="flex items-center gap-2 text-xs text-zinc-600 rounded px-1.5 py-1 hover:bg-zinc-50">
+                                    <input
+                                      type="checkbox"
+                                      checked={itemOn}
+                                      onChange={() =>
+                                        toggle(itemIds, i.id, setItemIds)
+                                      }
+                                    />
+                                    {i.modifiers.length > 0 ? (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setOpenItem(modsOpen ? "" : i.id)
+                                        }
+                                        className="flex-1 flex items-center justify-between text-left"
+                                      >
+                                        <span className="truncate">{i.name}</span>
+                                        <span className="text-[10px] text-zinc-400 ml-1">
+                                          {pickedMods
+                                            ? `${pickedMods} mod`
+                                            : `${i.modifiers.length} mods`}{" "}
+                                          {modsOpen ? "▾" : "▸"}
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <span className="flex-1 truncate">
+                                        {i.name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {modsOpen && (
+                                    <div className="pl-7 pr-1 pb-1 grid grid-cols-2 gap-0.5">
+                                      {i.modifiers.map((m) => (
+                                        <label
+                                          key={m}
+                                          className="flex items-center gap-2 text-[11px] text-zinc-500 rounded px-1.5 py-0.5 hover:bg-zinc-50 cursor-pointer"
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={modifierNames.includes(m)}
+                                            onChange={() =>
+                                              toggle(
+                                                modifierNames,
+                                                m,
+                                                setModifierNames,
+                                              )
+                                            }
+                                          />
+                                          <span className="truncate">{m}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                         {open && catOn && (
@@ -531,56 +568,13 @@ function ScreenForm({
                   })}
                 </div>
                 <p className="text-[11px] text-zinc-400 mb-4">
-                  {categoryIds.length + itemIds.length === 0
+                  {categoryIds.length + itemIds.length + modifierNames.length ===
+                  0
                     ? "Nothing selected — this station will show every item."
-                    : `${categoryIds.length} categories + ${itemIds.length} single items routed (selections cover all menus).`}
+                    : `${categoryIds.length} categories + ${itemIds.length} items + ${modifierNames.length} modifiers routed. Expand a product to route its modifiers.`}
                 </p>
               </>
             )}
-          </>
-        )}
-
-        {stationType === "STATION" && allModifierNames.length > 0 && (
-          <>
-            <label className="block text-xs font-semibold text-zinc-600 mb-1">
-              Also route lines with these modifiers{" "}
-              <span className="font-normal text-zinc-400">
-                (e.g. send any "Extra fries" to the fryer)
-              </span>
-            </label>
-            <input
-              value={modSearch}
-              onChange={(e) => setModSearch(e.target.value)}
-              placeholder="Search modifiers…"
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm mb-1.5"
-            />
-            <div className="max-h-40 overflow-y-auto rounded-md border border-zinc-200 p-2 mb-1.5 grid grid-cols-2 gap-1">
-              {allModifierNames
-                .filter((m) =>
-                  m.toLowerCase().includes(modSearch.trim().toLowerCase()),
-                )
-                .map((m) => (
-                  <label
-                    key={m}
-                    className="flex items-center gap-2 text-xs text-zinc-700 rounded px-1.5 py-1 hover:bg-zinc-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={modifierNames.includes(m)}
-                      onChange={() => toggle(modifierNames, m, setModifierNames)}
-                    />
-                    <span className="truncate">{m}</span>
-                  </label>
-                ))}
-            </div>
-            {modifierNames.length > 0 && (
-              <p className="text-[11px] text-zinc-400 mb-4">
-                {modifierNames.length} modifier
-                {modifierNames.length > 1 ? "s" : ""} routed here — any order
-                line carrying one appears on this station.
-              </p>
-            )}
-            {modifierNames.length === 0 && <div className="mb-4" />}
           </>
         )}
 
