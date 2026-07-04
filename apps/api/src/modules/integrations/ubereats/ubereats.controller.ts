@@ -173,6 +173,62 @@ export class UberEatsController {
     return this.connections.provision(user.tenantId, body);
   }
 
+  // ── Store API suite (certification checklist) ────────────────────────
+
+  @Get("app-stores")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Get Stores — all stores this app is authorised against" })
+  appStores(@Query("pageToken") pageToken?: string) {
+    return this.connections.listAppStores(pageToken);
+  }
+
+  @Get(":connectionId/details")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Get Store Details from Uber Eats" })
+  storeDetails(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.storeDetails(user.tenantId, connectionId);
+  }
+
+  @Post(":connectionId/update-info")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update Store Information (contact/location/pickup instructions)" })
+  updateStoreInfo(
+    @Param("connectionId") connectionId: string,
+    @Body()
+    body: {
+      contact?: { email?: string; name?: string; phone_number?: string };
+      location?: Record<string, string>;
+      pickupInstructions?: string;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.updateStoreInfo(user.tenantId, connectionId, body);
+  }
+
+  @Post(":connectionId/fulfillment-config")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update Fulfillment Configuration (BYOC min ETD)" })
+  updateFulfillmentConfig(
+    @Param("connectionId") connectionId: string,
+    @Body() body: { customMinEtdMinutes: number },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.updateFulfillmentConfig(
+      user.tenantId,
+      connectionId,
+      body,
+    );
+  }
+
   @Get("connection")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")

@@ -222,6 +222,85 @@ export class UberEatsConnectionService {
     return { ok: true, defaultPrepTimeSeconds: seconds };
   }
 
+  // ── Store API suite (certification checklist) ───────────────────────────
+
+  /** Get Stores — every store this app's token is authorised against. */
+  async listAppStores(pageToken?: string) {
+    const qs = pageToken ? `?page_token=${encodeURIComponent(pageToken)}` : "";
+    const json = await this.client.request<any>(
+      "GET",
+      `/v1/delivery/stores${qs}`,
+      { scopes: STORE_SCOPES },
+    );
+    return json ?? { stores: [] };
+  }
+
+  /** Get Store Details — full store record incl. orderability + config. */
+  async storeDetails(tenantId: string, connectionId: string) {
+    const c = await this.connected(tenantId, connectionId);
+    return (
+      (await this.client.request<any>(
+        "GET",
+        `/v1/delivery/store/${c.externalStoreId}`,
+        { scopes: STORE_SCOPES },
+      )) ?? null
+    );
+  }
+
+  /** Update Store Information — contact / location / pickup instructions. */
+  async updateStoreInfo(
+    tenantId: string,
+    connectionId: string,
+    dto: {
+      contact?: { email?: string; name?: string; phone_number?: string };
+      location?: Record<string, string>;
+      pickupInstructions?: string;
+    },
+  ) {
+    const c = await this.connected(tenantId, connectionId);
+    const body: Record<string, unknown> = {
+      ...(dto.contact ? { contact: dto.contact } : {}),
+      ...(dto.location ? { location: dto.location } : {}),
+      ...(dto.pickupInstructions !== undefined
+        ? { pickup_instructions: dto.pickupInstructions }
+        : {}),
+    };
+    if (Object.keys(body).length === 0) {
+      throw new BadRequestException("Nothing to update.");
+    }
+    await this.client.request(
+      "POST",
+      `/v1/delivery/store/${c.externalStoreId}`,
+      { scopes: STORE_SCOPES, body },
+    );
+    return { ok: true };
+  }
+
+  /** Update Fulfillment Configuration (BYOC min-ETD override). */
+  async updateFulfillmentConfig(
+    tenantId: string,
+    connectionId: string,
+    dto: { customMinEtdMinutes: number },
+  ) {
+    if (!Number.isFinite(Number(dto.customMinEtdMinutes))) {
+      throw new BadRequestException("customMinEtdMinutes is required");
+    }
+    const c = await this.connected(tenantId, connectionId);
+    await this.client.request(
+      "POST",
+      `/v1/delivery/store/${c.externalStoreId}/update-fulfillment-configuration`,
+      {
+        scopes: ["eats.byoc.fulfillment.config"],
+        body: {
+          override_config: {
+            custom_min_etd_minutes: Number(dto.customMinEtdMinutes),
+          },
+        },
+      },
+    );
+    return { ok: true };
+  }
+
   /** Active orders on Uber's side (recovery/reconciliation + verification). */
   async listStoreOrders(tenantId: string, connectionId: string) {
     const c = await this.connected(tenantId, connectionId);
