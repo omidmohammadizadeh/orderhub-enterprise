@@ -31,7 +31,7 @@ import {
   Inbox,
   Megaphone,
   Activity,
-} from "lucide-react";
+ MonitorCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -123,6 +123,7 @@ const financeNav: NavItem[] = [
 ];
 
 const secondaryNav: NavItem[] = [
+  { href: "/dashboard/settings/kitchen", label: "Kitchen screens", icon: MonitorCheck, roles: MANAGER_TIER },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: MANAGER_TIER },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: MANAGER_TIER },
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
