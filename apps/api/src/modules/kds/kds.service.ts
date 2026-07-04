@@ -28,6 +28,10 @@ export interface KdsScreenSettings {
   categoryIds?: string[];
   /** Extra menu item ids routed here regardless of category. */
   itemIds?: string[];
+  /** Modifier option names routed here — any order line carrying a matching
+   *  modifier lands on this station (e.g. "Extra Halloumi fries" → fryer),
+   *  regardless of the line's own category. Matched case-insensitively. */
+  modifierNames?: string[];
   /** Order sources shown (ONLINE/POS/UBER_EATS/…). Empty = all. */
   channels?: string[];
   /** SLA thresholds in minutes: green < warn ≤ amber < late ≤ red. */
@@ -337,15 +341,28 @@ export class KdsService {
       const isExpo = settings.stationType === "EXPO";
       const catRules = settings.categoryIds ?? [];
       const itemRules = settings.itemIds ?? [];
+      const modRules = (settings.modifierNames ?? []).map((m) =>
+        m.trim().toLowerCase(),
+      );
       let routedItemIds: string[] = [];
-      if (!isExpo && (catRules.length || itemRules.length)) {
+      if (!isExpo && (catRules.length || itemRules.length || modRules.length)) {
         routedItemIds = order.items
           .filter((it) => {
             if (it.menuItemId && itemRules.includes(it.menuItemId)) return true;
             const cats = it.menuItemId
               ? categoriesByMenuItem.get(it.menuItemId)
               : undefined;
-            return !!cats && catRules.some((c) => cats.has(c));
+            if (cats && catRules.some((c) => cats.has(c))) return true;
+            // Modifier routing — match any of the line's modifier names.
+            if (modRules.length) {
+              const mods = Array.isArray(it.modifiers)
+                ? (it.modifiers as any[])
+                : [];
+              return mods.some((m) =>
+                modRules.includes(String(m?.name ?? "").trim().toLowerCase()),
+              );
+            }
+            return false;
           })
           .map((it) => it.id);
         if (routedItemIds.length === 0) continue; // nothing for this station

@@ -29,9 +29,14 @@ const ORDER = {
   id: "o1",
   orderSource: "UBER_EATS",
   items: [
-    { id: "line-pizza", menuItemId: "mi-pizza" },
-    { id: "line-fries", menuItemId: "mi-fries" },
-    { id: "line-cola", menuItemId: null },
+    { id: "line-pizza", menuItemId: "mi-pizza", modifiers: [] },
+    { id: "line-fries", menuItemId: "mi-fries", modifiers: [] },
+    {
+      id: "line-wrap",
+      menuItemId: "mi-wrap",
+      modifiers: [{ name: "Extra Halloumi fries" }, { name: "No Lettuce" }],
+    },
+    { id: "line-cola", menuItemId: null, modifiers: [] },
   ],
 };
 
@@ -88,6 +93,24 @@ describe("KdsService.dispatchOrderToScreens", () => {
     expect(prisma.kdsTicket.upsert.mock.calls[0][0].create.kdsScreenId).toBe(
       "s-uber",
     );
+  });
+
+  it("routes items by modifier name regardless of their category", async () => {
+    const prisma = makePrisma();
+    prisma.kdsScreen.findMany.mockResolvedValue([
+      screen("s-fryer", {
+        stationType: "STATION",
+        modifierNames: ["extra halloumi fries"],
+      }),
+    ]);
+    prisma.order.findUnique.mockResolvedValue(ORDER);
+    prisma.menuItemOnCategory.findMany.mockResolvedValue(CATEGORY_LINKS);
+
+    const svc = new KdsService(prisma, socket);
+    await svc.dispatchOrderToScreens("o1", "loc1");
+    expect(
+      prisma.kdsTicket.upsert.mock.calls[0][0].create.metadata.itemIds,
+    ).toEqual(["line-wrap"]);
   });
 
   it("routes by explicit item ids regardless of category", async () => {

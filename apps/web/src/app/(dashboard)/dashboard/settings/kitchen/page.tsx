@@ -26,6 +26,7 @@ interface KdsScreenSettings {
   stationType?: "STATION" | "EXPO";
   categoryIds?: string[];
   itemIds?: string[];
+  modifierNames?: string[];
   channels?: string[];
   slaWarnMinutes?: number;
   slaLateMinutes?: number;
@@ -107,6 +108,30 @@ export default function KitchenScreensPage() {
       });
     }
     return out;
+  }, [menuDetails]);
+
+  // Unique modifier option names across the location's menus (routing by
+  // modifier is name-based — order lines only carry modifier names).
+  const modifierNames = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    for (const q of menuDetails) {
+      const menu: any = q.data;
+      if (!menu) continue;
+      for (const c of menu.categories ?? []) {
+        for (const l of c.items ?? []) {
+          const groups =
+            l.item?.modifierGroupLinks?.map((g: any) => g.group) ??
+            l.item?.modifierGroups ??
+            [];
+          for (const g of groups) {
+            for (const o of g?.options ?? []) {
+              if (o?.name) set.add(String(o.name));
+            }
+          }
+        }
+      }
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
   }, [menuDetails]);
 
   const [editing, setEditing] = useState<KdsScreen | "new" | null>(null);
@@ -197,13 +222,18 @@ export default function KitchenScreensPage() {
                     )}
                   </p>
                   <p className="text-xs text-zinc-500 mt-0.5 truncate">
-                    {st.categoryIds?.length || st.itemIds?.length
+                    {st.categoryIds?.length ||
+                    st.itemIds?.length ||
+                    st.modifierNames?.length
                       ? [
                           st.categoryIds?.length
                             ? `${st.categoryIds.length} categories`
                             : null,
                           st.itemIds?.length
                             ? `${st.itemIds.length} items`
+                            : null,
+                          st.modifierNames?.length
+                            ? `${st.modifierNames.length} modifiers`
                             : null,
                         ]
                           .filter(Boolean)
@@ -258,6 +288,7 @@ export default function KitchenScreensPage() {
         <ScreenForm
           locationId={location}
           menus={routingMenus}
+          modifierNames={modifierNames}
           screen={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
@@ -275,12 +306,14 @@ export default function KitchenScreensPage() {
 function ScreenForm({
   locationId,
   menus,
+  modifierNames: allModifierNames,
   screen,
   onClose,
   onSaved,
 }: {
   locationId: string;
   menus: RoutingMenu[];
+  modifierNames: string[];
   screen: KdsScreen | null;
   onClose: () => void;
   onSaved: () => void;
@@ -294,6 +327,10 @@ function ScreenForm({
     st.categoryIds ?? [],
   );
   const [itemIds, setItemIds] = useState<string[]>(st.itemIds ?? []);
+  const [modifierNames, setModifierNames] = useState<string[]>(
+    st.modifierNames ?? [],
+  );
+  const [modSearch, setModSearch] = useState("");
   const [menuId, setMenuId] = useState<string>("");
   const [openCategory, setOpenCategory] = useState<string>("");
   const [channels, setChannels] = useState<string[]>(st.channels ?? []);
@@ -308,6 +345,7 @@ function ScreenForm({
         stationType,
         categoryIds: stationType === "EXPO" ? [] : categoryIds,
         itemIds: stationType === "EXPO" ? [] : itemIds,
+        modifierNames: stationType === "EXPO" ? [] : modifierNames,
         channels,
         slaWarnMinutes: warn,
         slaLateMinutes: late,
@@ -499,6 +537,50 @@ function ScreenForm({
                 </p>
               </>
             )}
+          </>
+        )}
+
+        {stationType === "STATION" && allModifierNames.length > 0 && (
+          <>
+            <label className="block text-xs font-semibold text-zinc-600 mb-1">
+              Also route lines with these modifiers{" "}
+              <span className="font-normal text-zinc-400">
+                (e.g. send any "Extra fries" to the fryer)
+              </span>
+            </label>
+            <input
+              value={modSearch}
+              onChange={(e) => setModSearch(e.target.value)}
+              placeholder="Search modifiers…"
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm mb-1.5"
+            />
+            <div className="max-h-40 overflow-y-auto rounded-md border border-zinc-200 p-2 mb-1.5 grid grid-cols-2 gap-1">
+              {allModifierNames
+                .filter((m) =>
+                  m.toLowerCase().includes(modSearch.trim().toLowerCase()),
+                )
+                .map((m) => (
+                  <label
+                    key={m}
+                    className="flex items-center gap-2 text-xs text-zinc-700 rounded px-1.5 py-1 hover:bg-zinc-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={modifierNames.includes(m)}
+                      onChange={() => toggle(modifierNames, m, setModifierNames)}
+                    />
+                    <span className="truncate">{m}</span>
+                  </label>
+                ))}
+            </div>
+            {modifierNames.length > 0 && (
+              <p className="text-[11px] text-zinc-400 mb-4">
+                {modifierNames.length} modifier
+                {modifierNames.length > 1 ? "s" : ""} routed here — any order
+                line carrying one appears on this station.
+              </p>
+            )}
+            {modifierNames.length === 0 && <div className="mb-4" />}
           </>
         )}
 
