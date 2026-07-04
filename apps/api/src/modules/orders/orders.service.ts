@@ -921,6 +921,15 @@ export class OrdersService {
       createdAt: updated.createdAt.toISOString(),
     });
 
+    // Re-sync kitchen tickets: the edit replaced OrderItems (new ids), so the
+    // KDS must refresh routed items + tick states and flag the card updated.
+    // Decoupled via the event bus (KDS listens) to keep OrdersModule from
+    // importing KdsModule.
+    this.events.emit("order.items_edited", {
+      orderId: updated.id,
+      locationId: updated.locationId,
+    });
+
     return updated;
   }
 

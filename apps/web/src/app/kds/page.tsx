@@ -341,6 +341,19 @@ function StationView({ screenId }: { screenId: string }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [fontScale, setFontScale] = useState(1);
   const [connected, setConnected] = useState(true);
+  // Cancelled orders: keep a red banner card on screen for ~45s after the
+  // ticket is voided server-side, so the line sees the cancellation.
+  const [cancelled, setCancelled] = useState<
+    Array<{ orderId: string; ticket: KdsTicket; reason?: string }>
+  >([]);
+  const allOpenRef = useRef<KdsTicket[]>([]);
+  useEffect(() => {
+    if (cancelled.length === 0) return;
+    const t = setInterval(() => {
+      setCancelled((prev) => prev.slice(1));
+    }, 45_000);
+    return () => clearInterval(t);
+  }, [cancelled.length]);
 
   useEffect(() => {
     const stored = Number(localStorage.getItem("kds:fontScale") ?? "1");
@@ -411,13 +424,26 @@ function StationView({ screenId }: { screenId: string }) {
       if (ticket?.kdsScreenId === screenId && soundEnabled) chime();
     };
     const onAny = () => refetchAll();
+    // An order cancelled → snapshot its card and show a CANCELLED banner for
+    // a bit before it drops off (the server-side ticket is already gone).
+    const onVoid = (p: { orderId: string; reason?: string }) => {
+      const snap = allOpenRef.current.find((t) => t.orderId === p.orderId);
+      if (snap) {
+        setCancelled((prev) => [
+          ...prev.filter((c) => c.orderId !== p.orderId),
+          { orderId: p.orderId, ticket: snap, reason: p.reason },
+        ]);
+      }
+      refetchAll();
+    };
     const onConnect = () => setConnected(true);
     const onDisconnect = () => setConnected(false);
     socket.on("kds:ticket:new", onNew);
     socket.on("kds:order:new", onAny);
     socket.on("kds:ticket:bumped", onAny);
     socket.on("kds:ticket:recalled", onAny);
-    socket.on("kds:ticket:void", onAny);
+    socket.on("kds:ticket:void", onVoid);
+    socket.on("kds:order:updated", onAny);
     socket.on("kds:item:state", onAny);
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
@@ -427,7 +453,8 @@ function StationView({ screenId }: { screenId: string }) {
       socket.off("kds:order:new", onAny);
       socket.off("kds:ticket:bumped", onAny);
       socket.off("kds:ticket:recalled", onAny);
-      socket.off("kds:ticket:void", onAny);
+      socket.off("kds:ticket:void", onVoid);
+      socket.off("kds:order:updated", onAny);
       socket.off("kds:item:state", onAny);
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -445,10 +472,15 @@ function StationView({ screenId }: { screenId: string }) {
     onSuccess: refetchAll,
   });
   const itemStateMutation = useMutation({
-    mutationFn: (v: { orderId: string; itemId: string; done: boolean }) =>
+    mutationFn: (v: {
+      orderId: string;
+      itemId: string;
+      done: boolean;
+      modifierIndex?: number;
+    }) =>
       apiClient.post(
         `/v1/kds/screens/${screenId}/tickets/${v.orderId}/items/${v.itemId}/state`,
-        { done: v.done },
+        { done: v.done, modifierIndex: v.modifierIndex },
       ),
     onSuccess: refetchAll,
   });
@@ -464,7 +496,10 @@ function StationView({ screenId }: { screenId: string }) {
   };
 
   const allOpen = tickets.filter((t) => !t.bumpedAt);
+  allOpenRef.current = allOpen;
   const active = allOpen.filter((t) => inFilter(t.order.fulfillmentType));
+  // Don't double-show a card that's also displaying its cancelled banner.
+  const cancelledIds = new Set(cancelled.map((c) => c.orderId));
   const collectionCount = allOpen.filter((t) =>
     ["PICKUP", "DINE_IN"].includes(t.order.fulfillmentType),
   ).length;
@@ -615,7 +650,7 @@ function StationView({ screenId }: { screenId: string }) {
       {/* ── Body: rail + all-day ── */}
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-y-auto p-3">
-          {active.length === 0 ? (
+          {active.length === 0 && cancelled.length === 0 ? (
             <div className="flex h-full items-center justify-center">
               <div className="text-center">
                 <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
@@ -631,23 +666,38 @@ function StationView({ screenId }: { screenId: string }) {
                 gridTemplateColumns: `repeat(auto-fill, minmax(240px, 1fr))`,
               }}
             >
-              {active.map((t) => (
-                <TicketCard
-                  key={t.orderId}
-                  ticket={t}
-                  isExpo={settings.stationType === "EXPO"}
-                  warnSecs={warnSecs}
-                  lateSecs={lateSecs}
-                  onBump={() => bumpMutation.mutate(t.orderId)}
-                  onToggleItem={(itemId, done) =>
-                    itemStateMutation.mutate({
-                      orderId: t.orderId,
-                      itemId,
-                      done,
-                    })
+              {cancelled.map((c) => (
+                <CancelledCard
+                  key={`cancel-${c.orderId}`}
+                  ticket={c.ticket}
+                  reason={c.reason}
+                  onDismiss={() =>
+                    setCancelled((prev) =>
+                      prev.filter((x) => x.orderId !== c.orderId),
+                    )
                   }
                 />
               ))}
+              {active
+                .filter((t) => !cancelledIds.has(t.orderId))
+                .map((t) => (
+                  <TicketCard
+                    key={t.orderId}
+                    ticket={t}
+                    isExpo={settings.stationType === "EXPO"}
+                    warnSecs={warnSecs}
+                    lateSecs={lateSecs}
+                    onBump={() => bumpMutation.mutate(t.orderId)}
+                    onToggleItem={(itemId, done, modifierIndex) =>
+                      itemStateMutation.mutate({
+                        orderId: t.orderId,
+                        itemId,
+                        done,
+                        modifierIndex,
+                      })
+                    }
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -713,9 +763,14 @@ function TicketCard({
   warnSecs: number;
   lateSecs: number;
   onBump: () => void;
-  onToggleItem: (itemId: string, done: boolean) => void;
+  onToggleItem: (itemId: string, done: boolean, modifierIndex?: number) => void;
 }) {
   const elapsed = elapsedSeconds(ticket.createdAt);
+  // "Updated" flash — the order's items were edited on the POS within the
+  // last ~2 min (server stamps metadata.updatedAt on re-sync).
+  const updatedAt = (ticket.metadata as any)?.updatedAt as string | undefined;
+  const recentlyUpdated =
+    !!updatedAt && Date.now() - new Date(updatedAt).getTime() < 120_000;
   const sla = elapsed >= lateSecs ? "late" : elapsed >= warnSecs ? "warn" : "ok";
   const order = ticket.order;
   const chip = CHANNEL_CHIP[order.orderSource] ?? {
@@ -754,9 +809,15 @@ function TicketCard({
     <div
       className={cn(
         "flex flex-col rounded-xl bg-zinc-900 border-t-4 overflow-hidden",
+        recentlyUpdated ? "ring-2 ring-amber-400" : "",
         borderCls,
       )}
     >
+      {recentlyUpdated && (
+        <div className="bg-amber-500 text-amber-950 text-[11px] font-bold text-center py-0.5 tracking-wide">
+          ORDER UPDATED — RE-CHECK
+        </div>
+      )}
       <div className={cn("px-3 py-2 flex items-center justify-between", headerCls)}>
         <span className="font-bold text-lg leading-none">
           #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
@@ -802,32 +863,65 @@ function TicketCard({
         </div>
 
         {items.map((item) => {
-          const done = !!itemStates[item.id];
+          const lineDone = !!itemStates[item.id];
+          const mods = item.modifiers ?? [];
           return (
-            <button
-              key={item.id}
-              onClick={() => onToggleItem(item.id, !done)}
-              className="block w-full text-left"
-            >
-              <p
-                className={cn(
-                  "font-semibold text-[15px] leading-tight",
-                  done ? "text-zinc-600 line-through" : "text-white",
-                )}
+            <div key={item.id}>
+              {/* Tap the item name to strike the line itself. */}
+              <button
+                onClick={() => onToggleItem(item.id, !lineDone)}
+                className="block w-full text-left"
               >
-                <span className={done ? "text-zinc-600" : "text-emerald-400"}>
-                  {item.quantity}×
-                </span>{" "}
-                {item.name}
-              </p>
-              {!done &&
-                item.modifiers?.map((mod, j) => (
-                  <p key={j} className="text-[13px] text-zinc-400 ml-5 leading-snug">
-                    + {mod.quantity && mod.quantity > 1 ? `${mod.quantity}× ` : ""}
-                    {mod.name}
-                  </p>
-                ))}
-              {!done && item.notes && (
+                <p
+                  className={cn(
+                    "font-semibold text-[15px] leading-tight",
+                    lineDone ? "text-zinc-600 line-through" : "text-white",
+                  )}
+                >
+                  <span
+                    className={lineDone ? "text-zinc-600" : "text-emerald-400"}
+                  >
+                    {item.quantity}×
+                  </span>{" "}
+                  {item.name}
+                </p>
+              </button>
+              {/* Each modifier is tapped off individually so nothing's missed. */}
+              {mods.map((mod, j) => {
+                const modDone = !!itemStates[`${item.id}::${j}`];
+                return (
+                  <button
+                    key={j}
+                    onClick={() =>
+                      onToggleItem(item.id, !modDone, j)
+                    }
+                    className="block w-full text-left"
+                  >
+                    <p
+                      className={cn(
+                        "text-[13px] ml-5 leading-snug flex items-center gap-1.5",
+                        modDone
+                          ? "text-zinc-600 line-through"
+                          : "text-zinc-300",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-flex h-3.5 w-3.5 items-center justify-center rounded-sm border flex-shrink-0",
+                          modDone
+                            ? "border-emerald-700 text-emerald-500"
+                            : "border-zinc-600 text-transparent",
+                        )}
+                      >
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      + {mod.quantity && mod.quantity > 1 ? `${mod.quantity}× ` : ""}
+                      {mod.name}
+                    </p>
+                  </button>
+                );
+              })}
+              {!lineDone && item.notes && (
                 <p
                   className={cn(
                     "text-[13px] ml-5 font-medium",
@@ -840,7 +934,7 @@ function TicketCard({
                   {item.notes}
                 </p>
               )}
-            </button>
+            </div>
           );
         })}
 
@@ -874,6 +968,68 @@ function TicketCard({
       >
         <Check className="h-4 w-4" />
         {isExpo ? "SERVE" : "BUMP"}
+      </button>
+    </div>
+  );
+}
+
+// ── Cancelled card ───────────────────────────────────────────────────────────
+
+function CancelledCard({
+  ticket,
+  reason,
+  onDismiss,
+}: {
+  ticket: KdsTicket;
+  reason?: string;
+  onDismiss: () => void;
+}) {
+  const order = ticket.order;
+  const routed = ticket.metadata?.itemIds ?? [];
+  const items = routed.length
+    ? order.items.filter((i) => routed.includes(i.id))
+    : order.items;
+  return (
+    <div className="flex flex-col rounded-xl bg-zinc-900 border-t-4 border-t-red-600 overflow-hidden opacity-95">
+      <div className="bg-red-600 text-white text-center py-1 text-sm font-bold tracking-wide">
+        CANCELLED
+      </div>
+      <div className="px-3 py-2 flex items-center justify-between bg-red-950 text-red-100">
+        <span className="font-bold text-lg leading-none">
+          #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
+          {order.customerName ? (
+            <span className="font-medium text-sm opacity-70">
+              {" "}
+              · {order.customerName.split(" ")[0]}
+            </span>
+          ) : null}
+        </span>
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded text-red-300 hover:text-white hover:bg-red-900"
+          title="Dismiss"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="flex-1 px-3 py-2 space-y-0.5">
+        {items.map((item) => (
+          <p
+            key={item.id}
+            className="font-semibold text-[15px] leading-tight text-zinc-500 line-through"
+          >
+            <span className="text-zinc-600">{item.quantity}×</span> {item.name}
+          </p>
+        ))}
+        {reason && (
+          <p className="text-[12px] text-red-400 mt-1.5">Reason: {reason}</p>
+        )}
+      </div>
+      <button
+        onClick={onDismiss}
+        className="w-full py-2.5 font-bold text-sm bg-red-900 hover:bg-red-800 text-red-100"
+      >
+        Dismiss
       </button>
     </div>
   );

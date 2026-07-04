@@ -24,6 +24,8 @@ export interface ServerToClientEvents {
   "kds:item:state": (payload: KdsItemStatePayload) => void;
   // KDS: tickets voided (order cancelled) — screens drop them
   "kds:ticket:void": (payload: KdsTicketVoidPayload) => void;
+  // KDS: an order's items changed (POS edit) — screens re-fetch + flag it
+  "kds:order:updated": (payload: KdsOrderUpdatedPayload) => void;
   // Integration went offline / came back
   "integration:status": (payload: IntegrationStatusPayload) => void;
   // A printer changed online status
@@ -162,6 +164,10 @@ export interface KdsItemStatePayload {
 export interface KdsTicketVoidPayload {
   orderId: string;
   reason?: string;
+}
+
+export interface KdsOrderUpdatedPayload {
+  orderId: string;
 }
 
 export interface StoreStatusPayload {

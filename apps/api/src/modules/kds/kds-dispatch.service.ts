@@ -59,6 +59,20 @@ export class KdsDispatchService implements OnModuleInit {
     };
   }
 
+  @OnEvent("order.items_edited")
+  async onItemsEdited(ev: {
+    orderId: string;
+    locationId: string;
+  }): Promise<void> {
+    try {
+      await this.kds.resyncOrderTickets(ev.orderId, ev.locationId);
+    } catch (err: any) {
+      this.logger.error(
+        `KDS resync failed for edited order ${ev.orderId}: ${err?.message ?? err}`,
+      );
+    }
+  }
+
   @OnEvent("order.status_changed")
   async onStatusChanged(ev: OrderStatusChangedEvent): Promise<void> {
     try {

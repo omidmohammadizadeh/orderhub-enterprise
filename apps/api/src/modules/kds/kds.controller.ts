@@ -125,7 +125,7 @@ export class KdsController {
     @Param("screenId") screenId: string,
     @Param("orderId") orderId: string,
     @Param("orderItemId") orderItemId: string,
-    @Body() body: { done: boolean },
+    @Body() body: { done: boolean; modifierIndex?: number },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.kds.setItemState(
@@ -134,6 +134,7 @@ export class KdsController {
       orderItemId,
       !!body?.done,
       user.tenantId,
+      body?.modifierIndex,
     );
   }
 

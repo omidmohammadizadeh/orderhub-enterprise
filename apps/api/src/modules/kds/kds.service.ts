@@ -212,8 +212,12 @@ export class KdsService {
   }
 
   /**
-   * Mark one item line cooked/uncooked on a station ticket. First activity
-   * on an ACCEPTED order advances it to PREPARING.
+   * Tick/untick a single line OR one of its modifiers on a station ticket.
+   * State keys: the OrderItem id for the line, `${orderItemId}::${modIdx}`
+   * for a modifier — so a cook can confirm every component individually and
+   * nothing is missed. First tick moves an ACCEPTED order to PREPARING; when
+   * EVERY routed line and all its modifiers are ticked, the ticket
+   * auto-completes (same progression as a manual bump → order READY).
    */
   async setItemState(
     screenId: string,
@@ -221,6 +225,7 @@ export class KdsService {
     orderItemId: string,
     done: boolean,
     tenantId: string,
+    modifierIndex?: number,
   ) {
     const screen = await this.assertScreenAccess(screenId, tenantId);
     const ticket = await this.prisma.kdsTicket.findUnique({
@@ -228,10 +233,12 @@ export class KdsService {
     });
     if (!ticket) throw new NotFoundException("Ticket not found");
 
+    const key =
+      modifierIndex != null ? `${orderItemId}::${modifierIndex}` : orderItemId;
     const meta = (ticket.metadata ?? {}) as Record<string, any>;
     const itemStates = { ...(meta.itemStates ?? {}) };
-    if (done) itemStates[orderItemId] = new Date().toISOString();
-    else delete itemStates[orderItemId];
+    if (done) itemStates[key] = new Date().toISOString();
+    else delete itemStates[key];
 
     await this.prisma.kdsTicket.update({
       where: { id: ticket.id },
@@ -247,8 +254,46 @@ export class KdsService {
       done,
     });
 
-    if (done) await this.markPreparing(orderId);
+    if (done) {
+      await this.markPreparing(orderId);
+      // Auto-complete the ticket once everything on it is ticked off.
+      if (
+        !ticket.bumpedAt &&
+        (await this.isTicketFullyTicked(ticket.id, orderId, itemStates))
+      ) {
+        await this.applyBump(screen, orderId);
+      }
+    }
     return { ok: true, itemStates };
+  }
+
+  /** True when every routed line + all its modifiers carry a done state. */
+  private async isTicketFullyTicked(
+    ticketId: string,
+    orderId: string,
+    itemStates: Record<string, unknown>,
+  ): Promise<boolean> {
+    const ticket = await this.prisma.kdsTicket.findUnique({
+      where: { id: ticketId },
+      select: { metadata: true },
+    });
+    const routed = ((ticket?.metadata as any)?.itemIds ?? []) as string[];
+    const items = await this.prisma.orderItem.findMany({
+      where: { orderId },
+      select: { id: true, modifiers: true },
+    });
+    const relevant = routed.length
+      ? items.filter((i) => routed.includes(i.id))
+      : items;
+    if (relevant.length === 0) return false;
+    for (const it of relevant) {
+      if (!itemStates[it.id]) return false;
+      const mods = Array.isArray(it.modifiers) ? (it.modifiers as any[]) : [];
+      for (let i = 0; i < mods.length; i++) {
+        if (!itemStates[`${it.id}::${i}`]) return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -258,17 +303,25 @@ export class KdsService {
    */
   async bumpTicket(screenId: string, orderId: string, tenantId: string) {
     const screen = await this.assertScreenAccess(screenId, tenantId);
+    return this.applyBump(screen, orderId);
+  }
+
+  /** Bump core — shared by manual bump and auto-complete. */
+  private async applyBump(
+    screen: { id: string; locationId: string; settings: unknown },
+    orderId: string,
+  ) {
     const settings = (screen.settings ?? {}) as KdsScreenSettings;
     const now = new Date();
 
     const ticket = await this.prisma.kdsTicket.update({
-      where: { kdsScreenId_orderId: { kdsScreenId: screenId, orderId } },
+      where: { kdsScreenId_orderId: { kdsScreenId: screen.id, orderId } },
       data: { bumpedAt: now },
       include: TICKET_INCLUDE,
     });
 
     this.socket.emitToLocation(screen.locationId, "kds:ticket:bumped", {
-      screenId,
+      screenId: screen.id,
       orderId,
       bumpedAt: now.toISOString(),
     });
@@ -424,6 +477,134 @@ export class KdsService {
       orderId,
       reason,
     });
+  }
+
+  /**
+   * Re-sync an order's tickets after a POS edit changed its items. The edit
+   * deletes + recreates OrderItems (new ids), so we re-resolve routing per
+   * screen, refresh each ticket's routed-item set, drop tick states that no
+   * longer apply, un-bump (the kitchen must re-check the changed order), and
+   * flag the ticket updated so the display shows an "updated" alert. If the
+   * order now has no ticket on a screen (didn't before, or newly matches),
+   * dispatch fills the gap.
+   */
+  async resyncOrderTickets(orderId: string, locationId: string) {
+    const existing = await this.prisma.kdsTicket.findMany({
+      where: { orderId },
+      include: { screen: true },
+    });
+    // No tickets yet (e.g. order still PENDING) — nothing to re-sync.
+    if (existing.length === 0) return { updated: 0 };
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order) return { updated: 0 };
+
+    const routingByScreen = await this.computeRouting(order);
+    const now = new Date().toISOString();
+    let updated = 0;
+    for (const ticket of existing) {
+      const routed = routingByScreen.get(ticket.kdsScreenId);
+      // Station no longer receives anything from this order → void its ticket.
+      if (routed === null) {
+        await this.prisma.kdsTicket.delete({ where: { id: ticket.id } });
+        continue;
+      }
+      const meta = (ticket.metadata ?? {}) as Record<string, any>;
+      const validIds = new Set(order.items.map((i) => i.id));
+      const prunedStates: Record<string, string> = {};
+      for (const [k, v] of Object.entries(meta.itemStates ?? {})) {
+        const itemId = k.split("::")[0]!;
+        if (validIds.has(itemId)) prunedStates[k] = v as string;
+      }
+      await this.prisma.kdsTicket.update({
+        where: { id: ticket.id },
+        data: {
+          bumpedAt: null, // re-open so the kitchen re-checks the edit
+          metadata: {
+            ...meta,
+            itemIds: routed ?? [],
+            itemStates: prunedStates,
+            updatedAt: now,
+          } as Prisma.InputJsonValue,
+        },
+      });
+      updated++;
+    }
+
+    this.socket.emitToLocation(locationId, "kds:order:updated", { orderId });
+    return { updated };
+  }
+
+  /**
+   * Compute, per active screen at the order's location, which OrderItem ids
+   * route there: [] = whole order, string[] = subset, null = nothing (no
+   * ticket). Shared by dispatch + resync. Channel-filtered screens that
+   * exclude this order also return null.
+   */
+  private async computeRouting(order: {
+    locationId: string;
+    orderSource: string;
+    items: Array<{ id: string; menuItemId: string | null; modifiers: unknown }>;
+  }): Promise<Map<string, string[] | null>> {
+    const screens = await this.prisma.kdsScreen.findMany({
+      where: { locationId: order.locationId, isActive: true },
+    });
+    const menuItemIds = order.items
+      .map((i) => i.menuItemId)
+      .filter((v): v is string => !!v);
+    const categoryLinks = menuItemIds.length
+      ? await this.prisma.menuItemOnCategory.findMany({
+          where: { itemId: { in: menuItemIds } },
+          select: { itemId: true, categoryId: true },
+        })
+      : [];
+    const catsByItem = new Map<string, Set<string>>();
+    for (const link of categoryLinks) {
+      const set = catsByItem.get(link.itemId) ?? new Set();
+      set.add(link.categoryId);
+      catsByItem.set(link.itemId, set);
+    }
+
+    const out = new Map<string, string[] | null>();
+    for (const screen of screens) {
+      const settings = (screen.settings ?? {}) as KdsScreenSettings;
+      const channels = settings.channels ?? [];
+      if (channels.length && !channels.includes(order.orderSource)) {
+        out.set(screen.id, null);
+        continue;
+      }
+      const isExpo = settings.stationType === "EXPO";
+      const catRules = settings.categoryIds ?? [];
+      const itemRules = settings.itemIds ?? [];
+      const modRules = (settings.modifierNames ?? []).map((m) =>
+        m.trim().toLowerCase(),
+      );
+      if (isExpo || (!catRules.length && !itemRules.length && !modRules.length)) {
+        out.set(screen.id, []); // whole order
+        continue;
+      }
+      const routedIds = order.items
+        .filter((it) => {
+          if (it.menuItemId && itemRules.includes(it.menuItemId)) return true;
+          const cats = it.menuItemId ? catsByItem.get(it.menuItemId) : undefined;
+          if (cats && catRules.some((c) => cats.has(c))) return true;
+          if (modRules.length) {
+            const mods = Array.isArray(it.modifiers)
+              ? (it.modifiers as any[])
+              : [];
+            return mods.some((m) =>
+              modRules.includes(String(m?.name ?? "").trim().toLowerCase()),
+            );
+          }
+          return false;
+        })
+        .map((it) => it.id);
+      out.set(screen.id, routedIds.length ? routedIds : null);
+    }
+    return out;
   }
 
   /** Bump any open tickets for an order that finished outside the KDS. */
