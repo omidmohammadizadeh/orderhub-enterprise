@@ -321,6 +321,7 @@ function CampaignsTable({
                 ) : (
                   c.channels.map(prettyChannel).join(", ")
                 )}
+                <UberSyncBadge campaign={c} />
               </td>
               <td className="px-4 py-3 text-zinc-600">
                 {prettyWindow(c.startsAt, c.endsAt)}
@@ -361,6 +362,32 @@ function CampaignsTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+// Campaigns with the Uber Eats channel are mirrored to Uber's Promotions
+// API by the backend (created when ACTIVE, revoked on pause/delete). The
+// sync outcome rides on campaign.metadata.uberEats — surface it so the
+// operator can tell "live on Uber" from "Uber rejected it".
+function UberSyncBadge({ campaign }: { campaign: MarketingCampaign }) {
+  const uber = (campaign as any).metadata?.uberEats;
+  if (!campaign.channels?.includes("UBER_EATS") || !uber) return null;
+  if (uber.lastError) {
+    return (
+      <span
+        title={String(uber.lastError)}
+        className="ml-2 inline-flex items-center rounded-full bg-red-50 text-red-700 px-1.5 py-0.5 text-[10px] font-semibold"
+      >
+        Uber sync failed
+      </span>
+    );
+  }
+  const n = uber.promotions?.length ?? 0;
+  if (n === 0) return null;
+  return (
+    <span className="ml-2 inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 px-1.5 py-0.5 text-[10px] font-semibold">
+      Live on Uber Eats{n > 1 ? ` (${n} stores)` : ""}
+    </span>
   );
 }
 

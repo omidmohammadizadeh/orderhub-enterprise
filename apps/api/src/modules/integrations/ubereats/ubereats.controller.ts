@@ -23,6 +23,7 @@ import {
   UberEatsOrderActionsService,
   type AdjustPriceReason,
 } from "./ubereats-order-actions.service";
+import { UberEatsPromotionsService } from "./ubereats-promotions.service";
 
 // Phase UE-1/2 — operator-facing Uber Eats endpoints.
 //
@@ -41,6 +42,7 @@ export class UberEatsController {
     private readonly config: ConfigService,
     private readonly client: UberEatsClientService,
     private readonly orderActions: UberEatsOrderActionsService,
+    private readonly promotions: UberEatsPromotionsService,
   ) {}
 
   // Public config/connectivity probe — booleans + a live token-mint check
@@ -244,6 +246,29 @@ export class UberEatsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.connections.setStoreOnline(user.tenantId, connectionId, true);
+  }
+
+  // ── Promotions (Marketplace Promotions suite — certification checklist) ──
+  // Creation/revoke run automatically from Marketing campaigns with the
+  // UBER_EATS channel; these reads back the live state from Uber.
+
+  @Get(":connectionId/promotions")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "List the store's live Uber Eats promotions" })
+  listPromotions(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.promotions.listStorePromotions(user.tenantId, connectionId);
+  }
+
+  @Get("promotions/:promotionId")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Get one Uber Eats promotion" })
+  getPromotion(@Param("promotionId") promotionId: string) {
+    return this.promotions.getPromotion(promotionId);
   }
 
   // ── Order actions (Order Fulfillment suite — certification checklist) ──

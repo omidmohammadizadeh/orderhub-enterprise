@@ -16,6 +16,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { UberEatsPromotionsService } from "../integrations/ubereats/ubereats-promotions.service";
 import type {
   CreateCampaignDto,
   UpdateCampaignDto,
@@ -27,7 +28,9 @@ import type {
 export class MarketingService {
   private readonly logger = new Logger(MarketingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uberPromotions: UberEatsPromotionsService,) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
 
@@ -228,6 +231,9 @@ export class MarketingService {
     this.logger.log(
       `Campaign created: id=${created.id} type=${created.type} brandId=${created.brandId} channels=[${created.channels.join(",")}]`,
     );
+    // Push to Uber Eats when the campaign targets that channel (UE-6).
+    // Fire-and-forget: campaign CRUD never fails on a marketplace hiccup.
+    void this.uberPromotions.syncCampaign(created.id).catch(() => {});
     return created;
   }
 
@@ -238,7 +244,7 @@ export class MarketingService {
       // have created a row as DRAFT with a missing field.
       this.assertTypeFields(row.type, { ...row, ...dto });
     }
-    return (this.prisma as any).marketingCampaign.update({
+    const updated = await (this.prisma as any).marketingCampaign.update({
       where: { id },
       data: {
         ...(dto.name !== undefined && { name: dto.name }),
@@ -263,10 +269,15 @@ export class MarketingService {
         ...(dto.perCustomerLimit !== undefined && { perCustomerLimit: dto.perCustomerLimit }),
       },
     });
+    void this.uberPromotions.syncCampaign(id).catch(() => {});
+    return updated;
   }
 
   async remove(id: string, tenantId: string) {
-    await this.findOne(id, tenantId);
+    const row = await this.findOne(id, tenantId);
+    // Revoke any Uber Eats promotions this campaign created BEFORE the row
+    // (and its stored promotion ids) disappears. Best-effort.
+    await this.uberPromotions.revokeForCampaign(row).catch(() => {});
     await (this.prisma as any).marketingCampaign.delete({ where: { id } });
     return { ok: true };
   }
