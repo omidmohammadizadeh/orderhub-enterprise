@@ -874,16 +874,28 @@ function TicketCard({
               >
                 <p
                   className={cn(
-                    "font-semibold text-[15px] leading-tight",
+                    "font-semibold text-[15px] leading-tight flex items-start gap-1.5",
                     lineDone ? "text-zinc-600 line-through" : "text-white",
                   )}
                 >
                   <span
-                    className={lineDone ? "text-zinc-600" : "text-emerald-400"}
+                    className={cn(
+                      "inline-flex h-4 w-4 items-center justify-center rounded-sm border flex-shrink-0 mt-0.5",
+                      lineDone
+                        ? "border-emerald-600 text-emerald-500"
+                        : "border-zinc-500 text-transparent",
+                    )}
                   >
-                    {item.quantity}×
-                  </span>{" "}
-                  {item.name}
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span>
+                    <span
+                      className={lineDone ? "text-zinc-600" : "text-emerald-400"}
+                    >
+                      {item.quantity}×
+                    </span>{" "}
+                    {item.name}
+                  </span>
                 </p>
               </button>
               {/* Each modifier is tapped off individually so nothing's missed. */}

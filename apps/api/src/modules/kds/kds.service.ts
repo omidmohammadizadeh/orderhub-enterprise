@@ -254,46 +254,12 @@ export class KdsService {
       done,
     });
 
-    if (done) {
-      await this.markPreparing(orderId);
-      // Auto-complete the ticket once everything on it is ticked off.
-      if (
-        !ticket.bumpedAt &&
-        (await this.isTicketFullyTicked(ticket.id, orderId, itemStates))
-      ) {
-        await this.applyBump(screen, orderId);
-      }
-    }
+    // Ticking is progress tracking only — the first tick moves the order to
+    // PREPARING, but the ticket leaves the screen ONLY on an explicit BUMP
+    // (or when the order is marked READY from the order tab). This keeps the
+    // cook in control of when the bag is actually done.
+    if (done) await this.markPreparing(orderId);
     return { ok: true, itemStates };
-  }
-
-  /** True when every routed line + all its modifiers carry a done state. */
-  private async isTicketFullyTicked(
-    ticketId: string,
-    orderId: string,
-    itemStates: Record<string, unknown>,
-  ): Promise<boolean> {
-    const ticket = await this.prisma.kdsTicket.findUnique({
-      where: { id: ticketId },
-      select: { metadata: true },
-    });
-    const routed = ((ticket?.metadata as any)?.itemIds ?? []) as string[];
-    const items = await this.prisma.orderItem.findMany({
-      where: { orderId },
-      select: { id: true, modifiers: true },
-    });
-    const relevant = routed.length
-      ? items.filter((i) => routed.includes(i.id))
-      : items;
-    if (relevant.length === 0) return false;
-    for (const it of relevant) {
-      if (!itemStates[it.id]) return false;
-      const mods = Array.isArray(it.modifiers) ? (it.modifiers as any[]) : [];
-      for (let i = 0; i < mods.length; i++) {
-        if (!itemStates[`${it.id}::${i}`]) return false;
-      }
-    }
-    return true;
   }
 
   /**
