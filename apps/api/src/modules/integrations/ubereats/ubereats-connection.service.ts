@@ -38,25 +38,45 @@ export class UberEatsConnectionService {
   /** Stores visible to the authorised merchant (for the store picker). */
   async listMerchantStores(tenantId: string, brandId: string, locationId: string) {
     const row = await this.pendingOrConnected(tenantId, brandId, locationId);
+    return this.fetchMerchantStores(row);
+  }
+
+  /**
+   * Stores the merchant authorised us against. The authorization_code token
+   * returns exactly the stores linked to the user who approved the connect —
+   * no pos_data, no external id (Store API: GET /v1/delivery/stores).
+   */
+  private async fetchMerchantStores(row: {
+    metadata: unknown;
+  }): Promise<Array<{ storeId: string; name: string; address: string | null; raw: any }>> {
     const token = await this.oauth.merchantToken(row);
-    const json = await this.client.request<any>("GET", "/v1/eats/stores", {
+    const json = await this.client.request<any>("GET", "/v1/delivery/stores", {
       userToken: token,
     });
-    const stores = (json?.stores ?? json ?? []) as any[];
+    const stores = (json?.stores ?? []) as any[];
     return stores.map((s) => ({
-      storeId: s.store_id ?? s.id ?? s.uuid,
-      name: s.name ?? s.store_name ?? "",
-      address:
-        s.location?.address ??
-        s.address?.formatted_address ??
-        s.address ??
-        null,
+      storeId: s.id ?? s.store_id ?? s.uuid,
+      name: s.name ?? "",
+      address: s.location
+        ? [
+            s.location.street_address_line_one,
+            s.location.city,
+            s.location.postal_code,
+          ]
+            .filter(Boolean)
+            .join(", ")
+        : null,
       raw: s,
     }));
   }
 
-  /** Activate our integration against the chosen Uber store. */
-  async provision(
+  /**
+   * Link the merchant's chosen store to this brand+location. The merchant's
+   * OAuth approval already granted us access to their stores, so connecting
+   * is just recording which store id maps to this connection — there's no
+   * pos_data / integrator-id step. We verify the id is one the token can see.
+   */
+  async linkStore(
     tenantId: string,
     dto: { brandId: string; locationId: string; storeId: string },
   ) {
@@ -65,39 +85,76 @@ export class UberEatsConnectionService {
       dto.brandId,
       dto.locationId,
     );
-    const token = await this.oauth.merchantToken(row);
     const storeId = dto.storeId.trim();
-    if (!storeId) throw new BadRequestException("Uber store id is required.");
+    if (!storeId) throw new BadRequestException("Choose a store to connect.");
 
-    // integrator_store_id is OUR stable id for the store — the connection id
-    // survives reconnects and encodes brand+location uniquely.
-    await this.client.request(
-      "POST",
-      `/v1/eats/stores/${encodeURIComponent(storeId)}/pos_data`,
-      {
-        userToken: token,
-        body: {
-          integrator_store_id: row.id,
-          integrator_brand_id: dto.brandId,
-          integration_enabled: true,
-        },
-      },
-    );
+    // Guard: the store must be one the merchant authorised us for.
+    const stores = await this.fetchMerchantStores(row);
+    const match = stores.find((s) => s.storeId === storeId);
+    if (!match) {
+      throw new BadRequestException(
+        "That store isn't in the authorised Uber Eats account. Reconnect and pick a listed store.",
+      );
+    }
 
     const updated = await this.prisma.brandPlatformConnection.update({
       where: { id: row.id },
       data: {
         externalStoreId: storeId,
-        // store.provisioned webhook confirms; until then leave as pending so
-        // the UI shows "waiting for Uber confirmation".
-        status: "pending",
+        status: "connected",
         lastError: null,
+        lastSyncAt: new Date(),
       },
     });
     this.logger.log(
-      `Uber Eats pos_data posted for store=${storeId} conn=${row.id} — waiting for store.provisioned webhook`,
+      `Uber Eats store ${storeId} (${match.name}) linked to conn ${row.id}`,
     );
     return this.view(updated);
+  }
+
+  /**
+   * Called straight after the OAuth callback: list the merchant's stores and,
+   * if there's exactly one, connect it automatically so the operator is done
+   * in a single click. More than one → return them for a picker.
+   */
+  async autoLinkAfterOauth(
+    tenantId: string,
+    brandId: string,
+    locationId: string,
+  ): Promise<{ connected: boolean; stores: Array<{ storeId: string; name: string; address: string | null }> }> {
+    const row = await this.prisma.brandPlatformConnection.findFirst({
+      where: { tenantId, brandId, locationId, platform: "UBER_EATS" },
+    });
+    if (!row) return { connected: false, stores: [] };
+    let stores: Array<{ storeId: string; name: string; address: string | null; raw: any }> = [];
+    try {
+      stores = await this.fetchMerchantStores(row);
+    } catch (err: any) {
+      this.logger.warn(`Uber Eats store list after OAuth failed: ${err?.message}`);
+      return { connected: false, stores: [] };
+    }
+    if (stores.length === 1) {
+      await this.prisma.brandPlatformConnection.update({
+        where: { id: row.id },
+        data: {
+          externalStoreId: stores[0]!.storeId,
+          status: "connected",
+          lastError: null,
+          lastSyncAt: new Date(),
+        },
+      });
+      this.logger.log(
+        `Uber Eats auto-linked sole store ${stores[0]!.storeId} to conn ${row.id}`,
+      );
+      return {
+        connected: true,
+        stores: stores.map(({ storeId, name, address }) => ({ storeId, name, address })),
+      };
+    }
+    return {
+      connected: false,
+      stores: stores.map(({ storeId, name, address }) => ({ storeId, name, address })),
+    };
   }
 
   /** store.provisioned / store.deprovisioned webhook → flip connection. */
@@ -133,22 +190,9 @@ export class UberEatsConnectionService {
       where: { id: connectionId, tenantId, platform: "UBER_EATS" },
     });
     if (!row) throw new NotFoundException("Uber Eats connection not found");
-    // Best-effort deactivation on Uber's side; the row flips regardless so
-    // the operator is never stuck behind a dead token.
-    if (row.externalStoreId) {
-      try {
-        const token = await this.oauth.merchantToken(row);
-        await this.client.request(
-          "DELETE",
-          `/v1/eats/stores/${encodeURIComponent(row.externalStoreId)}/pos_data`,
-          { userToken: token },
-        );
-      } catch (err: any) {
-        this.logger.warn(
-          `Uber Eats pos_data delete failed (continuing): ${err?.message}`,
-        );
-      }
-    }
+    // Just unlink our side — there's no pos_data to tear down. The merchant
+    // can revoke the app's access from their Uber Eats account if they want
+    // to fully sever it.
     await this.prisma.brandPlatformConnection.update({
       where: { id: connectionId },
       data: {

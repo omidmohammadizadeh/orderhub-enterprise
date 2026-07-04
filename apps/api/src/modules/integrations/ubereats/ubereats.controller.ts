@@ -112,11 +112,21 @@ export class UberEatsController {
       return res.redirect(back.toString());
     }
     try {
-      const { brandId, locationId } = await this.oauth.handleCallback({
+      const { tenantId, brandId, locationId } = await this.oauth.handleCallback({
         code,
         state,
       });
-      back.searchParams.set("ubereats_connected", "1");
+      // Auto-connect the store the merchant just authorised (one → done;
+      // several → land on the picker).
+      const result = await this.connections.autoLinkAfterOauth(
+        tenantId,
+        brandId,
+        locationId,
+      );
+      back.searchParams.set(
+        "ubereats_connected",
+        result.connected ? "1" : "pick",
+      );
       back.searchParams.set("brandId", brandId);
       back.searchParams.set("locationId", locationId);
       return res.redirect(back.toString());
@@ -166,16 +176,16 @@ export class UberEatsController {
     );
   }
 
-  @Post("provision")
+  @Post("link-store")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Activate the integration on a chosen Uber Eats store" })
-  provision(
+  @ApiOperation({ summary: "Connect a chosen Uber Eats store to this brand+location" })
+  linkStore(
     @Body() body: { brandId: string; locationId: string; storeId: string },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.connections.provision(user.tenantId, body);
+    return this.connections.linkStore(user.tenantId, body);
   }
 
   // ── Store API suite (certification checklist) ────────────────────────
