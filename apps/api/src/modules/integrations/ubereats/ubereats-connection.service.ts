@@ -10,10 +10,10 @@ import { UberEatsOauthService } from "./ubereats-oauth.service";
 
 // Phase UE-2 — store discovery, provisioning and store control.
 //
-// Discovery + provisioning use the MERCHANT token (eats.pos_provisioning):
-//   GET  /v1/eats/stores                          → merchant's stores
-//   POST /v1/eats/stores/{store_id}/pos_data      → activate our integration
-//   PATCH/DELETE same path                        → toggle / deactivate
+// Connect is OAuth-driven (no external id): the merchant approves via
+// authorization_code, and their MERCHANT token then lists their stores:
+//   GET  /v1/delivery/stores                      → merchant's stores
+// Linking = recording which store id maps to the connection (linkStore).
 // Store control uses client-credentials (attached Store API spec, servers
 // https://api.uber.com):
 //   GET  /v1/delivery/store/{store_id}/status

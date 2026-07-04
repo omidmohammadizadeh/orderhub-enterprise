@@ -34,7 +34,7 @@ import {
 //   GET  /v1/integrations/ubereats/connect?brandId&locationId → authorize URL
 //   GET  /v1/integrations/ubereats/oauth/callback              ← Uber redirect
 //   POST /v1/integrations/ubereats/stores                      → store picker
-//   POST /v1/integrations/ubereats/provision                   → pos_data
+//   POST /v1/integrations/ubereats/link-store                  → link chosen store
 //   GET  /v1/integrations/ubereats/connection?brandId&locationId
 //   GET/POST status / pause / resume / publish-prep per connection
 @ApiTags("ubereats")
