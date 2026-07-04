@@ -453,7 +453,22 @@ function StationView({ screenId }: { screenId: string }) {
     onSuccess: refetchAll,
   });
 
-  const active = tickets.filter((t) => !t.bumpedAt);
+  const [fulfilFilter, setFulfilFilter] = useState<
+    "ALL" | "COLLECTION" | "DELIVERY"
+  >("ALL");
+
+  const inFilter = (ft: string) => {
+    if (fulfilFilter === "ALL") return true;
+    const isCollection = ft === "PICKUP" || ft === "DINE_IN";
+    return fulfilFilter === "COLLECTION" ? isCollection : !isCollection;
+  };
+
+  const allOpen = tickets.filter((t) => !t.bumpedAt);
+  const active = allOpen.filter((t) => inFilter(t.order.fulfillmentType));
+  const collectionCount = allOpen.filter((t) =>
+    ["PICKUP", "DINE_IN"].includes(t.order.fulfillmentType),
+  ).length;
+  const deliveryCount = allOpen.length - collectionCount;
 
   // All-day production counter across visible tickets.
   const allDay = useMemo(() => {
@@ -514,6 +529,36 @@ function StationView({ screenId }: { screenId: string }) {
                 {s.name}
               </button>
             ))}
+          <div className="flex items-center gap-1 ml-2 pl-2 border-l border-zinc-700 flex-shrink-0">
+            {(
+              [
+                ["ALL", "All", allOpen.length],
+                ["COLLECTION", "Collection", collectionCount],
+                ["DELIVERY", "Delivery", deliveryCount],
+              ] as const
+            ).map(([key, label, count]) => (
+              <button
+                key={key}
+                onClick={() => setFulfilFilter(key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+                  fulfilFilter === key
+                    ? "bg-emerald-600 text-white"
+                    : "text-zinc-400 hover:text-zinc-200",
+                )}
+              >
+                {label}
+                <span
+                  className={cn(
+                    "ml-1.5 text-xs",
+                    fulfilFilter === key ? "text-emerald-100" : "text-zinc-600",
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-4 text-sm text-zinc-400 whitespace-nowrap">
           {stats && (
