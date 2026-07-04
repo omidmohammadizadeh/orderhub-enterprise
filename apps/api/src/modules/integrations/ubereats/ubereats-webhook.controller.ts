@@ -158,6 +158,16 @@ export class UberEatsWebhookController {
         );
         return { handled: true, connectionId };
       }
+      case "eats.report.success": {
+        // The receiver already recorded the payload (download URLs live in
+        // rawPayload.report_metadata.sections); the reporting service joins
+        // it with the tenant's requested jobs on read. Nothing else to do.
+        const sections = body?.report_metadata?.sections?.length ?? 0;
+        this.logger.log(
+          `Uber Eats report ready: job=${body?.job_id ?? "?"} type=${body?.report_type ?? "?"} sections=${sections}`,
+        );
+        return { handled: true, sections };
+      }
       case "store.menu_refresh_request": {
         const storeId: string = body?.store_id ?? body?.resource_id ?? "";
         if (!storeId) return { handled: false, reason: "no_store_id" };

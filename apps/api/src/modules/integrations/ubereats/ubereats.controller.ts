@@ -24,6 +24,10 @@ import {
   type AdjustPriceReason,
 } from "./ubereats-order-actions.service";
 import { UberEatsPromotionsService } from "./ubereats-promotions.service";
+import {
+  UberEatsReportingService,
+  type UberReportType,
+} from "./ubereats-reporting.service";
 
 // Phase UE-1/2 — operator-facing Uber Eats endpoints.
 //
@@ -43,6 +47,7 @@ export class UberEatsController {
     private readonly client: UberEatsClientService,
     private readonly orderActions: UberEatsOrderActionsService,
     private readonly promotions: UberEatsPromotionsService,
+    private readonly reporting: UberEatsReportingService,
   ) {}
 
   // Public config/connectivity probe — booleans + a live token-mint check
@@ -325,6 +330,34 @@ export class UberEatsController {
   @ApiOperation({ summary: "Get one Uber Eats promotion" })
   getPromotion(@Param("promotionId") promotionId: string) {
     return this.promotions.getPromotion(promotionId);
+  }
+
+  // ── Reporting (Marketplace Reporting suite — certification checklist) ──
+
+  @Post("reports")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Request an Uber Eats report (async; eats.report.success webhook delivers download URLs)" })
+  createReport(
+    @Body()
+    body: {
+      reportType: UberReportType;
+      startDate: string;
+      endDate: string;
+      storeIds?: string[];
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.reporting.createReport(user.tenantId, body);
+  }
+
+  @Get("reports")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "List requested Uber Eats reports with status + download links" })
+  listReports(@CurrentUser() user: AuthenticatedUser) {
+    return this.reporting.listReports(user.tenantId);
   }
 
   // ── Order actions (Order Fulfillment suite — certification checklist) ──
