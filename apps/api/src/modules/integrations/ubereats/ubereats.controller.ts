@@ -19,6 +19,10 @@ import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interf
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
 import { UberEatsClientService } from "./ubereats-client.service";
+import {
+  UberEatsOrderActionsService,
+  type AdjustPriceReason,
+} from "./ubereats-order-actions.service";
 
 // Phase UE-1/2 — operator-facing Uber Eats endpoints.
 //
@@ -36,6 +40,7 @@ export class UberEatsController {
     private readonly connections: UberEatsConnectionService,
     private readonly config: ConfigService,
     private readonly client: UberEatsClientService,
+    private readonly orderActions: UberEatsOrderActionsService,
   ) {}
 
   // Public config/connectivity probe — booleans + a live token-mint check
@@ -239,6 +244,91 @@ export class UberEatsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.connections.setStoreOnline(user.tenantId, connectionId, true);
+  }
+
+  // ── Order actions (Order Fulfillment suite — certification checklist) ──
+
+  @Post("order/:orderId/adjust-price")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Adjust an Uber Eats order's price (sold-out item etc.)" })
+  adjustPrice(
+    @Param("orderId") orderId: string,
+    @Body()
+    body: {
+      amountPounds: number;
+      taxRate?: number | string;
+      reason: AdjustPriceReason;
+      customReason?: string;
+    },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderActions.adjustPrice(user.tenantId, orderId, body);
+  }
+
+  @Post("order/:orderId/ready-time")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update the ready-for-pickup time on Uber Eats" })
+  updateReadyTime(
+    @Param("orderId") orderId: string,
+    @Body() body: { minutesFromNow?: number; readyAt?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderActions.updateReadyTime(user.tenantId, orderId, body);
+  }
+
+  @Post("order/:orderId/validate-item-fulfillment")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Validate an item fulfillment issue with Uber Eats" })
+  validateItemFulfillment(
+    @Param("orderId") orderId: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderActions.validateItemFulfillment(
+      user.tenantId,
+      orderId,
+      body,
+    );
+  }
+
+  @Post("order/:orderId/resolve-fulfillment-issues")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Resolve fulfillment issues on an Uber Eats order" })
+  resolveFulfillmentIssues(
+    @Param("orderId") orderId: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderActions.resolveFulfillmentIssues(
+      user.tenantId,
+      orderId,
+      body,
+    );
+  }
+
+  @Post("order/:orderId/replacement-recommendations")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get replacement recommendations for a sold-out item" })
+  replacementRecommendations(
+    @Param("orderId") orderId: string,
+    @Body() body: { itemId: string; storeId?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderActions.replacementRecommendations(
+      user.tenantId,
+      orderId,
+      body,
+    );
   }
 
   @Post(":connectionId/publish-prep")

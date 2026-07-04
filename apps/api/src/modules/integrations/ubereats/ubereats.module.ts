@@ -9,6 +9,7 @@ import { UberEatsConnectionService } from "./ubereats-connection.service";
 import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
 import { UberEatsOrderService } from "./ubereats-order.service";
 import { UberEatsOrderSyncService } from "./ubereats-order-sync.service";
+import { UberEatsOrderActionsService } from "./ubereats-order-actions.service";
 import { UberEatsController } from "./ubereats.controller";
 import { UberEatsWebhookController } from "./ubereats-webhook.controller";
 
@@ -33,6 +34,7 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
     UberEatsMenuPublishService,
     UberEatsOrderService,
     UberEatsOrderSyncService,
+    UberEatsOrderActionsService,
   ],
   exports: [
     UberEatsClientService,
