@@ -27,6 +27,7 @@ import {
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
+import { apiClient } from "@/lib/api/client";
 import toast from "react-hot-toast";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
@@ -107,6 +108,21 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
             );
           }
           const conn = conns.find((c) => c.platform === platform);
+          // Uber Eats connects via OAuth — no external id. Connect opens
+          // Uber's authorization page; the callback auto-links the store.
+          if (platform === "UBER_EATS") {
+            return (
+              <UberEatsRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
           // Deliveroo is a real API connection: connecting resolves the
           // Deliveroo Brand ID from the Site ID and unlocks store controls.
           if (platform === "DELIVEROO") {
@@ -494,6 +510,221 @@ function DeliverooRow({
             </button>
           </div>
         )}
+      </div>
+    </li>
+  );
+}
+
+function UberEatsRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const connected =
+    connection?.status === "connected" || connection?.status === "suspended";
+  const [stores, setStores] = useState<
+    Array<{ storeId: string; name: string; address: string | null }>
+  >([]);
+  const [picking, setPicking] = useState(false);
+
+  const err = (e: any) =>
+    toast.error(
+      e?.response?.data?.message ?? e?.message ?? "Uber Eats request failed",
+    );
+
+  // Returning from Uber's OAuth: ?ubereats_connected=1 (auto-linked) or
+  // =pick (several stores → show the picker for this brand+location).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (
+      p.get("brandId") !== brandId ||
+      p.get("locationId") !== locationId
+    )
+      return;
+    const state = p.get("ubereats_connected");
+    const oauthErr = p.get("ubereats_error");
+    if (oauthErr) {
+      toast.error(`Uber Eats connect failed: ${oauthErr}`);
+    } else if (state === "1") {
+      toast.success("Uber Eats store connected");
+      onChanged();
+    } else if (state === "pick") {
+      void listStores.mutate();
+    }
+    if (state || oauthErr) {
+      // Clean the query so a refresh doesn't re-trigger.
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const connect = useMutation({
+    mutationFn: () =>
+      apiClient
+        .get(
+          `/v1/integrations/ubereats/connect?brandId=${brandId}&locationId=${locationId}`,
+        )
+        .then((r) => r.data as { authorizeUrl: string }),
+    onSuccess: (d) => {
+      // Full-page redirect to Uber's authorization page.
+      window.location.assign(d.authorizeUrl);
+    },
+    onError: err,
+  });
+
+  const listStores = useMutation({
+    mutationFn: () =>
+      apiClient
+        .post(`/v1/integrations/ubereats/stores`, { brandId, locationId })
+        .then((r) => r.data as typeof stores),
+    onSuccess: (d) => {
+      setStores(d);
+      setPicking(true);
+    },
+    onError: err,
+  });
+
+  const link = useMutation({
+    mutationFn: (storeId: string) =>
+      apiClient.post(`/v1/integrations/ubereats/link-store`, {
+        brandId,
+        locationId,
+        storeId,
+      }),
+    onSuccess: () => {
+      toast.success("Uber Eats store connected");
+      setPicking(false);
+      onChanged();
+    },
+    onError: err,
+  });
+
+  const disconnect = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/integrations/ubereats/${connection!.id}/disconnect`,
+        {},
+      ),
+    onSuccess: () => {
+      toast.success("Uber Eats disconnected");
+      onChanged();
+    },
+    onError: err,
+  });
+  const pause = useMutation({
+    mutationFn: () =>
+      apiClient.post(`/v1/integrations/ubereats/${connection!.id}/pause`, {}),
+    onSuccess: () => {
+      toast.success("Uber Eats store paused");
+      onChanged();
+    },
+    onError: err,
+  });
+  const resume = useMutation({
+    mutationFn: () =>
+      apiClient.post(`/v1/integrations/ubereats/${connection!.id}/resume`, {}),
+    onSuccess: () => {
+      toast.success("Uber Eats store resumed");
+      onChanged();
+    },
+    onError: err,
+  });
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-start gap-3">
+        <PlatformLogo platform="UBER_EATS" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Uber Eats</span>
+            <StatusChip status={connection?.status ?? "not_connected"} />
+          </div>
+
+          {picking ? (
+            <div className="mt-1.5 space-y-1">
+              <p className="text-[10px] text-zinc-500">
+                Choose the Uber Eats store to connect:
+              </p>
+              {stores.map((s) => (
+                <button
+                  key={s.storeId}
+                  onClick={() => link.mutate(s.storeId)}
+                  disabled={link.isPending}
+                  className="block w-full rounded-md border border-zinc-200 px-2 py-1 text-left text-[11px] hover:border-zinc-900 disabled:opacity-50"
+                >
+                  <span className="font-medium">{s.name || s.storeId}</span>
+                  {s.address && (
+                    <span className="text-zinc-500"> · {s.address}</span>
+                  )}
+                </button>
+              ))}
+              <button
+                onClick={() => setPicking(false)}
+                className="text-[10px] text-zinc-500 hover:text-zinc-800"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : connected ? (
+            <p className="text-[10px] text-zinc-500">
+              Store {connection?.externalStoreId}
+            </p>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              Connect opens Uber's sign-in to authorise your store.
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
+          {connected ? (
+            <>
+              <button
+                onClick={() => resume.mutate()}
+                disabled={resume.isPending}
+                className="rounded-md border border-emerald-200 px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+              >
+                Open
+              </button>
+              <button
+                onClick={() => pause.mutate()}
+                disabled={pause.isPending}
+                className="rounded-md border border-orange-200 px-2 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+              >
+                Pause
+              </button>
+              <button
+                onClick={() => disconnect.mutate()}
+                disabled={disconnect.isPending}
+                className="rounded p-1 text-zinc-500 hover:bg-red-50 hover:text-red-600"
+                title="Disconnect"
+              >
+                {disconnect.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3 w-3" />
+                )}
+              </button>
+            </>
+          ) : (
+            !picking && (
+              <button
+                onClick={() => connect.mutate()}
+                disabled={connect.isPending}
+                className="rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+              >
+                {connect.isPending ? "Opening…" : "Connect"}
+              </button>
+            )
+          )}
+        </div>
       </div>
     </li>
   );
