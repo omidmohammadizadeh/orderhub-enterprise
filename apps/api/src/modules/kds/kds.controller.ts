@@ -68,6 +68,33 @@ export class KdsController {
     return this.kds.removeScreen(screenId, user.tenantId);
   }
 
+  @Get("screens/:screenId")
+  @ApiOperation({ summary: "Get one KDS screen (settings for the display)" })
+  getScreen(
+    @Param("screenId") screenId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.kds.getScreen(screenId, user.tenantId);
+  }
+
+  @Get("screens/:screenId/stats")
+  @ApiOperation({ summary: "Today's speed-of-service stats for a screen" })
+  getStats(
+    @Param("screenId") screenId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.kds.getStats(screenId, user.tenantId);
+  }
+
+  @Get("screens/:screenId/bumped")
+  @ApiOperation({ summary: "Recently bumped tickets (recall rail)" })
+  getBumped(
+    @Param("screenId") screenId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.kds.getRecentBumped(screenId, user.tenantId);
+  }
+
   // ── Tickets ───────────────────────────────────────────────────────────────
 
   @Get("screens/:screenId/tickets")
@@ -88,6 +115,26 @@ export class KdsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.kds.bumpTicket(screenId, orderId, user.tenantId);
+  }
+
+  @Post("screens/:screenId/tickets/:orderId/items/:orderItemId/state")
+  @Roles("KITCHEN_STAFF", "CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Mark an item line cooked / not cooked on a ticket" })
+  setItemState(
+    @Param("screenId") screenId: string,
+    @Param("orderId") orderId: string,
+    @Param("orderItemId") orderItemId: string,
+    @Body() body: { done: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.kds.setItemState(
+      screenId,
+      orderId,
+      orderItemId,
+      !!body?.done,
+      user.tenantId,
+    );
   }
 
   @Post("screens/:screenId/tickets/:orderId/recall")

@@ -1816,6 +1816,11 @@ model KdsTicket {
   order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   bumpedAt    DateTime?
   recalledAt  DateTime?
+  // Phase KD — station routing + per-line cook state:
+  //   { itemIds: string[]            // OrderItem ids routed to this station
+  //     itemStates: { [orderItemId]: ISO done timestamp } }
+  // Empty itemIds = the screen shows the whole order (no routing rules).
+  metadata    Json      @default("{}")
 
   createdAt DateTime @default(now())
 

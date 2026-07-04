@@ -20,6 +20,10 @@ export interface ServerToClientEvents {
   "kds:ticket:bumped": (payload: KdsTicketBumpedPayload) => void;
   // KDS: ticket recalled (un-bumped)
   "kds:ticket:recalled": (payload: KdsTicketRecalledPayload) => void;
+  // KDS: an item line on a ticket was marked done / undone
+  "kds:item:state": (payload: KdsItemStatePayload) => void;
+  // KDS: tickets voided (order cancelled) — screens drop them
+  "kds:ticket:void": (payload: KdsTicketVoidPayload) => void;
   // Integration went offline / came back
   "integration:status": (payload: IntegrationStatusPayload) => void;
   // A printer changed online status
@@ -146,6 +150,18 @@ export interface KdsTicketPayload {
 export interface KdsTicketRecalledPayload {
   screenId: string;
   orderId: string;
+}
+
+export interface KdsItemStatePayload {
+  screenId: string;
+  orderId: string;
+  orderItemId: string;
+  done: boolean;
+}
+
+export interface KdsTicketVoidPayload {
+  orderId: string;
+  reason?: string;
 }
 
 export interface StoreStatusPayload {
