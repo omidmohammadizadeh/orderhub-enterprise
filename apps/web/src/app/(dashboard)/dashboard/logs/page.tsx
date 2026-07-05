@@ -1,0 +1,300 @@
+"use client";
+
+// Phase LG — Logs page (HubRise-style activity feed).
+//
+// One place to see what the system did for each action — menu publishes,
+// order pushes to platforms, stock (86) changes, store pauses/resumes —
+// without opening Render. Tabs: All / Menu / Orders / Inventory / Status /
+// Connections. Auto-refreshes every 10s; "Load more" pages by cursor.
+
+import { useMemo, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Loader2,
+  Plug,
+  Package,
+  RefreshCw,
+  ScrollText,
+  ShoppingBag,
+  UtensilsCrossed,
+  XCircle,
+} from "lucide-react";
+import { apiClient } from "@/lib/api/client";
+
+const REFRESH_MS = 10_000;
+
+type LogEntry = {
+  id: string;
+  category: string;
+  channel: string | null;
+  action: string;
+  status: "SUCCESS" | "ERROR" | "INFO" | "WARNING";
+  message: string;
+  details: Record<string, unknown> | null;
+  locationId: string | null;
+  brandId: string | null;
+  brandName: string | null;
+  createdAt: string;
+};
+
+type LogsPage = { entries: LogEntry[]; nextCursor: string | null };
+
+const TABS = [
+  { key: "", label: "All", icon: ScrollText },
+  { key: "MENU", label: "Menu", icon: UtensilsCrossed },
+  { key: "ORDERS", label: "Orders", icon: ShoppingBag },
+  { key: "INVENTORY", label: "Inventory", icon: Package },
+  { key: "STATUS", label: "Status", icon: Activity },
+  { key: "CONNECTION", label: "Connections", icon: Plug },
+] as const;
+
+const CHANNEL_LABEL: Record<string, string> = {
+  UBER_EATS: "Uber Eats",
+  DELIVEROO: "Deliveroo",
+  HUBRISE: "HubRise",
+  JUST_EAT: "Just Eat",
+  DIRECT: "Direct",
+  ONLINE: "Online",
+  POS: "POS",
+  WHATSAPP: "WhatsApp",
+  ALL: "All channels",
+};
+
+const CHANNEL_COLOR: Record<string, string> = {
+  UBER_EATS: "bg-emerald-500/15 text-emerald-400",
+  DELIVEROO: "bg-cyan-500/15 text-cyan-400",
+  HUBRISE: "bg-violet-500/15 text-violet-400",
+  JUST_EAT: "bg-orange-500/15 text-orange-400",
+  DIRECT: "bg-blue-500/15 text-blue-400",
+  ONLINE: "bg-blue-500/15 text-blue-400",
+  POS: "bg-zinc-500/15 text-zinc-300",
+  WHATSAPP: "bg-green-500/15 text-green-400",
+};
+
+function statusBadge(status: LogEntry["status"]) {
+  switch (status) {
+    case "SUCCESS":
+      return {
+        icon: CheckCircle2,
+        cls: "text-emerald-400",
+        chip: "bg-emerald-500/10 text-emerald-400",
+      };
+    case "ERROR":
+      return {
+        icon: XCircle,
+        cls: "text-red-400",
+        chip: "bg-red-500/10 text-red-400",
+      };
+    case "WARNING":
+      return {
+        icon: AlertTriangle,
+        cls: "text-amber-400",
+        chip: "bg-amber-500/10 text-amber-400",
+      };
+    default:
+      return {
+        icon: Info,
+        cls: "text-sky-400",
+        chip: "bg-sky-500/10 text-sky-400",
+      };
+  }
+}
+
+function timeAgo(iso: string): string {
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${Math.floor(s)}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return new Date(iso).toLocaleString();
+}
+
+function Row({ entry }: { entry: LogEntry }) {
+  const [open, setOpen] = useState(false);
+  const badge = statusBadge(entry.status);
+  const Icon = badge.icon;
+  const hasDetails =
+    entry.details && Object.keys(entry.details as object).length > 0;
+
+  return (
+    <div className="border-b border-zinc-800/60 last:border-0">
+      <button
+        type="button"
+        onClick={() => hasDetails && setOpen((v) => !v)}
+        className={`flex w-full items-start gap-3 px-4 py-3 text-left ${hasDetails ? "hover:bg-zinc-900/60" : "cursor-default"}`}
+      >
+        <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${badge.cls}`} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-sm text-zinc-100">
+              {entry.message}
+            </span>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+            {entry.channel && (
+              <span
+                className={`rounded px-1.5 py-0.5 font-medium ${CHANNEL_COLOR[entry.channel] ?? "bg-zinc-700/40 text-zinc-300"}`}
+              >
+                {CHANNEL_LABEL[entry.channel] ?? entry.channel}
+              </span>
+            )}
+            {entry.brandName && (
+              <span className="rounded bg-zinc-700/40 px-1.5 py-0.5 text-zinc-300">
+                {entry.brandName}
+              </span>
+            )}
+            <span className="font-mono">{entry.action}</span>
+            <span>·</span>
+            <span title={new Date(entry.createdAt).toLocaleString()}>
+              {timeAgo(entry.createdAt)}
+            </span>
+          </div>
+        </div>
+        {hasDetails &&
+          (open ? (
+            <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-zinc-500" />
+          ) : (
+            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-zinc-600" />
+          ))}
+      </button>
+      {open && hasDetails && (
+        <pre className="mx-4 mb-3 overflow-x-auto rounded-lg bg-zinc-950 p-3 text-[11px] leading-relaxed text-zinc-400">
+          {JSON.stringify(entry.details, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+export default function LogsPage() {
+  const [tab, setTab] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+
+  const {
+    data,
+    isLoading,
+    isFetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<LogsPage>({
+    queryKey: ["activity-logs", tab, statusFilter],
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams();
+      if (tab) params.set("category", tab);
+      if (statusFilter) params.set("status", statusFilter);
+      if (pageParam) params.set("cursor", String(pageParam));
+      params.set("limit", "50");
+      const res = await apiClient.get(`/v1/logs?${params.toString()}`);
+      return res.data as LogsPage;
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+    refetchInterval: REFRESH_MS,
+  });
+
+  const entries = useMemo(
+    () => (data?.pages ?? []).flatMap((p) => p.entries),
+    [data],
+  );
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mb-1 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-zinc-100">Logs</h1>
+          <p className="text-sm text-zinc-500">
+            Everything the system did — menu publishes, order pushes, stock
+            changes, store status — without opening server logs.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {TABS.map((t) => {
+          const TIcon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key || "all"}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition ${
+                active
+                  ? "bg-orange-500 text-white"
+                  : "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              }`}
+            >
+              <TIcon className="h-3.5 w-3.5" />
+              {t.label}
+            </button>
+          );
+        })}
+        <div className="ml-auto flex items-center gap-1.5">
+          {["", "ERROR", "WARNING", "SUCCESS"].map((sKey) => (
+            <button
+              key={sKey || "any"}
+              type="button"
+              onClick={() => setStatusFilter(sKey)}
+              className={`rounded-full px-2.5 py-1 text-xs ${
+                statusFilter === sKey
+                  ? "bg-zinc-200 text-zinc-900"
+                  : "border border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+              }`}
+            >
+              {sKey || "Any status"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Feed */}
+      <div className="mt-4 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 py-16 text-zinc-500">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading activity…
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="py-16 text-center text-sm text-zinc-500">
+            No activity yet
+            {tab ? ` in ${TABS.find((t) => t.key === tab)?.label}` : ""}. Menu
+            publishes, order pushes, stock changes and store pauses will show
+            up here as they happen.
+          </div>
+        ) : (
+          entries.map((e) => <Row key={e.id} entry={e} />)
+        )}
+      </div>
+
+      {hasNextPage && (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {isFetchingNextPage ? "Loading…" : "Load more"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

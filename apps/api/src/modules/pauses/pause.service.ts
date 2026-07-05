@@ -12,11 +12,13 @@ import {
   NotFoundException,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
+import { ActivityLogService } from "../logs/activity-log.service";
 
 export type SupportedChannel =
   | "ONLINE"
@@ -67,6 +69,7 @@ export class PauseService {
     // exactly like the per-brand Open/Pause buttons on the channels grid.
     private readonly deliveroo: DeliverooConnectionService,
     private readonly uberEats: UberEatsConnectionService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -203,6 +206,21 @@ export class PauseService {
       },
     });
 
+    this.activity?.record({
+      tenantId: args.tenantId,
+      locationId: args.scope.locationId,
+      brandId: args.scope.brandId ?? null,
+      category: "STATUS",
+      channel: args.scope.channel ?? "ALL",
+      action: args.mode === "busy" ? "store.busy" : "store.pause",
+      status: "WARNING",
+      message:
+        args.mode === "busy"
+          ? `Busy mode on (+${args.extraPrepTime ?? 0} min prep)`
+          : `Stopped taking orders${args.scope.channel ? ` on ${args.scope.channel}` : ""}${resumeAt ? ` until ${resumeAt.toISOString()}` : " until further notice"}`,
+      details: { resumeAt, reason: args.reason ?? null },
+    });
+
     // HubRise sync: only when the scope hits the whole HubRise channel
     // (or a location-wide pause). HubRise's PATCH /locations is
     // location-wide only — so per-brand-only pauses skip the sync.
@@ -278,6 +296,16 @@ export class PauseService {
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
+      this.activity?.record({
+        tenantId: args.tenantId,
+        locationId: row.locationId,
+        brandId: row.brandId ?? null,
+        category: "STATUS",
+        channel: row.channel ?? "ALL",
+        action: "store.resume",
+        status: "SUCCESS",
+        message: `Resumed taking orders${row.channel ? ` on ${row.channel}` : ""}`,
+      });
       return { ok: true };
     }
     if (!args.scope) throw new BadRequestException("rowId or scope required");
@@ -291,6 +319,16 @@ export class PauseService {
     });
     void this.reconcileDeliveroo(args.scope, args.tenantId);
     void this.reconcileUberEats(args.scope, args.tenantId);
+    this.activity?.record({
+      tenantId: args.tenantId,
+      locationId: args.scope.locationId,
+      brandId: args.scope.brandId ?? null,
+      category: "STATUS",
+      channel: args.scope.channel ?? "ALL",
+      action: "store.resume",
+      status: "SUCCESS",
+      message: `Resumed taking orders${args.scope.channel ? ` on ${args.scope.channel}` : ""}`,
+    });
     return { ok: true };
   }
 
@@ -349,10 +387,31 @@ export class PauseService {
           this.logger.log(
             `Uber Eats store ${snap.paused ? "paused" : "resumed"} for conn ${c.id} via pause reconcile`,
           );
+          this.activity?.record({
+            tenantId: c.tenantId ?? tenantId,
+            locationId: scope.locationId,
+            brandId: c.brandId,
+            category: "STATUS",
+            channel: "UBER_EATS",
+            action: snap.paused ? "store.pause" : "store.resume",
+            status: "SUCCESS",
+            message: `Uber Eats store ${snap.paused ? "paused" : "reopened"}`,
+            details: { resumeAt: snap.resumeAt },
+          });
         } catch (e: any) {
           this.logger.warn(
             `Uber Eats store ${snap.paused ? "pause" : "resume"} failed for conn ${c.id}: ${e?.message ?? e}`,
           );
+          this.activity?.record({
+            tenantId: c.tenantId ?? tenantId,
+            locationId: scope.locationId,
+            brandId: c.brandId,
+            category: "STATUS",
+            channel: "UBER_EATS",
+            action: snap.paused ? "store.pause" : "store.resume",
+            status: "ERROR",
+            message: `Uber Eats store ${snap.paused ? "pause" : "reopen"} failed: ${e?.message ?? e}`,
+          });
         }
       }
     } catch (e: any) {
@@ -396,10 +455,30 @@ export class PauseService {
           this.logger.log(
             `Deliveroo store ${shouldBeOpen ? "opened" : "closed"} for conn ${c.id} via pause reconcile`,
           );
+          this.activity?.record({
+            tenantId: c.tenantId ?? tenantId,
+            locationId: scope.locationId,
+            brandId: c.brandId,
+            category: "STATUS",
+            channel: "DELIVEROO",
+            action: shouldBeOpen ? "store.resume" : "store.pause",
+            status: "SUCCESS",
+            message: `Deliveroo store ${shouldBeOpen ? "reopened" : "closed"}`,
+          });
         } catch (e: any) {
           this.logger.warn(
             `Deliveroo store ${shouldBeOpen ? "open" : "close"} failed for conn ${c.id}: ${e?.message ?? e}`,
           );
+          this.activity?.record({
+            tenantId: c.tenantId ?? tenantId,
+            locationId: scope.locationId,
+            brandId: c.brandId,
+            category: "STATUS",
+            channel: "DELIVEROO",
+            action: shouldBeOpen ? "store.resume" : "store.pause",
+            status: "ERROR",
+            message: `Deliveroo store ${shouldBeOpen ? "reopen" : "close"} failed: ${e?.message ?? e}`,
+          });
         }
       }
     } catch (e: any) {

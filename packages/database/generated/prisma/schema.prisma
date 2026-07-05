@@ -557,10 +557,15 @@ model Location {
   printToken String? @unique
 
   // Online ordering
-  slug           String? @unique
-  openingHours   Json    @default("[]")
-  deliveryConfig Json    @default("{}")
-  onboardingStep Int     @default(0)
+  slug              String? @unique
+  openingHours      Json    @default("[]")
+  deliveryConfig    Json    @default("{}")
+  // Phase AZ — location-level prep time (base + busy-mode extra), mirroring
+  // the brand fields. HubRise + WhatsApp fall back to these when the brand
+  // hasn't set its own hours/prep.
+  prepTime          Int?
+  busyExtraPrepTime Int?
+  onboardingStep    Int     @default(0)
 
   // ── Go-live lifecycle ─────────────────────────────────
   goLiveStatus    LocationGoLiveStatus @default(DRAFT)
@@ -713,6 +718,14 @@ model Menu {
   // platform_ids, include_online_ordering }.
   autoScheduleEnabled Boolean @default(false)
   autoSchedule        Json    @default("{}")
+
+  // Pricing variants — named price lists on this menu (channel presets
+  // like Uber Eats/Deliveroo + custom ones). Shape: [{ ref, name,
+  // channelKey? }]. Per-variant prices live as overrides on each item
+  // (platformPricingOverrides), SKU (productSkus[].priceOverrides) and
+  // modifier option (platformPricingOverrides), keyed by variant ref.
+  // Published to HubRise as data.variants[] + price_overrides[].
+  pricingVariants Json @default("[]")
 
   categories MenuCategory[]
   versions   MenuVersion[]
@@ -1037,23 +1050,23 @@ model ModifierGroup {
 }
 
 model ModifierOption {
-  id                 String        @id @default(cuid())
-  groupId            String
-  group              ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                       String        @id @default(cuid())
+  groupId                  String
+  group                    ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   // Phase AK — Base44 lets the same modifier (e.g. "Extra cheese")
   // belong to multiple groups. We keep groupId above as the "primary"
   // group (so existing service code keeps working) and add a parallel
   // array of additional group memberships. Imports populate both;
   // POS lookups can match either.
-  modifierGroupIds   String[]      @default([])
-  name               String
-  description        String?
+  modifierGroupIds         String[]      @default([])
+  name                     String
+  description              String?
   // Base price for this modifier when no size key matches. Already
   // existed; renamed conceptually to "default price". pricesBySize
   // below is the authoritative per-size table.
-  priceAdjustment    Decimal       @default(0) @db.Decimal(10, 2)
+  priceAdjustment          Decimal       @default(0) @db.Decimal(10, 2)
   // PLU — same role as MenuItem.plu. Used by Deliveroo PLU validation.
-  plu                String?
+  plu                      String?
   // ── Per-size pricing + PLU ─────────────────────────────────────────
   // Used when the parent product is a multi-SKU pizza-style item. Keys
   // are size strings (e.g. "10", "12", "14") extracted from the size
@@ -1066,18 +1079,22 @@ model ModifierOption {
   //     key here, the option is HIDDEN (not just disabled).
   //   - if pricesBySize is empty, the option is always visible at
   //     priceAdjustment.
-  pricesBySize       Json          @default("{}")
-  skuPlus            Json          @default("{}")
-  imageUrl           String?
-  allergens          String[]
-  isDefault          Boolean       @default(false)
-  isAvailable        Boolean       @default(true)
-  visibleToCustomers Boolean       @default(true)
+  pricesBySize             Json          @default("{}")
+  skuPlus                  Json          @default("{}")
+  // Per-variant price overrides keyed by pricing-variant ref, e.g.
+  // { "UBER_EATS": 0.75, "var_kiosk": 0.50 }. Empty = this option costs
+  // priceAdjustment on every variant. Published as option price_overrides.
+  platformPricingOverrides Json          @default("{}")
+  imageUrl                 String?
+  allergens                String[]
+  isDefault                Boolean       @default(false)
+  isAvailable              Boolean       @default(true)
+  visibleToCustomers       Boolean       @default(true)
   // Scheduled restore — same pattern as MenuItem.availableRestoreAt.
-  availableRestoreAt DateTime?
-  sortOrder          Int           @default(0)
+  availableRestoreAt       DateTime?
+  sortOrder                Int           @default(0)
   // Membership in many menus. Same rationale as MenuCategory.menuIds.
-  menuIds            String[]      @default([])
+  menuIds                  String[]      @default([])
 
   // Per-channel tax — % points, matches MenuItem.
   deliveryTax Decimal @default(0) @db.Decimal(5, 2)
@@ -1599,6 +1616,13 @@ model Order {
 
   deliveryAddress Json?
 
+  // Phase AX — Dispatch. Geocoded delivery coordinates cached on the order
+  // so the dispatch map can drop a pin without re-geocoding every render.
+  // Populated on ingest from deliveryAddress via the Google geocoder.
+  deliveryLat Float?
+  deliveryLng Float?
+  geocodedAt  DateTime?
+
   subtotal      Decimal @db.Decimal(10, 2)
   taxAmount     Decimal @default(0) @db.Decimal(10, 2)
   serviceCharge Decimal @default(0) @db.Decimal(10, 2)
@@ -1762,6 +1786,32 @@ model WebhookEvent {
   @@map("webhook_events")
 }
 
+// ── ActivityLog ───────────────────────────────────────────────────────────────
+// Phase LG — operator-facing activity feed (HubRise-style "what happened").
+// One row per integration/system action: menu publishes, order pushes,
+// stock changes, store pauses. Distinct from AuditLog (security/user audit)
+// and WebhookEvent (raw inbound payloads) — this is the readable timeline
+// the dashboard Logs page renders so operators don't need Render logs.
+model ActivityLog {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String?
+  brandId    String?
+  category   String // MENU | ORDERS | INVENTORY | STATUS | CONNECTION
+  channel    String? // UBER_EATS | DELIVEROO | HUBRISE | JUST_EAT | DIRECT | SYSTEM
+  action     String // e.g. menu.publish, order.accept, store.pause
+  status     String // SUCCESS | ERROR | INFO | WARNING
+  message    String
+  details    Json    @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, category, createdAt(sort: Desc)])
+  @@index([tenantId, locationId, createdAt(sort: Desc)])
+  @@map("activity_logs")
+}
+
 // ── KDS ───────────────────────────────────────────────────────────────────────
 model KdsScreen {
   id         String   @id @default(cuid())
@@ -1792,6 +1842,11 @@ model KdsTicket {
   order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   bumpedAt    DateTime?
   recalledAt  DateTime?
+  // Phase KD — station routing + per-line cook state:
+  //   { itemIds: string[]            // OrderItem ids routed to this station
+  //     itemStates: { [orderItemId]: ISO done timestamp } }
+  // Empty itemIds = the screen shows the whole order (no routing rules).
+  metadata    Json      @default("{}")
 
   createdAt DateTime @default(now())
 
@@ -2162,6 +2217,7 @@ model Driver {
   metadata    Json    @default("{}")
 
   assignments DriverAssignment[]
+  presence    DriverPresence?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2171,6 +2227,43 @@ model Driver {
   @@map("drivers")
 }
 
+// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────────────
+// One row per driver holding live operational state for the dispatch map and
+// the Order Hub Driver app: online/offline, last-known GPS, which location they
+// are clocked into, and the socket/push handles used to reach them. ON_JOB locks
+// the driver from receiving new dispatches.
+model DriverPresence {
+  id         String               @id @default(cuid())
+  driverId   String               @unique
+  driver     Driver               @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  tenantId   String
+  locationId String? // location the driver is clocked into; null when OFFLINE
+  status     DriverPresenceStatus @default(OFFLINE)
+
+  lat     Float?
+  lng     Float?
+  heading Float?
+  speed   Float?
+
+  activeAssignmentId String? // set while ON_JOB — drives the "locked" state
+  socketId           String?
+  pushToken          String? // Expo push token for dispatch notifications
+  lastPingAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, locationId, status])
+  @@map("driver_presence")
+}
+
+enum DriverPresenceStatus {
+  OFFLINE
+  ONLINE
+  ON_JOB
+}
+
 model DriverAssignment {
   id          String                 @id @default(cuid())
   orderId     String                 @unique
@@ -2178,9 +2271,13 @@ model DriverAssignment {
   driverId    String
   driver      Driver                 @relation(fields: [driverId], references: [id], onDelete: Restrict)
   status      DriverAssignmentStatus @default(ASSIGNED)
+  // Phase AX — stop order on a multi-drop run (1,2,3…). Drives the "1/3" badge
+  // in the driver app and the order the operator picked the orders on the map.
+  sequence    Int?
   assignedAt  DateTime               @default(now())
   acceptedAt  DateTime?
   pickedUpAt  DateTime?
+  arrivedAt   DateTime?
   deliveredAt DateTime?
 
   tracking DeliveryTracking[]
@@ -2205,6 +2302,66 @@ model DeliveryTracking {
 
   @@index([assignmentId, recordedAt(sort: Desc)])
   @@map("delivery_tracking")
+}
+
+// Phase AX-4 — dispatch chat. Two channels share one table:
+//   • DRIVER_OPERATOR — keyed by (tenantId, driverId): operator ↔ driver.
+//   • CUSTOMER_DRIVER — keyed by orderId: the online-ordering customer ↔ driver.
+// Realtime is polling-based (matches the storefront tracker), so no socket auth
+// is needed on the driver app or the public customer page.
+model ChatMessage {
+  id         String  @id @default(cuid())
+  tenantId   String
+  channel    String // DRIVER_OPERATOR | CUSTOMER_DRIVER
+  driverId   String?
+  orderId    String?
+  senderType String // OPERATOR | DRIVER | CUSTOMER
+  senderName String?
+  body       String
+
+  createdAt        DateTime  @default(now())
+  readByOperatorAt DateTime?
+  readByDriverAt   DateTime?
+  readByCustomerAt DateTime?
+
+  @@index([tenantId, driverId, createdAt])
+  @@index([orderId, createdAt])
+  @@map("chat_messages")
+}
+
+// Phase AY — WhatsApp ordering. One row per (business number, customer phone):
+// holds the in-progress cart + conversation state for the AI ordering bot. The
+// customer is identified by their WhatsApp phone; the business is identified by
+// the Meta phone_number_id (which maps to a location/integration).
+model WhatsAppConversation {
+  id            String  @id @default(cuid())
+  tenantId      String
+  locationId    String?
+  brandId       String?
+  // Customer's WhatsApp phone in E.164 (the conversation identity).
+  waPhone       String
+  // Meta business phone number id this conversation is on (maps to a location).
+  phoneNumberId String?
+  // IDLE | BROWSING | CART | CHECKOUT | AWAITING_PAYMENT
+  state         String  @default("IDLE")
+  // In-progress cart (items, modifiers, fulfillment, address).
+  cart          Json?
+  // Rolling chat transcript for the AI engine — last ~20 turns of
+  // [{ role: "user" | "assistant", content }]. Trimmed on every write so it
+  // never grows unbounded. Gives Claude multi-turn memory without re-deriving
+  // state from the cart alone.
+  messages      Json    @default("[]")
+  customerName  String?
+  lastOrderId   String?
+
+  lastInboundAt  DateTime?
+  lastOutboundAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([phoneNumberId, waPhone])
+  @@index([tenantId, waPhone])
+  @@map("whatsapp_conversations")
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2357,7 +2514,7 @@ model Payout {
   @@map("payouts")
 }
 
-// ═══════════════════════════════════��══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — INVENTORY & STOCK SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3096,6 +3253,7 @@ enum IntegrationPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum IntegrationStatus {
@@ -3117,6 +3275,7 @@ enum OrderPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum OrderSource {
@@ -3131,6 +3290,7 @@ enum OrderSource {
   DOORDASH
   GRUBHUB
   CAREEM
+  WHATSAPP
 }
 
 enum IntegrationSource {

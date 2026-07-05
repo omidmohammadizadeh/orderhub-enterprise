@@ -3,10 +3,12 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 
 // Phase UE-2 — store discovery, provisioning and store control.
 //
@@ -40,6 +42,7 @@ export class UberEatsConnectionService {
     private readonly prisma: PrismaService,
     private readonly client: UberEatsClientService,
     private readonly oauth: UberEatsOauthService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   /** Stores visible to the authorised merchant (for the store picker). */
@@ -122,6 +125,17 @@ export class UberEatsConnectionService {
     this.logger.log(
       `Uber Eats store ${storeId} (${match.name}) linked to conn ${row.id}`,
     );
+    this.activity?.record({
+      tenantId,
+      brandId: dto.brandId,
+      locationId: dto.locationId,
+      category: "CONNECTION",
+      channel: "UBER_EATS",
+      action: "store.connected",
+      status: "SUCCESS",
+      message: `Uber Eats store "${match.name}" connected`,
+      details: { storeId },
+    });
     return this.view(updated);
   }
 
@@ -256,6 +270,17 @@ export class UberEatsConnectionService {
         metadata: {},
       },
     });
+    this.activity?.record({
+      tenantId,
+      brandId: row.brandId,
+      locationId: row.locationId,
+      category: "CONNECTION",
+      channel: "UBER_EATS",
+      action: "store.disconnected",
+      status: "INFO",
+      message: "Uber Eats store disconnected",
+      details: { storeId: row.externalStoreId },
+    });
     return { ok: true };
   }
 
@@ -317,6 +342,17 @@ export class UberEatsConnectionService {
     await this.prisma.brandPlatformConnection.update({
       where: { id: connectionId },
       data: { status: online ? "connected" : "suspended" },
+    });
+    this.activity?.record({
+      tenantId,
+      brandId: c.brandId,
+      locationId: c.locationId,
+      category: "STATUS",
+      channel: "UBER_EATS",
+      action: online ? "store.resume" : "store.pause",
+      status: "SUCCESS",
+      message: `Uber Eats store set ${online ? "ONLINE" : `OFFLINE until ${until.toISOString()}`}`,
+      details: { storeId: c.externalStoreId },
     });
     return { status: online ? "ONLINE" : "OFFLINE" };
   }

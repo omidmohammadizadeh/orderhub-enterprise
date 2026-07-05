@@ -352,6 +352,8 @@ exports.Prisma.LocationScalarFieldEnum = {
   slug: 'slug',
   openingHours: 'openingHours',
   deliveryConfig: 'deliveryConfig',
+  prepTime: 'prepTime',
+  busyExtraPrepTime: 'busyExtraPrepTime',
   onboardingStep: 'onboardingStep',
   goLiveStatus: 'goLiveStatus',
   lastTestOrderAt: 'lastTestOrderAt',
@@ -434,6 +436,7 @@ exports.Prisma.MenuScalarFieldEnum = {
   lastPublishedAt: 'lastPublishedAt',
   autoScheduleEnabled: 'autoScheduleEnabled',
   autoSchedule: 'autoSchedule',
+  pricingVariants: 'pricingVariants',
   metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -575,6 +578,7 @@ exports.Prisma.ModifierOptionScalarFieldEnum = {
   plu: 'plu',
   pricesBySize: 'pricesBySize',
   skuPlus: 'skuPlus',
+  platformPricingOverrides: 'platformPricingOverrides',
   imageUrl: 'imageUrl',
   allergens: 'allergens',
   isDefault: 'isDefault',
@@ -833,6 +837,9 @@ exports.Prisma.OrderScalarFieldEnum = {
   customerName: 'customerName',
   customerPhone: 'customerPhone',
   deliveryAddress: 'deliveryAddress',
+  deliveryLat: 'deliveryLat',
+  deliveryLng: 'deliveryLng',
+  geocodedAt: 'geocodedAt',
   subtotal: 'subtotal',
   taxAmount: 'taxAmount',
   serviceCharge: 'serviceCharge',
@@ -922,6 +929,20 @@ exports.Prisma.WebhookEventScalarFieldEnum = {
   receivedAt: 'receivedAt'
 };
 
+exports.Prisma.ActivityLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  category: 'category',
+  channel: 'channel',
+  action: 'action',
+  status: 'status',
+  message: 'message',
+  details: 'details',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.KdsScreenScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -940,6 +961,7 @@ exports.Prisma.KdsTicketScalarFieldEnum = {
   orderId: 'orderId',
   bumpedAt: 'bumpedAt',
   recalledAt: 'recalledAt',
+  metadata: 'metadata',
   createdAt: 'createdAt'
 };
 
@@ -1130,14 +1152,34 @@ exports.Prisma.DriverScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DriverPresenceScalarFieldEnum = {
+  id: 'id',
+  driverId: 'driverId',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  status: 'status',
+  lat: 'lat',
+  lng: 'lng',
+  heading: 'heading',
+  speed: 'speed',
+  activeAssignmentId: 'activeAssignmentId',
+  socketId: 'socketId',
+  pushToken: 'pushToken',
+  lastPingAt: 'lastPingAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.DriverAssignmentScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
   driverId: 'driverId',
   status: 'status',
+  sequence: 'sequence',
   assignedAt: 'assignedAt',
   acceptedAt: 'acceptedAt',
   pickedUpAt: 'pickedUpAt',
+  arrivedAt: 'arrivedAt',
   deliveredAt: 'deliveredAt'
 };
 
@@ -1151,6 +1193,39 @@ exports.Prisma.DeliveryTrackingScalarFieldEnum = {
   speed: 'speed',
   event: 'event',
   recordedAt: 'recordedAt'
+};
+
+exports.Prisma.ChatMessageScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  channel: 'channel',
+  driverId: 'driverId',
+  orderId: 'orderId',
+  senderType: 'senderType',
+  senderName: 'senderName',
+  body: 'body',
+  createdAt: 'createdAt',
+  readByOperatorAt: 'readByOperatorAt',
+  readByDriverAt: 'readByDriverAt',
+  readByCustomerAt: 'readByCustomerAt'
+};
+
+exports.Prisma.WhatsAppConversationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  waPhone: 'waPhone',
+  phoneNumberId: 'phoneNumberId',
+  state: 'state',
+  cart: 'cart',
+  messages: 'messages',
+  customerName: 'customerName',
+  lastOrderId: 'lastOrderId',
+  lastInboundAt: 'lastInboundAt',
+  lastOutboundAt: 'lastOutboundAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.StripeConnectAccountScalarFieldEnum = {
@@ -2160,6 +2235,18 @@ exports.Prisma.WebhookEventOrderByRelevanceFieldEnum = {
   orderId: 'orderId'
 };
 
+exports.Prisma.ActivityLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  category: 'category',
+  channel: 'channel',
+  action: 'action',
+  status: 'status',
+  message: 'message'
+};
+
 exports.Prisma.KdsScreenOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2282,6 +2369,16 @@ exports.Prisma.DriverOrderByRelevanceFieldEnum = {
   vehicleType: 'vehicleType'
 };
 
+exports.Prisma.DriverPresenceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  driverId: 'driverId',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  activeAssignmentId: 'activeAssignmentId',
+  socketId: 'socketId',
+  pushToken: 'pushToken'
+};
+
 exports.Prisma.DriverAssignmentOrderByRelevanceFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -2292,6 +2389,29 @@ exports.Prisma.DeliveryTrackingOrderByRelevanceFieldEnum = {
   id: 'id',
   assignmentId: 'assignmentId',
   event: 'event'
+};
+
+exports.Prisma.ChatMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  channel: 'channel',
+  driverId: 'driverId',
+  orderId: 'orderId',
+  senderType: 'senderType',
+  senderName: 'senderName',
+  body: 'body'
+};
+
+exports.Prisma.WhatsAppConversationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  waPhone: 'waPhone',
+  phoneNumberId: 'phoneNumberId',
+  state: 'state',
+  customerName: 'customerName',
+  lastOrderId: 'lastOrderId'
 };
 
 exports.Prisma.StripeConnectAccountOrderByRelevanceFieldEnum = {
@@ -2690,7 +2810,8 @@ exports.IntegrationPlatform = exports.$Enums.IntegrationPlatform = {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 exports.IntegrationStatus = exports.$Enums.IntegrationStatus = {
@@ -2764,7 +2885,8 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 exports.OrderSource = exports.$Enums.OrderSource = {
@@ -2778,7 +2900,8 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 exports.IntegrationSource = exports.$Enums.IntegrationSource = {
@@ -2899,6 +3022,12 @@ exports.AlertTrigger = exports.$Enums.AlertTrigger = {
   SCHEDULED_ORDER_READY: 'SCHEDULED_ORDER_READY',
   PRINTER_OFFLINE: 'PRINTER_OFFLINE',
   FAILED_PRINT: 'FAILED_PRINT'
+};
+
+exports.DriverPresenceStatus = exports.$Enums.DriverPresenceStatus = {
+  OFFLINE: 'OFFLINE',
+  ONLINE: 'ONLINE',
+  ON_JOB: 'ON_JOB'
 };
 
 exports.DriverAssignmentStatus = exports.$Enums.DriverAssignmentStatus = {
@@ -3088,6 +3217,7 @@ exports.Prisma.ModelName = {
   OrderItem: 'OrderItem',
   OrderStatusHistory: 'OrderStatusHistory',
   WebhookEvent: 'WebhookEvent',
+  ActivityLog: 'ActivityLog',
   KdsScreen: 'KdsScreen',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
@@ -3102,8 +3232,11 @@ exports.Prisma.ModelName = {
   MenuCategoryStation: 'MenuCategoryStation',
   PrintTemplate: 'PrintTemplate',
   Driver: 'Driver',
+  DriverPresence: 'DriverPresence',
   DriverAssignment: 'DriverAssignment',
   DeliveryTracking: 'DeliveryTracking',
+  ChatMessage: 'ChatMessage',
+  WhatsAppConversation: 'WhatsAppConversation',
   StripeConnectAccount: 'StripeConnectAccount',
   Payment: 'Payment',
   PaymentMethod: 'PaymentMethod',

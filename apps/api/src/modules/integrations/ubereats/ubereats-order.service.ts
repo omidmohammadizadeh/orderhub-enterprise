@@ -15,8 +15,9 @@
 // operator does that on the POS exactly like Deliveroo orders, and the
 // outbound sync service pushes it back.
 
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import { OrdersService } from "../../orders/orders.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { mapUberEatsOrder } from "./ubereats-order.mappers";
@@ -29,6 +30,7 @@ export class UberEatsOrderService {
     private readonly prisma: PrismaService,
     private readonly orders: OrdersService,
     private readonly client: UberEatsClientService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   async route(
@@ -124,6 +126,7 @@ export class UberEatsOrderService {
     this.logger.log(
       `Uber Eats order ${orderId} → order ${created.id} (store ${storeId})`,
     );
+    // (order.received is logged centrally by OrdersService.ingestCanonical.)
     return { handled: true, orderId: created.id };
   }
 
@@ -156,6 +159,15 @@ export class UberEatsOrderService {
         "ubereats-webhook",
         "WEBHOOK",
       );
+      this.activity?.record({
+        tenantId: row.tenantId,
+        category: "ORDERS",
+        channel: "UBER_EATS",
+        action: "order.cancelled",
+        status: "WARNING",
+        message: `Uber Eats cancelled order ${externalId}`,
+        details: { uberOrderId: externalId, orderId: row.id },
+      });
       return { handled: true, orderId: row.id };
     } catch (err: any) {
       this.logger.warn(

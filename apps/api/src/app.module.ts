@@ -54,6 +54,7 @@ import { WhatsAppModule } from "./modules/whatsapp/whatsapp.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { KdsModule } from "./modules/kds/kds.module";
+import { LogsModule } from "./modules/logs/logs.module";
 import { PrintersModule } from "./modules/printers/printers.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { OrderingModule } from "./modules/ordering/ordering.module";
@@ -228,6 +229,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     UploadsModule,
     AnalyticsModule,
     KdsModule,
+    LogsModule,
     PrintersModule,
     OrderingModule,
     StoreStatusModule,

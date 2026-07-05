@@ -419,6 +419,24 @@ export class OrdersService {
         },
       });
 
+      // Phase LG — operator-facing activity feed (dashboard Logs page).
+      // Central emit covers every channel this ingest serves.
+      this.events.emit("activity.log", {
+        tenantId,
+        locationId,
+        brandId: (order as any).brandId ?? null,
+        category: "ORDERS",
+        channel: canonical.platform ?? "DIRECT",
+        action: "order.received",
+        status: "SUCCESS",
+        message: `Order #${(order as any).orderNumber ?? order.id} received from ${canonical.platform ?? "storefront"} (£${Number(canonical.total ?? 0).toFixed(2)})`,
+        details: {
+          orderId: order.id,
+          externalId: canonical.externalId,
+          items: canonical.items?.length ?? 0,
+        },
+      });
+
       // Phase AP-8 — suppress the realtime "new order" broadcast for
       // unpaid CARD orders. We persist the row early so Stripe Checkout
       // can attach to a real orderId, but the restaurant must NOT see it
@@ -1124,6 +1142,22 @@ export class OrdersService {
       // Lets platform-sync listeners (Deliveroo) skip echoing an inbound
       // webhook-driven transition straight back to the platform it came from.
       actorType,
+    });
+
+    // Phase LG — dashboard Logs page. One readable line per transition.
+    this.events.emit("activity.log", {
+      tenantId,
+      locationId: order.locationId,
+      brandId: (order as any).brandId ?? null,
+      category: "ORDERS",
+      channel: (order as any).platform ?? "DIRECT",
+      action: `order.${newStatus.toLowerCase()}`,
+      status:
+        newStatus === "CANCELLED" || newStatus === "REJECTED"
+          ? "WARNING"
+          : "INFO",
+      message: `Order #${(order as any).orderNumber ?? orderId} → ${newStatus}${actorType === "WEBHOOK" ? " (from platform)" : ""}`,
+      details: { orderId, fromStatus: order.status, actorType },
     });
 
     // Phase AU — push the new status back to HubRise so every

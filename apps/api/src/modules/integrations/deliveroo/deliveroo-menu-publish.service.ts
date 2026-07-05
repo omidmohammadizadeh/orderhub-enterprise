@@ -7,9 +7,10 @@
 // only needed for very large menus). The Deliveroo Site ID + Brand ID come
 // from the brand's BrandPlatformConnection (Phase BA-2).
 
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import { DeliverooClientService } from "./deliveroo-client.service";
 import {
   buildDeliverooMenu,
@@ -38,6 +39,7 @@ export class DeliverooMenuPublishService {
     private readonly prisma: PrismaService,
     private readonly client: DeliverooClientService,
     private readonly config: ConfigService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   /** Public API origin used to absolutise same-origin image paths. */
@@ -140,15 +142,34 @@ export class DeliverooMenuPublishService {
 
     // PUT create-or-update-and-publish. Deliveroo menu id = our menu id
     // (stable, so a re-publish updates the same menu instead of duplicating).
+    const logCtx = {
+      tenantId,
+      brandId: menu.brandId,
+      locationId: menu.locationId,
+      category: "MENU" as const,
+      channel: "DELIVEROO",
+      action: "menu.publish",
+    };
     try {
       await this.client.request(
         "PUT",
         `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(menuId)}`,
         payload,
       );
+      this.activity?.record({
+        ...logCtx,
+        status: "SUCCESS",
+        message: `Menu "${menu.name}" published to Deliveroo site ${conn.externalStoreId}`,
+        details: { categories: stats.categories, items: stats.products, warnings },
+      });
     } catch (e: any) {
       // Deliveroo rate-limits menu upload to 1 request per minute per site.
       const msg = String(e?.message ?? "");
+      this.activity?.record({
+        ...logCtx,
+        status: "ERROR",
+        message: `Menu "${menu.name}" publish to Deliveroo failed: ${msg}`,
+      });
       if (msg.includes("429") || msg.includes("too_many_requests")) {
         throw new BadRequestException(
           "Deliveroo only allows one menu publish per minute per site. Wait a minute and try again.",

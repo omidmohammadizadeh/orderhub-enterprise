@@ -17,10 +17,11 @@
 // on every call (no token cache yet, volume doesn't warrant it).
 // HubRise expects the token in the `X-Access-Token` header.
 
-import { Injectable, Logger, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../credential-encryption.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   normalizePricingVariants,
   buildHubRisePriceOverrides,
@@ -139,6 +140,7 @@ export class HubRiseCatalogService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly credentialEncryption: CredentialEncryptionService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   // ─────────────────────────────────────────────────────────────────────
@@ -784,6 +786,17 @@ export class HubRiseCatalogService {
         { name: menu.name, data },
       );
       await this.markPublished(args.menuId, location.hubriseCatalogId);
+      this.activity?.record({
+        tenantId: args.tenantId,
+        brandId: menu.brandId ?? null,
+        locationId: location.id,
+        category: "MENU",
+        channel: "HUBRISE",
+        action: "menu.publish",
+        status: "SUCCESS",
+        message: `Menu "${menu.name}" published to HubRise (catalog updated)`,
+        details: { catalogId: location.hubriseCatalogId, products: products.length },
+      });
       return { catalogId: location.hubriseCatalogId, created: false };
     }
 
@@ -799,6 +812,17 @@ export class HubRiseCatalogService {
       data: { hubriseCatalogId: created.id },
     });
     await this.markPublished(args.menuId, created.id);
+    this.activity?.record({
+      tenantId: args.tenantId,
+      brandId: menu.brandId ?? null,
+      locationId: location.id,
+      category: "MENU",
+      channel: "HUBRISE",
+      action: "menu.publish",
+      status: "SUCCESS",
+      message: `Menu "${menu.name}" published to HubRise (new catalog)`,
+      details: { catalogId: created.id, products: products.length },
+    });
     return { catalogId: created.id, created: true };
   }
 

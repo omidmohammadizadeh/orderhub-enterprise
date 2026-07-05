@@ -17,9 +17,10 @@
 // transitions are skipped (they CAME from Uber). Best-effort: a failed push
 // is logged, never thrown.
 
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Optional } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 
 interface OrderStatusChangedEvent {
@@ -40,10 +41,17 @@ export class UberEatsOrderSyncService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: UberEatsClientService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   @OnEvent("order.status_changed")
   async onStatusChanged(ev: OrderStatusChangedEvent): Promise<void> {
+    let logCtx: {
+      tenantId: string;
+      brandId?: string | null;
+      locationId?: string | null;
+      externalId?: string;
+    } | null = null;
     try {
       if (ev.actorType === "WEBHOOK") return; // inbound echo guard
 
@@ -51,6 +59,9 @@ export class UberEatsOrderSyncService {
         where: { id: ev.orderId },
         select: {
           id: true,
+          tenantId: true,
+          brandId: true,
+          locationId: true,
           platform: true,
           integrationSource: true,
           viaHubrise: true,
@@ -68,12 +79,44 @@ export class UberEatsOrderSyncService {
       ) {
         return; // not a direct Uber Eats order — HubRise path handles its own
       }
+      logCtx = {
+        tenantId: order.tenantId,
+        brandId: order.brandId,
+        locationId: order.locationId,
+        externalId: order.externalId,
+      };
 
-      await this.push(order, ev.toStatus);
+      const pushed = await this.push(order, ev.toStatus);
+      if (pushed) {
+        this.activity?.record({
+          tenantId: order.tenantId,
+          brandId: order.brandId,
+          locationId: order.locationId,
+          category: "ORDERS",
+          channel: "UBER_EATS",
+          action: `order.${pushed}`,
+          status: "SUCCESS",
+          message: `Order #${order.orderNumber ?? order.id} ${pushed} pushed to Uber Eats`,
+          details: { uberOrderId: order.externalId, toStatus: ev.toStatus },
+        });
+      }
     } catch (err: any) {
       this.logger.error(
         `Uber Eats status push failed for order ${ev.orderId} → ${ev.toStatus}: ${err?.message ?? err}`,
       );
+      if (logCtx) {
+        this.activity?.record({
+          tenantId: logCtx.tenantId,
+          brandId: logCtx.brandId,
+          locationId: logCtx.locationId,
+          category: "ORDERS",
+          channel: "UBER_EATS",
+          action: "order.push",
+          status: "ERROR",
+          message: `Pushing ${ev.toStatus} to Uber Eats failed: ${err?.message ?? err}`,
+          details: { uberOrderId: logCtx.externalId, toStatus: ev.toStatus },
+        });
+      }
     }
   }
 
@@ -85,7 +128,7 @@ export class UberEatsOrderSyncService {
       location: { prepTime: number | null } | null;
     },
     toStatus: string,
-  ): Promise<void> {
+  ): Promise<string | null> {
     const id = encodeURIComponent(order.externalId!);
 
     switch (toStatus) {
@@ -111,7 +154,7 @@ export class UberEatsOrderSyncService {
           "accept",
           order.externalId!,
         );
-        return;
+        return "accepted";
       }
       case "REJECTED": {
         await this.tolerateConflict(
@@ -128,7 +171,7 @@ export class UberEatsOrderSyncService {
           "deny",
           order.externalId!,
         );
-        return;
+        return "denied";
       }
       case "CANCELLED": {
         await this.tolerateConflict(
@@ -145,7 +188,7 @@ export class UberEatsOrderSyncService {
           "cancel",
           order.externalId!,
         );
-        return;
+        return "cancelled";
       }
       case "READY": {
         await this.tolerateConflict(
@@ -157,10 +200,10 @@ export class UberEatsOrderSyncService {
           "ready",
           order.externalId!,
         );
-        return;
+        return "ready";
       }
       default:
-        return; // PREPARING/driver states have no Uber-side call
+        return null; // PREPARING/driver states have no Uber-side call
     }
   }
 

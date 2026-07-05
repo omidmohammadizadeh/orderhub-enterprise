@@ -12,10 +12,12 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-client.service";
+import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
 // so adding (e.g.) CAREEM later doesn't need a migration.
@@ -48,6 +50,7 @@ export class MenuAvailabilityService {
     @Inject(forwardRef(() => HubRiseCatalogService))
     private readonly hubrise: HubRiseCatalogService,
     private readonly deliverooClient: DeliverooClientService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -235,6 +238,17 @@ export class MenuAvailabilityService {
       );
     }
 
+    this.activity?.record({
+      tenantId: args.tenantId,
+      brandId: (item as any).brandId ?? null,
+      category: "INVENTORY",
+      channel: args.channel,
+      action: "item.86",
+      status: "WARNING",
+      message: `"${(item as any).name ?? args.itemId}" marked unavailable on ${args.channel}${expiresAt ? ` until ${expiresAt.toISOString()}` : ""}`,
+      details: { itemId: args.itemId, reason: args.snoozeReason ?? null },
+    });
+
     return row;
   }
 
@@ -270,6 +284,17 @@ export class MenuAvailabilityService {
         ),
       );
     }
+
+    this.activity?.record({
+      tenantId: args.tenantId,
+      brandId: (item as any).brandId ?? null,
+      category: "INVENTORY",
+      channel: args.channel,
+      action: "item.restore",
+      status: "SUCCESS",
+      message: `"${(item as any).name ?? args.itemId}" back in stock on ${args.channel}`,
+      details: { itemId: args.itemId },
+    });
 
     return { ok: true };
   }

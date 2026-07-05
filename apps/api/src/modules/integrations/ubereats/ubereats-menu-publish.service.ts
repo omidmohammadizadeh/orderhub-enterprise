@@ -11,9 +11,15 @@
 // json + ProductSku.priceOverrides) take precedence over the base price, so
 // operators can price-up the marketplace channel to cover Uber's commission.
 
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  Optional,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { buildUberEatsMenu } from "./ubereats-menu.transformer";
 import type {
@@ -39,6 +45,8 @@ export class UberEatsMenuPublishService {
     private readonly prisma: PrismaService,
     private readonly client: UberEatsClientService,
     private readonly config: ConfigService,
+    // Optional so manually-constructed unit tests keep working.
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   private apiOrigin(): string {
@@ -82,11 +90,39 @@ export class UberEatsMenuPublishService {
       );
     }
 
-    return this.publishToStore({
-      menuId,
-      menuName: menu.name,
-      storeId: conn.externalStoreId!,
-    });
+    const logCtx = {
+      tenantId,
+      brandId: menu.brandId,
+      locationId: menu.locationId,
+      category: "MENU" as const,
+      channel: "UBER_EATS",
+      action: "menu.publish",
+    };
+    try {
+      const res = await this.publishToStore({
+        menuId,
+        menuName: menu.name,
+        storeId: conn.externalStoreId!,
+      });
+      this.activity?.record({
+        ...logCtx,
+        status: "SUCCESS",
+        message: `Menu "${menu.name}" published to Uber Eats store ${conn.externalStoreId}`,
+        details: {
+          categories: (res as any)?.categories,
+          items: (res as any)?.products,
+          warnings: (res as any)?.warnings,
+        },
+      });
+      return res;
+    } catch (err: any) {
+      this.activity?.record({
+        ...logCtx,
+        status: "ERROR",
+        message: `Menu "${menu.name}" publish to Uber Eats failed: ${err?.message ?? err}`,
+      });
+      throw err;
+    }
   }
 
   /**

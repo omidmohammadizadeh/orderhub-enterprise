@@ -1786,6 +1786,32 @@ model WebhookEvent {
   @@map("webhook_events")
 }
 
+// ── ActivityLog ───────────────────────────────────────────────────────────────
+// Phase LG — operator-facing activity feed (HubRise-style "what happened").
+// One row per integration/system action: menu publishes, order pushes,
+// stock changes, store pauses. Distinct from AuditLog (security/user audit)
+// and WebhookEvent (raw inbound payloads) — this is the readable timeline
+// the dashboard Logs page renders so operators don't need Render logs.
+model ActivityLog {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String?
+  brandId    String?
+  category   String // MENU | ORDERS | INVENTORY | STATUS | CONNECTION
+  channel    String? // UBER_EATS | DELIVEROO | HUBRISE | JUST_EAT | DIRECT | SYSTEM
+  action     String // e.g. menu.publish, order.accept, store.pause
+  status     String // SUCCESS | ERROR | INFO | WARNING
+  message    String
+  details    Json    @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, category, createdAt(sort: Desc)])
+  @@index([tenantId, locationId, createdAt(sort: Desc)])
+  @@map("activity_logs")
+}
+
 // ── KDS ───────────────────────────────────────────────────────────────────────
 model KdsScreen {
   id         String   @id @default(cuid())

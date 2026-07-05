@@ -219,6 +219,11 @@ export type OrderStatusHistory = $Result.DefaultSelection<Prisma.$OrderStatusHis
  */
 export type WebhookEvent = $Result.DefaultSelection<Prisma.$WebhookEventPayload>
 /**
+ * Model ActivityLog
+ * 
+ */
+export type ActivityLog = $Result.DefaultSelection<Prisma.$ActivityLogPayload>
+/**
  * Model KdsScreen
  * 
  */
@@ -289,6 +294,11 @@ export type PrintTemplate = $Result.DefaultSelection<Prisma.$PrintTemplatePayloa
  */
 export type Driver = $Result.DefaultSelection<Prisma.$DriverPayload>
 /**
+ * Model DriverPresence
+ * 
+ */
+export type DriverPresence = $Result.DefaultSelection<Prisma.$DriverPresencePayload>
+/**
  * Model DriverAssignment
  * 
  */
@@ -298,6 +308,16 @@ export type DriverAssignment = $Result.DefaultSelection<Prisma.$DriverAssignment
  * 
  */
 export type DeliveryTracking = $Result.DefaultSelection<Prisma.$DeliveryTrackingPayload>
+/**
+ * Model ChatMessage
+ * 
+ */
+export type ChatMessage = $Result.DefaultSelection<Prisma.$ChatMessagePayload>
+/**
+ * Model WhatsAppConversation
+ * 
+ */
+export type WhatsAppConversation = $Result.DefaultSelection<Prisma.$WhatsAppConversationPayload>
 /**
  * Model StripeConnectAccount
  * 
@@ -573,7 +593,8 @@ export const IntegrationPlatform: {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 export type IntegrationPlatform = (typeof IntegrationPlatform)[keyof typeof IntegrationPlatform]
@@ -677,7 +698,8 @@ export const OrderPlatform: {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 export type OrderPlatform = (typeof OrderPlatform)[keyof typeof OrderPlatform]
@@ -694,7 +716,8 @@ export const OrderSource: {
   TALABAT: 'TALABAT',
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
-  CAREEM: 'CAREEM'
+  CAREEM: 'CAREEM',
+  WHATSAPP: 'WHATSAPP'
 };
 
 export type OrderSource = (typeof OrderSource)[keyof typeof OrderSource]
@@ -857,6 +880,15 @@ export const AlertTrigger: {
 };
 
 export type AlertTrigger = (typeof AlertTrigger)[keyof typeof AlertTrigger]
+
+
+export const DriverPresenceStatus: {
+  OFFLINE: 'OFFLINE',
+  ONLINE: 'ONLINE',
+  ON_JOB: 'ON_JOB'
+};
+
+export type DriverPresenceStatus = (typeof DriverPresenceStatus)[keyof typeof DriverPresenceStatus]
 
 
 export const DriverAssignmentStatus: {
@@ -1180,6 +1212,10 @@ export const PrintAgentKind: typeof $Enums.PrintAgentKind
 export type AlertTrigger = $Enums.AlertTrigger
 
 export const AlertTrigger: typeof $Enums.AlertTrigger
+
+export type DriverPresenceStatus = $Enums.DriverPresenceStatus
+
+export const DriverPresenceStatus: typeof $Enums.DriverPresenceStatus
 
 export type DriverAssignmentStatus = $Enums.DriverAssignmentStatus
 
@@ -1790,6 +1826,16 @@ export class PrismaClient<
   get webhookEvent(): Prisma.WebhookEventDelegate<ExtArgs>;
 
   /**
+   * `prisma.activityLog`: Exposes CRUD operations for the **ActivityLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ActivityLogs
+    * const activityLogs = await prisma.activityLog.findMany()
+    * ```
+    */
+  get activityLog(): Prisma.ActivityLogDelegate<ExtArgs>;
+
+  /**
    * `prisma.kdsScreen`: Exposes CRUD operations for the **KdsScreen** model.
     * Example usage:
     * ```ts
@@ -1930,6 +1976,16 @@ export class PrismaClient<
   get driver(): Prisma.DriverDelegate<ExtArgs>;
 
   /**
+   * `prisma.driverPresence`: Exposes CRUD operations for the **DriverPresence** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DriverPresences
+    * const driverPresences = await prisma.driverPresence.findMany()
+    * ```
+    */
+  get driverPresence(): Prisma.DriverPresenceDelegate<ExtArgs>;
+
+  /**
    * `prisma.driverAssignment`: Exposes CRUD operations for the **DriverAssignment** model.
     * Example usage:
     * ```ts
@@ -1948,6 +2004,26 @@ export class PrismaClient<
     * ```
     */
   get deliveryTracking(): Prisma.DeliveryTrackingDelegate<ExtArgs>;
+
+  /**
+   * `prisma.chatMessage`: Exposes CRUD operations for the **ChatMessage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChatMessages
+    * const chatMessages = await prisma.chatMessage.findMany()
+    * ```
+    */
+  get chatMessage(): Prisma.ChatMessageDelegate<ExtArgs>;
+
+  /**
+   * `prisma.whatsAppConversation`: Exposes CRUD operations for the **WhatsAppConversation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WhatsAppConversations
+    * const whatsAppConversations = await prisma.whatsAppConversation.findMany()
+    * ```
+    */
+  get whatsAppConversation(): Prisma.WhatsAppConversationDelegate<ExtArgs>;
 
   /**
    * `prisma.stripeConnectAccount`: Exposes CRUD operations for the **StripeConnectAccount** model.
@@ -2790,6 +2866,7 @@ export namespace Prisma {
     OrderItem: 'OrderItem',
     OrderStatusHistory: 'OrderStatusHistory',
     WebhookEvent: 'WebhookEvent',
+    ActivityLog: 'ActivityLog',
     KdsScreen: 'KdsScreen',
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
@@ -2804,8 +2881,11 @@ export namespace Prisma {
     MenuCategoryStation: 'MenuCategoryStation',
     PrintTemplate: 'PrintTemplate',
     Driver: 'Driver',
+    DriverPresence: 'DriverPresence',
     DriverAssignment: 'DriverAssignment',
     DeliveryTracking: 'DeliveryTracking',
+    ChatMessage: 'ChatMessage',
+    WhatsAppConversation: 'WhatsAppConversation',
     StripeConnectAccount: 'StripeConnectAccount',
     Payment: 'Payment',
     PaymentMethod: 'PaymentMethod',
@@ -2857,7 +2937,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverAssignment" | "deliveryTracking" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5731,6 +5811,76 @@ export namespace Prisma {
           }
         }
       }
+      ActivityLog: {
+        payload: Prisma.$ActivityLogPayload<ExtArgs>
+        fields: Prisma.ActivityLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ActivityLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ActivityLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          findFirst: {
+            args: Prisma.ActivityLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ActivityLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          findMany: {
+            args: Prisma.ActivityLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>[]
+          }
+          create: {
+            args: Prisma.ActivityLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          createMany: {
+            args: Prisma.ActivityLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ActivityLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>[]
+          }
+          delete: {
+            args: Prisma.ActivityLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          update: {
+            args: Prisma.ActivityLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.ActivityLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ActivityLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ActivityLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ActivityLogPayload>
+          }
+          aggregate: {
+            args: Prisma.ActivityLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateActivityLog>
+          }
+          groupBy: {
+            args: Prisma.ActivityLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ActivityLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ActivityLogCountArgs<ExtArgs>
+            result: $Utils.Optional<ActivityLogCountAggregateOutputType> | number
+          }
+        }
+      }
       KdsScreen: {
         payload: Prisma.$KdsScreenPayload<ExtArgs>
         fields: Prisma.KdsScreenFieldRefs
@@ -6711,6 +6861,76 @@ export namespace Prisma {
           }
         }
       }
+      DriverPresence: {
+        payload: Prisma.$DriverPresencePayload<ExtArgs>
+        fields: Prisma.DriverPresenceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DriverPresenceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DriverPresenceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          findFirst: {
+            args: Prisma.DriverPresenceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DriverPresenceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          findMany: {
+            args: Prisma.DriverPresenceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>[]
+          }
+          create: {
+            args: Prisma.DriverPresenceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          createMany: {
+            args: Prisma.DriverPresenceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DriverPresenceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>[]
+          }
+          delete: {
+            args: Prisma.DriverPresenceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          update: {
+            args: Prisma.DriverPresenceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          deleteMany: {
+            args: Prisma.DriverPresenceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DriverPresenceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DriverPresenceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DriverPresencePayload>
+          }
+          aggregate: {
+            args: Prisma.DriverPresenceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDriverPresence>
+          }
+          groupBy: {
+            args: Prisma.DriverPresenceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DriverPresenceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DriverPresenceCountArgs<ExtArgs>
+            result: $Utils.Optional<DriverPresenceCountAggregateOutputType> | number
+          }
+        }
+      }
       DriverAssignment: {
         payload: Prisma.$DriverAssignmentPayload<ExtArgs>
         fields: Prisma.DriverAssignmentFieldRefs
@@ -6848,6 +7068,146 @@ export namespace Prisma {
           count: {
             args: Prisma.DeliveryTrackingCountArgs<ExtArgs>
             result: $Utils.Optional<DeliveryTrackingCountAggregateOutputType> | number
+          }
+        }
+      }
+      ChatMessage: {
+        payload: Prisma.$ChatMessagePayload<ExtArgs>
+        fields: Prisma.ChatMessageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChatMessageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChatMessageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          findFirst: {
+            args: Prisma.ChatMessageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChatMessageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          findMany: {
+            args: Prisma.ChatMessageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>[]
+          }
+          create: {
+            args: Prisma.ChatMessageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          createMany: {
+            args: Prisma.ChatMessageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChatMessageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>[]
+          }
+          delete: {
+            args: Prisma.ChatMessageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          update: {
+            args: Prisma.ChatMessageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          deleteMany: {
+            args: Prisma.ChatMessageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChatMessageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ChatMessageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatMessagePayload>
+          }
+          aggregate: {
+            args: Prisma.ChatMessageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChatMessage>
+          }
+          groupBy: {
+            args: Prisma.ChatMessageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChatMessageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChatMessageCountArgs<ExtArgs>
+            result: $Utils.Optional<ChatMessageCountAggregateOutputType> | number
+          }
+        }
+      }
+      WhatsAppConversation: {
+        payload: Prisma.$WhatsAppConversationPayload<ExtArgs>
+        fields: Prisma.WhatsAppConversationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WhatsAppConversationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WhatsAppConversationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          findFirst: {
+            args: Prisma.WhatsAppConversationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WhatsAppConversationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          findMany: {
+            args: Prisma.WhatsAppConversationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>[]
+          }
+          create: {
+            args: Prisma.WhatsAppConversationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          createMany: {
+            args: Prisma.WhatsAppConversationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WhatsAppConversationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>[]
+          }
+          delete: {
+            args: Prisma.WhatsAppConversationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          update: {
+            args: Prisma.WhatsAppConversationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          deleteMany: {
+            args: Prisma.WhatsAppConversationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WhatsAppConversationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WhatsAppConversationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WhatsAppConversationPayload>
+          }
+          aggregate: {
+            args: Prisma.WhatsAppConversationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWhatsAppConversation>
+          }
+          groupBy: {
+            args: Prisma.WhatsAppConversationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WhatsAppConversationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WhatsAppConversationCountArgs<ExtArgs>
+            result: $Utils.Optional<WhatsAppConversationCountAggregateOutputType> | number
           }
         }
       }
@@ -24378,6 +24738,8 @@ export namespace Prisma {
   export type LocationAvgAggregateOutputType = {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
+    prepTime: number | null
+    busyExtraPrepTime: number | null
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
@@ -24386,6 +24748,8 @@ export namespace Prisma {
   export type LocationSumAggregateOutputType = {
     applicationFeeFixedAmount: Decimal | null
     applicationFeePercentage: Decimal | null
+    prepTime: number | null
+    busyExtraPrepTime: number | null
     onboardingStep: number | null
     currentPrepTime: number | null
     throttleLimit: number | null
@@ -24425,6 +24789,8 @@ export namespace Prisma {
     shopCode: string | null
     printToken: string | null
     slug: string | null
+    prepTime: number | null
+    busyExtraPrepTime: number | null
     onboardingStep: number | null
     goLiveStatus: $Enums.LocationGoLiveStatus | null
     lastTestOrderAt: Date | null
@@ -24474,6 +24840,8 @@ export namespace Prisma {
     shopCode: string | null
     printToken: string | null
     slug: string | null
+    prepTime: number | null
+    busyExtraPrepTime: number | null
     onboardingStep: number | null
     goLiveStatus: $Enums.LocationGoLiveStatus | null
     lastTestOrderAt: Date | null
@@ -24530,6 +24898,8 @@ export namespace Prisma {
     slug: number
     openingHours: number
     deliveryConfig: number
+    prepTime: number
+    busyExtraPrepTime: number
     onboardingStep: number
     goLiveStatus: number
     lastTestOrderAt: number
@@ -24550,6 +24920,8 @@ export namespace Prisma {
   export type LocationAvgAggregateInputType = {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
+    prepTime?: true
+    busyExtraPrepTime?: true
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
@@ -24558,6 +24930,8 @@ export namespace Prisma {
   export type LocationSumAggregateInputType = {
     applicationFeeFixedAmount?: true
     applicationFeePercentage?: true
+    prepTime?: true
+    busyExtraPrepTime?: true
     onboardingStep?: true
     currentPrepTime?: true
     throttleLimit?: true
@@ -24597,6 +24971,8 @@ export namespace Prisma {
     shopCode?: true
     printToken?: true
     slug?: true
+    prepTime?: true
+    busyExtraPrepTime?: true
     onboardingStep?: true
     goLiveStatus?: true
     lastTestOrderAt?: true
@@ -24646,6 +25022,8 @@ export namespace Prisma {
     shopCode?: true
     printToken?: true
     slug?: true
+    prepTime?: true
+    busyExtraPrepTime?: true
     onboardingStep?: true
     goLiveStatus?: true
     lastTestOrderAt?: true
@@ -24702,6 +25080,8 @@ export namespace Prisma {
     slug?: true
     openingHours?: true
     deliveryConfig?: true
+    prepTime?: true
+    busyExtraPrepTime?: true
     onboardingStep?: true
     goLiveStatus?: true
     lastTestOrderAt?: true
@@ -24845,6 +25225,8 @@ export namespace Prisma {
     slug: string | null
     openingHours: JsonValue
     deliveryConfig: JsonValue
+    prepTime: number | null
+    busyExtraPrepTime: number | null
     onboardingStep: number
     goLiveStatus: $Enums.LocationGoLiveStatus
     lastTestOrderAt: Date | null
@@ -24920,6 +25302,8 @@ export namespace Prisma {
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
+    prepTime?: boolean
+    busyExtraPrepTime?: boolean
     onboardingStep?: boolean
     goLiveStatus?: boolean
     lastTestOrderAt?: boolean
@@ -24994,6 +25378,8 @@ export namespace Prisma {
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
+    prepTime?: boolean
+    busyExtraPrepTime?: boolean
     onboardingStep?: boolean
     goLiveStatus?: boolean
     lastTestOrderAt?: boolean
@@ -25054,6 +25440,8 @@ export namespace Prisma {
     slug?: boolean
     openingHours?: boolean
     deliveryConfig?: boolean
+    prepTime?: boolean
+    busyExtraPrepTime?: boolean
     onboardingStep?: boolean
     goLiveStatus?: boolean
     lastTestOrderAt?: boolean
@@ -25158,6 +25546,8 @@ export namespace Prisma {
       slug: string | null
       openingHours: Prisma.JsonValue
       deliveryConfig: Prisma.JsonValue
+      prepTime: number | null
+      busyExtraPrepTime: number | null
       onboardingStep: number
       goLiveStatus: $Enums.LocationGoLiveStatus
       lastTestOrderAt: Date | null
@@ -25621,6 +26011,8 @@ export namespace Prisma {
     readonly slug: FieldRef<"Location", 'String'>
     readonly openingHours: FieldRef<"Location", 'Json'>
     readonly deliveryConfig: FieldRef<"Location", 'Json'>
+    readonly prepTime: FieldRef<"Location", 'Int'>
+    readonly busyExtraPrepTime: FieldRef<"Location", 'Int'>
     readonly onboardingStep: FieldRef<"Location", 'Int'>
     readonly goLiveStatus: FieldRef<"Location", 'LocationGoLiveStatus'>
     readonly lastTestOrderAt: FieldRef<"Location", 'DateTime'>
@@ -28461,6 +28853,7 @@ export namespace Prisma {
     lastPublishedAt: number
     autoScheduleEnabled: number
     autoSchedule: number
+    pricingVariants: number
     metadata: number
     createdAt: number
     updatedAt: number
@@ -28565,6 +28958,7 @@ export namespace Prisma {
     lastPublishedAt?: true
     autoScheduleEnabled?: true
     autoSchedule?: true
+    pricingVariants?: true
     metadata?: true
     createdAt?: true
     updatedAt?: true
@@ -28688,6 +29082,7 @@ export namespace Prisma {
     lastPublishedAt: Date | null
     autoScheduleEnabled: boolean
     autoSchedule: JsonValue
+    pricingVariants: JsonValue
     metadata: JsonValue
     createdAt: Date
     updatedAt: Date
@@ -28743,6 +29138,7 @@ export namespace Prisma {
     lastPublishedAt?: boolean
     autoScheduleEnabled?: boolean
     autoSchedule?: boolean
+    pricingVariants?: boolean
     metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -28783,6 +29179,7 @@ export namespace Prisma {
     lastPublishedAt?: boolean
     autoScheduleEnabled?: boolean
     autoSchedule?: boolean
+    pricingVariants?: boolean
     metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -28820,6 +29217,7 @@ export namespace Prisma {
     lastPublishedAt?: boolean
     autoScheduleEnabled?: boolean
     autoSchedule?: boolean
+    pricingVariants?: boolean
     metadata?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -28873,6 +29271,7 @@ export namespace Prisma {
       lastPublishedAt: Date | null
       autoScheduleEnabled: boolean
       autoSchedule: Prisma.JsonValue
+      pricingVariants: Prisma.JsonValue
       metadata: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
@@ -29302,6 +29701,7 @@ export namespace Prisma {
     readonly lastPublishedAt: FieldRef<"Menu", 'DateTime'>
     readonly autoScheduleEnabled: FieldRef<"Menu", 'Boolean'>
     readonly autoSchedule: FieldRef<"Menu", 'Json'>
+    readonly pricingVariants: FieldRef<"Menu", 'Json'>
     readonly metadata: FieldRef<"Menu", 'Json'>
     readonly createdAt: FieldRef<"Menu", 'DateTime'>
     readonly updatedAt: FieldRef<"Menu", 'DateTime'>
@@ -36745,6 +37145,7 @@ export namespace Prisma {
     plu: number
     pricesBySize: number
     skuPlus: number
+    platformPricingOverrides: number
     imageUrl: number
     allergens: number
     isDefault: number
@@ -36850,6 +37251,7 @@ export namespace Prisma {
     plu?: true
     pricesBySize?: true
     skuPlus?: true
+    platformPricingOverrides?: true
     imageUrl?: true
     allergens?: true
     isDefault?: true
@@ -36970,6 +37372,7 @@ export namespace Prisma {
     plu: string | null
     pricesBySize: JsonValue
     skuPlus: JsonValue
+    platformPricingOverrides: JsonValue
     imageUrl: string | null
     allergens: string[]
     isDefault: boolean
@@ -37022,6 +37425,7 @@ export namespace Prisma {
     plu?: boolean
     pricesBySize?: boolean
     skuPlus?: boolean
+    platformPricingOverrides?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
@@ -37057,6 +37461,7 @@ export namespace Prisma {
     plu?: boolean
     pricesBySize?: boolean
     skuPlus?: boolean
+    platformPricingOverrides?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
@@ -37092,6 +37497,7 @@ export namespace Prisma {
     plu?: boolean
     pricesBySize?: boolean
     skuPlus?: boolean
+    platformPricingOverrides?: boolean
     imageUrl?: boolean
     allergens?: boolean
     isDefault?: boolean
@@ -37140,6 +37546,7 @@ export namespace Prisma {
       plu: string | null
       pricesBySize: Prisma.JsonValue
       skuPlus: Prisma.JsonValue
+      platformPricingOverrides: Prisma.JsonValue
       imageUrl: string | null
       allergens: string[]
       isDefault: boolean
@@ -37565,6 +37972,7 @@ export namespace Prisma {
     readonly plu: FieldRef<"ModifierOption", 'String'>
     readonly pricesBySize: FieldRef<"ModifierOption", 'Json'>
     readonly skuPlus: FieldRef<"ModifierOption", 'Json'>
+    readonly platformPricingOverrides: FieldRef<"ModifierOption", 'Json'>
     readonly imageUrl: FieldRef<"ModifierOption", 'String'>
     readonly allergens: FieldRef<"ModifierOption", 'String[]'>
     readonly isDefault: FieldRef<"ModifierOption", 'Boolean'>
@@ -51821,6 +52229,8 @@ export namespace Prisma {
 
   export type OrderAvgAggregateOutputType = {
     orderNumber: number | null
+    deliveryLat: number | null
+    deliveryLng: number | null
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
@@ -51833,6 +52243,8 @@ export namespace Prisma {
 
   export type OrderSumAggregateOutputType = {
     orderNumber: number | null
+    deliveryLat: number | null
+    deliveryLng: number | null
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
@@ -51870,6 +52282,9 @@ export namespace Prisma {
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
     customerPhone: string | null
+    deliveryLat: number | null
+    deliveryLng: number | null
+    geocodedAt: Date | null
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
@@ -51935,6 +52350,9 @@ export namespace Prisma {
     fulfillmentType: $Enums.FulfillmentType | null
     customerName: string | null
     customerPhone: string | null
+    deliveryLat: number | null
+    deliveryLng: number | null
+    geocodedAt: Date | null
     subtotal: Decimal | null
     taxAmount: Decimal | null
     serviceCharge: Decimal | null
@@ -52002,6 +52420,9 @@ export namespace Prisma {
     customerName: number
     customerPhone: number
     deliveryAddress: number
+    deliveryLat: number
+    deliveryLng: number
+    geocodedAt: number
     subtotal: number
     taxAmount: number
     serviceCharge: number
@@ -52046,6 +52467,8 @@ export namespace Prisma {
 
   export type OrderAvgAggregateInputType = {
     orderNumber?: true
+    deliveryLat?: true
+    deliveryLng?: true
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
@@ -52058,6 +52481,8 @@ export namespace Prisma {
 
   export type OrderSumAggregateInputType = {
     orderNumber?: true
+    deliveryLat?: true
+    deliveryLng?: true
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
@@ -52095,6 +52520,9 @@ export namespace Prisma {
     fulfillmentType?: true
     customerName?: true
     customerPhone?: true
+    deliveryLat?: true
+    deliveryLng?: true
+    geocodedAt?: true
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
@@ -52160,6 +52588,9 @@ export namespace Prisma {
     fulfillmentType?: true
     customerName?: true
     customerPhone?: true
+    deliveryLat?: true
+    deliveryLng?: true
+    geocodedAt?: true
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
@@ -52227,6 +52658,9 @@ export namespace Prisma {
     customerName?: true
     customerPhone?: true
     deliveryAddress?: true
+    deliveryLat?: true
+    deliveryLng?: true
+    geocodedAt?: true
     subtotal?: true
     taxAmount?: true
     serviceCharge?: true
@@ -52383,6 +52817,9 @@ export namespace Prisma {
     customerName: string | null
     customerPhone: string | null
     deliveryAddress: JsonValue | null
+    deliveryLat: number | null
+    deliveryLng: number | null
+    geocodedAt: Date | null
     subtotal: Decimal
     taxAmount: Decimal
     serviceCharge: Decimal
@@ -52471,6 +52908,9 @@ export namespace Prisma {
     customerName?: boolean
     customerPhone?: boolean
     deliveryAddress?: boolean
+    deliveryLat?: boolean
+    deliveryLng?: boolean
+    geocodedAt?: boolean
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
@@ -52552,6 +52992,9 @@ export namespace Prisma {
     customerName?: boolean
     customerPhone?: boolean
     deliveryAddress?: boolean
+    deliveryLat?: boolean
+    deliveryLng?: boolean
+    geocodedAt?: boolean
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
@@ -52626,6 +53069,9 @@ export namespace Prisma {
     customerName?: boolean
     customerPhone?: boolean
     deliveryAddress?: boolean
+    deliveryLat?: boolean
+    deliveryLng?: boolean
+    geocodedAt?: boolean
     subtotal?: boolean
     taxAmount?: boolean
     serviceCharge?: boolean
@@ -52732,6 +53178,9 @@ export namespace Prisma {
       customerName: string | null
       customerPhone: string | null
       deliveryAddress: Prisma.JsonValue | null
+      deliveryLat: number | null
+      deliveryLng: number | null
+      geocodedAt: Date | null
       subtotal: Prisma.Decimal
       taxAmount: Prisma.Decimal
       serviceCharge: Prisma.Decimal
@@ -53202,6 +53651,9 @@ export namespace Prisma {
     readonly customerName: FieldRef<"Order", 'String'>
     readonly customerPhone: FieldRef<"Order", 'String'>
     readonly deliveryAddress: FieldRef<"Order", 'Json'>
+    readonly deliveryLat: FieldRef<"Order", 'Float'>
+    readonly deliveryLng: FieldRef<"Order", 'Float'>
+    readonly geocodedAt: FieldRef<"Order", 'DateTime'>
     readonly subtotal: FieldRef<"Order", 'Decimal'>
     readonly taxAmount: FieldRef<"Order", 'Decimal'>
     readonly serviceCharge: FieldRef<"Order", 'Decimal'>
@@ -57649,6 +58101,952 @@ export namespace Prisma {
 
 
   /**
+   * Model ActivityLog
+   */
+
+  export type AggregateActivityLog = {
+    _count: ActivityLogCountAggregateOutputType | null
+    _min: ActivityLogMinAggregateOutputType | null
+    _max: ActivityLogMaxAggregateOutputType | null
+  }
+
+  export type ActivityLogMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    category: string | null
+    channel: string | null
+    action: string | null
+    status: string | null
+    message: string | null
+    createdAt: Date | null
+  }
+
+  export type ActivityLogMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    category: string | null
+    channel: string | null
+    action: string | null
+    status: string | null
+    message: string | null
+    createdAt: Date | null
+  }
+
+  export type ActivityLogCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    category: number
+    channel: number
+    action: number
+    status: number
+    message: number
+    details: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ActivityLogMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    category?: true
+    channel?: true
+    action?: true
+    status?: true
+    message?: true
+    createdAt?: true
+  }
+
+  export type ActivityLogMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    category?: true
+    channel?: true
+    action?: true
+    status?: true
+    message?: true
+    createdAt?: true
+  }
+
+  export type ActivityLogCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    category?: true
+    channel?: true
+    action?: true
+    status?: true
+    message?: true
+    details?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ActivityLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ActivityLog to aggregate.
+     */
+    where?: ActivityLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ActivityLogs to fetch.
+     */
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ActivityLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ActivityLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ActivityLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ActivityLogs
+    **/
+    _count?: true | ActivityLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ActivityLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ActivityLogMaxAggregateInputType
+  }
+
+  export type GetActivityLogAggregateType<T extends ActivityLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateActivityLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateActivityLog[P]>
+      : GetScalarType<T[P], AggregateActivityLog[P]>
+  }
+
+
+
+
+  export type ActivityLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ActivityLogWhereInput
+    orderBy?: ActivityLogOrderByWithAggregationInput | ActivityLogOrderByWithAggregationInput[]
+    by: ActivityLogScalarFieldEnum[] | ActivityLogScalarFieldEnum
+    having?: ActivityLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ActivityLogCountAggregateInputType | true
+    _min?: ActivityLogMinAggregateInputType
+    _max?: ActivityLogMaxAggregateInputType
+  }
+
+  export type ActivityLogGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    brandId: string | null
+    category: string
+    channel: string | null
+    action: string
+    status: string
+    message: string
+    details: JsonValue
+    createdAt: Date
+    _count: ActivityLogCountAggregateOutputType | null
+    _min: ActivityLogMinAggregateOutputType | null
+    _max: ActivityLogMaxAggregateOutputType | null
+  }
+
+  type GetActivityLogGroupByPayload<T extends ActivityLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ActivityLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ActivityLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ActivityLogGroupByOutputType[P]>
+            : GetScalarType<T[P], ActivityLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ActivityLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    category?: boolean
+    channel?: boolean
+    action?: boolean
+    status?: boolean
+    message?: boolean
+    details?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["activityLog"]>
+
+  export type ActivityLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    category?: boolean
+    channel?: boolean
+    action?: boolean
+    status?: boolean
+    message?: boolean
+    details?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["activityLog"]>
+
+  export type ActivityLogSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    category?: boolean
+    channel?: boolean
+    action?: boolean
+    status?: boolean
+    message?: boolean
+    details?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $ActivityLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ActivityLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      brandId: string | null
+      category: string
+      channel: string | null
+      action: string
+      status: string
+      message: string
+      details: Prisma.JsonValue
+      createdAt: Date
+    }, ExtArgs["result"]["activityLog"]>
+    composites: {}
+  }
+
+  type ActivityLogGetPayload<S extends boolean | null | undefined | ActivityLogDefaultArgs> = $Result.GetResult<Prisma.$ActivityLogPayload, S>
+
+  type ActivityLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ActivityLogFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ActivityLogCountAggregateInputType | true
+    }
+
+  export interface ActivityLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ActivityLog'], meta: { name: 'ActivityLog' } }
+    /**
+     * Find zero or one ActivityLog that matches the filter.
+     * @param {ActivityLogFindUniqueArgs} args - Arguments to find a ActivityLog
+     * @example
+     * // Get one ActivityLog
+     * const activityLog = await prisma.activityLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ActivityLogFindUniqueArgs>(args: SelectSubset<T, ActivityLogFindUniqueArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ActivityLog that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ActivityLogFindUniqueOrThrowArgs} args - Arguments to find a ActivityLog
+     * @example
+     * // Get one ActivityLog
+     * const activityLog = await prisma.activityLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ActivityLogFindUniqueOrThrowArgs>(args: SelectSubset<T, ActivityLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ActivityLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogFindFirstArgs} args - Arguments to find a ActivityLog
+     * @example
+     * // Get one ActivityLog
+     * const activityLog = await prisma.activityLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ActivityLogFindFirstArgs>(args?: SelectSubset<T, ActivityLogFindFirstArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ActivityLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogFindFirstOrThrowArgs} args - Arguments to find a ActivityLog
+     * @example
+     * // Get one ActivityLog
+     * const activityLog = await prisma.activityLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ActivityLogFindFirstOrThrowArgs>(args?: SelectSubset<T, ActivityLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ActivityLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ActivityLogs
+     * const activityLogs = await prisma.activityLog.findMany()
+     * 
+     * // Get first 10 ActivityLogs
+     * const activityLogs = await prisma.activityLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const activityLogWithIdOnly = await prisma.activityLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ActivityLogFindManyArgs>(args?: SelectSubset<T, ActivityLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ActivityLog.
+     * @param {ActivityLogCreateArgs} args - Arguments to create a ActivityLog.
+     * @example
+     * // Create one ActivityLog
+     * const ActivityLog = await prisma.activityLog.create({
+     *   data: {
+     *     // ... data to create a ActivityLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends ActivityLogCreateArgs>(args: SelectSubset<T, ActivityLogCreateArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ActivityLogs.
+     * @param {ActivityLogCreateManyArgs} args - Arguments to create many ActivityLogs.
+     * @example
+     * // Create many ActivityLogs
+     * const activityLog = await prisma.activityLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ActivityLogCreateManyArgs>(args?: SelectSubset<T, ActivityLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ActivityLogs and returns the data saved in the database.
+     * @param {ActivityLogCreateManyAndReturnArgs} args - Arguments to create many ActivityLogs.
+     * @example
+     * // Create many ActivityLogs
+     * const activityLog = await prisma.activityLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ActivityLogs and only return the `id`
+     * const activityLogWithIdOnly = await prisma.activityLog.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ActivityLogCreateManyAndReturnArgs>(args?: SelectSubset<T, ActivityLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ActivityLog.
+     * @param {ActivityLogDeleteArgs} args - Arguments to delete one ActivityLog.
+     * @example
+     * // Delete one ActivityLog
+     * const ActivityLog = await prisma.activityLog.delete({
+     *   where: {
+     *     // ... filter to delete one ActivityLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ActivityLogDeleteArgs>(args: SelectSubset<T, ActivityLogDeleteArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ActivityLog.
+     * @param {ActivityLogUpdateArgs} args - Arguments to update one ActivityLog.
+     * @example
+     * // Update one ActivityLog
+     * const activityLog = await prisma.activityLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ActivityLogUpdateArgs>(args: SelectSubset<T, ActivityLogUpdateArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ActivityLogs.
+     * @param {ActivityLogDeleteManyArgs} args - Arguments to filter ActivityLogs to delete.
+     * @example
+     * // Delete a few ActivityLogs
+     * const { count } = await prisma.activityLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ActivityLogDeleteManyArgs>(args?: SelectSubset<T, ActivityLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ActivityLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ActivityLogs
+     * const activityLog = await prisma.activityLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ActivityLogUpdateManyArgs>(args: SelectSubset<T, ActivityLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ActivityLog.
+     * @param {ActivityLogUpsertArgs} args - Arguments to update or create a ActivityLog.
+     * @example
+     * // Update or create a ActivityLog
+     * const activityLog = await prisma.activityLog.upsert({
+     *   create: {
+     *     // ... data to create a ActivityLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ActivityLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ActivityLogUpsertArgs>(args: SelectSubset<T, ActivityLogUpsertArgs<ExtArgs>>): Prisma__ActivityLogClient<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ActivityLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogCountArgs} args - Arguments to filter ActivityLogs to count.
+     * @example
+     * // Count the number of ActivityLogs
+     * const count = await prisma.activityLog.count({
+     *   where: {
+     *     // ... the filter for the ActivityLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends ActivityLogCountArgs>(
+      args?: Subset<T, ActivityLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ActivityLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ActivityLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ActivityLogAggregateArgs>(args: Subset<T, ActivityLogAggregateArgs>): Prisma.PrismaPromise<GetActivityLogAggregateType<T>>
+
+    /**
+     * Group by ActivityLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ActivityLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ActivityLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ActivityLogGroupByArgs['orderBy'] }
+        : { orderBy?: ActivityLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ActivityLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetActivityLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ActivityLog model
+   */
+  readonly fields: ActivityLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ActivityLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ActivityLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ActivityLog model
+   */ 
+  interface ActivityLogFieldRefs {
+    readonly id: FieldRef<"ActivityLog", 'String'>
+    readonly tenantId: FieldRef<"ActivityLog", 'String'>
+    readonly locationId: FieldRef<"ActivityLog", 'String'>
+    readonly brandId: FieldRef<"ActivityLog", 'String'>
+    readonly category: FieldRef<"ActivityLog", 'String'>
+    readonly channel: FieldRef<"ActivityLog", 'String'>
+    readonly action: FieldRef<"ActivityLog", 'String'>
+    readonly status: FieldRef<"ActivityLog", 'String'>
+    readonly message: FieldRef<"ActivityLog", 'String'>
+    readonly details: FieldRef<"ActivityLog", 'Json'>
+    readonly createdAt: FieldRef<"ActivityLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ActivityLog findUnique
+   */
+  export type ActivityLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter, which ActivityLog to fetch.
+     */
+    where: ActivityLogWhereUniqueInput
+  }
+
+  /**
+   * ActivityLog findUniqueOrThrow
+   */
+  export type ActivityLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter, which ActivityLog to fetch.
+     */
+    where: ActivityLogWhereUniqueInput
+  }
+
+  /**
+   * ActivityLog findFirst
+   */
+  export type ActivityLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter, which ActivityLog to fetch.
+     */
+    where?: ActivityLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ActivityLogs to fetch.
+     */
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ActivityLogs.
+     */
+    cursor?: ActivityLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ActivityLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ActivityLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ActivityLogs.
+     */
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
+   * ActivityLog findFirstOrThrow
+   */
+  export type ActivityLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter, which ActivityLog to fetch.
+     */
+    where?: ActivityLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ActivityLogs to fetch.
+     */
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ActivityLogs.
+     */
+    cursor?: ActivityLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ActivityLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ActivityLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ActivityLogs.
+     */
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
+   * ActivityLog findMany
+   */
+  export type ActivityLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter, which ActivityLogs to fetch.
+     */
+    where?: ActivityLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ActivityLogs to fetch.
+     */
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ActivityLogs.
+     */
+    cursor?: ActivityLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ActivityLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ActivityLogs.
+     */
+    skip?: number
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
+   * ActivityLog create
+   */
+  export type ActivityLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * The data needed to create a ActivityLog.
+     */
+    data: XOR<ActivityLogCreateInput, ActivityLogUncheckedCreateInput>
+  }
+
+  /**
+   * ActivityLog createMany
+   */
+  export type ActivityLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ActivityLogs.
+     */
+    data: ActivityLogCreateManyInput | ActivityLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ActivityLog createManyAndReturn
+   */
+  export type ActivityLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ActivityLogs.
+     */
+    data: ActivityLogCreateManyInput | ActivityLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ActivityLog update
+   */
+  export type ActivityLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * The data needed to update a ActivityLog.
+     */
+    data: XOR<ActivityLogUpdateInput, ActivityLogUncheckedUpdateInput>
+    /**
+     * Choose, which ActivityLog to update.
+     */
+    where: ActivityLogWhereUniqueInput
+  }
+
+  /**
+   * ActivityLog updateMany
+   */
+  export type ActivityLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ActivityLogs.
+     */
+    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ActivityLogs to update
+     */
+    where?: ActivityLogWhereInput
+  }
+
+  /**
+   * ActivityLog upsert
+   */
+  export type ActivityLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * The filter to search for the ActivityLog to update in case it exists.
+     */
+    where: ActivityLogWhereUniqueInput
+    /**
+     * In case the ActivityLog found by the `where` argument doesn't exist, create a new ActivityLog with this data.
+     */
+    create: XOR<ActivityLogCreateInput, ActivityLogUncheckedCreateInput>
+    /**
+     * In case the ActivityLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ActivityLogUpdateInput, ActivityLogUncheckedUpdateInput>
+  }
+
+  /**
+   * ActivityLog delete
+   */
+  export type ActivityLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Filter which ActivityLog to delete.
+     */
+    where: ActivityLogWhereUniqueInput
+  }
+
+  /**
+   * ActivityLog deleteMany
+   */
+  export type ActivityLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ActivityLogs to delete
+     */
+    where?: ActivityLogWhereInput
+  }
+
+  /**
+   * ActivityLog without action
+   */
+  export type ActivityLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model KdsScreen
    */
 
@@ -58685,6 +60083,7 @@ export namespace Prisma {
     orderId: number
     bumpedAt: number
     recalledAt: number
+    metadata: number
     createdAt: number
     _all: number
   }
@@ -58714,6 +60113,7 @@ export namespace Prisma {
     orderId?: true
     bumpedAt?: true
     recalledAt?: true
+    metadata?: true
     createdAt?: true
     _all?: true
   }
@@ -58796,6 +60196,7 @@ export namespace Prisma {
     orderId: string
     bumpedAt: Date | null
     recalledAt: Date | null
+    metadata: JsonValue
     createdAt: Date
     _count: KdsTicketCountAggregateOutputType | null
     _min: KdsTicketMinAggregateOutputType | null
@@ -58822,6 +60223,7 @@ export namespace Prisma {
     orderId?: boolean
     bumpedAt?: boolean
     recalledAt?: boolean
+    metadata?: boolean
     createdAt?: boolean
     screen?: boolean | KdsScreenDefaultArgs<ExtArgs>
     order?: boolean | OrderDefaultArgs<ExtArgs>
@@ -58833,6 +60235,7 @@ export namespace Prisma {
     orderId?: boolean
     bumpedAt?: boolean
     recalledAt?: boolean
+    metadata?: boolean
     createdAt?: boolean
     screen?: boolean | KdsScreenDefaultArgs<ExtArgs>
     order?: boolean | OrderDefaultArgs<ExtArgs>
@@ -58844,6 +60247,7 @@ export namespace Prisma {
     orderId?: boolean
     bumpedAt?: boolean
     recalledAt?: boolean
+    metadata?: boolean
     createdAt?: boolean
   }
 
@@ -58868,6 +60272,7 @@ export namespace Prisma {
       orderId: string
       bumpedAt: Date | null
       recalledAt: Date | null
+      metadata: Prisma.JsonValue
       createdAt: Date
     }, ExtArgs["result"]["kdsTicket"]>
     composites: {}
@@ -59269,6 +60674,7 @@ export namespace Prisma {
     readonly orderId: FieldRef<"KdsTicket", 'String'>
     readonly bumpedAt: FieldRef<"KdsTicket", 'DateTime'>
     readonly recalledAt: FieldRef<"KdsTicket", 'DateTime'>
+    readonly metadata: FieldRef<"KdsTicket", 'Json'>
     readonly createdAt: FieldRef<"KdsTicket", 'DateTime'>
   }
     
@@ -71483,6 +72889,7 @@ export namespace Prisma {
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     assignments?: boolean | Driver$assignmentsArgs<ExtArgs>
+    presence?: boolean | Driver$presenceArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["driver"]>
 
@@ -71520,6 +72927,7 @@ export namespace Prisma {
   export type DriverInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     assignments?: boolean | Driver$assignmentsArgs<ExtArgs>
+    presence?: boolean | Driver$presenceArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DriverIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -71531,6 +72939,7 @@ export namespace Prisma {
     objects: {
       tenant: Prisma.$TenantPayload<ExtArgs>
       assignments: Prisma.$DriverAssignmentPayload<ExtArgs>[]
+      presence: Prisma.$DriverPresencePayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -71911,6 +73320,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     assignments<T extends Driver$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
+    presence<T extends Driver$presenceArgs<ExtArgs> = {}>(args?: Subset<T, Driver$presenceArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -72290,6 +73700,21 @@ export namespace Prisma {
   }
 
   /**
+   * Driver.presence
+   */
+  export type Driver$presenceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    where?: DriverPresenceWhereInput
+  }
+
+  /**
    * Driver without action
    */
   export type DriverDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -72305,13 +73730,1122 @@ export namespace Prisma {
 
 
   /**
+   * Model DriverPresence
+   */
+
+  export type AggregateDriverPresence = {
+    _count: DriverPresenceCountAggregateOutputType | null
+    _avg: DriverPresenceAvgAggregateOutputType | null
+    _sum: DriverPresenceSumAggregateOutputType | null
+    _min: DriverPresenceMinAggregateOutputType | null
+    _max: DriverPresenceMaxAggregateOutputType | null
+  }
+
+  export type DriverPresenceAvgAggregateOutputType = {
+    lat: number | null
+    lng: number | null
+    heading: number | null
+    speed: number | null
+  }
+
+  export type DriverPresenceSumAggregateOutputType = {
+    lat: number | null
+    lng: number | null
+    heading: number | null
+    speed: number | null
+  }
+
+  export type DriverPresenceMinAggregateOutputType = {
+    id: string | null
+    driverId: string | null
+    tenantId: string | null
+    locationId: string | null
+    status: $Enums.DriverPresenceStatus | null
+    lat: number | null
+    lng: number | null
+    heading: number | null
+    speed: number | null
+    activeAssignmentId: string | null
+    socketId: string | null
+    pushToken: string | null
+    lastPingAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DriverPresenceMaxAggregateOutputType = {
+    id: string | null
+    driverId: string | null
+    tenantId: string | null
+    locationId: string | null
+    status: $Enums.DriverPresenceStatus | null
+    lat: number | null
+    lng: number | null
+    heading: number | null
+    speed: number | null
+    activeAssignmentId: string | null
+    socketId: string | null
+    pushToken: string | null
+    lastPingAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DriverPresenceCountAggregateOutputType = {
+    id: number
+    driverId: number
+    tenantId: number
+    locationId: number
+    status: number
+    lat: number
+    lng: number
+    heading: number
+    speed: number
+    activeAssignmentId: number
+    socketId: number
+    pushToken: number
+    lastPingAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DriverPresenceAvgAggregateInputType = {
+    lat?: true
+    lng?: true
+    heading?: true
+    speed?: true
+  }
+
+  export type DriverPresenceSumAggregateInputType = {
+    lat?: true
+    lng?: true
+    heading?: true
+    speed?: true
+  }
+
+  export type DriverPresenceMinAggregateInputType = {
+    id?: true
+    driverId?: true
+    tenantId?: true
+    locationId?: true
+    status?: true
+    lat?: true
+    lng?: true
+    heading?: true
+    speed?: true
+    activeAssignmentId?: true
+    socketId?: true
+    pushToken?: true
+    lastPingAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DriverPresenceMaxAggregateInputType = {
+    id?: true
+    driverId?: true
+    tenantId?: true
+    locationId?: true
+    status?: true
+    lat?: true
+    lng?: true
+    heading?: true
+    speed?: true
+    activeAssignmentId?: true
+    socketId?: true
+    pushToken?: true
+    lastPingAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DriverPresenceCountAggregateInputType = {
+    id?: true
+    driverId?: true
+    tenantId?: true
+    locationId?: true
+    status?: true
+    lat?: true
+    lng?: true
+    heading?: true
+    speed?: true
+    activeAssignmentId?: true
+    socketId?: true
+    pushToken?: true
+    lastPingAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DriverPresenceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DriverPresence to aggregate.
+     */
+    where?: DriverPresenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverPresences to fetch.
+     */
+    orderBy?: DriverPresenceOrderByWithRelationInput | DriverPresenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DriverPresenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverPresences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverPresences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DriverPresences
+    **/
+    _count?: true | DriverPresenceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DriverPresenceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DriverPresenceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DriverPresenceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DriverPresenceMaxAggregateInputType
+  }
+
+  export type GetDriverPresenceAggregateType<T extends DriverPresenceAggregateArgs> = {
+        [P in keyof T & keyof AggregateDriverPresence]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDriverPresence[P]>
+      : GetScalarType<T[P], AggregateDriverPresence[P]>
+  }
+
+
+
+
+  export type DriverPresenceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DriverPresenceWhereInput
+    orderBy?: DriverPresenceOrderByWithAggregationInput | DriverPresenceOrderByWithAggregationInput[]
+    by: DriverPresenceScalarFieldEnum[] | DriverPresenceScalarFieldEnum
+    having?: DriverPresenceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DriverPresenceCountAggregateInputType | true
+    _avg?: DriverPresenceAvgAggregateInputType
+    _sum?: DriverPresenceSumAggregateInputType
+    _min?: DriverPresenceMinAggregateInputType
+    _max?: DriverPresenceMaxAggregateInputType
+  }
+
+  export type DriverPresenceGroupByOutputType = {
+    id: string
+    driverId: string
+    tenantId: string
+    locationId: string | null
+    status: $Enums.DriverPresenceStatus
+    lat: number | null
+    lng: number | null
+    heading: number | null
+    speed: number | null
+    activeAssignmentId: string | null
+    socketId: string | null
+    pushToken: string | null
+    lastPingAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DriverPresenceCountAggregateOutputType | null
+    _avg: DriverPresenceAvgAggregateOutputType | null
+    _sum: DriverPresenceSumAggregateOutputType | null
+    _min: DriverPresenceMinAggregateOutputType | null
+    _max: DriverPresenceMaxAggregateOutputType | null
+  }
+
+  type GetDriverPresenceGroupByPayload<T extends DriverPresenceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DriverPresenceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DriverPresenceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DriverPresenceGroupByOutputType[P]>
+            : GetScalarType<T[P], DriverPresenceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DriverPresenceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    driverId?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    status?: boolean
+    lat?: boolean
+    lng?: boolean
+    heading?: boolean
+    speed?: boolean
+    activeAssignmentId?: boolean
+    socketId?: boolean
+    pushToken?: boolean
+    lastPingAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["driverPresence"]>
+
+  export type DriverPresenceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    driverId?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    status?: boolean
+    lat?: boolean
+    lng?: boolean
+    heading?: boolean
+    speed?: boolean
+    activeAssignmentId?: boolean
+    socketId?: boolean
+    pushToken?: boolean
+    lastPingAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["driverPresence"]>
+
+  export type DriverPresenceSelectScalar = {
+    id?: boolean
+    driverId?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    status?: boolean
+    lat?: boolean
+    lng?: boolean
+    heading?: boolean
+    speed?: boolean
+    activeAssignmentId?: boolean
+    socketId?: boolean
+    pushToken?: boolean
+    lastPingAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DriverPresenceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+  export type DriverPresenceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+
+  export type $DriverPresencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DriverPresence"
+    objects: {
+      driver: Prisma.$DriverPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      driverId: string
+      tenantId: string
+      locationId: string | null
+      status: $Enums.DriverPresenceStatus
+      lat: number | null
+      lng: number | null
+      heading: number | null
+      speed: number | null
+      activeAssignmentId: string | null
+      socketId: string | null
+      pushToken: string | null
+      lastPingAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["driverPresence"]>
+    composites: {}
+  }
+
+  type DriverPresenceGetPayload<S extends boolean | null | undefined | DriverPresenceDefaultArgs> = $Result.GetResult<Prisma.$DriverPresencePayload, S>
+
+  type DriverPresenceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DriverPresenceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DriverPresenceCountAggregateInputType | true
+    }
+
+  export interface DriverPresenceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DriverPresence'], meta: { name: 'DriverPresence' } }
+    /**
+     * Find zero or one DriverPresence that matches the filter.
+     * @param {DriverPresenceFindUniqueArgs} args - Arguments to find a DriverPresence
+     * @example
+     * // Get one DriverPresence
+     * const driverPresence = await prisma.driverPresence.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DriverPresenceFindUniqueArgs>(args: SelectSubset<T, DriverPresenceFindUniqueArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DriverPresence that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DriverPresenceFindUniqueOrThrowArgs} args - Arguments to find a DriverPresence
+     * @example
+     * // Get one DriverPresence
+     * const driverPresence = await prisma.driverPresence.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DriverPresenceFindUniqueOrThrowArgs>(args: SelectSubset<T, DriverPresenceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DriverPresence that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceFindFirstArgs} args - Arguments to find a DriverPresence
+     * @example
+     * // Get one DriverPresence
+     * const driverPresence = await prisma.driverPresence.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DriverPresenceFindFirstArgs>(args?: SelectSubset<T, DriverPresenceFindFirstArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DriverPresence that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceFindFirstOrThrowArgs} args - Arguments to find a DriverPresence
+     * @example
+     * // Get one DriverPresence
+     * const driverPresence = await prisma.driverPresence.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DriverPresenceFindFirstOrThrowArgs>(args?: SelectSubset<T, DriverPresenceFindFirstOrThrowArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DriverPresences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DriverPresences
+     * const driverPresences = await prisma.driverPresence.findMany()
+     * 
+     * // Get first 10 DriverPresences
+     * const driverPresences = await prisma.driverPresence.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const driverPresenceWithIdOnly = await prisma.driverPresence.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DriverPresenceFindManyArgs>(args?: SelectSubset<T, DriverPresenceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DriverPresence.
+     * @param {DriverPresenceCreateArgs} args - Arguments to create a DriverPresence.
+     * @example
+     * // Create one DriverPresence
+     * const DriverPresence = await prisma.driverPresence.create({
+     *   data: {
+     *     // ... data to create a DriverPresence
+     *   }
+     * })
+     * 
+     */
+    create<T extends DriverPresenceCreateArgs>(args: SelectSubset<T, DriverPresenceCreateArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DriverPresences.
+     * @param {DriverPresenceCreateManyArgs} args - Arguments to create many DriverPresences.
+     * @example
+     * // Create many DriverPresences
+     * const driverPresence = await prisma.driverPresence.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DriverPresenceCreateManyArgs>(args?: SelectSubset<T, DriverPresenceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DriverPresences and returns the data saved in the database.
+     * @param {DriverPresenceCreateManyAndReturnArgs} args - Arguments to create many DriverPresences.
+     * @example
+     * // Create many DriverPresences
+     * const driverPresence = await prisma.driverPresence.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DriverPresences and only return the `id`
+     * const driverPresenceWithIdOnly = await prisma.driverPresence.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DriverPresenceCreateManyAndReturnArgs>(args?: SelectSubset<T, DriverPresenceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DriverPresence.
+     * @param {DriverPresenceDeleteArgs} args - Arguments to delete one DriverPresence.
+     * @example
+     * // Delete one DriverPresence
+     * const DriverPresence = await prisma.driverPresence.delete({
+     *   where: {
+     *     // ... filter to delete one DriverPresence
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DriverPresenceDeleteArgs>(args: SelectSubset<T, DriverPresenceDeleteArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DriverPresence.
+     * @param {DriverPresenceUpdateArgs} args - Arguments to update one DriverPresence.
+     * @example
+     * // Update one DriverPresence
+     * const driverPresence = await prisma.driverPresence.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DriverPresenceUpdateArgs>(args: SelectSubset<T, DriverPresenceUpdateArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DriverPresences.
+     * @param {DriverPresenceDeleteManyArgs} args - Arguments to filter DriverPresences to delete.
+     * @example
+     * // Delete a few DriverPresences
+     * const { count } = await prisma.driverPresence.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DriverPresenceDeleteManyArgs>(args?: SelectSubset<T, DriverPresenceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DriverPresences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DriverPresences
+     * const driverPresence = await prisma.driverPresence.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DriverPresenceUpdateManyArgs>(args: SelectSubset<T, DriverPresenceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DriverPresence.
+     * @param {DriverPresenceUpsertArgs} args - Arguments to update or create a DriverPresence.
+     * @example
+     * // Update or create a DriverPresence
+     * const driverPresence = await prisma.driverPresence.upsert({
+     *   create: {
+     *     // ... data to create a DriverPresence
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DriverPresence we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DriverPresenceUpsertArgs>(args: SelectSubset<T, DriverPresenceUpsertArgs<ExtArgs>>): Prisma__DriverPresenceClient<$Result.GetResult<Prisma.$DriverPresencePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DriverPresences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceCountArgs} args - Arguments to filter DriverPresences to count.
+     * @example
+     * // Count the number of DriverPresences
+     * const count = await prisma.driverPresence.count({
+     *   where: {
+     *     // ... the filter for the DriverPresences we want to count
+     *   }
+     * })
+    **/
+    count<T extends DriverPresenceCountArgs>(
+      args?: Subset<T, DriverPresenceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DriverPresenceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DriverPresence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DriverPresenceAggregateArgs>(args: Subset<T, DriverPresenceAggregateArgs>): Prisma.PrismaPromise<GetDriverPresenceAggregateType<T>>
+
+    /**
+     * Group by DriverPresence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DriverPresenceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DriverPresenceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DriverPresenceGroupByArgs['orderBy'] }
+        : { orderBy?: DriverPresenceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DriverPresenceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDriverPresenceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DriverPresence model
+   */
+  readonly fields: DriverPresenceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DriverPresence.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DriverPresenceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    driver<T extends DriverDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DriverDefaultArgs<ExtArgs>>): Prisma__DriverClient<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DriverPresence model
+   */ 
+  interface DriverPresenceFieldRefs {
+    readonly id: FieldRef<"DriverPresence", 'String'>
+    readonly driverId: FieldRef<"DriverPresence", 'String'>
+    readonly tenantId: FieldRef<"DriverPresence", 'String'>
+    readonly locationId: FieldRef<"DriverPresence", 'String'>
+    readonly status: FieldRef<"DriverPresence", 'DriverPresenceStatus'>
+    readonly lat: FieldRef<"DriverPresence", 'Float'>
+    readonly lng: FieldRef<"DriverPresence", 'Float'>
+    readonly heading: FieldRef<"DriverPresence", 'Float'>
+    readonly speed: FieldRef<"DriverPresence", 'Float'>
+    readonly activeAssignmentId: FieldRef<"DriverPresence", 'String'>
+    readonly socketId: FieldRef<"DriverPresence", 'String'>
+    readonly pushToken: FieldRef<"DriverPresence", 'String'>
+    readonly lastPingAt: FieldRef<"DriverPresence", 'DateTime'>
+    readonly createdAt: FieldRef<"DriverPresence", 'DateTime'>
+    readonly updatedAt: FieldRef<"DriverPresence", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DriverPresence findUnique
+   */
+  export type DriverPresenceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverPresence to fetch.
+     */
+    where: DriverPresenceWhereUniqueInput
+  }
+
+  /**
+   * DriverPresence findUniqueOrThrow
+   */
+  export type DriverPresenceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverPresence to fetch.
+     */
+    where: DriverPresenceWhereUniqueInput
+  }
+
+  /**
+   * DriverPresence findFirst
+   */
+  export type DriverPresenceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverPresence to fetch.
+     */
+    where?: DriverPresenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverPresences to fetch.
+     */
+    orderBy?: DriverPresenceOrderByWithRelationInput | DriverPresenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DriverPresences.
+     */
+    cursor?: DriverPresenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverPresences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverPresences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DriverPresences.
+     */
+    distinct?: DriverPresenceScalarFieldEnum | DriverPresenceScalarFieldEnum[]
+  }
+
+  /**
+   * DriverPresence findFirstOrThrow
+   */
+  export type DriverPresenceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverPresence to fetch.
+     */
+    where?: DriverPresenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverPresences to fetch.
+     */
+    orderBy?: DriverPresenceOrderByWithRelationInput | DriverPresenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DriverPresences.
+     */
+    cursor?: DriverPresenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverPresences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverPresences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DriverPresences.
+     */
+    distinct?: DriverPresenceScalarFieldEnum | DriverPresenceScalarFieldEnum[]
+  }
+
+  /**
+   * DriverPresence findMany
+   */
+  export type DriverPresenceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter, which DriverPresences to fetch.
+     */
+    where?: DriverPresenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DriverPresences to fetch.
+     */
+    orderBy?: DriverPresenceOrderByWithRelationInput | DriverPresenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DriverPresences.
+     */
+    cursor?: DriverPresenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DriverPresences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DriverPresences.
+     */
+    skip?: number
+    distinct?: DriverPresenceScalarFieldEnum | DriverPresenceScalarFieldEnum[]
+  }
+
+  /**
+   * DriverPresence create
+   */
+  export type DriverPresenceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DriverPresence.
+     */
+    data: XOR<DriverPresenceCreateInput, DriverPresenceUncheckedCreateInput>
+  }
+
+  /**
+   * DriverPresence createMany
+   */
+  export type DriverPresenceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DriverPresences.
+     */
+    data: DriverPresenceCreateManyInput | DriverPresenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DriverPresence createManyAndReturn
+   */
+  export type DriverPresenceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DriverPresences.
+     */
+    data: DriverPresenceCreateManyInput | DriverPresenceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DriverPresence update
+   */
+  export type DriverPresenceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DriverPresence.
+     */
+    data: XOR<DriverPresenceUpdateInput, DriverPresenceUncheckedUpdateInput>
+    /**
+     * Choose, which DriverPresence to update.
+     */
+    where: DriverPresenceWhereUniqueInput
+  }
+
+  /**
+   * DriverPresence updateMany
+   */
+  export type DriverPresenceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DriverPresences.
+     */
+    data: XOR<DriverPresenceUpdateManyMutationInput, DriverPresenceUncheckedUpdateManyInput>
+    /**
+     * Filter which DriverPresences to update
+     */
+    where?: DriverPresenceWhereInput
+  }
+
+  /**
+   * DriverPresence upsert
+   */
+  export type DriverPresenceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DriverPresence to update in case it exists.
+     */
+    where: DriverPresenceWhereUniqueInput
+    /**
+     * In case the DriverPresence found by the `where` argument doesn't exist, create a new DriverPresence with this data.
+     */
+    create: XOR<DriverPresenceCreateInput, DriverPresenceUncheckedCreateInput>
+    /**
+     * In case the DriverPresence was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DriverPresenceUpdateInput, DriverPresenceUncheckedUpdateInput>
+  }
+
+  /**
+   * DriverPresence delete
+   */
+  export type DriverPresenceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+    /**
+     * Filter which DriverPresence to delete.
+     */
+    where: DriverPresenceWhereUniqueInput
+  }
+
+  /**
+   * DriverPresence deleteMany
+   */
+  export type DriverPresenceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DriverPresences to delete
+     */
+    where?: DriverPresenceWhereInput
+  }
+
+  /**
+   * DriverPresence without action
+   */
+  export type DriverPresenceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DriverPresence
+     */
+    select?: DriverPresenceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DriverPresenceInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model DriverAssignment
    */
 
   export type AggregateDriverAssignment = {
     _count: DriverAssignmentCountAggregateOutputType | null
+    _avg: DriverAssignmentAvgAggregateOutputType | null
+    _sum: DriverAssignmentSumAggregateOutputType | null
     _min: DriverAssignmentMinAggregateOutputType | null
     _max: DriverAssignmentMaxAggregateOutputType | null
+  }
+
+  export type DriverAssignmentAvgAggregateOutputType = {
+    sequence: number | null
+  }
+
+  export type DriverAssignmentSumAggregateOutputType = {
+    sequence: number | null
   }
 
   export type DriverAssignmentMinAggregateOutputType = {
@@ -72319,9 +74853,11 @@ export namespace Prisma {
     orderId: string | null
     driverId: string | null
     status: $Enums.DriverAssignmentStatus | null
+    sequence: number | null
     assignedAt: Date | null
     acceptedAt: Date | null
     pickedUpAt: Date | null
+    arrivedAt: Date | null
     deliveredAt: Date | null
   }
 
@@ -72330,9 +74866,11 @@ export namespace Prisma {
     orderId: string | null
     driverId: string | null
     status: $Enums.DriverAssignmentStatus | null
+    sequence: number | null
     assignedAt: Date | null
     acceptedAt: Date | null
     pickedUpAt: Date | null
+    arrivedAt: Date | null
     deliveredAt: Date | null
   }
 
@@ -72341,22 +74879,34 @@ export namespace Prisma {
     orderId: number
     driverId: number
     status: number
+    sequence: number
     assignedAt: number
     acceptedAt: number
     pickedUpAt: number
+    arrivedAt: number
     deliveredAt: number
     _all: number
   }
 
+
+  export type DriverAssignmentAvgAggregateInputType = {
+    sequence?: true
+  }
+
+  export type DriverAssignmentSumAggregateInputType = {
+    sequence?: true
+  }
 
   export type DriverAssignmentMinAggregateInputType = {
     id?: true
     orderId?: true
     driverId?: true
     status?: true
+    sequence?: true
     assignedAt?: true
     acceptedAt?: true
     pickedUpAt?: true
+    arrivedAt?: true
     deliveredAt?: true
   }
 
@@ -72365,9 +74915,11 @@ export namespace Prisma {
     orderId?: true
     driverId?: true
     status?: true
+    sequence?: true
     assignedAt?: true
     acceptedAt?: true
     pickedUpAt?: true
+    arrivedAt?: true
     deliveredAt?: true
   }
 
@@ -72376,9 +74928,11 @@ export namespace Prisma {
     orderId?: true
     driverId?: true
     status?: true
+    sequence?: true
     assignedAt?: true
     acceptedAt?: true
     pickedUpAt?: true
+    arrivedAt?: true
     deliveredAt?: true
     _all?: true
   }
@@ -72421,6 +74975,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: DriverAssignmentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DriverAssignmentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: DriverAssignmentMinAggregateInputType
@@ -72451,6 +75017,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: DriverAssignmentCountAggregateInputType | true
+    _avg?: DriverAssignmentAvgAggregateInputType
+    _sum?: DriverAssignmentSumAggregateInputType
     _min?: DriverAssignmentMinAggregateInputType
     _max?: DriverAssignmentMaxAggregateInputType
   }
@@ -72460,11 +75028,15 @@ export namespace Prisma {
     orderId: string
     driverId: string
     status: $Enums.DriverAssignmentStatus
+    sequence: number | null
     assignedAt: Date
     acceptedAt: Date | null
     pickedUpAt: Date | null
+    arrivedAt: Date | null
     deliveredAt: Date | null
     _count: DriverAssignmentCountAggregateOutputType | null
+    _avg: DriverAssignmentAvgAggregateOutputType | null
+    _sum: DriverAssignmentSumAggregateOutputType | null
     _min: DriverAssignmentMinAggregateOutputType | null
     _max: DriverAssignmentMaxAggregateOutputType | null
   }
@@ -72488,9 +75060,11 @@ export namespace Prisma {
     orderId?: boolean
     driverId?: boolean
     status?: boolean
+    sequence?: boolean
     assignedAt?: boolean
     acceptedAt?: boolean
     pickedUpAt?: boolean
+    arrivedAt?: boolean
     deliveredAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     driver?: boolean | DriverDefaultArgs<ExtArgs>
@@ -72503,9 +75077,11 @@ export namespace Prisma {
     orderId?: boolean
     driverId?: boolean
     status?: boolean
+    sequence?: boolean
     assignedAt?: boolean
     acceptedAt?: boolean
     pickedUpAt?: boolean
+    arrivedAt?: boolean
     deliveredAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     driver?: boolean | DriverDefaultArgs<ExtArgs>
@@ -72516,9 +75092,11 @@ export namespace Prisma {
     orderId?: boolean
     driverId?: boolean
     status?: boolean
+    sequence?: boolean
     assignedAt?: boolean
     acceptedAt?: boolean
     pickedUpAt?: boolean
+    arrivedAt?: boolean
     deliveredAt?: boolean
   }
 
@@ -72545,9 +75123,11 @@ export namespace Prisma {
       orderId: string
       driverId: string
       status: $Enums.DriverAssignmentStatus
+      sequence: number | null
       assignedAt: Date
       acceptedAt: Date | null
       pickedUpAt: Date | null
+      arrivedAt: Date | null
       deliveredAt: Date | null
     }, ExtArgs["result"]["driverAssignment"]>
     composites: {}
@@ -72949,9 +75529,11 @@ export namespace Prisma {
     readonly orderId: FieldRef<"DriverAssignment", 'String'>
     readonly driverId: FieldRef<"DriverAssignment", 'String'>
     readonly status: FieldRef<"DriverAssignment", 'DriverAssignmentStatus'>
+    readonly sequence: FieldRef<"DriverAssignment", 'Int'>
     readonly assignedAt: FieldRef<"DriverAssignment", 'DateTime'>
     readonly acceptedAt: FieldRef<"DriverAssignment", 'DateTime'>
     readonly pickedUpAt: FieldRef<"DriverAssignment", 'DateTime'>
+    readonly arrivedAt: FieldRef<"DriverAssignment", 'DateTime'>
     readonly deliveredAt: FieldRef<"DriverAssignment", 'DateTime'>
   }
     
@@ -74333,6 +76915,1958 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DeliveryTrackingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChatMessage
+   */
+
+  export type AggregateChatMessage = {
+    _count: ChatMessageCountAggregateOutputType | null
+    _min: ChatMessageMinAggregateOutputType | null
+    _max: ChatMessageMaxAggregateOutputType | null
+  }
+
+  export type ChatMessageMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    channel: string | null
+    driverId: string | null
+    orderId: string | null
+    senderType: string | null
+    senderName: string | null
+    body: string | null
+    createdAt: Date | null
+    readByOperatorAt: Date | null
+    readByDriverAt: Date | null
+    readByCustomerAt: Date | null
+  }
+
+  export type ChatMessageMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    channel: string | null
+    driverId: string | null
+    orderId: string | null
+    senderType: string | null
+    senderName: string | null
+    body: string | null
+    createdAt: Date | null
+    readByOperatorAt: Date | null
+    readByDriverAt: Date | null
+    readByCustomerAt: Date | null
+  }
+
+  export type ChatMessageCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    channel: number
+    driverId: number
+    orderId: number
+    senderType: number
+    senderName: number
+    body: number
+    createdAt: number
+    readByOperatorAt: number
+    readByDriverAt: number
+    readByCustomerAt: number
+    _all: number
+  }
+
+
+  export type ChatMessageMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    channel?: true
+    driverId?: true
+    orderId?: true
+    senderType?: true
+    senderName?: true
+    body?: true
+    createdAt?: true
+    readByOperatorAt?: true
+    readByDriverAt?: true
+    readByCustomerAt?: true
+  }
+
+  export type ChatMessageMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    channel?: true
+    driverId?: true
+    orderId?: true
+    senderType?: true
+    senderName?: true
+    body?: true
+    createdAt?: true
+    readByOperatorAt?: true
+    readByDriverAt?: true
+    readByCustomerAt?: true
+  }
+
+  export type ChatMessageCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    channel?: true
+    driverId?: true
+    orderId?: true
+    senderType?: true
+    senderName?: true
+    body?: true
+    createdAt?: true
+    readByOperatorAt?: true
+    readByDriverAt?: true
+    readByCustomerAt?: true
+    _all?: true
+  }
+
+  export type ChatMessageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatMessage to aggregate.
+     */
+    where?: ChatMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatMessages to fetch.
+     */
+    orderBy?: ChatMessageOrderByWithRelationInput | ChatMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChatMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChatMessages
+    **/
+    _count?: true | ChatMessageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChatMessageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChatMessageMaxAggregateInputType
+  }
+
+  export type GetChatMessageAggregateType<T extends ChatMessageAggregateArgs> = {
+        [P in keyof T & keyof AggregateChatMessage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChatMessage[P]>
+      : GetScalarType<T[P], AggregateChatMessage[P]>
+  }
+
+
+
+
+  export type ChatMessageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatMessageWhereInput
+    orderBy?: ChatMessageOrderByWithAggregationInput | ChatMessageOrderByWithAggregationInput[]
+    by: ChatMessageScalarFieldEnum[] | ChatMessageScalarFieldEnum
+    having?: ChatMessageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChatMessageCountAggregateInputType | true
+    _min?: ChatMessageMinAggregateInputType
+    _max?: ChatMessageMaxAggregateInputType
+  }
+
+  export type ChatMessageGroupByOutputType = {
+    id: string
+    tenantId: string
+    channel: string
+    driverId: string | null
+    orderId: string | null
+    senderType: string
+    senderName: string | null
+    body: string
+    createdAt: Date
+    readByOperatorAt: Date | null
+    readByDriverAt: Date | null
+    readByCustomerAt: Date | null
+    _count: ChatMessageCountAggregateOutputType | null
+    _min: ChatMessageMinAggregateOutputType | null
+    _max: ChatMessageMaxAggregateOutputType | null
+  }
+
+  type GetChatMessageGroupByPayload<T extends ChatMessageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChatMessageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChatMessageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChatMessageGroupByOutputType[P]>
+            : GetScalarType<T[P], ChatMessageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChatMessageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    channel?: boolean
+    driverId?: boolean
+    orderId?: boolean
+    senderType?: boolean
+    senderName?: boolean
+    body?: boolean
+    createdAt?: boolean
+    readByOperatorAt?: boolean
+    readByDriverAt?: boolean
+    readByCustomerAt?: boolean
+  }, ExtArgs["result"]["chatMessage"]>
+
+  export type ChatMessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    channel?: boolean
+    driverId?: boolean
+    orderId?: boolean
+    senderType?: boolean
+    senderName?: boolean
+    body?: boolean
+    createdAt?: boolean
+    readByOperatorAt?: boolean
+    readByDriverAt?: boolean
+    readByCustomerAt?: boolean
+  }, ExtArgs["result"]["chatMessage"]>
+
+  export type ChatMessageSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    channel?: boolean
+    driverId?: boolean
+    orderId?: boolean
+    senderType?: boolean
+    senderName?: boolean
+    body?: boolean
+    createdAt?: boolean
+    readByOperatorAt?: boolean
+    readByDriverAt?: boolean
+    readByCustomerAt?: boolean
+  }
+
+
+  export type $ChatMessagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChatMessage"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      channel: string
+      driverId: string | null
+      orderId: string | null
+      senderType: string
+      senderName: string | null
+      body: string
+      createdAt: Date
+      readByOperatorAt: Date | null
+      readByDriverAt: Date | null
+      readByCustomerAt: Date | null
+    }, ExtArgs["result"]["chatMessage"]>
+    composites: {}
+  }
+
+  type ChatMessageGetPayload<S extends boolean | null | undefined | ChatMessageDefaultArgs> = $Result.GetResult<Prisma.$ChatMessagePayload, S>
+
+  type ChatMessageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ChatMessageFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ChatMessageCountAggregateInputType | true
+    }
+
+  export interface ChatMessageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChatMessage'], meta: { name: 'ChatMessage' } }
+    /**
+     * Find zero or one ChatMessage that matches the filter.
+     * @param {ChatMessageFindUniqueArgs} args - Arguments to find a ChatMessage
+     * @example
+     * // Get one ChatMessage
+     * const chatMessage = await prisma.chatMessage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChatMessageFindUniqueArgs>(args: SelectSubset<T, ChatMessageFindUniqueArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ChatMessage that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ChatMessageFindUniqueOrThrowArgs} args - Arguments to find a ChatMessage
+     * @example
+     * // Get one ChatMessage
+     * const chatMessage = await prisma.chatMessage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChatMessageFindUniqueOrThrowArgs>(args: SelectSubset<T, ChatMessageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ChatMessage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageFindFirstArgs} args - Arguments to find a ChatMessage
+     * @example
+     * // Get one ChatMessage
+     * const chatMessage = await prisma.chatMessage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChatMessageFindFirstArgs>(args?: SelectSubset<T, ChatMessageFindFirstArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ChatMessage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageFindFirstOrThrowArgs} args - Arguments to find a ChatMessage
+     * @example
+     * // Get one ChatMessage
+     * const chatMessage = await prisma.chatMessage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChatMessageFindFirstOrThrowArgs>(args?: SelectSubset<T, ChatMessageFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ChatMessages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChatMessages
+     * const chatMessages = await prisma.chatMessage.findMany()
+     * 
+     * // Get first 10 ChatMessages
+     * const chatMessages = await prisma.chatMessage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const chatMessageWithIdOnly = await prisma.chatMessage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChatMessageFindManyArgs>(args?: SelectSubset<T, ChatMessageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ChatMessage.
+     * @param {ChatMessageCreateArgs} args - Arguments to create a ChatMessage.
+     * @example
+     * // Create one ChatMessage
+     * const ChatMessage = await prisma.chatMessage.create({
+     *   data: {
+     *     // ... data to create a ChatMessage
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChatMessageCreateArgs>(args: SelectSubset<T, ChatMessageCreateArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ChatMessages.
+     * @param {ChatMessageCreateManyArgs} args - Arguments to create many ChatMessages.
+     * @example
+     * // Create many ChatMessages
+     * const chatMessage = await prisma.chatMessage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChatMessageCreateManyArgs>(args?: SelectSubset<T, ChatMessageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChatMessages and returns the data saved in the database.
+     * @param {ChatMessageCreateManyAndReturnArgs} args - Arguments to create many ChatMessages.
+     * @example
+     * // Create many ChatMessages
+     * const chatMessage = await prisma.chatMessage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChatMessages and only return the `id`
+     * const chatMessageWithIdOnly = await prisma.chatMessage.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChatMessageCreateManyAndReturnArgs>(args?: SelectSubset<T, ChatMessageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ChatMessage.
+     * @param {ChatMessageDeleteArgs} args - Arguments to delete one ChatMessage.
+     * @example
+     * // Delete one ChatMessage
+     * const ChatMessage = await prisma.chatMessage.delete({
+     *   where: {
+     *     // ... filter to delete one ChatMessage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChatMessageDeleteArgs>(args: SelectSubset<T, ChatMessageDeleteArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ChatMessage.
+     * @param {ChatMessageUpdateArgs} args - Arguments to update one ChatMessage.
+     * @example
+     * // Update one ChatMessage
+     * const chatMessage = await prisma.chatMessage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChatMessageUpdateArgs>(args: SelectSubset<T, ChatMessageUpdateArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ChatMessages.
+     * @param {ChatMessageDeleteManyArgs} args - Arguments to filter ChatMessages to delete.
+     * @example
+     * // Delete a few ChatMessages
+     * const { count } = await prisma.chatMessage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChatMessageDeleteManyArgs>(args?: SelectSubset<T, ChatMessageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChatMessages
+     * const chatMessage = await prisma.chatMessage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChatMessageUpdateManyArgs>(args: SelectSubset<T, ChatMessageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ChatMessage.
+     * @param {ChatMessageUpsertArgs} args - Arguments to update or create a ChatMessage.
+     * @example
+     * // Update or create a ChatMessage
+     * const chatMessage = await prisma.chatMessage.upsert({
+     *   create: {
+     *     // ... data to create a ChatMessage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChatMessage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChatMessageUpsertArgs>(args: SelectSubset<T, ChatMessageUpsertArgs<ExtArgs>>): Prisma__ChatMessageClient<$Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ChatMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageCountArgs} args - Arguments to filter ChatMessages to count.
+     * @example
+     * // Count the number of ChatMessages
+     * const count = await prisma.chatMessage.count({
+     *   where: {
+     *     // ... the filter for the ChatMessages we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChatMessageCountArgs>(
+      args?: Subset<T, ChatMessageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChatMessageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChatMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChatMessageAggregateArgs>(args: Subset<T, ChatMessageAggregateArgs>): Prisma.PrismaPromise<GetChatMessageAggregateType<T>>
+
+    /**
+     * Group by ChatMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatMessageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChatMessageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChatMessageGroupByArgs['orderBy'] }
+        : { orderBy?: ChatMessageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChatMessageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChatMessageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChatMessage model
+   */
+  readonly fields: ChatMessageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChatMessage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChatMessageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChatMessage model
+   */ 
+  interface ChatMessageFieldRefs {
+    readonly id: FieldRef<"ChatMessage", 'String'>
+    readonly tenantId: FieldRef<"ChatMessage", 'String'>
+    readonly channel: FieldRef<"ChatMessage", 'String'>
+    readonly driverId: FieldRef<"ChatMessage", 'String'>
+    readonly orderId: FieldRef<"ChatMessage", 'String'>
+    readonly senderType: FieldRef<"ChatMessage", 'String'>
+    readonly senderName: FieldRef<"ChatMessage", 'String'>
+    readonly body: FieldRef<"ChatMessage", 'String'>
+    readonly createdAt: FieldRef<"ChatMessage", 'DateTime'>
+    readonly readByOperatorAt: FieldRef<"ChatMessage", 'DateTime'>
+    readonly readByDriverAt: FieldRef<"ChatMessage", 'DateTime'>
+    readonly readByCustomerAt: FieldRef<"ChatMessage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChatMessage findUnique
+   */
+  export type ChatMessageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which ChatMessage to fetch.
+     */
+    where: ChatMessageWhereUniqueInput
+  }
+
+  /**
+   * ChatMessage findUniqueOrThrow
+   */
+  export type ChatMessageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which ChatMessage to fetch.
+     */
+    where: ChatMessageWhereUniqueInput
+  }
+
+  /**
+   * ChatMessage findFirst
+   */
+  export type ChatMessageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which ChatMessage to fetch.
+     */
+    where?: ChatMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatMessages to fetch.
+     */
+    orderBy?: ChatMessageOrderByWithRelationInput | ChatMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatMessages.
+     */
+    cursor?: ChatMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatMessages.
+     */
+    distinct?: ChatMessageScalarFieldEnum | ChatMessageScalarFieldEnum[]
+  }
+
+  /**
+   * ChatMessage findFirstOrThrow
+   */
+  export type ChatMessageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which ChatMessage to fetch.
+     */
+    where?: ChatMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatMessages to fetch.
+     */
+    orderBy?: ChatMessageOrderByWithRelationInput | ChatMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatMessages.
+     */
+    cursor?: ChatMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatMessages.
+     */
+    distinct?: ChatMessageScalarFieldEnum | ChatMessageScalarFieldEnum[]
+  }
+
+  /**
+   * ChatMessage findMany
+   */
+  export type ChatMessageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter, which ChatMessages to fetch.
+     */
+    where?: ChatMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatMessages to fetch.
+     */
+    orderBy?: ChatMessageOrderByWithRelationInput | ChatMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChatMessages.
+     */
+    cursor?: ChatMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatMessages.
+     */
+    skip?: number
+    distinct?: ChatMessageScalarFieldEnum | ChatMessageScalarFieldEnum[]
+  }
+
+  /**
+   * ChatMessage create
+   */
+  export type ChatMessageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * The data needed to create a ChatMessage.
+     */
+    data: XOR<ChatMessageCreateInput, ChatMessageUncheckedCreateInput>
+  }
+
+  /**
+   * ChatMessage createMany
+   */
+  export type ChatMessageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChatMessages.
+     */
+    data: ChatMessageCreateManyInput | ChatMessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatMessage createManyAndReturn
+   */
+  export type ChatMessageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ChatMessages.
+     */
+    data: ChatMessageCreateManyInput | ChatMessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatMessage update
+   */
+  export type ChatMessageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * The data needed to update a ChatMessage.
+     */
+    data: XOR<ChatMessageUpdateInput, ChatMessageUncheckedUpdateInput>
+    /**
+     * Choose, which ChatMessage to update.
+     */
+    where: ChatMessageWhereUniqueInput
+  }
+
+  /**
+   * ChatMessage updateMany
+   */
+  export type ChatMessageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChatMessages.
+     */
+    data: XOR<ChatMessageUpdateManyMutationInput, ChatMessageUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatMessages to update
+     */
+    where?: ChatMessageWhereInput
+  }
+
+  /**
+   * ChatMessage upsert
+   */
+  export type ChatMessageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * The filter to search for the ChatMessage to update in case it exists.
+     */
+    where: ChatMessageWhereUniqueInput
+    /**
+     * In case the ChatMessage found by the `where` argument doesn't exist, create a new ChatMessage with this data.
+     */
+    create: XOR<ChatMessageCreateInput, ChatMessageUncheckedCreateInput>
+    /**
+     * In case the ChatMessage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChatMessageUpdateInput, ChatMessageUncheckedUpdateInput>
+  }
+
+  /**
+   * ChatMessage delete
+   */
+  export type ChatMessageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+    /**
+     * Filter which ChatMessage to delete.
+     */
+    where: ChatMessageWhereUniqueInput
+  }
+
+  /**
+   * ChatMessage deleteMany
+   */
+  export type ChatMessageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatMessages to delete
+     */
+    where?: ChatMessageWhereInput
+  }
+
+  /**
+   * ChatMessage without action
+   */
+  export type ChatMessageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatMessage
+     */
+    select?: ChatMessageSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WhatsAppConversation
+   */
+
+  export type AggregateWhatsAppConversation = {
+    _count: WhatsAppConversationCountAggregateOutputType | null
+    _min: WhatsAppConversationMinAggregateOutputType | null
+    _max: WhatsAppConversationMaxAggregateOutputType | null
+  }
+
+  export type WhatsAppConversationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    waPhone: string | null
+    phoneNumberId: string | null
+    state: string | null
+    customerName: string | null
+    lastOrderId: string | null
+    lastInboundAt: Date | null
+    lastOutboundAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WhatsAppConversationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    waPhone: string | null
+    phoneNumberId: string | null
+    state: string | null
+    customerName: string | null
+    lastOrderId: string | null
+    lastInboundAt: Date | null
+    lastOutboundAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WhatsAppConversationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    waPhone: number
+    phoneNumberId: number
+    state: number
+    cart: number
+    messages: number
+    customerName: number
+    lastOrderId: number
+    lastInboundAt: number
+    lastOutboundAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type WhatsAppConversationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    waPhone?: true
+    phoneNumberId?: true
+    state?: true
+    customerName?: true
+    lastOrderId?: true
+    lastInboundAt?: true
+    lastOutboundAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WhatsAppConversationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    waPhone?: true
+    phoneNumberId?: true
+    state?: true
+    customerName?: true
+    lastOrderId?: true
+    lastInboundAt?: true
+    lastOutboundAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WhatsAppConversationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    waPhone?: true
+    phoneNumberId?: true
+    state?: true
+    cart?: true
+    messages?: true
+    customerName?: true
+    lastOrderId?: true
+    lastInboundAt?: true
+    lastOutboundAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type WhatsAppConversationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WhatsAppConversation to aggregate.
+     */
+    where?: WhatsAppConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppConversations to fetch.
+     */
+    orderBy?: WhatsAppConversationOrderByWithRelationInput | WhatsAppConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WhatsAppConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WhatsAppConversations
+    **/
+    _count?: true | WhatsAppConversationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WhatsAppConversationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WhatsAppConversationMaxAggregateInputType
+  }
+
+  export type GetWhatsAppConversationAggregateType<T extends WhatsAppConversationAggregateArgs> = {
+        [P in keyof T & keyof AggregateWhatsAppConversation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWhatsAppConversation[P]>
+      : GetScalarType<T[P], AggregateWhatsAppConversation[P]>
+  }
+
+
+
+
+  export type WhatsAppConversationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WhatsAppConversationWhereInput
+    orderBy?: WhatsAppConversationOrderByWithAggregationInput | WhatsAppConversationOrderByWithAggregationInput[]
+    by: WhatsAppConversationScalarFieldEnum[] | WhatsAppConversationScalarFieldEnum
+    having?: WhatsAppConversationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WhatsAppConversationCountAggregateInputType | true
+    _min?: WhatsAppConversationMinAggregateInputType
+    _max?: WhatsAppConversationMaxAggregateInputType
+  }
+
+  export type WhatsAppConversationGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    brandId: string | null
+    waPhone: string
+    phoneNumberId: string | null
+    state: string
+    cart: JsonValue | null
+    messages: JsonValue
+    customerName: string | null
+    lastOrderId: string | null
+    lastInboundAt: Date | null
+    lastOutboundAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: WhatsAppConversationCountAggregateOutputType | null
+    _min: WhatsAppConversationMinAggregateOutputType | null
+    _max: WhatsAppConversationMaxAggregateOutputType | null
+  }
+
+  type GetWhatsAppConversationGroupByPayload<T extends WhatsAppConversationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WhatsAppConversationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WhatsAppConversationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WhatsAppConversationGroupByOutputType[P]>
+            : GetScalarType<T[P], WhatsAppConversationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WhatsAppConversationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    waPhone?: boolean
+    phoneNumberId?: boolean
+    state?: boolean
+    cart?: boolean
+    messages?: boolean
+    customerName?: boolean
+    lastOrderId?: boolean
+    lastInboundAt?: boolean
+    lastOutboundAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["whatsAppConversation"]>
+
+  export type WhatsAppConversationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    waPhone?: boolean
+    phoneNumberId?: boolean
+    state?: boolean
+    cart?: boolean
+    messages?: boolean
+    customerName?: boolean
+    lastOrderId?: boolean
+    lastInboundAt?: boolean
+    lastOutboundAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["whatsAppConversation"]>
+
+  export type WhatsAppConversationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    waPhone?: boolean
+    phoneNumberId?: boolean
+    state?: boolean
+    cart?: boolean
+    messages?: boolean
+    customerName?: boolean
+    lastOrderId?: boolean
+    lastInboundAt?: boolean
+    lastOutboundAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $WhatsAppConversationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WhatsAppConversation"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      brandId: string | null
+      waPhone: string
+      phoneNumberId: string | null
+      state: string
+      cart: Prisma.JsonValue | null
+      messages: Prisma.JsonValue
+      customerName: string | null
+      lastOrderId: string | null
+      lastInboundAt: Date | null
+      lastOutboundAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["whatsAppConversation"]>
+    composites: {}
+  }
+
+  type WhatsAppConversationGetPayload<S extends boolean | null | undefined | WhatsAppConversationDefaultArgs> = $Result.GetResult<Prisma.$WhatsAppConversationPayload, S>
+
+  type WhatsAppConversationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WhatsAppConversationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WhatsAppConversationCountAggregateInputType | true
+    }
+
+  export interface WhatsAppConversationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WhatsAppConversation'], meta: { name: 'WhatsAppConversation' } }
+    /**
+     * Find zero or one WhatsAppConversation that matches the filter.
+     * @param {WhatsAppConversationFindUniqueArgs} args - Arguments to find a WhatsAppConversation
+     * @example
+     * // Get one WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WhatsAppConversationFindUniqueArgs>(args: SelectSubset<T, WhatsAppConversationFindUniqueArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one WhatsAppConversation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WhatsAppConversationFindUniqueOrThrowArgs} args - Arguments to find a WhatsAppConversation
+     * @example
+     * // Get one WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WhatsAppConversationFindUniqueOrThrowArgs>(args: SelectSubset<T, WhatsAppConversationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first WhatsAppConversation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationFindFirstArgs} args - Arguments to find a WhatsAppConversation
+     * @example
+     * // Get one WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WhatsAppConversationFindFirstArgs>(args?: SelectSubset<T, WhatsAppConversationFindFirstArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first WhatsAppConversation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationFindFirstOrThrowArgs} args - Arguments to find a WhatsAppConversation
+     * @example
+     * // Get one WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WhatsAppConversationFindFirstOrThrowArgs>(args?: SelectSubset<T, WhatsAppConversationFindFirstOrThrowArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more WhatsAppConversations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WhatsAppConversations
+     * const whatsAppConversations = await prisma.whatsAppConversation.findMany()
+     * 
+     * // Get first 10 WhatsAppConversations
+     * const whatsAppConversations = await prisma.whatsAppConversation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const whatsAppConversationWithIdOnly = await prisma.whatsAppConversation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WhatsAppConversationFindManyArgs>(args?: SelectSubset<T, WhatsAppConversationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a WhatsAppConversation.
+     * @param {WhatsAppConversationCreateArgs} args - Arguments to create a WhatsAppConversation.
+     * @example
+     * // Create one WhatsAppConversation
+     * const WhatsAppConversation = await prisma.whatsAppConversation.create({
+     *   data: {
+     *     // ... data to create a WhatsAppConversation
+     *   }
+     * })
+     * 
+     */
+    create<T extends WhatsAppConversationCreateArgs>(args: SelectSubset<T, WhatsAppConversationCreateArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many WhatsAppConversations.
+     * @param {WhatsAppConversationCreateManyArgs} args - Arguments to create many WhatsAppConversations.
+     * @example
+     * // Create many WhatsAppConversations
+     * const whatsAppConversation = await prisma.whatsAppConversation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WhatsAppConversationCreateManyArgs>(args?: SelectSubset<T, WhatsAppConversationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WhatsAppConversations and returns the data saved in the database.
+     * @param {WhatsAppConversationCreateManyAndReturnArgs} args - Arguments to create many WhatsAppConversations.
+     * @example
+     * // Create many WhatsAppConversations
+     * const whatsAppConversation = await prisma.whatsAppConversation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WhatsAppConversations and only return the `id`
+     * const whatsAppConversationWithIdOnly = await prisma.whatsAppConversation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WhatsAppConversationCreateManyAndReturnArgs>(args?: SelectSubset<T, WhatsAppConversationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a WhatsAppConversation.
+     * @param {WhatsAppConversationDeleteArgs} args - Arguments to delete one WhatsAppConversation.
+     * @example
+     * // Delete one WhatsAppConversation
+     * const WhatsAppConversation = await prisma.whatsAppConversation.delete({
+     *   where: {
+     *     // ... filter to delete one WhatsAppConversation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WhatsAppConversationDeleteArgs>(args: SelectSubset<T, WhatsAppConversationDeleteArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one WhatsAppConversation.
+     * @param {WhatsAppConversationUpdateArgs} args - Arguments to update one WhatsAppConversation.
+     * @example
+     * // Update one WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WhatsAppConversationUpdateArgs>(args: SelectSubset<T, WhatsAppConversationUpdateArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more WhatsAppConversations.
+     * @param {WhatsAppConversationDeleteManyArgs} args - Arguments to filter WhatsAppConversations to delete.
+     * @example
+     * // Delete a few WhatsAppConversations
+     * const { count } = await prisma.whatsAppConversation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WhatsAppConversationDeleteManyArgs>(args?: SelectSubset<T, WhatsAppConversationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WhatsAppConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WhatsAppConversations
+     * const whatsAppConversation = await prisma.whatsAppConversation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WhatsAppConversationUpdateManyArgs>(args: SelectSubset<T, WhatsAppConversationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one WhatsAppConversation.
+     * @param {WhatsAppConversationUpsertArgs} args - Arguments to update or create a WhatsAppConversation.
+     * @example
+     * // Update or create a WhatsAppConversation
+     * const whatsAppConversation = await prisma.whatsAppConversation.upsert({
+     *   create: {
+     *     // ... data to create a WhatsAppConversation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WhatsAppConversation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WhatsAppConversationUpsertArgs>(args: SelectSubset<T, WhatsAppConversationUpsertArgs<ExtArgs>>): Prisma__WhatsAppConversationClient<$Result.GetResult<Prisma.$WhatsAppConversationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of WhatsAppConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationCountArgs} args - Arguments to filter WhatsAppConversations to count.
+     * @example
+     * // Count the number of WhatsAppConversations
+     * const count = await prisma.whatsAppConversation.count({
+     *   where: {
+     *     // ... the filter for the WhatsAppConversations we want to count
+     *   }
+     * })
+    **/
+    count<T extends WhatsAppConversationCountArgs>(
+      args?: Subset<T, WhatsAppConversationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WhatsAppConversationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WhatsAppConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WhatsAppConversationAggregateArgs>(args: Subset<T, WhatsAppConversationAggregateArgs>): Prisma.PrismaPromise<GetWhatsAppConversationAggregateType<T>>
+
+    /**
+     * Group by WhatsAppConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WhatsAppConversationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WhatsAppConversationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WhatsAppConversationGroupByArgs['orderBy'] }
+        : { orderBy?: WhatsAppConversationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WhatsAppConversationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWhatsAppConversationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WhatsAppConversation model
+   */
+  readonly fields: WhatsAppConversationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WhatsAppConversation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WhatsAppConversationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WhatsAppConversation model
+   */ 
+  interface WhatsAppConversationFieldRefs {
+    readonly id: FieldRef<"WhatsAppConversation", 'String'>
+    readonly tenantId: FieldRef<"WhatsAppConversation", 'String'>
+    readonly locationId: FieldRef<"WhatsAppConversation", 'String'>
+    readonly brandId: FieldRef<"WhatsAppConversation", 'String'>
+    readonly waPhone: FieldRef<"WhatsAppConversation", 'String'>
+    readonly phoneNumberId: FieldRef<"WhatsAppConversation", 'String'>
+    readonly state: FieldRef<"WhatsAppConversation", 'String'>
+    readonly cart: FieldRef<"WhatsAppConversation", 'Json'>
+    readonly messages: FieldRef<"WhatsAppConversation", 'Json'>
+    readonly customerName: FieldRef<"WhatsAppConversation", 'String'>
+    readonly lastOrderId: FieldRef<"WhatsAppConversation", 'String'>
+    readonly lastInboundAt: FieldRef<"WhatsAppConversation", 'DateTime'>
+    readonly lastOutboundAt: FieldRef<"WhatsAppConversation", 'DateTime'>
+    readonly createdAt: FieldRef<"WhatsAppConversation", 'DateTime'>
+    readonly updatedAt: FieldRef<"WhatsAppConversation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WhatsAppConversation findUnique
+   */
+  export type WhatsAppConversationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppConversation to fetch.
+     */
+    where: WhatsAppConversationWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppConversation findUniqueOrThrow
+   */
+  export type WhatsAppConversationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppConversation to fetch.
+     */
+    where: WhatsAppConversationWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppConversation findFirst
+   */
+  export type WhatsAppConversationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppConversation to fetch.
+     */
+    where?: WhatsAppConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppConversations to fetch.
+     */
+    orderBy?: WhatsAppConversationOrderByWithRelationInput | WhatsAppConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WhatsAppConversations.
+     */
+    cursor?: WhatsAppConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WhatsAppConversations.
+     */
+    distinct?: WhatsAppConversationScalarFieldEnum | WhatsAppConversationScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppConversation findFirstOrThrow
+   */
+  export type WhatsAppConversationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppConversation to fetch.
+     */
+    where?: WhatsAppConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppConversations to fetch.
+     */
+    orderBy?: WhatsAppConversationOrderByWithRelationInput | WhatsAppConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WhatsAppConversations.
+     */
+    cursor?: WhatsAppConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WhatsAppConversations.
+     */
+    distinct?: WhatsAppConversationScalarFieldEnum | WhatsAppConversationScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppConversation findMany
+   */
+  export type WhatsAppConversationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter, which WhatsAppConversations to fetch.
+     */
+    where?: WhatsAppConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WhatsAppConversations to fetch.
+     */
+    orderBy?: WhatsAppConversationOrderByWithRelationInput | WhatsAppConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WhatsAppConversations.
+     */
+    cursor?: WhatsAppConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WhatsAppConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WhatsAppConversations.
+     */
+    skip?: number
+    distinct?: WhatsAppConversationScalarFieldEnum | WhatsAppConversationScalarFieldEnum[]
+  }
+
+  /**
+   * WhatsAppConversation create
+   */
+  export type WhatsAppConversationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a WhatsAppConversation.
+     */
+    data: XOR<WhatsAppConversationCreateInput, WhatsAppConversationUncheckedCreateInput>
+  }
+
+  /**
+   * WhatsAppConversation createMany
+   */
+  export type WhatsAppConversationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WhatsAppConversations.
+     */
+    data: WhatsAppConversationCreateManyInput | WhatsAppConversationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WhatsAppConversation createManyAndReturn
+   */
+  export type WhatsAppConversationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many WhatsAppConversations.
+     */
+    data: WhatsAppConversationCreateManyInput | WhatsAppConversationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WhatsAppConversation update
+   */
+  export type WhatsAppConversationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a WhatsAppConversation.
+     */
+    data: XOR<WhatsAppConversationUpdateInput, WhatsAppConversationUncheckedUpdateInput>
+    /**
+     * Choose, which WhatsAppConversation to update.
+     */
+    where: WhatsAppConversationWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppConversation updateMany
+   */
+  export type WhatsAppConversationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WhatsAppConversations.
+     */
+    data: XOR<WhatsAppConversationUpdateManyMutationInput, WhatsAppConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which WhatsAppConversations to update
+     */
+    where?: WhatsAppConversationWhereInput
+  }
+
+  /**
+   * WhatsAppConversation upsert
+   */
+  export type WhatsAppConversationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the WhatsAppConversation to update in case it exists.
+     */
+    where: WhatsAppConversationWhereUniqueInput
+    /**
+     * In case the WhatsAppConversation found by the `where` argument doesn't exist, create a new WhatsAppConversation with this data.
+     */
+    create: XOR<WhatsAppConversationCreateInput, WhatsAppConversationUncheckedCreateInput>
+    /**
+     * In case the WhatsAppConversation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WhatsAppConversationUpdateInput, WhatsAppConversationUncheckedUpdateInput>
+  }
+
+  /**
+   * WhatsAppConversation delete
+   */
+  export type WhatsAppConversationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
+    /**
+     * Filter which WhatsAppConversation to delete.
+     */
+    where: WhatsAppConversationWhereUniqueInput
+  }
+
+  /**
+   * WhatsAppConversation deleteMany
+   */
+  export type WhatsAppConversationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WhatsAppConversations to delete
+     */
+    where?: WhatsAppConversationWhereInput
+  }
+
+  /**
+   * WhatsAppConversation without action
+   */
+  export type WhatsAppConversationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WhatsAppConversation
+     */
+    select?: WhatsAppConversationSelect<ExtArgs> | null
   }
 
 
@@ -111550,6 +116084,8 @@ export namespace Prisma {
     slug: 'slug',
     openingHours: 'openingHours',
     deliveryConfig: 'deliveryConfig',
+    prepTime: 'prepTime',
+    busyExtraPrepTime: 'busyExtraPrepTime',
     onboardingStep: 'onboardingStep',
     goLiveStatus: 'goLiveStatus',
     lastTestOrderAt: 'lastTestOrderAt',
@@ -111641,6 +116177,7 @@ export namespace Prisma {
     lastPublishedAt: 'lastPublishedAt',
     autoScheduleEnabled: 'autoScheduleEnabled',
     autoSchedule: 'autoSchedule',
+    pricingVariants: 'pricingVariants',
     metadata: 'metadata',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -111803,6 +116340,7 @@ export namespace Prisma {
     plu: 'plu',
     pricesBySize: 'pricesBySize',
     skuPlus: 'skuPlus',
+    platformPricingOverrides: 'platformPricingOverrides',
     imageUrl: 'imageUrl',
     allergens: 'allergens',
     isDefault: 'isDefault',
@@ -112103,6 +116641,9 @@ export namespace Prisma {
     customerName: 'customerName',
     customerPhone: 'customerPhone',
     deliveryAddress: 'deliveryAddress',
+    deliveryLat: 'deliveryLat',
+    deliveryLng: 'deliveryLng',
+    geocodedAt: 'geocodedAt',
     subtotal: 'subtotal',
     taxAmount: 'taxAmount',
     serviceCharge: 'serviceCharge',
@@ -112207,6 +116748,23 @@ export namespace Prisma {
   export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
+  export const ActivityLogScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    category: 'category',
+    channel: 'channel',
+    action: 'action',
+    status: 'status',
+    message: 'message',
+    details: 'details',
+    createdAt: 'createdAt'
+  };
+
+  export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
+
+
   export const KdsScreenScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -112228,6 +116786,7 @@ export namespace Prisma {
     orderId: 'orderId',
     bumpedAt: 'bumpedAt',
     recalledAt: 'recalledAt',
+    metadata: 'metadata',
     createdAt: 'createdAt'
   };
 
@@ -112457,14 +117016,37 @@ export namespace Prisma {
   export type DriverScalarFieldEnum = (typeof DriverScalarFieldEnum)[keyof typeof DriverScalarFieldEnum]
 
 
+  export const DriverPresenceScalarFieldEnum: {
+    id: 'id',
+    driverId: 'driverId',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    status: 'status',
+    lat: 'lat',
+    lng: 'lng',
+    heading: 'heading',
+    speed: 'speed',
+    activeAssignmentId: 'activeAssignmentId',
+    socketId: 'socketId',
+    pushToken: 'pushToken',
+    lastPingAt: 'lastPingAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DriverPresenceScalarFieldEnum = (typeof DriverPresenceScalarFieldEnum)[keyof typeof DriverPresenceScalarFieldEnum]
+
+
   export const DriverAssignmentScalarFieldEnum: {
     id: 'id',
     orderId: 'orderId',
     driverId: 'driverId',
     status: 'status',
+    sequence: 'sequence',
     assignedAt: 'assignedAt',
     acceptedAt: 'acceptedAt',
     pickedUpAt: 'pickedUpAt',
+    arrivedAt: 'arrivedAt',
     deliveredAt: 'deliveredAt'
   };
 
@@ -112484,6 +117066,45 @@ export namespace Prisma {
   };
 
   export type DeliveryTrackingScalarFieldEnum = (typeof DeliveryTrackingScalarFieldEnum)[keyof typeof DeliveryTrackingScalarFieldEnum]
+
+
+  export const ChatMessageScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    channel: 'channel',
+    driverId: 'driverId',
+    orderId: 'orderId',
+    senderType: 'senderType',
+    senderName: 'senderName',
+    body: 'body',
+    createdAt: 'createdAt',
+    readByOperatorAt: 'readByOperatorAt',
+    readByDriverAt: 'readByDriverAt',
+    readByCustomerAt: 'readByCustomerAt'
+  };
+
+  export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
+
+
+  export const WhatsAppConversationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    waPhone: 'waPhone',
+    phoneNumberId: 'phoneNumberId',
+    state: 'state',
+    cart: 'cart',
+    messages: 'messages',
+    customerName: 'customerName',
+    lastOrderId: 'lastOrderId',
+    lastInboundAt: 'lastInboundAt',
+    lastOutboundAt: 'lastOutboundAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type WhatsAppConversationScalarFieldEnum = (typeof WhatsAppConversationScalarFieldEnum)[keyof typeof WhatsAppConversationScalarFieldEnum]
 
 
   export const StripeConnectAccountScalarFieldEnum: {
@@ -113742,6 +118363,21 @@ export namespace Prisma {
   export type WebhookEventOrderByRelevanceFieldEnum = (typeof WebhookEventOrderByRelevanceFieldEnum)[keyof typeof WebhookEventOrderByRelevanceFieldEnum]
 
 
+  export const ActivityLogOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    category: 'category',
+    channel: 'channel',
+    action: 'action',
+    status: 'status',
+    message: 'message'
+  };
+
+  export type ActivityLogOrderByRelevanceFieldEnum = (typeof ActivityLogOrderByRelevanceFieldEnum)[keyof typeof ActivityLogOrderByRelevanceFieldEnum]
+
+
   export const KdsScreenOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -113906,6 +118542,19 @@ export namespace Prisma {
   export type DriverOrderByRelevanceFieldEnum = (typeof DriverOrderByRelevanceFieldEnum)[keyof typeof DriverOrderByRelevanceFieldEnum]
 
 
+  export const DriverPresenceOrderByRelevanceFieldEnum: {
+    id: 'id',
+    driverId: 'driverId',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    activeAssignmentId: 'activeAssignmentId',
+    socketId: 'socketId',
+    pushToken: 'pushToken'
+  };
+
+  export type DriverPresenceOrderByRelevanceFieldEnum = (typeof DriverPresenceOrderByRelevanceFieldEnum)[keyof typeof DriverPresenceOrderByRelevanceFieldEnum]
+
+
   export const DriverAssignmentOrderByRelevanceFieldEnum: {
     id: 'id',
     orderId: 'orderId',
@@ -113922,6 +118571,35 @@ export namespace Prisma {
   };
 
   export type DeliveryTrackingOrderByRelevanceFieldEnum = (typeof DeliveryTrackingOrderByRelevanceFieldEnum)[keyof typeof DeliveryTrackingOrderByRelevanceFieldEnum]
+
+
+  export const ChatMessageOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    channel: 'channel',
+    driverId: 'driverId',
+    orderId: 'orderId',
+    senderType: 'senderType',
+    senderName: 'senderName',
+    body: 'body'
+  };
+
+  export type ChatMessageOrderByRelevanceFieldEnum = (typeof ChatMessageOrderByRelevanceFieldEnum)[keyof typeof ChatMessageOrderByRelevanceFieldEnum]
+
+
+  export const WhatsAppConversationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    waPhone: 'waPhone',
+    phoneNumberId: 'phoneNumberId',
+    state: 'state',
+    customerName: 'customerName',
+    lastOrderId: 'lastOrderId'
+  };
+
+  export type WhatsAppConversationOrderByRelevanceFieldEnum = (typeof WhatsAppConversationOrderByRelevanceFieldEnum)[keyof typeof WhatsAppConversationOrderByRelevanceFieldEnum]
 
 
   export const StripeConnectAccountOrderByRelevanceFieldEnum: {
@@ -114744,6 +119422,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
    * Reference to a field of type 'PaymentStatus'
    */
   export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus'>
@@ -114884,16 +119576,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Float'
+   * Reference to a field of type 'DriverPresenceStatus'
    */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+  export type EnumDriverPresenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverPresenceStatus'>
     
 
 
   /**
-   * Reference to a field of type 'Float[]'
+   * Reference to a field of type 'DriverPresenceStatus[]'
    */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+  export type ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DriverPresenceStatus[]'>
     
 
 
@@ -116437,6 +121129,8 @@ export namespace Prisma {
     slug?: StringNullableFilter<"Location"> | string | null
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
+    prepTime?: IntNullableFilter<"Location"> | number | null
+    busyExtraPrepTime?: IntNullableFilter<"Location"> | number | null
     onboardingStep?: IntFilter<"Location"> | number
     goLiveStatus?: EnumLocationGoLiveStatusFilter<"Location"> | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: DateTimeNullableFilter<"Location"> | Date | string | null
@@ -116510,6 +121204,8 @@ export namespace Prisma {
     slug?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
+    prepTime?: SortOrderInput | SortOrder
+    busyExtraPrepTime?: SortOrderInput | SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
     lastTestOrderAt?: SortOrderInput | SortOrder
@@ -116587,6 +121283,8 @@ export namespace Prisma {
     busyModeJson?: JsonFilter<"Location">
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
+    prepTime?: IntNullableFilter<"Location"> | number | null
+    busyExtraPrepTime?: IntNullableFilter<"Location"> | number | null
     onboardingStep?: IntFilter<"Location"> | number
     goLiveStatus?: EnumLocationGoLiveStatusFilter<"Location"> | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: DateTimeNullableFilter<"Location"> | Date | string | null
@@ -116660,6 +121358,8 @@ export namespace Prisma {
     slug?: SortOrderInput | SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
+    prepTime?: SortOrderInput | SortOrder
+    busyExtraPrepTime?: SortOrderInput | SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
     lastTestOrderAt?: SortOrderInput | SortOrder
@@ -116724,6 +121424,8 @@ export namespace Prisma {
     slug?: StringNullableWithAggregatesFilter<"Location"> | string | null
     openingHours?: JsonWithAggregatesFilter<"Location">
     deliveryConfig?: JsonWithAggregatesFilter<"Location">
+    prepTime?: IntNullableWithAggregatesFilter<"Location"> | number | null
+    busyExtraPrepTime?: IntNullableWithAggregatesFilter<"Location"> | number | null
     onboardingStep?: IntWithAggregatesFilter<"Location"> | number
     goLiveStatus?: EnumLocationGoLiveStatusWithAggregatesFilter<"Location"> | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: DateTimeNullableWithAggregatesFilter<"Location"> | Date | string | null
@@ -116990,6 +121692,7 @@ export namespace Prisma {
     lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
     autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
     autoSchedule?: JsonFilter<"Menu">
+    pricingVariants?: JsonFilter<"Menu">
     metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
@@ -117029,6 +121732,7 @@ export namespace Prisma {
     lastPublishedAt?: SortOrderInput | SortOrder
     autoScheduleEnabled?: SortOrder
     autoSchedule?: SortOrder
+    pricingVariants?: SortOrder
     metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -117072,6 +121776,7 @@ export namespace Prisma {
     lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
     autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
     autoSchedule?: JsonFilter<"Menu">
+    pricingVariants?: JsonFilter<"Menu">
     metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
@@ -117111,6 +121816,7 @@ export namespace Prisma {
     lastPublishedAt?: SortOrderInput | SortOrder
     autoScheduleEnabled?: SortOrder
     autoSchedule?: SortOrder
+    pricingVariants?: SortOrder
     metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -117155,6 +121861,7 @@ export namespace Prisma {
     lastPublishedAt?: DateTimeNullableWithAggregatesFilter<"Menu"> | Date | string | null
     autoScheduleEnabled?: BoolWithAggregatesFilter<"Menu"> | boolean
     autoSchedule?: JsonWithAggregatesFilter<"Menu">
+    pricingVariants?: JsonWithAggregatesFilter<"Menu">
     metadata?: JsonWithAggregatesFilter<"Menu">
     createdAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
@@ -117947,6 +122654,7 @@ export namespace Prisma {
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
     skuPlus?: JsonFilter<"ModifierOption">
+    platformPricingOverrides?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
@@ -117982,6 +122690,7 @@ export namespace Prisma {
     plu?: SortOrderInput | SortOrder
     pricesBySize?: SortOrder
     skuPlus?: SortOrder
+    platformPricingOverrides?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
@@ -118021,6 +122730,7 @@ export namespace Prisma {
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
     skuPlus?: JsonFilter<"ModifierOption">
+    platformPricingOverrides?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
@@ -118056,6 +122766,7 @@ export namespace Prisma {
     plu?: SortOrderInput | SortOrder
     pricesBySize?: SortOrder
     skuPlus?: SortOrder
+    platformPricingOverrides?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
@@ -118097,6 +122808,7 @@ export namespace Prisma {
     plu?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonWithAggregatesFilter<"ModifierOption">
     skuPlus?: JsonWithAggregatesFilter<"ModifierOption">
+    platformPricingOverrides?: JsonWithAggregatesFilter<"ModifierOption">
     imageUrl?: StringNullableWithAggregatesFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolWithAggregatesFilter<"ModifierOption"> | boolean
@@ -119441,6 +124153,9 @@ export namespace Prisma {
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
     deliveryAddress?: JsonNullableFilter<"Order">
+    deliveryLat?: FloatNullableFilter<"Order"> | number | null
+    deliveryLng?: FloatNullableFilter<"Order"> | number | null
+    geocodedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -119521,6 +124236,9 @@ export namespace Prisma {
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
     deliveryAddress?: SortOrderInput | SortOrder
+    deliveryLat?: SortOrderInput | SortOrder
+    deliveryLng?: SortOrderInput | SortOrder
+    geocodedAt?: SortOrderInput | SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -119607,6 +124325,9 @@ export namespace Prisma {
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
     deliveryAddress?: JsonNullableFilter<"Order">
+    deliveryLat?: FloatNullableFilter<"Order"> | number | null
+    deliveryLng?: FloatNullableFilter<"Order"> | number | null
+    geocodedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -119686,6 +124407,9 @@ export namespace Prisma {
     customerName?: SortOrderInput | SortOrder
     customerPhone?: SortOrderInput | SortOrder
     deliveryAddress?: SortOrderInput | SortOrder
+    deliveryLat?: SortOrderInput | SortOrder
+    deliveryLng?: SortOrderInput | SortOrder
+    geocodedAt?: SortOrderInput | SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -119763,6 +124487,9 @@ export namespace Prisma {
     customerName?: StringNullableWithAggregatesFilter<"Order"> | string | null
     customerPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
     deliveryAddress?: JsonNullableWithAggregatesFilter<"Order">
+    deliveryLat?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+    deliveryLng?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+    geocodedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     subtotal?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -120113,6 +124840,89 @@ export namespace Prisma {
     receivedAt?: DateTimeWithAggregatesFilter<"WebhookEvent"> | Date | string
   }
 
+  export type ActivityLogWhereInput = {
+    AND?: ActivityLogWhereInput | ActivityLogWhereInput[]
+    OR?: ActivityLogWhereInput[]
+    NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
+    id?: StringFilter<"ActivityLog"> | string
+    tenantId?: StringFilter<"ActivityLog"> | string
+    locationId?: StringNullableFilter<"ActivityLog"> | string | null
+    brandId?: StringNullableFilter<"ActivityLog"> | string | null
+    category?: StringFilter<"ActivityLog"> | string
+    channel?: StringNullableFilter<"ActivityLog"> | string | null
+    action?: StringFilter<"ActivityLog"> | string
+    status?: StringFilter<"ActivityLog"> | string
+    message?: StringFilter<"ActivityLog"> | string
+    details?: JsonFilter<"ActivityLog">
+    createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
+  }
+
+  export type ActivityLogOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    category?: SortOrder
+    channel?: SortOrderInput | SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    details?: SortOrder
+    createdAt?: SortOrder
+    _relevance?: ActivityLogOrderByRelevanceInput
+  }
+
+  export type ActivityLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ActivityLogWhereInput | ActivityLogWhereInput[]
+    OR?: ActivityLogWhereInput[]
+    NOT?: ActivityLogWhereInput | ActivityLogWhereInput[]
+    tenantId?: StringFilter<"ActivityLog"> | string
+    locationId?: StringNullableFilter<"ActivityLog"> | string | null
+    brandId?: StringNullableFilter<"ActivityLog"> | string | null
+    category?: StringFilter<"ActivityLog"> | string
+    channel?: StringNullableFilter<"ActivityLog"> | string | null
+    action?: StringFilter<"ActivityLog"> | string
+    status?: StringFilter<"ActivityLog"> | string
+    message?: StringFilter<"ActivityLog"> | string
+    details?: JsonFilter<"ActivityLog">
+    createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
+  }, "id">
+
+  export type ActivityLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    category?: SortOrder
+    channel?: SortOrderInput | SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    details?: SortOrder
+    createdAt?: SortOrder
+    _count?: ActivityLogCountOrderByAggregateInput
+    _max?: ActivityLogMaxOrderByAggregateInput
+    _min?: ActivityLogMinOrderByAggregateInput
+  }
+
+  export type ActivityLogScalarWhereWithAggregatesInput = {
+    AND?: ActivityLogScalarWhereWithAggregatesInput | ActivityLogScalarWhereWithAggregatesInput[]
+    OR?: ActivityLogScalarWhereWithAggregatesInput[]
+    NOT?: ActivityLogScalarWhereWithAggregatesInput | ActivityLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ActivityLog"> | string
+    tenantId?: StringWithAggregatesFilter<"ActivityLog"> | string
+    locationId?: StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    category?: StringWithAggregatesFilter<"ActivityLog"> | string
+    channel?: StringNullableWithAggregatesFilter<"ActivityLog"> | string | null
+    action?: StringWithAggregatesFilter<"ActivityLog"> | string
+    status?: StringWithAggregatesFilter<"ActivityLog"> | string
+    message?: StringWithAggregatesFilter<"ActivityLog"> | string
+    details?: JsonWithAggregatesFilter<"ActivityLog">
+    createdAt?: DateTimeWithAggregatesFilter<"ActivityLog"> | Date | string
+  }
+
   export type KdsScreenWhereInput = {
     AND?: KdsScreenWhereInput | KdsScreenWhereInput[]
     OR?: KdsScreenWhereInput[]
@@ -120201,6 +125011,7 @@ export namespace Prisma {
     orderId?: StringFilter<"KdsTicket"> | string
     bumpedAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
     recalledAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
+    metadata?: JsonFilter<"KdsTicket">
     createdAt?: DateTimeFilter<"KdsTicket"> | Date | string
     screen?: XOR<KdsScreenRelationFilter, KdsScreenWhereInput>
     order?: XOR<OrderRelationFilter, OrderWhereInput>
@@ -120212,6 +125023,7 @@ export namespace Prisma {
     orderId?: SortOrder
     bumpedAt?: SortOrderInput | SortOrder
     recalledAt?: SortOrderInput | SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     screen?: KdsScreenOrderByWithRelationInput
     order?: OrderOrderByWithRelationInput
@@ -120228,6 +125040,7 @@ export namespace Prisma {
     orderId?: StringFilter<"KdsTicket"> | string
     bumpedAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
     recalledAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
+    metadata?: JsonFilter<"KdsTicket">
     createdAt?: DateTimeFilter<"KdsTicket"> | Date | string
     screen?: XOR<KdsScreenRelationFilter, KdsScreenWhereInput>
     order?: XOR<OrderRelationFilter, OrderWhereInput>
@@ -120239,6 +125052,7 @@ export namespace Prisma {
     orderId?: SortOrder
     bumpedAt?: SortOrderInput | SortOrder
     recalledAt?: SortOrderInput | SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
     _count?: KdsTicketCountOrderByAggregateInput
     _max?: KdsTicketMaxOrderByAggregateInput
@@ -120254,6 +125068,7 @@ export namespace Prisma {
     orderId?: StringWithAggregatesFilter<"KdsTicket"> | string
     bumpedAt?: DateTimeNullableWithAggregatesFilter<"KdsTicket"> | Date | string | null
     recalledAt?: DateTimeNullableWithAggregatesFilter<"KdsTicket"> | Date | string | null
+    metadata?: JsonWithAggregatesFilter<"KdsTicket">
     createdAt?: DateTimeWithAggregatesFilter<"KdsTicket"> | Date | string
   }
 
@@ -121382,6 +126197,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Driver"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     assignments?: DriverAssignmentListRelationFilter
+    presence?: XOR<DriverPresenceNullableRelationFilter, DriverPresenceWhereInput> | null
   }
 
   export type DriverOrderByWithRelationInput = {
@@ -121399,6 +126215,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
     assignments?: DriverAssignmentOrderByRelationAggregateInput
+    presence?: DriverPresenceOrderByWithRelationInput
     _relevance?: DriverOrderByRelevanceInput
   }
 
@@ -121420,6 +126237,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Driver"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     assignments?: DriverAssignmentListRelationFilter
+    presence?: XOR<DriverPresenceNullableRelationFilter, DriverPresenceWhereInput> | null
   }, "id">
 
   export type DriverOrderByWithAggregationInput = {
@@ -121458,6 +126276,114 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Driver"> | Date | string
   }
 
+  export type DriverPresenceWhereInput = {
+    AND?: DriverPresenceWhereInput | DriverPresenceWhereInput[]
+    OR?: DriverPresenceWhereInput[]
+    NOT?: DriverPresenceWhereInput | DriverPresenceWhereInput[]
+    id?: StringFilter<"DriverPresence"> | string
+    driverId?: StringFilter<"DriverPresence"> | string
+    tenantId?: StringFilter<"DriverPresence"> | string
+    locationId?: StringNullableFilter<"DriverPresence"> | string | null
+    status?: EnumDriverPresenceStatusFilter<"DriverPresence"> | $Enums.DriverPresenceStatus
+    lat?: FloatNullableFilter<"DriverPresence"> | number | null
+    lng?: FloatNullableFilter<"DriverPresence"> | number | null
+    heading?: FloatNullableFilter<"DriverPresence"> | number | null
+    speed?: FloatNullableFilter<"DriverPresence"> | number | null
+    activeAssignmentId?: StringNullableFilter<"DriverPresence"> | string | null
+    socketId?: StringNullableFilter<"DriverPresence"> | string | null
+    pushToken?: StringNullableFilter<"DriverPresence"> | string | null
+    lastPingAt?: DateTimeNullableFilter<"DriverPresence"> | Date | string | null
+    createdAt?: DateTimeFilter<"DriverPresence"> | Date | string
+    updatedAt?: DateTimeFilter<"DriverPresence"> | Date | string
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }
+
+  export type DriverPresenceOrderByWithRelationInput = {
+    id?: SortOrder
+    driverId?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    lat?: SortOrderInput | SortOrder
+    lng?: SortOrderInput | SortOrder
+    heading?: SortOrderInput | SortOrder
+    speed?: SortOrderInput | SortOrder
+    activeAssignmentId?: SortOrderInput | SortOrder
+    socketId?: SortOrderInput | SortOrder
+    pushToken?: SortOrderInput | SortOrder
+    lastPingAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    driver?: DriverOrderByWithRelationInput
+    _relevance?: DriverPresenceOrderByRelevanceInput
+  }
+
+  export type DriverPresenceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    driverId?: string
+    AND?: DriverPresenceWhereInput | DriverPresenceWhereInput[]
+    OR?: DriverPresenceWhereInput[]
+    NOT?: DriverPresenceWhereInput | DriverPresenceWhereInput[]
+    tenantId?: StringFilter<"DriverPresence"> | string
+    locationId?: StringNullableFilter<"DriverPresence"> | string | null
+    status?: EnumDriverPresenceStatusFilter<"DriverPresence"> | $Enums.DriverPresenceStatus
+    lat?: FloatNullableFilter<"DriverPresence"> | number | null
+    lng?: FloatNullableFilter<"DriverPresence"> | number | null
+    heading?: FloatNullableFilter<"DriverPresence"> | number | null
+    speed?: FloatNullableFilter<"DriverPresence"> | number | null
+    activeAssignmentId?: StringNullableFilter<"DriverPresence"> | string | null
+    socketId?: StringNullableFilter<"DriverPresence"> | string | null
+    pushToken?: StringNullableFilter<"DriverPresence"> | string | null
+    lastPingAt?: DateTimeNullableFilter<"DriverPresence"> | Date | string | null
+    createdAt?: DateTimeFilter<"DriverPresence"> | Date | string
+    updatedAt?: DateTimeFilter<"DriverPresence"> | Date | string
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }, "id" | "driverId">
+
+  export type DriverPresenceOrderByWithAggregationInput = {
+    id?: SortOrder
+    driverId?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    lat?: SortOrderInput | SortOrder
+    lng?: SortOrderInput | SortOrder
+    heading?: SortOrderInput | SortOrder
+    speed?: SortOrderInput | SortOrder
+    activeAssignmentId?: SortOrderInput | SortOrder
+    socketId?: SortOrderInput | SortOrder
+    pushToken?: SortOrderInput | SortOrder
+    lastPingAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DriverPresenceCountOrderByAggregateInput
+    _avg?: DriverPresenceAvgOrderByAggregateInput
+    _max?: DriverPresenceMaxOrderByAggregateInput
+    _min?: DriverPresenceMinOrderByAggregateInput
+    _sum?: DriverPresenceSumOrderByAggregateInput
+  }
+
+  export type DriverPresenceScalarWhereWithAggregatesInput = {
+    AND?: DriverPresenceScalarWhereWithAggregatesInput | DriverPresenceScalarWhereWithAggregatesInput[]
+    OR?: DriverPresenceScalarWhereWithAggregatesInput[]
+    NOT?: DriverPresenceScalarWhereWithAggregatesInput | DriverPresenceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DriverPresence"> | string
+    driverId?: StringWithAggregatesFilter<"DriverPresence"> | string
+    tenantId?: StringWithAggregatesFilter<"DriverPresence"> | string
+    locationId?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
+    status?: EnumDriverPresenceStatusWithAggregatesFilter<"DriverPresence"> | $Enums.DriverPresenceStatus
+    lat?: FloatNullableWithAggregatesFilter<"DriverPresence"> | number | null
+    lng?: FloatNullableWithAggregatesFilter<"DriverPresence"> | number | null
+    heading?: FloatNullableWithAggregatesFilter<"DriverPresence"> | number | null
+    speed?: FloatNullableWithAggregatesFilter<"DriverPresence"> | number | null
+    activeAssignmentId?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
+    socketId?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
+    pushToken?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
+    lastPingAt?: DateTimeNullableWithAggregatesFilter<"DriverPresence"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DriverPresence"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DriverPresence"> | Date | string
+  }
+
   export type DriverAssignmentWhereInput = {
     AND?: DriverAssignmentWhereInput | DriverAssignmentWhereInput[]
     OR?: DriverAssignmentWhereInput[]
@@ -121466,9 +126392,11 @@ export namespace Prisma {
     orderId?: StringFilter<"DriverAssignment"> | string
     driverId?: StringFilter<"DriverAssignment"> | string
     status?: EnumDriverAssignmentStatusFilter<"DriverAssignment"> | $Enums.DriverAssignmentStatus
+    sequence?: IntNullableFilter<"DriverAssignment"> | number | null
     assignedAt?: DateTimeFilter<"DriverAssignment"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     order?: XOR<OrderRelationFilter, OrderWhereInput>
     driver?: XOR<DriverRelationFilter, DriverWhereInput>
@@ -121480,9 +126408,11 @@ export namespace Prisma {
     orderId?: SortOrder
     driverId?: SortOrder
     status?: SortOrder
+    sequence?: SortOrderInput | SortOrder
     assignedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     pickedUpAt?: SortOrderInput | SortOrder
+    arrivedAt?: SortOrderInput | SortOrder
     deliveredAt?: SortOrderInput | SortOrder
     order?: OrderOrderByWithRelationInput
     driver?: DriverOrderByWithRelationInput
@@ -121498,9 +126428,11 @@ export namespace Prisma {
     NOT?: DriverAssignmentWhereInput | DriverAssignmentWhereInput[]
     driverId?: StringFilter<"DriverAssignment"> | string
     status?: EnumDriverAssignmentStatusFilter<"DriverAssignment"> | $Enums.DriverAssignmentStatus
+    sequence?: IntNullableFilter<"DriverAssignment"> | number | null
     assignedAt?: DateTimeFilter<"DriverAssignment"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     order?: XOR<OrderRelationFilter, OrderWhereInput>
     driver?: XOR<DriverRelationFilter, DriverWhereInput>
@@ -121512,13 +126444,17 @@ export namespace Prisma {
     orderId?: SortOrder
     driverId?: SortOrder
     status?: SortOrder
+    sequence?: SortOrderInput | SortOrder
     assignedAt?: SortOrder
     acceptedAt?: SortOrderInput | SortOrder
     pickedUpAt?: SortOrderInput | SortOrder
+    arrivedAt?: SortOrderInput | SortOrder
     deliveredAt?: SortOrderInput | SortOrder
     _count?: DriverAssignmentCountOrderByAggregateInput
+    _avg?: DriverAssignmentAvgOrderByAggregateInput
     _max?: DriverAssignmentMaxOrderByAggregateInput
     _min?: DriverAssignmentMinOrderByAggregateInput
+    _sum?: DriverAssignmentSumOrderByAggregateInput
   }
 
   export type DriverAssignmentScalarWhereWithAggregatesInput = {
@@ -121529,9 +126465,11 @@ export namespace Prisma {
     orderId?: StringWithAggregatesFilter<"DriverAssignment"> | string
     driverId?: StringWithAggregatesFilter<"DriverAssignment"> | string
     status?: EnumDriverAssignmentStatusWithAggregatesFilter<"DriverAssignment"> | $Enums.DriverAssignmentStatus
+    sequence?: IntNullableWithAggregatesFilter<"DriverAssignment"> | number | null
     assignedAt?: DateTimeWithAggregatesFilter<"DriverAssignment"> | Date | string
     acceptedAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
     pickedUpAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
+    arrivedAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
   }
 
@@ -121611,6 +126549,198 @@ export namespace Prisma {
     speed?: FloatNullableWithAggregatesFilter<"DeliveryTracking"> | number | null
     event?: StringNullableWithAggregatesFilter<"DeliveryTracking"> | string | null
     recordedAt?: DateTimeWithAggregatesFilter<"DeliveryTracking"> | Date | string
+  }
+
+  export type ChatMessageWhereInput = {
+    AND?: ChatMessageWhereInput | ChatMessageWhereInput[]
+    OR?: ChatMessageWhereInput[]
+    NOT?: ChatMessageWhereInput | ChatMessageWhereInput[]
+    id?: StringFilter<"ChatMessage"> | string
+    tenantId?: StringFilter<"ChatMessage"> | string
+    channel?: StringFilter<"ChatMessage"> | string
+    driverId?: StringNullableFilter<"ChatMessage"> | string | null
+    orderId?: StringNullableFilter<"ChatMessage"> | string | null
+    senderType?: StringFilter<"ChatMessage"> | string
+    senderName?: StringNullableFilter<"ChatMessage"> | string | null
+    body?: StringFilter<"ChatMessage"> | string
+    createdAt?: DateTimeFilter<"ChatMessage"> | Date | string
+    readByOperatorAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+    readByDriverAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+    readByCustomerAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+  }
+
+  export type ChatMessageOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    channel?: SortOrder
+    driverId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    senderType?: SortOrder
+    senderName?: SortOrderInput | SortOrder
+    body?: SortOrder
+    createdAt?: SortOrder
+    readByOperatorAt?: SortOrderInput | SortOrder
+    readByDriverAt?: SortOrderInput | SortOrder
+    readByCustomerAt?: SortOrderInput | SortOrder
+    _relevance?: ChatMessageOrderByRelevanceInput
+  }
+
+  export type ChatMessageWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ChatMessageWhereInput | ChatMessageWhereInput[]
+    OR?: ChatMessageWhereInput[]
+    NOT?: ChatMessageWhereInput | ChatMessageWhereInput[]
+    tenantId?: StringFilter<"ChatMessage"> | string
+    channel?: StringFilter<"ChatMessage"> | string
+    driverId?: StringNullableFilter<"ChatMessage"> | string | null
+    orderId?: StringNullableFilter<"ChatMessage"> | string | null
+    senderType?: StringFilter<"ChatMessage"> | string
+    senderName?: StringNullableFilter<"ChatMessage"> | string | null
+    body?: StringFilter<"ChatMessage"> | string
+    createdAt?: DateTimeFilter<"ChatMessage"> | Date | string
+    readByOperatorAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+    readByDriverAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+    readByCustomerAt?: DateTimeNullableFilter<"ChatMessage"> | Date | string | null
+  }, "id">
+
+  export type ChatMessageOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    channel?: SortOrder
+    driverId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    senderType?: SortOrder
+    senderName?: SortOrderInput | SortOrder
+    body?: SortOrder
+    createdAt?: SortOrder
+    readByOperatorAt?: SortOrderInput | SortOrder
+    readByDriverAt?: SortOrderInput | SortOrder
+    readByCustomerAt?: SortOrderInput | SortOrder
+    _count?: ChatMessageCountOrderByAggregateInput
+    _max?: ChatMessageMaxOrderByAggregateInput
+    _min?: ChatMessageMinOrderByAggregateInput
+  }
+
+  export type ChatMessageScalarWhereWithAggregatesInput = {
+    AND?: ChatMessageScalarWhereWithAggregatesInput | ChatMessageScalarWhereWithAggregatesInput[]
+    OR?: ChatMessageScalarWhereWithAggregatesInput[]
+    NOT?: ChatMessageScalarWhereWithAggregatesInput | ChatMessageScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChatMessage"> | string
+    tenantId?: StringWithAggregatesFilter<"ChatMessage"> | string
+    channel?: StringWithAggregatesFilter<"ChatMessage"> | string
+    driverId?: StringNullableWithAggregatesFilter<"ChatMessage"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"ChatMessage"> | string | null
+    senderType?: StringWithAggregatesFilter<"ChatMessage"> | string
+    senderName?: StringNullableWithAggregatesFilter<"ChatMessage"> | string | null
+    body?: StringWithAggregatesFilter<"ChatMessage"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ChatMessage"> | Date | string
+    readByOperatorAt?: DateTimeNullableWithAggregatesFilter<"ChatMessage"> | Date | string | null
+    readByDriverAt?: DateTimeNullableWithAggregatesFilter<"ChatMessage"> | Date | string | null
+    readByCustomerAt?: DateTimeNullableWithAggregatesFilter<"ChatMessage"> | Date | string | null
+  }
+
+  export type WhatsAppConversationWhereInput = {
+    AND?: WhatsAppConversationWhereInput | WhatsAppConversationWhereInput[]
+    OR?: WhatsAppConversationWhereInput[]
+    NOT?: WhatsAppConversationWhereInput | WhatsAppConversationWhereInput[]
+    id?: StringFilter<"WhatsAppConversation"> | string
+    tenantId?: StringFilter<"WhatsAppConversation"> | string
+    locationId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    brandId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    waPhone?: StringFilter<"WhatsAppConversation"> | string
+    phoneNumberId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    state?: StringFilter<"WhatsAppConversation"> | string
+    cart?: JsonNullableFilter<"WhatsAppConversation">
+    messages?: JsonFilter<"WhatsAppConversation">
+    customerName?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    lastOrderId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    lastInboundAt?: DateTimeNullableFilter<"WhatsAppConversation"> | Date | string | null
+    lastOutboundAt?: DateTimeNullableFilter<"WhatsAppConversation"> | Date | string | null
+    createdAt?: DateTimeFilter<"WhatsAppConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"WhatsAppConversation"> | Date | string
+  }
+
+  export type WhatsAppConversationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    waPhone?: SortOrder
+    phoneNumberId?: SortOrderInput | SortOrder
+    state?: SortOrder
+    cart?: SortOrderInput | SortOrder
+    messages?: SortOrder
+    customerName?: SortOrderInput | SortOrder
+    lastOrderId?: SortOrderInput | SortOrder
+    lastInboundAt?: SortOrderInput | SortOrder
+    lastOutboundAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: WhatsAppConversationOrderByRelevanceInput
+  }
+
+  export type WhatsAppConversationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumberId_waPhone?: WhatsAppConversationPhoneNumberIdWaPhoneCompoundUniqueInput
+    AND?: WhatsAppConversationWhereInput | WhatsAppConversationWhereInput[]
+    OR?: WhatsAppConversationWhereInput[]
+    NOT?: WhatsAppConversationWhereInput | WhatsAppConversationWhereInput[]
+    tenantId?: StringFilter<"WhatsAppConversation"> | string
+    locationId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    brandId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    waPhone?: StringFilter<"WhatsAppConversation"> | string
+    phoneNumberId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    state?: StringFilter<"WhatsAppConversation"> | string
+    cart?: JsonNullableFilter<"WhatsAppConversation">
+    messages?: JsonFilter<"WhatsAppConversation">
+    customerName?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    lastOrderId?: StringNullableFilter<"WhatsAppConversation"> | string | null
+    lastInboundAt?: DateTimeNullableFilter<"WhatsAppConversation"> | Date | string | null
+    lastOutboundAt?: DateTimeNullableFilter<"WhatsAppConversation"> | Date | string | null
+    createdAt?: DateTimeFilter<"WhatsAppConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"WhatsAppConversation"> | Date | string
+  }, "id" | "phoneNumberId_waPhone">
+
+  export type WhatsAppConversationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    waPhone?: SortOrder
+    phoneNumberId?: SortOrderInput | SortOrder
+    state?: SortOrder
+    cart?: SortOrderInput | SortOrder
+    messages?: SortOrder
+    customerName?: SortOrderInput | SortOrder
+    lastOrderId?: SortOrderInput | SortOrder
+    lastInboundAt?: SortOrderInput | SortOrder
+    lastOutboundAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: WhatsAppConversationCountOrderByAggregateInput
+    _max?: WhatsAppConversationMaxOrderByAggregateInput
+    _min?: WhatsAppConversationMinOrderByAggregateInput
+  }
+
+  export type WhatsAppConversationScalarWhereWithAggregatesInput = {
+    AND?: WhatsAppConversationScalarWhereWithAggregatesInput | WhatsAppConversationScalarWhereWithAggregatesInput[]
+    OR?: WhatsAppConversationScalarWhereWithAggregatesInput[]
+    NOT?: WhatsAppConversationScalarWhereWithAggregatesInput | WhatsAppConversationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WhatsAppConversation"> | string
+    tenantId?: StringWithAggregatesFilter<"WhatsAppConversation"> | string
+    locationId?: StringNullableWithAggregatesFilter<"WhatsAppConversation"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"WhatsAppConversation"> | string | null
+    waPhone?: StringWithAggregatesFilter<"WhatsAppConversation"> | string
+    phoneNumberId?: StringNullableWithAggregatesFilter<"WhatsAppConversation"> | string | null
+    state?: StringWithAggregatesFilter<"WhatsAppConversation"> | string
+    cart?: JsonNullableWithAggregatesFilter<"WhatsAppConversation">
+    messages?: JsonWithAggregatesFilter<"WhatsAppConversation">
+    customerName?: StringNullableWithAggregatesFilter<"WhatsAppConversation"> | string | null
+    lastOrderId?: StringNullableWithAggregatesFilter<"WhatsAppConversation"> | string | null
+    lastInboundAt?: DateTimeNullableWithAggregatesFilter<"WhatsAppConversation"> | Date | string | null
+    lastOutboundAt?: DateTimeNullableWithAggregatesFilter<"WhatsAppConversation"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"WhatsAppConversation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"WhatsAppConversation"> | Date | string
   }
 
   export type StripeConnectAccountWhereInput = {
@@ -126307,6 +131437,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -126380,6 +131512,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -126445,6 +131579,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126518,6 +131654,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126587,6 +131725,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -126639,6 +131779,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126695,6 +131837,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -126989,6 +132133,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -127028,6 +132173,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -127065,6 +132211,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -127104,6 +132251,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -127142,6 +132290,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -127177,6 +132326,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -127213,6 +132363,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -128151,6 +133302,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -128185,6 +133337,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -128217,6 +133370,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -128251,6 +133405,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -128284,6 +133439,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -128316,6 +133472,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -128348,6 +133505,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -129836,6 +134994,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -129916,6 +135077,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -129986,6 +135150,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -130066,6 +135233,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -130141,6 +135311,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -130205,6 +135378,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -130274,6 +135450,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -130655,6 +135834,104 @@ export namespace Prisma {
     receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ActivityLogCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    category: string
+    channel?: string | null
+    action: string
+    status: string
+    message: string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    category: string
+    channel?: string | null
+    action: string
+    status: string
+    message: string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    category: string
+    channel?: string | null
+    action: string
+    status: string
+    message: string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    channel?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    details?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type KdsScreenCreateInput = {
     id?: string
     tenantId: string
@@ -130746,6 +136023,7 @@ export namespace Prisma {
     id?: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     screen: KdsScreenCreateNestedOneWithoutTicketsInput
     order: OrderCreateNestedOneWithoutKdsTicketsInput
@@ -130757,6 +136035,7 @@ export namespace Prisma {
     orderId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -130764,6 +136043,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     screen?: KdsScreenUpdateOneRequiredWithoutTicketsNestedInput
     order?: OrderUpdateOneRequiredWithoutKdsTicketsNestedInput
@@ -130775,6 +136055,7 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -130784,6 +136065,7 @@ export namespace Prisma {
     orderId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -130791,6 +136073,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -130800,6 +136083,7 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -132051,6 +137335,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutDriversInput
     assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceCreateNestedOneWithoutDriverInput
   }
 
   export type DriverUncheckedCreateInput = {
@@ -132067,6 +137352,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
   }
 
   export type DriverUpdateInput = {
@@ -132083,6 +137369,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
     assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateInput = {
@@ -132099,6 +137386,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
   }
 
   export type DriverCreateManyInput = {
@@ -132145,12 +137433,139 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DriverPresenceCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    status?: $Enums.DriverPresenceStatus
+    lat?: number | null
+    lng?: number | null
+    heading?: number | null
+    speed?: number | null
+    activeAssignmentId?: string | null
+    socketId?: string | null
+    pushToken?: string | null
+    lastPingAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    driver: DriverCreateNestedOneWithoutPresenceInput
+  }
+
+  export type DriverPresenceUncheckedCreateInput = {
+    id?: string
+    driverId: string
+    tenantId: string
+    locationId?: string | null
+    status?: $Enums.DriverPresenceStatus
+    lat?: number | null
+    lng?: number | null
+    heading?: number | null
+    speed?: number | null
+    activeAssignmentId?: string | null
+    socketId?: string | null
+    pushToken?: string | null
+    lastPingAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DriverPresenceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    driver?: DriverUpdateOneRequiredWithoutPresenceNestedInput
+  }
+
+  export type DriverPresenceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverPresenceCreateManyInput = {
+    id?: string
+    driverId: string
+    tenantId: string
+    locationId?: string | null
+    status?: $Enums.DriverPresenceStatus
+    lat?: number | null
+    lng?: number | null
+    heading?: number | null
+    speed?: number | null
+    activeAssignmentId?: string | null
+    socketId?: string | null
+    pushToken?: string | null
+    lastPingAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DriverPresenceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverPresenceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type DriverAssignmentCreateInput = {
     id?: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     driver: DriverCreateNestedOneWithoutAssignmentsInput
@@ -132162,9 +137577,11 @@ export namespace Prisma {
     orderId: string
     driverId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
@@ -132172,9 +137589,11 @@ export namespace Prisma {
   export type DriverAssignmentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
@@ -132186,9 +137605,11 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
@@ -132198,18 +137619,22 @@ export namespace Prisma {
     orderId: string
     driverId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
   }
 
   export type DriverAssignmentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -132218,9 +137643,11 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -132305,6 +137732,237 @@ export namespace Prisma {
     speed?: NullableFloatFieldUpdateOperationsInput | number | null
     event?: NullableStringFieldUpdateOperationsInput | string | null
     recordedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatMessageCreateInput = {
+    id?: string
+    tenantId: string
+    channel: string
+    driverId?: string | null
+    orderId?: string | null
+    senderType: string
+    senderName?: string | null
+    body: string
+    createdAt?: Date | string
+    readByOperatorAt?: Date | string | null
+    readByDriverAt?: Date | string | null
+    readByCustomerAt?: Date | string | null
+  }
+
+  export type ChatMessageUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    channel: string
+    driverId?: string | null
+    orderId?: string | null
+    senderType: string
+    senderName?: string | null
+    body: string
+    createdAt?: Date | string
+    readByOperatorAt?: Date | string | null
+    readByDriverAt?: Date | string | null
+    readByCustomerAt?: Date | string | null
+  }
+
+  export type ChatMessageUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderType?: StringFieldUpdateOperationsInput | string
+    senderName?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    readByOperatorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByDriverAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByCustomerAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ChatMessageUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderType?: StringFieldUpdateOperationsInput | string
+    senderName?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    readByOperatorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByDriverAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByCustomerAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ChatMessageCreateManyInput = {
+    id?: string
+    tenantId: string
+    channel: string
+    driverId?: string | null
+    orderId?: string | null
+    senderType: string
+    senderName?: string | null
+    body: string
+    createdAt?: Date | string
+    readByOperatorAt?: Date | string | null
+    readByDriverAt?: Date | string | null
+    readByCustomerAt?: Date | string | null
+  }
+
+  export type ChatMessageUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderType?: StringFieldUpdateOperationsInput | string
+    senderName?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    readByOperatorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByDriverAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByCustomerAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ChatMessageUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    driverId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    senderType?: StringFieldUpdateOperationsInput | string
+    senderName?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    readByOperatorAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByDriverAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readByCustomerAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WhatsAppConversationCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    waPhone: string
+    phoneNumberId?: string | null
+    state?: string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    lastOrderId?: string | null
+    lastInboundAt?: Date | string | null
+    lastOutboundAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WhatsAppConversationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    waPhone: string
+    phoneNumberId?: string | null
+    state?: string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    lastOrderId?: string | null
+    lastInboundAt?: Date | string | null
+    lastOutboundAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WhatsAppConversationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    waPhone?: StringFieldUpdateOperationsInput | string
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: StringFieldUpdateOperationsInput | string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastOutboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppConversationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    waPhone?: StringFieldUpdateOperationsInput | string
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: StringFieldUpdateOperationsInput | string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastOutboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppConversationCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    waPhone: string
+    phoneNumberId?: string | null
+    state?: string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    lastOrderId?: string | null
+    lastInboundAt?: Date | string | null
+    lastOutboundAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WhatsAppConversationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    waPhone?: StringFieldUpdateOperationsInput | string
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: StringFieldUpdateOperationsInput | string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastOutboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WhatsAppConversationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    waPhone?: StringFieldUpdateOperationsInput | string
+    phoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: StringFieldUpdateOperationsInput | string
+    cart?: NullableJsonNullValueInput | InputJsonValue
+    messages?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastInboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastOutboundAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StripeConnectAccountCreateInput = {
@@ -137406,6 +143064,8 @@ export namespace Prisma {
     slug?: SortOrder
     openingHours?: SortOrder
     deliveryConfig?: SortOrder
+    prepTime?: SortOrder
+    busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
     lastTestOrderAt?: SortOrder
@@ -137424,6 +143084,8 @@ export namespace Prisma {
   export type LocationAvgOrderByAggregateInput = {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
+    prepTime?: SortOrder
+    busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
@@ -137463,6 +143125,8 @@ export namespace Prisma {
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
+    prepTime?: SortOrder
+    busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
     lastTestOrderAt?: SortOrder
@@ -137512,6 +143176,8 @@ export namespace Prisma {
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
+    prepTime?: SortOrder
+    busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
     goLiveStatus?: SortOrder
     lastTestOrderAt?: SortOrder
@@ -137530,6 +143196,8 @@ export namespace Prisma {
   export type LocationSumOrderByAggregateInput = {
     applicationFeeFixedAmount?: SortOrder
     applicationFeePercentage?: SortOrder
+    prepTime?: SortOrder
+    busyExtraPrepTime?: SortOrder
     onboardingStep?: SortOrder
     currentPrepTime?: SortOrder
     throttleLimit?: SortOrder
@@ -137796,6 +143464,7 @@ export namespace Prisma {
     lastPublishedAt?: SortOrder
     autoScheduleEnabled?: SortOrder
     autoSchedule?: SortOrder
+    pricingVariants?: SortOrder
     metadata?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -138525,6 +144194,7 @@ export namespace Prisma {
     plu?: SortOrder
     pricesBySize?: SortOrder
     skuPlus?: SortOrder
+    platformPricingOverrides?: SortOrder
     imageUrl?: SortOrder
     allergens?: SortOrder
     isDefault?: SortOrder
@@ -139574,6 +145244,17 @@ export namespace Prisma {
     not?: NestedEnumFulfillmentTypeFilter<$PrismaModel> | $Enums.FulfillmentType
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type EnumPaymentStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
     in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
@@ -139676,6 +145357,9 @@ export namespace Prisma {
     customerName?: SortOrder
     customerPhone?: SortOrder
     deliveryAddress?: SortOrder
+    deliveryLat?: SortOrder
+    deliveryLng?: SortOrder
+    geocodedAt?: SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -139718,6 +145402,8 @@ export namespace Prisma {
 
   export type OrderAvgOrderByAggregateInput = {
     orderNumber?: SortOrder
+    deliveryLat?: SortOrder
+    deliveryLng?: SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -139755,6 +145441,9 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
+    deliveryLat?: SortOrder
+    deliveryLng?: SortOrder
+    geocodedAt?: SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -139820,6 +145509,9 @@ export namespace Prisma {
     fulfillmentType?: SortOrder
     customerName?: SortOrder
     customerPhone?: SortOrder
+    deliveryLat?: SortOrder
+    deliveryLng?: SortOrder
+    geocodedAt?: SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -139860,6 +145552,8 @@ export namespace Prisma {
 
   export type OrderSumOrderByAggregateInput = {
     orderNumber?: SortOrder
+    deliveryLat?: SortOrder
+    deliveryLng?: SortOrder
     subtotal?: SortOrder
     taxAmount?: SortOrder
     serviceCharge?: SortOrder
@@ -139918,6 +145612,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
     _max?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type EnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -140163,6 +145873,52 @@ export namespace Prisma {
     retryCount?: SortOrder
   }
 
+  export type ActivityLogOrderByRelevanceInput = {
+    fields: ActivityLogOrderByRelevanceFieldEnum | ActivityLogOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ActivityLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    category?: SortOrder
+    channel?: SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    details?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ActivityLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    category?: SortOrder
+    channel?: SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ActivityLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    category?: SortOrder
+    channel?: SortOrder
+    action?: SortOrder
+    status?: SortOrder
+    message?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type KdsScreenOrderByRelevanceInput = {
     fields: KdsScreenOrderByRelevanceFieldEnum | KdsScreenOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -140225,6 +145981,7 @@ export namespace Prisma {
     orderId?: SortOrder
     bumpedAt?: SortOrder
     recalledAt?: SortOrder
+    metadata?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -141068,6 +146825,11 @@ export namespace Prisma {
     none?: DriverAssignmentWhereInput
   }
 
+  export type DriverPresenceNullableRelationFilter = {
+    is?: DriverPresenceWhereInput | null
+    isNot?: DriverPresenceWhereInput | null
+  }
+
   export type DriverAssignmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -141121,16 +146883,107 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type EnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
+  export type EnumDriverPresenceStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverPresenceStatus | EnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverPresenceStatusFilter<$PrismaModel> | $Enums.DriverPresenceStatus
   }
 
   export type DriverRelationFilter = {
     is?: DriverWhereInput
     isNot?: DriverWhereInput
+  }
+
+  export type DriverPresenceOrderByRelevanceInput = {
+    fields: DriverPresenceOrderByRelevanceFieldEnum | DriverPresenceOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type DriverPresenceCountOrderByAggregateInput = {
+    id?: SortOrder
+    driverId?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    status?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    heading?: SortOrder
+    speed?: SortOrder
+    activeAssignmentId?: SortOrder
+    socketId?: SortOrder
+    pushToken?: SortOrder
+    lastPingAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DriverPresenceAvgOrderByAggregateInput = {
+    lat?: SortOrder
+    lng?: SortOrder
+    heading?: SortOrder
+    speed?: SortOrder
+  }
+
+  export type DriverPresenceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    driverId?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    status?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    heading?: SortOrder
+    speed?: SortOrder
+    activeAssignmentId?: SortOrder
+    socketId?: SortOrder
+    pushToken?: SortOrder
+    lastPingAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DriverPresenceMinOrderByAggregateInput = {
+    id?: SortOrder
+    driverId?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    status?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    heading?: SortOrder
+    speed?: SortOrder
+    activeAssignmentId?: SortOrder
+    socketId?: SortOrder
+    pushToken?: SortOrder
+    lastPingAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DriverPresenceSumOrderByAggregateInput = {
+    lat?: SortOrder
+    lng?: SortOrder
+    heading?: SortOrder
+    speed?: SortOrder
+  }
+
+  export type EnumDriverPresenceStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverPresenceStatus | EnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverPresenceStatusWithAggregatesFilter<$PrismaModel> | $Enums.DriverPresenceStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDriverPresenceStatusFilter<$PrismaModel>
+    _max?: NestedEnumDriverPresenceStatusFilter<$PrismaModel>
+  }
+
+  export type EnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel> | $Enums.DriverAssignmentStatus
   }
 
   export type DeliveryTrackingListRelationFilter = {
@@ -141154,10 +147007,16 @@ export namespace Prisma {
     orderId?: SortOrder
     driverId?: SortOrder
     status?: SortOrder
+    sequence?: SortOrder
     assignedAt?: SortOrder
     acceptedAt?: SortOrder
     pickedUpAt?: SortOrder
+    arrivedAt?: SortOrder
     deliveredAt?: SortOrder
+  }
+
+  export type DriverAssignmentAvgOrderByAggregateInput = {
+    sequence?: SortOrder
   }
 
   export type DriverAssignmentMaxOrderByAggregateInput = {
@@ -141165,9 +147024,11 @@ export namespace Prisma {
     orderId?: SortOrder
     driverId?: SortOrder
     status?: SortOrder
+    sequence?: SortOrder
     assignedAt?: SortOrder
     acceptedAt?: SortOrder
     pickedUpAt?: SortOrder
+    arrivedAt?: SortOrder
     deliveredAt?: SortOrder
   }
 
@@ -141176,10 +147037,16 @@ export namespace Prisma {
     orderId?: SortOrder
     driverId?: SortOrder
     status?: SortOrder
+    sequence?: SortOrder
     assignedAt?: SortOrder
     acceptedAt?: SortOrder
     pickedUpAt?: SortOrder
+    arrivedAt?: SortOrder
     deliveredAt?: SortOrder
+  }
+
+  export type DriverAssignmentSumOrderByAggregateInput = {
+    sequence?: SortOrder
   }
 
   export type EnumDriverAssignmentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -141190,17 +147057,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
     _max?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
-  }
-
-  export type FloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type DriverAssignmentRelationFilter = {
@@ -141266,20 +147122,116 @@ export namespace Prisma {
     speed?: SortOrder
   }
 
-  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
+  export type ChatMessageOrderByRelevanceInput = {
+    fields: ChatMessageOrderByRelevanceFieldEnum | ChatMessageOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ChatMessageCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    channel?: SortOrder
+    driverId?: SortOrder
+    orderId?: SortOrder
+    senderType?: SortOrder
+    senderName?: SortOrder
+    body?: SortOrder
+    createdAt?: SortOrder
+    readByOperatorAt?: SortOrder
+    readByDriverAt?: SortOrder
+    readByCustomerAt?: SortOrder
+  }
+
+  export type ChatMessageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    channel?: SortOrder
+    driverId?: SortOrder
+    orderId?: SortOrder
+    senderType?: SortOrder
+    senderName?: SortOrder
+    body?: SortOrder
+    createdAt?: SortOrder
+    readByOperatorAt?: SortOrder
+    readByDriverAt?: SortOrder
+    readByCustomerAt?: SortOrder
+  }
+
+  export type ChatMessageMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    channel?: SortOrder
+    driverId?: SortOrder
+    orderId?: SortOrder
+    senderType?: SortOrder
+    senderName?: SortOrder
+    body?: SortOrder
+    createdAt?: SortOrder
+    readByOperatorAt?: SortOrder
+    readByDriverAt?: SortOrder
+    readByCustomerAt?: SortOrder
+  }
+
+  export type WhatsAppConversationOrderByRelevanceInput = {
+    fields: WhatsAppConversationOrderByRelevanceFieldEnum | WhatsAppConversationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type WhatsAppConversationPhoneNumberIdWaPhoneCompoundUniqueInput = {
+    phoneNumberId: string
+    waPhone: string
+  }
+
+  export type WhatsAppConversationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    waPhone?: SortOrder
+    phoneNumberId?: SortOrder
+    state?: SortOrder
+    cart?: SortOrder
+    messages?: SortOrder
+    customerName?: SortOrder
+    lastOrderId?: SortOrder
+    lastInboundAt?: SortOrder
+    lastOutboundAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WhatsAppConversationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    waPhone?: SortOrder
+    phoneNumberId?: SortOrder
+    state?: SortOrder
+    customerName?: SortOrder
+    lastOrderId?: SortOrder
+    lastInboundAt?: SortOrder
+    lastOutboundAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WhatsAppConversationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    waPhone?: SortOrder
+    phoneNumberId?: SortOrder
+    state?: SortOrder
+    customerName?: SortOrder
+    lastOrderId?: SortOrder
+    lastInboundAt?: SortOrder
+    lastOutboundAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type PayoutListRelationFilter = {
@@ -147722,6 +153674,14 @@ export namespace Prisma {
     set?: $Enums.FulfillmentType
   }
 
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type EnumPaymentStatusFieldUpdateOperationsInput = {
     set?: $Enums.PaymentStatus
   }
@@ -148873,11 +154833,23 @@ export namespace Prisma {
     connect?: DriverAssignmentWhereUniqueInput | DriverAssignmentWhereUniqueInput[]
   }
 
+  export type DriverPresenceCreateNestedOneWithoutDriverInput = {
+    create?: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
+    connectOrCreate?: DriverPresenceCreateOrConnectWithoutDriverInput
+    connect?: DriverPresenceWhereUniqueInput
+  }
+
   export type DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput = {
     create?: XOR<DriverAssignmentCreateWithoutDriverInput, DriverAssignmentUncheckedCreateWithoutDriverInput> | DriverAssignmentCreateWithoutDriverInput[] | DriverAssignmentUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutDriverInput | DriverAssignmentCreateOrConnectWithoutDriverInput[]
     createMany?: DriverAssignmentCreateManyDriverInputEnvelope
     connect?: DriverAssignmentWhereUniqueInput | DriverAssignmentWhereUniqueInput[]
+  }
+
+  export type DriverPresenceUncheckedCreateNestedOneWithoutDriverInput = {
+    create?: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
+    connectOrCreate?: DriverPresenceCreateOrConnectWithoutDriverInput
+    connect?: DriverPresenceWhereUniqueInput
   }
 
   export type TenantUpdateOneRequiredWithoutDriversNestedInput = {
@@ -148902,6 +154874,16 @@ export namespace Prisma {
     deleteMany?: DriverAssignmentScalarWhereInput | DriverAssignmentScalarWhereInput[]
   }
 
+  export type DriverPresenceUpdateOneWithoutDriverNestedInput = {
+    create?: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
+    connectOrCreate?: DriverPresenceCreateOrConnectWithoutDriverInput
+    upsert?: DriverPresenceUpsertWithoutDriverInput
+    disconnect?: DriverPresenceWhereInput | boolean
+    delete?: DriverPresenceWhereInput | boolean
+    connect?: DriverPresenceWhereUniqueInput
+    update?: XOR<XOR<DriverPresenceUpdateToOneWithWhereWithoutDriverInput, DriverPresenceUpdateWithoutDriverInput>, DriverPresenceUncheckedUpdateWithoutDriverInput>
+  }
+
   export type DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput = {
     create?: XOR<DriverAssignmentCreateWithoutDriverInput, DriverAssignmentUncheckedCreateWithoutDriverInput> | DriverAssignmentCreateWithoutDriverInput[] | DriverAssignmentUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutDriverInput | DriverAssignmentCreateOrConnectWithoutDriverInput[]
@@ -148914,6 +154896,34 @@ export namespace Prisma {
     update?: DriverAssignmentUpdateWithWhereUniqueWithoutDriverInput | DriverAssignmentUpdateWithWhereUniqueWithoutDriverInput[]
     updateMany?: DriverAssignmentUpdateManyWithWhereWithoutDriverInput | DriverAssignmentUpdateManyWithWhereWithoutDriverInput[]
     deleteMany?: DriverAssignmentScalarWhereInput | DriverAssignmentScalarWhereInput[]
+  }
+
+  export type DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput = {
+    create?: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
+    connectOrCreate?: DriverPresenceCreateOrConnectWithoutDriverInput
+    upsert?: DriverPresenceUpsertWithoutDriverInput
+    disconnect?: DriverPresenceWhereInput | boolean
+    delete?: DriverPresenceWhereInput | boolean
+    connect?: DriverPresenceWhereUniqueInput
+    update?: XOR<XOR<DriverPresenceUpdateToOneWithWhereWithoutDriverInput, DriverPresenceUpdateWithoutDriverInput>, DriverPresenceUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type DriverCreateNestedOneWithoutPresenceInput = {
+    create?: XOR<DriverCreateWithoutPresenceInput, DriverUncheckedCreateWithoutPresenceInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutPresenceInput
+    connect?: DriverWhereUniqueInput
+  }
+
+  export type EnumDriverPresenceStatusFieldUpdateOperationsInput = {
+    set?: $Enums.DriverPresenceStatus
+  }
+
+  export type DriverUpdateOneRequiredWithoutPresenceNestedInput = {
+    create?: XOR<DriverCreateWithoutPresenceInput, DriverUncheckedCreateWithoutPresenceInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutPresenceInput
+    upsert?: DriverUpsertWithoutPresenceInput
+    connect?: DriverWhereUniqueInput
+    update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutPresenceInput, DriverUpdateWithoutPresenceInput>, DriverUncheckedUpdateWithoutPresenceInput>
   }
 
   export type OrderCreateNestedOneWithoutDriverAssignmentInput = {
@@ -148994,14 +155004,6 @@ export namespace Prisma {
     create?: XOR<DriverAssignmentCreateWithoutTrackingInput, DriverAssignmentUncheckedCreateWithoutTrackingInput>
     connectOrCreate?: DriverAssignmentCreateOrConnectWithoutTrackingInput
     connect?: DriverAssignmentWhereUniqueInput
-  }
-
-  export type NullableFloatFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type DriverAssignmentUpdateOneRequiredWithoutTrackingNestedInput = {
@@ -150956,6 +156958,22 @@ export namespace Prisma {
     _max?: NestedEnumFulfillmentTypeFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
     in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
@@ -151152,6 +157170,23 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedEnumDriverPresenceStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverPresenceStatus | EnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverPresenceStatusFilter<$PrismaModel> | $Enums.DriverPresenceStatus
+  }
+
+  export type NestedEnumDriverPresenceStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DriverPresenceStatus | EnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DriverPresenceStatus[] | ListEnumDriverPresenceStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDriverPresenceStatusWithAggregatesFilter<$PrismaModel> | $Enums.DriverPresenceStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDriverPresenceStatusFilter<$PrismaModel>
+    _max?: NestedEnumDriverPresenceStatusFilter<$PrismaModel>
+  }
+
   export type NestedEnumDriverAssignmentStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.DriverAssignmentStatus | EnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
     in?: $Enums.DriverAssignmentStatus[] | ListEnumDriverAssignmentStatusFieldRefInput<$PrismaModel>
@@ -151167,22 +157202,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
     _max?: NestedEnumDriverAssignmentStatusFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumPaymentRecordStatusFilter<$PrismaModel = never> = {
@@ -151666,6 +157685,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -151744,6 +157766,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -152037,6 +158062,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceCreateNestedOneWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTenantInput = {
@@ -152052,6 +158078,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+    presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTenantInput = {
@@ -152639,6 +158666,9 @@ export namespace Prisma {
     customerName?: StringNullableFilter<"Order"> | string | null
     customerPhone?: StringNullableFilter<"Order"> | string | null
     deliveryAddress?: JsonNullableFilter<"Order">
+    deliveryLat?: FloatNullableFilter<"Order"> | number | null
+    deliveryLng?: FloatNullableFilter<"Order"> | number | null
+    geocodedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     subtotal?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
@@ -154101,6 +160131,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -154173,6 +160205,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -154316,6 +160350,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -154388,6 +160424,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -155135,6 +161173,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -155213,6 +161254,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -155918,6 +161962,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -155989,6 +162035,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -156057,6 +162105,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -156094,6 +162143,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -156205,6 +162255,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -156283,6 +162336,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -156822,6 +162878,8 @@ export namespace Prisma {
     slug?: StringNullableFilter<"Location"> | string | null
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
+    prepTime?: IntNullableFilter<"Location"> | number | null
+    busyExtraPrepTime?: IntNullableFilter<"Location"> | number | null
     onboardingStep?: IntFilter<"Location"> | number
     goLiveStatus?: EnumLocationGoLiveStatusFilter<"Location"> | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: DateTimeNullableFilter<"Location"> | Date | string | null
@@ -156887,6 +162945,7 @@ export namespace Prisma {
     lastPublishedAt?: DateTimeNullableFilter<"Menu"> | Date | string | null
     autoScheduleEnabled?: BoolFilter<"Menu"> | boolean
     autoSchedule?: JsonFilter<"Menu">
+    pricingVariants?: JsonFilter<"Menu">
     metadata?: JsonFilter<"Menu">
     createdAt?: DateTimeFilter<"Menu"> | Date | string
     updatedAt?: DateTimeFilter<"Menu"> | Date | string
@@ -157350,6 +163409,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -157428,6 +163490,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -159026,6 +165091,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -159098,6 +165165,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -159283,6 +165352,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -159355,6 +165426,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -159419,6 +165492,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -159491,6 +165566,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -159571,6 +165648,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -159643,6 +165722,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -160055,6 +166136,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -160093,6 +166175,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -160191,6 +166274,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -160229,6 +166313,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -160639,6 +166724,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -160711,6 +166798,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -160791,6 +166880,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -160863,6 +166954,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -161510,6 +167603,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -161542,6 +167636,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -161604,6 +167699,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -161637,6 +167733,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -161825,6 +167922,7 @@ export namespace Prisma {
     plu?: StringNullableFilter<"ModifierOption"> | string | null
     pricesBySize?: JsonFilter<"ModifierOption">
     skuPlus?: JsonFilter<"ModifierOption">
+    platformPricingOverrides?: JsonFilter<"ModifierOption">
     imageUrl?: StringNullableFilter<"ModifierOption"> | string | null
     allergens?: StringNullableListFilter<"ModifierOption">
     isDefault?: BoolFilter<"ModifierOption"> | boolean
@@ -163160,6 +169258,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -163198,6 +169297,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -163250,6 +169350,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -163288,6 +169389,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -163417,6 +169519,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -163495,6 +169600,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -163836,6 +169944,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -163908,6 +170018,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -164087,6 +170199,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -164159,6 +170273,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -164988,6 +171104,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -165060,6 +171178,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -165239,6 +171359,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165311,6 +171433,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165480,6 +171604,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -165552,6 +171678,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -165632,6 +171760,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165704,6 +171834,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165831,6 +171963,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -165903,6 +172037,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -166192,6 +172328,7 @@ export namespace Prisma {
     id?: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     screen: KdsScreenCreateNestedOneWithoutTicketsInput
   }
@@ -166201,6 +172338,7 @@ export namespace Prisma {
     kdsScreenId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -166283,9 +172421,11 @@ export namespace Prisma {
   export type DriverAssignmentCreateWithoutOrderInput = {
     id?: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     driver: DriverCreateNestedOneWithoutAssignmentsInput
     tracking?: DeliveryTrackingCreateNestedManyWithoutAssignmentInput
@@ -166295,9 +172435,11 @@ export namespace Prisma {
     id?: string
     driverId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
@@ -166474,6 +172616,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -166546,6 +172690,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -166864,6 +173010,7 @@ export namespace Prisma {
     orderId?: StringFilter<"KdsTicket"> | string
     bumpedAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
     recalledAt?: DateTimeNullableFilter<"KdsTicket"> | Date | string | null
+    metadata?: JsonFilter<"KdsTicket">
     createdAt?: DateTimeFilter<"KdsTicket"> | Date | string
   }
 
@@ -166897,9 +173044,11 @@ export namespace Prisma {
   export type DriverAssignmentUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
     tracking?: DeliveryTrackingUpdateManyWithoutAssignmentNestedInput
@@ -166909,9 +173058,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
@@ -166978,6 +173129,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -167057,6 +173211,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -167142,6 +173299,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -167221,6 +173381,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -167290,6 +173453,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -167369,6 +173535,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -167454,6 +173623,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -167533,6 +173705,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -167615,6 +173790,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -167687,6 +173864,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -167723,6 +173902,7 @@ export namespace Prisma {
     id?: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     order: OrderCreateNestedOneWithoutKdsTicketsInput
   }
@@ -167732,6 +173912,7 @@ export namespace Prisma {
     orderId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -167793,6 +173974,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -167865,6 +174048,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -167961,6 +174146,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -168040,6 +174228,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -168160,6 +174351,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -168239,6 +174433,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -168321,6 +174518,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168393,6 +174592,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168623,6 +174824,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168694,6 +174897,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168769,6 +174974,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168840,6 +175047,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -168926,6 +175135,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -168998,6 +175209,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -169314,6 +175527,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -169393,6 +175609,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -169726,6 +175945,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -169805,6 +176027,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -170052,6 +176277,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -170124,6 +176351,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -170446,6 +176675,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -170517,6 +176748,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -170738,6 +176971,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -170810,6 +177045,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -171122,6 +177359,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -171194,6 +177433,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -171497,6 +177738,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -171569,6 +177812,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -172402,9 +178647,11 @@ export namespace Prisma {
   export type DriverAssignmentCreateWithoutDriverInput = {
     id?: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     tracking?: DeliveryTrackingCreateNestedManyWithoutAssignmentInput
@@ -172414,9 +178661,11 @@ export namespace Prisma {
     id?: string
     orderId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
@@ -172429,6 +178678,45 @@ export namespace Prisma {
   export type DriverAssignmentCreateManyDriverInputEnvelope = {
     data: DriverAssignmentCreateManyDriverInput | DriverAssignmentCreateManyDriverInput[]
     skipDuplicates?: boolean
+  }
+
+  export type DriverPresenceCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    status?: $Enums.DriverPresenceStatus
+    lat?: number | null
+    lng?: number | null
+    heading?: number | null
+    speed?: number | null
+    activeAssignmentId?: string | null
+    socketId?: string | null
+    pushToken?: string | null
+    lastPingAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DriverPresenceUncheckedCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    status?: $Enums.DriverPresenceStatus
+    lat?: number | null
+    lng?: number | null
+    heading?: number | null
+    speed?: number | null
+    activeAssignmentId?: string | null
+    socketId?: string | null
+    pushToken?: string | null
+    lastPingAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DriverPresenceCreateOrConnectWithoutDriverInput = {
+    where: DriverPresenceWhereUniqueInput
+    create: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
   }
 
   export type TenantUpsertWithoutDriversInput = {
@@ -172524,10 +178812,137 @@ export namespace Prisma {
     orderId?: StringFilter<"DriverAssignment"> | string
     driverId?: StringFilter<"DriverAssignment"> | string
     status?: EnumDriverAssignmentStatusFilter<"DriverAssignment"> | $Enums.DriverAssignmentStatus
+    sequence?: IntNullableFilter<"DriverAssignment"> | number | null
     assignedAt?: DateTimeFilter<"DriverAssignment"> | Date | string
     acceptedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+  }
+
+  export type DriverPresenceUpsertWithoutDriverInput = {
+    update: XOR<DriverPresenceUpdateWithoutDriverInput, DriverPresenceUncheckedUpdateWithoutDriverInput>
+    create: XOR<DriverPresenceCreateWithoutDriverInput, DriverPresenceUncheckedCreateWithoutDriverInput>
+    where?: DriverPresenceWhereInput
+  }
+
+  export type DriverPresenceUpdateToOneWithWhereWithoutDriverInput = {
+    where?: DriverPresenceWhereInput
+    data: XOR<DriverPresenceUpdateWithoutDriverInput, DriverPresenceUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type DriverPresenceUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverPresenceUncheckedUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverPresenceStatusFieldUpdateOperationsInput | $Enums.DriverPresenceStatus
+    lat?: NullableFloatFieldUpdateOperationsInput | number | null
+    lng?: NullableFloatFieldUpdateOperationsInput | number | null
+    heading?: NullableFloatFieldUpdateOperationsInput | number | null
+    speed?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    socketId?: NullableStringFieldUpdateOperationsInput | string | null
+    pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DriverCreateWithoutPresenceInput = {
+    id?: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutDriversInput
+    assignments?: DriverAssignmentCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverUncheckedCreateWithoutPresenceInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    firstName: string
+    lastName: string
+    phone: string
+    email?: string | null
+    isActive?: boolean
+    vehicleType?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignments?: DriverAssignmentUncheckedCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverCreateOrConnectWithoutPresenceInput = {
+    where: DriverWhereUniqueInput
+    create: XOR<DriverCreateWithoutPresenceInput, DriverUncheckedCreateWithoutPresenceInput>
+  }
+
+  export type DriverUpsertWithoutPresenceInput = {
+    update: XOR<DriverUpdateWithoutPresenceInput, DriverUncheckedUpdateWithoutPresenceInput>
+    create: XOR<DriverCreateWithoutPresenceInput, DriverUncheckedCreateWithoutPresenceInput>
+    where?: DriverWhereInput
+  }
+
+  export type DriverUpdateToOneWithWhereWithoutPresenceInput = {
+    where?: DriverWhereInput
+    data: XOR<DriverUpdateWithoutPresenceInput, DriverUncheckedUpdateWithoutPresenceInput>
+  }
+
+  export type DriverUpdateWithoutPresenceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateWithoutPresenceInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type OrderCreateWithoutDriverAssignmentInput = {
@@ -172554,6 +178969,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -172633,6 +179051,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -172696,6 +179117,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutDriversInput
+    presence?: DriverPresenceCreateNestedOneWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAssignmentsInput = {
@@ -172711,6 +179133,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+    presence?: DriverPresenceUncheckedCreateNestedOneWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAssignmentsInput = {
@@ -172785,6 +179208,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -172864,6 +179290,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -172933,6 +179362,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAssignmentsInput = {
@@ -172948,6 +179378,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
   }
 
   export type DeliveryTrackingUpsertWithWhereUniqueWithoutAssignmentInput = {
@@ -172984,9 +179415,11 @@ export namespace Prisma {
   export type DriverAssignmentCreateWithoutTrackingInput = {
     id?: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     driver: DriverCreateNestedOneWithoutAssignmentsInput
@@ -172997,9 +179430,11 @@ export namespace Prisma {
     orderId: string
     driverId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
   }
 
@@ -173022,9 +179457,11 @@ export namespace Prisma {
   export type DriverAssignmentUpdateWithoutTrackingInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
@@ -173035,9 +179472,11 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -173332,6 +179771,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -173411,6 +179853,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -173611,6 +180056,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -173690,6 +180138,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -176748,6 +183199,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -176820,6 +183273,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -176969,6 +183424,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -177041,6 +183498,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -177875,6 +184334,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -178383,6 +184845,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -178461,6 +184926,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -178535,6 +185003,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -178860,6 +185331,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUpdateOneWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTenantInput = {
@@ -178875,6 +185347,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignments?: DriverAssignmentUncheckedUpdateManyWithoutDriverNestedInput
+    presence?: DriverPresenceUncheckedUpdateOneWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateManyWithoutTenantInput = {
@@ -179706,6 +186179,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -179770,6 +186246,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -179848,6 +186327,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -179922,6 +186404,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -180002,6 +186487,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -180047,6 +186534,7 @@ export namespace Prisma {
     lastPublishedAt?: Date | string | null
     autoScheduleEnabled?: boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -180106,6 +186594,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -180286,6 +186777,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -180357,6 +186850,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -180425,6 +186920,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -180470,6 +186967,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -180507,6 +187005,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -180544,6 +187043,7 @@ export namespace Prisma {
     lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -180659,6 +187159,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -180737,6 +187240,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -180811,6 +187317,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -181205,6 +187714,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -181447,6 +187959,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -181525,6 +188040,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -181599,6 +188117,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -182391,6 +188912,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -182429,6 +188951,7 @@ export namespace Prisma {
     plu?: string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: string | null
     allergens?: ModifierOptionCreateallergensInput | string[]
     isDefault?: boolean
@@ -182466,6 +188989,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182498,6 +189022,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182530,6 +189055,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182577,6 +189103,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182610,6 +189137,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182642,6 +189170,7 @@ export namespace Prisma {
     plu?: NullableStringFieldUpdateOperationsInput | string | null
     pricesBySize?: JsonNullValueInput | InputJsonValue
     skuPlus?: JsonNullValueInput | InputJsonValue
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     allergens?: ModifierOptionUpdateallergensInput | string[]
     isDefault?: BoolFieldUpdateOperationsInput | boolean
@@ -182723,6 +189252,9 @@ export namespace Prisma {
     customerName?: string | null
     customerPhone?: string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
     subtotal: Decimal | DecimalJsLike | number | string
     taxAmount?: Decimal | DecimalJsLike | number | string
     serviceCharge?: Decimal | DecimalJsLike | number | string
@@ -182838,6 +189370,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -182916,6 +189451,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -182990,6 +189528,9 @@ export namespace Prisma {
     customerName?: NullableStringFieldUpdateOperationsInput | string | null
     customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -183096,6 +189637,7 @@ export namespace Prisma {
     kdsScreenId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -183224,6 +189766,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     screen?: KdsScreenUpdateOneRequiredWithoutTicketsNestedInput
   }
@@ -183233,6 +189776,7 @@ export namespace Prisma {
     kdsScreenId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -183241,6 +189785,7 @@ export namespace Prisma {
     kdsScreenId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -183391,6 +189936,7 @@ export namespace Prisma {
     orderId: string
     bumpedAt?: Date | string | null
     recalledAt?: Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
   }
 
@@ -183398,6 +189944,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutKdsTicketsNestedInput
   }
@@ -183407,6 +189954,7 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -183415,6 +189963,7 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     bumpedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     recalledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -183498,6 +190047,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -183553,6 +190104,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -183737,6 +190290,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -183808,6 +190363,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -183876,6 +190433,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -183928,6 +190487,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -183999,6 +190560,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -184067,6 +190630,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -184176,6 +190741,8 @@ export namespace Prisma {
     slug?: string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
     onboardingStep?: number
     goLiveStatus?: $Enums.LocationGoLiveStatus
     lastTestOrderAt?: Date | string | null
@@ -184440,6 +191007,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -184511,6 +191080,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -184579,6 +191150,8 @@ export namespace Prisma {
     slug?: NullableStringFieldUpdateOperationsInput | string | null
     openingHours?: JsonNullValueInput | InputJsonValue
     deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
     onboardingStep?: IntFieldUpdateOperationsInput | number
     goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
     lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -184942,18 +191515,22 @@ export namespace Prisma {
     id?: string
     orderId: string
     status?: $Enums.DriverAssignmentStatus
+    sequence?: number | null
     assignedAt?: Date | string
     acceptedAt?: Date | string | null
     pickedUpAt?: Date | string | null
+    arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
   }
 
   export type DriverAssignmentUpdateWithoutDriverInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     tracking?: DeliveryTrackingUpdateManyWithoutAssignmentNestedInput
@@ -184963,9 +191540,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
@@ -184974,9 +191553,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
     status?: EnumDriverAssignmentStatusFieldUpdateOperationsInput | $Enums.DriverAssignmentStatus
+    sequence?: NullableIntFieldUpdateOperationsInput | number | null
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -186204,6 +192785,10 @@ export namespace Prisma {
      */
     export type WebhookEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WebhookEventDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use ActivityLogDefaultArgs instead
+     */
+    export type ActivityLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ActivityLogDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use KdsScreenDefaultArgs instead
      */
     export type KdsScreenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KdsScreenDefaultArgs<ExtArgs>
@@ -186260,6 +192845,10 @@ export namespace Prisma {
      */
     export type DriverArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use DriverPresenceDefaultArgs instead
+     */
+    export type DriverPresenceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverPresenceDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use DriverAssignmentDefaultArgs instead
      */
     export type DriverAssignmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DriverAssignmentDefaultArgs<ExtArgs>
@@ -186267,6 +192856,14 @@ export namespace Prisma {
      * @deprecated Use DeliveryTrackingDefaultArgs instead
      */
     export type DeliveryTrackingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DeliveryTrackingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ChatMessageDefaultArgs instead
+     */
+    export type ChatMessageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ChatMessageDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WhatsAppConversationDefaultArgs instead
+     */
+    export type WhatsAppConversationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WhatsAppConversationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use StripeConnectAccountDefaultArgs instead
      */

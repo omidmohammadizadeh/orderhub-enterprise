@@ -31,7 +31,8 @@ import {
   Inbox,
   Megaphone,
   Activity,
- MonitorCheck } from "lucide-react";
+ MonitorCheck,
+  ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +91,9 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   { href: "/dashboard/printers", label: "Printers", icon: Printer, roles: [...MANAGER_TIER, "MANAGER"] },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin, roles: MANAGER_TIER },
+  // Phase LG — activity feed: menu publishes, order pushes, stock changes,
+  // store status — the HubRise-style "what did the system do" timeline.
+  { href: "/dashboard/logs", label: "Logs", icon: ScrollText, roles: MANAGER_TIER },
   // Phase AP — admin-only secrets vault. Only PLATFORM_ADMIN can see
   // the link AND the page itself; the API also enforces the role.
   {
