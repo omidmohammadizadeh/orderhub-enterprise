@@ -32,11 +32,7 @@ interface OrderStatusChangedEvent {
   actorType?: string;
 }
 
-// Order WRITES (accept/deny/cancel/ready) need eats.store.orders.write in
-// ADDITION to eats.order — without it Uber 401s "User not allowed to access
-// the store" (Base44-confirmed; the order spec's eats.order-only security
-// block is incomplete). Reads (Get Order) use eats.order alone.
-const SCOPES = ["eats.order", "eats.store.orders.write"];
+const SCOPES = ["eats.order"];
 
 @Injectable()
 export class UberEatsOrderSyncService {
