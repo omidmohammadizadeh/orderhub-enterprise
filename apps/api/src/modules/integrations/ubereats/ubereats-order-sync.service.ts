@@ -121,7 +121,11 @@ export class UberEatsOrderSyncService {
           action: "order.push",
           status: "ERROR",
           message: `Pushing ${ev.toStatus} to Uber Eats failed: ${err?.message ?? err}`,
-          details: { uberOrderId: logCtx.externalId, toStatus: ev.toStatus },
+          details: {
+            uberOrderId: logCtx.externalId,
+            toStatus: ev.toStatus,
+            uberError: String(err?.message ?? err),
+          },
         });
       }
     }

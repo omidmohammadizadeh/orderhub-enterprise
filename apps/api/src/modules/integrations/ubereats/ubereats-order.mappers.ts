@@ -139,6 +139,29 @@ export function mapUberEatsOrder(order: any): CanonicalOrder | null {
     ? String(cust.contact.phone.pin_code)
     : undefined;
 
+  // Delivery address — per spec, `deliveries[].location` is ONLY populated
+  // for merchant-fulfilled (BYOC) orders; for DELIVERY_BY_UBER (courier)
+  // Uber omits the eater address entirely (courier handles dropoff), so it
+  // stays undefined and the UI simply shows no address for those.
+  const deliveries: any[] = Array.isArray(order?.deliveries)
+    ? order.deliveries
+    : [];
+  const loc =
+    deliveries.map((d) => d?.location).find((l) => l && (l.street_address_line_one || l.city)) ??
+    null;
+  const deliveryAddress = loc
+    ? {
+        line1: String(loc.street_address_line_one ?? ""),
+        line2: loc.street_address_line_two ?? loc.unit_number ?? undefined,
+        city: String(loc.city ?? ""),
+        postcode: String(loc.postal_code ?? loc.postcode ?? ""),
+        country: String(loc.country ?? "GB"),
+        ...(loc.latitude && loc.longitude
+          ? { coordinates: { lat: Number(loc.latitude), lng: Number(loc.longitude) } }
+          : {}),
+      }
+    : undefined;
+
   const scheduledStart =
     order?.scheduled_order_target_delivery_time_range?.start_time;
   const scheduledFor =
@@ -154,8 +177,13 @@ export function mapUberEatsOrder(order: any): CanonicalOrder | null {
     viaHubrise: false,
     fulfillmentType: mapUberFulfillment(order?.fulfillment_type),
     displayId: order?.display_id ? String(order.display_id) : undefined,
-    customerInfo: { name, phone: phoneNumber },
+    customerInfo: {
+      name,
+      phone: phoneNumber,
+      ...(phonePin ? { phoneAccessCode: phonePin } : {}),
+    },
     items,
+    ...(deliveryAddress ? { deliveryAddress } : {}),
     subtotal,
     taxAmount,
     deliveryFee: 0, // marketplace collects its own delivery fee from the customer

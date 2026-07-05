@@ -11,7 +11,7 @@ const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
   DELIVERY: { label: "Delivery", color: "bg-emerald-100 text-emerald-700" },
   DINE_IN: { label: "Dine in", color: "bg-amber-100 text-amber-700" },
   MERCHANT_DELIVERY: { label: "Own delivery", color: "bg-indigo-100 text-indigo-700" },
-  PLATFORM_COURIER: { label: "Courier", color: "bg-rose-100 text-rose-700" },
+  PLATFORM_COURIER: { label: "Delivery", color: "bg-emerald-100 text-emerald-700" },
 };
 
 // Pill-style badge with the brand logo tile on the left and the
