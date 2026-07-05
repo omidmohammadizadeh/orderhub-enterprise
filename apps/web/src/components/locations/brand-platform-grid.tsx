@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, Settings, Trash2 } from "lucide-react";
+import { Loader2, Pencil, RefreshCw, Settings, Trash2 } from "lucide-react";
 import {
   brandConnectionsClient,
   brandsClient,
@@ -535,6 +535,19 @@ function UberEatsRow({
     Array<{ storeId: string; name: string; address: string | null }>
   >([]);
   const [picking, setPicking] = useState(false);
+  // HubRise-style status panel — fetched on demand so opening the drawer
+  // stays cheap; every fetch also exercises Get Store Details / Retrieve
+  // Store Status / Get Integration Details against Uber (cert evidence).
+  const [showStatus, setShowStatus] = useState(false);
+  const overview = useQuery({
+    queryKey: ["ubereats-overview", connection?.id],
+    queryFn: () =>
+      apiClient
+        .get(`/v1/integrations/ubereats/${connection!.id}/overview`)
+        .then((r) => r.data as UberOverview),
+    enabled: showStatus && !!connection?.id && connected,
+    refetchOnWindowFocus: false,
+  });
 
   const err = (e: any) =>
     toast.error(
@@ -689,6 +702,12 @@ function UberEatsRow({
           {connected ? (
             <>
               <button
+                onClick={() => setShowStatus((v) => !v)}
+                className={`rounded-md border px-2 py-1 text-[10px] font-medium disabled:opacity-50 ${showStatus ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300 text-zinc-700 hover:bg-zinc-50"}`}
+              >
+                Status
+              </button>
+              <button
                 onClick={() => resume.mutate()}
                 disabled={resume.isPending}
                 className="rounded-md border border-emerald-200 px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
@@ -736,7 +755,203 @@ function UberEatsRow({
           )}
         </div>
       </div>
+      {showStatus && connected && (
+        <UberStatusPanel
+          overview={overview.data}
+          loading={overview.isFetching}
+          onRefresh={() => overview.refetch()}
+        />
+      )}
     </li>
+  );
+}
+
+type UberOverview = {
+  storeId: string | null;
+  checks: Array<{
+    name: string;
+    ok: boolean;
+    httpStatus: number | null;
+    error?: string;
+  }>;
+  store: {
+    name: string | null;
+    address: string | null;
+    timezone: string | null;
+    onboardingStatus: string | null;
+    autoAccept: boolean | null;
+    prepTimeSeconds: number | null;
+    fulfillment: Record<string, boolean> | null;
+  } | null;
+  status: {
+    status: string;
+    offlineUntil: string | null;
+    offlineReason: string | null;
+  } | null;
+  integration: {
+    enabled: boolean | null;
+    integratorStoreId: string | null;
+    integratorBrandId: string | null;
+    orderManagerClientId: string | null;
+  } | null;
+};
+
+/** HubRise-bridge-style status panel: Integration / Store / Ordering. */
+function UberStatusPanel({
+  overview,
+  loading,
+  onRefresh,
+}: {
+  overview: UberOverview | undefined;
+  loading: boolean;
+  onRefresh: () => void;
+}) {
+  const Line = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <li className="flex items-baseline gap-1.5 text-[11px]">
+      <span className="text-zinc-500">{label}:</span>
+      <span className="font-medium text-zinc-800">{value ?? "—"}</span>
+    </li>
+  );
+  return (
+    <div className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+          Uber Eats status
+        </span>
+        <button
+          onClick={onRefresh}
+          disabled={loading}
+          className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          {loading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3 w-3" />
+          )}
+          Refresh
+        </button>
+      </div>
+      {!overview ? (
+        <p className="text-[11px] text-zinc-500">
+          {loading ? "Checking with Uber…" : "No data yet."}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {/* Per-endpoint acknowledgments — the cert evidence at a glance. */}
+          <div className="flex flex-wrap gap-1.5">
+            {overview.checks.map((c) => (
+              <span
+                key={c.name}
+                title={c.error ?? undefined}
+                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${c.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+              >
+                {c.name}: {c.httpStatus ?? "ERR"}
+              </span>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold text-zinc-700">Integration</p>
+            <ul className="mt-0.5 space-y-0.5">
+              <Line
+                label="Integration"
+                value={
+                  overview.integration?.enabled == null
+                    ? "—"
+                    : overview.integration.enabled
+                      ? "Enabled — managed by OrderHub"
+                      : "Disabled"
+                }
+              />
+              <Line
+                label="Integrator store id"
+                value={overview.integration?.integratorStoreId}
+              />
+              {overview.integration?.orderManagerClientId && (
+                <Line
+                  label="Order manager"
+                  value={overview.integration.orderManagerClientId}
+                />
+              )}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold text-zinc-700">Store</p>
+            <ul className="mt-0.5 space-y-0.5">
+              <Line label="Name" value={overview.store?.name} />
+              <Line label="Address" value={overview.store?.address} />
+              <Line label="Timezone" value={overview.store?.timezone} />
+              <Line
+                label="Onboarding"
+                value={overview.store?.onboardingStatus}
+              />
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold text-zinc-700">Ordering</p>
+            <ul className="mt-0.5 space-y-0.5">
+              <Line
+                label="Store"
+                value={
+                  overview.status ? (
+                    <span
+                      className={
+                        overview.status.status === "ONLINE"
+                          ? "text-emerald-700"
+                          : "text-red-700"
+                      }
+                    >
+                      {overview.status.status}
+                      {overview.status.offlineUntil
+                        ? ` until ${new Date(overview.status.offlineUntil).toLocaleString()}`
+                        : ""}
+                    </span>
+                  ) : (
+                    "—"
+                  )
+                }
+              />
+              {overview.status?.offlineReason && (
+                <Line label="Reason" value={overview.status.offlineReason} />
+              )}
+              <Line
+                label="Prep time"
+                value={
+                  overview.store?.prepTimeSeconds != null
+                    ? `${Math.round(overview.store.prepTimeSeconds / 60)} min`
+                    : "—"
+                }
+              />
+              <Line
+                label="Auto accept"
+                value={
+                  overview.store?.autoAccept == null
+                    ? "—"
+                    : overview.store.autoAccept
+                      ? "Enabled (Uber-managed)"
+                      : "Disabled"
+                }
+              />
+              {overview.store?.fulfillment && (
+                <Line
+                  label="Fulfillment"
+                  value={Object.entries(overview.store.fulfillment)
+                    .filter(([, v]) => v)
+                    .map(([k]) => k.replaceAll("_", " ").toLowerCase())
+                    .join(", ")}
+                />
+              )}
+            </ul>
+          </div>
+
+          <p className="text-[10px] text-zinc-400">
+            The data on this panel comes live from Uber Eats.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 

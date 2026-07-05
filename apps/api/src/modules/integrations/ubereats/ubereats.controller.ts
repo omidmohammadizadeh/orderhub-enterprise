@@ -301,6 +301,20 @@ export class UberEatsController {
     return this.connections.storeStatus(user.tenantId, connectionId);
   }
 
+  @Get(":connectionId/overview")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "HubRise-style status panel: store details + live status + integration details, with per-endpoint HTTP acknowledgments",
+  })
+  overview(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.overview(user.tenantId, connectionId);
+  }
+
   @Post(":connectionId/pause")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")

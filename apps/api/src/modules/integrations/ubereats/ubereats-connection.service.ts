@@ -170,6 +170,34 @@ export class UberEatsConnectionService {
       this.logger.log(
         `Uber Eats integration activated for store ${storeId} (conn ${connectionId})`,
       );
+      // Verify with Get Integration Details (cert item) — best-effort read
+      // back of what Uber stored, logged with its HTTP status.
+      try {
+        const meta: { status?: number } = {};
+        const details = await this.client.request<any>(
+          "GET",
+          `/v1/eats/stores/${encodeURIComponent(storeId)}/pos_data`,
+          { userToken: token, meta },
+        );
+        this.logger.log(
+          `Uber Eats integration details for store ${storeId}: ${JSON.stringify(details).slice(0, 300)} (HTTP ${meta.status})`,
+        );
+        this.activity?.record({
+          tenantId: row.tenantId,
+          brandId,
+          locationId: row.locationId,
+          category: "CONNECTION",
+          channel: "UBER_EATS",
+          action: "integration.verified",
+          status: "SUCCESS",
+          message: `POS integration activated and verified — Uber responded ${meta.status ?? 200} OK`,
+          details: { storeId, uberHttpStatus: meta.status ?? 200, posData: details },
+        });
+      } catch (err: any) {
+        this.logger.warn(
+          `Uber Eats pos_data read-back failed for store ${storeId}: ${err?.message}`,
+        );
+      }
     } catch (err: any) {
       this.logger.warn(
         `Uber Eats pos_data activation failed for store ${storeId}: ${err?.message}. Store ops may 401 until activation succeeds.`,
@@ -402,6 +430,166 @@ export class UberEatsConnectionService {
       }
       throw err;
     }
+  }
+
+  /**
+   * Integration Config — Get Integration Details (certification item):
+   *   GET /v1/eats/stores/{store_id}/pos_data
+   * Try client-credentials (eats.store) first; some tenants only authorise
+   * the merchant token for pos_data, so fall back to it on 401/403.
+   */
+  async integrationDetails(
+    tenantId: string,
+    connectionId: string,
+  ): Promise<{ httpStatus: number | null; data: any }> {
+    const c = await this.connected(tenantId, connectionId);
+    const path = `/v1/eats/stores/${encodeURIComponent(c.externalStoreId!)}/pos_data`;
+    const meta: { status?: number } = {};
+    try {
+      const data = await this.client.request<any>("GET", path, {
+        scopes: STORE_SCOPES,
+        meta,
+      });
+      return { httpStatus: meta.status ?? 200, data };
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (!msg.includes("401") && !msg.includes("403")) throw err;
+      // Merchant-token fallback (same credential that POSTs pos_data).
+      const token = await this.oauth.merchantToken(c);
+      const meta2: { status?: number } = {};
+      const data = await this.client.request<any>("GET", path, {
+        userToken: token,
+        meta: meta2,
+      });
+      return { httpStatus: meta2.status ?? 200, data };
+    }
+  }
+
+  /**
+   * HubRise-style status panel for the dashboard card: store details,
+   * live ONLINE/OFFLINE, prep time and POS integration details in one call.
+   * Every sub-check reports Uber's HTTP status so the operator (and Uber's
+   * cert reviewers, via the Logs page) can see the 200s per endpoint.
+   */
+  async overview(tenantId: string, connectionId: string) {
+    const c = await this.connected(tenantId, connectionId);
+    type Check = {
+      name: string;
+      ok: boolean;
+      httpStatus: number | null;
+      error?: string;
+    };
+    const checks: Check[] = [];
+
+    const run = async <T>(
+      name: string,
+      fn: (meta: { status?: number }) => Promise<T>,
+    ): Promise<T | null> => {
+      const meta: { status?: number } = {};
+      try {
+        const out = await fn(meta);
+        checks.push({ name, ok: true, httpStatus: meta.status ?? 200 });
+        return out;
+      } catch (err: any) {
+        checks.push({
+          name,
+          ok: false,
+          httpStatus: meta.status ?? null,
+          error: String(err?.message ?? err).slice(0, 200),
+        });
+        return null;
+      }
+    };
+
+    const [details, status, integration] = await Promise.all([
+      run("Get Store Details", (meta) =>
+        this.client.request<any>(
+          "GET",
+          `/v1/delivery/store/${c.externalStoreId}`,
+          { scopes: STORE_SCOPES, meta },
+        ),
+      ),
+      run("Retrieve Store Status", (meta) =>
+        this.client.request<any>(
+          "GET",
+          `/v1/delivery/store/${c.externalStoreId}/status`,
+          { scopes: STATUS_SCOPES, meta },
+        ),
+      ),
+      run("Get Integration Details", async (meta) => {
+        const res = await this.integrationDetails(tenantId, connectionId);
+        meta.status = res.httpStatus ?? undefined;
+        return res.data;
+      }),
+    ]);
+
+    // One activity row per manual status check — the Logs page then shows
+    // the per-endpoint acknowledgments Uber wants evidenced.
+    this.activity?.record({
+      tenantId,
+      brandId: c.brandId,
+      locationId: c.locationId,
+      category: "CONNECTION",
+      channel: "UBER_EATS",
+      action: "store.status_check",
+      status: checks.every((k) => k.ok) ? "SUCCESS" : "WARNING",
+      message: `Uber Eats status check: ${checks
+        .map((k) => `${k.name} → ${k.httpStatus ?? "ERR"}`)
+        .join(", ")}`,
+      details: { checks },
+    });
+
+    return {
+      storeId: c.externalStoreId,
+      checks,
+      store: details
+        ? {
+            name: details.name ?? null,
+            address: details.location
+              ? [
+                  details.location.street_address_line_one,
+                  details.location.city,
+                  details.location.postal_code,
+                ]
+                  .filter(Boolean)
+                  .join(", ")
+              : null,
+            timezone: details.timezone ?? null,
+            onboardingStatus: details.onboarding_status ?? null,
+            autoAccept: details.auto_accept ?? null,
+            prepTimeSeconds: details.prep_times?.default_value ?? null,
+            fulfillment: details.fulfillment_type_availability ?? null,
+          }
+        : null,
+      status: status
+        ? {
+            status: String(status.status ?? "UNKNOWN").toUpperCase(),
+            offlineUntil: status.is_offline_until ?? null,
+            offlineReason: status.offline_reason ?? null,
+          }
+        : null,
+      integration: integration
+        ? {
+            enabled:
+              integration.integration_enabled ??
+              integration.pos_data?.integration_enabled ??
+              null,
+            integratorStoreId:
+              integration.integrator_store_id ??
+              integration.pos_data?.integrator_store_id ??
+              null,
+            integratorBrandId:
+              integration.integrator_brand_id ??
+              integration.pos_data?.integrator_brand_id ??
+              null,
+            orderManagerClientId:
+              integration.order_manager_client_id ??
+              integration.pos_data?.order_manager_client_id ??
+              null,
+            raw: integration,
+          }
+        : null,
+    };
   }
 
   /** Push the location's default prep time (seconds, max 10800). */
