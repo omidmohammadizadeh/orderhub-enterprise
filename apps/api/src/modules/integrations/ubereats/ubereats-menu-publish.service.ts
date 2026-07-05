@@ -249,6 +249,59 @@ export class UberEatsMenuPublishService {
   }
 
   /**
+   * Update Menu Item (cert item "Menu: Update Item/modifier") — sparse
+   * per-item suspension push, the Uber-correct way to 86 an item:
+   *   POST /v2/eats/stores/{store_id}/menus/items/{item_id}
+   *   { suspension_info: { suspension: { suspend_until: <epoch s> } } }
+   * suspend_until in the future = out of stock until then; suspension null
+   * = back on sale (docs: "A null value, or time in the past, indicates
+   * that an item is available"). Expects 204; per-item failures (e.g. 404
+   * for a size-sku not on the live menu) are tolerated and reported.
+   */
+  async setItemSuspension(args: {
+    storeId: string;
+    itemIds: string[];
+    suspendUntil: number | null; // epoch seconds; null restores
+    reason?: string;
+  }): Promise<{
+    results: Array<{ itemId: string; httpStatus: number | null; error?: string }>;
+  }> {
+    const results: Array<{ itemId: string; httpStatus: number | null; error?: string }> = [];
+    for (const itemId of args.itemIds) {
+      const meta: { status?: number } = {};
+      try {
+        await this.client.request(
+          "POST",
+          `/v2/eats/stores/${encodeURIComponent(args.storeId)}/menus/items/${encodeURIComponent(itemId)}`,
+          {
+            scopes: ["eats.store"],
+            meta,
+            body: {
+              suspension_info: {
+                suspension:
+                  args.suspendUntil == null
+                    ? null
+                    : {
+                        suspend_until: args.suspendUntil,
+                        ...(args.reason ? { reason: args.reason } : {}),
+                      },
+              },
+            },
+          },
+        );
+        results.push({ itemId, httpStatus: meta.status ?? 204 });
+      } catch (err: any) {
+        results.push({
+          itemId,
+          httpStatus: meta.status ?? null,
+          error: String(err?.message ?? err).slice(0, 160),
+        });
+      }
+    }
+    return { results };
+  }
+
+  /**
    * Webhook-driven republish (store.menu_refresh_request): resolve the
    * connection by Uber store id, pick the brand's most recently published
    * (else most recently updated) menu, and push it.

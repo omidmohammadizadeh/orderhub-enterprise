@@ -17,6 +17,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseCatalogService } from "../integrations/hubrise/hubrise-catalog.service";
 import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-client.service";
+import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
@@ -50,6 +51,7 @@ export class MenuAvailabilityService {
     @Inject(forwardRef(() => HubRiseCatalogService))
     private readonly hubrise: HubRiseCatalogService,
     private readonly deliverooClient: DeliverooClientService,
+    private readonly uberEatsMenu: UberEatsMenuPublishService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
@@ -238,6 +240,16 @@ export class MenuAvailabilityService {
       );
     }
 
+    // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
+    if (args.channel === "UBER_EATS") {
+      this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null).catch(
+        (err) =>
+          this.logger.warn(
+            `Uber Eats item suspension failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+      );
+    }
+
     this.activity?.record({
       tenantId: args.tenantId,
       brandId: (item as any).brandId ?? null,
@@ -285,6 +297,16 @@ export class MenuAvailabilityService {
       );
     }
 
+    // Restore on Uber: suspension null = back on sale.
+    if (args.channel === "UBER_EATS") {
+      this.syncUberEatsAvailability(item, args.tenantId, null, null, true).catch(
+        (err) =>
+          this.logger.warn(
+            `Uber Eats item restore failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+      );
+    }
+
     this.activity?.record({
       tenantId: args.tenantId,
       brandId: (item as any).brandId ?? null,
@@ -312,6 +334,76 @@ export class MenuAvailabilityService {
    * No-ops (silently) when the brand isn't connected to Deliveroo or has no
    * menu published there — nothing to sync.
    */
+  /**
+   * Push a single item's 86 state to Uber Eats the way Uber specifies:
+   * sparse Update Menu Item with suspension_info (suspend_until epoch
+   * seconds; null restores). Multi-SKU products also push every size id
+   * (`${id}__s{n}`, same ids the menu publish emitted); 404s for ids not on
+   * the live menu are tolerated.
+   */
+  private async syncUberEatsAvailability(
+    item: any,
+    tenantId: string,
+    expiresAt: Date | null,
+    reason: string | null,
+    restore = false,
+  ): Promise<void> {
+    const brandId = (item as any).brandId ?? null;
+    if (!brandId) return;
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        brandId,
+        tenantId,
+        platform: "UBER_EATS",
+        externalStoreId: { not: null },
+        status: { in: ["connected", "suspended"] },
+      },
+      select: { externalStoreId: true, locationId: true },
+    });
+    if (!conn?.externalStoreId) return; // brand not on Uber — nothing to sync
+
+    // Uber's "forever" convention (same constant the menu publish uses) —
+    // far-future epoch; a timed snooze uses its real expiry.
+    const FOREVER = 8_640_000_000;
+    const suspendUntil = restore
+      ? null
+      : expiresAt
+        ? Math.floor(expiresAt.getTime() / 1000)
+        : FOREVER;
+
+    const ids: string[] = [item.id];
+    const skus = Array.isArray((item as any).productSkus)
+      ? ((item as any).productSkus as any[])
+      : [];
+    if ((item as any).hasMultipleSkus && skus.length > 0) {
+      skus.forEach((_, i) => ids.push(`${item.id}__s${i}`));
+    }
+
+    const { results } = await this.uberEatsMenu.setItemSuspension({
+      storeId: conn.externalStoreId,
+      itemIds: ids,
+      suspendUntil,
+      reason: reason ?? undefined,
+    });
+    const ok = results.filter((r) => !r.error);
+    const failed = results.filter((r) => r.error);
+    this.logger.log(
+      `Uber Eats item ${restore ? "restore" : "86"} for ${item.id}: ${ok.length}/${results.length} ok` +
+        (failed.length ? ` (failed: ${failed.map((f) => f.itemId).join(",")})` : ""),
+    );
+    this.activity?.record({
+      tenantId,
+      brandId,
+      locationId: conn.locationId ?? null,
+      category: "INVENTORY",
+      channel: "UBER_EATS",
+      action: restore ? "item.restore.push" : "item.86.push",
+      status: failed.length === results.length ? "ERROR" : "SUCCESS",
+      message: `"${(item as any).name ?? item.id}" ${restore ? "back on sale" : "suspended"} on Uber Eats — Uber responded ${ok[0]?.httpStatus ?? failed[0]?.httpStatus ?? "ERR"}${suspendUntil && !restore && expiresAt ? ` (until ${expiresAt.toISOString()})` : ""}`,
+      details: { results, suspendUntil },
+    });
+  }
+
   private async syncDeliverooAvailability(
     itemId: string,
     tenantId: string,
@@ -358,8 +450,12 @@ export class MenuAvailabilityService {
       where: { menuId: menu.id },
       select: { items: { select: { itemId: true } } },
     });
-    const itemIds = Array.from(
-      new Set(cats.flatMap((c) => c.items.map((l) => l.itemId))),
+    const itemIds: string[] = Array.from(
+      new Set(
+        cats.flatMap((c: any) =>
+          (c.items ?? []).map((l: any) => String(l.itemId)),
+        ),
+      ),
     );
 
     const snoozedIds = await this.getSnoozedItemIdsForChannel(
