@@ -170,6 +170,16 @@ export class UberEatsMenuPublishService {
       { scopes: ["eats.store"] },
     );
     const menus: any[] = current?.menus ?? [];
+    // Shape probe: which sections did GET return, and how big? If Uber names
+    // a section differently than PUT expects, this is where we see it.
+    try {
+      const summary = Object.entries(current ?? {})
+        .map(([k, v]) => `${k}=${Array.isArray(v) ? (v as any[]).length : typeof v}`)
+        .join(" ");
+      this.logger.log(`Uber Eats GET menus shape for ${uberStoreId}: ${summary}`);
+    } catch {
+      /* diagnostics only */
+    }
     if (menus.length === 0) {
       // Store has no live menu — hours have nothing to ride on. Try a full
       // republish (works when the brand has a menu assigned on our side).
