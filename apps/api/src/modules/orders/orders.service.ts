@@ -1439,7 +1439,11 @@ export class OrdersService {
           },
           {
             status: { in: ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"] },
-            updatedAt: { gte: since24h },
+            // Terminal orders belong to the business day they were PLACED in,
+            // not last-touched — so an order created yesterday but completed
+            // (by staff or the 5am rollover) still drops off at the reset,
+            // rather than lingering because its updatedAt got bumped.
+            createdAt: { gte: since24h },
           },
         ],
       },
