@@ -21,7 +21,9 @@ import {
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 
-const SCOPES = ["eats.order"];
+// Order writes need eats.store.orders.write too (Base44-confirmed) or Uber
+// 401s "User not allowed to access the store".
+const SCOPES = ["eats.order", "eats.store.orders.write"];
 // validate-item-fulfillment + resolve-fulfillment-issues require BOTH scopes
 // (the spec lists them together in one security block = AND). eats.order
 // alone → 401.
