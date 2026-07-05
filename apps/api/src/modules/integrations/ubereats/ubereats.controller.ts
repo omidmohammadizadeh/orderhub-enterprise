@@ -328,7 +328,7 @@ export class UberEatsController {
       connectionId,
     );
     const menu = storeId
-      ? await this.menuPublish.republishForStore(storeId)
+      ? await this.menuPublish.pushHoursToStore(storeId)
       : { ok: false, reason: "no_store" };
     return { prep, menu };
   }

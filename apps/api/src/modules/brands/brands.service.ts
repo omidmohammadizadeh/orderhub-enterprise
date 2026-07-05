@@ -642,15 +642,14 @@ export class BrandsService {
           );
         }
         await this.uberEats.publishPrepTime(tenantId, conn.id);
-        const res = await this.uberEatsMenu.republishForStore(
+        // Standalone hours push: updates the store's LIVE Uber menu in place
+        // (service_availability only) — no dependency on our menu records.
+        const res = await this.uberEatsMenu.pushHoursToStore(
           conn.externalStoreId!,
         );
         if ((res as any)?.ok === false) {
-          const reason = (res as any)?.reason;
           throw new BadRequestException(
-            reason === "no_menu"
-              ? "Prep time was pushed, but hours weren't: no menu is assigned to this brand. Assign a menu to the brand and publish it to Uber Eats once — hours ride the menu on Uber."
-              : `Prep time was pushed, but the hours republish failed (${reason}).`,
+            "Prep time was pushed, but hours weren't: the Uber store has no live menu yet. Publish a menu to Uber Eats once — after that, hours update standalone.",
           );
         }
         return { channel, status: "ok", pushed: true };

@@ -21,7 +21,10 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { UberEatsClientService } from "./ubereats-client.service";
-import { buildUberEatsMenu } from "./ubereats-menu.transformer";
+import {
+  buildUberEatsMenu,
+  toUberServiceAvailability,
+} from "./ubereats-menu.transformer";
 import type {
   SrcCategory,
   SrcGroup,
@@ -121,6 +124,100 @@ export class UberEatsMenuPublishService {
         ...logCtx,
         status: "ERROR",
         message: `Menu "${menu.name}" publish to Uber Eats failed: ${err?.message ?? err}`,
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Standalone hours push — no dependency on OUR menu records. Uber has no
+   * hours endpoint, but we can GET the store's CURRENT live menu, swap its
+   * service_availability for the location's opening hours, and PUT it back
+   * unchanged otherwise. Falls back to a full republish (when the brand has
+   * a menu assigned) only if the store has no live menu yet.
+   */
+  async pushHoursToStore(uberStoreId: string) {
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: { platform: PLATFORM_KEY, externalStoreId: uberStoreId },
+    });
+    if (!conn) return { ok: false as const, reason: "store_not_connected" };
+
+    // Location-first hours, brand fallback (same precedence as Deliveroo).
+    let openingHours: any = null;
+    if (conn.locationId) {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: conn.locationId },
+        select: { openingHours: true },
+      });
+      const lh: any = loc?.openingHours;
+      if (lh && (Array.isArray(lh) ? lh.length > 0 : Object.keys(lh).length > 0)) {
+        openingHours = lh;
+      }
+    }
+    if (!openingHours && conn.brandId) {
+      const brand = await this.prisma.brand.findUnique({
+        where: { id: conn.brandId },
+        select: { openingHours: true } as any,
+      });
+      openingHours = (brand as any)?.openingHours ?? null;
+    }
+    const availability = toUberServiceAvailability(openingHours);
+
+    // Current live menu straight from Uber.
+    const current = await this.client.request<any>(
+      "GET",
+      `/v2/eats/stores/${encodeURIComponent(uberStoreId)}/menus`,
+      { scopes: ["eats.store"] },
+    );
+    const menus: any[] = current?.menus ?? [];
+    if (menus.length === 0) {
+      // Store has no live menu — hours have nothing to ride on. Try a full
+      // republish (works when the brand has a menu assigned on our side).
+      const res = await this.republishForStore(uberStoreId);
+      if ((res as any)?.ok !== false) return res;
+      return { ok: false as const, reason: "no_menu_on_store" };
+    }
+
+    const meta: { status?: number } = {};
+    const body = {
+      ...current,
+      menus: menus.map((m) => ({ ...m, service_availability: availability })),
+    };
+    try {
+      await this.client.request(
+        "PUT",
+        `/v2/eats/stores/${encodeURIComponent(uberStoreId)}/menus`,
+        { scopes: ["eats.store"], body, meta },
+      );
+      const days = availability.map(
+        (d) => `${d.day_of_week}:${d.time_periods.map((t) => `${t.start_time}-${t.end_time}`).join("|")}`,
+      );
+      this.logger.log(
+        `Uber Eats hours push for store ${uberStoreId}: ${JSON.stringify(days)?.slice(0, 400)} (HTTP ${meta.status})`,
+      );
+      this.activity?.record({
+        tenantId: conn.tenantId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+        category: "MENU",
+        channel: "UBER_EATS",
+        action: "hours.push",
+        status: "SUCCESS",
+        message: `Opening hours pushed to Uber Eats (live menu updated in place) — Uber responded ${meta.status ?? 204} OK`,
+        details: { storeId: uberStoreId, uberHttpStatus: meta.status ?? 204, days },
+      });
+      return { ok: true as const, uberHttpStatus: meta.status ?? 204, days };
+    } catch (err: any) {
+      this.activity?.record({
+        tenantId: conn.tenantId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+        category: "MENU",
+        channel: "UBER_EATS",
+        action: "hours.push",
+        status: "ERROR",
+        message: `Opening-hours push to Uber Eats failed: ${err?.message ?? err}`,
+        details: { storeId: uberStoreId, uberHttpStatus: meta.status ?? null },
       });
       throw err;
     }
