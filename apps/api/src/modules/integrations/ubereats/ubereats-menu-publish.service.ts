@@ -175,9 +175,44 @@ export class UberEatsMenuPublishService {
       );
     }
 
+    // Store hours ride the menu on Uber (service_availability) — load the
+    // menu's location hours, brand as fallback (same precedence as Deliveroo).
+    const menuRow = await this.prisma.menu.findUnique({
+      where: { id: args.menuId },
+      select: {
+        locationId: true,
+        brandId: true,
+        brand: { select: { openingHours: true } },
+      },
+    });
+    let openingHours: any = (menuRow?.brand as any)?.openingHours ?? null;
+    const locId =
+      menuRow?.locationId ??
+      (
+        await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId: menuRow?.brandId ?? "",
+            platform: PLATFORM_KEY,
+            externalStoreId: args.storeId,
+          },
+          select: { locationId: true },
+        })
+      )?.locationId;
+    if (locId) {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: locId },
+        select: { openingHours: true },
+      });
+      const lh: any = loc?.openingHours;
+      const has =
+        lh && (Array.isArray(lh) ? lh.length > 0 : Object.keys(lh).length > 0);
+      if (has) openingHours = lh;
+    }
+
     const { payload, stats, warnings } = buildUberEatsMenu({
       menuName: args.menuName,
       categories,
+      openingHours,
     });
     for (const w of warnings) this.logger.warn(`Uber Eats menu publish: ${w}`);
 

@@ -18,6 +18,7 @@ import { Roles } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
+import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import {
   UberEatsOrderActionsService,
@@ -48,6 +49,7 @@ export class UberEatsController {
     private readonly orderActions: UberEatsOrderActionsService,
     private readonly promotions: UberEatsPromotionsService,
     private readonly reporting: UberEatsReportingService,
+    private readonly menuPublish: UberEatsMenuPublishService,
   ) {}
 
   // Public config/connectivity probe — booleans + a live token-mint check
@@ -299,6 +301,36 @@ export class UberEatsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.connections.storeStatus(user.tenantId, connectionId);
+  }
+
+  @Post(":connectionId/publish-hours")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Push opening hours + prep time to Uber Eats (hours ride the menu's service_availability; prep via update-store-prep-time)",
+  })
+  async publishHours(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    // 1) Prep time — dedicated Store API endpoint.
+    const prep = await this.connections.publishPrepTime(
+      user.tenantId,
+      connectionId,
+    );
+    // 2) Hours — Uber has no store-hours endpoint; they're the menu's
+    //    service_availability, so republish the store's menu with the
+    //    location's current hours baked in.
+    const { storeId } = await this.connections.storeIdFor(
+      user.tenantId,
+      connectionId,
+    );
+    const menu = storeId
+      ? await this.menuPublish.republishForStore(storeId)
+      : { ok: false, reason: "no_store" };
+    return { prep, menu };
   }
 
   @Get(":connectionId/overview")

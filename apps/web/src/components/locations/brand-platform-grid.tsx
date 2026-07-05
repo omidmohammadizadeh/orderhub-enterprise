@@ -635,6 +635,22 @@ function UberEatsRow({
     },
     onError: err,
   });
+  const pushHours = useMutation({
+    mutationFn: () =>
+      apiClient
+        .post(`/v1/integrations/ubereats/${connection!.id}/publish-hours`, {})
+        .then((r) => r.data as { prep?: any; menu?: any }),
+    onSuccess: (d) => {
+      const prepMin = d.prep?.defaultPrepTimeSeconds
+        ? Math.round(d.prep.defaultPrepTimeSeconds / 60)
+        : null;
+      toast.success(
+        `Pushed to Uber${prepMin ? ` — prep ${prepMin} min` : ""}${d.menu?.ok !== false ? ", hours updated via menu" : ""}`,
+      );
+      overview.refetch();
+    },
+    onError: err,
+  });
 
   return (
     <li className="rounded-md border border-zinc-200 px-3 py-2">
@@ -760,6 +776,8 @@ function UberEatsRow({
           overview={overview.data}
           loading={overview.isFetching}
           onRefresh={() => overview.refetch()}
+          onPushHours={() => pushHours.mutate()}
+          pushing={pushHours.isPending}
         />
       )}
     </li>
@@ -801,10 +819,14 @@ function UberStatusPanel({
   overview,
   loading,
   onRefresh,
+  onPushHours,
+  pushing,
 }: {
   overview: UberOverview | undefined;
   loading: boolean;
   onRefresh: () => void;
+  onPushHours: () => void;
+  pushing: boolean;
 }) {
   const Line = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <li className="flex items-baseline gap-1.5 text-[11px]">
@@ -818,18 +840,29 @@ function UberStatusPanel({
         <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
           Uber Eats status
         </span>
-        <button
-          onClick={onRefresh}
-          disabled={loading}
-          className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
-        >
-          {loading ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3 w-3" />
-          )}
-          Refresh
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onPushHours}
+            disabled={pushing}
+            title="Prep time via Update Prep Time; opening hours via the menu's service_availability"
+            className="flex items-center gap-1 rounded-md border border-emerald-300 bg-white px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+          >
+            {pushing && <Loader2 className="h-3 w-3 animate-spin" />}
+            Push hours + prep
+          </button>
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3" />
+            )}
+            Refresh
+          </button>
+        </div>
       </div>
       {!overview ? (
         <p className="text-[11px] text-zinc-500">

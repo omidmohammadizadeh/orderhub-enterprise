@@ -103,9 +103,48 @@ export interface UberTransformResult {
   warnings: string[];
 }
 
+/**
+ * Uber has no store-hours REST endpoint — the menu's service_availability IS
+ * the store's ordering hours. Convert our canonical opening-hours (location
+ * {enabled,slots} map / brand array / legacy [{day,open,close}]) into Uber's
+ * per-day time_periods; empty/unset falls back to 24/7 so a menu without
+ * configured hours stays orderable.
+ */
+export function toUberServiceAvailability(
+  hours: any,
+): Array<{ day_of_week: string; time_periods: Array<{ start_time: string; end_time: string }> }> {
+  const byDay = new Map<string, Array<{ start_time: string; end_time: string }>>();
+  const push = (day: string, from: any, to: any) => {
+    if (!from || !to) return;
+    const list = byDay.get(day) ?? [];
+    list.push({ start_time: String(from), end_time: String(to) });
+    byDay.set(day, list);
+  };
+  if (Array.isArray(hours)) {
+    for (const h of hours) {
+      const day = String(h?.day ?? "").toLowerCase();
+      if (DAYS.includes(day)) push(day, h?.open ?? h?.from, h?.close ?? h?.to);
+    }
+  } else if (hours && typeof hours === "object") {
+    for (const day of DAYS) {
+      const d = (hours as any)[day];
+      if (!d) continue;
+      const slots = Array.isArray(d) ? d : d.enabled === false ? [] : (d.slots ?? []);
+      for (const s of slots) push(day, s?.from, s?.to);
+    }
+  }
+  if (byDay.size === 0) return ALL_WEEK;
+  return DAYS.filter((d) => byDay.has(d)).map((day_of_week) => ({
+    day_of_week,
+    time_periods: byDay.get(day_of_week)!,
+  }));
+}
+
 export function buildUberEatsMenu(input: {
   menuName: string;
   categories: SrcCategory[];
+  /** Canonical opening hours (location/brand) — omitted = 24/7. */
+  openingHours?: any;
 }): UberTransformResult {
   const warnings: string[] = [];
   const categories: UberEatsMenuPayload["categories"] = [];
@@ -199,7 +238,7 @@ export function buildUberEatsMenu(input: {
             {
               id: "all-day",
               title: T(input.menuName || "Menu"),
-              service_availability: ALL_WEEK,
+              service_availability: toUberServiceAvailability(input.openingHours),
               category_ids: categories.map((c) => c.id),
             },
           ]

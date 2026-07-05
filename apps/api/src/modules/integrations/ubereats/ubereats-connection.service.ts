@@ -617,12 +617,43 @@ export class UberEatsConnectionService {
     const minutes =
       (loc?.prepTime ?? null) ?? (loc?.brand?.prepTime ?? null) ?? 15;
     const seconds = Math.min(minutes * 60, 10_800);
-    await this.client.request(
-      "POST",
-      `/v1/delivery/store/${c.externalStoreId}/update-store-prep-time`,
-      { scopes: STORE_SCOPES, body: { default_prep_time: seconds } },
-    );
-    return { ok: true, defaultPrepTimeSeconds: seconds };
+    const meta: { status?: number } = {};
+    try {
+      await this.client.request(
+        "POST",
+        `/v1/delivery/store/${c.externalStoreId}/update-store-prep-time`,
+        { scopes: STORE_SCOPES, meta, body: { default_prep_time: seconds } },
+      );
+      this.activity?.record({
+        tenantId,
+        brandId: c.brandId,
+        locationId: c.locationId,
+        category: "STATUS",
+        channel: "UBER_EATS",
+        action: "prep_time.push",
+        status: "SUCCESS",
+        message: `Prep time ${minutes} min pushed to Uber Eats — Uber responded ${meta.status ?? 200} OK`,
+        details: { seconds, uberHttpStatus: meta.status ?? 200 },
+      });
+    } catch (err: any) {
+      this.activity?.record({
+        tenantId,
+        brandId: c.brandId,
+        locationId: c.locationId,
+        category: "STATUS",
+        channel: "UBER_EATS",
+        action: "prep_time.push",
+        status: "ERROR",
+        message: `Prep time push to Uber Eats failed: ${err?.message ?? err}`,
+        details: { seconds, uberHttpStatus: meta.status ?? null },
+      });
+      throw err;
+    }
+    return {
+      ok: true,
+      defaultPrepTimeSeconds: seconds,
+      uberHttpStatus: meta.status ?? 200,
+    };
   }
 
   // ── Store API suite (certification checklist) ───────────────────────────
@@ -728,6 +759,15 @@ export class UberEatsConnectionService {
       },
     });
     return row ? this.view(row) : { status: "not_connected" };
+  }
+
+  /** Uber store id for a connected connection (for cross-service calls). */
+  async storeIdFor(
+    tenantId: string,
+    connectionId: string,
+  ): Promise<{ storeId: string | null }> {
+    const c = await this.connected(tenantId, connectionId);
+    return { storeId: c.externalStoreId ?? null };
   }
 
   private async pendingOrConnected(
