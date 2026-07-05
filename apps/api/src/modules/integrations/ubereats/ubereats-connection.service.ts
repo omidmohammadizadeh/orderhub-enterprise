@@ -25,9 +25,10 @@ import { ActivityLogService } from "../../logs/activity-log.service";
 // which flips our row to "connected".
 
 // LIVE-VERIFIED scopes (the OpenAPI spec's security blocks lie here):
-//   update-store-status → Uber 401s "requires ... eats.store.status.write"
-// so status read/write use eats.store.status.write, NOT eats.store. The rest
-// (details, update info, prep time) use eats.store. Uber silently drops any
+//   POST update-store-status → requires eats.store.status.write (401 names it)
+//   GET  .../status           → requires eats.store (status.write token 401s!)
+// So WRITES use STATUS_SCOPES, READS use STORE_SCOPES. The rest (details,
+// update info, prep time) use eats.store. Uber silently drops any
 // requested scope the APP isn't approved for (no mint error) → the endpoint
 // then 401s naming the missing scope. So eats.store.status.write must be
 // enabled on the app in the Uber developer dashboard for pause/resume to work.
@@ -320,7 +321,7 @@ export class UberEatsConnectionService {
       is_offline_until?: string;
       offline_reason?: string;
     }>("GET", `/v1/delivery/store/${c.externalStoreId}/status`, {
-      scopes: STATUS_SCOPES,
+      scopes: STORE_SCOPES,
     });
     return {
       status: String(json?.status ?? "UNKNOWN").toUpperCase(),
@@ -501,7 +502,7 @@ export class UberEatsConnectionService {
       }
     };
 
-    const [details, status, integration] = await Promise.all([
+    const [detailsRaw, statusRaw, integration] = await Promise.all([
       run("Get Store Details", (meta) =>
         this.client.request<any>(
           "GET",
@@ -513,7 +514,7 @@ export class UberEatsConnectionService {
         this.client.request<any>(
           "GET",
           `/v1/delivery/store/${c.externalStoreId}/status`,
-          { scopes: STATUS_SCOPES, meta },
+          { scopes: STORE_SCOPES, meta },
         ),
       ),
       run("Get Integration Details", async (meta) => {
@@ -522,6 +523,11 @@ export class UberEatsConnectionService {
         return res.data;
       }),
     ]);
+
+    // Uber wraps some responses in an envelope ({store:{...}} — same trick
+    // as the Order API's {order:{...}}). Unwrap before shaping.
+    const details = (detailsRaw as any)?.store ?? detailsRaw;
+    const status = (statusRaw as any)?.store_status ?? statusRaw;
 
     // One activity row per manual status check — the Logs page then shows
     // the per-endpoint acknowledgments Uber wants evidenced.
