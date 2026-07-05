@@ -276,14 +276,26 @@ export class UberEatsConnectionService {
     };
   }
 
-  /** Pause (OFFLINE) / resume (ONLINE) the store on Uber Eats. */
+  /**
+   * Pause (OFFLINE) / resume (ONLINE) the store on Uber Eats.
+   *
+   * Live-verified: OFFLINE requires `is_offline_until` (RFC3339) — omitting
+   * it 400s with field_violations. Use the pause's real end time when the
+   * operator set one; an open-ended pause sends +24h and the resume call
+   * simply flips the store back ONLINE earlier.
+   */
   async setStoreOnline(
     tenantId: string,
     connectionId: string,
     online: boolean,
     reason?: string,
+    offlineUntil?: Date | null,
   ) {
     const c = await this.connected(tenantId, connectionId);
+    const until =
+      offlineUntil && offlineUntil.getTime() > Date.now()
+        ? offlineUntil
+        : new Date(Date.now() + 24 * 60 * 60 * 1000);
     await this.withStoreAccess(c, () =>
       this.client.request(
         "POST",
@@ -292,7 +304,12 @@ export class UberEatsConnectionService {
           scopes: STATUS_SCOPES,
           body: {
             status: online ? "ONLINE" : "OFFLINE",
-            ...(reason ? { reason } : {}),
+            ...(online
+              ? {}
+              : {
+                  is_offline_until: until.toISOString(),
+                  reason: reason ?? "PAUSED_BY_RESTAURANT",
+                }),
           },
         },
       ),

@@ -342,6 +342,9 @@ export class PauseService {
             c.id,
             !snap.paused,
             snap.paused ? "PAUSED_BY_RESTAURANT" : undefined,
+            // Uber requires is_offline_until when going OFFLINE — use the
+            // pause's real end time; open-ended pauses default inside.
+            snap.paused ? snap.resumeAt : null,
           );
           this.logger.log(
             `Uber Eats store ${snap.paused ? "paused" : "resumed"} for conn ${c.id} via pause reconcile`,
