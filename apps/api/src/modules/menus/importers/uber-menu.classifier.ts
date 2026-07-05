@@ -207,7 +207,12 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
         hasMultipleSkus: false,
         productSkus: [],
         modifierGroupExternalIds: groupIds,
-        syncHash: sha(JSON.stringify({ name, price, plu, groupIds, isSuspended })),
+        // imageUrl + description are part of the hash — otherwise a re-import
+        // that only adds images is skipped as "unchanged" (items upsert by
+        // externalId across the brand). Same fix as the Deliveroo classifier.
+        syncHash: sha(
+          JSON.stringify({ name, price, plu, groupIds, isSuspended, imageUrl, description }),
+        ),
       });
 
       for (const groupExt of groupIds) {
