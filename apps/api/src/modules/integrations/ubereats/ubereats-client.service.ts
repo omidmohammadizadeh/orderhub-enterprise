@@ -96,15 +96,60 @@ export class UberEatsClientService {
     const json = JSON.parse(text) as {
       access_token: string;
       expires_in?: number;
+      scope?: string;
     };
     this.cache.set(key, {
       token: json.access_token,
       expiresAt: now + (json.expires_in ?? 2_592_000) * 1000,
     });
-    this.logger.log(
-      `Uber Eats token minted for scopes [${key}] (expires_in=${json.expires_in ?? "?"}s)`,
-    );
+    // Uber SILENTLY DROPS scopes the app isn't whitelisted for (no
+    // invalid_scope error) — the endpoint then 401s later. Compare what we
+    // asked for against what was actually granted so the gap is visible at
+    // mint time, not at the first failing store call.
+    const granted = (json.scope ?? "").split(/\s+/).filter(Boolean);
+    this.lastGrantedScopes.set(key, granted);
+    const missing = scopes.filter((s) => !granted.includes(s));
+    if (json.scope !== undefined && missing.length > 0) {
+      this.logger.warn(
+        `Uber Eats token for [${key}] was granted WITHOUT [${missing.join(", ")}] — the app isn't whitelisted for those scopes (enable them in the Uber developer dashboard / ask Uber). Granted: [${granted.join(", ") || "none"}]`,
+      );
+    } else {
+      this.logger.log(
+        `Uber Eats token minted for scopes [${key}] granted=[${granted.join(", ") || "?"}] (expires_in=${json.expires_in ?? "?"}s)`,
+      );
+    }
     return json.access_token;
+  }
+
+  /** requested-scope-set → scopes Uber actually granted (diagnostics). */
+  private readonly lastGrantedScopes = new Map<string, string[]>();
+
+  /**
+   * Mint (or reuse) a token for each scope and report what Uber actually
+   * granted — the definitive check for which scopes the app is whitelisted
+   * for, since Uber drops unapproved scopes silently.
+   */
+  async probeScopes(scopes: string[]): Promise<
+    Array<{ scope: string; granted: boolean | "unknown"; error?: string }>
+  > {
+    const out: Array<{ scope: string; granted: boolean | "unknown"; error?: string }> = [];
+    for (const scope of scopes) {
+      try {
+        await this.getToken([scope]);
+        const granted = this.lastGrantedScopes.get(scope);
+        out.push({
+          scope,
+          granted: granted ? granted.includes(scope) : "unknown",
+        });
+      } catch (err: any) {
+        out.push({
+          scope,
+          granted: false,
+          error: String(err?.message ?? err).slice(0, 200),
+        });
+      }
+    }
+    return out;
   }
 
   /**

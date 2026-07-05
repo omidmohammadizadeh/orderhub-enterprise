@@ -64,7 +64,16 @@ export class UberEatsController {
     }
     try {
       await this.client.getToken(["eats.store"]);
-      return { configured, redirectUriSet, tokenMint: "ok" };
+      // Which client-credentials scopes is the app ACTUALLY whitelisted for?
+      // Uber silently drops unapproved scopes at mint time, so this is the
+      // authoritative answer (e.g. pause/resume needs eats.store.status.write).
+      const scopes = await this.client.probeScopes([
+        "eats.store",
+        "eats.store.status.write",
+        "eats.order",
+        "eats.report",
+      ]);
+      return { configured, redirectUriSet, tokenMint: "ok", scopes };
     } catch (err: any) {
       return {
         configured,
