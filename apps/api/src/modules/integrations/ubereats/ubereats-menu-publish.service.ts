@@ -249,6 +249,92 @@ export class UberEatsMenuPublishService {
   }
 
   /**
+   * Resolve our internal item ids to the ids that actually exist on Uber's
+   * LIVE menu (GET /v2 menus). Matches by exact id first, then external_data
+   * (PLU), then case-insensitive title. Returns the resolved Uber ids plus
+   * diagnostics so the caller can explain a miss. Never throws.
+   */
+  async resolveLiveItemIds(
+    storeId: string,
+    ourIds: string[],
+    hint: { plu?: string | null; name?: string | null },
+  ): Promise<{
+    ids: string[];
+    liveCount: number;
+    sampleIds: string[];
+    matchedBy: string;
+  }> {
+    let items: any[] = [];
+    try {
+      const menu = await this.client.request<any>(
+        "GET",
+        `/v2/eats/stores/${encodeURIComponent(storeId)}/menus`,
+        { scopes: ["eats.store"] },
+      );
+      items = Array.isArray(menu?.items) ? menu.items : [];
+    } catch (err: any) {
+      this.logger.warn(
+        `resolveLiveItemIds: GET menus failed for ${storeId}: ${err?.message ?? err}`,
+      );
+      // Can't read — fall back to our ids and let the PATCH try/404.
+      return {
+        ids: ourIds,
+        liveCount: 0,
+        sampleIds: [],
+        matchedBy: "unverified",
+      };
+    }
+    const byId = new Set<string>();
+    const byPlu = new Map<string, string>();
+    const byName = new Map<string, string>();
+    const enTitle = (t: any): string =>
+      (t?.translations && (t.translations.en_us ?? Object.values(t.translations)[0])) ||
+      "";
+    for (const it of items) {
+      if (typeof it?.id === "string") byId.add(it.id);
+      const plu = it?.external_data;
+      if (typeof plu === "string" && plu) byPlu.set(plu, it.id);
+      const nm = enTitle(it?.title).trim().toLowerCase();
+      if (nm) byName.set(nm, it.id);
+    }
+    // 1) exact id matches (our publish path)
+    const exact = ourIds.filter((id) => byId.has(id));
+    if (exact.length > 0) {
+      return {
+        ids: exact,
+        liveCount: items.length,
+        sampleIds: [...byId].slice(0, 8),
+        matchedBy: "id",
+      };
+    }
+    // 2) by PLU
+    if (hint.plu && byPlu.has(hint.plu)) {
+      return {
+        ids: [byPlu.get(hint.plu)!],
+        liveCount: items.length,
+        sampleIds: [...byId].slice(0, 8),
+        matchedBy: "plu",
+      };
+    }
+    // 3) by name
+    const nameKey = (hint.name ?? "").trim().toLowerCase();
+    if (nameKey && byName.has(nameKey)) {
+      return {
+        ids: [byName.get(nameKey)!],
+        liveCount: items.length,
+        sampleIds: [...byId].slice(0, 8),
+        matchedBy: "name",
+      };
+    }
+    return {
+      ids: [],
+      liveCount: items.length,
+      sampleIds: [...byId].slice(0, 8),
+      matchedBy: "none",
+    };
+  }
+
+  /**
    * Update Menu Item (cert item "Menu: Update Item/modifier") — sparse
    * per-item suspension push, the Uber-correct way to 86 an item:
    *   POST /v2/eats/stores/{store_id}/menus/items/{item_id}

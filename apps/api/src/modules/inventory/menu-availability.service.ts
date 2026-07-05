@@ -432,9 +432,43 @@ export class MenuAvailabilityService {
       skus.forEach((_, i) => ids.push(`${item.id}__s${i}`));
     }
 
+    // Resolve against Uber's LIVE menu so the item_id we PATCH is the one Uber
+    // actually holds (our publish uses our id, but imports/re-uploads can
+    // drift). Match by id → external_data(PLU) → name. Prevents the 404 the
+    // Uber docs warn about when the item isn't on the uploaded menu.
+    const resolved = await this.uberEatsMenu.resolveLiveItemIds(
+      conn.externalStoreId,
+      ids,
+      { plu: (item as any).plu ?? null, name: (item as any).name ?? null },
+    );
+    if (resolved.ids.length === 0) {
+      this.activity?.record({
+        tenantId,
+        brandId,
+        locationId: conn.locationId ?? null,
+        category: "INVENTORY",
+        channel: "UBER_EATS",
+        action: restore ? "item.restore.push" : "item.86.push",
+        status: "WARNING",
+        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} skipped — item not found on Uber's live menu (${resolved.liveCount} items). Publish this menu to Uber Eats, then retry.`,
+        details: {
+          triedIds: ids,
+          liveSampleIds: resolved.sampleIds,
+          matchedBy: resolved.matchedBy,
+        },
+      });
+      this.logger.warn(
+        `Uber 86: item ${item.id} not on live menu (${resolved.liveCount} items). Sample live ids: ${resolved.sampleIds.join(",")}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `Uber 86: resolved ${resolved.ids.length} live id(s) for ${item.id} via ${resolved.matchedBy} → [${resolved.ids.join(",")}]`,
+    );
+
     const { results } = await this.uberEatsMenu.setItemSuspension({
       storeId: conn.externalStoreId,
-      itemIds: ids,
+      itemIds: resolved.ids,
       suspendUntil,
       reason: reason ?? undefined,
     });
