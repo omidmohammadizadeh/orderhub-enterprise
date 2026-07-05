@@ -22,8 +22,14 @@ import { UberEatsOauthService } from "./ubereats-oauth.service";
 // Uber confirms provisioning asynchronously with a store.provisioned webhook,
 // which flips our row to "connected".
 
+// Per the Store API spec, EVERY store endpoint (details, update info, get
+// status, SET status, prep time) is secured with the single `eats.store`
+// scope — the only declared OAuth scopes are eats.store, eats.store.status
+// and eats.byoc.fulfillment.config. There is NO `eats.store.status.write`
+// scope; minting a token for it fails / yields a token that 401s on the
+// store. Status ops therefore use eats.store, same as the rest.
 const STORE_SCOPES = ["eats.store"];
-const STATUS_SCOPES = ["eats.store.status.write"];
+const STATUS_SCOPES = ["eats.store"];
 
 @Injectable()
 export class UberEatsConnectionService {
@@ -351,7 +357,9 @@ export class UberEatsConnectionService {
 
   /** Get Stores — every store this app's token is authorised against. */
   async listAppStores(pageToken?: string) {
-    const qs = pageToken ? `?page_token=${encodeURIComponent(pageToken)}` : "";
+    const qs = pageToken
+      ? `?next_page_token=${encodeURIComponent(pageToken)}`
+      : "";
     const json = await this.client.request<any>(
       "GET",
       `/v1/delivery/stores${qs}`,

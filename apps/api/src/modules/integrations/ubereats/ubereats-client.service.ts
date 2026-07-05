@@ -6,7 +6,8 @@ import * as crypto from "crypto";
 //
 // Uber uses OAuth2 with two grant types:
 //   • client_credentials — machine-to-machine, scoped (eats.store, eats.order,
-//     eats.report, eats.store.status.write). Tokens live 30 days; token
+//     eats.report). Per the Store API spec, store status ops use eats.store —
+//     there is no eats.store.status.write scope. Tokens live 30 days; token
 //     requests are rate-limited to 100/hour, so we cache per scope-set and
 //     only re-fetch in the final hour of validity.
 //   • authorization_code — merchant-facing (eats.pos_provisioning) for store
