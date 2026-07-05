@@ -607,6 +607,106 @@ export class UberEatsConnectionService {
     };
   }
 
+  // ── Holiday hours (Store API v1) ─────────────────────────────────────────
+  // GET/POST /v1/eats/stores/{store_id}/holiday-hours, scope eats.store.
+  // Shape (docs, verbatim example): holiday_hours is a MAP keyed by
+  // "YYYY-MM-DD" → { open_time_periods: [{ start_time, end_time }] }.
+  // A fully-closed day is one period of 00:00 → 00:00. Every POST OVERWRITES
+  // the complete set, so the UI always sends every remaining date.
+
+  async getHolidayHours(tenantId: string, connectionId: string) {
+    const c = await this.connected(tenantId, connectionId);
+    const meta: { status?: number } = {};
+    const json = await this.client.request<any>(
+      "GET",
+      `/v1/eats/stores/${encodeURIComponent(c.externalStoreId!)}/holiday-hours`,
+      { scopes: STORE_SCOPES, meta },
+    );
+    const map = json?.holiday_hours ?? {};
+    const holidays = Object.entries(map)
+      .map(([date, v]: [string, any]) => {
+        const periods = (v?.open_time_periods ?? []).map((p: any) => ({
+          start: String(p?.start_time ?? ""),
+          end: String(p?.end_time ?? ""),
+        }));
+        const closed =
+          periods.length === 0 ||
+          (periods.length === 1 &&
+            periods[0].start === "00:00" &&
+            periods[0].end === "00:00");
+        return { date, closed, periods: closed ? [] : periods };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+    return { holidays, uberHttpStatus: meta.status ?? 200 };
+  }
+
+  async setHolidayHours(
+    tenantId: string,
+    connectionId: string,
+    dto: {
+      holidays: Array<{
+        date: string;
+        closed?: boolean;
+        periods?: Array<{ start: string; end: string }>;
+      }>;
+    },
+  ) {
+    const c = await this.connected(tenantId, connectionId);
+    const map: Record<string, { open_time_periods: Array<{ start_time: string; end_time: string }> }> = {};
+    for (const h of dto.holidays ?? []) {
+      const date = String(h.date ?? "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new BadRequestException(`Invalid date "${h.date}" — use YYYY-MM-DD.`);
+      }
+      if (h.closed || !(h.periods ?? []).length) {
+        // Docs: a fully-closed day is a single 00:00 → 00:00 period.
+        map[date] = {
+          open_time_periods: [{ start_time: "00:00", end_time: "00:00" }],
+        };
+      } else {
+        map[date] = {
+          open_time_periods: h.periods!.map((p) => ({
+            start_time: String(p.start),
+            end_time: String(p.end),
+          })),
+        };
+      }
+    }
+    const meta: { status?: number } = {};
+    try {
+      await this.client.request(
+        "POST",
+        `/v1/eats/stores/${encodeURIComponent(c.externalStoreId!)}/holiday-hours`,
+        { scopes: STORE_SCOPES, meta, body: { holiday_hours: map } },
+      );
+      this.activity?.record({
+        tenantId,
+        brandId: c.brandId,
+        locationId: c.locationId,
+        category: "STATUS",
+        channel: "UBER_EATS",
+        action: "holiday_hours.push",
+        status: "SUCCESS",
+        message: `Holiday hours pushed to Uber Eats (${Object.keys(map).length} date${Object.keys(map).length === 1 ? "" : "s"}) — Uber responded ${meta.status ?? 200} OK`,
+        details: { dates: Object.keys(map), uberHttpStatus: meta.status ?? 200 },
+      });
+    } catch (err: any) {
+      this.activity?.record({
+        tenantId,
+        brandId: c.brandId,
+        locationId: c.locationId,
+        category: "STATUS",
+        channel: "UBER_EATS",
+        action: "holiday_hours.push",
+        status: "ERROR",
+        message: `Holiday hours push to Uber Eats failed: ${err?.message ?? err}`,
+        details: { dates: Object.keys(map), uberHttpStatus: meta.status ?? null },
+      });
+      throw err;
+    }
+    return { ok: true, dates: Object.keys(map), uberHttpStatus: meta.status ?? 200 };
+  }
+
   /** Push the location's default prep time (seconds, max 10800). */
   async publishPrepTime(tenantId: string, connectionId: string) {
     const c = await this.connected(tenantId, connectionId);

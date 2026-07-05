@@ -773,6 +773,7 @@ function UberEatsRow({
       </div>
       {showStatus && connected && (
         <UberStatusPanel
+          connectionId={connection!.id as string}
           overview={overview.data}
           loading={overview.isFetching}
           onRefresh={() => overview.refetch()}
@@ -815,19 +816,66 @@ type UberOverview = {
 };
 
 /** HubRise-bridge-style status panel: Integration / Store / Ordering. */
+type UberHoliday = {
+  date: string;
+  closed: boolean;
+  periods: Array<{ start: string; end: string }>;
+};
+
 function UberStatusPanel({
+  connectionId,
   overview,
   loading,
   onRefresh,
   onPushHours,
   pushing,
 }: {
+  connectionId: string;
   overview: UberOverview | undefined;
   loading: boolean;
   onRefresh: () => void;
   onPushHours: () => void;
   pushing: boolean;
 }) {
+  // ── Holiday hours (exceptions to normal hours; POST overwrites the set) ──
+  const [holidays, setHolidays] = useState<UberHoliday[]>([]);
+  const [holidaysDirty, setHolidaysDirty] = useState(false);
+  const holidayQuery = useQuery({
+    queryKey: ["ubereats-holiday-hours", connectionId],
+    queryFn: () =>
+      apiClient
+        .get(`/v1/integrations/ubereats/${connectionId}/holiday-hours`)
+        .then((r) => r.data as { holidays: UberHoliday[] }),
+    refetchOnWindowFocus: false,
+  });
+  useEffect(() => {
+    if (holidayQuery.data && !holidaysDirty) {
+      setHolidays(holidayQuery.data.holidays ?? []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holidayQuery.data]);
+  const saveHolidays = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/integrations/ubereats/${connectionId}/holiday-hours`,
+        { holidays },
+      ),
+    onSuccess: () => {
+      toast.success("Holiday hours pushed to Uber Eats");
+      setHolidaysDirty(false);
+      holidayQuery.refetch();
+    },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.message ?? e?.message ?? "Holiday hours push failed",
+      ),
+  });
+  const editHoliday = (i: number, patch: Partial<UberHoliday>) => {
+    setHolidays((h) =>
+      h.map((row, idx) => (idx === i ? { ...row, ...patch } : row)),
+    );
+    setHolidaysDirty(true);
+  };
   const Line = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <li className="flex items-baseline gap-1.5 text-[11px]">
       <span className="text-zinc-500">{label}:</span>
@@ -977,6 +1025,125 @@ function UberStatusPanel({
                 />
               )}
             </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold text-zinc-700">
+              Holiday hours
+              <span className="ml-1 font-normal text-zinc-400">
+                — exceptions to normal hours on specific dates
+              </span>
+            </p>
+            {holidayQuery.isLoading ? (
+              <p className="mt-1 text-[11px] text-zinc-500">Loading…</p>
+            ) : (
+              <div className="mt-1 space-y-1.5">
+                {holidays.length === 0 && (
+                  <p className="text-[11px] text-zinc-500">
+                    No holiday hours set on Uber.
+                  </p>
+                )}
+                {holidays.map((h, i) => (
+                  <div
+                    key={`${h.date}-${i}`}
+                    className="flex flex-wrap items-center gap-1.5 text-[11px]"
+                  >
+                    <input
+                      type="date"
+                      value={h.date}
+                      onChange={(e) => editHoliday(i, { date: e.target.value })}
+                      className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
+                    />
+                    <label className="flex items-center gap-1 text-zinc-600">
+                      <input
+                        type="checkbox"
+                        checked={h.closed}
+                        onChange={(e) =>
+                          editHoliday(i, {
+                            closed: e.target.checked,
+                            periods: e.target.checked
+                              ? []
+                              : [{ start: "09:00", end: "17:00" }],
+                          })
+                        }
+                      />
+                      Closed all day
+                    </label>
+                    {!h.closed && (
+                      <>
+                        <input
+                          type="time"
+                          value={h.periods[0]?.start ?? "09:00"}
+                          onChange={(e) =>
+                            editHoliday(i, {
+                              periods: [
+                                {
+                                  start: e.target.value,
+                                  end: h.periods[0]?.end ?? "17:00",
+                                },
+                              ],
+                            })
+                          }
+                          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
+                        />
+                        <span className="text-zinc-400">–</span>
+                        <input
+                          type="time"
+                          value={h.periods[0]?.end ?? "17:00"}
+                          onChange={(e) =>
+                            editHoliday(i, {
+                              periods: [
+                                {
+                                  start: h.periods[0]?.start ?? "09:00",
+                                  end: e.target.value,
+                                },
+                              ],
+                            })
+                          }
+                          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
+                        />
+                      </>
+                    )}
+                    <button
+                      onClick={() => {
+                        setHolidays((rows) => rows.filter((_, idx) => idx !== i));
+                        setHolidaysDirty(true);
+                      }}
+                      className="rounded p-0.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                      title="Remove"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2 pt-0.5">
+                  <button
+                    onClick={() => {
+                      setHolidays((rows) => [
+                        ...rows,
+                        { date: "", closed: true, periods: [] },
+                      ]);
+                      setHolidaysDirty(true);
+                    }}
+                    className="rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100"
+                  >
+                    + Add date
+                  </button>
+                  {holidaysDirty && (
+                    <button
+                      onClick={() => saveHolidays.mutate()}
+                      disabled={saveHolidays.isPending}
+                      className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {saveHolidays.isPending && (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      )}
+                      Save to Uber
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <p className="text-[10px] text-zinc-400">

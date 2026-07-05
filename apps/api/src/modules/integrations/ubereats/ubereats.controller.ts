@@ -333,6 +333,40 @@ export class UberEatsController {
     return { prep, menu };
   }
 
+  @Get(":connectionId/holiday-hours")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Get the Uber Eats store's holiday hours" })
+  getHolidayHours(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.getHolidayHours(user.tenantId, connectionId);
+  }
+
+  @Post(":connectionId/holiday-hours")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Set the Uber Eats store's holiday hours (overwrites the complete set)",
+  })
+  setHolidayHours(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body()
+    dto: {
+      holidays: Array<{
+        date: string;
+        closed?: boolean;
+        periods?: Array<{ start: string; end: string }>;
+      }>;
+    },
+  ) {
+    return this.connections.setHolidayHours(user.tenantId, connectionId, dto);
+  }
+
   @Get(":connectionId/overview")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
