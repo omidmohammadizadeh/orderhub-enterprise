@@ -268,10 +268,13 @@ export class UberEatsMenuPublishService {
     try {
       const menu = await this.client.request<any>(
         "GET",
-        `/v2/eats/stores/${encodeURIComponent(storeId)}/menus`,
+        `/v2/eats/stores/${encodeURIComponent(storeId)}/menus?menu_type=MENU_TYPE_FULFILLMENT_DELIVERY`,
         { scopes: ["eats.store"] },
       );
       items = Array.isArray(menu?.items) ? menu.items : [];
+      this.logger.log(
+        `resolveLiveItemIds: store ${storeId} live menu has ${items.length} items`,
+      );
     } catch (err: any) {
       this.logger.warn(
         `resolveLiveItemIds: GET menus failed for ${storeId}: ${err?.message ?? err}`,

@@ -370,37 +370,21 @@ export class MenuAvailabilityService {
     reason: string | null,
     restore = false,
   ): Promise<void> {
-    // The Uber store may be connected to a DIFFERENT brand than the item's
-    // own (e.g. a HubRise-imported item whose menu was later published under
-    // a virtual brand). Resolve through every brand the item is reachable
-    // from: its own brand, shared brands, and the brands of its menus.
-    const candidateBrands = new Set<string>();
-    if ((item as any).brandId) candidateBrands.add((item as any).brandId);
-    for (const b of ((item as any).brandIds ?? []) as string[]) {
-      if (b) candidateBrands.add(b);
-    }
-    const menuIds = (((item as any).menuIds ?? []) as string[]).filter(Boolean);
-    if (menuIds.length) {
-      const menus = await this.prisma.menu.findMany({
-        where: { id: { in: menuIds } },
-        select: { brandId: true },
-      });
-      for (const m of menus) if (m.brandId) candidateBrands.add(m.brandId);
-    }
-    const conn = candidateBrands.size
-      ? await this.prisma.brandPlatformConnection.findFirst({
-          where: {
-            brandId: { in: Array.from(candidateBrands) },
-            tenantId,
-            platform: "UBER_EATS",
-            externalStoreId: { not: null },
-            status: { in: ["connected", "suspended"] },
-          },
-          select: { externalStoreId: true, locationId: true, brandId: true },
-        })
-      : null;
-    if (!conn?.externalStoreId) {
-      // Never skip silently — say exactly why nothing reached Uber.
+    // Base44-verified model: DON'T resolve the store from the item's brand
+    // (a shared item's brand often differs from the brand that published the
+    // menu to Uber). Instead loop over ALL the tenant's connected Uber stores
+    // and use each store's LIVE menu as the source of truth — suspend on the
+    // store(s) where the item actually resolves (by id → PLU → name).
+    const conns = await this.prisma.brandPlatformConnection.findMany({
+      where: {
+        tenantId,
+        platform: "UBER_EATS",
+        externalStoreId: { not: null },
+        status: { in: ["connected", "suspended"] },
+      },
+      select: { externalStoreId: true, locationId: true, brandId: true },
+    });
+    if (conns.length === 0) {
       this.activity?.record({
         tenantId,
         brandId: (item as any).brandId ?? null,
@@ -408,12 +392,11 @@ export class MenuAvailabilityService {
         channel: "UBER_EATS",
         action: restore ? "item.restore.push" : "item.86.push",
         status: "WARNING",
-        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} NOT pushed — no connected Uber Eats store found for this item's brands`,
-        details: { itemId: item.id, candidateBrands: Array.from(candidateBrands) },
+        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} NOT pushed — no Uber Eats store connected for this account`,
+        details: { itemId: item.id },
       });
       return;
     }
-    const brandId = conn.brandId;
 
     // Uber's "forever" convention (same constant the menu publish uses) —
     // far-future epoch; a timed snooze uses its real expiry.
@@ -432,62 +415,81 @@ export class MenuAvailabilityService {
       skus.forEach((_, i) => ids.push(`${item.id}__s${i}`));
     }
 
-    // Resolve against Uber's LIVE menu so the item_id we PATCH is the one Uber
-    // actually holds (our publish uses our id, but imports/re-uploads can
-    // drift). Match by id → external_data(PLU) → name. Prevents the 404 the
-    // Uber docs warn about when the item isn't on the uploaded menu.
-    const resolved = await this.uberEatsMenu.resolveLiveItemIds(
-      conn.externalStoreId,
-      ids,
-      { plu: (item as any).plu ?? null, name: (item as any).name ?? null },
-    );
-    if (resolved.ids.length === 0) {
+    // Try each connected store: resolve the item on its live menu, and push
+    // the suspension only where it exists. Aggregate for one clear Logs row.
+    type Pushed = {
+      storeId: string;
+      brandId: string;
+      locationId: string | null;
+      matchedBy: string;
+      results: Array<{ itemId: string; httpStatus: number | null; error?: string }>;
+    };
+    const pushed: Pushed[] = [];
+    let liveSample: string[] = [];
+    let liveCount = 0;
+    for (const c of conns) {
+      const resolved = await this.uberEatsMenu.resolveLiveItemIds(
+        c.externalStoreId!,
+        ids,
+        { plu: (item as any).plu ?? null, name: (item as any).name ?? null },
+      );
+      if (resolved.sampleIds.length) liveSample = resolved.sampleIds;
+      liveCount = Math.max(liveCount, resolved.liveCount);
+      if (resolved.ids.length === 0) continue;
+      const { results } = await this.uberEatsMenu.setItemSuspension({
+        storeId: c.externalStoreId!,
+        itemIds: resolved.ids,
+        suspendUntil,
+        reason: reason ?? undefined,
+      });
+      pushed.push({
+        storeId: c.externalStoreId!,
+        brandId: c.brandId,
+        locationId: c.locationId ?? null,
+        matchedBy: resolved.matchedBy,
+        results,
+      });
+    }
+
+    if (pushed.length === 0) {
       this.activity?.record({
         tenantId,
-        brandId,
-        locationId: conn.locationId ?? null,
+        brandId: (item as any).brandId ?? null,
         category: "INVENTORY",
         channel: "UBER_EATS",
         action: restore ? "item.restore.push" : "item.86.push",
         status: "WARNING",
-        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} skipped — item not found on Uber's live menu (${resolved.liveCount} items). Publish this menu to Uber Eats, then retry.`,
+        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} skipped — not on any connected Uber store's live menu (checked ${conns.length}, ${liveCount} items). Publish this menu to Uber Eats first.`,
         details: {
           triedIds: ids,
-          liveSampleIds: resolved.sampleIds,
-          matchedBy: resolved.matchedBy,
+          storesChecked: conns.map((c) => c.externalStoreId),
+          liveSampleIds: liveSample,
+          plu: (item as any).plu ?? null,
+          name: (item as any).name ?? null,
         },
       });
       this.logger.warn(
-        `Uber 86: item ${item.id} not on live menu (${resolved.liveCount} items). Sample live ids: ${resolved.sampleIds.join(",")}`,
+        `Uber 86: item ${item.id} not found on any of ${conns.length} store(s). Sample live ids: ${liveSample.join(",")}`,
       );
       return;
     }
-    this.logger.log(
-      `Uber 86: resolved ${resolved.ids.length} live id(s) for ${item.id} via ${resolved.matchedBy} → [${resolved.ids.join(",")}]`,
-    );
 
-    const { results } = await this.uberEatsMenu.setItemSuspension({
-      storeId: conn.externalStoreId,
-      itemIds: resolved.ids,
-      suspendUntil,
-      reason: reason ?? undefined,
-    });
-    const ok = results.filter((r) => !r.error);
-    const failed = results.filter((r) => r.error);
+    const allResults = pushed.flatMap((p) => p.results);
+    const ok = allResults.filter((r) => !r.error);
+    const failed = allResults.filter((r) => r.error);
     this.logger.log(
-      `Uber Eats item ${restore ? "restore" : "86"} for ${item.id}: ${ok.length}/${results.length} ok` +
-        (failed.length ? ` (failed: ${failed.map((f) => f.itemId).join(",")})` : ""),
+      `Uber Eats item ${restore ? "restore" : "86"} for ${item.id}: ${ok.length}/${allResults.length} ok across ${pushed.length} store(s)`,
     );
     this.activity?.record({
       tenantId,
-      brandId,
-      locationId: conn.locationId ?? null,
+      brandId: pushed[0]!.brandId,
+      locationId: pushed[0]!.locationId,
       category: "INVENTORY",
       channel: "UBER_EATS",
       action: restore ? "item.restore.push" : "item.86.push",
-      status: failed.length === results.length ? "ERROR" : "SUCCESS",
-      message: `"${(item as any).name ?? item.id}" ${restore ? "back on sale" : "suspended"} on Uber Eats — Uber responded ${ok[0]?.httpStatus ?? failed[0]?.httpStatus ?? "ERR"}${suspendUntil && !restore && expiresAt ? ` (until ${expiresAt.toISOString()})` : ""}`,
-      details: { results, suspendUntil },
+      status: failed.length === allResults.length ? "ERROR" : "SUCCESS",
+      message: `"${(item as any).name ?? item.id}" ${restore ? "back on sale" : "suspended"} on Uber Eats (${pushed.length} store${pushed.length === 1 ? "" : "s"}, matched by ${pushed[0]!.matchedBy}) — Uber responded ${ok[0]?.httpStatus ?? failed[0]?.httpStatus ?? "ERR"}${suspendUntil && !restore && expiresAt ? ` (until ${expiresAt.toISOString()})` : ""}`,
+      details: { pushed, suspendUntil },
     });
   }
 
