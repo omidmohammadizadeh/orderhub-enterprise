@@ -154,13 +154,41 @@ export class UberEatsMenuPublishService {
       this.logger.warn(
         `Uber Eats menu refresh: no menu found for brand ${conn.brandId}`,
       );
+      this.activity?.record({
+        tenantId: conn.tenantId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+        category: "MENU",
+        channel: "UBER_EATS",
+        action: "menu.republish",
+        status: "WARNING",
+        message:
+          "Hours/menu push skipped — no menu is assigned to this brand. Create or assign a menu to the brand and publish it to Uber Eats once.",
+        details: { storeId: uberStoreId },
+      });
       return { ok: false, reason: "no_menu" };
     }
-    return this.publishToStore({
+    const res = await this.publishToStore({
       menuId: menu.id,
       menuName: menu.name,
       storeId: uberStoreId,
     });
+    this.activity?.record({
+      tenantId: conn.tenantId,
+      brandId: conn.brandId,
+      locationId: conn.locationId,
+      category: "MENU",
+      channel: "UBER_EATS",
+      action: "menu.republish",
+      status: "SUCCESS",
+      message: `Menu "${menu.name}" republished with current opening hours — Uber responded ${(res as any)?.uberHttpStatus ?? 204} OK`,
+      details: {
+        storeId: uberStoreId,
+        uberHttpStatus: (res as any)?.uberHttpStatus ?? 204,
+        serviceAvailabilityDays: (res as any)?.hoursDays ?? undefined,
+      },
+    });
+    return res;
   }
 
   private async publishToStore(args: {
@@ -214,6 +242,12 @@ export class UberEatsMenuPublishService {
       categories,
       openingHours,
     });
+    const hoursDays = payload.menus[0]?.service_availability?.map(
+      (d) => `${d.day_of_week}:${d.time_periods.map((t) => `${t.start_time}-${t.end_time}`).join("|")}`,
+    );
+    this.logger.log(
+      `Uber Eats menu ${args.menuId} service_availability: ${JSON.stringify(hoursDays)?.slice(0, 400)}`,
+    );
     for (const w of warnings) this.logger.warn(`Uber Eats menu publish: ${w}`);
 
     this.logger.log(
@@ -237,7 +271,7 @@ export class UberEatsMenuPublishService {
         /* best-effort bookkeeping */
       });
 
-    return { ok: true, ...stats, warnings, uberHttpStatus: meta.status };
+    return { ok: true, ...stats, warnings, uberHttpStatus: meta.status, hoursDays };
   }
 
   // ── Menu loading (mirrors the Deliveroo publish, + UBER_EATS overrides) ──
