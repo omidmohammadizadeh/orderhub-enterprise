@@ -145,13 +145,72 @@ export class UberMenuImporter {
 
     const normalized = classifyUberMenu(payload);
     await this.rehostImages(normalized);
-    return this.writer.apply({
+    const result = await this.writer.apply({
       menuId: menu.id,
       tenantId: args.tenantId,
       brandId: menu.brandId,
       locationId: menu.locationId,
       normalized,
     });
+    // Uber's Get Menu NEVER returns images (live-verified: item keys are
+    // id/title/price_info/tax_info/dish_info/product_info/bundled_items —
+    // image_url is write-only on their API). Heal by borrowing images from
+    // same-named items already in the brand (e.g. the HubRise-imported twin
+    // of the same catalog).
+    await this.backfillImagesFromBrandTwins(menu.brandId, args.tenantId);
+    return result;
+  }
+
+  /**
+   * For every imageless Uber-imported item in the brand, copy the image of
+   * a same-named brand item that has one. Names are compared trimmed +
+   * case-insensitive. Best-effort — never throws.
+   */
+  private async backfillImagesFromBrandTwins(
+    brandId: string | null,
+    tenantId: string,
+  ): Promise<void> {
+    if (!brandId) return;
+    try {
+      const items = await this.prisma.menuItem.findMany({
+        where: { brandId },
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          platformSource: true,
+        },
+      });
+      const donorByName = new Map<string, string>();
+      for (const it of items) {
+        const key = it.name?.trim().toLowerCase();
+        if (!key) continue;
+        const url = it.imageUrl ?? "";
+        if (url && !url.startsWith("data:") && !donorByName.has(key)) {
+          donorByName.set(key, url);
+        }
+      }
+      let healed = 0;
+      for (const it of items) {
+        if (it.imageUrl) continue;
+        const donor = donorByName.get(it.name?.trim().toLowerCase() ?? "");
+        if (!donor) continue;
+        await this.prisma.menuItem.update({
+          where: { id: it.id },
+          data: { imageUrl: donor },
+        });
+        healed++;
+      }
+      if (healed > 0) {
+        this.logger.log(
+          `Uber menu import: backfilled ${healed} item images from same-named brand items`,
+        );
+      }
+    } catch (err: any) {
+      this.logger.warn(
+        `Uber menu import image backfill failed: ${err?.message ?? err}`,
+      );
+    }
   }
 
   private async fetchFromUber(
