@@ -1032,10 +1032,29 @@ export class PaymentsService {
           `Optimistic capture flip failed for ${orderId}: ${err.message}`,
         );
       }
+      // Phase LG — dashboard Logs page.
+      this.events.emit("activity.log", {
+        tenantId: payment.tenantId,
+        category: "PAYMENTS",
+        channel: "STRIPE",
+        action: "payment.captured",
+        status: "SUCCESS",
+        message: `Payment captured for order (£${Number(payment.amount).toFixed(2)})`,
+        details: { orderId, paymentIntentId: piId },
+      });
     } catch (err: any) {
       this.logger.error(
         `Stripe capture failed for order ${orderId}: ${err.message}`,
       );
+      this.events.emit("activity.log", {
+        tenantId: payment.tenantId,
+        category: "PAYMENTS",
+        channel: "STRIPE",
+        action: "payment.captured",
+        status: "ERROR",
+        message: `Stripe capture FAILED for order: ${err.message}`,
+        details: { orderId, paymentIntentId: piId },
+      });
       throw new BadRequestException(`Capture failed: ${err.message}`);
     }
   }
@@ -1075,6 +1094,16 @@ export class PaymentsService {
         `Stripe PI cancelled for order ${orderId} on ${stripeAccount} (reason: ${reason ?? "n/a"})`,
       );
       // payment_intent.canceled webhook will flip statuses.
+      // Phase LG — dashboard Logs page.
+      this.events.emit("activity.log", {
+        tenantId: payment.tenantId,
+        category: "PAYMENTS",
+        channel: "STRIPE",
+        action: "payment.auth_released",
+        status: "INFO",
+        message: `Card hold released (order rejected before capture)${reason ? ` — ${reason}` : ""}`,
+        details: { orderId, paymentIntentId: payment.stripePaymentIntentId },
+      });
     } catch (err: any) {
       this.logger.error(
         `Stripe cancel failed for order ${orderId}: ${err.message}`,
@@ -1164,8 +1193,27 @@ export class PaymentsService {
           `Optimistic refund flip failed for ${orderId}: ${err.message}`,
         );
       }
+      // Phase LG — dashboard Logs page.
+      this.events.emit("activity.log", {
+        tenantId: payment.tenantId,
+        category: "PAYMENTS",
+        channel: "STRIPE",
+        action: "payment.refunded",
+        status: "WARNING",
+        message: `Payment refunded (£${total.toFixed(2)})${reason ? ` — ${reason}` : ""}`,
+        details: { orderId, paymentIntentId: payment.stripePaymentIntentId },
+      });
     } catch (err: any) {
       this.logger.error(`Stripe refund failed for order ${orderId}: ${err.message}`);
+      this.events.emit("activity.log", {
+        tenantId: payment.tenantId,
+        category: "PAYMENTS",
+        channel: "STRIPE",
+        action: "payment.refunded",
+        status: "ERROR",
+        message: `Stripe refund FAILED: ${err.message}`,
+        details: { orderId, paymentIntentId: payment.stripePaymentIntentId },
+      });
       throw new BadRequestException(`Refund failed: ${err.message}`);
     }
   }
@@ -1326,6 +1374,19 @@ export class PaymentsService {
       orderId: payment.orderId,
       paymentStatus: "AUTHORIZED",
     } as any);
+
+    // Phase LG — dashboard Logs page.
+    this.events.emit("activity.log", {
+      tenantId: payment.tenantId,
+      locationId: order?.locationId ?? null,
+      brandId: (order as any)?.brandId ?? null,
+      category: "PAYMENTS",
+      channel: "STRIPE",
+      action: "payment.authorized",
+      status: "SUCCESS",
+      message: `Card authorised for order ${order?.displayId ?? payment.orderId} (£${Number(payment.amount).toFixed(2)})`,
+      details: { orderId: payment.orderId },
+    });
 
     // Card is now authorised. Two paths:
     //

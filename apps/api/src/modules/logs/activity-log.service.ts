@@ -21,6 +21,7 @@ export type ActivityCategory =
   | "ORDERS"
   | "INVENTORY"
   | "STATUS"
+  | "PAYMENTS"
   | "CONNECTION";
 
 export type ActivityStatus = "SUCCESS" | "ERROR" | "INFO" | "WARNING";
@@ -101,7 +102,11 @@ export class ActivityLogService {
       where: {
         tenantId,
         ...(opts.category ? { category: opts.category } : {}),
-        ...(opts.channel ? { channel: opts.channel } : {}),
+        // Comma-separated channel list — the UI's "Online ordering" filter
+        // covers both ONLINE and DIRECT platform tags with one selection.
+        ...(opts.channel
+          ? { channel: { in: opts.channel.split(",").filter(Boolean) } }
+          : {}),
         ...(opts.locationId ? { locationId: opts.locationId } : {}),
         ...(opts.status ? { status: opts.status } : {}),
       },
@@ -121,7 +126,9 @@ export class ActivityLogService {
           select: { id: true, name: true },
         })
       : [];
-    const brandName = new Map(brands.map((b) => [b.id, b.name]));
+    const brandName = new Map(
+      brands.map((b: { id: string; name: string }) => [b.id, b.name] as const),
+    );
     return {
       entries: page.map((r: any) => ({
         id: r.id,

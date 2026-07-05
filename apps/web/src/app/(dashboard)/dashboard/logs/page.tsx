@@ -13,6 +13,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  CreditCard,
   ChevronDown,
   ChevronRight,
   Info,
@@ -51,8 +52,25 @@ const TABS = [
   { key: "ORDERS", label: "Orders", icon: ShoppingBag },
   { key: "INVENTORY", label: "Inventory", icon: Package },
   { key: "STATUS", label: "Status", icon: Activity },
+  { key: "PAYMENTS", label: "Payments", icon: CreditCard },
   { key: "CONNECTION", label: "Connections", icon: Plug },
 ] as const;
+
+// Channel dropdown — value is the comma-separated platform tags the API
+// matches (Online ordering covers both ONLINE and DIRECT).
+const CHANNEL_FILTERS: Array<{ value: string; label: string }> = [
+  { value: "", label: "All channels" },
+  { value: "UBER_EATS", label: "Uber Eats" },
+  { value: "DELIVEROO", label: "Deliveroo" },
+  { value: "JUST_EAT", label: "Just Eat" },
+  { value: "HUBRISE", label: "HubRise" },
+  { value: "ONLINE,DIRECT", label: "Online ordering" },
+  { value: "POS", label: "POS" },
+  { value: "WHATSAPP", label: "WhatsApp" },
+  { value: "STRIPE", label: "Stripe" },
+  { value: "STUART", label: "Stuart" },
+  { value: "UBER_DIRECT", label: "Uber Direct" },
+];
 
 const CHANNEL_LABEL: Record<string, string> = {
   UBER_EATS: "Uber Eats",
@@ -63,6 +81,9 @@ const CHANNEL_LABEL: Record<string, string> = {
   ONLINE: "Online",
   POS: "POS",
   WHATSAPP: "WhatsApp",
+  STRIPE: "Stripe",
+  STUART: "Stuart",
+  UBER_DIRECT: "Uber Direct",
   ALL: "All channels",
 };
 
@@ -75,6 +96,9 @@ const CHANNEL_COLOR: Record<string, string> = {
   ONLINE: "bg-blue-500/15 text-blue-400",
   POS: "bg-zinc-500/15 text-zinc-300",
   WHATSAPP: "bg-green-500/15 text-green-400",
+  STRIPE: "bg-indigo-500/15 text-indigo-400",
+  STUART: "bg-sky-500/15 text-sky-400",
+  UBER_DIRECT: "bg-zinc-500/15 text-zinc-300",
 };
 
 function statusBadge(status: LogEntry["status"]) {
@@ -174,6 +198,7 @@ function Row({ entry }: { entry: LogEntry }) {
 export default function LogsPage() {
   const [tab, setTab] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [channelFilter, setChannelFilter] = useState<string>("");
 
   const {
     data,
@@ -184,11 +209,12 @@ export default function LogsPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery<LogsPage>({
-    queryKey: ["activity-logs", tab, statusFilter],
+    queryKey: ["activity-logs", tab, statusFilter, channelFilter],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       if (tab) params.set("category", tab);
       if (statusFilter) params.set("status", statusFilter);
+      if (channelFilter) params.set("channel", channelFilter);
       if (pageParam) params.set("cursor", String(pageParam));
       params.set("limit", "50");
       const res = await apiClient.get(`/v1/logs?${params.toString()}`);
@@ -248,6 +274,17 @@ export default function LogsPage() {
           );
         })}
         <div className="ml-auto flex items-center gap-1.5">
+          <select
+            value={channelFilter}
+            onChange={(e) => setChannelFilter(e.target.value)}
+            className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 focus:outline-none"
+          >
+            {CHANNEL_FILTERS.map((c) => (
+              <option key={c.value || "all"} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
           {["", "ERROR", "WARNING", "SUCCESS"].map((sKey) => (
             <button
               key={sKey || "any"}
