@@ -19,7 +19,11 @@ import { X, Check, ChevronLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
-import { brandsClient, type Brand } from "@/lib/api/locations.client";
+import {
+  brandsClient,
+  locationsClient,
+  type Brand,
+} from "@/lib/api/locations.client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 
 interface Props {
@@ -79,8 +83,9 @@ const TARGETS: Target[] = [
   {
     id: "UBER_EATS",
     title: "Uber Eats",
-    description: "Direct Uber Eats push (skip via HubRise).",
-    wired: false,
+    description:
+      "Direct Uber Eats push — uploads this menu to the brand's connected Uber Eats store.",
+    wired: true,
   },
   {
     id: "DELIVEROO",
@@ -91,7 +96,7 @@ const TARGETS: Target[] = [
   },
 ];
 
-type Step = "channels" | "brand";
+type Step = "channels" | "location" | "brand";
 
 export function PublishMenuModal({
   open,
@@ -106,6 +111,9 @@ export function PublishMenuModal({
   const [step, setStep] = useState<Step>("channels");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [brandId, setBrandId] = useState<string>(currentBrandId);
+  // Location step (before brand) — direct marketplace pushes are per
+  // location, so the operator picks WHERE first, then which brand there.
+  const [selLocationId, setSelLocationId] = useState<string>(locationId ?? "");
 
   // Re-seed on every open so the modal shows the menu's current state.
   useEffect(() => {
@@ -113,12 +121,19 @@ export function PublishMenuModal({
       setStep("channels");
       setSelected(new Set(initiallyPublishedTo));
       setBrandId(currentBrandId);
+      setSelLocationId(locationId ?? "");
     }
-  }, [open, initiallyPublishedTo, currentBrandId]);
+  }, [open, initiallyPublishedTo, currentBrandId, locationId]);
+
+  const locationsQuery = useQuery({
+    queryKey: ["locations"],
+    queryFn: () => locationsClient.list(),
+    enabled: open && step === "location",
+  });
 
   const brandsQuery = useQuery({
-    queryKey: ["brands", locationId ?? "tenant"],
-    queryFn: () => brandsClient.list(locationId),
+    queryKey: ["brands", selLocationId || locationId || "tenant"],
+    queryFn: () => brandsClient.list(selLocationId || locationId),
     enabled: open && step === "brand",
   });
 
@@ -144,6 +159,13 @@ export function PublishMenuModal({
       // we just persisted onto the menu row above.
       if (next.includes("DELIVEROO")) {
         await menusClient.publishToDeliveroo(menuId);
+      }
+      // Direct Uber Eats upsert for the picked location + brand.
+      if (next.includes("UBER_EATS")) {
+        await menusClient.publishToUberEats(menuId, {
+          locationId: selLocationId || undefined,
+          brandId,
+        });
       }
     },
     onSuccess: () => {
@@ -188,11 +210,13 @@ export function PublishMenuModal({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
         <header className="flex items-center justify-between p-5 border-b border-zinc-100">
           <div className="flex items-center gap-2">
-            {step === "brand" && (
+            {step !== "channels" && (
               <button
-                onClick={() => setStep("channels")}
+                onClick={() =>
+                  setStep(step === "brand" ? "location" : "channels")
+                }
                 className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100"
-                title="Back to channels"
+                title="Back"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -204,7 +228,9 @@ export function PublishMenuModal({
               <p className="text-xs text-zinc-500 mt-0.5">
                 {step === "channels"
                   ? `Pick where "${menuName}" should be live.`
-                  : `Pick the brand to publish "${menuName}" under.`}
+                  : step === "location"
+                    ? `Pick the location to publish "${menuName}" at.`
+                    : `Pick the brand to publish "${menuName}" under.`}
               </p>
             </div>
           </div>
@@ -216,12 +242,14 @@ export function PublishMenuModal({
           </button>
         </header>
 
-        {/* Step indicator — Brand step is skipped when HubRise is selected. */}
+        {/* Step indicator — Location/Brand steps are skipped when HubRise is selected. */}
         {needsBrandStep && (
           <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-2">
-            <StepPill index={1} label="Channels" active={step === "channels"} done={step === "brand"} />
+            <StepPill index={1} label="Channels" active={step === "channels"} done={step !== "channels"} />
             <span className="h-px flex-1 bg-zinc-200" />
-            <StepPill index={2} label="Brand" active={step === "brand"} done={false} />
+            <StepPill index={2} label="Location" active={step === "location"} done={step === "brand"} />
+            <span className="h-px flex-1 bg-zinc-200" />
+            <StepPill index={3} label="Brand" active={step === "brand"} done={false} />
           </div>
         )}
 
@@ -267,6 +295,51 @@ export function PublishMenuModal({
                 </button>
               );
             })
+          ) : step === "location" ? (
+            locationsQuery.isLoading ? (
+              <div className="flex items-center justify-center py-12 text-zinc-400">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+            ) : (
+              (locationsQuery.data ?? []).map((l: any) => {
+                const isOn = selLocationId === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setSelLocationId(l.id)}
+                    className={`relative w-full flex items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
+                      isOn
+                        ? "border-sky-300 bg-sky-50"
+                        : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    <div className="grid h-11 w-11 place-items-center rounded-md bg-zinc-100 text-sm font-bold text-zinc-500">
+                      {String(l.name ?? "?").slice(0, 1).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-900">
+                        {l.name}
+                      </p>
+                      {(l.city || l.postcode) && (
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                          {[l.city, l.postcode].filter(Boolean).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                    <span
+                      className={`grid h-5 w-5 place-items-center rounded-full border-2 flex-shrink-0 ${
+                        isOn
+                          ? "border-sky-500 bg-sky-500 text-white"
+                          : "border-zinc-300 bg-white"
+                      }`}
+                    >
+                      {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </span>
+                  </button>
+                );
+              })
+            )
           ) : brandsQuery.isLoading ? (
             <div className="flex items-center justify-center py-12 text-zinc-400">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -333,11 +406,11 @@ export function PublishMenuModal({
             needsBrandStep ? (
               <Button
                 size="sm"
-                onClick={() => setStep("brand")}
+                onClick={() => setStep("location")}
                 disabled={!canContinue}
                 className="bg-zinc-900 hover:bg-zinc-800 text-white"
               >
-                Next: pick brand
+                Next: pick location
               </Button>
             ) : (
               <Button
@@ -355,6 +428,15 @@ export function PublishMenuModal({
                 )}
               </Button>
             )
+          ) : step === "location" ? (
+            <Button
+              size="sm"
+              onClick={() => setStep("brand")}
+              disabled={!selLocationId}
+              className="bg-zinc-900 hover:bg-zinc-800 text-white"
+            >
+              Next: pick brand
+            </Button>
           ) : (
             <Button
               size="sm"

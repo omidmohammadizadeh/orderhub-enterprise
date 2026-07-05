@@ -230,10 +230,30 @@ export class MenusController {
   publishUberEats(
     @Param("menuId") menuId: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Body() body?: { locationId?: string; brandId?: string },
   ) {
     return this.uberEatsMenu.publishMenu({
       tenantId: user.tenantId,
       menuId,
+      locationId: body?.locationId,
+      brandId: body?.brandId,
+    });
+  }
+
+  @Post("menus/import/ubereats")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Create a new menu for the brand/location and import it live from the brand's connected Uber Eats store (GET /v2/eats/stores/{id}/menus).",
+  })
+  importFromUberEats(
+    @Body() body: { brandId: string; locationId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.uberImporter.importFromConnection({
+      tenantId: user.tenantId,
+      brandId: body.brandId,
+      locationId: body.locationId,
     });
   }
 

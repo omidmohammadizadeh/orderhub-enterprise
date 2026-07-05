@@ -302,6 +302,22 @@ export const menusClient = {
       )
       .then((r) => r.data),
 
+  importFromUberEats: (body: { brandId: string; locationId: string }) =>
+    apiClient
+      .post<{ id: string; name: string }>(
+        `/v1/menus/import/ubereats`,
+        body,
+      )
+      .then((r) => r.data),
+
+  publishToUberEats: (
+    menuId: string,
+    body?: { locationId?: string; brandId?: string },
+  ) =>
+    apiClient
+      .post<{ ok: boolean }>(`/v1/menus/${menuId}/publish/ubereats`, body ?? {})
+      .then((r) => r.data),
+
   importFromDeliveroo: (body: { brandId: string; locationId: string }) =>
     apiClient
       .post<{ id: string; name: string }>(

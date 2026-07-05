@@ -68,7 +68,14 @@ export class UberEatsMenuPublishService {
     return null;
   }
 
-  async publishMenu(args: { tenantId: string; menuId: string }) {
+  async publishMenu(args: {
+    tenantId: string;
+    menuId: string;
+    /** Optional overrides from the publish dialog (location → brand picker);
+     *  fall back to the menu row's own brand/location. */
+    locationId?: string;
+    brandId?: string;
+  }) {
     const { tenantId, menuId } = args;
 
     const menu = await this.prisma.menu.findFirst({
@@ -77,26 +84,28 @@ export class UberEatsMenuPublishService {
     });
     if (!menu) throw new BadRequestException("Menu not found");
 
+    const targetBrandId = args.brandId ?? menu.brandId;
+    const targetLocationId = args.locationId ?? menu.locationId;
     const conn = await this.prisma.brandPlatformConnection.findFirst({
       where: {
-        brandId: menu.brandId,
+        brandId: targetBrandId,
         tenantId,
         platform: PLATFORM_KEY,
         externalStoreId: { not: null },
-        ...(menu.locationId ? { locationId: menu.locationId } : {}),
+        ...(targetLocationId ? { locationId: targetLocationId } : {}),
       },
       select: { id: true, externalStoreId: true },
     });
     if (!conn) {
       throw new BadRequestException(
-        "Uber Eats isn't connected for this brand yet. Connect it and pick a store first.",
+        "Uber Eats isn't connected for that brand/location yet. Connect it and pick a store first.",
       );
     }
 
     const logCtx = {
       tenantId,
-      brandId: menu.brandId,
-      locationId: menu.locationId,
+      brandId: targetBrandId,
+      locationId: targetLocationId,
       category: "MENU" as const,
       channel: "UBER_EATS",
       action: "menu.publish",

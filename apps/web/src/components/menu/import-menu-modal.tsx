@@ -56,9 +56,13 @@ export function ImportMenuModal({ open, source, onCancel, onImported }: Props) {
 
   const importMutation = useMutation({
     mutationFn: () =>
-      menusClient.importFromDeliveroo({ brandId, locationId }),
+      sourceId === "ubereats"
+        ? menusClient.importFromUberEats({ brandId, locationId })
+        : menusClient.importFromDeliveroo({ brandId, locationId }),
     onSuccess: (menu) => {
-      toast.success(`Imported "${menu.name}" from Deliveroo`);
+      toast.success(
+        `Imported "${menu.name}" from ${sourceId === "ubereats" ? "Uber Eats" : "Deliveroo"}`,
+      );
       qc.invalidateQueries({ predicate: (q) => q.queryKey.includes("menus") });
       onImported?.(menu.id);
       onCancel();
@@ -71,9 +75,12 @@ export function ImportMenuModal({ open, source, onCancel, onImported }: Props) {
 
   if (!open) return null;
 
-  // Deliveroo is wired end-to-end (pull via its API using the brand's saved
-  // connection); the other channels are still connect-first placeholders.
-  const isWired = source === "channel" && sourceId === "deliveroo";
+  // Deliveroo + Uber Eats are wired end-to-end (live pull via the brand's
+  // saved connection); the other channels are still connect-first
+  // placeholders.
+  const isWired =
+    source === "channel" &&
+    (sourceId === "deliveroo" || sourceId === "ubereats");
   const canImport = isWired && !!brandId && !!locationId;
 
   const options = source === "channel" ? CHANNELS : POS_SYSTEMS;

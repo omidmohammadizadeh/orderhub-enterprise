@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { UberEatsClientService } from "../../integrations/ubereats/ubereats-client.service";
 import { MenuWriterService } from "./menu-writer.service";
 import {
   classifyUberMenu,
@@ -46,7 +47,64 @@ export class UberMenuImporter {
   constructor(
     private readonly prisma: PrismaService,
     private readonly writer: MenuWriterService,
+    // Live fetch through the connected app credentials (Phase UE) — the
+    // legacy accessToken/payload paths stay for fixtures + recovery.
+    @Optional() private readonly uberClient?: UberEatsClientService,
   ) {}
+
+  /**
+   * "Import from channel → Uber Eats": resolve the brand's connected store,
+   * create a fresh menu for the brand+location, pull the LIVE menu via the
+   * Menu API (GET /v2/eats/stores/{id}/menus) and write it in. Mirrors
+   * DeliverooMenuImporter.importFromConnection.
+   */
+  async importFromConnection(args: {
+    tenantId: string;
+    brandId: string;
+    locationId: string;
+  }) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: args.brandId, tenantId: args.tenantId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!brand) throw new BadRequestException("Brand not found");
+
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        brandId: args.brandId,
+        tenantId: args.tenantId,
+        platform: "UBER_EATS",
+        externalStoreId: { not: null },
+        status: { in: ["connected", "suspended"] },
+        ...(args.locationId ? { locationId: args.locationId } : {}),
+      },
+      select: { externalStoreId: true },
+    });
+    if (!conn) {
+      throw new BadRequestException(
+        "Uber Eats isn't connected for this brand at that location yet. Connect it under Locations → Brands → Uber Eats first.",
+      );
+    }
+
+    const menu = await this.prisma.menu.create({
+      data: {
+        brandId: args.brandId,
+        locationId: args.locationId,
+        name: `${brand.name} — Uber Eats`,
+        platformSource: "ubereats",
+        externalParentId: conn.externalStoreId,
+      },
+      select: { id: true },
+    });
+
+    await this.import({
+      menuId: menu.id,
+      tenantId: args.tenantId,
+      storeId: conn.externalStoreId!,
+    });
+
+    return this.prisma.menu.findUnique({ where: { id: menu.id } });
+  }
 
   async import(args: ImportArgs) {
     const menu = await this.prisma.menu.findFirst({
@@ -82,6 +140,15 @@ export class UberMenuImporter {
     accessToken: string | undefined,
   ): Promise<UberMenuPayload> {
     if (!accessToken) {
+      // Phase UE — no operator-supplied token needed: mint a client-
+      // credentials token (eats.store) through the connected app.
+      if (this.uberClient?.configured) {
+        return await this.uberClient.request<UberMenuPayload>(
+          "GET",
+          `/v2/eats/stores/${encodeURIComponent(storeId)}/menus`,
+          { scopes: ["eats.store"] },
+        );
+      }
       throw new BadRequestException(
         "Uber access token required (configure the Integration first)",
       );
