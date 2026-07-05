@@ -179,9 +179,15 @@ export class UberEatsMenuPublishService {
     }
 
     const meta: { status?: number } = {};
+    // Uber's GET omits empty top-level sections, but their PUT validator
+    // requires every field present ("required field modifier_groups not
+    // found in data" — live 400). Default the full quartet.
     const body = {
       ...current,
       menus: menus.map((m) => ({ ...m, service_availability: availability })),
+      categories: current?.categories ?? [],
+      items: current?.items ?? [],
+      modifier_groups: current?.modifier_groups ?? [],
     };
     try {
       await this.client.request(
