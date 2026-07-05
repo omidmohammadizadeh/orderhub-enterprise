@@ -321,12 +321,16 @@ export class UberEatsConnectionService {
       offlineUntil && offlineUntil.getTime() > Date.now()
         ? offlineUntil
         : new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Out-param filled by the client with Uber's HTTP status — the Logs page
+    // shows the acknowledgment ("Uber responded 200 OK") per certification.
+    const meta: { status?: number } = {};
     await this.withStoreAccess(c, () =>
       this.client.request(
         "POST",
         `/v1/delivery/store/${c.externalStoreId}/update-store-status`,
         {
           scopes: STATUS_SCOPES,
+          meta,
           body: {
             status: online ? "ONLINE" : "OFFLINE",
             ...(online
@@ -351,8 +355,8 @@ export class UberEatsConnectionService {
       channel: "UBER_EATS",
       action: online ? "store.resume" : "store.pause",
       status: "SUCCESS",
-      message: `Uber Eats store set ${online ? "ONLINE" : `OFFLINE until ${until.toISOString()}`}`,
-      details: { storeId: c.externalStoreId },
+      message: `Uber Eats store set ${online ? "ONLINE" : `OFFLINE until ${until.toISOString()}`} — Uber responded ${meta.status ?? 200} OK`,
+      details: { storeId: c.externalStoreId, uberHttpStatus: meta.status ?? 200 },
     });
     return { status: online ? "ONLINE" : "OFFLINE" };
   }

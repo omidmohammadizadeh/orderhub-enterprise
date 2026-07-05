@@ -107,11 +107,12 @@ export class UberEatsMenuPublishService {
       this.activity?.record({
         ...logCtx,
         status: "SUCCESS",
-        message: `Menu "${menu.name}" published to Uber Eats store ${conn.externalStoreId}`,
+        message: `Menu "${menu.name}" published to Uber Eats store ${conn.externalStoreId} — Uber responded ${(res as any)?.uberHttpStatus ?? 204} OK`,
         details: {
           categories: (res as any)?.categories,
           items: (res as any)?.products,
           warnings: (res as any)?.warnings,
+          uberHttpStatus: (res as any)?.uberHttpStatus ?? 204,
         },
       });
       return res;
@@ -185,10 +186,11 @@ export class UberEatsMenuPublishService {
         `${stats.categories} cats / ${stats.products} items / ${stats.groups} groups / ${stats.options} options`,
     );
 
+    const meta: { status?: number } = {};
     await this.client.request(
       "PUT",
       `/v2/eats/stores/${encodeURIComponent(args.storeId)}/menus`,
-      { scopes: ["eats.store"], body: payload },
+      { scopes: ["eats.store"], body: payload, meta },
     );
 
     await this.prisma.menu
@@ -200,7 +202,7 @@ export class UberEatsMenuPublishService {
         /* best-effort bookkeeping */
       });
 
-    return { ok: true, ...stats, warnings };
+    return { ok: true, ...stats, warnings, uberHttpStatus: meta.status };
   }
 
   // ── Menu loading (mirrors the Deliveroo publish, + UBER_EATS overrides) ──

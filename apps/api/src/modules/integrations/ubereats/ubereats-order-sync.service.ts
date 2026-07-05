@@ -88,16 +88,23 @@ export class UberEatsOrderSyncService {
 
       const pushed = await this.push(order, ev.toStatus);
       if (pushed) {
+        const ack = pushed.httpStatus
+          ? ` — Uber responded ${pushed.httpStatus} OK`
+          : "";
         this.activity?.record({
           tenantId: order.tenantId,
           brandId: order.brandId,
           locationId: order.locationId,
           category: "ORDERS",
           channel: "UBER_EATS",
-          action: `order.${pushed}`,
+          action: `order.${pushed.action}`,
           status: "SUCCESS",
-          message: `Order #${order.orderNumber ?? order.id} ${pushed} pushed to Uber Eats`,
-          details: { uberOrderId: order.externalId, toStatus: ev.toStatus },
+          message: `Order #${order.orderNumber ?? order.id} ${pushed.action} pushed to Uber Eats${ack}`,
+          details: {
+            uberOrderId: order.externalId,
+            toStatus: ev.toStatus,
+            uberHttpStatus: pushed.httpStatus ?? null,
+          },
         });
       }
     } catch (err: any) {
@@ -128,8 +135,11 @@ export class UberEatsOrderSyncService {
       location: { prepTime: number | null } | null;
     },
     toStatus: string,
-  ): Promise<string | null> {
+  ): Promise<{ action: string; httpStatus?: number } | null> {
     const id = encodeURIComponent(order.externalId!);
+    // Out-param the client fills with Uber's HTTP status so the activity
+    // log can show the acknowledgment ("200 OK") Uber expects us to get.
+    const meta: { status?: number } = {};
 
     switch (toStatus) {
       case "ACCEPTED": {
@@ -144,6 +154,7 @@ export class UberEatsOrderSyncService {
               `/v1/delivery/order/${id}/accept`,
               {
                 scopes: SCOPES,
+                meta,
                 body: {
                   ready_for_pickup_time: readyAt,
                   external_reference_id: String(order.orderNumber ?? order.id),
@@ -154,13 +165,14 @@ export class UberEatsOrderSyncService {
           "accept",
           order.externalId!,
         );
-        return "accepted";
+        return { action: "accepted", httpStatus: meta.status };
       }
       case "REJECTED": {
         await this.tolerateConflict(
           () =>
             this.client.request("POST", `/v1/delivery/order/${id}/deny`, {
               scopes: SCOPES,
+              meta,
               body: {
                 deny_reason: {
                   type: "RESTAURANT_TOO_BUSY",
@@ -171,13 +183,14 @@ export class UberEatsOrderSyncService {
           "deny",
           order.externalId!,
         );
-        return "denied";
+        return { action: "denied", httpStatus: meta.status };
       }
       case "CANCELLED": {
         await this.tolerateConflict(
           () =>
             this.client.request("POST", `/v1/delivery/order/${id}/cancel`, {
               scopes: SCOPES,
+              meta,
               body: {
                 cancellation_reason: {
                   type: "OTHER",
@@ -188,19 +201,20 @@ export class UberEatsOrderSyncService {
           "cancel",
           order.externalId!,
         );
-        return "cancelled";
+        return { action: "cancelled", httpStatus: meta.status };
       }
       case "READY": {
         await this.tolerateConflict(
           () =>
             this.client.request("POST", `/v1/delivery/order/${id}/ready`, {
               scopes: SCOPES,
+              meta,
               body: {},
             }),
           "ready",
           order.externalId!,
         );
-        return "ready";
+        return { action: "ready", httpStatus: meta.status };
       }
       default:
         return null; // PREPARING/driver states have no Uber-side call

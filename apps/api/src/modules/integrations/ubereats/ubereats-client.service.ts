@@ -193,7 +193,14 @@ export class UberEatsClientService {
   async request<T = any>(
     method: string,
     path: string,
-    opts: { scopes?: string[]; userToken?: string; body?: unknown } = {},
+    opts: {
+      scopes?: string[];
+      userToken?: string;
+      body?: unknown;
+      /** Out-param: request() writes Uber's HTTP status here so callers can
+       *  surface the acknowledgment ("200 OK") in the activity log. */
+      meta?: { status?: number };
+    } = {},
   ): Promise<T> {
     const token = opts.userToken ?? (await this.getToken(opts.scopes ?? []));
     const res = await fetch(`${this.apiBase}${path}`, {
@@ -208,6 +215,7 @@ export class UberEatsClientService {
       ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
     });
     const text = await res.text();
+    if (opts.meta) opts.meta.status = res.status;
     if (!res.ok) {
       this.logger.warn(
         `Uber Eats ${method} ${path} → ${res.status}: ${text.slice(0, 300)}`,

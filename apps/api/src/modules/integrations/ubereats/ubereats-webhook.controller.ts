@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Optional,
   Post,
   Req,
 } from "@nestjs/common";
@@ -17,6 +18,7 @@ import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
 import { UberEatsMenuPublishService } from "./ubereats-menu-publish.service";
 import { UberEatsOrderService } from "./ubereats-order.service";
+import { ActivityLogService } from "../../logs/activity-log.service";
 
 // Phase UE-1 — Uber Eats inbound webhook receiver.
 //
@@ -41,6 +43,7 @@ export class UberEatsWebhookController {
     private readonly connections: UberEatsConnectionService,
     private readonly menuPublish: UberEatsMenuPublishService,
     private readonly orderRouter: UberEatsOrderService,
+    @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
   @Public()
@@ -136,9 +139,55 @@ export class UberEatsWebhookController {
           `Uber Eats webhook routing failed for ${event}/${eventId}: ${err?.message}`,
         );
       }
+      // Phase LG — show the event AND our acknowledgment on the Logs page.
+      // Uber's contract is "reply 200 fast"; this row is the proof per event.
+      void this.logWebhookAck(event, eventId, body);
     }
 
     return { ok: true };
+  }
+
+  /**
+   * Record "webhook received → acknowledged 200 OK" for the tenant that owns
+   * the store. Best-effort: unknown stores (not connected here) are skipped.
+   */
+  private async logWebhookAck(
+    event: string,
+    eventId: string,
+    body: any,
+  ): Promise<void> {
+    try {
+      if (!this.activity) return;
+      const storeId = String(
+        body?.meta?.user_id ?? body?.store_id ?? body?.user_id ?? "",
+      );
+      if (!storeId) return;
+      const conn = await this.prisma.brandPlatformConnection.findFirst({
+        where: { platform: "UBER_EATS", externalStoreId: storeId },
+        select: { tenantId: true, brandId: true, locationId: true },
+      });
+      if (!conn?.tenantId) return;
+      const category = event.startsWith("orders.")
+        ? "ORDERS"
+        : event.startsWith("store.status")
+          ? "STATUS"
+          : event.includes("menu")
+            ? "MENU"
+            : "CONNECTION";
+      this.activity.record({
+        tenantId: conn.tenantId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+        category: category as any,
+        channel: "UBER_EATS",
+        action: `webhook.${event}`,
+        status: "INFO",
+        message: `Uber webhook "${event}" received → acknowledged 200 OK`,
+        details: { eventId, storeId },
+      });
+    } catch {
+      /* logging must never affect the 200 back to Uber */
+    }
   }
 
   /** Event routing. UE-2 handles provisioning; UE-3/UE-4 extend this. */

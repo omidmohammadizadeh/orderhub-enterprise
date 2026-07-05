@@ -88,17 +88,17 @@ const CHANNEL_LABEL: Record<string, string> = {
 };
 
 const CHANNEL_COLOR: Record<string, string> = {
-  UBER_EATS: "bg-emerald-500/15 text-emerald-400",
-  DELIVEROO: "bg-cyan-500/15 text-cyan-400",
-  HUBRISE: "bg-violet-500/15 text-violet-400",
-  JUST_EAT: "bg-orange-500/15 text-orange-400",
-  DIRECT: "bg-blue-500/15 text-blue-400",
-  ONLINE: "bg-blue-500/15 text-blue-400",
-  POS: "bg-zinc-500/15 text-zinc-300",
-  WHATSAPP: "bg-green-500/15 text-green-400",
-  STRIPE: "bg-indigo-500/15 text-indigo-400",
-  STUART: "bg-sky-500/15 text-sky-400",
-  UBER_DIRECT: "bg-zinc-500/15 text-zinc-300",
+  UBER_EATS: "bg-emerald-100 text-emerald-700",
+  DELIVEROO: "bg-cyan-100 text-cyan-700",
+  HUBRISE: "bg-violet-100 text-violet-700",
+  JUST_EAT: "bg-orange-100 text-orange-700",
+  DIRECT: "bg-blue-100 text-blue-700",
+  ONLINE: "bg-blue-100 text-blue-700",
+  POS: "bg-zinc-200 text-zinc-700",
+  WHATSAPP: "bg-green-100 text-green-700",
+  STRIPE: "bg-indigo-100 text-indigo-700",
+  STUART: "bg-sky-100 text-sky-700",
+  UBER_DIRECT: "bg-zinc-200 text-zinc-700",
 };
 
 function statusBadge(status: LogEntry["status"]) {
@@ -106,26 +106,26 @@ function statusBadge(status: LogEntry["status"]) {
     case "SUCCESS":
       return {
         icon: CheckCircle2,
-        cls: "text-emerald-400",
-        chip: "bg-emerald-500/10 text-emerald-400",
+        cls: "text-emerald-600",
+        chip: "bg-emerald-100 text-emerald-700",
       };
     case "ERROR":
       return {
         icon: XCircle,
-        cls: "text-red-400",
-        chip: "bg-red-500/10 text-red-400",
+        cls: "text-red-600",
+        chip: "bg-red-100 text-red-700",
       };
     case "WARNING":
       return {
         icon: AlertTriangle,
-        cls: "text-amber-400",
-        chip: "bg-amber-500/10 text-amber-400",
+        cls: "text-amber-600",
+        chip: "bg-amber-100 text-amber-700",
       };
     default:
       return {
         icon: Info,
-        cls: "text-sky-400",
-        chip: "bg-sky-500/10 text-sky-400",
+        cls: "text-sky-600",
+        chip: "bg-sky-100 text-sky-700",
       };
   }
 }
@@ -145,30 +145,42 @@ function Row({ entry }: { entry: LogEntry }) {
   const hasDetails =
     entry.details && Object.keys(entry.details as object).length > 0;
 
+  const httpStatus = (entry.details as any)?.uberHttpStatus as
+    | number
+    | null
+    | undefined;
+
   return (
-    <div className="border-b border-zinc-800/60 last:border-0">
+    <div className="border-b border-zinc-100 last:border-0">
       <button
         type="button"
         onClick={() => hasDetails && setOpen((v) => !v)}
-        className={`flex w-full items-start gap-3 px-4 py-3 text-left ${hasDetails ? "hover:bg-zinc-900/60" : "cursor-default"}`}
+        className={`flex w-full items-start gap-3 px-4 py-3 text-left ${hasDetails ? "hover:bg-zinc-50" : "cursor-default"}`}
       >
         <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${badge.cls}`} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-sm text-zinc-100">
+            <span className="truncate text-sm font-medium text-zinc-900">
               {entry.message}
             </span>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
             {entry.channel && (
               <span
-                className={`rounded px-1.5 py-0.5 font-medium ${CHANNEL_COLOR[entry.channel] ?? "bg-zinc-700/40 text-zinc-300"}`}
+                className={`rounded px-1.5 py-0.5 font-medium ${CHANNEL_COLOR[entry.channel] ?? "bg-zinc-200 text-zinc-700"}`}
               >
                 {CHANNEL_LABEL[entry.channel] ?? entry.channel}
               </span>
             )}
+            {typeof httpStatus === "number" && (
+              <span
+                className={`rounded px-1.5 py-0.5 font-mono font-semibold ${httpStatus < 300 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+              >
+                HTTP {httpStatus}
+              </span>
+            )}
             {entry.brandName && (
-              <span className="rounded bg-zinc-700/40 px-1.5 py-0.5 text-zinc-300">
+              <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-zinc-700">
                 {entry.brandName}
               </span>
             )}
@@ -181,13 +193,13 @@ function Row({ entry }: { entry: LogEntry }) {
         </div>
         {hasDetails &&
           (open ? (
-            <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-zinc-500" />
+            <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-zinc-400" />
           ) : (
-            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-zinc-600" />
+            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-zinc-300" />
           ))}
       </button>
       {open && hasDetails && (
-        <pre className="mx-4 mb-3 overflow-x-auto rounded-lg bg-zinc-950 p-3 text-[11px] leading-relaxed text-zinc-400">
+        <pre className="mx-4 mb-3 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-[11px] leading-relaxed text-zinc-700">
           {JSON.stringify(entry.details, null, 2)}
         </pre>
       )}
@@ -234,7 +246,7 @@ export default function LogsPage() {
     <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="mb-1 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-100">Logs</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900">Logs</h1>
           <p className="text-sm text-zinc-500">
             Everything the system did — menu publishes, order pushes, stock
             changes, store status — without opening server logs.
@@ -243,7 +255,7 @@ export default function LogsPage() {
         <button
           type="button"
           onClick={() => refetch()}
-          className="flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800"
+          className="flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
         >
           <RefreshCw
             className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
@@ -265,7 +277,7 @@ export default function LogsPage() {
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition ${
                 active
                   ? "bg-orange-500 text-white"
-                  : "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  : "border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
               }`}
             >
               <TIcon className="h-3.5 w-3.5" />
@@ -277,7 +289,7 @@ export default function LogsPage() {
           <select
             value={channelFilter}
             onChange={(e) => setChannelFilter(e.target.value)}
-            className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 focus:outline-none"
+            className="rounded-full border border-zinc-300 bg-white px-2.5 py-1 text-xs text-zinc-700 focus:outline-none"
           >
             {CHANNEL_FILTERS.map((c) => (
               <option key={c.value || "all"} value={c.value}>
@@ -292,8 +304,8 @@ export default function LogsPage() {
               onClick={() => setStatusFilter(sKey)}
               className={`rounded-full px-2.5 py-1 text-xs ${
                 statusFilter === sKey
-                  ? "bg-zinc-200 text-zinc-900"
-                  : "border border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                  ? "bg-zinc-900 text-white"
+                  : "border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
               }`}
             >
               {sKey || "Any status"}
@@ -303,7 +315,7 @@ export default function LogsPage() {
       </div>
 
       {/* Feed */}
-      <div className="mt-4 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+      <div className="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-16 text-zinc-500">
             <Loader2 className="h-5 w-5 animate-spin" /> Loading activity…
@@ -326,7 +338,7 @@ export default function LogsPage() {
             type="button"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
           >
             {isFetchingNextPage ? "Loading…" : "Load more"}
           </button>
