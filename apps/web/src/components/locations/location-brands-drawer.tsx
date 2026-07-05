@@ -27,6 +27,9 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
   const [newName, setNewName] = useState("");
   const [newCuisine, setNewCuisine] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  // Which brand's channels are shown. Tabs switch between brands so their
+  // connections don't stack up under each other.
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   // Holds the brand the operator is currently editing. The pencil button
   // on each row opens this; `null` keeps the modal closed. Edit fields
   // are owned by the modal itself so cancelling doesn't dirty the drawer
@@ -75,49 +78,87 @@ export function LocationBrandsDrawer({ locationId, onClose }: Props) {
               </p>
             </div>
           ) : (
-            // Phase AN follow-up: brand-platform connections sit BELOW the
-            // brand they belong to and only appear once a real brand has
-            // been created. Each brand keeps its own connections — they
-            // never bleed across brands or locations.
-            (brandsQuery.data ?? []).map((b) => (
-              <details
-                key={b.id}
-                className="overflow-hidden rounded-md border border-zinc-200"
-                open
-              >
-                <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-50">
-                  {b.logoUrl && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={b.logoUrl}
-                      alt=""
-                      className="h-6 w-6 rounded object-cover"
-                    />
-                  )}
-                  <span className="flex-1">{b.name}</span>
-                  {b.cuisine && (
-                    <span className="text-[10px] text-zinc-500">· {b.cuisine}</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setEditingBrand(b);
-                    }}
-                    title="Edit brand"
-                    className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </button>
-                </summary>
-                <div className="border-t border-zinc-200 p-3">
-                  <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
-                    Channel connections for {b.name}
-                  </p>
-                  <BrandPlatformGrid brand={b} locationId={locationId} />
-                </div>
-              </details>
-            ))
+            // Each brand is a tab; only the selected brand's channel
+            // connections show below, so multiple brands don't stack into a
+            // long confusing list. Connections never bleed across brands.
+            (() => {
+              const brands = brandsQuery.data ?? [];
+              const activeId =
+                selectedBrandId && brands.some((b) => b.id === selectedBrandId)
+                  ? selectedBrandId
+                  : brands[0]!.id;
+              const active = brands.find((b) => b.id === activeId)!;
+              return (
+                <>
+                  {/* Brand tabs */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {brands.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setSelectedBrandId(b.id)}
+                        className={
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
+                          (b.id === activeId
+                            ? "border-zinc-900 bg-zinc-900 text-white"
+                            : "border-zinc-200 text-zinc-600 hover:border-zinc-300")
+                        }
+                      >
+                        {b.logoUrl && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={b.logoUrl}
+                            alt=""
+                            className="h-4 w-4 rounded object-cover"
+                          />
+                        )}
+                        {b.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Selected brand's channels */}
+                  <div className="overflow-hidden rounded-md border border-zinc-200">
+                    <div className="flex items-center gap-2 border-b border-zinc-200 px-3 py-2">
+                      {active.logoUrl && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={active.logoUrl}
+                          alt=""
+                          className="h-6 w-6 rounded object-cover"
+                        />
+                      )}
+                      <span className="text-xs font-semibold text-zinc-900">
+                        {active.name}
+                      </span>
+                      {active.cuisine && (
+                        <span className="text-[10px] text-zinc-500">
+                          · {active.cuisine}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setEditingBrand(active)}
+                        title="Edit brand"
+                        className="ml-auto rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="p-3">
+                      <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-400">
+                        Channel connections for {active.name}
+                      </p>
+                      <BrandPlatformGrid
+                        key={active.id}
+                        brand={active}
+                        locationId={locationId}
+                      />
+                    </div>
+                  </div>
+                </>
+              );
+            })()
           )}
         </div>
 
