@@ -61,8 +61,9 @@ export class UberEatsController {
   async health() {
     const configured = this.client.configured;
     const redirectUriSet = !!this.oauth.redirectUri;
+    const build = (process.env.RENDER_GIT_COMMIT ?? "dev").slice(0, 7);
     if (!configured) {
-      return { configured, redirectUriSet, tokenMint: "skipped (no credentials)" };
+      return { configured, redirectUriSet, build, tokenMint: "skipped (no credentials)" };
     }
     try {
       await this.client.getToken(["eats.store"]);
@@ -75,11 +76,12 @@ export class UberEatsController {
         "eats.order",
         "eats.report",
       ]);
-      return { configured, redirectUriSet, tokenMint: "ok", scopes };
+      return { configured, redirectUriSet, build, tokenMint: "ok", scopes };
     } catch (err: any) {
       return {
         configured,
         redirectUriSet,
+        build,
         tokenMint: `failed: ${String(err?.message ?? err).slice(0, 200)}`,
       };
     }

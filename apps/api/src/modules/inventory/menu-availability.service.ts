@@ -243,10 +243,21 @@ export class MenuAvailabilityService {
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
     if (args.channel === "UBER_EATS") {
       this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null).catch(
-        (err) =>
+        (err) => {
           this.logger.warn(
             `Uber Eats item suspension failed for item ${args.itemId}: ${err?.message ?? err}`,
-          ),
+          );
+          this.activity?.record({
+            tenantId: args.tenantId,
+            brandId: (item as any).brandId ?? null,
+            category: "INVENTORY",
+            channel: "UBER_EATS",
+            action: "item.86.push",
+            status: "ERROR",
+            message: `Uber Eats suspension push crashed: ${err?.message ?? err}`,
+            details: { itemId: args.itemId },
+          });
+        },
       );
     }
 
@@ -300,10 +311,21 @@ export class MenuAvailabilityService {
     // Restore on Uber: suspension null = back on sale.
     if (args.channel === "UBER_EATS") {
       this.syncUberEatsAvailability(item, args.tenantId, null, null, true).catch(
-        (err) =>
+        (err) => {
           this.logger.warn(
             `Uber Eats item restore failed for item ${args.itemId}: ${err?.message ?? err}`,
-          ),
+          );
+          this.activity?.record({
+            tenantId: args.tenantId,
+            brandId: (item as any).brandId ?? null,
+            category: "INVENTORY",
+            channel: "UBER_EATS",
+            action: "item.restore.push",
+            status: "ERROR",
+            message: `Uber Eats restore push crashed: ${err?.message ?? err}`,
+            details: { itemId: args.itemId },
+          });
+        },
       );
     }
 
