@@ -8,6 +8,8 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
+import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
+import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
@@ -89,6 +91,10 @@ export class BrandsService {
     private readonly render: RenderDomainsService,
     // Phase BA-2 — direct Deliveroo hours/prep push from the Publish Hours flow.
     private readonly deliveroo: DeliverooConnectionService,
+    // Uber direct: prep via update-store-prep-time; hours ride the menu's
+    // service_availability, so the push republishes the store's menu.
+    private readonly uberEats: UberEatsConnectionService,
+    private readonly uberEatsMenu: UberEatsMenuPublishService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -616,8 +622,31 @@ export class BrandsService {
         return { channel, status: "ok", pushed: true };
       }
 
+      case "UBER_EATS": {
+        // Direct Uber push: prep time has its own Store API endpoint; hours
+        // are the menu's service_availability, so republish the store menu
+        // with the location's current hours baked in.
+        const conn = await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId,
+            tenantId,
+            platform: "UBER_EATS",
+            externalStoreId: { not: null },
+            status: { in: ["connected", "suspended"] },
+          },
+          select: { id: true, externalStoreId: true },
+        });
+        if (!conn) {
+          throw new BadRequestException(
+            "Uber Eats isn't connected for this brand yet. Connect it under Locations → Brands → Uber Eats first.",
+          );
+        }
+        await this.uberEats.publishPrepTime(tenantId, conn.id);
+        await this.uberEatsMenu.republishForStore(conn.externalStoreId!);
+        return { channel, status: "ok", pushed: true };
+      }
+
       case "JUST_EAT":
-      case "UBER_EATS":
       case "WHATSAPP":
         // Intent recorded; direct push lands in a future phase.
         return { channel, status: "pending_integration", pushed: false };

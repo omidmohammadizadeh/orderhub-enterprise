@@ -4,6 +4,7 @@ import { BrandsService } from './brands.service';
 import { CloudflareService } from './cloudflare.service';
 import { RenderDomainsService } from './render-domains.service';
 import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
+import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 
 @Module({
@@ -12,7 +13,7 @@ import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
   // HubRise side ever wants brands back.
   // Phase BA-2 — DeliverooModule provides DeliverooConnectionService for the
   // direct Deliveroo hours push (one-way import, no cycle).
-  imports: [forwardRef(() => HubRiseModule), DeliverooModule],
+  imports: [forwardRef(() => HubRiseModule), DeliverooModule, UberEatsModule],
   controllers: [BrandsController],
   providers: [BrandsService, CloudflareService, RenderDomainsService],
   exports: [BrandsService],

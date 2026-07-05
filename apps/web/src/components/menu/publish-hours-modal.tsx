@@ -27,7 +27,7 @@ interface Props {
 // otherwise the click only records intent until that channel is built.
 const BRAND_CHANNELS = [
   { id: "JUST_EAT", title: "Just Eat", wired: false },
-  { id: "UBER_EATS", title: "Uber Eats", wired: false },
+  { id: "UBER_EATS", title: "Uber Eats", wired: true },
   { id: "DELIVEROO", title: "Deliveroo", wired: true },
 ];
 
@@ -191,7 +191,9 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
                   <p className="text-sm font-semibold text-zinc-900">{c.title}</p>
                   {c.wired ? (
                     <p className="text-[10px] text-emerald-700">
-                      Pushes this brand's opening hours + prep time to Deliveroo.
+                      {c.id === "UBER_EATS"
+                        ? "Pushes prep time + opening hours (hours update via a menu republish)."
+                        : "Pushes this brand's opening hours + prep time to Deliveroo."}
                     </p>
                   ) : (
                     <p className="text-[10px] text-amber-700">
