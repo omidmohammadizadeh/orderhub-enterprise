@@ -69,10 +69,13 @@ export class UberEatsOrderService {
     const orderId = this.orderIdFrom(body);
     if (!orderId) return { handled: false, reason: "no_order_id" };
 
-    // Fetch the full order — notification webhooks only carry ids.
+    // Fetch the full order — notification webhooks only carry ids. Uber
+    // OMITS carts/deliveries/payment by default, so we MUST expand them or
+    // the order arrives with no items and no line prices (they live under
+    // payment.payment_detail.item_charges). Without this the mapper is empty.
     const resp = await this.client.request<any>(
       "GET",
-      `/v1/delivery/order/${encodeURIComponent(orderId)}`,
+      `/v1/delivery/order/${encodeURIComponent(orderId)}?expand=carts,deliveries,payment`,
       { scopes: ["eats.order"] },
     );
     const order = resp?.order ?? resp;

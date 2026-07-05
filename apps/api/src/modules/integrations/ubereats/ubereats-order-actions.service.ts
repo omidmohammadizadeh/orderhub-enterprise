@@ -22,6 +22,10 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 
 const SCOPES = ["eats.order"];
+// validate-item-fulfillment + resolve-fulfillment-issues require BOTH scopes
+// (the spec lists them together in one security block = AND). eats.order
+// alone → 401.
+const FULFILLMENT_SCOPES = ["eats.order", "eats.store.orders.read"];
 
 export type AdjustPriceReason =
   | "REQUESTED_ADD_ONS"
@@ -134,7 +138,7 @@ export class UberEatsOrderActionsService {
     const res = await this.client.request(
       "POST",
       `/v1/delivery/order/${encodeURIComponent(uberOrderId)}/validate-item-fulfillment`,
-      { scopes: SCOPES, body },
+      { scopes: FULFILLMENT_SCOPES, body },
     );
     return res ?? { ok: true };
   }
@@ -155,7 +159,7 @@ export class UberEatsOrderActionsService {
     const res = await this.client.request(
       "POST",
       `/v1/delivery/order/${encodeURIComponent(uberOrderId)}/resolve-fulfillment-issues`,
-      { scopes: SCOPES, body },
+      { scopes: FULFILLMENT_SCOPES, body },
     );
     this.logger.log(
       `Uber Eats resolve-fulfillment-issues ${uberOrderId}: ${issues.length} issue(s)`,

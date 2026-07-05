@@ -842,7 +842,7 @@ export class UberEatsConnectionService {
     const c = await this.connected(tenantId, connectionId);
     const json = await this.client.request<any>(
       "GET",
-      `/v1/delivery/store/${c.externalStoreId}/orders`,
+      `/v1/delivery/store/${c.externalStoreId}/orders?expand=carts,payment`,
       { scopes: ["eats.order"] },
     );
     return json ?? { orders: [] };
