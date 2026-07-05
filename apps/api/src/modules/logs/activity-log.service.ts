@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
+import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 // Phase LG — operator-facing activity feed (the dashboard "Logs" page).
@@ -39,6 +40,7 @@ export interface ActivityEntry {
 }
 
 const MAX_DETAILS_CHARS = 4_000; // keep rows light; details are a debugging aid
+const RETENTION_DAYS = 30; // feed is operational, not an archive — purge daily
 
 @Injectable()
 export class ActivityLogService {
@@ -82,6 +84,28 @@ export class ActivityLogService {
       this.logger.warn(
         `activity log write failed (${entry.category}/${entry.action}): ${err?.message ?? err}`,
       );
+    }
+  }
+
+  /**
+   * Daily retention purge (04:40, before the 5am order auto-complete).
+   * Keeps the table + indexes small forever; the feed is an operational
+   * timeline, not an audit archive (AuditLog serves that purpose).
+   */
+  @Cron("40 4 * * *")
+  async purgeOldEntries(): Promise<void> {
+    try {
+      const cutoff = new Date(Date.now() - RETENTION_DAYS * 86_400_000);
+      const res = await (this.prisma as any).activityLog.deleteMany({
+        where: { createdAt: { lt: cutoff } },
+      });
+      if (res.count > 0) {
+        this.logger.log(
+          `activity log retention: purged ${res.count} rows older than ${RETENTION_DAYS}d`,
+        );
+      }
+    } catch (err: any) {
+      this.logger.warn(`activity log purge failed: ${err?.message ?? err}`);
     }
   }
 
