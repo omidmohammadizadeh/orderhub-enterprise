@@ -1,4 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { UploadsModule } from "../uploads/uploads.module";
 import { BullModule } from '@nestjs/bull';
 import { MenusController } from './menus.controller';
 import { MenusService } from './menus.service';
@@ -23,6 +24,7 @@ import { QUEUES } from '@orderhub/shared';
   // POS menu strip-on-snooze in findActiveMenuForLocation resolves.
   // forwardRef breaks the InventoryModule → HubRise → Menus cycle.
   imports: [
+    UploadsModule,
     BullModule.registerQueue({ name: QUEUES.MENU_SYNC }),
     HubRiseModule,
     DeliverooModule,

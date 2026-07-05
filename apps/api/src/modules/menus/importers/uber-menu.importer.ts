@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { UberEatsClientService } from "../../integrations/ubereats/ubereats-client.service";
+import { SupabaseStorageService } from "../../uploads/supabase-storage.service";
 import { MenuWriterService } from "./menu-writer.service";
 import {
   classifyUberMenu,
@@ -50,6 +51,10 @@ export class UberMenuImporter {
     // Live fetch through the connected app credentials (Phase UE) — the
     // legacy accessToken/payload paths stay for fixtures + recovery.
     @Optional() private readonly uberClient?: UberEatsClientService,
+    // Rehost item images at import time — Uber's Get Menu can return signed,
+    // short-lived CDN URLs that expire (broken thumbnails later). We download
+    // the bytes once and store a permanent copy in our own bucket.
+    @Optional() private readonly storage?: SupabaseStorageService,
   ) {}
 
   /**
@@ -139,6 +144,7 @@ export class UberMenuImporter {
     }
 
     const normalized = classifyUberMenu(payload);
+    await this.rehostImages(normalized);
     return this.writer.apply({
       menuId: menu.id,
       tenantId: args.tenantId,
@@ -176,5 +182,66 @@ export class UberMenuImporter {
       );
     }
     return (await res.json()) as UberMenuPayload;
+  }
+
+  /**
+   * Download every external product image and re-upload to our storage so
+   * the stored URL is permanent. Best-effort per image: failures keep the
+   * original URL. Identical source URLs are fetched once.
+   */
+  private async rehostImages(normalized: {
+    products: Array<{ imageUrl?: string | null }>;
+  }): Promise<void> {
+    if (!this.storage?.isConfigured()) return;
+    const targets = normalized.products.filter(
+      (p) => p.imageUrl && /^https?:\/\//i.test(p.imageUrl),
+    );
+    if (targets.length === 0) return;
+    this.logger.log(
+      `Uber menu import: rehosting ${targets.length} images (sample: ${targets[0]!.imageUrl!.slice(0, 160)})`,
+    );
+    const cache = new Map<string, string | null>();
+    const rehostOne = async (url: string): Promise<string | null> => {
+      try {
+        const res = await fetch(url, {
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!res.ok) {
+          this.logger.warn(
+            `Uber image fetch ${res.status} for ${url.slice(0, 120)}`,
+          );
+          return null;
+        }
+        const ct = res.headers.get("content-type") ?? "image/jpeg";
+        if (!ct.startsWith("image/")) return null;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (buf.length === 0 || buf.length > 8 * 1024 * 1024) return null;
+        return await this.storage!.uploadDataUrl(
+          `data:${ct};base64,${buf.toString("base64")}`,
+          "uber-import",
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Uber image rehost failed for ${url.slice(0, 120)}: ${err?.message ?? err}`,
+        );
+        return null;
+      }
+    };
+    // Small concurrency batches — imports are one-off, don't hammer the CDN.
+    const CHUNK = 5;
+    for (let i = 0; i < targets.length; i += CHUNK) {
+      await Promise.all(
+        targets.slice(i, i + CHUNK).map(async (p) => {
+          const url = p.imageUrl!;
+          if (!cache.has(url)) cache.set(url, await rehostOne(url));
+          const hosted = cache.get(url);
+          if (hosted) p.imageUrl = hosted;
+        }),
+      );
+    }
+    const ok = [...cache.values()].filter(Boolean).length;
+    this.logger.log(
+      `Uber menu import: rehosted ${ok}/${cache.size} unique images`,
+    );
   }
 }
