@@ -348,19 +348,50 @@ export class MenuAvailabilityService {
     reason: string | null,
     restore = false,
   ): Promise<void> {
-    const brandId = (item as any).brandId ?? null;
-    if (!brandId) return;
-    const conn = await this.prisma.brandPlatformConnection.findFirst({
-      where: {
-        brandId,
+    // The Uber store may be connected to a DIFFERENT brand than the item's
+    // own (e.g. a HubRise-imported item whose menu was later published under
+    // a virtual brand). Resolve through every brand the item is reachable
+    // from: its own brand, shared brands, and the brands of its menus.
+    const candidateBrands = new Set<string>();
+    if ((item as any).brandId) candidateBrands.add((item as any).brandId);
+    for (const b of ((item as any).brandIds ?? []) as string[]) {
+      if (b) candidateBrands.add(b);
+    }
+    const menuIds = (((item as any).menuIds ?? []) as string[]).filter(Boolean);
+    if (menuIds.length) {
+      const menus = await this.prisma.menu.findMany({
+        where: { id: { in: menuIds } },
+        select: { brandId: true },
+      });
+      for (const m of menus) if (m.brandId) candidateBrands.add(m.brandId);
+    }
+    const conn = candidateBrands.size
+      ? await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId: { in: Array.from(candidateBrands) },
+            tenantId,
+            platform: "UBER_EATS",
+            externalStoreId: { not: null },
+            status: { in: ["connected", "suspended"] },
+          },
+          select: { externalStoreId: true, locationId: true, brandId: true },
+        })
+      : null;
+    if (!conn?.externalStoreId) {
+      // Never skip silently — say exactly why nothing reached Uber.
+      this.activity?.record({
         tenantId,
-        platform: "UBER_EATS",
-        externalStoreId: { not: null },
-        status: { in: ["connected", "suspended"] },
-      },
-      select: { externalStoreId: true, locationId: true },
-    });
-    if (!conn?.externalStoreId) return; // brand not on Uber — nothing to sync
+        brandId: (item as any).brandId ?? null,
+        category: "INVENTORY",
+        channel: "UBER_EATS",
+        action: restore ? "item.restore.push" : "item.86.push",
+        status: "WARNING",
+        message: `"${(item as any).name ?? item.id}" ${restore ? "restore" : "86"} NOT pushed — no connected Uber Eats store found for this item's brands`,
+        details: { itemId: item.id, candidateBrands: Array.from(candidateBrands) },
+      });
+      return;
+    }
+    const brandId = conn.brandId;
 
     // Uber's "forever" convention (same constant the menu publish uses) —
     // far-future epoch; a timed snooze uses its real expiry.
@@ -506,7 +537,10 @@ export class MenuAvailabilityService {
       where: { id: itemId },
       select: {
         id: true,
+        name: true,
         brandId: true,
+        brandIds: true,
+        menuIds: true,
         plu: true,
         hasMultipleSkus: true,
         productSkus: true,
