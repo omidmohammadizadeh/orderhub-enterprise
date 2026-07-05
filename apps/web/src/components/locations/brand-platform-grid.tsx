@@ -26,6 +26,7 @@ import {
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
+import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { apiClient } from "@/lib/api/client";
 import toast from "react-hot-toast";
@@ -535,19 +536,9 @@ function UberEatsRow({
     Array<{ storeId: string; name: string; address: string | null }>
   >([]);
   const [picking, setPicking] = useState(false);
-  // HubRise-style status panel — fetched on demand so opening the drawer
-  // stays cheap; every fetch also exercises Get Store Details / Retrieve
-  // Store Status / Get Integration Details against Uber (cert evidence).
-  const [showStatus, setShowStatus] = useState(false);
-  const overview = useQuery({
-    queryKey: ["ubereats-overview", connection?.id],
-    queryFn: () =>
-      apiClient
-        .get(`/v1/integrations/ubereats/${connection!.id}/overview`)
-        .then((r) => r.data as UberOverview),
-    enabled: showStatus && !!connection?.id && connected,
-    refetchOnWindowFocus: false,
-  });
+  // All post-connect management (status, hours, holiday hours, disconnect)
+  // lives in the Manage modal — keeps this card compact.
+  const [manageOpen, setManageOpen] = useState(false);
 
   const err = (e: any) =>
     toast.error(
@@ -601,53 +592,6 @@ function UberEatsRow({
       toast.success("Uber Eats store connected");
       setPicking(false);
       onChanged();
-    },
-    onError: err,
-  });
-
-  const disconnect = useMutation({
-    mutationFn: () =>
-      apiClient.post(
-        `/v1/integrations/ubereats/${connection!.id}/disconnect`,
-        {},
-      ),
-    onSuccess: () => {
-      toast.success("Uber Eats disconnected");
-      onChanged();
-    },
-    onError: err,
-  });
-  const pause = useMutation({
-    mutationFn: () =>
-      apiClient.post(`/v1/integrations/ubereats/${connection!.id}/pause`, {}),
-    onSuccess: () => {
-      toast.success("Uber Eats store paused");
-      onChanged();
-    },
-    onError: err,
-  });
-  const resume = useMutation({
-    mutationFn: () =>
-      apiClient.post(`/v1/integrations/ubereats/${connection!.id}/resume`, {}),
-    onSuccess: () => {
-      toast.success("Uber Eats store resumed");
-      onChanged();
-    },
-    onError: err,
-  });
-  const pushHours = useMutation({
-    mutationFn: () =>
-      apiClient
-        .post(`/v1/integrations/ubereats/${connection!.id}/publish-hours`, {})
-        .then((r) => r.data as { prep?: any; menu?: any }),
-    onSuccess: (d) => {
-      const prepMin = d.prep?.defaultPrepTimeSeconds
-        ? Math.round(d.prep.defaultPrepTimeSeconds / 60)
-        : null;
-      toast.success(
-        `Pushed to Uber${prepMin ? ` — prep ${prepMin} min` : ""}${d.menu?.ok !== false ? ", hours updated via menu" : ""}`,
-      );
-      overview.refetch();
     },
     onError: err,
   });
@@ -716,40 +660,12 @@ function UberEatsRow({
 
         <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
           {connected ? (
-            <>
-              <button
-                onClick={() => setShowStatus((v) => !v)}
-                className={`rounded-md border px-2 py-1 text-[10px] font-medium disabled:opacity-50 ${showStatus ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300 text-zinc-700 hover:bg-zinc-50"}`}
-              >
-                Status
-              </button>
-              <button
-                onClick={() => resume.mutate()}
-                disabled={resume.isPending}
-                className="rounded-md border border-emerald-200 px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-              >
-                Open
-              </button>
-              <button
-                onClick={() => pause.mutate()}
-                disabled={pause.isPending}
-                className="rounded-md border border-orange-200 px-2 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
-              >
-                Pause
-              </button>
-              <button
-                onClick={() => disconnect.mutate()}
-                disabled={disconnect.isPending}
-                className="rounded p-1 text-zinc-500 hover:bg-red-50 hover:text-red-600"
-                title="Disconnect"
-              >
-                {disconnect.isPending ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3 w-3" />
-                )}
-              </button>
-            </>
+            <button
+              onClick={() => setManageOpen(true)}
+              className="rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+            >
+              Manage
+            </button>
           ) : authorisedNoStore && !picking ? (
             <button
               onClick={() => listStores.mutate()}
@@ -771,387 +687,16 @@ function UberEatsRow({
           )}
         </div>
       </div>
-      {showStatus && connected && (
-        <UberStatusPanel
+      {connected && (
+        <UberEatsManageModal
           connectionId={connection!.id as string}
-          overview={overview.data}
-          loading={overview.isFetching}
-          onRefresh={() => overview.refetch()}
-          onPushHours={() => pushHours.mutate()}
-          pushing={pushHours.isPending}
+          storeId={(connection?.externalStoreId as string) ?? null}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={onChanged}
         />
       )}
     </li>
-  );
-}
-
-type UberOverview = {
-  storeId: string | null;
-  checks: Array<{
-    name: string;
-    ok: boolean;
-    httpStatus: number | null;
-    error?: string;
-  }>;
-  store: {
-    name: string | null;
-    address: string | null;
-    timezone: string | null;
-    onboardingStatus: string | null;
-    autoAccept: boolean | null;
-    prepTimeSeconds: number | null;
-    fulfillment: Record<string, boolean> | null;
-  } | null;
-  status: {
-    status: string;
-    offlineUntil: string | null;
-    offlineReason: string | null;
-  } | null;
-  integration: {
-    enabled: boolean | null;
-    integratorStoreId: string | null;
-    integratorBrandId: string | null;
-    orderManagerClientId: string | null;
-  } | null;
-};
-
-/** HubRise-bridge-style status panel: Integration / Store / Ordering. */
-type UberHoliday = {
-  date: string;
-  closed: boolean;
-  periods: Array<{ start: string; end: string }>;
-};
-
-function UberStatusPanel({
-  connectionId,
-  overview,
-  loading,
-  onRefresh,
-  onPushHours,
-  pushing,
-}: {
-  connectionId: string;
-  overview: UberOverview | undefined;
-  loading: boolean;
-  onRefresh: () => void;
-  onPushHours: () => void;
-  pushing: boolean;
-}) {
-  // ── Holiday hours (exceptions to normal hours; POST overwrites the set) ──
-  const [holidays, setHolidays] = useState<UberHoliday[]>([]);
-  const [holidaysDirty, setHolidaysDirty] = useState(false);
-  const holidayQuery = useQuery({
-    queryKey: ["ubereats-holiday-hours", connectionId],
-    queryFn: () =>
-      apiClient
-        .get(`/v1/integrations/ubereats/${connectionId}/holiday-hours`)
-        .then((r) => r.data as { holidays: UberHoliday[] }),
-    refetchOnWindowFocus: false,
-  });
-  useEffect(() => {
-    if (holidayQuery.data && !holidaysDirty) {
-      setHolidays(holidayQuery.data.holidays ?? []);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [holidayQuery.data]);
-  const saveHolidays = useMutation({
-    mutationFn: () =>
-      apiClient.post(
-        `/v1/integrations/ubereats/${connectionId}/holiday-hours`,
-        { holidays },
-      ),
-    onSuccess: () => {
-      toast.success("Holiday hours pushed to Uber Eats");
-      setHolidaysDirty(false);
-      holidayQuery.refetch();
-    },
-    onError: (e: any) =>
-      toast.error(
-        e?.response?.data?.message ?? e?.message ?? "Holiday hours push failed",
-      ),
-  });
-  const editHoliday = (i: number, patch: Partial<UberHoliday>) => {
-    setHolidays((h) =>
-      h.map((row, idx) => (idx === i ? { ...row, ...patch } : row)),
-    );
-    setHolidaysDirty(true);
-  };
-  const Line = ({ label, value }: { label: string; value: React.ReactNode }) => (
-    <li className="flex items-baseline gap-1.5 text-[11px]">
-      <span className="text-zinc-500">{label}:</span>
-      <span className="font-medium text-zinc-800">{value ?? "—"}</span>
-    </li>
-  );
-  return (
-    <div className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-          Uber Eats status
-        </span>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={onPushHours}
-            disabled={pushing}
-            title="Prep time via Update Prep Time; opening hours via the menu's service_availability"
-            className="flex items-center gap-1 rounded-md border border-emerald-300 bg-white px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-          >
-            {pushing && <Loader2 className="h-3 w-3 animate-spin" />}
-            Push hours + prep
-          </button>
-          <button
-            onClick={onRefresh}
-            disabled={loading}
-            className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3 w-3" />
-            )}
-            Refresh
-          </button>
-        </div>
-      </div>
-      {!overview ? (
-        <p className="text-[11px] text-zinc-500">
-          {loading ? "Checking with Uber…" : "No data yet."}
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {/* Per-endpoint acknowledgments — the cert evidence at a glance. */}
-          <div className="flex flex-wrap gap-1.5">
-            {overview.checks.map((c) => (
-              <span
-                key={c.name}
-                title={c.error ?? undefined}
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${c.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
-              >
-                {c.name}: {c.httpStatus ?? "ERR"}
-              </span>
-            ))}
-          </div>
-
-          <div>
-            <p className="text-[10px] font-semibold text-zinc-700">Integration</p>
-            <ul className="mt-0.5 space-y-0.5">
-              <Line
-                label="Integration"
-                value={
-                  overview.integration?.enabled == null
-                    ? "—"
-                    : overview.integration.enabled
-                      ? "Enabled — managed by OrderHub"
-                      : "Disabled"
-                }
-              />
-              <Line
-                label="Integrator store id"
-                value={overview.integration?.integratorStoreId}
-              />
-              {overview.integration?.orderManagerClientId && (
-                <Line
-                  label="Order manager"
-                  value={overview.integration.orderManagerClientId}
-                />
-              )}
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-semibold text-zinc-700">Store</p>
-            <ul className="mt-0.5 space-y-0.5">
-              <Line label="Name" value={overview.store?.name} />
-              <Line label="Address" value={overview.store?.address} />
-              <Line label="Timezone" value={overview.store?.timezone} />
-              <Line
-                label="Onboarding"
-                value={overview.store?.onboardingStatus}
-              />
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-semibold text-zinc-700">Ordering</p>
-            <ul className="mt-0.5 space-y-0.5">
-              <Line
-                label="Store"
-                value={
-                  overview.status ? (
-                    <span
-                      className={
-                        overview.status.status === "ONLINE"
-                          ? "text-emerald-700"
-                          : "text-red-700"
-                      }
-                    >
-                      {overview.status.status}
-                      {overview.status.offlineUntil
-                        ? ` until ${new Date(overview.status.offlineUntil).toLocaleString()}`
-                        : ""}
-                    </span>
-                  ) : (
-                    "—"
-                  )
-                }
-              />
-              {overview.status?.offlineReason && (
-                <Line label="Reason" value={overview.status.offlineReason} />
-              )}
-              <Line
-                label="Prep time"
-                value={
-                  overview.store?.prepTimeSeconds != null
-                    ? `${Math.round(overview.store.prepTimeSeconds / 60)} min`
-                    : "—"
-                }
-              />
-              <Line
-                label="Auto accept"
-                value={
-                  overview.store?.autoAccept == null
-                    ? "—"
-                    : overview.store.autoAccept
-                      ? "Enabled (Uber-managed)"
-                      : "Disabled"
-                }
-              />
-              {overview.store?.fulfillment && (
-                <Line
-                  label="Fulfillment"
-                  value={Object.entries(overview.store.fulfillment)
-                    .filter(([, v]) => v)
-                    .map(([k]) => k.replaceAll("_", " ").toLowerCase())
-                    .join(", ")}
-                />
-              )}
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-semibold text-zinc-700">
-              Holiday hours
-              <span className="ml-1 font-normal text-zinc-400">
-                — exceptions to normal hours on specific dates
-              </span>
-            </p>
-            {holidayQuery.isLoading ? (
-              <p className="mt-1 text-[11px] text-zinc-500">Loading…</p>
-            ) : (
-              <div className="mt-1 space-y-1.5">
-                {holidays.length === 0 && (
-                  <p className="text-[11px] text-zinc-500">
-                    No holiday hours set on Uber.
-                  </p>
-                )}
-                {holidays.map((h, i) => (
-                  <div
-                    key={`${h.date}-${i}`}
-                    className="flex flex-wrap items-center gap-1.5 text-[11px]"
-                  >
-                    <input
-                      type="date"
-                      value={h.date}
-                      onChange={(e) => editHoliday(i, { date: e.target.value })}
-                      className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
-                    />
-                    <label className="flex items-center gap-1 text-zinc-600">
-                      <input
-                        type="checkbox"
-                        checked={h.closed}
-                        onChange={(e) =>
-                          editHoliday(i, {
-                            closed: e.target.checked,
-                            periods: e.target.checked
-                              ? []
-                              : [{ start: "09:00", end: "17:00" }],
-                          })
-                        }
-                      />
-                      Closed all day
-                    </label>
-                    {!h.closed && (
-                      <>
-                        <input
-                          type="time"
-                          value={h.periods[0]?.start ?? "09:00"}
-                          onChange={(e) =>
-                            editHoliday(i, {
-                              periods: [
-                                {
-                                  start: e.target.value,
-                                  end: h.periods[0]?.end ?? "17:00",
-                                },
-                              ],
-                            })
-                          }
-                          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
-                        />
-                        <span className="text-zinc-400">–</span>
-                        <input
-                          type="time"
-                          value={h.periods[0]?.end ?? "17:00"}
-                          onChange={(e) =>
-                            editHoliday(i, {
-                              periods: [
-                                {
-                                  start: h.periods[0]?.start ?? "09:00",
-                                  end: e.target.value,
-                                },
-                              ],
-                            })
-                          }
-                          className="rounded border border-zinc-300 bg-white px-1.5 py-0.5"
-                        />
-                      </>
-                    )}
-                    <button
-                      onClick={() => {
-                        setHolidays((rows) => rows.filter((_, idx) => idx !== i));
-                        setHolidaysDirty(true);
-                      }}
-                      className="rounded p-0.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
-                      title="Remove"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 pt-0.5">
-                  <button
-                    onClick={() => {
-                      setHolidays((rows) => [
-                        ...rows,
-                        { date: "", closed: true, periods: [] },
-                      ]);
-                      setHolidaysDirty(true);
-                    }}
-                    className="rounded-md border border-zinc-300 bg-white px-2 py-0.5 text-[10px] text-zinc-700 hover:bg-zinc-100"
-                  >
-                    + Add date
-                  </button>
-                  {holidaysDirty && (
-                    <button
-                      onClick={() => saveHolidays.mutate()}
-                      disabled={saveHolidays.isPending}
-                      className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-0.5 text-[10px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                      {saveHolidays.isPending && (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      )}
-                      Save to Uber
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <p className="text-[10px] text-zinc-400">
-            The data on this panel comes live from Uber Eats.
-          </p>
-        </div>
-      )}
-    </div>
   );
 }
 
