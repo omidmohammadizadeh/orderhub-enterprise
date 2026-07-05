@@ -60,10 +60,19 @@ export class OrdersAutoCompleteCron {
 
     const ids = rows.map((r) => r.id);
     await this.prisma.$transaction([
-      this.prisma.order.updateMany({
-        where: { id: { in: ids } },
-        data: { status: "COMPLETED" as any, updatedAt: new Date() },
-      }),
+      // IMPORTANT: complete the status WITHOUT bumping `updatedAt`. The live
+      // board shows terminal orders where `updatedAt >= today's 5am reset`.
+      // A normal Prisma update (or updateMany) fires the @updatedAt hook and
+      // stamps updatedAt = now() ≈ 05:00, which is exactly the board's cutoff
+      // — so every rolled-over order would stay on the board all day instead
+      // of clearing. A raw UPDATE leaves updatedAt at yesterday's value, so
+      // the business-day cutoff ages them off immediately (which is the whole
+      // point of the rollover).
+      this.prisma.$executeRaw`
+        UPDATE "orders"
+        SET "status" = 'COMPLETED'
+        WHERE "id" = ANY(${ids})
+      `,
       this.prisma.orderStatusHistory.createMany({
         data: rows.map((r) => ({
           orderId: r.id,
