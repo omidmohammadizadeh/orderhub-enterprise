@@ -125,6 +125,19 @@ export class UberMenuImporter {
       payload = await this.fetchFromUber(args.storeId, args.accessToken);
     }
 
+    // Shape probe: first item's keys + image-ish fields, so a missing-image
+    // import is diagnosable from Render without the raw payload.
+    try {
+      const first: any = (payload as any)?.items?.[0];
+      if (first) {
+        this.logger.log(
+          `Uber menu import shape: itemKeys=[${Object.keys(first).join(",")}] image_url=${JSON.stringify(first.image_url ?? null)} image=${JSON.stringify(first.image ?? null)?.slice(0, 120)}`,
+        );
+      }
+    } catch {
+      /* diagnostics only */
+    }
+
     const normalized = classifyUberMenu(payload);
     return this.writer.apply({
       menuId: menu.id,

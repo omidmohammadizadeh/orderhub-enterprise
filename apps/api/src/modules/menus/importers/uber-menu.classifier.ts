@@ -81,6 +81,36 @@ interface UberItem {
   bundled_item_ids?: string[];
   suspension_info?: { suspended?: boolean };
 }
+/**
+ * Uber's item image shape varies just like Deliveroo's (API-upserted menus
+ * carry image_url; Uber-Eats-Manager-managed / GET-retrieved menus can nest
+ * it as image{url}, images[], media[] or translations maps). Probe them all;
+ * return null when none present. (Same fix as the Deliveroo importer.)
+ */
+function imageFrom(item: any): string | null {
+  const single =
+    item.image_url ?? item.imageUrl ?? item.image ?? item.hero_image_url;
+  if (typeof single === "string") return single || null;
+  if (single && typeof single === "object") {
+    if (typeof single.url === "string") return single.url || null;
+    // translations map: { translations: { en_us: "https://…" } }
+    const tr = (single as any).translations;
+    if (tr && typeof tr === "object") {
+      const first = Object.values(tr).find((v) => typeof v === "string");
+      if (typeof first === "string") return first || null;
+    }
+  }
+  const arr = item.images ?? item.media ?? item.image_urls;
+  if (Array.isArray(arr) && arr.length > 0) {
+    const first = arr[0];
+    if (typeof first === "string") return first || null;
+    if (first && typeof first === "object" && typeof first.url === "string") {
+      return first.url || null;
+    }
+  }
+  return null;
+}
+
 interface UberModifierGroup {
   id: string;
   title?: { translations?: Record<string, string> };
@@ -156,6 +186,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
   for (const item of items) {
     // Products take priority on conflict — see header comment.
     if (productIds.has(item.id)) {
+      const imageUrl = imageFrom(item);
       const name = enTitle(item.title, item.id);
       const description = enTitle(item.description) || null;
       const price = penceToPounds(item.price_info?.price);
@@ -168,7 +199,7 @@ export function classifyUberMenu(payload: UberMenuPayload): NormalizedMenu {
         name,
         description,
         price,
-        imageUrl: item.image_url ?? null,
+        imageUrl,
         plu,
         isAvailable: !isSuspended,
         outOfStock: false,
