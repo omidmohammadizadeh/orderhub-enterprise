@@ -22,14 +22,15 @@ import { UberEatsOauthService } from "./ubereats-oauth.service";
 // Uber confirms provisioning asynchronously with a store.provisioned webhook,
 // which flips our row to "connected".
 
-// Per the Store API spec, EVERY store endpoint (details, update info, get
-// status, SET status, prep time) is secured with the single `eats.store`
-// scope — the only declared OAuth scopes are eats.store, eats.store.status
-// and eats.byoc.fulfillment.config. There is NO `eats.store.status.write`
-// scope; minting a token for it fails / yields a token that 401s on the
-// store. Status ops therefore use eats.store, same as the rest.
+// LIVE-VERIFIED scopes (the OpenAPI spec's security blocks lie here):
+//   update-store-status → Uber 401s "requires ... eats.store.status.write"
+// so status read/write use eats.store.status.write, NOT eats.store. The rest
+// (details, update info, prep time) use eats.store. Uber silently drops any
+// requested scope the APP isn't approved for (no mint error) → the endpoint
+// then 401s naming the missing scope. So eats.store.status.write must be
+// enabled on the app in the Uber developer dashboard for pause/resume to work.
 const STORE_SCOPES = ["eats.store"];
-const STATUS_SCOPES = ["eats.store"];
+const STATUS_SCOPES = ["eats.store.status.write"];
 
 @Injectable()
 export class UberEatsConnectionService {
@@ -316,10 +317,21 @@ export class UberEatsConnectionService {
       return await fn();
     } catch (err: any) {
       const msg = String(err?.message ?? "");
+      // A missing-scope 401 is NOT an access/provisioning problem — re-running
+      // pos_data won't fix it. Surface it plainly so the operator knows to
+      // enable the scope in the Uber developer dashboard.
+      if (msg.includes("following scopes")) {
+        const scope = msg.match(/scopes:\s*([a-z0-9_.]+)/i)?.[1];
+        throw new BadRequestException(
+          `Uber Eats rejected this action: the app is missing the "${scope ?? "required"}" scope. ` +
+            `Enable it on the app in the Uber developer dashboard (Scopes), then retry.`,
+        );
+      }
+      // "User not allowed to access the store" DOES mean the POS integration
+      // isn't activated for our client — activate once and retry.
       if (
         conn.externalStoreId &&
-        (msg.includes("not allowed to access the store") ||
-          (msg.includes("401") && msg.includes("unauthorized")))
+        msg.includes("not allowed to access the store")
       ) {
         this.logger.warn(
           `Uber Eats store ${conn.externalStoreId} not accessible — activating integration and retrying`,
