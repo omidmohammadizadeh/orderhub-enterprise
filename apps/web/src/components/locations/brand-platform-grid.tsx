@@ -528,6 +528,9 @@ function UberEatsRow({
 }) {
   const connected =
     connection?.status === "connected" || connection?.status === "suspended";
+  // "pending" = the merchant authorised via OAuth (token stored) but no store
+  // is linked yet — offer the store picker rather than re-running OAuth.
+  const authorisedNoStore = connection?.status === "pending";
   const [stores, setStores] = useState<
     Array<{ storeId: string; name: string; address: string | null }>
   >([]);
@@ -538,32 +541,15 @@ function UberEatsRow({
       e?.response?.data?.message ?? e?.message ?? "Uber Eats request failed",
     );
 
-  // Returning from Uber's OAuth: ?ubereats_connected=1 (auto-linked) or
-  // =pick (several stores → show the picker for this brand+location).
+  // If the merchant has authorised but no store is linked yet, auto-load the
+  // store list and show the picker (drives off connection status, not URL
+  // params — the Locations page cleans those before this drawer mounts).
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const p = new URLSearchParams(window.location.search);
-    if (
-      p.get("brandId") !== brandId ||
-      p.get("locationId") !== locationId
-    )
-      return;
-    const state = p.get("ubereats_connected");
-    const oauthErr = p.get("ubereats_error");
-    if (oauthErr) {
-      toast.error(`Uber Eats connect failed: ${oauthErr}`);
-    } else if (state === "1") {
-      toast.success("Uber Eats store connected");
-      onChanged();
-    } else if (state === "pick") {
-      void listStores.mutate();
-    }
-    if (state || oauthErr) {
-      // Clean the query so a refresh doesn't re-trigger.
-      window.history.replaceState({}, "", window.location.pathname);
+    if (authorisedNoStore && !picking && stores.length === 0) {
+      listStores.mutate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authorisedNoStore]);
 
   const connect = useMutation({
     mutationFn: () =>
@@ -649,32 +635,48 @@ function UberEatsRow({
 
           {picking ? (
             <div className="mt-1.5 space-y-1">
-              <p className="text-[10px] text-zinc-500">
-                Choose the Uber Eats store to connect:
-              </p>
-              {stores.map((s) => (
-                <button
-                  key={s.storeId}
-                  onClick={() => link.mutate(s.storeId)}
-                  disabled={link.isPending}
-                  className="block w-full rounded-md border border-zinc-200 px-2 py-1 text-left text-[11px] hover:border-zinc-900 disabled:opacity-50"
-                >
-                  <span className="font-medium">{s.name || s.storeId}</span>
-                  {s.address && (
-                    <span className="text-zinc-500"> · {s.address}</span>
-                  )}
-                </button>
-              ))}
+              {listStores.isPending ? (
+                <p className="text-[10px] text-zinc-500">Loading your stores…</p>
+              ) : stores.length === 0 ? (
+                <p className="text-[10px] text-amber-700">
+                  No stores found in this Uber Eats account yet. If Uber is
+                  still provisioning your test store, retry shortly.
+                </p>
+              ) : (
+                <>
+                  <p className="text-[10px] text-zinc-500">
+                    Choose the Uber Eats store to connect:
+                  </p>
+                  {stores.map((s) => (
+                    <button
+                      key={s.storeId}
+                      onClick={() => link.mutate(s.storeId)}
+                      disabled={link.isPending}
+                      className="block w-full rounded-md border border-zinc-200 px-2 py-1 text-left text-[11px] hover:border-zinc-900 disabled:opacity-50"
+                    >
+                      <span className="font-medium">{s.name || s.storeId}</span>
+                      {s.address && (
+                        <span className="text-zinc-500"> · {s.address}</span>
+                      )}
+                    </button>
+                  ))}
+                </>
+              )}
               <button
-                onClick={() => setPicking(false)}
-                className="text-[10px] text-zinc-500 hover:text-zinc-800"
+                onClick={() => listStores.mutate()}
+                disabled={listStores.isPending}
+                className="text-[10px] text-zinc-500 hover:text-zinc-800 disabled:opacity-50"
               >
-                Cancel
+                Refresh stores
               </button>
             </div>
           ) : connected ? (
             <p className="text-[10px] text-zinc-500">
               Store {connection?.externalStoreId}
+            </p>
+          ) : authorisedNoStore ? (
+            <p className="text-[10px] text-zinc-500">
+              Authorised — choose your store to finish.
             </p>
           ) : (
             <p className="text-[10px] text-zinc-500">
@@ -713,6 +715,14 @@ function UberEatsRow({
                 )}
               </button>
             </>
+          ) : authorisedNoStore && !picking ? (
+            <button
+              onClick={() => listStores.mutate()}
+              disabled={listStores.isPending}
+              className="rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+            >
+              Choose store
+            </button>
           ) : (
             !picking && (
               <button
