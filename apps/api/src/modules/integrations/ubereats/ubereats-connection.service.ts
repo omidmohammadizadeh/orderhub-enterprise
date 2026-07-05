@@ -528,6 +528,15 @@ export class UberEatsConnectionService {
     // as the Order API's {order:{...}}). Unwrap before shaping.
     const details = (detailsRaw as any)?.store ?? detailsRaw;
     const status = (statusRaw as any)?.store_status ?? statusRaw;
+    // Shape probe (same discipline as orders) — pins the real envelope from
+    // live traffic so "all dashes" in the panel is diagnosable from logs.
+    try {
+      this.logger.log(
+        `Uber Eats overview shapes: details=${JSON.stringify(detailsRaw ?? null)?.slice(0, 300)} status=${JSON.stringify(statusRaw ?? null)?.slice(0, 200)}`,
+      );
+    } catch {
+      /* diagnostics only */
+    }
 
     // One activity row per manual status check — the Logs page then shows
     // the per-endpoint acknowledgments Uber wants evidenced.
