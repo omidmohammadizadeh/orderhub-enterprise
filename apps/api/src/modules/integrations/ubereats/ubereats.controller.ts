@@ -102,7 +102,9 @@ export class UberEatsController {
     @Query("error") error: string | undefined,
     @Res() res: Response,
   ) {
-    const back = this.dashboardUrl("/dashboard/integrations");
+    // The Uber Eats connect UI lives in Locations → Brands (no standalone
+    // integrations page). Land there; the Brands drawer reads these params.
+    const back = this.dashboardUrl("/dashboard/locations");
     if (error) {
       back.searchParams.set("ubereats_error", error);
       return res.redirect(back.toString());

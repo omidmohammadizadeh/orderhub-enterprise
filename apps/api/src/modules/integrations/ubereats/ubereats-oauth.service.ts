@@ -70,9 +70,11 @@ export class UberEatsOauthService {
     u.searchParams.set("client_id", this.client.clientId);
     u.searchParams.set("response_type", "code");
     u.searchParams.set("redirect_uri", this.redirectUri);
-    // pos_provisioning authorises the connect + store discovery; eats.store
-    // lets the merchant token read the store list (GET /v1/delivery/stores).
-    u.searchParams.set("scope", "eats.pos_provisioning eats.store");
+    // authorization_code only accepts eats.pos_provisioning (eats.store is a
+    // client-credentials scope — including it here → invalid_scope). The
+    // pos_provisioning merchant token can still list stores: GET
+    // /v1/delivery/stores accepts either scope.
+    u.searchParams.set("scope", "eats.pos_provisioning");
     u.searchParams.set("state", state);
     return u.toString();
   }

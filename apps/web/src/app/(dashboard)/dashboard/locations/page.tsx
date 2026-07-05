@@ -7,7 +7,7 @@
 // hours / Busy mode / More) and reveals brand-platform connections when
 // expanded.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -63,6 +63,27 @@ export default function LocationsPage() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended" | "closed">("all");
+
+  // Returning from the Uber Eats OAuth flow (the callback lands here since
+  // the connect card lives in the Brands drawer). Surface the result, then
+  // clean the query so a refresh doesn't re-toast.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    const ok = p.get("ubereats_connected");
+    const oauthErr = p.get("ubereats_error");
+    if (!ok && !oauthErr) return;
+    if (oauthErr) {
+      toast.error(`Uber Eats connect failed: ${oauthErr}`);
+    } else if (ok === "1") {
+      toast.success("Uber Eats store connected — open Brands to see it.");
+    } else if (ok === "pick") {
+      toast("Uber Eats authorised — open Brands and pick your store.", {
+        icon: "🏬",
+      });
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
 
   const closeDrawer = () => setDrawer(null);
   const onSaved = () => {
