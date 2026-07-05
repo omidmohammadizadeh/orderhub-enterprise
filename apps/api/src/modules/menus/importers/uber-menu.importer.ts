@@ -144,6 +144,17 @@ export class UberMenuImporter {
     }
 
     const normalized = classifyUberMenu(payload);
+    // Menus WE published carry absolute URLs to our own API (Uber echoes
+    // them back). Store them relative — same shape the HubRise import uses —
+    // so they load same-origin through the web app.
+    for (const pr of normalized.products) {
+      if (pr.imageUrl) {
+        pr.imageUrl = pr.imageUrl.replace(
+          /^https?:\/\/[^/]*onrender\.com(?=\/api\/)/i,
+          "",
+        );
+      }
+    }
     await this.rehostImages(normalized);
     const result = await this.writer.apply({
       menuId: menu.id,

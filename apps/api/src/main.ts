@@ -29,6 +29,12 @@ async function bootstrap() {
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false, // Required for Swagger UI
+      // helmet's default Cross-Origin-Resource-Policy: same-origin makes
+      // browsers BLOCK <img> loads of API-served images from the web app's
+      // domain (net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin) — hubrise-image
+      // proxy, storefronts on custom domains, etc. The API serves public
+      // images by design; allow cross-origin embedding.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
       contentSecurityPolicy:
         process.env.NODE_ENV === "production" ? undefined : false,
     }),
