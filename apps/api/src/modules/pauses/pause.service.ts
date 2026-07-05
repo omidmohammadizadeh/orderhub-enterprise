@@ -16,6 +16,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-location-pause.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
+import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 
 export type SupportedChannel =
   | "ONLINE"
@@ -65,6 +66,7 @@ export class PauseService {
     // Phase BA-2 — mirror pauses onto the brand's DIRECT Deliveroo store,
     // exactly like the per-brand Open/Pause buttons on the channels grid.
     private readonly deliveroo: DeliverooConnectionService,
+    private readonly uberEats: UberEatsConnectionService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -228,6 +230,7 @@ export class PauseService {
     // swallowed — never block or fail the operator's pause on a Deliveroo
     // API hiccup). Reconcile picks up the row we just wrote.
     void this.reconcileDeliveroo(args.scope, args.tenantId);
+    void this.reconcileUberEats(args.scope, args.tenantId);
 
     return row;
   }
@@ -265,8 +268,13 @@ export class PauseService {
             `HubRise resume sync failed: ${err?.message ?? err}`,
           ),
         );
-      // Reopen the direct Deliveroo store if nothing else keeps it paused.
+      // Reopen the direct Deliveroo / Uber Eats store if nothing else keeps
+      // it paused.
       void this.reconcileDeliveroo(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
+      void this.reconcileUberEats(
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
@@ -282,6 +290,7 @@ export class PauseService {
       },
     });
     void this.reconcileDeliveroo(args.scope, args.tenantId);
+    void this.reconcileUberEats(args.scope, args.tenantId);
     return { ok: true };
   }
 
@@ -298,6 +307,56 @@ export class PauseService {
    * Fully best-effort: any failure is logged and swallowed so a Deliveroo
    * API hiccup never breaks the operator's pause/resume.
    */
+  /**
+   * Mirror pauses onto connected Uber Eats stores — same reconcile model as
+   * Deliveroo: for every connected UBER_EATS store in scope, recompute whether
+   * that brand's Uber Eats channel is paused and push ONLINE/OFFLINE to match.
+   * Best-effort; a store not yet integration-activated self-heals on the first
+   * call (setStoreOnline activates + retries on the access 401).
+   */
+  private async reconcileUberEats(
+    scope: PauseScope,
+    tenantId: string,
+  ): Promise<void> {
+    try {
+      if (scope.channel && scope.channel !== "UBER_EATS") return;
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "UBER_EATS",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          externalStoreId: { not: null },
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { id: true, brandId: true, tenantId: true },
+      });
+      for (const c of conns) {
+        const snap = await this.isPaused({
+          locationId: scope.locationId,
+          brandId: c.brandId,
+          channel: "UBER_EATS",
+        });
+        try {
+          await this.uberEats.setStoreOnline(
+            c.tenantId ?? tenantId,
+            c.id,
+            !snap.paused,
+            snap.paused ? "PAUSED_BY_RESTAURANT" : undefined,
+          );
+          this.logger.log(
+            `Uber Eats store ${snap.paused ? "paused" : "resumed"} for conn ${c.id} via pause reconcile`,
+          );
+        } catch (e: any) {
+          this.logger.warn(
+            `Uber Eats store ${snap.paused ? "pause" : "resume"} failed for conn ${c.id}: ${e?.message ?? e}`,
+          );
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Uber Eats pause reconcile failed: ${e?.message ?? e}`);
+    }
+  }
+
   private async reconcileDeliveroo(
     scope: PauseScope,
     tenantId: string,

@@ -106,10 +106,54 @@ export class UberEatsConnectionService {
         lastSyncAt: new Date(),
       },
     });
+    // Activate the POS integration so our CLIENT-CREDENTIALS token can operate
+    // the store (status/prep/menu/orders). Without this, those calls 401 with
+    // "User not allowed to access the store" — the store is the merchant's,
+    // not our client's, until the integration is enabled. integrator_store_id
+    // is OUR own id (the connection id), NOT anything the operator types.
+    await this.activateIntegration(row.id, storeId, dto.brandId).catch(() => {});
     this.logger.log(
       `Uber Eats store ${storeId} (${match.name}) linked to conn ${row.id}`,
     );
     return this.view(updated);
+  }
+
+  /**
+   * POST the POS integration data with the merchant token so Uber links the
+   * store to our client_id (enables client-credentials operations). Uses our
+   * own ids — no operator input. Best-effort: logs on failure.
+   */
+  private async activateIntegration(
+    connectionId: string,
+    storeId: string,
+    brandId: string,
+  ): Promise<void> {
+    const row = await this.prisma.brandPlatformConnection.findUnique({
+      where: { id: connectionId },
+    });
+    if (!row) return;
+    try {
+      const token = await this.oauth.merchantToken(row);
+      await this.client.request(
+        "POST",
+        `/v1/eats/stores/${encodeURIComponent(storeId)}/pos_data`,
+        {
+          userToken: token,
+          body: {
+            integrator_store_id: connectionId,
+            integrator_brand_id: brandId,
+            integration_enabled: true,
+          },
+        },
+      );
+      this.logger.log(
+        `Uber Eats integration activated for store ${storeId} (conn ${connectionId})`,
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `Uber Eats pos_data activation failed for store ${storeId}: ${err?.message}. Store ops may 401 until activation succeeds.`,
+      );
+    }
   }
 
   /**
@@ -143,6 +187,9 @@ export class UberEatsConnectionService {
           lastSyncAt: new Date(),
         },
       });
+      await this.activateIntegration(row.id, stores[0]!.storeId, brandId).catch(
+        () => {},
+      );
       this.logger.log(
         `Uber Eats auto-linked sole store ${stores[0]!.storeId} to conn ${row.id}`,
       );
@@ -230,22 +277,56 @@ export class UberEatsConnectionService {
     reason?: string,
   ) {
     const c = await this.connected(tenantId, connectionId);
-    await this.client.request(
-      "POST",
-      `/v1/delivery/store/${c.externalStoreId}/update-store-status`,
-      {
-        scopes: STATUS_SCOPES,
-        body: {
-          status: online ? "ONLINE" : "OFFLINE",
-          ...(reason ? { reason } : {}),
+    await this.withStoreAccess(c, () =>
+      this.client.request(
+        "POST",
+        `/v1/delivery/store/${c.externalStoreId}/update-store-status`,
+        {
+          scopes: STATUS_SCOPES,
+          body: {
+            status: online ? "ONLINE" : "OFFLINE",
+            ...(reason ? { reason } : {}),
+          },
         },
-      },
+      ),
     );
     await this.prisma.brandPlatformConnection.update({
       where: { id: connectionId },
       data: { status: online ? "connected" : "suspended" },
     });
     return { status: online ? "ONLINE" : "OFFLINE" };
+  }
+
+  /**
+   * Run a store operation; if Uber rejects it with "User not allowed to
+   * access the store" (the integration wasn't activated — e.g. a store
+   * connected before pos_data was wired), activate it once and retry.
+   */
+  private async withStoreAccess<T>(
+    conn: { id: string; brandId: string; externalStoreId: string | null },
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (
+        conn.externalStoreId &&
+        (msg.includes("not allowed to access the store") ||
+          (msg.includes("401") && msg.includes("unauthorized")))
+      ) {
+        this.logger.warn(
+          `Uber Eats store ${conn.externalStoreId} not accessible — activating integration and retrying`,
+        );
+        await this.activateIntegration(
+          conn.id,
+          conn.externalStoreId,
+          conn.brandId,
+        );
+        return await fn();
+      }
+      throw err;
+    }
   }
 
   /** Push the location's default prep time (seconds, max 10800). */
