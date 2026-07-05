@@ -27,6 +27,7 @@ import {
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
 import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
+import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { apiClient } from "@/lib/api/client";
 import toast from "react-hot-toast";
@@ -356,7 +357,9 @@ function DeliverooRow({
 }) {
   const connected =
     connection?.status === "connected" || connection?.status === "suspended";
-  const [editing, setEditing] = useState(false);
+  // Post-connect management (open/close, hours, edit ids, disconnect) lives
+  // in the Manage modal — the row stays compact.
+  const [manageOpen, setManageOpen] = useState(false);
   const [storeId, setStoreId] = useState(connection?.externalStoreId ?? "");
   const [dBrandId, setDBrandId] = useState(connection?.externalBrandId ?? "");
 
@@ -380,42 +383,11 @@ function DeliverooRow({
       }),
     onSuccess: () => {
       toast.success("Deliveroo store connected");
-      setEditing(false);
       onChanged();
     },
     onError: err,
   });
-  const disconnect = useMutation({
-    mutationFn: () => deliverooClient.disconnect(connection!.id!),
-    onSuccess: () => {
-      toast.success("Deliveroo disconnected");
-      onChanged();
-    },
-    onError: err,
-  });
-  const pause = useMutation({
-    mutationFn: () => deliverooClient.pause(connection!.id!),
-    onSuccess: () => {
-      toast.success("Deliveroo store paused (closed)");
-      onChanged();
-    },
-    onError: err,
-  });
-  const resume = useMutation({
-    mutationFn: () => deliverooClient.resume(connection!.id!),
-    onSuccess: () => {
-      toast.success("Deliveroo store resumed (open)");
-      onChanged();
-    },
-    onError: err,
-  });
-  const publishHours = useMutation({
-    mutationFn: () => deliverooClient.publishHours(connection!.id!),
-    onSuccess: () => toast.success("Opening hours + prep pushed to Deliveroo"),
-    onError: err,
-  });
-
-  const showForm = !connected || editing;
+  const showForm = !connected;
 
   return (
     <li className="rounded-md border border-zinc-200 px-3 py-2">
@@ -449,14 +421,6 @@ function DeliverooRow({
                 >
                   {connect.isPending ? "Connecting…" : "Connect"}
                 </button>
-                {editing && (
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="rounded-md border border-zinc-200 px-2 py-1 text-[10px] hover:bg-zinc-50"
-                  >
-                    Cancel
-                  </button>
-                )}
               </div>
             </div>
           ) : (
@@ -467,51 +431,27 @@ function DeliverooRow({
           )}
         </div>
 
-        {connected && !editing && (
-          <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
-            <button
-              onClick={() => resume.mutate()}
-              disabled={resume.isPending}
-              className="rounded-md border border-emerald-200 px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-            >
-              Open
-            </button>
-            <button
-              onClick={() => pause.mutate()}
-              disabled={pause.isPending}
-              className="rounded-md border border-orange-200 px-2 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-50"
-            >
-              Pause
-            </button>
-            <button
-              onClick={() => publishHours.mutate()}
-              disabled={publishHours.isPending}
-              className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-            >
-              {publishHours.isPending ? "…" : "Push hours"}
-            </button>
-            <button
-              onClick={() => setEditing(true)}
-              className="rounded p-1 text-zinc-500 hover:bg-zinc-100"
-              title="Edit"
-            >
-              <Pencil className="h-3 w-3" />
-            </button>
-            <button
-              onClick={() => disconnect.mutate()}
-              disabled={disconnect.isPending}
-              className="rounded p-1 text-zinc-500 hover:bg-red-50 hover:text-red-600"
-              title="Disconnect"
-            >
-              {disconnect.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Trash2 className="h-3 w-3" />
-              )}
-            </button>
-          </div>
+        {connected && (
+          <button
+            onClick={() => setManageOpen(true)}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+          >
+            Manage
+          </button>
         )}
       </div>
+      {connected && (
+        <DeliverooManageModal
+          connectionId={connection!.id as string}
+          brandId={brandId}
+          locationId={locationId}
+          siteId={(connection?.externalStoreId as string) ?? null}
+          deliverooBrandId={(connection?.externalBrandId as string) ?? null}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={onChanged}
+        />
+      )}
     </li>
   );
 }
