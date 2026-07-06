@@ -19,35 +19,45 @@ interface MenuItem {
 const SOLUTIONS: MenuItem[] = [
   {
     label: "POS",
-    description: "Walk-in tills and phone orders, one shared printer queue",
-    href: "/login",
+    description: "Every order into one till and one printer queue",
+    href: "/solutions/pos",
   },
   {
     label: "Direct online ordering",
     description: "Your own storefront, 100% margin kept",
-    href: "/login",
+    href: "/solutions/online-ordering",
   },
   {
     label: "Menu Manager",
-    description: "One menu source, every channel",
-    href: "/login",
+    description: "Build once, publish everywhere — AI import",
+    href: "/solutions/menu-manager",
   },
   {
-    label: "Live order tracking",
-    description: "Customers see what your kitchen sees",
-    href: "/login",
+    label: "Driver app",
+    description: "Your own delivery fleet, tracked live",
+    href: "/solutions/driver-app",
+  },
+  {
+    label: "Dispatch console",
+    description: "See every driver and order on one map",
+    href: "/solutions/dispatch",
+  },
+  {
+    label: "WhatsApp AI ordering",
+    description: "Take orders in the chat customers use",
+    href: "/solutions/whatsapp-ordering",
   },
 ];
 
 const INTEGRATIONS: MenuItem[] = [
-  { label: "Uber Eats", href: "/login", brand: "ubereats" },
-  { label: "Deliveroo", href: "/login", brand: "deliveroo" },
-  { label: "Uber Direct", href: "/login", brand: "uberdirect" },
-  { label: "Stuart", href: "/login", brand: "stuart" },
-  { label: "HubRise", href: "/login", brand: "hubrise" },
-  { label: "Just Eat (coming soon)", href: "/login", brand: "justeat" },
-  { label: "Order Hub POS", href: "/login", brand: "orderhub" },
-  { label: "Stripe", href: "/login", brand: "stripe" },
+  { label: "Uber Eats", href: "/integrations/ubereats", brand: "ubereats" },
+  { label: "Deliveroo", href: "/integrations/deliveroo", brand: "deliveroo" },
+  { label: "Uber Direct", href: "/integrations/uberdirect", brand: "uberdirect" },
+  { label: "Stuart", href: "/integrations/stuart", brand: "stuart" },
+  { label: "HubRise", href: "/integrations/hubrise", brand: "hubrise" },
+  { label: "Just Eat", href: "/integrations/justeat", brand: "justeat" },
+  { label: "Order Hub POS", href: "/integrations/orderhub", brand: "orderhub" },
+  { label: "Stripe", href: "/integrations/stripe", brand: "stripe" },
 ];
 
 const RESOURCES: MenuItem[] = [
@@ -77,8 +87,8 @@ export function SiteNav() {
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
-          <MegaMenu label="Solutions" items={SOLUTIONS} />
-          <MegaMenu label="Integrations" items={INTEGRATIONS} grid />
+          <MegaMenu label="Solutions" href="/solutions" items={SOLUTIONS} />
+          <MegaMenu label="Integrations" href="/integrations" items={INTEGRATIONS} grid />
           <Link
             href="#pricing"
             className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
@@ -113,22 +123,30 @@ export function SiteNav() {
 // connected to the trigger so hovering the gap doesn't dismiss.
 function MegaMenu({
   label,
+  href,
   items,
   grid = false,
 }: {
   label: string;
+  href?: string;
   items: MenuItem[];
   grid?: boolean;
 }) {
+  const triggerClass =
+    "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:bg-zinc-50 focus:outline-none";
   return (
     <div className="relative group">
-      <button
-        type="button"
-        className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:bg-zinc-50 focus:outline-none"
-      >
-        {label}
-        <ChevronDown className="h-3.5 w-3.5 text-zinc-400 transition-transform group-hover:rotate-180" />
-      </button>
+      {href ? (
+        <Link href={href} className={triggerClass}>
+          {label}
+          <ChevronDown className="h-3.5 w-3.5 text-zinc-400 transition-transform group-hover:rotate-180" />
+        </Link>
+      ) : (
+        <button type="button" className={triggerClass}>
+          {label}
+          <ChevronDown className="h-3.5 w-3.5 text-zinc-400 transition-transform group-hover:rotate-180" />
+        </button>
+      )}
       <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
         <div
           className={`min-w-[320px] overflow-hidden rounded-xl border border-zinc-100 bg-white shadow-xl ${

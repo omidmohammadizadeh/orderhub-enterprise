@@ -12,7 +12,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { LoggedInBanner } from "@/components/marketing/logged-in-banner";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { MarqueeLogos } from "@/components/marketing/marquee-logos";
 import { StatCounters } from "@/components/marketing/stat-counters";
@@ -132,7 +131,6 @@ export default async function MarketingHomePage({
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
-      <LoggedInBanner />
       <SiteNav />
       <Hero />
       <MarqueeLogos />
@@ -369,20 +367,22 @@ function SiteFooter() {
           <FooterCol
             heading="Solutions"
             items={[
-              { label: "POS", href: "/login" },
-              { label: "Direct online ordering", href: "/login" },
-              { label: "Menu Manager", href: "/login" },
-              { label: "Live order tracking", href: "/login" },
+              { label: "POS", href: "/solutions/pos" },
+              { label: "Direct online ordering", href: "/solutions/online-ordering" },
+              { label: "Menu Manager", href: "/solutions/menu-manager" },
+              { label: "Driver app", href: "/solutions/driver-app" },
+              { label: "Dispatch console", href: "/solutions/dispatch" },
+              { label: "WhatsApp AI ordering", href: "/solutions/whatsapp-ordering" },
             ]}
           />
           <FooterCol
             heading="Integrations"
             items={[
-              { label: "Uber Eats", href: "/login" },
-              { label: "Deliveroo", href: "/login" },
-              { label: "HubRise", href: "/login" },
-              { label: "Just Eat (coming soon)", href: "/login" },
-              { label: "Stripe", href: "/login" },
+              { label: "Uber Eats", href: "/integrations/ubereats" },
+              { label: "Deliveroo", href: "/integrations/deliveroo" },
+              { label: "HubRise", href: "/integrations/hubrise" },
+              { label: "Just Eat (coming soon)", href: "/integrations/justeat" },
+              { label: "Stripe", href: "/integrations/stripe" },
             ]}
           />
           <FooterCol
