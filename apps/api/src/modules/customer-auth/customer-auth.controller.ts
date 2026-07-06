@@ -74,13 +74,14 @@ export class CustomerAuthController {
   @Get("orders")
   @ApiOperation({
     summary:
-      "Current customer's orders, split active/history. Pass ?brandId= to scope to a single brand.",
+      "Current customer's orders, split active/history. Pass ?storeSlug= to scope to the storefront the customer is on (required for multi-shop privacy) and ?brandId= to further scope to a brand.",
   })
   myOrders(
     @CurrentCustomer() customer: any,
     @Query("brandId") brandId?: string,
+    @Query("storeSlug") storeSlug?: string,
   ) {
-    return this.customerAuth.listOrders(customer.id, brandId);
+    return this.customerAuth.listOrders(customer.id, { brandId, storeSlug });
   }
 
   // ── Google OAuth ─────────────────────────────────────────────────

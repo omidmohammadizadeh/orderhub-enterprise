@@ -137,13 +137,18 @@ function MyOrdersInner() {
     }
     setIsLoading(true);
     setError(null);
-    // Phase AW-30 — scope by brand when the storefront URL carries
-    // ?brand=<id> so a customer who's ordered from two brands at
-    // the same kitchen only sees the brand they're currently on.
+    // Always scope to the storefront the customer is on: storeSlug
+    // resolves to this shop's location server-side, so a customer who
+    // has ordered from other shops on the platform never sees those
+    // orders here. ?brand=<id> (Phase AW brand overlay) narrows
+    // further for multi-brand kitchens.
     axios
       .get<OrdersResponse>(`${API_BASE}/v1/customer-auth/orders`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: brandIdFromUrl ? { brandId: brandIdFromUrl } : undefined,
+        params: {
+          storeSlug: params.slug,
+          ...(brandIdFromUrl ? { brandId: brandIdFromUrl } : {}),
+        },
       })
       .then((res) => setOrders(res.data))
       .catch((err: any) => {
@@ -154,7 +159,7 @@ function MyOrdersInner() {
         );
       })
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, [token, params.slug, brandIdFromUrl]);
 
   const handleReorder = (order: Order) => {
     // Hand the cart off via sessionStorage rather than localStorage.

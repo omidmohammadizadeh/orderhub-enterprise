@@ -317,22 +317,43 @@ export class CustomerAuthService {
    */
   async listOrders(
     customerAccountId: string,
-    brandId?: string,
+    opts: { brandId?: string; storeSlug?: string } = {},
   ): Promise<{
     active: any[];
     history: any[];
   }> {
     const TERMINAL_STATUSES = ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"];
+    const { brandId, storeSlug } = opts;
 
-    // Phase AW-30 — when the storefront is in a brand context
-    // (?brand=<id> on the URL), the My Orders panel should only
-    // show that brand's history. Without this filter a customer
-    // who's ordered from "Monster Burgerz" and "Pizza Uno" sees
-    // both lists co-mingled regardless of which brand they're
-    // currently on. brandId is optional so callers without brand
-    // context (legacy storefronts, marketplace ingests) keep the
-    // tenant-wide behaviour.
+    // Storefront scoping. We host storefronts for many independent
+    // shops against one shared customer account, so a customer on shop
+    // A's URL (or custom domain) must never see their history from
+    // shop B.
+    //
+    // • storeSlug — the /order/<slug> the customer is on — resolves to
+    //   a location (same OR-resolution as getStorefrontBySlug) and
+    //   scopes to that location's orders. An unresolvable slug fails
+    //   CLOSED with empty lists, never tenant-wide.
+    // • brandId (?brand=<id>, Phase AW brand overlay) additionally
+    //   narrows to that brand for multi-brand kitchens.
+    // • Neither param → legacy unscoped behaviour, kept only so old
+    //   cached clients don't break; the web app always sends storeSlug.
     const brandFilter = brandId ? { brandId } : {};
+    let locationFilter: { locationId?: string } = {};
+    if (storeSlug) {
+      const location = await this.prisma.location.findFirst({
+        where: {
+          OR: [
+            { onlineOrderingSlug: storeSlug },
+            { slug: storeSlug },
+            { id: storeSlug },
+          ],
+        },
+        select: { id: true },
+      });
+      if (!location) return { active: [], history: [] };
+      locationFilter = { locationId: location.id };
+    }
 
     // One query for each side. The board uses a single live query
     // for staff; the customer page is loaded on demand and benefits
@@ -343,6 +364,7 @@ export class CustomerAuthService {
           customerAccountId,
           status: { notIn: TERMINAL_STATUSES as any },
           ...brandFilter,
+          ...locationFilter,
         },
         select: ORDER_PROJECTION,
         orderBy: { createdAt: "desc" },
@@ -352,6 +374,7 @@ export class CustomerAuthService {
           customerAccountId,
           status: { in: TERMINAL_STATUSES as any },
           ...brandFilter,
+          ...locationFilter,
         },
         select: ORDER_PROJECTION,
         orderBy: { createdAt: "desc" },
