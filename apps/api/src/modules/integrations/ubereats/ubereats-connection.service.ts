@@ -164,7 +164,29 @@ export class UberEatsConnectionService {
           body: {
             integrator_store_id: connectionId,
             integrator_brand_id: brandId,
+            merchant_store_id: storeId,
             integration_enabled: true,
+            // THE critical flag: makes OUR app the Order Manager for this
+            // store (accept/deny/cancel/ready flow through us). Without it
+            // the store activates as "Menu Manager POS, Order Manager = No"
+            // and every order write 401s "User not allowed to access the
+            // store" (Base44-confirmed field).
+            is_order_manager: true,
+            // Orders flow straight to our POS without needing manual
+            // acceptance in Uber's own dashboard first.
+            require_manual_acceptance: false,
+            allowed_customer_requests: {
+              allow_single_use_items_requests: false,
+              allow_special_instruction_requests: true,
+            },
+            // Enable the order webhooks we rely on (new/scheduled/release +
+            // delivery status). resource_href version pinned to 1.0.0.
+            webhooks_config: {
+              order_release_webhooks: { is_enabled: true },
+              schedule_order_webhooks: { is_enabled: true },
+              delivery_status_webhooks: { is_enabled: true },
+              webhooks_version: "1.0.0",
+            },
           },
         },
       );
