@@ -405,15 +405,33 @@ export class UberEatsMenuPublishService {
       );
       return { ok: false, reason: "store_not_connected" };
     }
-    const menu = await this.prisma.menu.findFirst({
-      where: {
-        brandId: conn.brandId,
-        deletedAt: null,
-        OR: [{ locationId: conn.locationId }, { locationId: null }],
-      },
-      orderBy: [{ lastPublishedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
-      select: { id: true, name: true },
-    });
+    // Phase BA — the serving assignment for (location, UBER_EATS, brand)
+    // is the source of truth for which menu this store carries; the legacy
+    // home-location/brand cascade below covers stores whose menu was never
+    // re-published since the assignment migration.
+    const assignment = conn.locationId
+      ? await (this.prisma as any).menuChannelAssignment.findFirst({
+          where: {
+            locationId: conn.locationId,
+            channel: "UBER_EATS",
+            brandId: conn.brandId,
+            menu: { deletedAt: null, isActive: true },
+          },
+          orderBy: { publishedAt: "desc" },
+          select: { menu: { select: { id: true, name: true } } },
+        })
+      : null;
+    const menu =
+      assignment?.menu ??
+      (await this.prisma.menu.findFirst({
+        where: {
+          brandId: conn.brandId,
+          deletedAt: null,
+          OR: [{ locationId: conn.locationId }, { locationId: null }],
+        },
+        orderBy: [{ lastPublishedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
+        select: { id: true, name: true },
+      }));
     if (!menu) {
       this.logger.warn(
         `Uber Eats menu refresh: no menu found for brand ${conn.brandId}`,

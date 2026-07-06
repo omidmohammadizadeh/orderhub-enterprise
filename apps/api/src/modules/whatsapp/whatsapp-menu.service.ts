@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { MenuAssignmentsService } from "../menus/menu-assignments.service";
 
 // Phase AY (P2) — serves the LIVE published menu for the location behind a
 // WhatsApp business number. We do NOT push a catalog to Meta (unlike HubRise);
@@ -91,6 +92,8 @@ export class WhatsAppMenuService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    // Phase BA — serving-assignment resolver (assignment-first menu pick).
+    private readonly menuAssignments: MenuAssignmentsService,
   ) {}
 
   /** Resolve the location + live menu for an inbound WhatsApp message. */
@@ -127,6 +130,22 @@ export class WhatsAppMenuService {
             include: MENU_INCLUDE,
           })
         : null;
+    if (!menu) {
+      // Phase BA — serving assignment for (location, WHATSAPP) wins first
+      // (operator-pinned menuId above still beats everything). The legacy
+      // publishedTo cascade below keeps un-republished setups working.
+      const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId({
+        locationId: location.id,
+        channel: "WHATSAPP",
+        preferBrandId: location.brandId,
+      });
+      menu = assignedMenuId
+        ? await this.prisma.menu.findFirst({
+            where: { id: assignedMenuId },
+            include: MENU_INCLUDE,
+          })
+        : null;
+    }
     if (!menu) {
       // Prefer a menu explicitly published to WhatsApp (Publish → WhatsApp),
       // location-scoped first then brand-scoped, before the generic

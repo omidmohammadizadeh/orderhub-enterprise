@@ -5,6 +5,7 @@ import { OrdersModule } from "../orders/orders.module";
 import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { InventoryModule } from "../inventory/inventory.module";
+import { MenuAssignmentsModule } from "../menus/menu-assignments.module";
 import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
 
@@ -18,11 +19,14 @@ import { MarketingModule } from "../marketing/marketing.module";
   // response carries a `closed` block when the brand/location/channel
   // is currently paused, and so checkout() refuses to land an order
   // against a paused storefront.
+  // Phase BA — MenuAssignmentsModule resolves the serving assignment for
+  // (location, ONLINE, brand) before the legacy menu cascade.
   imports: [
     OrdersModule,
     PromoCodesModule,
     PaymentsModule,
     InventoryModule,
+    MenuAssignmentsModule,
     PauseModule,
     MarketingModule,
   ],

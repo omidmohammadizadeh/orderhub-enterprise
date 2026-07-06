@@ -622,21 +622,43 @@ export class LocationsService {
     // Resolve active menu id WITHOUT calling the menus service (avoid a
     // circular module dependency). Just need the id — the public menu
     // controller will fetch the published shape.
-    const menu = await this.prisma.menu.findFirst({
+    //
+    // Phase BA — assignment-first: same rule as the canonical resolver in
+    // menus/menu-assignments.service.ts (inlined here to keep this module
+    // dependency-free). The legacy OR cascade below is the fallback for
+    // locations never re-published since the assignment migration.
+    const assignments = await (this.prisma as any).menuChannelAssignment.findMany({
       where: {
-        OR: [
-          { locationId: location.id, isActive: true, deletedAt: null },
-          {
-            brandId: location.brand.id,
-            isActive: true,
-            deletedAt: null,
-            locationId: null,
-          },
-        ],
+        locationId: location.id,
+        channel: "ONLINE",
+        menu: { isActive: true, deletedAt: null },
       },
-      orderBy: { updatedAt: "desc" },
-      select: { id: true, status: true },
+      orderBy: { publishedAt: "desc" },
+      select: { menuId: true, brandId: true },
     });
+    // Prefer the location's primary brand, then latest publish.
+    const assignment =
+      assignments.find((a: any) => a.brandId === location.brand.id) ??
+      assignments[0] ??
+      null;
+
+    const menu = assignment
+      ? { id: assignment.menuId as string }
+      : await this.prisma.menu.findFirst({
+          where: {
+            OR: [
+              { locationId: location.id, isActive: true, deletedAt: null },
+              {
+                brandId: location.brand.id,
+                isActive: true,
+                deletedAt: null,
+                locationId: null,
+              },
+            ],
+          },
+          orderBy: { updatedAt: "desc" },
+          select: { id: true, status: true },
+        });
 
     return { location, menuId: menu?.id ?? null };
   }

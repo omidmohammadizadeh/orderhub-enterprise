@@ -214,10 +214,13 @@ export class MenusController {
   publishDeliveroo(
     @Param("menuId") menuId: string,
     @CurrentUser() user: AuthenticatedUser,
+    // Phase BA — multi-location menus publish once per selected location.
+    @Body() body?: { locationId?: string },
   ) {
     return this.deliverooMenu.publishMenu({
       tenantId: user.tenantId,
       menuId,
+      locationId: body?.locationId,
     });
   }
 

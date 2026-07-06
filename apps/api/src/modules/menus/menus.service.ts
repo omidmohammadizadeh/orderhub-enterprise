@@ -12,6 +12,7 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PluService } from "./plu.service";
+import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { QUEUES, MENU_JOBS, normalizePricingVariants } from "@orderhub/shared";
 import type {
@@ -59,6 +60,8 @@ export class MenusService {
     // response so the till never offers an out-of-stock product.
     @Inject(forwardRef(() => MenuAvailabilityService))
     private readonly menuAvailability: MenuAvailabilityService,
+    // Phase BA — serving-assignment resolver (assignment-first resolution).
+    private readonly menuAssignments: MenuAssignmentsService,
   ) {}
 
   // ── Menu CRUD ─────────────────────────────────────────────────────────────
@@ -97,13 +100,31 @@ export class MenusService {
     });
     if (!location) throw new NotFoundException("Location not found");
     return this.prisma.menu.findMany({
-      where: { locationId, deletedAt: null },
+      // Phase BA — a menu belongs to this location's list when it's homed
+      // here (legacy locationId) OR currently SERVING here via an
+      // assignment row written by the publish flow.
+      where: {
+        deletedAt: null,
+        OR: [
+          { locationId },
+          { assignments: { some: { locationId } } },
+        ],
+      },
       include: {
         _count: { select: { categories: true, versions: true } },
         versions: {
           orderBy: { version: "desc" },
           take: 1,
           select: { version: true, label: true, createdAt: true },
+        },
+        // Live-at badges + publish-modal seeding on the dashboard.
+        assignments: {
+          select: {
+            locationId: true,
+            channel: true,
+            brandId: true,
+            publishedAt: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -130,6 +151,9 @@ export class MenusService {
         ...(allowedLocationIds && {
           OR: [
             { locationId: { in: allowedLocationIds } },
+            // Phase BA — menus serving an allowed location via an
+            // assignment row count too, wherever they're homed.
+            { assignments: { some: { locationId: { in: allowedLocationIds } } } },
             // Brand-only menus (no location) stay visible to anyone
             // in the tenant — they're the franchise-wide library, not
             // a location-scoped publication.
@@ -144,9 +168,17 @@ export class MenusService {
           take: 1,
           select: { version: true, label: true, createdAt: true },
         },
-        // Menu.locationId is a plain scalar — no relation on the
-        // generated client — so the UI joins client-side against the
-        // locations list it already has.
+        // Live-at badges + publish-modal seeding on the dashboard.
+        // Menu.locationId is a plain scalar — the UI joins location
+        // names client-side against the locations list it already has.
+        assignments: {
+          select: {
+            locationId: true,
+            channel: true,
+            brandId: true,
+            publishedAt: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -1127,18 +1159,31 @@ export class MenusService {
     });
     if (!location) throw new NotFoundException("Location not found");
 
-    const menu = await this.prisma.menu.findFirst({
-      where: {
-        locationId,
-        status: "PUBLISHED",
-        deletedAt: null,
-        publishedTo: { has: "POS" },
-      },
-      // Most recently published wins when an operator has multiple
-      // POS-targeted menus active on a single location.
-      orderBy: [{ lastPublishedAt: "desc" }, { updatedAt: "desc" }],
-      select: { id: true },
+    // Phase BA — assignment-first: the publish flow writes one
+    // MenuChannelAssignment per (location, channel, brand), which is the
+    // serving truth. Legacy fallback below keeps un-republished locations
+    // working exactly as before.
+    const assignedId = await this.menuAssignments.resolveAssignedMenuId({
+      locationId,
+      channel: "POS",
+      preferBrandId: location.brandId,
+      requirePublished: true,
     });
+
+    const menu = assignedId
+      ? { id: assignedId }
+      : await this.prisma.menu.findFirst({
+          where: {
+            locationId,
+            status: "PUBLISHED",
+            deletedAt: null,
+            publishedTo: { has: "POS" },
+          },
+          // Most recently published wins when an operator has multiple
+          // POS-targeted menus active on a single location.
+          orderBy: [{ lastPublishedAt: "desc" }, { updatedAt: "desc" }],
+          select: { id: true },
+        });
     if (!menu) return null;
 
     const full = await this.findOne(menu.id, tenantId);
@@ -1146,7 +1191,8 @@ export class MenusService {
     // Phase AW-14 — strip items currently snoozed for POS so the till
     // never offers an out-of-stock item. Same read-time pattern used by
     // the storefront in OrderingService.getStorefrontBySlug. Single
-    // index hit, then in-memory filter.
+    // index hit, then in-memory filter. Phase BA: location-scoped
+    // snoozes apply here too.
     if (full?.categories?.length) {
       const itemIds: string[] = [];
       for (const cat of full.categories) {
@@ -1158,6 +1204,7 @@ export class MenusService {
         await this.menuAvailability.getSnoozedItemIdsForChannel(
           "POS",
           itemIds,
+          locationId,
         );
       if (snoozed.size > 0) {
         for (const cat of full.categories) {

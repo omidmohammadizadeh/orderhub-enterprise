@@ -13,6 +13,7 @@ import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { UberEatsModule } from '../integrations/ubereats/ubereats.module';
 import { InventoryModule } from '../inventory/inventory.module';
+import { MenuAssignmentsModule } from './menu-assignments.module';
 import { QUEUES } from '@orderhub/shared';
 
 @Module({
@@ -30,6 +31,8 @@ import { QUEUES } from '@orderhub/shared';
     DeliverooModule,
     UberEatsModule,
     forwardRef(() => InventoryModule),
+    // Phase BA — serving-assignment resolver (cycle-free: only Prisma).
+    MenuAssignmentsModule,
   ],
   controllers: [MenusController],
   providers: [

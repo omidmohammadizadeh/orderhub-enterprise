@@ -9,6 +9,7 @@ import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
+import { MenuAssignmentsService } from "../menus/menu-assignments.service";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 
@@ -62,6 +63,8 @@ export class OrderingService {
     // Phase AW-14 — strip items snoozed for ONLINE from the menu before
     // returning. Single round-trip per storefront load.
     private readonly menuAvailability: MenuAvailabilityService,
+    // Phase BA — serving-assignment resolver (assignment-first menu pick).
+    private readonly menuAssignments: MenuAssignmentsService,
     // Phase AW-15 — resolve current pause state so the storefront can
     // render the "currently not accepting orders" banner and checkout
     // can refuse to land a new Order against a paused brand.
@@ -221,36 +224,62 @@ export class OrderingService {
     // so a half-set-up brand still shows the kitchen's menu rather
     // than an empty storefront.
     const menuBrandId = overrideBrand?.id ?? location.brandId;
-    const menu = brandIdOverride
-      ? (await this.prisma.menu.findFirst({
-          where: {
-            brandId: menuBrandId,
-            isActive: true,
-            deletedAt: null,
+
+    // Phase BA — assignment-first: the publish flow writes one
+    // MenuChannelAssignment per (location, ONLINE, brand); resolve that
+    // before the legacy cascades so multi-location menus serve everywhere
+    // they're published. Brand-pinned storefronts resolve their brand's
+    // slot; unpinned ones prefer the location's primary brand. Legacy
+    // cascades below are untouched so un-republished locations keep
+    // working exactly as before.
+    const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId(
+      brandIdOverride
+        ? { locationId: location.id, channel: "ONLINE", brandId: menuBrandId }
+        : {
+            locationId: location.id,
+            channel: "ONLINE",
+            preferBrandId: location.brandId,
           },
-          orderBy: { updatedAt: "desc" },
+    );
+    const assignedMenu = assignedMenuId
+      ? await this.prisma.menu.findFirst({
+          where: { id: assignedMenuId },
           include: menuInclude,
-        })) ??
-        (await this.prisma.menu.findFirst({
-          where: { locationId: location.id, isActive: true, deletedAt: null },
-          orderBy: { updatedAt: "desc" },
-          include: menuInclude,
-        }))
-      : (await this.prisma.menu.findFirst({
-          where: { locationId: location.id, isActive: true, deletedAt: null },
-          orderBy: { updatedAt: "desc" },
-          include: menuInclude,
-        })) ??
-        (await this.prisma.menu.findFirst({
-          where: {
-            brandId: location.brandId,
-            isActive: true,
-            deletedAt: null,
-            locationId: null,
-          },
-          orderBy: { updatedAt: "desc" },
-          include: menuInclude,
-        }));
+        })
+      : null;
+
+    const menu =
+      assignedMenu ??
+      (brandIdOverride
+        ? (await this.prisma.menu.findFirst({
+            where: {
+              brandId: menuBrandId,
+              isActive: true,
+              deletedAt: null,
+            },
+            orderBy: { updatedAt: "desc" },
+            include: menuInclude,
+          })) ??
+          (await this.prisma.menu.findFirst({
+            where: { locationId: location.id, isActive: true, deletedAt: null },
+            orderBy: { updatedAt: "desc" },
+            include: menuInclude,
+          }))
+        : (await this.prisma.menu.findFirst({
+            where: { locationId: location.id, isActive: true, deletedAt: null },
+            orderBy: { updatedAt: "desc" },
+            include: menuInclude,
+          })) ??
+          (await this.prisma.menu.findFirst({
+            where: {
+              brandId: location.brandId,
+              isActive: true,
+              deletedAt: null,
+              locationId: null,
+            },
+            orderBy: { updatedAt: "desc" },
+            include: menuInclude,
+          })));
 
     // Phase AP — surface the direct-ordering config + delivery zones so
     // the storefront can render prep times, accepted methods, and auto-
@@ -358,6 +387,8 @@ export class OrderingService {
       const snoozed = await this.menuAvailability.getSnoozedItemIdsForChannel(
         "ONLINE",
         itemIds,
+        // Phase BA — this location's own 86s apply on top of global ones.
+        location.id,
       );
       if (snoozed.size > 0) {
         for (const cat of (menu as any).categories ?? []) {

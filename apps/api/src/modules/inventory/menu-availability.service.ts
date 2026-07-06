@@ -22,6 +22,9 @@ import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB
 // so adding (e.g.) CAREEM later doesn't need a migration.
+// Phase BA: "ALL" is a sentinel meaning "every channel" — written by the
+// menu/products-page location toggle ("86 here entirely") and matched by
+// the read filter alongside the specific channel.
 export type SupportedChannel =
   | "ONLINE"
   | "POS"
@@ -29,7 +32,8 @@ export type SupportedChannel =
   | "UBER_EATS"
   | "DELIVEROO"
   | "WHATSAPP"
-  | "HUBRISE";
+  | "HUBRISE"
+  | "ALL";
 
 // Operator presets from the spec. Translated to an `expiresAt` Date
 // in resolveExpiry().
@@ -61,28 +65,44 @@ export class MenuAvailabilityService {
    * Inventory board payload — every item for the brand + its current
    * snooze state per channel. Expired snoozes are filtered out.
    */
-  async getBrandMatrix(brandId: string, tenantId: string) {
+  async getBrandMatrix(brandId: string, tenantId: string, locationId?: string) {
     const brand = await this.prisma.brand.findFirst({
       where: { id: brandId, tenantId, deletedAt: null },
       select: { id: true },
     });
     if (!brand) throw new NotFoundException("Brand not found");
+    if (locationId) await this.assertLocationInTenant(locationId, tenantId);
 
-    // Scope to the brand's MOST RECENTLY PUBLISHED menu: the 86 board should
-    // mirror what customers actually see on the live menu (whichever channel
-    // it was last published to — Deliveroo / HubRise / storefront), not every
-    // product ever tagged to the brand. The publish flow stamps Menu.brandId +
-    // lastPublishedAt, so "latest published menu for this brand" is a direct
-    // lookup. We take that menu's items via its categories.
+    // Scope to the menu customers actually see. Phase BA: when the board is
+    // opened with a location context, the latest serving assignment for
+    // (location, brand) — any channel — wins; otherwise (and as fallback)
+    // the brand's most recently published menu, matching pre-BA behaviour.
     //
-    // Fallback: a brand with no published menu yet keeps the old behaviour —
-    // items tagged to the brand (primary brandId or shared via brandIds) — so
-    // the board isn't empty before the first publish.
-    const lastPublished = await this.prisma.menu.findFirst({
-      where: { brandId, deletedAt: null, lastPublishedAt: { not: null } },
-      orderBy: { lastPublishedAt: "desc" },
-      select: { id: true, name: true },
-    });
+    // Final fallback: a brand with no published menu yet keeps the old
+    // behaviour — items tagged to the brand (primary brandId or shared via
+    // brandIds) — so the board isn't empty before the first publish.
+    let lastPublished: { id: string; name: string } | null = null;
+    if (locationId) {
+      const assignment = await (
+        this.prisma as any
+      ).menuChannelAssignment.findFirst({
+        where: {
+          locationId,
+          brandId,
+          menu: { deletedAt: null, isActive: true },
+        },
+        orderBy: { publishedAt: "desc" },
+        select: { menu: { select: { id: true, name: true } } },
+      });
+      lastPublished = assignment?.menu ?? null;
+    }
+    if (!lastPublished) {
+      lastPublished = await this.prisma.menu.findFirst({
+        where: { brandId, deletedAt: null, lastPublishedAt: { not: null } },
+        orderBy: { lastPublishedAt: "desc" },
+        select: { id: true, name: true },
+      });
+    }
 
     let itemIds: string[];
     if (lastPublished) {
@@ -127,8 +147,19 @@ export class MenuAvailabilityService {
     const snoozes = await (this.prisma as any).menuItemChannelAvailability.findMany({
       where: {
         itemId: { in: items.map((i) => i.id) },
-        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        AND: [
+          { OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+          // Phase BA — with a location context show global rows + that
+          // location's own; without one, only global rows (pre-BA view).
+          locationId
+            ? { OR: [{ locationId: null }, { locationId }] }
+            : { locationId: null },
+        ],
       },
+      // Global rows first so a location-scoped row for the same channel
+      // overwrites it in the map below — the board shows the state that
+      // actually applies HERE, with locationId telling the UI the scope.
+      orderBy: { locationId: { sort: "asc", nulls: "first" } },
     });
     const byItem = new Map<string, Record<string, any>>();
     for (const s of snoozes) {
@@ -138,6 +169,8 @@ export class MenuAvailabilityService {
         snoozeReason: s.snoozeReason,
         snoozedAt: s.snoozedAt,
         snoozedBy: s.snoozedBy,
+        // null = applies at every location; a location id = scoped here.
+        locationId: s.locationId ?? null,
       };
     }
 
@@ -159,17 +192,52 @@ export class MenuAvailabilityService {
    * Read-time filter used by storefront + POS + marketplace listing.
    * Returns the set of itemIds currently snoozed for the given
    * channel. Caller does `items.filter(i => !snoozed.has(i.id))`.
+   *
+   * Phase BA — location scoping. Global rows (locationId NULL) apply
+   * everywhere; a `locationId` argument ALSO matches that location's own
+   * rows. Callers that don't pass a location see only global rows, so a
+   * location-scoped 86 can never leak into an unscoped surface. "ALL"
+   * channel rows (the "86 here entirely" toggle) count on every channel.
    */
   async getSnoozedItemIdsForChannel(
     channel: SupportedChannel,
     candidateItemIds: string[],
+    locationId?: string,
   ): Promise<Set<string>> {
     if (candidateItemIds.length === 0) return new Set();
     const now = new Date();
     const rows = await (this.prisma as any).menuItemChannelAvailability.findMany({
       where: {
-        channel,
+        channel: { in: [channel, "ALL"] },
         itemId: { in: candidateItemIds },
+        // Both disjunctions must hold — nest under AND, a top-level pair
+        // of OR keys would overwrite each other in the where object.
+        AND: [
+          { OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+          locationId
+            ? { OR: [{ locationId: null }, { locationId }] }
+            : { locationId: null },
+        ],
+      },
+      select: { itemId: true },
+    });
+    return new Set(rows.map((r: { itemId: string }) => r.itemId));
+  }
+
+  /**
+   * Phase BA — itemIds 86'd "entirely" at one location (channel "ALL",
+   * unexpired). Backs the products-tab availability toggle display.
+   */
+  async getLocationAllChannelSnoozedItemIds(
+    locationId: string,
+    tenantId: string,
+  ): Promise<Set<string>> {
+    await this.assertLocationInTenant(locationId, tenantId);
+    const now = new Date();
+    const rows = await (this.prisma as any).menuItemChannelAvailability.findMany({
+      where: {
+        channel: "ALL",
+        locationId,
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
       },
       select: { itemId: true },
@@ -198,42 +266,77 @@ export class MenuAvailabilityService {
     duration?: DurationPreset;
     customExpiresAt?: string;
     snoozeReason?: string;
+    /** Phase BA — scope the 86 to one location. Absent = all locations. */
+    locationId?: string;
   }) {
     const item = await this.assertItemAccess(args.itemId, args.tenantId);
+    if (args.locationId) {
+      await this.assertLocationInTenant(args.locationId, args.tenantId);
+    }
     const expiresAt = this.resolveExpiry(args.duration, args.customExpiresAt);
 
-    const row = await (this.prisma as any).menuItemChannelAvailability.upsert({
-      where: {
-        itemId_channel: { itemId: args.itemId, channel: args.channel },
-      },
-      create: {
-        itemId: args.itemId,
-        channel: args.channel,
-        isAvailable: false,
-        expiresAt,
-        snoozeReason: args.snoozeReason ?? null,
-        snoozedBy: args.userId ?? null,
-        snoozedAt: new Date(),
-      },
-      update: {
-        isAvailable: false,
-        expiresAt,
-        snoozeReason: args.snoozeReason ?? null,
-        snoozedBy: args.userId ?? null,
-        snoozedAt: new Date(),
-      },
-    });
+    const writeFields = {
+      isAvailable: false,
+      expiresAt,
+      snoozeReason: args.snoozeReason ?? null,
+      snoozedBy: args.userId ?? null,
+      snoozedAt: new Date(),
+    };
 
-    // Fire-and-forget HubRise sync.
-    this.pushToHubRiseIfApplicable(item, "OUT", expiresAt).catch((err) =>
+    // Location rows upsert on the compound key. Global rows (locationId
+    // NULL) can't — Postgres NULLs are distinct in the compound unique —
+    // so findFirst→update|create, backstopped by the partial unique index.
+    let row;
+    if (args.locationId) {
+      row = await (this.prisma as any).menuItemChannelAvailability.upsert({
+        where: {
+          itemId_channel_locationId: {
+            itemId: args.itemId,
+            channel: args.channel,
+            locationId: args.locationId,
+          },
+        },
+        create: {
+          itemId: args.itemId,
+          channel: args.channel,
+          locationId: args.locationId,
+          ...writeFields,
+        },
+        update: writeFields,
+      });
+    } else {
+      const existing = await (
+        this.prisma as any
+      ).menuItemChannelAvailability.findFirst({
+        where: { itemId: args.itemId, channel: args.channel, locationId: null },
+        select: { id: true },
+      });
+      row = existing
+        ? await (this.prisma as any).menuItemChannelAvailability.update({
+            where: { id: existing.id },
+            data: writeFields,
+          })
+        : await (this.prisma as any).menuItemChannelAvailability.create({
+            data: {
+              itemId: args.itemId,
+              channel: args.channel,
+              locationId: null,
+              ...writeFields,
+            },
+          });
+    }
+
+    // Fire-and-forget HubRise sync (location-scoped writes only touch that
+    // location's catalog; "ALL"-channel rows count on HUBRISE too).
+    this.pushToHubRiseIfApplicable(item, "OUT", expiresAt, args.locationId).catch((err) =>
       this.logger.warn(
         `HubRise inventory PATCH failed for item ${item.id} channel ${args.channel}: ${err?.message ?? err}`,
       ),
     );
 
     // Fire-and-forget direct Deliveroo sync (replace-all snapshot).
-    if (args.channel === "DELIVEROO") {
-      this.syncDeliverooAvailability(args.itemId, args.tenantId).catch((err) =>
+    if (args.channel === "DELIVEROO" || args.channel === "ALL") {
+      this.syncDeliverooAvailability(args.itemId, args.tenantId, args.locationId).catch((err) =>
         this.logger.warn(
           `Deliveroo item_unavailabilities sync failed for item ${args.itemId}: ${err?.message ?? err}`,
         ),
@@ -241,8 +344,8 @@ export class MenuAvailabilityService {
     }
 
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
-    if (args.channel === "UBER_EATS") {
-      this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null).catch(
+    if (args.channel === "UBER_EATS" || args.channel === "ALL") {
+      this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null, false, args.locationId).catch(
         (err) => {
           this.logger.warn(
             `Uber Eats item suspension failed for item ${args.itemId}: ${err?.message ?? err}`,
@@ -264,12 +367,17 @@ export class MenuAvailabilityService {
     this.activity?.record({
       tenantId: args.tenantId,
       brandId: (item as any).brandId ?? null,
+      locationId: args.locationId ?? null,
       category: "INVENTORY",
       channel: args.channel,
       action: "item.86",
       status: "WARNING",
-      message: `"${(item as any).name ?? args.itemId}" marked unavailable on ${args.channel}${expiresAt ? ` until ${expiresAt.toISOString()}` : ""}`,
-      details: { itemId: args.itemId, reason: args.snoozeReason ?? null },
+      message: `"${(item as any).name ?? args.itemId}" marked unavailable on ${args.channel === "ALL" ? "every channel" : args.channel}${args.locationId ? " at this location" : ""}${expiresAt ? ` until ${expiresAt.toISOString()}` : ""}`,
+      details: {
+        itemId: args.itemId,
+        reason: args.snoozeReason ?? null,
+        locationId: args.locationId ?? null,
+      },
     });
 
     return row;
@@ -283,34 +391,63 @@ export class MenuAvailabilityService {
     itemId: string;
     tenantId: string;
     channel: SupportedChannel;
+    /** Phase BA — un-86 for one location. Absent = the global row. */
+    locationId?: string;
   }) {
     const item = await this.assertItemAccess(args.itemId, args.tenantId);
+    if (args.locationId) {
+      await this.assertLocationInTenant(args.locationId, args.tenantId);
+    }
 
-    await (this.prisma as any).menuItemChannelAvailability
-      .delete({
-        where: {
-          itemId_channel: { itemId: args.itemId, channel: args.channel },
-        },
-      })
-      .catch(() => null);
+    // Location-scoped unsnooze deletes that location's row; when the item
+    // was 86'd GLOBALLY the operator's intent is still "sellable here", and
+    // a per-location "available again" can't override a global row at read
+    // time — so fall back to deleting the global row (the board labels
+    // global chips "All locations", making the wider effect visible).
+    const deleted = await (
+      this.prisma as any
+    ).menuItemChannelAvailability.deleteMany({
+      where: {
+        itemId: args.itemId,
+        channel: args.channel,
+        locationId: args.locationId ?? null,
+      },
+    });
+    if (args.locationId && deleted.count === 0) {
+      await (this.prisma as any).menuItemChannelAvailability.deleteMany({
+        where: { itemId: args.itemId, channel: args.channel, locationId: null },
+      });
+    }
 
-    this.pushToHubRiseIfApplicable(item, "IN", null).catch((err) =>
+    this.pushToHubRiseIfApplicable(item, "IN", null, args.locationId).catch((err) =>
       this.logger.warn(
         `HubRise inventory PATCH (restore) failed for item ${item.id} channel ${args.channel}: ${err?.message ?? err}`,
       ),
     );
 
-    if (args.channel === "DELIVEROO") {
-      this.syncDeliverooAvailability(args.itemId, args.tenantId).catch((err) =>
+    if (args.channel === "DELIVEROO" || args.channel === "ALL") {
+      this.syncDeliverooAvailability(args.itemId, args.tenantId, args.locationId).catch((err) =>
         this.logger.warn(
           `Deliveroo item_unavailabilities sync failed for item ${args.itemId}: ${err?.message ?? err}`,
         ),
       );
     }
 
-    // Restore on Uber: suspension null = back on sale.
-    if (args.channel === "UBER_EATS") {
-      this.syncUberEatsAvailability(item, args.tenantId, null, null, true).catch(
+    // Restore on Uber: suspension null = back on sale. Guard: another row
+    // may still 86 this item on Uber at this location (an "ALL" row after a
+    // UBER_EATS unsnooze, or vice versa) — recompute effective state and
+    // skip the restore push while anything still applies.
+    const stillOutOnUber =
+      (args.channel === "UBER_EATS" || args.channel === "ALL") &&
+      (
+        await this.getSnoozedItemIdsForChannel(
+          "UBER_EATS",
+          [args.itemId],
+          args.locationId,
+        )
+      ).has(args.itemId);
+    if ((args.channel === "UBER_EATS" || args.channel === "ALL") && !stillOutOnUber) {
+      this.syncUberEatsAvailability(item, args.tenantId, null, null, true, args.locationId).catch(
         (err) => {
           this.logger.warn(
             `Uber Eats item restore failed for item ${args.itemId}: ${err?.message ?? err}`,
@@ -332,12 +469,13 @@ export class MenuAvailabilityService {
     this.activity?.record({
       tenantId: args.tenantId,
       brandId: (item as any).brandId ?? null,
+      locationId: args.locationId ?? null,
       category: "INVENTORY",
       channel: args.channel,
       action: "item.restore",
       status: "SUCCESS",
-      message: `"${(item as any).name ?? args.itemId}" back in stock on ${args.channel}`,
-      details: { itemId: args.itemId },
+      message: `"${(item as any).name ?? args.itemId}" back in stock on ${args.channel === "ALL" ? "every channel" : args.channel}${args.locationId ? " at this location" : ""}`,
+      details: { itemId: args.itemId, locationId: args.locationId ?? null },
     });
 
     return { ok: true };
@@ -369,18 +507,23 @@ export class MenuAvailabilityService {
     expiresAt: Date | null,
     reason: string | null,
     restore = false,
+    locationId?: string,
   ): Promise<void> {
     // Base44-verified model: DON'T resolve the store from the item's brand
     // (a shared item's brand often differs from the brand that published the
     // menu to Uber). Instead loop over ALL the tenant's connected Uber stores
     // and use each store's LIVE menu as the source of truth — suspend on the
     // store(s) where the item actually resolves (by id → PLU → name).
+    //
+    // Phase BA — a location-scoped 86 only touches that location's store
+    // connection(s); global writes keep fanning out to every store.
     const conns = await this.prisma.brandPlatformConnection.findMany({
       where: {
         tenantId,
         platform: "UBER_EATS",
         externalStoreId: { not: null },
         status: { in: ["connected", "suspended"] },
+        ...(locationId ? { locationId } : {}),
       },
       select: { externalStoreId: true, locationId: true, brandId: true },
     });
@@ -496,95 +639,150 @@ export class MenuAvailabilityService {
   private async syncDeliverooAvailability(
     itemId: string,
     tenantId: string,
+    locationId?: string,
   ): Promise<void> {
-    // Resolve the Deliveroo-published menu that CONTAINS this item — not by
-    // the item's own brandId, which in a multi-brand kitchen can differ from
-    // the brand the menu was published under (that brand owns the Deliveroo
-    // connection). Its Deliveroo menu id = our Menu.id.
-    const menu = await this.prisma.menu.findFirst({
-      where: {
-        deletedAt: null,
-        publishedTo: { has: "DELIVEROO" },
-        brand: { tenantId },
-        categories: { some: { items: { some: { itemId } } } },
-      },
-      orderBy: { lastPublishedAt: "desc" },
-      select: { id: true, brandId: true },
-    });
-    if (!menu) {
-      this.logger.log(
-        `Deliveroo 86 skip: item ${itemId} isn't on a Deliveroo-published menu`,
-      );
-      return;
-    }
+    // Phase BA — resolve every (menu, location) actually SERVING this item
+    // on Deliveroo via the assignment rows, and recompute each store's
+    // unavailable set with that location's snoozes. A location-scoped write
+    // syncs only that location's store; a global write syncs them all.
+    // Falls back to the pre-BA single-menu lookup for tenants that haven't
+    // re-published since the assignment migration.
+    type Target = { menuId: string; brandId: string; locationId: string | null };
+    let targets: Target[] = (
+      await (this.prisma as any).menuChannelAssignment.findMany({
+        where: {
+          channel: "DELIVEROO",
+          ...(locationId ? { locationId } : {}),
+          menu: {
+            deletedAt: null,
+            isActive: true,
+            brand: { tenantId },
+            categories: { some: { items: { some: { itemId } } } },
+          },
+        },
+        select: { menuId: true, brandId: true, locationId: true },
+      })
+    ).map((a: any) => ({
+      menuId: a.menuId,
+      brandId: a.brandId,
+      locationId: a.locationId,
+    }));
 
-    const conn = await this.prisma.brandPlatformConnection.findFirst({
-      where: {
-        brandId: menu.brandId,
-        tenantId,
-        platform: "DELIVEROO",
-        externalStoreId: { not: null },
-        externalBrandId: { not: null },
-      },
-      select: { externalStoreId: true, externalBrandId: true },
-    });
-    if (!conn) {
-      this.logger.warn(
-        `Deliveroo 86 skip: brand ${menu.brandId} (menu ${menu.id}) has no connected Deliveroo store`,
-      );
-      return;
-    }
-
-    const cats = await this.prisma.menuCategory.findMany({
-      where: { menuId: menu.id },
-      select: { items: { select: { itemId: true } } },
-    });
-    const itemIds: string[] = Array.from(
-      new Set(
-        cats.flatMap((c: any) =>
-          (c.items ?? []).map((l: any) => String(l.itemId)),
-        ),
-      ),
-    );
-
-    const snoozedIds = await this.getSnoozedItemIdsForChannel(
-      "DELIVEROO",
-      itemIds,
-    );
-
-    // Expand multi-SKU products to their per-size Deliveroo item ids.
-    const unavailable: string[] = [];
-    if (snoozedIds.size > 0) {
-      const items = await this.prisma.menuItem.findMany({
-        where: { id: { in: Array.from(snoozedIds) } },
-        select: { id: true, hasMultipleSkus: true, productSkus: true },
+    if (targets.length === 0) {
+      // Legacy: menu that contains the item, published to Deliveroo — not by
+      // the item's own brandId, which in a multi-brand kitchen can differ
+      // from the brand that owns the Deliveroo connection.
+      const menu = await this.prisma.menu.findFirst({
+        where: {
+          deletedAt: null,
+          publishedTo: { has: "DELIVEROO" },
+          brand: { tenantId },
+          categories: { some: { items: { some: { itemId } } } },
+        },
+        orderBy: { lastPublishedAt: "desc" },
+        select: { id: true, brandId: true },
       });
-      for (const it of items) {
-        const skus =
-          it.hasMultipleSkus && Array.isArray(it.productSkus)
-            ? (it.productSkus as any[])
-            : [];
-        if (skus.length > 0) {
-          skus.forEach((_, i) => unavailable.push(`${it.id}__s${i}`));
-        } else {
-          unavailable.push(it.id);
+      if (!menu) {
+        this.logger.log(
+          `Deliveroo 86 skip: item ${itemId} isn't on a Deliveroo-published menu`,
+        );
+        return;
+      }
+      targets = [{ menuId: menu.id, brandId: menu.brandId, locationId: locationId ?? null }];
+    }
+
+    for (const target of targets) {
+      const conn = await this.prisma.brandPlatformConnection.findFirst({
+        where: {
+          brandId: target.brandId,
+          tenantId,
+          platform: "DELIVEROO",
+          externalStoreId: { not: null },
+          externalBrandId: { not: null },
+          ...(target.locationId ? { locationId: target.locationId } : {}),
+        },
+        select: { externalStoreId: true, externalBrandId: true },
+      }) ??
+        // A brand-level connection without a location pin still serves.
+        (await this.prisma.brandPlatformConnection.findFirst({
+          where: {
+            brandId: target.brandId,
+            tenantId,
+            platform: "DELIVEROO",
+            externalStoreId: { not: null },
+            externalBrandId: { not: null },
+          },
+          select: { externalStoreId: true, externalBrandId: true },
+        }));
+      if (!conn) {
+        this.logger.warn(
+          `Deliveroo 86 skip: brand ${target.brandId} (menu ${target.menuId}) has no connected Deliveroo store`,
+        );
+        continue;
+      }
+
+      const cats = await this.prisma.menuCategory.findMany({
+        where: { menuId: target.menuId },
+        select: { items: { select: { itemId: true } } },
+      });
+      const itemIds: string[] = Array.from(
+        new Set(
+          cats.flatMap((c: any) =>
+            (c.items ?? []).map((l: any) => String(l.itemId)),
+          ),
+        ),
+      );
+
+      const snoozedIds = await this.getSnoozedItemIdsForChannel(
+        "DELIVEROO",
+        itemIds,
+        target.locationId ?? undefined,
+      );
+
+      // Expand multi-SKU products to their per-size Deliveroo item ids.
+      const unavailable: string[] = [];
+      if (snoozedIds.size > 0) {
+        const items = await this.prisma.menuItem.findMany({
+          where: { id: { in: Array.from(snoozedIds) } },
+          select: { id: true, hasMultipleSkus: true, productSkus: true },
+        });
+        for (const it of items) {
+          const skus =
+            it.hasMultipleSkus && Array.isArray(it.productSkus)
+              ? (it.productSkus as any[])
+              : [];
+          if (skus.length > 0) {
+            skus.forEach((_, i) => unavailable.push(`${it.id}__s${i}`));
+          } else {
+            unavailable.push(it.id);
+          }
         }
       }
-    }
 
-    await this.deliverooClient.request(
-      "PUT",
-      `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(
-        menu.id,
-      )}/item_unavailabilities/${conn.externalStoreId}`,
-      { unavailable_ids: unavailable, hidden_ids: [] },
-    );
-    this.logger.log(
-      `Deliveroo item_unavailabilities menu=${menu.id} site=${conn.externalStoreId}: ${unavailable.length} unavailable`,
-    );
+      await this.deliverooClient.request(
+        "PUT",
+        `/menu/v1/brands/${conn.externalBrandId}/menus/${encodeURIComponent(
+          target.menuId,
+        )}/item_unavailabilities/${conn.externalStoreId}`,
+        { unavailable_ids: unavailable, hidden_ids: [] },
+      );
+      this.logger.log(
+        `Deliveroo item_unavailabilities menu=${target.menuId} site=${conn.externalStoreId}: ${unavailable.length} unavailable`,
+      );
+    }
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────
+
+  /** Phase BA — a caller-supplied locationId must belong to the tenant. */
+  private async assertLocationInTenant(locationId: string, tenantId: string) {
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, deletedAt: null, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    return location;
+  }
 
   private async assertItemAccess(itemId: string, tenantId: string) {
     // Two-step tenant guard: fetch the item, then verify its brand
@@ -666,6 +864,7 @@ export class MenuAvailabilityService {
     item: any,
     mode: "OUT" | "IN",
     expiresAt: Date | null,
+    locationId?: string,
   ) {
     const skuRefs = new Set<string>();
     if (item.plu) skuRefs.add(item.plu);
@@ -676,9 +875,12 @@ export class MenuAvailabilityService {
     }
     if (skuRefs.size === 0) return;
 
+    // Phase BA — a location-scoped 86 patches THAT location's HubRise
+    // catalog only (skip when it has none); global writes keep the old
+    // first-connected-location behaviour.
     const location = await this.prisma.location.findFirst({
       where: {
-        brandId: item.brandId,
+        ...(locationId ? { id: locationId } : { brandId: item.brandId }),
         hubriseCatalogId: { not: null },
         hubriseLocationId: { not: null },
       },

@@ -62,7 +62,14 @@ export class DeliverooMenuPublishService {
     return null;
   }
 
-  async publishMenu(args: { tenantId: string; menuId: string }) {
+  async publishMenu(args: {
+    tenantId: string;
+    menuId: string;
+    /** Phase BA — publish for THIS location's Deliveroo store (multi-
+     *  location menus publish once per selected location). Falls back to
+     *  the menu's home location, then any brand connection. */
+    locationId?: string;
+  }) {
     const { tenantId, menuId } = args;
 
     const menu = await this.prisma.menu.findFirst({
@@ -80,8 +87,10 @@ export class DeliverooMenuPublishService {
     });
     if (!menu) throw new BadRequestException("Menu not found");
 
-    // Resolve the brand's connected Deliveroo store. Prefer the menu's own
-    // location; fall back to any connected Deliveroo store for the brand.
+    // Resolve the brand's connected Deliveroo store. Prefer the explicit
+    // target location (Phase BA), then the menu's own home location; fall
+    // back to any connected Deliveroo store for the brand.
+    const targetLocationId = args.locationId ?? menu.locationId;
     const conn = await this.prisma.brandPlatformConnection.findFirst({
       where: {
         brandId: menu.brandId,
@@ -89,7 +98,7 @@ export class DeliverooMenuPublishService {
         platform: "DELIVEROO",
         externalStoreId: { not: null },
         externalBrandId: { not: null },
-        ...(menu.locationId ? { locationId: menu.locationId } : {}),
+        ...(targetLocationId ? { locationId: targetLocationId } : {}),
       },
       select: { externalStoreId: true, externalBrandId: true },
     });
