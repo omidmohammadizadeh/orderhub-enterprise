@@ -19,10 +19,13 @@ import {
   Store,
   Trash2,
   X,
+  Settings2,
+  BarChart3,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api/client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
+import { UberEatsReportingTab } from "@/components/locations/ubereats-reporting-tab";
 
 type UberOverview = {
   storeId: string | null;
@@ -81,6 +84,7 @@ export function UberEatsManageModal({
       e?.response?.data?.message ?? e?.message ?? "Uber Eats request failed",
     );
 
+  const [tab, setTab] = useState<"status" | "reporting">("status");
   const overview = useQuery({
     queryKey: ["ubereats-overview", connectionId],
     queryFn: () =>
@@ -255,7 +259,28 @@ export function UberEatsManageModal({
           </button>
         </header>
 
-        {/* Action bar */}
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-zinc-200 bg-white px-5 pt-2">
+          {[
+            { id: "status" as const, label: "Status", icon: Settings2 },
+            { id: "reporting" as const, label: "Reporting", icon: BarChart3 },
+          ].map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium ${active ? "border-zinc-900 text-zinc-900" : "border-transparent text-zinc-500 hover:text-zinc-800"}`}
+              >
+                <t.icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Action bar (status tab only) */}
+        {tab === "status" && (
         <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 bg-white px-5 py-3">
           <button
             onClick={() => resume.mutate()}
@@ -307,9 +332,14 @@ export function UberEatsManageModal({
             </button>
           </div>
         </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
+          {tab === "reporting" ? (
+            <UberEatsReportingTab />
+          ) : (
+          <>
           {/* Endpoint acknowledgments — live cert evidence */}
           {o?.checks && (
             <div className="flex flex-wrap gap-1.5">
@@ -609,6 +639,8 @@ export function UberEatsManageModal({
           <p className="text-center text-[10px] text-zinc-400">
             The data on this panel comes live from Uber Eats.
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>
