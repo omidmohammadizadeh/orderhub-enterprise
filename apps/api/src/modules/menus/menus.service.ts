@@ -188,6 +188,9 @@ export class MenusService {
     // a stale brandId in the picker could move the menu under a sibling
     // tenant's brand.
     if (dto.brandId) await this.assertBrandAccess(dto.brandId, tenantId);
+    // Same guard for the destination location — the publish picker can
+    // re-home the menu onto a location, and that location must be ours.
+    if (dto.locationId) await this.assertLocationAccess(dto.locationId, tenantId);
     return this.prisma.menu.update({
       where: { id: menuId },
       data: {

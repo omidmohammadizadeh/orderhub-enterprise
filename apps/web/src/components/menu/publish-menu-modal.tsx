@@ -143,10 +143,23 @@ export function PublishMenuModal({
       const anyWired = next.some((id) =>
         TARGETS.find((t) => t.id === id)?.wired,
       );
-      // Step 1 — persist channel + brand selection on the menu row.
+      // Step 1 — persist channel + brand + LOCATION selection on the
+      // menu row. locationId matters beyond the marketplace pushes:
+      // the storefront and POS resolve their menu by the menu row's
+      // locationId, so without this the location step was decorative
+      // for Online ordering — the operator picked "pizza uno pelton",
+      // the menu stayed keyed to the location it was created under,
+      // and the storefront never changed. Only sent when the flow
+      // actually showed the location step (HubRise/WhatsApp-only
+      // publishes skip it, and must not silently re-home the menu).
+      const pickedLocation =
+        !next.includes("HUBRISE") && !next.includes("WHATSAPP")
+          ? selLocationId
+          : "";
       await menusClient.updateMenu(menuId, {
         publishedTo: next,
         brandId,
+        ...(pickedLocation && { locationId: pickedLocation }),
         ...(anyWired && { status: "PUBLISHED" as const, isActive: true }),
       } as any);
       // Step 2 — fire the real external pushes. POS / Online ordering need
