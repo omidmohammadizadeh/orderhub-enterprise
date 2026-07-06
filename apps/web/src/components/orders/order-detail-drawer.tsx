@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
 import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -369,6 +370,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               ))}
             </div>
           </div>
+        )}
+      {order.platform === "UBER_EATS" && (
+          <UberEatsOrderActionsPanel orderId={order.id} />
         )}
       </div>
 

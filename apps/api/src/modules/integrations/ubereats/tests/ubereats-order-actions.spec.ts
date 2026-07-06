@@ -69,18 +69,20 @@ describe("UberEatsOrderActionsService", () => {
     expect(calls[0].opts.body).toEqual(body);
   });
 
-  it("validate-item-fulfillment rejects a body without issue_type/item", async () => {
+  it("validate-item-fulfillment auto-fills from the live order when body is empty", async () => {
+    // With no live cart item available in the mock, the auto-fill path can't
+    // resolve a cart_item_id and surfaces a clear error (real orders resolve).
     const { svc } = makeService();
     await expect(
-      svc.validateItemFulfillment("t1", "our-1", { issue_type: "OUT_OF_ITEM" }),
-    ).rejects.toThrow(/issue_type and item/);
+      svc.validateItemFulfillment("t1", "our-1", {}),
+    ).rejects.toThrow(/cart_item_id/);
   });
 
-  it("resolve-fulfillment-issues requires a non-empty issues array", async () => {
+  it("resolve-fulfillment-issues auto-fills issues when none supplied", async () => {
     const { svc, calls } = makeService();
     await expect(
-      svc.resolveFulfillmentIssues("t1", "our-1", { fulfillment_issues: [] }),
-    ).rejects.toThrow(/non-empty/);
+      svc.resolveFulfillmentIssues("t1", "our-1", {}),
+    ).rejects.toThrow(/cart_item_id/);
     const body = {
       fulfillment_issues: [
         {
@@ -91,10 +93,15 @@ describe("UberEatsOrderActionsService", () => {
       ],
     };
     await svc.resolveFulfillmentIssues("t1", "our-1", body);
-    expect(calls[0].path).toBe(
+    // The empty-body call above emitted a GET (auto-fill probe); assert the
+    // actual resolve POST regardless of position.
+    const post = calls.find((c: any) =>
+      c.path.endsWith("/resolve-fulfillment-issues"),
+    );
+    expect(post.path).toBe(
       "/v1/delivery/order/uber-9/resolve-fulfillment-issues",
     );
-    expect(calls[0].opts.body).toEqual(body);
+    expect(post.opts.body).toEqual(body);
   });
 
   it("replacement recommendations resolve the store id from order metadata", async () => {
