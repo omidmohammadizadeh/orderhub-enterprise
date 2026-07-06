@@ -1968,39 +1968,41 @@ function CartPanel(props: CartPanelProps) {
                 onChange={setAddrLine1}
                 placeholder="Street name"
               />
-              <div className="grid grid-cols-2 gap-2">
-                <TextField
+              {/* City + postcode + Find in one row. Inputs get min-w-0 so they
+                  shrink on narrow phones instead of pushing the Find button
+                  past the viewport edge (it was invisible on mobile). */}
+              <div className="grid grid-cols-[1fr,1fr,auto] gap-1.5">
+                <input
                   value={addrCity}
-                  onChange={setAddrCity}
+                  onChange={(e) => setAddrCity(e.target.value)}
                   placeholder="City"
+                  className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
                 />
-                <div className="flex gap-1">
-                  <input
-                    value={addrPostcode}
-                    onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        onPostcodeLookup();
-                      }
-                    }}
-                    placeholder="Postcode"
-                    className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={onPostcodeLookup}
-                    disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
-                    className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 text-[10px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-                  >
-                    {postcodeLookupLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Search className="h-3 w-3" />
-                    )}
-                    Find
-                  </button>
-                </div>
+                <input
+                  value={addrPostcode}
+                  onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onPostcodeLookup();
+                    }
+                  }}
+                  placeholder="Postcode"
+                  className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={onPostcodeLookup}
+                  disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
+                  className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
+                >
+                  {postcodeLookupLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Search className="h-3 w-3" />
+                  )}
+                  Find
+                </button>
               </div>
 
               {/* Phase AP fix #2 — picker for the lookup results */}
