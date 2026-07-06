@@ -194,16 +194,24 @@ export class UberEatsConnectionService {
         `Uber Eats integration activated for store ${storeId} (conn ${connectionId})`,
       );
       // Verify with Get Integration Details (cert item) — best-effort read
-      // back of what Uber stored, logged with its HTTP status.
+      // back of what Uber stored. Use client-credentials (eats.store) — the
+      // merchant token only has eats.pos_provisioning and 401s this GET.
       try {
         const meta: { status?: number } = {};
         const details = await this.client.request<any>(
           "GET",
           `/v1/eats/stores/${encodeURIComponent(storeId)}/pos_data`,
-          { userToken: token, meta },
+          { scopes: ["eats.store"], meta },
         );
+        // Pull the order-manager flag out however Uber nests it, so the log
+        // + activity row prove Order Manager is on.
+        const orderManager =
+          details?.is_order_manager ??
+          details?.pos_data?.is_order_manager ??
+          details?.integration?.is_order_manager ??
+          null;
         this.logger.log(
-          `Uber Eats integration details for store ${storeId}: ${JSON.stringify(details).slice(0, 300)} (HTTP ${meta.status})`,
+          `Uber Eats integration details for store ${storeId}: is_order_manager=${orderManager} ${JSON.stringify(details).slice(0, 260)} (HTTP ${meta.status})`,
         );
         this.activity?.record({
           tenantId: row.tenantId,
@@ -213,8 +221,13 @@ export class UberEatsConnectionService {
           channel: "UBER_EATS",
           action: "integration.verified",
           status: "SUCCESS",
-          message: `POS integration activated and verified — Uber responded ${meta.status ?? 200} OK`,
-          details: { storeId, uberHttpStatus: meta.status ?? 200, posData: details },
+          message: `POS integration activated — Order Manager ${orderManager === true ? "ENABLED" : orderManager === false ? "OFF" : "activated"} (Uber responded ${meta.status ?? 200} OK)`,
+          details: {
+            storeId,
+            uberHttpStatus: meta.status ?? 200,
+            isOrderManager: orderManager,
+            posData: details,
+          },
         });
       } catch (err: any) {
         this.logger.warn(
