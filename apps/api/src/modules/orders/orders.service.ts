@@ -537,6 +537,7 @@ export class OrdersService {
     platform: string,
     tenantId: string,
     canonical: CanonicalOrder,
+    opts: { reOffered?: boolean } = {},
   ): Promise<Order | null> {
     const order = await this.prisma.order.findFirst({
       where: { externalId, platform: platform as any, tenantId },
@@ -546,6 +547,19 @@ export class OrdersService {
     if (["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(order.status)) {
       return order; // too late to change a finished order
     }
+    // The marketplace re-offered the order for the merchant to re-accept (Uber
+    // sends state=OFFERED after a customer resolves a fulfillment issue). Put
+    // it back to PENDING so it alerts + shows Accept/Cancel like a new order,
+    // flagged as a customer update so the card labels it correctly.
+    const reOffer = opts.reOffered === true && order.status !== "PENDING";
+    const nextStatus = reOffer ? "PENDING" : order.status;
+    const nextSourceMeta = reOffer
+      ? {
+          ...((order as any).sourceMetadata ?? {}),
+          customerUpdated: true,
+          customerUpdatedAt: new Date().toISOString(),
+        }
+      : ((order as any).sourceMetadata ?? undefined);
     const items = canonical.items ?? [];
     if (items.length === 0) return order; // never blank out a live order
 
@@ -568,6 +582,10 @@ export class OrdersService {
           subtotal,
           taxAmount,
           total,
+          status: nextStatus as any,
+          ...(nextSourceMeta !== undefined
+            ? { sourceMetadata: nextSourceMeta as Prisma.InputJsonValue }
+            : {}),
           items: {
             create: items.map((item) => ({
               name: item.name,
@@ -586,10 +604,10 @@ export class OrdersService {
           orderId: order.id,
           tenantId,
           fromStatus: order.status,
-          toStatus: order.status,
+          toStatus: nextStatus,
           actorType: "WEBHOOK",
           changedBy: `webhook:${platform}`,
-          note: `Customer updated order: ${beforeCount} → ${afterCount} item(s), total £${Number(order.total).toFixed(2)} → £${total.toFixed(2)}`,
+          note: `Customer updated order: ${beforeCount} → ${afterCount} item(s), total £${Number(order.total).toFixed(2)} → £${total.toFixed(2)}${reOffer ? " — re-offered for acceptance" : ""}`,
         },
       });
       return u;
@@ -612,11 +630,16 @@ export class OrdersService {
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     };
+    // A re-offered order alerts like a NEW order (sound + New tab); a plain
+    // in-place edit stays silent (isEdit).
     this.socket.emitNewOrder(updated.locationId, {
       ...socketPayload,
-      isEdit: true,
+      ...(reOffer ? { customerUpdated: true } : { isEdit: true }),
     } as any);
-    this.socket.emitOrderUpdated(updated.locationId, socketPayload);
+    this.socket.emitOrderUpdated(updated.locationId, {
+      ...socketPayload,
+      ...(reOffer ? { customerUpdated: true } : {}),
+    } as any);
     this.events.emit("order.items_edited", {
       orderId: updated.id,
       locationId: updated.locationId,

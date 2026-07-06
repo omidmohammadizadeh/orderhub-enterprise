@@ -134,11 +134,15 @@ export class UberEatsOrderService {
     // on the EXISTING order — ingestCanonical is create-only and no-ops on a
     // repeat, so route it through resyncMarketplaceItems instead.
     if (opts?.reason === "fulfillment_resolved") {
+      // Uber sends state=OFFERED after a customer resolves a fulfillment
+      // issue — the merchant must re-accept, so re-offer it (PENDING + alert).
+      const reOffered = String(order?.state ?? "").toUpperCase() === "OFFERED";
       const resynced = await this.orders.resyncMarketplaceItems(
         String(order.id),
         "UBER_EATS",
         conn.tenantId,
         canonical,
+        { reOffered },
       );
       if (resynced) {
         const summary = (canonical.items ?? [])

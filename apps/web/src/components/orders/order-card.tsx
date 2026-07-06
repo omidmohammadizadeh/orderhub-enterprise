@@ -7,6 +7,7 @@ import {
   Banknote,
   CheckCircle2,
   CreditCard,
+  RefreshCw,
   Undo2,
 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
@@ -94,6 +95,16 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
             {itemCount} item{itemCount !== 1 ? "s" : ""} · £{order.total.toFixed(2)}
           </p>
         </div>
+
+        {/* Customer changed the order after placing it (marketplace
+            fulfillment resolved) — the merchant must re-check + re-accept. */}
+        {(order as any).sourceMetadata?.customerUpdated &&
+          order.status === "PENDING" && (
+            <div className="inline-flex items-center gap-1.5 self-start rounded-md border border-blue-300 bg-blue-100 px-2 py-1 text-xs font-bold uppercase tracking-wider text-blue-900">
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Customer updated · re-accept</span>
+            </div>
+          )}
 
         {/* Phase AW-26 — Scheduled badge made unmissable so the
             counter staff don't mistake a 6pm pickup for a "now"
