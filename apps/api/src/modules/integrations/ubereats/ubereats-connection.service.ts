@@ -609,6 +609,16 @@ export class UberEatsConnectionService {
             autoAccept: details.auto_accept ?? null,
             prepTimeSeconds: details.prep_times?.default_value ?? null,
             fulfillment: details.fulfillment_type_availability ?? null,
+            // Owner/shop contact — same info HubRise's bridge shows.
+            contactName: details.contact?.name ?? null,
+            contactEmail:
+              details.contact?.email ??
+              (Array.isArray(details.merchant_contact_emails)
+                ? details.merchant_contact_emails[0]
+                : details.merchant_contact_emails) ??
+              null,
+            contactPhone:
+              details.contact?.phone_number ?? details.support_number ?? null,
           }
         : null,
       status: status

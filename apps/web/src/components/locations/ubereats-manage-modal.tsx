@@ -40,6 +40,9 @@ type UberOverview = {
     autoAccept: boolean | null;
     prepTimeSeconds: number | null;
     fulfillment: Record<string, boolean> | null;
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
   } | null;
   status: {
     status: string;
@@ -333,6 +336,36 @@ export function UberEatsManageModal({
                 <Line label="Address" value={o?.store?.address} />
                 <Line label="Timezone" value={o?.store?.timezone} />
                 <Line label="Onboarding" value={o?.store?.onboardingStatus} />
+                <Line
+                  label="Contact"
+                  value={o?.store?.contactName ?? o?.store?.contactEmail}
+                />
+                <Line
+                  label="Email"
+                  value={
+                    o?.store?.contactEmail ? (
+                      <a
+                        href={`mailto:${o.store.contactEmail}`}
+                        className="text-emerald-700 hover:underline"
+                      >
+                        {o.store.contactEmail}
+                      </a>
+                    ) : null
+                  }
+                />
+                <Line
+                  label="Phone"
+                  value={
+                    o?.store?.contactPhone ? (
+                      <a
+                        href={`tel:${o.store.contactPhone}`}
+                        className="text-emerald-700 hover:underline"
+                      >
+                        {o.store.contactPhone}
+                      </a>
+                    ) : null
+                  }
+                />
               </Section>
 
               <Section icon={Plug} title="Integration">
