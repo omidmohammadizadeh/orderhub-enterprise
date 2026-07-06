@@ -77,6 +77,8 @@ export class UberEatsController {
         "eats.store.orders.read",
         "eats.store.orders.write",
         "eats.store.orders.restaurantdelivery.status",
+        "eats.store.promotion.write",
+        "eats.store.promotion.read",
         "eats.report",
       ]);
       return { configured, redirectUriSet, build, tokenMint: "ok", scopes };

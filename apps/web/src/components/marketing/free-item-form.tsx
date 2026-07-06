@@ -33,7 +33,7 @@ const CHANNELS: Array<{ id: string; label: string; wired: boolean }> = [
   { id: "ONLINE", label: "Online ordering", wired: true },
   { id: "POS", label: "POS", wired: true },
   { id: "JUST_EAT", label: "Just Eat", wired: false },
-  { id: "UBER_EATS", label: "Uber Eats", wired: false },
+  { id: "UBER_EATS", label: "Uber Eats", wired: true },
   { id: "DELIVEROO", label: "Deliveroo", wired: false },
   { id: "WHATSAPP", label: "WhatsApp", wired: false },
   { id: "HUBRISE", label: "HubRise", wired: false },
