@@ -33,6 +33,10 @@ interface OrderStatusChangedEvent {
 }
 
 const SCOPES = ["eats.order"];
+// Merchant-fulfilled ("self-delivery") status updates use a dedicated
+// endpoint + scope. Only DELIVERY_BY_MERCHANT orders drive these — for
+// DELIVERY_BY_UBER the courier handles delivery and Uber reports state to us.
+const RESTAURANT_DELIVERY_SCOPES = ["eats.store.orders.restaurantdelivery.status"];
 
 // Valid Uber deny/cancel reason types (Order Fulfillment API deny_reason enum,
 // shared by cancel). Map our internal reason text/code onto one of these.
@@ -249,18 +253,65 @@ export class UberEatsOrderSyncService {
         await this.markReady(id, order.externalId!, meta);
         return { action: "ready", httpStatus: meta.status };
       }
-      case "COMPLETED": {
-        // Uber has NO "collected" endpoint — a pickup order completes when
-        // the customer collects it (via the pickup PIN). The correct POS
+      case "OUT_FOR_DELIVERY":
+      case "DISPATCHED": {
+        // Only merchant-fulfilled (self-delivery) orders report this — for
+        // Uber-courier orders Uber drives the delivery state itself.
+        if (!this.isMerchantDelivery(order)) return null;
+        await this.restaurantDeliveryStatus(id, order.externalId!, "started", meta);
+        return { action: "out for delivery", httpStatus: meta.status };
+      }
+      case "COMPLETED":
+      case "DELIVERED": {
+        if (this.isMerchantDelivery(order)) {
+          // Self-delivery order dropped off → tell Uber it's delivered.
+          await this.restaurantDeliveryStatus(
+            id,
+            order.externalId!,
+            "delivered",
+            meta,
+          );
+          return { action: "delivered", httpStatus: meta.status };
+        }
+        // Pickup: Uber has NO "collected" endpoint — a pickup order completes
+        // when the customer collects it (via the pickup PIN). The correct POS
         // signal is "ready for pickup", so marking collected sends /ready
-        // (idempotent; 409 if already ready). Uber then closes the order on
-        // collection. Base44-confirmed: markCollected → /ready.
+        // (idempotent; 409 if already ready). Base44-confirmed.
         await this.markReady(id, order.externalId!, meta);
         return { action: "ready (collected)", httpStatus: meta.status };
       }
       default:
         return null; // PREPARING/driver states have no Uber-side call
     }
+  }
+
+  /** True for self-delivery (merchant-fulfilled) orders. */
+  private isMerchantDelivery(order: { fulfillmentType?: string | null }): boolean {
+    return order.fulfillmentType === "MERCHANT_DELIVERY";
+  }
+
+  /**
+   * Merchant-fulfilled delivery status (self-delivery): started → out for
+   * delivery, delivered → dropped off.
+   *   POST /v1/eats/orders/{id}/restaurantdelivery/status  { status }
+   * Scope eats.store.orders.restaurantdelivery.status. 409-tolerant.
+   */
+  private async restaurantDeliveryStatus(
+    id: string,
+    externalId: string,
+    status: "started" | "delivered",
+    meta: { status?: number },
+  ): Promise<void> {
+    await this.tolerateConflict(
+      () =>
+        this.client.request(
+          "POST",
+          `/v1/eats/orders/${id}/restaurantdelivery/status`,
+          { scopes: RESTAURANT_DELIVERY_SCOPES, meta, body: { status } },
+        ),
+      `restaurantdelivery:${status}`,
+      externalId,
+    );
   }
 
   /**
