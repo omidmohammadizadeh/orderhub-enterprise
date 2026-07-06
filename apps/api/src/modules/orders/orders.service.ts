@@ -539,7 +539,7 @@ export class OrdersService {
     canonical: CanonicalOrder,
   ): Promise<Order | null> {
     const order = await this.prisma.order.findFirst({
-      where: { externalId, platform, tenantId },
+      where: { externalId, platform: platform as any, tenantId },
       include: { items: true },
     });
     if (!order) return null;
@@ -550,12 +550,15 @@ export class OrdersService {
     if (items.length === 0) return order; // never blank out a live order
 
     const subtotal =
-      canonical.subtotal ?? items.reduce((sum, i) => sum + i.totalPrice, 0);
+      canonical.subtotal ??
+      items.reduce((sum: number, i) => sum + i.totalPrice, 0);
     const total = canonical.total ?? subtotal;
     const taxAmount = canonical.taxAmount ?? 0;
 
-    const beforeCount = order.items.reduce((s, i) => s + i.quantity, 0);
-    const afterCount = items.reduce((s, i) => s + i.quantity, 0);
+    const beforeCount = (((order as any).items ?? []) as Array<{
+      quantity: number;
+    }>).reduce((s: number, i) => s + i.quantity, 0);
+    const afterCount = items.reduce((s: number, i) => s + i.quantity, 0);
 
     const updated = await this.prisma.$transaction(async (tx) => {
       await tx.orderItem.deleteMany({ where: { orderId: order.id } });
