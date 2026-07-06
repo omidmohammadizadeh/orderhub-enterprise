@@ -369,13 +369,16 @@ export class MenusController {
 
   @Patch("menus/:menuId")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
-  @ApiOperation({ summary: "Update menu metadata" })
+  @ApiOperation({
+    summary:
+      "Update menu metadata. Phase BA: publishedTo + locationIds together rewrite the selected locations' serving assignments (replace semantics per slot).",
+  })
   update(
     @Param("menuId") menuId: string,
     @Body() dto: UpdateMenuDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.update(menuId, user.tenantId, dto);
+    return this.menus.update(menuId, user.tenantId, dto, user.userId);
   }
 
   @Post("menus/:menuId/publish")

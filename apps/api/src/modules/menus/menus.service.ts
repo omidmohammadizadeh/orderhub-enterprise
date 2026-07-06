@@ -213,7 +213,12 @@ export class MenusService {
     });
   }
 
-  async update(menuId: string, tenantId: string, dto: UpdateMenuDto) {
+  async update(
+    menuId: string,
+    tenantId: string,
+    dto: UpdateMenuDto,
+    userId?: string,
+  ) {
     await this.assertMenuAccess(menuId, tenantId);
     // Phase AW — verify the destination brand belongs to the caller
     // before we let the publish picker re-home the menu. Without this
@@ -223,7 +228,32 @@ export class MenusService {
     // Same guard for the destination location — the publish picker can
     // re-home the menu onto a location, and that location must be ours.
     if (dto.locationId) await this.assertLocationAccess(dto.locationId, tenantId);
-    return this.prisma.menu.update({
+
+    // Phase BA — multi-location publish. When the modal sends locationIds
+    // alongside publishedTo, the selected locations' serving assignments
+    // are rewritten in the same transaction:
+    //   • upsert one row per (location × channel) — the unique key
+    //     (locationId, channel, brandId) makes this REPLACE whatever menu
+    //     held the slot, without touching any OTHER location's rows;
+    //   • delete THIS menu's rows at the selected locations for channels
+    //     that were deselected — publish is authoritative for the picked
+    //     locations only.
+    // Menu.locationId (home location) is no longer re-written by publish;
+    // legacy dto.locationId still lands for old clients.
+    const locationIds = (dto as any).locationIds as string[] | undefined;
+    if (locationIds !== undefined) {
+      for (const id of locationIds) {
+        await this.assertLocationAccess(id, tenantId);
+      }
+    }
+
+    const menuRow = await this.prisma.menu.findUnique({
+      where: { id: menuId },
+      select: { brandId: true, brand: { select: { tenantId: true } } },
+    });
+    const assignmentBrandId = dto.brandId ?? menuRow?.brandId ?? null;
+
+    const menuUpdate = this.prisma.menu.update({
       where: { id: menuId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -239,7 +269,9 @@ export class MenusService {
         // Phase AM — publish target picker writes its selection here.
         // Stamping lastPublishedAt only when at least one target is on
         // means an "unpublish-all" leaves the previous stamp intact for
-        // audit trail purposes.
+        // audit trail purposes. Phase BA: publishedTo demotes to the
+        // "last publish selection" audit field — assignments are the
+        // serving truth.
         ...(dto.publishedTo !== undefined && {
           publishedTo: dto.publishedTo,
           ...(dto.publishedTo.length > 0 && {
@@ -255,6 +287,55 @@ export class MenusService {
         }),
       },
     });
+
+    if (
+      locationIds === undefined ||
+      dto.publishedTo === undefined ||
+      !assignmentBrandId
+    ) {
+      return menuUpdate;
+    }
+
+    const now = new Date();
+    const channels = dto.publishedTo;
+    const [updated] = await this.prisma.$transaction([
+      menuUpdate,
+      ...locationIds.flatMap((locationId) =>
+        channels.map((channel) =>
+          (this.prisma as any).menuChannelAssignment.upsert({
+            where: {
+              locationId_channel_brandId: {
+                locationId,
+                channel,
+                brandId: assignmentBrandId,
+              },
+            },
+            create: {
+              tenantId: menuRow?.brand?.tenantId ?? tenantId,
+              menuId,
+              locationId,
+              brandId: assignmentBrandId,
+              channel,
+              publishedAt: now,
+              createdBy: userId ?? null,
+            },
+            update: { menuId, publishedAt: now },
+          }),
+        ),
+      ),
+      ...(locationIds.length > 0
+        ? [
+            (this.prisma as any).menuChannelAssignment.deleteMany({
+              where: {
+                menuId,
+                locationId: { in: locationIds },
+                channel: { notIn: channels },
+              },
+            }),
+          ]
+        : []),
+    ]);
+    return updated;
   }
 
   async publish(menuId: string, tenantId: string, userId?: string) {
@@ -299,18 +380,33 @@ export class MenusService {
 
   async archive(menuId: string, tenantId: string) {
     await this.assertMenuAccess(menuId, tenantId);
-    return this.prisma.menu.update({
-      where: { id: menuId },
-      data: { status: "ARCHIVED", isActive: false },
-    });
+    // Phase BA — an archived menu must stop serving: clear its assignments
+    // so the slots free up for another menu (resolution would skip it via
+    // isActive anyway; this keeps the table honest).
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.menu.update({
+        where: { id: menuId },
+        data: { status: "ARCHIVED", isActive: false },
+      }),
+      (this.prisma as any).menuChannelAssignment.deleteMany({
+        where: { menuId },
+      }),
+    ]);
+    return updated;
   }
 
   async remove(menuId: string, tenantId: string) {
     await this.assertMenuAccess(menuId, tenantId);
-    await this.prisma.menu.update({
-      where: { id: menuId },
-      data: { deletedAt: new Date() },
-    });
+    // Phase BA — same as archive: a deleted menu must release its slots.
+    await this.prisma.$transaction([
+      this.prisma.menu.update({
+        where: { id: menuId },
+        data: { deletedAt: new Date() },
+      }),
+      (this.prisma as any).menuChannelAssignment.deleteMany({
+        where: { menuId },
+      }),
+    ]);
   }
 
   async clone(menuId: string, tenantId: string, name: string) {

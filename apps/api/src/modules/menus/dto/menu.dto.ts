@@ -83,6 +83,15 @@ export class UpdateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() logoImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() heroImage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() locationId?: string;
+  // Phase BA — the locations this menu should SERVE (multi-select in the
+  // publish modal). Sent together with publishedTo, the service rewrites
+  // the selected locations' serving assignments in one transaction:
+  // replace per (location, channel, brand) slot, other locations kept.
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locationIds?: string[];
   // Phase AM — publish target picker. The service stamps lastPublishedAt
   // whenever this comes in non-empty.
   @ApiPropertyOptional()
