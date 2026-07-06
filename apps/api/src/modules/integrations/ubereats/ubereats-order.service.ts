@@ -130,6 +130,39 @@ export class UberEatsOrderService {
     (canonical as any).deliveryType =
       (canonical.metadata as any)?.deliveryType ?? undefined;
 
+    // A customer-driven update (fulfillment resolved) must REPLACE the items
+    // on the EXISTING order — ingestCanonical is create-only and no-ops on a
+    // repeat, so route it through resyncMarketplaceItems instead.
+    if (opts?.reason === "fulfillment_resolved") {
+      const resynced = await this.orders.resyncMarketplaceItems(
+        String(order.id),
+        "UBER_EATS",
+        conn.tenantId,
+        canonical,
+      );
+      if (resynced) {
+        const summary = (canonical.items ?? [])
+          .map((it: any) => `${it.quantity}× ${it.name}`)
+          .join(", ");
+        this.logger.log(
+          `Uber Eats order ${orderId} items resynced after customer update: ${summary}`,
+        );
+        this.activity?.record({
+          tenantId: conn.tenantId,
+          brandId: conn.brandId,
+          locationId: conn.locationId,
+          category: "ORDERS",
+          channel: "UBER_EATS",
+          action: "order.items_updated",
+          status: "SUCCESS",
+          message: `Order #${(resynced as any).orderNumber ?? resynced.id} updated by customer: ${summary}`,
+          details: { uberOrderId: orderId, items: canonical.items },
+        });
+        return { handled: true, orderId: resynced.id };
+      }
+      // Order not found locally yet — fall through to create it below.
+    }
+
     const created = await this.orders.ingestCanonical(
       canonical,
       conn.tenantId,
@@ -139,23 +172,6 @@ export class UberEatsOrderService {
       `Uber Eats order ${orderId} → order ${created.id} (store ${storeId})` +
         (opts?.reason ? ` [${opts.reason}]` : ""),
     );
-    // (order.received is logged centrally by OrdersService.ingestCanonical.)
-    if (opts?.reason === "fulfillment_resolved") {
-      const summary = (canonical.items ?? [])
-        .map((it: any) => `${it.quantity}× ${it.name}`)
-        .join(", ");
-      this.activity?.record({
-        tenantId: conn.tenantId,
-        brandId: conn.brandId,
-        locationId: conn.locationId,
-        category: "ORDERS",
-        channel: "UBER_EATS",
-        action: "order.items_updated",
-        status: "SUCCESS",
-        message: `Order #${(created as any).orderNumber ?? created.id} updated by customer (fulfillment resolved): ${summary}`,
-        details: { uberOrderId: orderId, items: canonical.items },
-      });
-    }
     return { handled: true, orderId: created.id };
   }
 

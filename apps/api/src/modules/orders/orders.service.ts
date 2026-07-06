@@ -525,6 +525,102 @@ export class OrdersService {
     }
   }
 
+  /**
+   * A marketplace customer changed a live order (e.g. Uber fulfillment issue
+   * resolved — they picked a replacement / removed an item). ingestCanonical
+   * is create-only (returns the existing order untouched on repeat), so this
+   * path REPLACES the existing order's items + totals in place and refreshes
+   * the board + KDS, exactly like a staff edit. No-op for terminal orders.
+   */
+  async resyncMarketplaceItems(
+    externalId: string,
+    platform: string,
+    tenantId: string,
+    canonical: CanonicalOrder,
+  ): Promise<Order | null> {
+    const order = await this.prisma.order.findFirst({
+      where: { externalId, platform, tenantId },
+      include: { items: true },
+    });
+    if (!order) return null;
+    if (["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(order.status)) {
+      return order; // too late to change a finished order
+    }
+    const items = canonical.items ?? [];
+    if (items.length === 0) return order; // never blank out a live order
+
+    const subtotal =
+      canonical.subtotal ?? items.reduce((sum, i) => sum + i.totalPrice, 0);
+    const total = canonical.total ?? subtotal;
+    const taxAmount = canonical.taxAmount ?? 0;
+
+    const beforeCount = order.items.reduce((s, i) => s + i.quantity, 0);
+    const afterCount = items.reduce((s, i) => s + i.quantity, 0);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+      const u = await tx.order.update({
+        where: { id: order.id },
+        data: {
+          subtotal,
+          taxAmount,
+          total,
+          items: {
+            create: items.map((item) => ({
+              name: item.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              modifiers: item.modifiers as Prisma.InputJsonValue,
+              notes: item.notes,
+            })),
+          },
+          updatedAt: new Date(),
+        },
+      });
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          tenantId,
+          fromStatus: order.status,
+          toStatus: order.status,
+          actorType: "WEBHOOK",
+          changedBy: `webhook:${platform}`,
+          note: `Customer updated order: ${beforeCount} → ${afterCount} item(s), total £${Number(order.total).toFixed(2)} → £${total.toFixed(2)}`,
+        },
+      });
+      return u;
+    });
+
+    // Refresh the board (reprint + in-place line update) and the KDS tickets,
+    // same signals as a staff edit.
+    const socketPayload = {
+      orderId: updated.id,
+      tenantId,
+      locationId: updated.locationId,
+      platform: updated.platform,
+      orderSource: updated.orderSource,
+      fulfillmentType: updated.fulfillmentType,
+      displayId: updated.displayId,
+      status: updated.status,
+      total: Number(updated.total),
+      itemCount: afterCount,
+      customerName: updated.customerName ?? "",
+      scheduledFor: updated.scheduledFor?.toISOString() ?? null,
+      createdAt: updated.createdAt.toISOString(),
+    };
+    this.socket.emitNewOrder(updated.locationId, {
+      ...socketPayload,
+      isEdit: true,
+    } as any);
+    this.socket.emitOrderUpdated(updated.locationId, socketPayload);
+    this.events.emit("order.items_edited", {
+      orderId: updated.id,
+      locationId: updated.locationId,
+    });
+    return updated;
+  }
+
   // ── Direct order creation (POS / staff) ──────────────
 
   async create(dto: CreateOrderDto, tenantId: string): Promise<Order> {
