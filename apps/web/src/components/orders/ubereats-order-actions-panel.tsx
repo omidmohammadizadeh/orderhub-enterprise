@@ -28,7 +28,7 @@ const ACTIONS: Action[] = [
     run: (id) =>
       apiClient.post(`/v1/integrations/ubereats/order/${id}/adjust-price`, {
         amountPounds: 1,
-        taxRate: "0",
+        taxRate: "20",
         reason: "REQUESTED_ADD_ONS",
         customReason: "Certification test",
       }),
@@ -65,7 +65,7 @@ const ACTIONS: Action[] = [
   {
     key: "replacement",
     label: "Get replacement recommendations",
-    hint: "retail-only, expects 200",
+    hint: "retail/grocery only — restaurants error",
     run: (id) =>
       apiClient.post(
         `/v1/integrations/ubereats/order/${id}/replacement-recommendations`,

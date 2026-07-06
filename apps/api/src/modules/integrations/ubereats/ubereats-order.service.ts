@@ -37,6 +37,12 @@ export class UberEatsOrderService {
     event: string,
     body: any,
   ): Promise<{ handled: boolean; reason?: string; orderId?: string }> {
+    // A customer resolving a fulfillment issue (picking a replacement,
+    // removing an item, or adjusting quantity) changes the cart — re-fetch
+    // and re-ingest so our order reflects the customer's new selection.
+    if (event.includes("fulfillment_issues")) {
+      return this.handleNotification(body, { reason: "fulfillment_resolved" });
+    }
     switch (event) {
       case "orders.notification":
       case "orders.scheduled.notification":
@@ -65,7 +71,10 @@ export class UberEatsOrderService {
 
   // ── orders.notification → ingestCanonical ──────────────────────────────
 
-  private async handleNotification(body: any) {
+  private async handleNotification(
+    body: any,
+    opts?: { reason?: string },
+  ) {
     const orderId = this.orderIdFrom(body);
     if (!orderId) return { handled: false, reason: "no_order_id" };
 
@@ -127,9 +136,26 @@ export class UberEatsOrderService {
       conn.locationId,
     );
     this.logger.log(
-      `Uber Eats order ${orderId} → order ${created.id} (store ${storeId})`,
+      `Uber Eats order ${orderId} → order ${created.id} (store ${storeId})` +
+        (opts?.reason ? ` [${opts.reason}]` : ""),
     );
     // (order.received is logged centrally by OrdersService.ingestCanonical.)
+    if (opts?.reason === "fulfillment_resolved") {
+      const summary = (canonical.items ?? [])
+        .map((it: any) => `${it.quantity}× ${it.name}`)
+        .join(", ");
+      this.activity?.record({
+        tenantId: conn.tenantId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+        category: "ORDERS",
+        channel: "UBER_EATS",
+        action: "order.items_updated",
+        status: "SUCCESS",
+        message: `Order #${(created as any).orderNumber ?? created.id} updated by customer (fulfillment resolved): ${summary}`,
+        details: { uberOrderId: orderId, items: canonical.items },
+      });
+    }
     return { handled: true, orderId: created.id };
   }
 
