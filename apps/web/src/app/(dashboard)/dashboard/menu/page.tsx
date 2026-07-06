@@ -31,6 +31,7 @@ import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { Send, CheckCircle2, Clock } from "lucide-react";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { locationsClient } from "@/lib/api/locations.client";
 
 const STATUS_CONFIG = {
   DRAFT: { label: "Draft", cls: "bg-zinc-100 text-zinc-500" },
@@ -85,6 +86,16 @@ export default function MenuPage() {
   // brand's union of menus across every sibling location.
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
+  );
+
+  // Phase BA — location names for the "Live at" chips (shares the
+  // ["locations"] cache with the switcher + publish modal).
+  const locationsQuery = useQuery({
+    queryKey: ["locations"],
+    queryFn: () => locationsClient.list(),
+  });
+  const locationNameById = new Map<string, string>(
+    ((locationsQuery.data ?? []) as any[]).map((l) => [l.id, l.name]),
   );
   // Phase AW-18 — when the operator picks "All locations" in the
   // location switcher, list every menu they can see across every
@@ -416,6 +427,7 @@ export default function MenuPage() {
             <MenuCard
               key={menu.id}
               menu={menu}
+              locationNameById={locationNameById}
               isDropdownOpen={openMenuId === menu.id}
               onToggleDropdown={() => setOpenMenuId(openMenuId === menu.id ? null : menu.id)}
               onPublish={() => {
@@ -451,6 +463,14 @@ export default function MenuPage() {
         // dropdown to brands at this kitchen.
         currentBrandId={(publishingMenu as any)?.brandId ?? brandId}
         locationId={selectedLocationId ?? undefined}
+        // Phase BA — pre-tick every location the menu currently serves.
+        assignedLocationIds={Array.from(
+          new Set(
+            (((publishingMenu as any)?.assignments ?? []) as Array<{
+              locationId: string;
+            }>).map((a) => a.locationId),
+          ),
+        )}
         onConfirmed={(targets) => {
           qc.invalidateQueries({ queryKey: ["menus"] });
           // Show the success toast even when the operator unchecks
@@ -511,6 +531,8 @@ export default function MenuPage() {
 
 interface MenuCardProps {
   menu: Menu;
+  /** Phase BA — id → name for the "Live at" location chips. */
+  locationNameById: Map<string, string>;
   isDropdownOpen: boolean;
   onToggleDropdown: () => void;
   onPublish: () => void;
@@ -519,7 +541,7 @@ interface MenuCardProps {
   onDelete: () => void;
 }
 
-function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete }: MenuCardProps) {
+function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete }: MenuCardProps) {
   // Phase AM — show the Live badge only when the menu is actually
   // published to at least one target. status=PUBLISHED alone isn't
   // enough; an operator might toggle every target off and that needs
@@ -528,7 +550,22 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
     (menu as any).publishedTo && Array.isArray((menu as any).publishedTo)
       ? (menu as any).publishedTo
       : [];
-  const isLive = publishedTo.length > 0 && menu.status === "PUBLISHED";
+  // Phase BA — serving assignments are the real "where is this live";
+  // grouped by location for the chips. publishedTo stays as the channel
+  // fallback for menus not re-published since the assignment migration.
+  const assignments = (menu.assignments ?? []) as Array<{
+    locationId: string;
+    channel: string;
+  }>;
+  const liveByLocation = new Map<string, string[]>();
+  for (const a of assignments) {
+    const arr = liveByLocation.get(a.locationId) ?? [];
+    if (!arr.includes(a.channel)) arr.push(a.channel);
+    liveByLocation.set(a.locationId, arr);
+  }
+  const isLive =
+    (assignments.length > 0 || publishedTo.length > 0) &&
+    menu.status === "PUBLISHED";
   const lastPublishedAt: string | null =
     (menu as any).lastPublishedAt ?? null;
   const cfg = isLive
@@ -550,7 +587,26 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
           <span>{menu._count?.categories ?? 0} categories</span>
-          {publishedTo.length > 0 && (
+          {liveByLocation.size > 0 ? (
+            // Phase BA — one chip per serving location with its channels.
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              <span className="text-zinc-300">·</span>
+              <span className="text-zinc-500">Live at</span>
+              {Array.from(liveByLocation.entries()).map(([locId, channels]) => (
+                <span
+                  key={locId}
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"
+                >
+                  {locationNameById.get(locId) ?? "Location"}
+                  <span className="inline-flex items-center gap-0.5">
+                    {channels.map((t) => (
+                      <PlatformLogo key={t} platform={t} size={12} />
+                    ))}
+                  </span>
+                </span>
+              ))}
+            </span>
+          ) : publishedTo.length > 0 ? (
             <span className="inline-flex items-center gap-1">
               <span className="text-zinc-300">·</span>
               <span className="text-zinc-500">Live on</span>
@@ -564,7 +620,7 @@ function MenuCard({ menu, isDropdownOpen, onToggleDropdown, onPublish, onArchive
                 ))}
               </span>
             </span>
-          )}
+          ) : null}
           {lastPublishedAt && (
             <span className="text-zinc-400">
               <span className="text-zinc-300 mr-1">·</span>

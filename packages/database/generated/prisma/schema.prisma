@@ -478,6 +478,8 @@ model Location {
   directOrderingConfig DirectOrderingConfig?
   channelPauses        ChannelPause[]
   merchantSubscription MerchantSubscription?
+  menuAssignments      MenuChannelAssignment[]
+  itemChannelSnoozes   MenuItemChannelAvailability[]
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -727,8 +729,9 @@ model Menu {
   // Published to HubRise as data.variants[] + price_overrides[].
   pricingVariants Json @default("[]")
 
-  categories MenuCategory[]
-  versions   MenuVersion[]
+  categories  MenuCategory[]
+  versions    MenuVersion[]
+  assignments MenuChannelAssignment[]
 
   metadata  Json     @default("{}")
   createdAt DateTime @default(now())
@@ -740,6 +743,38 @@ model Menu {
   @@index([locationId, isActive])
   @@index([platformSource, externalId])
   @@map("menus")
+}
+
+// Phase BA — serving assignments. One row = "menu M serves (location,
+// channel, brand)". Upsert on the unique key gives REPLACE semantics
+// (publishing a menu to a slot swaps out whichever menu held it), and a
+// menu can hold many rows — many locations and channels — simultaneously,
+// so publishing to a new location never removes it from a previous one.
+// Menu.locationId demotes to "home location" (creation/import origin);
+// these rows are the serving truth. brandId is denormalised from
+// menu.brandId at publish time so the unique index has no NULL-distinct
+// hole (multi-brand kitchens serve several brand storefronts per location).
+model MenuChannelAssignment {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  menuId      String
+  menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  brandId     String
+  // ONLINE | POS | WHATSAPP | HUBRISE | UBER_EATS | DELIVEROO | JUST_EAT —
+  // same free-form channel strings as Menu.publishedTo.
+  channel     String
+  publishedAt DateTime @default(now())
+  createdBy   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locationId, channel, brandId])
+  @@index([menuId])
+  @@index([locationId, channel])
+  @@map("menu_channel_assignments")
 }
 
 model MenuCategory {
@@ -960,6 +995,14 @@ model MenuItemChannelAvailability {
   itemId       String
   item         MenuItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
   channel      String
+  // Phase BA — per-location snoozes. NULL = "all locations" (every
+  // pre-BA row, plus deliberate global 86s). A non-null locationId
+  // scopes the snooze to that location only, so 86ing at location A
+  // never affects location B. Uniqueness for the NULL slice is kept by
+  // a raw partial unique index in the BA migration (Postgres treats
+  // NULLs as distinct in the compound unique below).
+  locationId   String?
+  location     Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
   // Always false in current rows — the row's existence IS the snooze.
   // Kept on the model so a future "explicit in-stock with count"
   // record can ride the same table without an enum change.
@@ -977,9 +1020,10 @@ model MenuItemChannelAvailability {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([itemId, channel])
+  @@unique([itemId, channel, locationId])
   @@index([itemId])
   @@index([channel, expiresAt])
+  @@index([locationId])
   @@map("menu_item_channel_availability")
 }
 
@@ -2714,7 +2758,7 @@ model NotificationLog {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════��════════════════════════════════════════════════
 
 model TenantBranding {
   id              String  @id @default(cuid())
@@ -3126,7 +3170,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════���═══════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════

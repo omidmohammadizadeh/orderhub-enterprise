@@ -33,6 +33,15 @@ export interface Menu {
   logoImage?: string | null;
   heroImage?: string | null;
   publishedTo?: string[];
+  // Phase BA — where this menu is currently SERVING. One row per
+  // (location, channel, brand); source of truth for the Live-at badges
+  // and the publish modal's pre-ticked locations.
+  assignments?: Array<{
+    locationId: string;
+    channel: string;
+    brandId: string;
+    publishedAt: string;
+  }>;
   // Phase AZ — named pricing variants (channel presets + custom) for
   // one-menu-controls-all per-channel/brand pricing.
   pricingVariants?: PricingVariant[];
@@ -268,6 +277,10 @@ export const menusClient = {
       logoImage: string | null;
       heroImage: string | null;
       locationId: string;
+      // Phase BA — the locations this menu should SERVE (multi-select in
+      // the publish modal). Sent with publishedTo; the API rewrites the
+      // selected locations' serving assignments transactionally.
+      locationIds: string[];
       publishedTo: string[];
       // Phase AW — re-assign the menu to a brand at publish time so
       // the channel + brand picker can move a draft menu under a
@@ -326,7 +339,11 @@ export const menusClient = {
       )
       .then((r) => r.data),
 
-  publishToDeliveroo: (menuId: string) =>
+  publishToDeliveroo: (
+    menuId: string,
+    // Phase BA — publish targets this location's Deliveroo store.
+    body?: { locationId?: string },
+  ) =>
     apiClient
       .post<{
         ok: boolean;
@@ -335,7 +352,7 @@ export const menusClient = {
         groups: number;
         options: number;
         warnings: string[];
-      }>(`/v1/menus/${menuId}/publish/deliveroo`, {})
+      }>(`/v1/menus/${menuId}/publish/deliveroo`, body ?? {})
       .then((r) => r.data),
 
   archiveMenu: (menuId: string) =>

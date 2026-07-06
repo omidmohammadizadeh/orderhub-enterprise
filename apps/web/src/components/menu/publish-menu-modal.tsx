@@ -35,6 +35,9 @@ interface Props {
   currentBrandId: string;
   /** Scopes the brand picker. Falls back to all tenant brands if absent. */
   locationId?: string;
+  /** Phase BA — locations this menu currently SERVES (from its
+   *  assignments); pre-ticked in the multi-select location step. */
+  assignedLocationIds?: string[];
   onConfirmed: (publishedTo: string[]) => void;
   onCancel: () => void;
 }
@@ -105,15 +108,19 @@ export function PublishMenuModal({
   initiallyPublishedTo,
   currentBrandId,
   locationId,
+  assignedLocationIds,
   onConfirmed,
   onCancel,
 }: Props) {
   const [step, setStep] = useState<Step>("channels");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [brandId, setBrandId] = useState<string>(currentBrandId);
-  // Location step (before brand) — direct marketplace pushes are per
-  // location, so the operator picks WHERE first, then which brand there.
-  const [selLocationId, setSelLocationId] = useState<string>(locationId ?? "");
+  // Location step (before brand) — Phase BA multi-select. A menu can SERVE
+  // many locations at once; publishing rewrites the picked locations'
+  // serving assignments and leaves every other location alone. Seeded from
+  // where the menu is currently live (assignments) plus the dashboard's
+  // selected location.
+  const [selLocations, setSelLocations] = useState<Set<string>>(new Set());
 
   // Re-seed on every open so the modal shows the menu's current state.
   useEffect(() => {
@@ -121,9 +128,11 @@ export function PublishMenuModal({
       setStep("channels");
       setSelected(new Set(initiallyPublishedTo));
       setBrandId(currentBrandId);
-      setSelLocationId(locationId ?? "");
+      const seed = new Set(assignedLocationIds ?? []);
+      if (locationId) seed.add(locationId);
+      setSelLocations(seed);
     }
-  }, [open, initiallyPublishedTo, currentBrandId, locationId]);
+  }, [open, initiallyPublishedTo, currentBrandId, locationId, assignedLocationIds]);
 
   const locationsQuery = useQuery({
     queryKey: ["locations"],
@@ -131,9 +140,12 @@ export function PublishMenuModal({
     enabled: open && step === "location",
   });
 
+  // Brand picker is scoped by location; with multi-select we key it off
+  // the first picked location (brands are shared per kitchen anyway).
+  const firstSelLocation = Array.from(selLocations)[0] ?? "";
   const brandsQuery = useQuery({
-    queryKey: ["brands", selLocationId || locationId || "tenant"],
-    queryFn: () => brandsClient.list(selLocationId || locationId),
+    queryKey: ["brands", firstSelLocation || locationId || "tenant"],
+    queryFn: () => brandsClient.list(firstSelLocation || locationId),
     enabled: open && step === "brand",
   });
 
@@ -143,42 +155,62 @@ export function PublishMenuModal({
       const anyWired = next.some((id) =>
         TARGETS.find((t) => t.id === id)?.wired,
       );
-      // Step 1 — persist channel + brand + LOCATION selection on the
-      // menu row. locationId matters beyond the marketplace pushes:
-      // the storefront and POS resolve their menu by the menu row's
-      // locationId, so without this the location step was decorative
-      // for Online ordering — the operator picked "pizza uno pelton",
-      // the menu stayed keyed to the location it was created under,
-      // and the storefront never changed. Only sent when the flow
-      // actually showed the location step (HubRise/WhatsApp-only
-      // publishes skip it, and must not silently re-home the menu).
-      const pickedLocation =
+      // Phase BA — persist channels + brand + the SERVING LOCATIONS. The
+      // API rewrites each picked location's assignments in one
+      // transaction (replace per slot); unpicked locations keep whatever
+      // menu they had, so publishing here never unpublishes elsewhere.
+      // locationIds is only sent when the flow actually showed the
+      // location step (HubRise/WhatsApp-only publishes skip it and must
+      // not touch assignments).
+      const pickedLocations =
         !next.includes("HUBRISE") && !next.includes("WHATSAPP")
-          ? selLocationId
-          : "";
+          ? Array.from(selLocations)
+          : null;
       await menusClient.updateMenu(menuId, {
         publishedTo: next,
         brandId,
-        ...(pickedLocation && { locationId: pickedLocation }),
+        ...(pickedLocations && pickedLocations.length > 0 && {
+          locationIds: pickedLocations,
+        }),
         ...(anyWired && { status: "PUBLISHED" as const, isActive: true }),
       } as any);
       // Step 2 — fire the real external pushes. POS / Online ordering need
-      // no external call — they read straight off the publishedTo array on
-      // every storefront / POS load.
+      // no external call — the storefront and POS resolve off the
+      // assignment rows written above.
       if (next.includes("HUBRISE")) {
         await menusClient.publishToHubRise(menuId);
       }
-      // Direct Deliveroo upload (create-or-update + publish) for the brand
-      // we just persisted onto the menu row above.
-      if (next.includes("DELIVEROO")) {
-        await menusClient.publishToDeliveroo(menuId);
+      // Marketplace uploads run once per picked location so every
+      // connected store gets the menu. Errors aggregate into one toast.
+      const marketplaceLocations = pickedLocations?.length
+        ? pickedLocations
+        : [locationId ?? ""];
+      const pushErrors: string[] = [];
+      for (const loc of marketplaceLocations) {
+        if (next.includes("DELIVEROO")) {
+          await menusClient
+            .publishToDeliveroo(menuId, { locationId: loc || undefined })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Deliveroo: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("UBER_EATS")) {
+          await menusClient
+            .publishToUberEats(menuId, {
+              locationId: loc || undefined,
+              brandId,
+            })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Uber Eats: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
       }
-      // Direct Uber Eats upsert for the picked location + brand.
-      if (next.includes("UBER_EATS")) {
-        await menusClient.publishToUberEats(menuId, {
-          locationId: selLocationId || undefined,
-          brandId,
-        });
+      if (pushErrors.length > 0) {
+        throw new Error(Array.from(new Set(pushErrors)).join(" · "));
       }
     },
     onSuccess: () => {
@@ -314,44 +346,59 @@ export function PublishMenuModal({
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : (
-              (locationsQuery.data ?? []).map((l: any) => {
-                const isOn = selLocationId === l.id;
-                return (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => setSelLocationId(l.id)}
-                    className={`relative w-full flex items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
-                      isOn
-                        ? "border-sky-300 bg-sky-50"
-                        : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
-                    }`}
-                  >
-                    <div className="grid h-11 w-11 place-items-center rounded-md bg-zinc-100 text-sm font-bold text-zinc-500">
-                      {String(l.name ?? "?").slice(0, 1).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900">
-                        {l.name}
-                      </p>
-                      {(l.city || l.postcode) && (
-                        <p className="text-xs text-zinc-500 mt-0.5">
-                          {[l.city, l.postcode].filter(Boolean).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`grid h-5 w-5 place-items-center rounded-full border-2 flex-shrink-0 ${
+              <>
+                {/* Phase BA — multi-select: this menu will SERVE every ticked
+                    location; locations left unticked keep their current menu. */}
+                <p className="text-xs text-zinc-500 -mt-1 mb-2">
+                  Pick every location this menu should serve. Other locations
+                  keep the menu they already have.
+                </p>
+                {(locationsQuery.data ?? []).map((l: any) => {
+                  const isOn = selLocations.has(l.id);
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() =>
+                        setSelLocations((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(l.id)) next.delete(l.id);
+                          else next.add(l.id);
+                          return next;
+                        })
+                      }
+                      className={`relative w-full flex items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
                         isOn
-                          ? "border-sky-500 bg-sky-500 text-white"
-                          : "border-zinc-300 bg-white"
+                          ? "border-sky-300 bg-sky-50"
+                          : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
                       }`}
                     >
-                      {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </span>
-                  </button>
-                );
-              })
+                      <div className="grid h-11 w-11 place-items-center rounded-md bg-zinc-100 text-sm font-bold text-zinc-500">
+                        {String(l.name ?? "?").slice(0, 1).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-zinc-900">
+                          {l.name}
+                        </p>
+                        {(l.city || l.postcode) && (
+                          <p className="text-xs text-zinc-500 mt-0.5">
+                            {[l.city, l.postcode].filter(Boolean).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <span
+                        className={`grid h-5 w-5 place-items-center rounded border-2 flex-shrink-0 ${
+                          isOn
+                            ? "border-sky-500 bg-sky-500 text-white"
+                            : "border-zinc-300 bg-white"
+                        }`}
+                      >
+                        {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </>
             )
           ) : brandsQuery.isLoading ? (
             <div className="flex items-center justify-center py-12 text-zinc-400">
@@ -445,10 +492,11 @@ export function PublishMenuModal({
             <Button
               size="sm"
               onClick={() => setStep("brand")}
-              disabled={!selLocationId}
+              disabled={selLocations.size === 0}
               className="bg-zinc-900 hover:bg-zinc-800 text-white"
             >
               Next: pick brand
+              {selLocations.size > 1 ? ` (${selLocations.size} locations)` : ""}
             </Button>
           ) : (
             <Button

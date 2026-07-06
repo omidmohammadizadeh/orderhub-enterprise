@@ -442,6 +442,19 @@ exports.Prisma.MenuScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MenuChannelAssignmentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  menuId: 'menuId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  channel: 'channel',
+  publishedAt: 'publishedAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.MenuCategoryScalarFieldEnum = {
   id: 'id',
   menuId: 'menuId',
@@ -524,6 +537,7 @@ exports.Prisma.MenuItemChannelAvailabilityScalarFieldEnum = {
   id: 'id',
   itemId: 'itemId',
   channel: 'channel',
+  locationId: 'locationId',
   isAvailable: 'isAvailable',
   expiresAt: 'expiresAt',
   snoozeReason: 'snoozeReason',
@@ -1963,6 +1977,16 @@ exports.Prisma.MenuOrderByRelevanceFieldEnum = {
   publishedTo: 'publishedTo'
 };
 
+exports.Prisma.MenuChannelAssignmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  menuId: 'menuId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  channel: 'channel',
+  createdBy: 'createdBy'
+};
+
 exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
   id: 'id',
   menuId: 'menuId',
@@ -2011,6 +2035,7 @@ exports.Prisma.MenuItemChannelAvailabilityOrderByRelevanceFieldEnum = {
   id: 'id',
   itemId: 'itemId',
   channel: 'channel',
+  locationId: 'locationId',
   snoozeReason: 'snoozeReason',
   snoozedBy: 'snoozedBy'
 };
@@ -3192,6 +3217,7 @@ exports.Prisma.ModelName = {
   BrandPlatformConnection: 'BrandPlatformConnection',
   Integration: 'Integration',
   Menu: 'Menu',
+  MenuChannelAssignment: 'MenuChannelAssignment',
   MenuCategory: 'MenuCategory',
   MenuItem: 'MenuItem',
   ChannelPause: 'ChannelPause',

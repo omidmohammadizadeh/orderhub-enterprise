@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Package2, ImageIcon, Settings2, Trash2 } from "lucide-react";
 import { productsClient } from "@/lib/api/catalog.client";
+import { menuAvailabilityClient } from "@/lib/api/menu-availability.client";
 import { Button } from "@/components/ui/button";
 import { CatalogEmptyState } from "./empty-state";
 import { ProductForm } from "./product-form";
@@ -44,6 +45,37 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
   const toggleMutation = useMutation({
     mutationFn: (id: string) => productsClient.toggleAvailability(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: listQueryKey }),
+  });
+
+  // Phase BA — with a location selected, the availability switch is
+  // LOCATION-SCOPED: it writes an "ALL"-channel snooze for this location
+  // only, so 86ing here never affects a sibling location. The global
+  // MenuItem.isAvailable master switch stays visible ("Disabled — all
+  // locations") and still restores globally on click.
+  const locationSnoozesKey = ["location-item-snoozes", locationId];
+  const { data: locationSnoozes } = useQuery({
+    queryKey: locationSnoozesKey,
+    queryFn: () => menuAvailabilityClient.locationItemSnoozes(locationId!),
+    enabled: !!locationId,
+  });
+  const snoozedHere = useMemo(
+    () => new Set(locationSnoozes?.itemIds ?? []),
+    [locationSnoozes],
+  );
+
+  const locationToggleMutation = useMutation({
+    mutationFn: async (args: { id: string; snoozed: boolean }) =>
+      args.snoozed
+        ? menuAvailabilityClient.unsnooze(args.id, "ALL", locationId!)
+        : menuAvailabilityClient.snooze(args.id, {
+            channel: "ALL",
+            duration: "indefinite",
+            locationId: locationId!,
+          }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: locationSnoozesKey });
+      qc.invalidateQueries({ queryKey: ["menu-availability"] });
+    },
   });
 
   const filtered = useMemo(
@@ -159,23 +191,64 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                   £{Number(p.basePrice).toFixed(2)}
                 </td>
                 <td className="px-4 py-2.5 text-center">
-                  <button
-                    onClick={() => toggleMutation.mutate(p.id)}
-                    className="inline-flex items-center gap-1.5 text-xs"
-                  >
-                    <span
-                      className={`inline-block h-2 w-2 rounded-full ${
-                        p.isAvailable ? "bg-emerald-500" : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        p.isAvailable ? "text-emerald-700" : "text-zinc-400"
-                      }
-                    >
-                      {p.isAvailable ? "Available" : "Unavailable"}
-                    </span>
-                  </button>
+                  {(() => {
+                    const offHere = !!locationId && snoozedHere.has(p.id);
+                    const label = !p.isAvailable
+                      ? locationId
+                        ? "Disabled — all locations"
+                        : "Unavailable"
+                      : offHere
+                        ? "Off at this location"
+                        : "Available";
+                    const on = p.isAvailable && !offHere;
+                    return (
+                      <button
+                        onClick={() =>
+                          !p.isAvailable || !locationId
+                            ? toggleMutation.mutate(p.id)
+                            : locationToggleMutation.mutate({
+                                id: p.id,
+                                snoozed: offHere,
+                              })
+                        }
+                        disabled={
+                          toggleMutation.isPending ||
+                          locationToggleMutation.isPending
+                        }
+                        title={
+                          locationId
+                            ? on
+                              ? "Turn off at this location only"
+                              : offHere
+                                ? "Turn back on at this location"
+                                : "Re-enable at all locations"
+                            : "Toggle availability (all locations)"
+                        }
+                        className="inline-flex items-center gap-1.5 text-xs"
+                      >
+                        <span
+                          className={`inline-block h-2 w-2 rounded-full ${
+                            on
+                              ? "bg-emerald-500"
+                              : offHere
+                                ? "bg-amber-400"
+                                : "bg-zinc-300"
+                          }`}
+                        />
+                        <span
+                          className={
+                            on
+                              ? "text-emerald-700"
+                              : offHere
+                                ? "text-amber-700"
+                                : "text-zinc-400"
+                          }
+                        >
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   <div className="inline-flex items-center gap-0.5">

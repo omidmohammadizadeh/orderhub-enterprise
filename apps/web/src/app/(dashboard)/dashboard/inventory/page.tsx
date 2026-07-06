@@ -78,9 +78,13 @@ export default function InventoryPage() {
   }, [brands, brandId]);
 
   // ── Inventory matrix ────────────────────────────────────────────────
+  // Phase BA — the matrix is a LOCATION view: this location's own snoozes
+  // overlay the global ("all locations") rows, and toggles below write
+  // location-scoped rows so 86ing here never affects another location.
   const matrixQuery = useQuery({
-    queryKey: ["menu-availability", brandId],
-    queryFn: () => menuAvailabilityClient.getMatrix(brandId),
+    queryKey: ["menu-availability", brandId, locationId],
+    queryFn: () =>
+      menuAvailabilityClient.getMatrix(brandId, locationId ?? undefined),
     enabled: !!brandId,
     refetchInterval: 30_000,
   });
@@ -88,7 +92,7 @@ export default function InventoryPage() {
 
   // ── Mutations ───────────────────────────────────────────────────────
   const qc = useQueryClient();
-  const refetchKey = ["menu-availability", brandId];
+  const refetchKey = ["menu-availability", brandId, locationId];
 
   const snoozeMutation = useMutation({
     mutationFn: async (args: {
@@ -101,7 +105,11 @@ export default function InventoryPage() {
       // ValidationPipe (whitelist + forbidNonWhitelisted) rejects
       // unknown properties otherwise.
       const { itemId, ...body } = args;
-      return menuAvailabilityClient.snooze(itemId, body);
+      return menuAvailabilityClient.snooze(itemId, {
+        ...body,
+        // Phase BA — 86 at THIS location only.
+        ...(locationId ? { locationId } : {}),
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: refetchKey }),
     onError: (err: any) =>
@@ -111,8 +119,14 @@ export default function InventoryPage() {
   });
 
   const unsnoozeMutation = useMutation({
+    // Phase BA — restores here; the API falls back to clearing a global
+    // snooze when this location has no row of its own.
     mutationFn: async (args: { itemId: string; channel: Channel }) =>
-      menuAvailabilityClient.unsnooze(args.itemId, args.channel),
+      menuAvailabilityClient.unsnooze(
+        args.itemId,
+        args.channel,
+        locationId ?? undefined,
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: refetchKey }),
     onError: (err: any) =>
       toast.error(
@@ -285,7 +299,10 @@ export default function InventoryPage() {
                     </div>
                   </td>
                   {CHANNELS.map((c) => {
-                    const snoozed = item.snoozes[c];
+                    // Phase BA — an "ALL"-channel row (86'd entirely, from
+                    // the products tab) turns every channel off too.
+                    const snoozed = item.snoozes[c] ?? (item.snoozes as any).ALL;
+                    const isGlobal = snoozed && snoozed.locationId == null;
                     return (
                       <td
                         key={c}
@@ -294,6 +311,9 @@ export default function InventoryPage() {
                         <ChannelToggle
                           on={!snoozed}
                           expiresAt={snoozed?.expiresAt ?? null}
+                          scope={
+                            snoozed ? (isGlobal ? "all" : "here") : null
+                          }
                           onClick={() => handleToggle(item, c)}
                           busy={
                             snoozeMutation.isPending ||
@@ -326,11 +346,14 @@ export default function InventoryPage() {
 function ChannelToggle({
   on,
   expiresAt,
+  scope,
   onClick,
   busy,
 }: {
   on: boolean;
   expiresAt: string | null;
+  /** Phase BA — "here" = this location only, "all" = every location. */
+  scope?: "here" | "all" | null;
   onClick: () => void;
   busy: boolean;
 }) {
@@ -363,9 +386,11 @@ function ChannelToggle({
         )}
         {on ? "On" : "Off"}
       </span>
-      {!on && expiryLabel && (
+      {!on && (expiryLabel || scope) && (
         <span className="text-[9px] font-normal text-red-600">
-          {expiryLabel}
+          {[expiryLabel, scope === "all" ? "all locations" : scope === "here" ? "here" : null]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       )}
     </button>

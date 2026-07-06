@@ -94,6 +94,11 @@ export type Integration = $Result.DefaultSelection<Prisma.$IntegrationPayload>
  */
 export type Menu = $Result.DefaultSelection<Prisma.$MenuPayload>
 /**
+ * Model MenuChannelAssignment
+ * 
+ */
+export type MenuChannelAssignment = $Result.DefaultSelection<Prisma.$MenuChannelAssignmentPayload>
+/**
  * Model MenuCategory
  * 
  */
@@ -1576,6 +1581,16 @@ export class PrismaClient<
   get menu(): Prisma.MenuDelegate<ExtArgs>;
 
   /**
+   * `prisma.menuChannelAssignment`: Exposes CRUD operations for the **MenuChannelAssignment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuChannelAssignments
+    * const menuChannelAssignments = await prisma.menuChannelAssignment.findMany()
+    * ```
+    */
+  get menuChannelAssignment(): Prisma.MenuChannelAssignmentDelegate<ExtArgs>;
+
+  /**
    * `prisma.menuCategory`: Exposes CRUD operations for the **MenuCategory** model.
     * Example usage:
     * ```ts
@@ -2841,6 +2856,7 @@ export namespace Prisma {
     BrandPlatformConnection: 'BrandPlatformConnection',
     Integration: 'Integration',
     Menu: 'Menu',
+    MenuChannelAssignment: 'MenuChannelAssignment',
     MenuCategory: 'MenuCategory',
     MenuItem: 'MenuItem',
     ChannelPause: 'ChannelPause',
@@ -2937,7 +2953,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4058,6 +4074,76 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuCountArgs<ExtArgs>
             result: $Utils.Optional<MenuCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuChannelAssignment: {
+        payload: Prisma.$MenuChannelAssignmentPayload<ExtArgs>
+        fields: Prisma.MenuChannelAssignmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuChannelAssignmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuChannelAssignmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuChannelAssignmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuChannelAssignmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          findMany: {
+            args: Prisma.MenuChannelAssignmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>[]
+          }
+          create: {
+            args: Prisma.MenuChannelAssignmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          createMany: {
+            args: Prisma.MenuChannelAssignmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuChannelAssignmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuChannelAssignmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          update: {
+            args: Prisma.MenuChannelAssignmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuChannelAssignmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuChannelAssignmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MenuChannelAssignmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuChannelAssignmentPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuChannelAssignmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuChannelAssignment>
+          }
+          groupBy: {
+            args: Prisma.MenuChannelAssignmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuChannelAssignmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuChannelAssignmentCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuChannelAssignmentCountAggregateOutputType> | number
           }
         }
       }
@@ -10314,6 +10400,8 @@ export namespace Prisma {
     userLocations: number
     platformConnections: number
     channelPauses: number
+    menuAssignments: number
+    itemChannelSnoozes: number
   }
 
   export type LocationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10327,6 +10415,8 @@ export namespace Prisma {
     userLocations?: boolean | LocationCountOutputTypeCountUserLocationsArgs
     platformConnections?: boolean | LocationCountOutputTypeCountPlatformConnectionsArgs
     channelPauses?: boolean | LocationCountOutputTypeCountChannelPausesArgs
+    menuAssignments?: boolean | LocationCountOutputTypeCountMenuAssignmentsArgs
+    itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
   }
 
   // Custom InputTypes
@@ -10410,6 +10500,20 @@ export namespace Prisma {
     where?: ChannelPauseWhereInput
   }
 
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountMenuAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuChannelAssignmentWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountItemChannelSnoozesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuItemChannelAvailabilityWhereInput
+  }
+
 
   /**
    * Count Type MenuCountOutputType
@@ -10418,11 +10522,13 @@ export namespace Prisma {
   export type MenuCountOutputType = {
     categories: number
     versions: number
+    assignments: number
   }
 
   export type MenuCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     categories?: boolean | MenuCountOutputTypeCountCategoriesArgs
     versions?: boolean | MenuCountOutputTypeCountVersionsArgs
+    assignments?: boolean | MenuCountOutputTypeCountAssignmentsArgs
   }
 
   // Custom InputTypes
@@ -10448,6 +10554,13 @@ export namespace Prisma {
    */
   export type MenuCountOutputTypeCountVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuVersionWhereInput
+  }
+
+  /**
+   * MenuCountOutputType without action
+   */
+  export type MenuCountOutputTypeCountAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuChannelAssignmentWhereInput
   }
 
 
@@ -25331,6 +25444,8 @@ export namespace Prisma {
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
+    menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
+    itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -25472,6 +25587,8 @@ export namespace Prisma {
     directOrderingConfig?: boolean | Location$directOrderingConfigArgs<ExtArgs>
     channelPauses?: boolean | Location$channelPausesArgs<ExtArgs>
     merchantSubscription?: boolean | Location$merchantSubscriptionArgs<ExtArgs>
+    menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
+    itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -25501,6 +25618,8 @@ export namespace Prisma {
       directOrderingConfig: Prisma.$DirectOrderingConfigPayload<ExtArgs> | null
       channelPauses: Prisma.$ChannelPausePayload<ExtArgs>[]
       merchantSubscription: Prisma.$MerchantSubscriptionPayload<ExtArgs> | null
+      menuAssignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
+      itemChannelSnoozes: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
@@ -25939,6 +26058,8 @@ export namespace Prisma {
     directOrderingConfig<T extends Location$directOrderingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$directOrderingConfigArgs<ExtArgs>>): Prisma__DirectOrderingConfigClient<$Result.GetResult<Prisma.$DirectOrderingConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     channelPauses<T extends Location$channelPausesArgs<ExtArgs> = {}>(args?: Subset<T, Location$channelPausesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChannelPausePayload<ExtArgs>, T, "findMany"> | Null>
     merchantSubscription<T extends Location$merchantSubscriptionArgs<ExtArgs> = {}>(args?: Subset<T, Location$merchantSubscriptionArgs<ExtArgs>>): Prisma__MerchantSubscriptionClient<$Result.GetResult<Prisma.$MerchantSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    menuAssignments<T extends Location$menuAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$menuAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
+    itemChannelSnoozes<T extends Location$itemChannelSnoozesArgs<ExtArgs> = {}>(args?: Subset<T, Location$itemChannelSnoozesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -26586,6 +26707,46 @@ export namespace Prisma {
      */
     include?: MerchantSubscriptionInclude<ExtArgs> | null
     where?: MerchantSubscriptionWhereInput
+  }
+
+  /**
+   * Location.menuAssignments
+   */
+  export type Location$menuAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    where?: MenuChannelAssignmentWhereInput
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * Location.itemChannelSnoozes
+   */
+  export type Location$itemChannelSnoozesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuItemChannelAvailability
+     */
+    select?: MenuItemChannelAvailabilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuItemChannelAvailabilityInclude<ExtArgs> | null
+    where?: MenuItemChannelAvailabilityWhereInput
+    orderBy?: MenuItemChannelAvailabilityOrderByWithRelationInput | MenuItemChannelAvailabilityOrderByWithRelationInput[]
+    cursor?: MenuItemChannelAvailabilityWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuItemChannelAvailabilityScalarFieldEnum | MenuItemChannelAvailabilityScalarFieldEnum[]
   }
 
   /**
@@ -29145,6 +29306,7 @@ export namespace Prisma {
     brand?: boolean | BrandDefaultArgs<ExtArgs>
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
+    assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menu"]>
 
@@ -29227,6 +29389,7 @@ export namespace Prisma {
     brand?: boolean | BrandDefaultArgs<ExtArgs>
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
+    assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29239,6 +29402,7 @@ export namespace Prisma {
       brand: Prisma.$BrandPayload<ExtArgs>
       categories: Prisma.$MenuCategoryPayload<ExtArgs>[]
       versions: Prisma.$MenuVersionPayload<ExtArgs>[]
+      assignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -29642,6 +29806,7 @@ export namespace Prisma {
     brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     categories<T extends Menu$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, Menu$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryPayload<ExtArgs>, T, "findMany"> | Null>
     versions<T extends Menu$versionsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    assignments<T extends Menu$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -30063,6 +30228,26 @@ export namespace Prisma {
   }
 
   /**
+   * Menu.assignments
+   */
+  export type Menu$assignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    where?: MenuChannelAssignmentWhereInput
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
    * Menu without action
    */
   export type MenuDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -30074,6 +30259,1005 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MenuInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuChannelAssignment
+   */
+
+  export type AggregateMenuChannelAssignment = {
+    _count: MenuChannelAssignmentCountAggregateOutputType | null
+    _min: MenuChannelAssignmentMinAggregateOutputType | null
+    _max: MenuChannelAssignmentMaxAggregateOutputType | null
+  }
+
+  export type MenuChannelAssignmentMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    menuId: string | null
+    locationId: string | null
+    brandId: string | null
+    channel: string | null
+    publishedAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuChannelAssignmentMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    menuId: string | null
+    locationId: string | null
+    brandId: string | null
+    channel: string | null
+    publishedAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuChannelAssignmentCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    menuId: number
+    locationId: number
+    brandId: number
+    channel: number
+    publishedAt: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MenuChannelAssignmentMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    publishedAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuChannelAssignmentMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    publishedAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuChannelAssignmentCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    locationId?: true
+    brandId?: true
+    channel?: true
+    publishedAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MenuChannelAssignmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuChannelAssignment to aggregate.
+     */
+    where?: MenuChannelAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuChannelAssignments to fetch.
+     */
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuChannelAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuChannelAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuChannelAssignments
+    **/
+    _count?: true | MenuChannelAssignmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuChannelAssignmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuChannelAssignmentMaxAggregateInputType
+  }
+
+  export type GetMenuChannelAssignmentAggregateType<T extends MenuChannelAssignmentAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuChannelAssignment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuChannelAssignment[P]>
+      : GetScalarType<T[P], AggregateMenuChannelAssignment[P]>
+  }
+
+
+
+
+  export type MenuChannelAssignmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuChannelAssignmentWhereInput
+    orderBy?: MenuChannelAssignmentOrderByWithAggregationInput | MenuChannelAssignmentOrderByWithAggregationInput[]
+    by: MenuChannelAssignmentScalarFieldEnum[] | MenuChannelAssignmentScalarFieldEnum
+    having?: MenuChannelAssignmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuChannelAssignmentCountAggregateInputType | true
+    _min?: MenuChannelAssignmentMinAggregateInputType
+    _max?: MenuChannelAssignmentMaxAggregateInputType
+  }
+
+  export type MenuChannelAssignmentGroupByOutputType = {
+    id: string
+    tenantId: string | null
+    menuId: string
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt: Date
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MenuChannelAssignmentCountAggregateOutputType | null
+    _min: MenuChannelAssignmentMinAggregateOutputType | null
+    _max: MenuChannelAssignmentMaxAggregateOutputType | null
+  }
+
+  type GetMenuChannelAssignmentGroupByPayload<T extends MenuChannelAssignmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuChannelAssignmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuChannelAssignmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuChannelAssignmentGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuChannelAssignmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuChannelAssignmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    publishedAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuChannelAssignment"]>
+
+  export type MenuChannelAssignmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    publishedAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuChannelAssignment"]>
+
+  export type MenuChannelAssignmentSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    channel?: boolean
+    publishedAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MenuChannelAssignmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type MenuChannelAssignmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuChannelAssignmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuChannelAssignment"
+    objects: {
+      menu: Prisma.$MenuPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string | null
+      menuId: string
+      locationId: string
+      brandId: string
+      channel: string
+      publishedAt: Date
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["menuChannelAssignment"]>
+    composites: {}
+  }
+
+  type MenuChannelAssignmentGetPayload<S extends boolean | null | undefined | MenuChannelAssignmentDefaultArgs> = $Result.GetResult<Prisma.$MenuChannelAssignmentPayload, S>
+
+  type MenuChannelAssignmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MenuChannelAssignmentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MenuChannelAssignmentCountAggregateInputType | true
+    }
+
+  export interface MenuChannelAssignmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuChannelAssignment'], meta: { name: 'MenuChannelAssignment' } }
+    /**
+     * Find zero or one MenuChannelAssignment that matches the filter.
+     * @param {MenuChannelAssignmentFindUniqueArgs} args - Arguments to find a MenuChannelAssignment
+     * @example
+     * // Get one MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuChannelAssignmentFindUniqueArgs>(args: SelectSubset<T, MenuChannelAssignmentFindUniqueArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MenuChannelAssignment that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MenuChannelAssignmentFindUniqueOrThrowArgs} args - Arguments to find a MenuChannelAssignment
+     * @example
+     * // Get one MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuChannelAssignmentFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuChannelAssignmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MenuChannelAssignment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentFindFirstArgs} args - Arguments to find a MenuChannelAssignment
+     * @example
+     * // Get one MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuChannelAssignmentFindFirstArgs>(args?: SelectSubset<T, MenuChannelAssignmentFindFirstArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MenuChannelAssignment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentFindFirstOrThrowArgs} args - Arguments to find a MenuChannelAssignment
+     * @example
+     * // Get one MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuChannelAssignmentFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuChannelAssignmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MenuChannelAssignments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuChannelAssignments
+     * const menuChannelAssignments = await prisma.menuChannelAssignment.findMany()
+     * 
+     * // Get first 10 MenuChannelAssignments
+     * const menuChannelAssignments = await prisma.menuChannelAssignment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuChannelAssignmentWithIdOnly = await prisma.menuChannelAssignment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuChannelAssignmentFindManyArgs>(args?: SelectSubset<T, MenuChannelAssignmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MenuChannelAssignment.
+     * @param {MenuChannelAssignmentCreateArgs} args - Arguments to create a MenuChannelAssignment.
+     * @example
+     * // Create one MenuChannelAssignment
+     * const MenuChannelAssignment = await prisma.menuChannelAssignment.create({
+     *   data: {
+     *     // ... data to create a MenuChannelAssignment
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuChannelAssignmentCreateArgs>(args: SelectSubset<T, MenuChannelAssignmentCreateArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MenuChannelAssignments.
+     * @param {MenuChannelAssignmentCreateManyArgs} args - Arguments to create many MenuChannelAssignments.
+     * @example
+     * // Create many MenuChannelAssignments
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuChannelAssignmentCreateManyArgs>(args?: SelectSubset<T, MenuChannelAssignmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuChannelAssignments and returns the data saved in the database.
+     * @param {MenuChannelAssignmentCreateManyAndReturnArgs} args - Arguments to create many MenuChannelAssignments.
+     * @example
+     * // Create many MenuChannelAssignments
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuChannelAssignments and only return the `id`
+     * const menuChannelAssignmentWithIdOnly = await prisma.menuChannelAssignment.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuChannelAssignmentCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuChannelAssignmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MenuChannelAssignment.
+     * @param {MenuChannelAssignmentDeleteArgs} args - Arguments to delete one MenuChannelAssignment.
+     * @example
+     * // Delete one MenuChannelAssignment
+     * const MenuChannelAssignment = await prisma.menuChannelAssignment.delete({
+     *   where: {
+     *     // ... filter to delete one MenuChannelAssignment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuChannelAssignmentDeleteArgs>(args: SelectSubset<T, MenuChannelAssignmentDeleteArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MenuChannelAssignment.
+     * @param {MenuChannelAssignmentUpdateArgs} args - Arguments to update one MenuChannelAssignment.
+     * @example
+     * // Update one MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuChannelAssignmentUpdateArgs>(args: SelectSubset<T, MenuChannelAssignmentUpdateArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MenuChannelAssignments.
+     * @param {MenuChannelAssignmentDeleteManyArgs} args - Arguments to filter MenuChannelAssignments to delete.
+     * @example
+     * // Delete a few MenuChannelAssignments
+     * const { count } = await prisma.menuChannelAssignment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuChannelAssignmentDeleteManyArgs>(args?: SelectSubset<T, MenuChannelAssignmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuChannelAssignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuChannelAssignments
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuChannelAssignmentUpdateManyArgs>(args: SelectSubset<T, MenuChannelAssignmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MenuChannelAssignment.
+     * @param {MenuChannelAssignmentUpsertArgs} args - Arguments to update or create a MenuChannelAssignment.
+     * @example
+     * // Update or create a MenuChannelAssignment
+     * const menuChannelAssignment = await prisma.menuChannelAssignment.upsert({
+     *   create: {
+     *     // ... data to create a MenuChannelAssignment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuChannelAssignment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuChannelAssignmentUpsertArgs>(args: SelectSubset<T, MenuChannelAssignmentUpsertArgs<ExtArgs>>): Prisma__MenuChannelAssignmentClient<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MenuChannelAssignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentCountArgs} args - Arguments to filter MenuChannelAssignments to count.
+     * @example
+     * // Count the number of MenuChannelAssignments
+     * const count = await prisma.menuChannelAssignment.count({
+     *   where: {
+     *     // ... the filter for the MenuChannelAssignments we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuChannelAssignmentCountArgs>(
+      args?: Subset<T, MenuChannelAssignmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuChannelAssignmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuChannelAssignment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuChannelAssignmentAggregateArgs>(args: Subset<T, MenuChannelAssignmentAggregateArgs>): Prisma.PrismaPromise<GetMenuChannelAssignmentAggregateType<T>>
+
+    /**
+     * Group by MenuChannelAssignment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuChannelAssignmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuChannelAssignmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuChannelAssignmentGroupByArgs['orderBy'] }
+        : { orderBy?: MenuChannelAssignmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuChannelAssignmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuChannelAssignmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuChannelAssignment model
+   */
+  readonly fields: MenuChannelAssignmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuChannelAssignment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuChannelAssignmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    menu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuChannelAssignment model
+   */ 
+  interface MenuChannelAssignmentFieldRefs {
+    readonly id: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly tenantId: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly menuId: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly locationId: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly brandId: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly channel: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly publishedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
+    readonly createdBy: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly createdAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
+    readonly updatedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuChannelAssignment findUnique
+   */
+  export type MenuChannelAssignmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuChannelAssignment to fetch.
+     */
+    where: MenuChannelAssignmentWhereUniqueInput
+  }
+
+  /**
+   * MenuChannelAssignment findUniqueOrThrow
+   */
+  export type MenuChannelAssignmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuChannelAssignment to fetch.
+     */
+    where: MenuChannelAssignmentWhereUniqueInput
+  }
+
+  /**
+   * MenuChannelAssignment findFirst
+   */
+  export type MenuChannelAssignmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuChannelAssignment to fetch.
+     */
+    where?: MenuChannelAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuChannelAssignments to fetch.
+     */
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuChannelAssignments.
+     */
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuChannelAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuChannelAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuChannelAssignments.
+     */
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * MenuChannelAssignment findFirstOrThrow
+   */
+  export type MenuChannelAssignmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuChannelAssignment to fetch.
+     */
+    where?: MenuChannelAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuChannelAssignments to fetch.
+     */
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuChannelAssignments.
+     */
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuChannelAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuChannelAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuChannelAssignments.
+     */
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * MenuChannelAssignment findMany
+   */
+  export type MenuChannelAssignmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuChannelAssignments to fetch.
+     */
+    where?: MenuChannelAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuChannelAssignments to fetch.
+     */
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuChannelAssignments.
+     */
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuChannelAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuChannelAssignments.
+     */
+    skip?: number
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * MenuChannelAssignment create
+   */
+  export type MenuChannelAssignmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuChannelAssignment.
+     */
+    data: XOR<MenuChannelAssignmentCreateInput, MenuChannelAssignmentUncheckedCreateInput>
+  }
+
+  /**
+   * MenuChannelAssignment createMany
+   */
+  export type MenuChannelAssignmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuChannelAssignments.
+     */
+    data: MenuChannelAssignmentCreateManyInput | MenuChannelAssignmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuChannelAssignment createManyAndReturn
+   */
+  export type MenuChannelAssignmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MenuChannelAssignments.
+     */
+    data: MenuChannelAssignmentCreateManyInput | MenuChannelAssignmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuChannelAssignment update
+   */
+  export type MenuChannelAssignmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuChannelAssignment.
+     */
+    data: XOR<MenuChannelAssignmentUpdateInput, MenuChannelAssignmentUncheckedUpdateInput>
+    /**
+     * Choose, which MenuChannelAssignment to update.
+     */
+    where: MenuChannelAssignmentWhereUniqueInput
+  }
+
+  /**
+   * MenuChannelAssignment updateMany
+   */
+  export type MenuChannelAssignmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuChannelAssignments.
+     */
+    data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuChannelAssignments to update
+     */
+    where?: MenuChannelAssignmentWhereInput
+  }
+
+  /**
+   * MenuChannelAssignment upsert
+   */
+  export type MenuChannelAssignmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuChannelAssignment to update in case it exists.
+     */
+    where: MenuChannelAssignmentWhereUniqueInput
+    /**
+     * In case the MenuChannelAssignment found by the `where` argument doesn't exist, create a new MenuChannelAssignment with this data.
+     */
+    create: XOR<MenuChannelAssignmentCreateInput, MenuChannelAssignmentUncheckedCreateInput>
+    /**
+     * In case the MenuChannelAssignment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuChannelAssignmentUpdateInput, MenuChannelAssignmentUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuChannelAssignment delete
+   */
+  export type MenuChannelAssignmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter which MenuChannelAssignment to delete.
+     */
+    where: MenuChannelAssignmentWhereUniqueInput
+  }
+
+  /**
+   * MenuChannelAssignment deleteMany
+   */
+  export type MenuChannelAssignmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuChannelAssignments to delete
+     */
+    where?: MenuChannelAssignmentWhereInput
+  }
+
+  /**
+   * MenuChannelAssignment without action
+   */
+  export type MenuChannelAssignmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
   }
 
 
@@ -33808,6 +34992,7 @@ export namespace Prisma {
     id: string | null
     itemId: string | null
     channel: string | null
+    locationId: string | null
     isAvailable: boolean | null
     expiresAt: Date | null
     snoozeReason: string | null
@@ -33821,6 +35006,7 @@ export namespace Prisma {
     id: string | null
     itemId: string | null
     channel: string | null
+    locationId: string | null
     isAvailable: boolean | null
     expiresAt: Date | null
     snoozeReason: string | null
@@ -33834,6 +35020,7 @@ export namespace Prisma {
     id: number
     itemId: number
     channel: number
+    locationId: number
     isAvailable: number
     expiresAt: number
     snoozeReason: number
@@ -33849,6 +35036,7 @@ export namespace Prisma {
     id?: true
     itemId?: true
     channel?: true
+    locationId?: true
     isAvailable?: true
     expiresAt?: true
     snoozeReason?: true
@@ -33862,6 +35050,7 @@ export namespace Prisma {
     id?: true
     itemId?: true
     channel?: true
+    locationId?: true
     isAvailable?: true
     expiresAt?: true
     snoozeReason?: true
@@ -33875,6 +35064,7 @@ export namespace Prisma {
     id?: true
     itemId?: true
     channel?: true
+    locationId?: true
     isAvailable?: true
     expiresAt?: true
     snoozeReason?: true
@@ -33961,6 +35151,7 @@ export namespace Prisma {
     id: string
     itemId: string
     channel: string
+    locationId: string | null
     isAvailable: boolean
     expiresAt: Date | null
     snoozeReason: string | null
@@ -33991,6 +35182,7 @@ export namespace Prisma {
     id?: boolean
     itemId?: boolean
     channel?: boolean
+    locationId?: boolean
     isAvailable?: boolean
     expiresAt?: boolean
     snoozeReason?: boolean
@@ -33999,12 +35191,14 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     item?: boolean | MenuItemDefaultArgs<ExtArgs>
+    location?: boolean | MenuItemChannelAvailability$locationArgs<ExtArgs>
   }, ExtArgs["result"]["menuItemChannelAvailability"]>
 
   export type MenuItemChannelAvailabilitySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     itemId?: boolean
     channel?: boolean
+    locationId?: boolean
     isAvailable?: boolean
     expiresAt?: boolean
     snoozeReason?: boolean
@@ -34013,12 +35207,14 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     item?: boolean | MenuItemDefaultArgs<ExtArgs>
+    location?: boolean | MenuItemChannelAvailability$locationArgs<ExtArgs>
   }, ExtArgs["result"]["menuItemChannelAvailability"]>
 
   export type MenuItemChannelAvailabilitySelectScalar = {
     id?: boolean
     itemId?: boolean
     channel?: boolean
+    locationId?: boolean
     isAvailable?: boolean
     expiresAt?: boolean
     snoozeReason?: boolean
@@ -34030,20 +35226,24 @@ export namespace Prisma {
 
   export type MenuItemChannelAvailabilityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     item?: boolean | MenuItemDefaultArgs<ExtArgs>
+    location?: boolean | MenuItemChannelAvailability$locationArgs<ExtArgs>
   }
   export type MenuItemChannelAvailabilityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     item?: boolean | MenuItemDefaultArgs<ExtArgs>
+    location?: boolean | MenuItemChannelAvailability$locationArgs<ExtArgs>
   }
 
   export type $MenuItemChannelAvailabilityPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "MenuItemChannelAvailability"
     objects: {
       item: Prisma.$MenuItemPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       itemId: string
       channel: string
+      locationId: string | null
       isAvailable: boolean
       expiresAt: Date | null
       snoozeReason: string | null
@@ -34416,6 +35616,7 @@ export namespace Prisma {
   export interface Prisma__MenuItemChannelAvailabilityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     item<T extends MenuItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuItemDefaultArgs<ExtArgs>>): Prisma__MenuItemClient<$Result.GetResult<Prisma.$MenuItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends MenuItemChannelAvailability$locationArgs<ExtArgs> = {}>(args?: Subset<T, MenuItemChannelAvailability$locationArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -34448,6 +35649,7 @@ export namespace Prisma {
     readonly id: FieldRef<"MenuItemChannelAvailability", 'String'>
     readonly itemId: FieldRef<"MenuItemChannelAvailability", 'String'>
     readonly channel: FieldRef<"MenuItemChannelAvailability", 'String'>
+    readonly locationId: FieldRef<"MenuItemChannelAvailability", 'String'>
     readonly isAvailable: FieldRef<"MenuItemChannelAvailability", 'Boolean'>
     readonly expiresAt: FieldRef<"MenuItemChannelAvailability", 'DateTime'>
     readonly snoozeReason: FieldRef<"MenuItemChannelAvailability", 'String'>
@@ -34770,6 +35972,21 @@ export namespace Prisma {
      * Filter which MenuItemChannelAvailabilities to delete
      */
     where?: MenuItemChannelAvailabilityWhereInput
+  }
+
+  /**
+   * MenuItemChannelAvailability.location
+   */
+  export type MenuItemChannelAvailability$locationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Location
+     */
+    select?: LocationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LocationInclude<ExtArgs> | null
+    where?: LocationWhereInput
   }
 
   /**
@@ -116186,6 +117403,22 @@ export namespace Prisma {
   export type MenuScalarFieldEnum = (typeof MenuScalarFieldEnum)[keyof typeof MenuScalarFieldEnum]
 
 
+  export const MenuChannelAssignmentScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    menuId: 'menuId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    channel: 'channel',
+    publishedAt: 'publishedAt',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MenuChannelAssignmentScalarFieldEnum = (typeof MenuChannelAssignmentScalarFieldEnum)[keyof typeof MenuChannelAssignmentScalarFieldEnum]
+
+
   export const MenuCategoryScalarFieldEnum: {
     id: 'id',
     menuId: 'menuId',
@@ -116277,6 +117510,7 @@ export namespace Prisma {
     id: 'id',
     itemId: 'itemId',
     channel: 'channel',
+    locationId: 'locationId',
     isAvailable: 'isAvailable',
     expiresAt: 'expiresAt',
     snoozeReason: 'snoozeReason',
@@ -118016,6 +119250,19 @@ export namespace Prisma {
   export type MenuOrderByRelevanceFieldEnum = (typeof MenuOrderByRelevanceFieldEnum)[keyof typeof MenuOrderByRelevanceFieldEnum]
 
 
+  export const MenuChannelAssignmentOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    menuId: 'menuId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    channel: 'channel',
+    createdBy: 'createdBy'
+  };
+
+  export type MenuChannelAssignmentOrderByRelevanceFieldEnum = (typeof MenuChannelAssignmentOrderByRelevanceFieldEnum)[keyof typeof MenuChannelAssignmentOrderByRelevanceFieldEnum]
+
+
   export const MenuCategoryOrderByRelevanceFieldEnum: {
     id: 'id',
     menuId: 'menuId',
@@ -118073,6 +119320,7 @@ export namespace Prisma {
     id: 'id',
     itemId: 'itemId',
     channel: 'channel',
+    locationId: 'locationId',
     snoozeReason: 'snoozeReason',
     snoozedBy: 'snoozedBy'
   };
@@ -121158,6 +122406,8 @@ export namespace Prisma {
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
+    menuAssignments?: MenuChannelAssignmentListRelationFilter
+    itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -121233,6 +122483,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigOrderByWithRelationInput
     channelPauses?: ChannelPauseOrderByRelationAggregateInput
     merchantSubscription?: MerchantSubscriptionOrderByWithRelationInput
+    menuAssignments?: MenuChannelAssignmentOrderByRelationAggregateInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
@@ -121312,6 +122564,8 @@ export namespace Prisma {
     directOrderingConfig?: XOR<DirectOrderingConfigNullableRelationFilter, DirectOrderingConfigWhereInput> | null
     channelPauses?: ChannelPauseListRelationFilter
     merchantSubscription?: XOR<MerchantSubscriptionNullableRelationFilter, MerchantSubscriptionWhereInput> | null
+    menuAssignments?: MenuChannelAssignmentListRelationFilter
+    itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -121699,6 +122953,7 @@ export namespace Prisma {
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
+    assignments?: MenuChannelAssignmentListRelationFilter
   }
 
   export type MenuOrderByWithRelationInput = {
@@ -121739,6 +122994,7 @@ export namespace Prisma {
     brand?: BrandOrderByWithRelationInput
     categories?: MenuCategoryOrderByRelationAggregateInput
     versions?: MenuVersionOrderByRelationAggregateInput
+    assignments?: MenuChannelAssignmentOrderByRelationAggregateInput
     _relevance?: MenuOrderByRelevanceInput
   }
 
@@ -121783,6 +123039,7 @@ export namespace Prisma {
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
+    assignments?: MenuChannelAssignmentListRelationFilter
   }, "id">
 
   export type MenuOrderByWithAggregationInput = {
@@ -121865,6 +123122,91 @@ export namespace Prisma {
     metadata?: JsonWithAggregatesFilter<"Menu">
     createdAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Menu"> | Date | string
+  }
+
+  export type MenuChannelAssignmentWhereInput = {
+    AND?: MenuChannelAssignmentWhereInput | MenuChannelAssignmentWhereInput[]
+    OR?: MenuChannelAssignmentWhereInput[]
+    NOT?: MenuChannelAssignmentWhereInput | MenuChannelAssignmentWhereInput[]
+    id?: StringFilter<"MenuChannelAssignment"> | string
+    tenantId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    menuId?: StringFilter<"MenuChannelAssignment"> | string
+    locationId?: StringFilter<"MenuChannelAssignment"> | string
+    brandId?: StringFilter<"MenuChannelAssignment"> | string
+    channel?: StringFilter<"MenuChannelAssignment"> | string
+    publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    menu?: XOR<MenuRelationFilter, MenuWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type MenuChannelAssignmentOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrderInput | SortOrder
+    menuId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    publishedAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    menu?: MenuOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    _relevance?: MenuChannelAssignmentOrderByRelevanceInput
+  }
+
+  export type MenuChannelAssignmentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId_channel_brandId?: MenuChannelAssignmentLocationIdChannelBrandIdCompoundUniqueInput
+    AND?: MenuChannelAssignmentWhereInput | MenuChannelAssignmentWhereInput[]
+    OR?: MenuChannelAssignmentWhereInput[]
+    NOT?: MenuChannelAssignmentWhereInput | MenuChannelAssignmentWhereInput[]
+    tenantId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    menuId?: StringFilter<"MenuChannelAssignment"> | string
+    locationId?: StringFilter<"MenuChannelAssignment"> | string
+    brandId?: StringFilter<"MenuChannelAssignment"> | string
+    channel?: StringFilter<"MenuChannelAssignment"> | string
+    publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    menu?: XOR<MenuRelationFilter, MenuWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId_channel_brandId">
+
+  export type MenuChannelAssignmentOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrderInput | SortOrder
+    menuId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    publishedAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MenuChannelAssignmentCountOrderByAggregateInput
+    _max?: MenuChannelAssignmentMaxOrderByAggregateInput
+    _min?: MenuChannelAssignmentMinOrderByAggregateInput
+  }
+
+  export type MenuChannelAssignmentScalarWhereWithAggregatesInput = {
+    AND?: MenuChannelAssignmentScalarWhereWithAggregatesInput | MenuChannelAssignmentScalarWhereWithAggregatesInput[]
+    OR?: MenuChannelAssignmentScalarWhereWithAggregatesInput[]
+    NOT?: MenuChannelAssignmentScalarWhereWithAggregatesInput | MenuChannelAssignmentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
+    tenantId?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
+    menuId?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
+    locationId?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
+    brandId?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
+    channel?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
+    publishedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
   }
 
   export type MenuCategoryWhereInput = {
@@ -122339,6 +123681,7 @@ export namespace Prisma {
     id?: StringFilter<"MenuItemChannelAvailability"> | string
     itemId?: StringFilter<"MenuItemChannelAvailability"> | string
     channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    locationId?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
     isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
     expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
     snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
@@ -122347,12 +123690,14 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
     updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
     item?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
   }
 
   export type MenuItemChannelAvailabilityOrderByWithRelationInput = {
     id?: SortOrder
     itemId?: SortOrder
     channel?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     isAvailable?: SortOrder
     expiresAt?: SortOrderInput | SortOrder
     snoozeReason?: SortOrderInput | SortOrder
@@ -122361,17 +123706,19 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     item?: MenuItemOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
     _relevance?: MenuItemChannelAvailabilityOrderByRelevanceInput
   }
 
   export type MenuItemChannelAvailabilityWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    itemId_channel?: MenuItemChannelAvailabilityItemIdChannelCompoundUniqueInput
+    itemId_channel_locationId?: MenuItemChannelAvailabilityItemIdChannelLocationIdCompoundUniqueInput
     AND?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
     OR?: MenuItemChannelAvailabilityWhereInput[]
     NOT?: MenuItemChannelAvailabilityWhereInput | MenuItemChannelAvailabilityWhereInput[]
     itemId?: StringFilter<"MenuItemChannelAvailability"> | string
     channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    locationId?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
     isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
     expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
     snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
@@ -122380,12 +123727,14 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
     updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
     item?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
-  }, "id" | "itemId_channel">
+    location?: XOR<LocationNullableRelationFilter, LocationWhereInput> | null
+  }, "id" | "itemId_channel_locationId">
 
   export type MenuItemChannelAvailabilityOrderByWithAggregationInput = {
     id?: SortOrder
     itemId?: SortOrder
     channel?: SortOrder
+    locationId?: SortOrderInput | SortOrder
     isAvailable?: SortOrder
     expiresAt?: SortOrderInput | SortOrder
     snoozeReason?: SortOrderInput | SortOrder
@@ -122405,6 +123754,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
     itemId?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
     channel?: StringWithAggregatesFilter<"MenuItemChannelAvailability"> | string
+    locationId?: StringNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | string | null
     isAvailable?: BoolWithAggregatesFilter<"MenuItemChannelAvailability"> | boolean
     expiresAt?: DateTimeNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | Date | string | null
     snoozeReason?: StringNullableWithAggregatesFilter<"MenuItemChannelAvailability"> | string | null
@@ -131466,6 +132816,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -131540,6 +132892,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationUpdateInput = {
@@ -131608,6 +132962,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -131682,6 +133038,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateManyInput = {
@@ -132140,6 +133498,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
   }
 
   export type MenuUncheckedCreateInput = {
@@ -132179,6 +133538,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
   }
 
   export type MenuUpdateInput = {
@@ -132218,6 +133578,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateInput = {
@@ -132257,6 +133618,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuCreateManyInput = {
@@ -132365,6 +133727,95 @@ export namespace Prisma {
     autoSchedule?: JsonNullValueInput | InputJsonValue
     pricingVariants?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentCreateInput = {
+    id?: string
+    tenantId?: string | null
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menu: MenuCreateNestedOneWithoutAssignmentsInput
+    location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
+    location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentCreateManyInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -132956,12 +134407,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     item: MenuItemCreateNestedOneWithoutChannelAvailabilityInput
+    location?: LocationCreateNestedOneWithoutItemChannelSnoozesInput
   }
 
   export type MenuItemChannelAvailabilityUncheckedCreateInput = {
     id?: string
     itemId: string
     channel: string
+    locationId?: string | null
     isAvailable?: boolean
     expiresAt?: Date | string | null
     snoozeReason?: string | null
@@ -132982,12 +134435,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     item?: MenuItemUpdateOneRequiredWithoutChannelAvailabilityNestedInput
+    location?: LocationUpdateOneWithoutItemChannelSnoozesNestedInput
   }
 
   export type MenuItemChannelAvailabilityUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     itemId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -133001,6 +134456,7 @@ export namespace Prisma {
     id?: string
     itemId: string
     channel: string
+    locationId?: string | null
     isAvailable?: boolean
     expiresAt?: Date | string | null
     snoozeReason?: string | null
@@ -133026,6 +134482,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     itemId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -142996,6 +144453,18 @@ export namespace Prisma {
     isNot?: MerchantSubscriptionWhereInput | null
   }
 
+  export type MenuChannelAssignmentListRelationFilter = {
+    every?: MenuChannelAssignmentWhereInput
+    some?: MenuChannelAssignmentWhereInput
+    none?: MenuChannelAssignmentWhereInput
+  }
+
+  export type MenuItemChannelAvailabilityListRelationFilter = {
+    every?: MenuItemChannelAvailabilityWhereInput
+    some?: MenuItemChannelAvailabilityWhereInput
+    none?: MenuItemChannelAvailabilityWhereInput
+  }
+
   export type PrinterNullableRelationFilter = {
     is?: PrinterWhereInput | null
     isNot?: PrinterWhereInput | null
@@ -143014,6 +144483,14 @@ export namespace Prisma {
   }
 
   export type ChannelPauseOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuChannelAssignmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuItemChannelAvailabilityOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -143571,6 +145048,57 @@ export namespace Prisma {
     isNot?: MenuWhereInput
   }
 
+  export type MenuChannelAssignmentOrderByRelevanceInput = {
+    fields: MenuChannelAssignmentOrderByRelevanceFieldEnum | MenuChannelAssignmentOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MenuChannelAssignmentLocationIdChannelBrandIdCompoundUniqueInput = {
+    locationId: string
+    channel: string
+    brandId: string
+  }
+
+  export type MenuChannelAssignmentCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    publishedAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuChannelAssignmentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    publishedAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuChannelAssignmentMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    publishedAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type MenuItemOnCategoryListRelationFilter = {
     every?: MenuItemOnCategoryWhereInput
     some?: MenuItemOnCategoryWhereInput
@@ -143700,12 +145228,6 @@ export namespace Prisma {
     none?: MenuItemStationWhereInput
   }
 
-  export type MenuItemChannelAvailabilityListRelationFilter = {
-    every?: MenuItemChannelAvailabilityWhereInput
-    some?: MenuItemChannelAvailabilityWhereInput
-    none?: MenuItemChannelAvailabilityWhereInput
-  }
-
   export type ModifierGroupOnItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -143715,10 +145237,6 @@ export namespace Prisma {
   }
 
   export type MenuItemStationOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type MenuItemChannelAvailabilityOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -143938,21 +145456,28 @@ export namespace Prisma {
     isNot?: MenuItemWhereInput
   }
 
+  export type LocationNullableRelationFilter = {
+    is?: LocationWhereInput | null
+    isNot?: LocationWhereInput | null
+  }
+
   export type MenuItemChannelAvailabilityOrderByRelevanceInput = {
     fields: MenuItemChannelAvailabilityOrderByRelevanceFieldEnum | MenuItemChannelAvailabilityOrderByRelevanceFieldEnum[]
     sort: SortOrder
     search: string
   }
 
-  export type MenuItemChannelAvailabilityItemIdChannelCompoundUniqueInput = {
+  export type MenuItemChannelAvailabilityItemIdChannelLocationIdCompoundUniqueInput = {
     itemId: string
     channel: string
+    locationId: string
   }
 
   export type MenuItemChannelAvailabilityCountOrderByAggregateInput = {
     id?: SortOrder
     itemId?: SortOrder
     channel?: SortOrder
+    locationId?: SortOrder
     isAvailable?: SortOrder
     expiresAt?: SortOrder
     snoozeReason?: SortOrder
@@ -143966,6 +145491,7 @@ export namespace Prisma {
     id?: SortOrder
     itemId?: SortOrder
     channel?: SortOrder
+    locationId?: SortOrder
     isAvailable?: SortOrder
     expiresAt?: SortOrder
     snoozeReason?: SortOrder
@@ -143979,6 +145505,7 @@ export namespace Prisma {
     id?: SortOrder
     itemId?: SortOrder
     channel?: SortOrder
+    locationId?: SortOrder
     isAvailable?: SortOrder
     expiresAt?: SortOrder
     snoozeReason?: SortOrder
@@ -144657,11 +146184,6 @@ export namespace Prisma {
     lastSignInAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type LocationNullableRelationFilter = {
-    is?: LocationWhereInput | null
-    isNot?: LocationWhereInput | null
   }
 
   export type BrandNullableRelationFilter = {
@@ -151675,6 +153197,20 @@ export namespace Prisma {
     connect?: MerchantSubscriptionWhereUniqueInput
   }
 
+  export type MenuChannelAssignmentCreateNestedManyWithoutLocationInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput> | MenuChannelAssignmentCreateWithoutLocationInput[] | MenuChannelAssignmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutLocationInput | MenuChannelAssignmentCreateOrConnectWithoutLocationInput[]
+    createMany?: MenuChannelAssignmentCreateManyLocationInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
+  export type MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput> | MenuItemChannelAvailabilityCreateWithoutLocationInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput | MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyLocationInputEnvelope
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -151779,6 +153315,20 @@ export namespace Prisma {
     create?: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
     connectOrCreate?: MerchantSubscriptionCreateOrConnectWithoutLocationInput
     connect?: MerchantSubscriptionWhereUniqueInput
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput> | MenuChannelAssignmentCreateWithoutLocationInput[] | MenuChannelAssignmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutLocationInput | MenuChannelAssignmentCreateOrConnectWithoutLocationInput[]
+    createMany?: MenuChannelAssignmentCreateManyLocationInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput> | MenuItemChannelAvailabilityCreateWithoutLocationInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput | MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyLocationInputEnvelope
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -151969,6 +153519,34 @@ export namespace Prisma {
     delete?: MerchantSubscriptionWhereInput | boolean
     connect?: MerchantSubscriptionWhereUniqueInput
     update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type MenuChannelAssignmentUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput> | MenuChannelAssignmentCreateWithoutLocationInput[] | MenuChannelAssignmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutLocationInput | MenuChannelAssignmentCreateOrConnectWithoutLocationInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: MenuChannelAssignmentCreateManyLocationInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutLocationInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutLocationInput | MenuChannelAssignmentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
+  export type MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput> | MenuItemChannelAvailabilityCreateWithoutLocationInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput | MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput[]
+    upsert?: MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyLocationInputEnvelope
+    set?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    disconnect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    delete?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
   }
 
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
@@ -152171,6 +153749,34 @@ export namespace Prisma {
     update?: XOR<XOR<MerchantSubscriptionUpdateToOneWithWhereWithoutLocationInput, MerchantSubscriptionUpdateWithoutLocationInput>, MerchantSubscriptionUncheckedUpdateWithoutLocationInput>
   }
 
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput> | MenuChannelAssignmentCreateWithoutLocationInput[] | MenuChannelAssignmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutLocationInput | MenuChannelAssignmentCreateOrConnectWithoutLocationInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: MenuChannelAssignmentCreateManyLocationInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutLocationInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutLocationInput | MenuChannelAssignmentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput> | MenuItemChannelAvailabilityCreateWithoutLocationInput[] | MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput | MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput[]
+    upsert?: MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: MenuItemChannelAvailabilityCreateManyLocationInputEnvelope
+    set?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    disconnect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    delete?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    connect?: MenuItemChannelAvailabilityWhereUniqueInput | MenuItemChannelAvailabilityWhereUniqueInput[]
+    update?: MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput | MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput | MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+  }
+
   export type BrandCreateNestedOneWithoutPlatformConnectionsInput = {
     create?: XOR<BrandCreateWithoutPlatformConnectionsInput, BrandUncheckedCreateWithoutPlatformConnectionsInput>
     connectOrCreate?: BrandCreateOrConnectWithoutPlatformConnectionsInput
@@ -152245,6 +153851,13 @@ export namespace Prisma {
     connect?: MenuVersionWhereUniqueInput | MenuVersionWhereUniqueInput[]
   }
 
+  export type MenuChannelAssignmentCreateNestedManyWithoutMenuInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput> | MenuChannelAssignmentCreateWithoutMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
   export type MenuCategoryUncheckedCreateNestedManyWithoutMenuInput = {
     create?: XOR<MenuCategoryCreateWithoutMenuInput, MenuCategoryUncheckedCreateWithoutMenuInput> | MenuCategoryCreateWithoutMenuInput[] | MenuCategoryUncheckedCreateWithoutMenuInput[]
     connectOrCreate?: MenuCategoryCreateOrConnectWithoutMenuInput | MenuCategoryCreateOrConnectWithoutMenuInput[]
@@ -152257,6 +153870,13 @@ export namespace Prisma {
     connectOrCreate?: MenuVersionCreateOrConnectWithoutMenuInput | MenuVersionCreateOrConnectWithoutMenuInput[]
     createMany?: MenuVersionCreateManyMenuInputEnvelope
     connect?: MenuVersionWhereUniqueInput | MenuVersionWhereUniqueInput[]
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput> | MenuChannelAssignmentCreateWithoutMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
   export type EnumMenuTypeFieldUpdateOperationsInput = {
@@ -152312,6 +153932,20 @@ export namespace Prisma {
     deleteMany?: MenuVersionScalarWhereInput | MenuVersionScalarWhereInput[]
   }
 
+  export type MenuChannelAssignmentUpdateManyWithoutMenuNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput> | MenuChannelAssignmentCreateWithoutMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
   export type MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput = {
     create?: XOR<MenuCategoryCreateWithoutMenuInput, MenuCategoryUncheckedCreateWithoutMenuInput> | MenuCategoryCreateWithoutMenuInput[] | MenuCategoryUncheckedCreateWithoutMenuInput[]
     connectOrCreate?: MenuCategoryCreateOrConnectWithoutMenuInput | MenuCategoryCreateOrConnectWithoutMenuInput[]
@@ -152338,6 +153972,48 @@ export namespace Prisma {
     update?: MenuVersionUpdateWithWhereUniqueWithoutMenuInput | MenuVersionUpdateWithWhereUniqueWithoutMenuInput[]
     updateMany?: MenuVersionUpdateManyWithWhereWithoutMenuInput | MenuVersionUpdateManyWithWhereWithoutMenuInput[]
     deleteMany?: MenuVersionScalarWhereInput | MenuVersionScalarWhereInput[]
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput> | MenuChannelAssignmentCreateWithoutMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
+  export type MenuCreateNestedOneWithoutAssignmentsInput = {
+    create?: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutAssignmentsInput
+    connect?: MenuWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutMenuAssignmentsInput = {
+    create?: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutMenuAssignmentsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type MenuUpdateOneRequiredWithoutAssignmentsNestedInput = {
+    create?: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutAssignmentsInput
+    upsert?: MenuUpsertWithoutAssignmentsInput
+    connect?: MenuWhereUniqueInput
+    update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutAssignmentsInput, MenuUpdateWithoutAssignmentsInput>, MenuUncheckedUpdateWithoutAssignmentsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput = {
+    create?: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutMenuAssignmentsInput
+    upsert?: LocationUpsertWithoutMenuAssignmentsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutMenuAssignmentsInput, LocationUpdateWithoutMenuAssignmentsInput>, LocationUncheckedUpdateWithoutMenuAssignmentsInput>
   }
 
   export type MenuCategoryCreatemenuIdsInput = {
@@ -152753,12 +154429,28 @@ export namespace Prisma {
     connect?: MenuItemWhereUniqueInput
   }
 
+  export type LocationCreateNestedOneWithoutItemChannelSnoozesInput = {
+    create?: XOR<LocationCreateWithoutItemChannelSnoozesInput, LocationUncheckedCreateWithoutItemChannelSnoozesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutItemChannelSnoozesInput
+    connect?: LocationWhereUniqueInput
+  }
+
   export type MenuItemUpdateOneRequiredWithoutChannelAvailabilityNestedInput = {
     create?: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
     connectOrCreate?: MenuItemCreateOrConnectWithoutChannelAvailabilityInput
     upsert?: MenuItemUpsertWithoutChannelAvailabilityInput
     connect?: MenuItemWhereUniqueInput
     update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutChannelAvailabilityInput, MenuItemUpdateWithoutChannelAvailabilityInput>, MenuItemUncheckedUpdateWithoutChannelAvailabilityInput>
+  }
+
+  export type LocationUpdateOneWithoutItemChannelSnoozesNestedInput = {
+    create?: XOR<LocationCreateWithoutItemChannelSnoozesInput, LocationUncheckedCreateWithoutItemChannelSnoozesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutItemChannelSnoozesInput
+    upsert?: LocationUpsertWithoutItemChannelSnoozesInput
+    disconnect?: LocationWhereInput | boolean
+    delete?: LocationWhereInput | boolean
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutItemChannelSnoozesInput, LocationUpdateWithoutItemChannelSnoozesInput>, LocationUncheckedUpdateWithoutItemChannelSnoozesInput>
   }
 
   export type MenuCategoryCreateNestedOneWithoutItemsInput = {
@@ -160159,6 +161851,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -160232,6 +161926,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutUserLocationsInput = {
@@ -160378,6 +162074,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -160451,6 +162149,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type UserCreateWithoutBrandsInput = {
@@ -161990,6 +163690,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -162063,6 +163765,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutBrandInput = {
@@ -162111,6 +163815,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
   }
 
   export type MenuUncheckedCreateWithoutBrandInput = {
@@ -162149,6 +163854,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
   }
 
   export type MenuCreateOrConnectWithoutBrandInput = {
@@ -164028,6 +165734,76 @@ export namespace Prisma {
     create: XOR<MerchantSubscriptionCreateWithoutLocationInput, MerchantSubscriptionUncheckedCreateWithoutLocationInput>
   }
 
+  export type MenuChannelAssignmentCreateWithoutLocationInput = {
+    id?: string
+    tenantId?: string | null
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menu: MenuCreateNestedOneWithoutAssignmentsInput
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentCreateOrConnectWithoutLocationInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    create: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type MenuChannelAssignmentCreateManyLocationInputEnvelope = {
+    data: MenuChannelAssignmentCreateManyLocationInput | MenuChannelAssignmentCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MenuItemChannelAvailabilityCreateWithoutLocationInput = {
+    id?: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    item: MenuItemCreateNestedOneWithoutChannelAvailabilityInput
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput = {
+    id?: string
+    itemId: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityCreateOrConnectWithoutLocationInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    create: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput>
+  }
+
+  export type MenuItemChannelAvailabilityCreateManyLocationInputEnvelope = {
+    data: MenuItemChannelAvailabilityCreateManyLocationInput | MenuItemChannelAvailabilityCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -164730,6 +166506,71 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MenuChannelAssignmentUpsertWithWhereUniqueWithoutLocationInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    update: XOR<MenuChannelAssignmentUpdateWithoutLocationInput, MenuChannelAssignmentUncheckedUpdateWithoutLocationInput>
+    create: XOR<MenuChannelAssignmentCreateWithoutLocationInput, MenuChannelAssignmentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type MenuChannelAssignmentUpdateWithWhereUniqueWithoutLocationInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    data: XOR<MenuChannelAssignmentUpdateWithoutLocationInput, MenuChannelAssignmentUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type MenuChannelAssignmentUpdateManyWithWhereWithoutLocationInput = {
+    where: MenuChannelAssignmentScalarWhereInput
+    data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type MenuChannelAssignmentScalarWhereInput = {
+    AND?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+    OR?: MenuChannelAssignmentScalarWhereInput[]
+    NOT?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+    id?: StringFilter<"MenuChannelAssignment"> | string
+    tenantId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    menuId?: StringFilter<"MenuChannelAssignment"> | string
+    locationId?: StringFilter<"MenuChannelAssignment"> | string
+    brandId?: StringFilter<"MenuChannelAssignment"> | string
+    channel?: StringFilter<"MenuChannelAssignment"> | string
+    publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUpsertWithWhereUniqueWithoutLocationInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    update: XOR<MenuItemChannelAvailabilityUpdateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedUpdateWithoutLocationInput>
+    create: XOR<MenuItemChannelAvailabilityCreateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedCreateWithoutLocationInput>
+  }
+
+  export type MenuItemChannelAvailabilityUpdateWithWhereUniqueWithoutLocationInput = {
+    where: MenuItemChannelAvailabilityWhereUniqueInput
+    data: XOR<MenuItemChannelAvailabilityUpdateWithoutLocationInput, MenuItemChannelAvailabilityUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type MenuItemChannelAvailabilityUpdateManyWithWhereWithoutLocationInput = {
+    where: MenuItemChannelAvailabilityScalarWhereInput
+    data: XOR<MenuItemChannelAvailabilityUpdateManyMutationInput, MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type MenuItemChannelAvailabilityScalarWhereInput = {
+    AND?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+    OR?: MenuItemChannelAvailabilityScalarWhereInput[]
+    NOT?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
+    id?: StringFilter<"MenuItemChannelAvailability"> | string
+    itemId?: StringFilter<"MenuItemChannelAvailability"> | string
+    channel?: StringFilter<"MenuItemChannelAvailability"> | string
+    locationId?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
+    expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
+    snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    snoozedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
+    createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -165119,6 +166960,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -165192,6 +167035,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -165380,6 +167225,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -165453,6 +167300,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationCreateWithoutIntegrationsInput = {
@@ -165520,6 +167369,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -165593,6 +167444,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutIntegrationsInput = {
@@ -165676,6 +167529,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -165749,6 +167604,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandCreateWithoutMenusInput = {
@@ -165932,6 +167789,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MenuChannelAssignmentCreateWithoutMenuInput = {
+    id?: string
+    tenantId?: string | null
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateWithoutMenuInput = {
+    id?: string
+    tenantId?: string | null
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentCreateOrConnectWithoutMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    create: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput>
+  }
+
+  export type MenuChannelAssignmentCreateManyMenuInputEnvelope = {
+    data: MenuChannelAssignmentCreateManyMenuInput | MenuChannelAssignmentCreateManyMenuInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BrandUpsertWithoutMenusInput = {
     update: XOR<BrandUpdateWithoutMenusInput, BrandUncheckedUpdateWithoutMenusInput>
     create: XOR<BrandCreateWithoutMenusInput, BrandUncheckedCreateWithoutMenusInput>
@@ -166106,6 +167997,498 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MenuVersion"> | Date | string
   }
 
+  export type MenuChannelAssignmentUpsertWithWhereUniqueWithoutMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    update: XOR<MenuChannelAssignmentUpdateWithoutMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutMenuInput>
+    create: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput>
+  }
+
+  export type MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    data: XOR<MenuChannelAssignmentUpdateWithoutMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutMenuInput>
+  }
+
+  export type MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput = {
+    where: MenuChannelAssignmentScalarWhereInput
+    data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutMenuInput>
+  }
+
+  export type MenuCreateWithoutAssignmentsInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutMenusInput
+    categories?: MenuCategoryCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuUncheckedCreateWithoutAssignmentsInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuCreateOrConnectWithoutAssignmentsInput = {
+    where: MenuWhereUniqueInput
+    create: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
+  }
+
+  export type LocationCreateWithoutMenuAssignmentsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutMenuAssignmentsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutMenuAssignmentsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
+  }
+
+  export type MenuUpsertWithoutAssignmentsInput = {
+    update: XOR<MenuUpdateWithoutAssignmentsInput, MenuUncheckedUpdateWithoutAssignmentsInput>
+    create: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
+    where?: MenuWhereInput
+  }
+
+  export type MenuUpdateToOneWithWhereWithoutAssignmentsInput = {
+    where?: MenuWhereInput
+    data: XOR<MenuUpdateWithoutAssignmentsInput, MenuUncheckedUpdateWithoutAssignmentsInput>
+  }
+
+  export type MenuUpdateWithoutAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
+    categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+  }
+
+  export type MenuUncheckedUpdateWithoutAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+  }
+
+  export type LocationUpsertWithoutMenuAssignmentsInput = {
+    update: XOR<LocationUpdateWithoutMenuAssignmentsInput, LocationUncheckedUpdateWithoutMenuAssignmentsInput>
+    create: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutMenuAssignmentsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutMenuAssignmentsInput, LocationUncheckedUpdateWithoutMenuAssignmentsInput>
+  }
+
+  export type LocationUpdateWithoutMenuAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutMenuAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
   export type MenuCreateWithoutCategoriesInput = {
     id?: string
     locationId?: string | null
@@ -166142,6 +168525,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutMenusInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
   }
 
   export type MenuUncheckedCreateWithoutCategoriesInput = {
@@ -166180,6 +168564,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
   }
 
   export type MenuCreateOrConnectWithoutCategoriesInput = {
@@ -166280,6 +168665,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutCategoriesInput = {
@@ -166318,6 +168704,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -166504,11 +168891,13 @@ export namespace Prisma {
     snoozedBy?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    location?: LocationCreateNestedOneWithoutItemChannelSnoozesInput
   }
 
   export type MenuItemChannelAvailabilityUncheckedCreateWithoutItemInput = {
     id?: string
     channel: string
+    locationId?: string | null
     isAvailable?: boolean
     expiresAt?: Date | string | null
     snoozeReason?: string | null
@@ -166671,22 +169060,6 @@ export namespace Prisma {
     data: XOR<MenuItemChannelAvailabilityUpdateManyMutationInput, MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemInput>
   }
 
-  export type MenuItemChannelAvailabilityScalarWhereInput = {
-    AND?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
-    OR?: MenuItemChannelAvailabilityScalarWhereInput[]
-    NOT?: MenuItemChannelAvailabilityScalarWhereInput | MenuItemChannelAvailabilityScalarWhereInput[]
-    id?: StringFilter<"MenuItemChannelAvailability"> | string
-    itemId?: StringFilter<"MenuItemChannelAvailability"> | string
-    channel?: StringFilter<"MenuItemChannelAvailability"> | string
-    isAvailable?: BoolFilter<"MenuItemChannelAvailability"> | boolean
-    expiresAt?: DateTimeNullableFilter<"MenuItemChannelAvailability"> | Date | string | null
-    snoozeReason?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
-    snoozedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
-    snoozedBy?: StringNullableFilter<"MenuItemChannelAvailability"> | string | null
-    createdAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
-    updatedAt?: DateTimeFilter<"MenuItemChannelAvailability"> | Date | string
-  }
-
   export type LocationCreateWithoutChannelPausesInput = {
     id?: string
     name: string
@@ -166752,6 +169125,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -166825,6 +169200,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutChannelPausesInput = {
@@ -166908,6 +169285,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -166981,6 +169360,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuItemCreateWithoutChannelAvailabilityInput = {
@@ -167080,6 +169461,155 @@ export namespace Prisma {
   export type MenuItemCreateOrConnectWithoutChannelAvailabilityInput = {
     where: MenuItemWhereUniqueInput
     create: XOR<MenuItemCreateWithoutChannelAvailabilityInput, MenuItemUncheckedCreateWithoutChannelAvailabilityInput>
+  }
+
+  export type LocationCreateWithoutItemChannelSnoozesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+  }
+
+  export type LocationUncheckedCreateWithoutItemChannelSnoozesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutItemChannelSnoozesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutItemChannelSnoozesInput, LocationUncheckedCreateWithoutItemChannelSnoozesInput>
   }
 
   export type MenuItemUpsertWithoutChannelAvailabilityInput = {
@@ -167185,6 +169715,161 @@ export namespace Prisma {
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+  }
+
+  export type LocationUpsertWithoutItemChannelSnoozesInput = {
+    update: XOR<LocationUpdateWithoutItemChannelSnoozesInput, LocationUncheckedUpdateWithoutItemChannelSnoozesInput>
+    create: XOR<LocationCreateWithoutItemChannelSnoozesInput, LocationUncheckedCreateWithoutItemChannelSnoozesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutItemChannelSnoozesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutItemChannelSnoozesInput, LocationUncheckedUpdateWithoutItemChannelSnoozesInput>
+  }
+
+  export type LocationUpdateWithoutItemChannelSnoozesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutItemChannelSnoozesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type MenuCategoryCreateWithoutItemsInput = {
@@ -169264,6 +171949,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
   }
 
   export type MenuUncheckedCreateWithoutVersionsInput = {
@@ -169302,6 +171988,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
   }
 
   export type MenuCreateOrConnectWithoutVersionsInput = {
@@ -169356,6 +172043,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutVersionsInput = {
@@ -169394,6 +172082,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
   }
 
   export type TenantCreateWithoutCustomersInput = {
@@ -169972,6 +172661,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -170045,6 +172736,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -170227,6 +172920,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -170300,6 +172995,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDirectOrderingConfigInput = {
@@ -171132,6 +173829,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -171205,6 +173904,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDeliveryZonesInput = {
@@ -171387,6 +174088,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -171460,6 +174163,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type BrandUpsertWithoutDeliveryZonesInput = {
@@ -171632,6 +174337,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -171705,6 +174412,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPaymentConfigInput = {
@@ -171788,6 +174497,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -171861,6 +174572,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantCreateWithoutOrdersInput = {
@@ -171991,6 +174704,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -172064,6 +174779,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutOrdersInput = {
@@ -172644,6 +175361,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -172717,6 +175436,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type CustomerUpsertWithoutOrdersInput = {
@@ -173818,6 +176539,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -173891,6 +176614,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutKdsScreensInput = {
@@ -174002,6 +176727,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -174075,6 +176802,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsTicketUpsertWithWhereUniqueWithoutScreenInput = {
@@ -174546,6 +177275,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -174619,6 +177350,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintersInput = {
@@ -174853,6 +177586,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -174925,6 +177660,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutReceiptPrinterInput = {
@@ -175003,6 +177740,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
   }
@@ -175075,6 +177814,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDispatchPrinterInput = {
@@ -175163,6 +177904,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -175236,6 +177979,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrintAgentUpsertWithoutPrintersInput = {
@@ -176305,6 +179050,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -176378,6 +179125,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrinterStationsInput = {
@@ -176704,6 +179453,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
   }
@@ -176776,6 +179527,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutDefaultKitchenStationInput = {
@@ -176999,6 +179752,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -177072,6 +179827,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithoutStationsDefaultForInput = {
@@ -177387,6 +180144,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -177460,6 +180219,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
     merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutPrintAgentsInput = {
@@ -177766,6 +180527,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -177839,6 +180602,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type PrinterUpsertWithWhereUniqueWithoutAgentInput = {
@@ -183227,6 +185992,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -183300,6 +186067,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
     channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
   }
 
   export type LocationCreateOrConnectWithoutMerchantSubscriptionInput = {
@@ -183452,6 +186221,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -183525,6 +186296,8 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type TenantSubscriptionCreateWithoutInvoicesInput = {
@@ -186805,6 +189578,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -186878,6 +189653,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutBrandInput = {
@@ -186973,6 +189750,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutBrandInput = {
@@ -187011,6 +189789,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateManyWithoutBrandInput = {
@@ -187884,6 +190663,31 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MenuChannelAssignmentCreateManyLocationInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuItemChannelAvailabilityCreateManyLocationInput = {
+    id?: string
+    itemId: string
+    channel: string
+    isAvailable?: boolean
+    expiresAt?: Date | string | null
+    snoozeReason?: string | null
+    snoozedAt?: Date | string
+    snoozedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type IntegrationUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -188567,6 +191371,81 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MenuChannelAssignmentUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    item?: MenuItemUpdateOneRequiredWithoutChannelAvailabilityNestedInput
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    snoozedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type MenuCategoryCreateManyMenuInput = {
     id?: string
     name: string
@@ -188594,6 +191473,18 @@ export namespace Prisma {
     label?: string | null
     createdBy?: string | null
     createdAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentCreateManyMenuInput = {
+    id?: string
+    tenantId?: string | null
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type MenuCategoryUpdateWithoutMenuInput = {
@@ -188687,6 +191578,42 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MenuChannelAssignmentUpdateWithoutMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateWithoutMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type MenuItemOnCategoryCreateManyCategoryInput = {
     itemId: string
     sortOrder?: number
@@ -188771,6 +191698,7 @@ export namespace Prisma {
   export type MenuItemChannelAvailabilityCreateManyItemInput = {
     id?: string
     channel: string
+    locationId?: string | null
     isAvailable?: boolean
     expiresAt?: Date | string | null
     snoozeReason?: string | null
@@ -188877,11 +191805,13 @@ export namespace Prisma {
     snoozedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneWithoutItemChannelSnoozesNestedInput
   }
 
   export type MenuItemChannelAvailabilityUncheckedUpdateWithoutItemInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188894,6 +191824,7 @@ export namespace Prisma {
   export type MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     snoozeReason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -190319,6 +193250,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -190391,6 +193324,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutReceiptPrinterInput = {
@@ -190516,6 +193451,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
   }
@@ -190588,6 +193525,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDispatchPrinterInput = {
@@ -191036,6 +193975,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
   }
@@ -191108,6 +194049,8 @@ export namespace Prisma {
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
     channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
     merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type LocationUncheckedUpdateManyWithoutDefaultKitchenStationInput = {
@@ -192684,6 +195627,10 @@ export namespace Prisma {
      * @deprecated Use MenuDefaultArgs instead
      */
     export type MenuArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MenuChannelAssignmentDefaultArgs instead
+     */
+    export type MenuChannelAssignmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuChannelAssignmentDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuCategoryDefaultArgs instead
      */
