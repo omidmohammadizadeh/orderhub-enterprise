@@ -34,6 +34,38 @@ interface OrderStatusChangedEvent {
 
 const SCOPES = ["eats.order"];
 
+// Valid Uber deny/cancel reason types (Order Fulfillment API deny_reason enum,
+// shared by cancel). Map our internal reason text/code onto one of these.
+const UBER_REASON_TYPES = new Set([
+  "ITEM_ISSUE",
+  "KITCHEN_CLOSED",
+  "CUSTOMER_CALLED_TO_CANCEL",
+  "RESTAURANT_TOO_BUSY",
+  "ORDER_VALIDATION",
+  "STORE_CLOSED",
+  "TECHNICAL_FAILURE",
+  "POS_NOT_READY",
+  "POS_OFFLINE",
+  "CAPACITY",
+  "ADDRESS",
+  "SPECIAL_INSTRUCTIONS",
+  "PRICING",
+  "UNKNOWN",
+  "OTHER",
+]);
+
+/** Best-effort map of our free-text/coded cancel reason → a valid Uber type. */
+function mapReasonType(reason: string | null | undefined, fallback: string): string {
+  if (!reason) return fallback;
+  const up = reason.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  if (UBER_REASON_TYPES.has(up)) return up;
+  if (/OUT.?OF.?(ITEM|STOCK)|MISSING|UNAVAILABLE/.test(up)) return "ITEM_ISSUE";
+  if (/CLOSED|CLOSING/.test(up)) return "KITCHEN_CLOSED";
+  if (/BUSY|CAPACITY/.test(up)) return "RESTAURANT_TOO_BUSY";
+  if (/CUSTOMER/.test(up)) return "CUSTOMER_CALLED_TO_CANCEL";
+  return fallback;
+}
+
 @Injectable()
 export class UberEatsOrderSyncService {
   private readonly logger = new Logger(UberEatsOrderSyncService.name);
@@ -67,6 +99,8 @@ export class UberEatsOrderSyncService {
           viaHubrise: true,
           externalId: true,
           orderNumber: true,
+          cancelReason: true,
+          fulfillmentType: true,
           location: { select: { prepTime: true } },
         },
       });
@@ -136,6 +170,8 @@ export class UberEatsOrderSyncService {
       id: string;
       externalId: string | null;
       orderNumber: number | null;
+      cancelReason?: string | null;
+      fulfillmentType?: string | null;
       location: { prepTime: number | null } | null;
     },
     toStatus: string,
@@ -172,6 +208,7 @@ export class UberEatsOrderSyncService {
         return { action: "accepted", httpStatus: meta.status };
       }
       case "REJECTED": {
+        const type = mapReasonType(order.cancelReason, "RESTAURANT_TOO_BUSY");
         await this.tolerateConflict(
           () =>
             this.client.request("POST", `/v1/delivery/order/${id}/deny`, {
@@ -179,8 +216,8 @@ export class UberEatsOrderSyncService {
               meta,
               body: {
                 deny_reason: {
-                  type: "RESTAURANT_TOO_BUSY",
-                  info: "Rejected on the restaurant POS",
+                  type,
+                  info: order.cancelReason || "Rejected on the restaurant POS",
                 },
               },
             }),
@@ -190,6 +227,7 @@ export class UberEatsOrderSyncService {
         return { action: "denied", httpStatus: meta.status };
       }
       case "CANCELLED": {
+        const type = mapReasonType(order.cancelReason, "OTHER");
         await this.tolerateConflict(
           () =>
             this.client.request("POST", `/v1/delivery/order/${id}/cancel`, {
@@ -197,8 +235,8 @@ export class UberEatsOrderSyncService {
               meta,
               body: {
                 cancellation_reason: {
-                  type: "OTHER",
-                  info: "Cancelled by the restaurant",
+                  type,
+                  info: order.cancelReason || "Cancelled by the restaurant",
                 },
               },
             }),
@@ -208,21 +246,57 @@ export class UberEatsOrderSyncService {
         return { action: "cancelled", httpStatus: meta.status };
       }
       case "READY": {
-        await this.tolerateConflict(
-          () =>
-            this.client.request("POST", `/v1/delivery/order/${id}/ready`, {
-              scopes: SCOPES,
-              meta,
-              body: {},
-            }),
-          "ready",
-          order.externalId!,
-        );
+        await this.markReady(id, order.externalId!, meta);
         return { action: "ready", httpStatus: meta.status };
+      }
+      case "COMPLETED": {
+        // Uber has NO "collected" endpoint — a pickup order completes when
+        // the customer collects it (via the pickup PIN). The correct POS
+        // signal is "ready for pickup", so marking collected sends /ready
+        // (idempotent; 409 if already ready). Uber then closes the order on
+        // collection. Base44-confirmed: markCollected → /ready.
+        await this.markReady(id, order.externalId!, meta);
+        return { action: "ready (collected)", httpStatus: meta.status };
       }
       default:
         return null; // PREPARING/driver states have no Uber-side call
     }
+  }
+
+  /**
+   * Mark an order ready for pickup. Primary endpoint is
+   * POST /v1/delivery/order/{id}/ready; on 404 fall back to the legacy
+   * POST /v1/eats/orders/{id}/mark_ready_for_pickup (Base44 uses the same
+   * dual-endpoint approach). Empty body, 409-tolerant.
+   */
+  private async markReady(
+    id: string,
+    externalId: string,
+    meta: { status?: number },
+  ): Promise<void> {
+    await this.tolerateConflict(
+      async () => {
+        try {
+          await this.client.request(
+            "POST",
+            `/v1/delivery/order/${id}/ready`,
+            { scopes: SCOPES, meta, body: {} },
+          );
+        } catch (err: any) {
+          if (String(err?.message ?? "").includes("404")) {
+            await this.client.request(
+              "POST",
+              `/v1/eats/orders/${id}/mark_ready_for_pickup`,
+              { scopes: SCOPES, meta, body: {} },
+            );
+            return;
+          }
+          throw err;
+        }
+      },
+      "ready",
+      externalId,
+    );
   }
 
   /**
