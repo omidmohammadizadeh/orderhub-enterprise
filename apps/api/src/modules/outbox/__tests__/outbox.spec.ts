@@ -58,9 +58,10 @@ describe("OutboxService", () => {
       expect((result.payload as any).cancelReason).toBe("kitchen_closed");
     });
 
-    it("generates idempotencyKey from orderId + toStatus", () => {
+    it("generates idempotencyKey prefixed with orderId + toStatus (+ nonce)", () => {
       const r = service.forStatusChanged("t", "l", "order-abc", "PENDING", "ACCEPTED");
-      expect(r.idempotencyKey).toBe("status-order-abc-ACCEPTED");
+      // Nonce suffix keeps re-transitions (accept → re-offer → accept) unique.
+      expect(r.idempotencyKey).toMatch(/^status-order-abc-ACCEPTED-/);
     });
 
     it("produces unique keys for each valid transition", () => {
@@ -68,6 +69,12 @@ describe("OutboxService", () => {
         (s) => service.forStatusChanged("t", "l", "o-1", "PENDING", s).idempotencyKey,
       );
       expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it("produces a unique key each time the SAME transition repeats", () => {
+      const a = service.forStatusChanged("t", "l", "o-1", "PENDING", "ACCEPTED").idempotencyKey;
+      const b = service.forStatusChanged("t", "l", "o-1", "PENDING", "ACCEPTED").idempotencyKey;
+      expect(a).not.toBe(b);
     });
   });
 });

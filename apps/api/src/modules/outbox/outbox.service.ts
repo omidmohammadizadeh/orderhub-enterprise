@@ -60,7 +60,14 @@ export class OutboxService {
         toStatus,
         ...(cancelReason ? { cancelReason } : {}),
       } as Prisma.InputJsonValue,
-      idempotencyKey: `status-${orderId}-${toStatus}`,
+      // Nonce so an order that legitimately reaches the same status twice in
+      // its lifetime (e.g. accept → customer re-offer → PENDING → accept
+      // again) doesn't collide on this unique key and abort the transaction.
+      // Concurrent duplicate transitions are already prevented by the
+      // optimistic-concurrency guard (updatedAt in the status-update where).
+      idempotencyKey: `status-${orderId}-${toStatus}-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`,
     };
   }
 }
