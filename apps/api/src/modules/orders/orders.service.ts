@@ -33,9 +33,12 @@ import type { CanonicalOrder } from "@orderhub/shared";
 const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
 
 // Roles that see every location/brand in their tenant (no per-assignment
-// scoping). Everyone else is constrained to their UserLocation/UserBrand
-// rows. Mirrors dispatch.service's ADMIN_ROLES.
-const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"];
+// scoping). Everyone else — including the Phase AR "OWNER" team role,
+// which is scoped to specific brands/locations — is constrained to their
+// UserLocation/UserBrand rows. Matches the TENANT_WIDE_ROLES set used by
+// the locations + brands controllers so the switcher, orders, and
+// settings all agree on who is tenant-wide.
+const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 
 const ORDER_INCLUDE = {
   items: true,

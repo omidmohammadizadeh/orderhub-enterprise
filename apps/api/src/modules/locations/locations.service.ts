@@ -241,12 +241,11 @@ export class LocationsService {
   ) {
     let allowedLocationIds: string[] | null = null;
     if (userId) {
-      const scoped = await (this.prisma as any).userLocation.findMany({
-        where: { userId },
-        select: { locationId: true },
-      });
-      allowedLocationIds = scoped.map((r: any) => r.locationId);
-      if (allowedLocationIds!.length === 0) return [];
+      allowedLocationIds = await this.accessibleLocationIds(tenantId, userId);
+      // No tenant-wide fallback — a scoped user with zero assignments sees
+      // zero locations (AccessGate shows the no-access screen), never the
+      // whole tenant.
+      if (allowedLocationIds.length === 0) return [];
     }
 
     const rows = await this.prisma.location.findMany({
@@ -269,7 +268,56 @@ export class LocationsService {
     }));
   }
 
-  async findOne(locationId: string, tenantId: string) {
+  /**
+   * Phase AR — the locations a user may see: explicit UserLocation rows ∪
+   * the locations their assigned brands (UserBrand) operate at. Mirrors
+   * OrdersService.resolveOrderScope so the switcher, orders board, and
+   * location settings all agree on the user's accessible set. Tenant-wide
+   * roles never call this (the controller passes no userId for them).
+   */
+  private async accessibleLocationIds(
+    tenantId: string,
+    userId: string,
+  ): Promise<string[]> {
+    const [locRows, brandRows] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locRows.map((r: any) => r.locationId));
+    const brandIds: string[] = brandRows.map((r: any) => r.brandId);
+    if (brandIds.length) {
+      const brands = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId },
+        select: {
+          primaryLocationId: true,
+          locations: { select: { id: true } },
+        },
+      });
+      for (const b of brands) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
+  async findOne(locationId: string, tenantId: string, userId?: string) {
+    // Phase AR — scope settings the same way as the switcher: a non-
+    // tenant-wide user can only open the settings of a location they're
+    // assigned to (UserLocation, or a location one of their brands runs
+    // at). Controllers pass userId only for scoped roles.
+    if (userId) {
+      const allowed = await this.accessibleLocationIds(tenantId, userId);
+      if (!allowed.includes(locationId)) {
+        throw new NotFoundException("Location not found");
+      }
+    }
     // Phase AN follow-up: keep this lean. The edit modal only needs the
     // location's own columns + brand summary; platform connections,
     // printers, KDS, integrations are loaded by their own panels when

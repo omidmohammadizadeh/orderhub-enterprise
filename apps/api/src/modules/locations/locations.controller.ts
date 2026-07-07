@@ -53,7 +53,13 @@ export class LocationsController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.locations.findOne(locationId, user.tenantId);
+    // Phase AR — scope settings to the user's accessible locations, same
+    // as the switcher list. Tenant-wide roles pass no userId (see all).
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
+    const userId = TENANT_WIDE_ROLES.has(user.role as string)
+      ? undefined
+      : user.userId;
+    return this.locations.findOne(locationId, user.tenantId, userId);
   }
 
   @Post()
