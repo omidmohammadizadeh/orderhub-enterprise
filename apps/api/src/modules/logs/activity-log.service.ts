@@ -110,8 +110,42 @@ export class ActivityLogService {
   }
 
   /** Cursor-paginated feed for the dashboard Logs page. */
+  // Locations a user may see logs for: tenant-wide admins see all (null =
+  // no constraint); everyone else is limited to their UserLocation ∪ their
+  // brands' locations. Mirrors the app-wide scoping.
+  private async accessibleLocationIds(user: {
+    userId: string;
+    tenantId: string;
+    role: string;
+  }): Promise<string[] | null> {
+    if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(user.role)) return null;
+    const [locRows, brandRows] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId: user.userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locRows.map((r: any) => r.locationId));
+    const brandIds: string[] = brandRows.map((r: any) => r.brandId);
+    if (brandIds.length) {
+      const brands = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId: user.tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brands) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
+  }
+
   async list(
-    tenantId: string,
+    user: { userId: string; tenantId: string; role: string },
     opts: {
       category?: string;
       channel?: string;
@@ -122,16 +156,31 @@ export class ActivityLogService {
     } = {},
   ) {
     const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+    // Scope to the locations this user can see. A requested locationId only
+    // narrows within that set; one outside it yields nothing.
+    const allowed = await this.accessibleLocationIds(user);
+    if (allowed !== null && allowed.length === 0) {
+      return { entries: [], nextCursor: null };
+    }
+    let locationFilter: any = undefined;
+    if (opts.locationId) {
+      if (allowed !== null && !allowed.includes(opts.locationId)) {
+        return { entries: [], nextCursor: null };
+      }
+      locationFilter = opts.locationId;
+    } else if (allowed !== null) {
+      locationFilter = { in: allowed };
+    }
     const rows = await (this.prisma as any).activityLog.findMany({
       where: {
-        tenantId,
+        tenantId: user.tenantId,
         ...(opts.category ? { category: opts.category } : {}),
         // Comma-separated channel list — the UI's "Online ordering" filter
         // covers both ONLINE and DIRECT platform tags with one selection.
         ...(opts.channel
           ? { channel: { in: opts.channel.split(",").filter(Boolean) } }
           : {}),
-        ...(opts.locationId ? { locationId: opts.locationId } : {}),
+        ...(locationFilter !== undefined ? { locationId: locationFilter } : {}),
         ...(opts.status ? { status: opts.status } : {}),
       },
       orderBy: { createdAt: "desc" },

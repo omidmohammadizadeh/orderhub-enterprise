@@ -25,13 +25,16 @@ export class LogsController {
     @Query("cursor") cursor?: string,
     @Query("limit") limit?: string,
   ) {
-    return this.activity.list(user.tenantId, {
+    return this.activity.list(
+      { userId: user.userId, tenantId: user.tenantId, role: user.role as string },
+      {
       category: category || undefined,
       channel: channel || undefined,
       locationId: locationId || undefined,
       status: status || undefined,
       cursor: cursor || undefined,
       limit: limit ? Number(limit) : undefined,
-    });
+      },
+    );
   }
 }

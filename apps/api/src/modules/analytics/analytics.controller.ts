@@ -30,7 +30,7 @@ function thirtyDaysAgo(): Date {
 
 @ApiTags("analytics")
 @ApiBearerAuth()
-@Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+@Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
 @Controller({ path: "analytics", version: "1" })
 export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}

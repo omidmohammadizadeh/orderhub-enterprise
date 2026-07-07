@@ -29,7 +29,15 @@ export class MarketingController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("brandId") brandId?: string,
   ) {
-    return this.svc.list({ tenantId: user.tenantId, brandId });
+    return this.svc.list({
+      tenantId: user.tenantId,
+      brandId,
+      user: {
+        userId: user.userId,
+        tenantId: user.tenantId,
+        role: user.role as string,
+      },
+    });
   }
 
   // Receipt QR offer for marketplace tickets — storefront URL + a live
@@ -82,6 +90,7 @@ export class MarketingController {
     return this.svc.create({
       tenantId: user.tenantId,
       userId: user.userId,
+      role: user.role as string,
       dto,
     });
   }

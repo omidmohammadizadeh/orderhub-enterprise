@@ -47,7 +47,6 @@ const DELIVERY_FULFILLMENTS: FulfillmentType[] = [
   FulfillmentType.PLATFORM_COURIER,
 ];
 
-const ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"];
 const DEFAULT_PREP_MINUTES = 20;
 
 export interface DispatchLocationPin {
@@ -170,9 +169,13 @@ export class DispatchService {
     private readonly expoPush: ExpoPushService,
   ) {}
 
-  /** Locations this user is allowed to see on the dispatch map. */
+  /** Locations this user is allowed to see on the dispatch map. Only the
+   *  tenant-wide admins (PLATFORM_ADMIN / TENANT_OWNER) see every location;
+   *  everyone else — including the scoped OWNER (location owner) role — is
+   *  constrained to their UserLocation ∪ the locations their assigned
+   *  brands (UserBrand) operate at. Matches the app-wide scoping. */
   private async resolveAccessibleLocationIds(user: AuthenticatedUser): Promise<string[]> {
-    if (ADMIN_ROLES.includes(user.role)) {
+    if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(user.role)) {
       // Location is tenant-scoped through its brand (no direct tenantId column).
       const locs = await this.prisma.location.findMany({
         where: { brand: { tenantId: user.tenantId } },
@@ -180,11 +183,32 @@ export class DispatchService {
       });
       return locs.map((l) => l.id);
     }
-    const access = await this.prisma.userLocation.findMany({
-      where: { userId: user.userId },
-      select: { locationId: true },
-    });
-    return access.map((a) => a.locationId);
+    const [locRows, brandRows] = await Promise.all([
+      this.prisma.userLocation.findMany({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId: user.userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const ids = new Set<string>(locRows.map((a) => a.locationId));
+    const brandIds: string[] = brandRows.map((b: any) => b.brandId);
+    if (brandIds.length) {
+      const brands = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId: user.tenantId },
+        select: {
+          primaryLocationId: true,
+          locations: { select: { id: true } },
+        },
+      });
+      for (const b of brands) {
+        if (b.primaryLocationId) ids.add(b.primaryLocationId);
+        for (const l of b.locations) ids.add(l.id);
+      }
+    }
+    return Array.from(ids);
   }
 
   /** Build a free-form address string from an order's structured + JSON fields. */
@@ -368,14 +392,15 @@ export class DispatchService {
         select: orderSelect,
         orderBy: { updatedAt: "desc" },
       }),
-      // Drivers are a tenant-wide fleet, not bound to one location, so we scope
-      // them by tenant only — NOT by the selected order-location scope. (A driver
-      // goes online pinned to the tenant's oldest location; filtering by scope
-      // would hide them whenever the operator views a different location, which
-      // is why "0 drivers online" showed even though the Fleet tab listed them.)
+      // Only show drivers clocked into a location in the current scope —
+      // DriverPresence.locationId is the location a driver is clocked into
+      // (null when offline). So the map for location A shows A's drivers,
+      // not the whole tenant fleet, and a scoped operator never sees other
+      // locations' drivers.
       this.prisma.driverPresence.findMany({
         where: {
           tenantId: user.tenantId,
+          locationId: { in: scope },
           status: { in: [DriverPresenceStatus.ONLINE, DriverPresenceStatus.ON_JOB] },
         },
         include: { driver: { select: { firstName: true, lastName: true } } },

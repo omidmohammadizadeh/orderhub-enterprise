@@ -35,15 +35,71 @@ export class MarketingService {
   // ─── Reads ─────────────────────────────────────────────────────────
 
   /**
-   * List every campaign in the tenant. When brandId is provided, scope
-   * to that brand. Operators see drafts + active + paused + ended;
-   * filtering is a UI concern.
+   * Brands a user may see/manage campaigns for. Tenant-wide admins see all
+   * (null = no constraint); everyone else is limited to their UserBrand ∪
+   * the brands at their UserLocation set — so a single-location manager only
+   * sees their location's brand, a multi-location user all of theirs.
    */
-  async list(args: { tenantId: string; brandId?: string }) {
+  private async accessibleBrandIds(user?: {
+    userId: string;
+    tenantId: string;
+    role: string;
+  }): Promise<string[] | null> {
+    if (!user || ["PLATFORM_ADMIN", "TENANT_OWNER"].includes(user.role)) {
+      return null;
+    }
+    const [brandRows, locRows] = await Promise.all([
+      (this.prisma as any).userBrand.findMany({
+        where: { userId: user.userId },
+        select: { brandId: true },
+      }),
+      (this.prisma as any).userLocation.findMany({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      }),
+    ]);
+    const ids = new Set<string>(brandRows.map((b: any) => b.brandId));
+    const locationIds: string[] = locRows.map((l: any) => l.locationId);
+    if (locationIds.length) {
+      const brands = await (this.prisma as any).brand.findMany({
+        where: {
+          tenantId: user.tenantId,
+          deletedAt: null,
+          OR: [
+            { primaryLocationId: { in: locationIds } },
+            { locations: { some: { id: { in: locationIds } } } },
+          ],
+        },
+        select: { id: true },
+      });
+      for (const b of brands) ids.add(b.id);
+    }
+    return Array.from(ids);
+  }
+
+  /**
+   * List campaigns the user can see. Tenant-wide admins see the whole
+   * tenant; scoped users only their accessible brands. A brandId filter
+   * only narrows within that set.
+   */
+  async list(args: {
+    tenantId: string;
+    brandId?: string;
+    user?: { userId: string; tenantId: string; role: string };
+  }) {
+    const allowed = await this.accessibleBrandIds(args.user);
+    if (allowed !== null && allowed.length === 0) return [];
+    let brandFilter: any = undefined;
+    if (args.brandId) {
+      if (allowed !== null && !allowed.includes(args.brandId)) return [];
+      brandFilter = args.brandId;
+    } else if (allowed !== null) {
+      brandFilter = { in: allowed };
+    }
     return (this.prisma as any).marketingCampaign.findMany({
       where: {
         tenantId: args.tenantId,
-        ...(args.brandId && { brandId: args.brandId }),
+        ...(brandFilter !== undefined && { brandId: brandFilter }),
       },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     });
@@ -256,9 +312,23 @@ export class MarketingService {
   async create(args: {
     tenantId: string;
     userId?: string;
+    role?: string;
     dto: CreateCampaignDto;
   }) {
     await this.assertBrandAccess(args.dto.brandId, args.tenantId);
+    // A scoped user can only create campaigns for brands they can access.
+    if (args.userId && args.role) {
+      const allowed = await this.accessibleBrandIds({
+        userId: args.userId,
+        tenantId: args.tenantId,
+        role: args.role,
+      });
+      if (allowed !== null && !allowed.includes(args.dto.brandId)) {
+        throw new BadRequestException(
+          "You don't have access to that brand.",
+        );
+      }
+    }
     this.assertTypeFields(args.dto.type, args.dto);
     const created = await (this.prisma as any).marketingCampaign.create({
       data: {
