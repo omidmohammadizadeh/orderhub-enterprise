@@ -2,7 +2,7 @@
 
 // Printers tab — list + add wizard + per-row settings drawer.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   hasNativeBridge,
@@ -260,6 +260,23 @@ function PrinterWizard({
   const [btError, setBtError] = useState<string | null>(null);
   const hasNativeBt = hasNativeBridge();
 
+  // On the public iOS app, classic Bluetooth (SPP) thermal printers can't be
+  // reached — Apple requires MFi authorisation we don't have, so the shipped
+  // build declares no External Accessory protocols and the paired-device scan
+  // always comes back empty on iPad. Detect iOS (SSR-safe) and steer the
+  // operator to a LAN printer instead. (Android BT still works.)
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => {
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    if (!nav) return;
+    const ua = nav.userAgent || "";
+    setIsIOS(
+      /iPad|iPhone|iPod/.test(ua) ||
+        // iPadOS 13+ reports as "Macintosh" but is a touch device.
+        (nav.platform === "MacIntel" && (nav.maxTouchPoints ?? 0) > 1),
+    );
+  }, []);
+
   const scanBtDevices = async () => {
     if (!hasNativeBt) return;
     setBtScanning(true);
@@ -451,7 +468,27 @@ function PrinterWizard({
               )}
               {connectionType === "BLUETOOTH" && (
                 <div className="space-y-2">
-                  {hasNativeBt ? (
+                  {isIOS ? (
+                    <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-3">
+                      <p className="text-sm font-semibold text-amber-900">
+                        Bluetooth printers aren&rsquo;t supported on iPad / iPhone
+                      </p>
+                      <p className="text-xs leading-relaxed text-amber-800">
+                        Apple only lets apps talk to MFi-certified Bluetooth
+                        accessories, so standard thermal Bluetooth printers
+                        can&rsquo;t be reached on iOS — the scan always comes back
+                        empty. Use a Wi-Fi / network (LAN) printer instead; it
+                        works on both iPad and Android.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setConnectionType("LAN")}
+                        className="mt-1 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                      >
+                        Switch to LAN printer
+                      </button>
+                    </div>
+                  ) : hasNativeBt ? (
                     <>
                       <Field label="Paired Bluetooth devices">
                         {btDevices.length === 0 ? (
