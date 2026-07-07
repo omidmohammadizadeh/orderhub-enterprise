@@ -19,6 +19,7 @@ import { PrintersService } from "./printers.service";
 import { PrintQueueService } from "./print-queue.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { MANAGE_PRINT_ROLES } from "./print-engine.controller";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
@@ -45,7 +46,7 @@ export class PrintersController {
   // Registering a new printer is a commercial action — blocked for UNPAID/CANCELLED tenants.
   // Existing printers continue to work (all other endpoints are billing-exempt).
   @Post()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Register a printer" })
   create(
     @CurrentUser() user: AuthenticatedUser,
@@ -68,7 +69,7 @@ export class PrintersController {
 
   @Patch(":id")
   @BillingExempt() // Updating existing printer config is live ops — never blocked
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Update printer configuration" })
   update(
     @Param("id") id: string,
@@ -80,7 +81,7 @@ export class PrintersController {
 
   @Delete(":id")
   @BillingExempt() // Deregistering a printer is live ops — never blocked
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove a printer" })
   remove(
@@ -96,7 +97,7 @@ export class PrintersController {
   // new orders".
   @Post(":id/receipt-default")
   @BillingExempt() // Live ops — never blocked
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set/clear this printer as the location receipt default" })
   setReceiptDefault(
@@ -119,7 +120,7 @@ export class PrintersController {
 
   @Post(":id/jobs/:jobId/reprint")
   @BillingExempt() // Reprinting a live order receipt is critical — never blocked
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Reprint a job" })
   reprint(@Param("jobId") jobId: string) {
     return this.printQueue.reprint(jobId);
@@ -128,7 +129,7 @@ export class PrintersController {
   // Retry endpoint used by the printer diagnostics frontend page
   @Post(":id/jobs/:jobId/retry")
   @BillingExempt() // Retrying a failed live job is critical — never blocked
-  @Roles("CASHIER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Retry a failed print job" })
   retry(@Param("jobId") jobId: string) {
     return this.printQueue.reprint(jobId);
@@ -137,7 +138,7 @@ export class PrintersController {
   // Test print — triggers a minimal receipt to confirm printer connectivity
   @Post(":id/test")
   @BillingExempt() // Diagnostic test print is a live ops tool — never blocked
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...MANAGE_PRINT_ROLES)
   @ApiOperation({ summary: "Send a test print to a printer" })
   async testPrint(
     @Param("id") id: string,

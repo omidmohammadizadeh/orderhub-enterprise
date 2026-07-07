@@ -49,12 +49,19 @@ import {
   type ReprintDto,
 } from "./print-jobs.service";
 
-const MANAGE_PRINT_ROLES = [
+// Printer setup is an operational device task — every role EXCEPT DRIVER
+// can configure printers, stations, agents and routing. (Drivers only use
+// the driver app; they have no reason to touch the print engine.)
+export const MANAGE_PRINT_ROLES = [
   "PLATFORM_ADMIN",
   "TENANT_OWNER",
   "OWNER",
   "DARK_KITCHEN_MANAGER",
   "MANAGER",
+  "STAFF",
+  "CASHIER",
+  "KITCHEN_STAFF",
+  "VIEWER",
 ] as const;
 
 // ──────────────────────────────────────────────────────────────────────
