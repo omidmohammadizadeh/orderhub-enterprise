@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MenuWriterService } from "./menu-writer.service";
 import { DeliverooClientService } from "../../integrations/deliveroo/deliveroo-client.service";
+import { SupabaseStorageService } from "../../uploads/supabase-storage.service";
 import {
   classifyDeliverooMenu,
   type DeliverooMenuPayload,
@@ -62,6 +63,13 @@ export class DeliverooMenuImporter {
     private readonly prisma: PrismaService,
     private readonly writer: MenuWriterService,
     private readonly client: DeliverooClientService,
+    // Phase — rehost imported images to our own storage at import time,
+    // exactly like the Uber importer. Deliveroo hands back image URLs on
+    // HubRise's app CDN (deliveroo.hubrise-apps.com) that are short-lived /
+    // context-scoped: fetchable at import, but 400 by the time the browser
+    // renders them — which is why Uber imports showed images and Deliveroo
+    // ones didn't. Optional so the module still boots without storage.
+    @Optional() private readonly storage?: SupabaseStorageService,
   ) {}
 
   /**
@@ -144,6 +152,11 @@ export class DeliverooMenuImporter {
 
     const normalized = classifyDeliverooMenu(payload);
 
+    // Rehost external images to our own storage NOW, while the Deliveroo/
+    // HubRise-CDN URLs are still valid (they expire → 400 by render time).
+    // Runs before relativise so our-own-origin URLs are left for it below.
+    await this.rehostImages(normalized);
+
     // Relativise our own API-origin image URLs back to /api/... so the
     // dashboard/storefront load them same-origin via the Next rewrite (see
     // relativiseImage above for why absolute breaks in the browser).
@@ -172,6 +185,72 @@ export class DeliverooMenuImporter {
       locationId: menu.locationId,
       normalized,
     });
+  }
+
+  /**
+   * Fetch each EXTERNAL product image and re-host it on our own storage so
+   * the dashboard/storefront render a permanent, loadable URL. Mirrors the
+   * Uber importer (which is why Uber images work and Deliveroo's didn't).
+   *
+   * Only external absolute URLs are rehosted; our-own-origin URLs are left
+   * for relativiseImage(). Best-effort per image — a fetch that fails (e.g.
+   * an already-expired HubRise-CDN URL) leaves that product's URL untouched.
+   */
+  private async rehostImages(normalized: {
+    products: Array<{ imageUrl?: string | null }>;
+  }): Promise<void> {
+    if (!this.storage?.isConfigured()) return;
+    const targets = normalized.products.filter(
+      (p) =>
+        p.imageUrl &&
+        /^https?:\/\//i.test(p.imageUrl) &&
+        !p.imageUrl.startsWith(`${PROD_API_ORIGIN}/`),
+    );
+    if (targets.length === 0) return;
+    this.logger.log(
+      `Deliveroo menu import: rehosting ${targets.length} images (sample: ${targets[0]!.imageUrl!.slice(0, 160)})`,
+    );
+    const cache = new Map<string, string | null>();
+    const rehostOne = async (url: string): Promise<string | null> => {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+        if (!res.ok) {
+          this.logger.warn(
+            `Deliveroo image fetch ${res.status} for ${url.slice(0, 120)}`,
+          );
+          return null;
+        }
+        const ct = res.headers.get("content-type") ?? "image/jpeg";
+        if (!ct.startsWith("image/")) return null;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (buf.length === 0 || buf.length > 8 * 1024 * 1024) return null;
+        return await this.storage!.uploadDataUrl(
+          `data:${ct};base64,${buf.toString("base64")}`,
+          "deliveroo-import",
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Deliveroo image rehost failed for ${url.slice(0, 120)}: ${err?.message ?? err}`,
+        );
+        return null;
+      }
+    };
+    // Small concurrency batches — imports are one-off, don't hammer the CDN.
+    const CHUNK = 5;
+    for (let i = 0; i < targets.length; i += CHUNK) {
+      await Promise.all(
+        targets.slice(i, i + CHUNK).map(async (p) => {
+          const url = p.imageUrl!;
+          if (!cache.has(url)) cache.set(url, await rehostOne(url));
+          const hosted = cache.get(url);
+          if (hosted) p.imageUrl = hosted;
+        }),
+      );
+    }
+    const ok = [...cache.values()].filter(Boolean).length;
+    this.logger.log(
+      `Deliveroo menu import: rehosted ${ok}/${cache.size} unique images`,
+    );
   }
 
   private async fetchFromDeliveroo(
