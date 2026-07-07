@@ -63,6 +63,21 @@ export class UberEatsPromotionsService {
       external_promotion_id: campaign.id,
       user_group:
         campaign.audience === "NEW" ? "FIRST_TIME_CUSTOMER" : "ALL_CUSTOMERS",
+      // Uber REQUIRES a top-level `budget` on every promotion — omitting it
+      // 400s with "request is missing budget". We default to an uncapped
+      // budget (no total spend limit); when the campaign carries a spend
+      // cap (campaign.budget, in pounds) we send a WEEKLY periodic budget
+      // in pence instead. `money.amount` is the smallest unit (pence).
+      budget:
+        campaign.budget != null && Number(campaign.budget) > 0
+          ? {
+              unlimited_budget: false,
+              periodic_budget: {
+                budget_amount: { amount: pence(campaign.budget) },
+                budget_period: "WEEKLY",
+              },
+            }
+          : { unlimited_budget: true },
       ...(campaign.startsAt
         ? { start_time: new Date(campaign.startsAt).toISOString() }
         : {}),

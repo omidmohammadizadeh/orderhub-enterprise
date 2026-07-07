@@ -21,6 +21,34 @@ const base = {
 };
 
 describe("UberEatsPromotionsService.buildPromotionBody", () => {
+  it("always includes the required top-level budget (uncapped by default)", () => {
+    // Uber 400s with "request is missing budget" when this is absent.
+    for (const t of [
+      { type: "PERCENTAGE_OFF", percentageOff: 20 },
+      { type: "AMOUNT_OFF_ORDER", amountOff: 5 },
+      { type: "FREE_DELIVERY" },
+    ]) {
+      const body: any = svc().buildPromotionBody({ ...base, ...t });
+      expect(body.budget).toEqual({ unlimited_budget: true });
+    }
+  });
+
+  it("uses a WEEKLY periodic budget (pence) when the campaign has a spend cap", () => {
+    const body: any = svc().buildPromotionBody({
+      ...base,
+      type: "PERCENTAGE_OFF",
+      percentageOff: 20,
+      budget: 50, // £50/week cap
+    });
+    expect(body.budget).toEqual({
+      unlimited_budget: false,
+      periodic_budget: {
+        budget_amount: { amount: 5000 },
+        budget_period: "WEEKLY",
+      },
+    });
+  });
+
   it("PERCENTAGE_OFF → PERCENTOFF with min basket in pence", () => {
     const body: any = svc().buildPromotionBody({
       ...base,
