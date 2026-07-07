@@ -502,6 +502,53 @@ export class UberEatsConnectionService {
   }
 
   /**
+   * Re-push our POS integration data (pos_data) for an already-connected
+   * store — WITHOUT a full OAuth reconnect. Uber sometimes re-integrates a
+   * store on their side (e.g. to enable a store feature like Accept
+   * Scheduled Order), which can drop the webhook subscriptions we
+   * registered. This re-sends is_order_manager + webhooks_config (new /
+   * scheduled / release / delivery-status) and reads pos_data back so the
+   * operator can confirm the scheduled-order webhook is enabled before
+   * placing a test scheduled order.
+   */
+  async reactivate(tenantId: string, connectionId: string) {
+    const c = await this.connected(tenantId, connectionId);
+    // Best-effort internally (logs on failure); we confirm via the read-back.
+    await this.activateIntegration(c.id, c.externalStoreId!, c.brandId);
+    const details = await this.integrationDetails(tenantId, connectionId).catch(
+      () => ({ httpStatus: null as number | null, data: null as any }),
+    );
+    const d: any = details.data ?? {};
+    const wc =
+      d.webhooks_config ??
+      d.pos_data?.webhooks_config ??
+      d.integration?.webhooks_config ??
+      {};
+    const scheduleOrderWebhookEnabled = !!wc?.schedule_order_webhooks
+      ?.is_enabled;
+    this.activity?.record({
+      tenantId,
+      brandId: c.brandId,
+      locationId: c.locationId,
+      category: "CONNECTION",
+      channel: "UBER_EATS",
+      action: "integration.reactivated",
+      status: scheduleOrderWebhookEnabled ? "SUCCESS" : "WARNING",
+      message: `Uber Eats POS data re-pushed — scheduled-order webhook ${
+        scheduleOrderWebhookEnabled ? "ENABLED" : "not confirmed"
+      } (Uber ${details.httpStatus ?? "?"})`,
+      details: { storeId: c.externalStoreId, webhooksConfig: wc },
+    });
+    return {
+      ok: true,
+      storeId: c.externalStoreId,
+      httpStatus: details.httpStatus ?? null,
+      scheduleOrderWebhookEnabled,
+      integrationDetails: details.data ?? null,
+    };
+  }
+
+  /**
    * HubRise-style status panel for the dashboard card: store details,
    * live ONLINE/OFFLINE, prep time and POS integration details in one call.
    * Every sub-check reports Uber's HTTP status so the operator (and Uber's

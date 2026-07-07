@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Store,
   Trash2,
+  Webhook,
   X,
   Settings2,
   BarChart3,
@@ -126,6 +127,30 @@ export function UberEatsManageModal({
         : null;
       toast.success(
         `Pushed to Uber${prepMin ? ` — prep ${prepMin} min` : ""}, hours updated`,
+      );
+      overview.refetch();
+    },
+    onError: err,
+  });
+  // Re-push our POS integration data (re-registers the order / scheduled /
+  // release / delivery webhooks) after Uber re-integrates the store on
+  // their side — needed to receive Scheduled Order notifications for cert.
+  const reactivate = useMutation({
+    mutationFn: () =>
+      apiClient
+        .post(`/v1/integrations/ubereats/${connectionId}/reactivate`, {})
+        .then(
+          (r) =>
+            r.data as {
+              scheduleOrderWebhookEnabled?: boolean;
+              httpStatus?: number | null;
+            },
+        ),
+    onSuccess: (d) => {
+      toast.success(
+        d.scheduleOrderWebhookEnabled
+          ? "Webhooks re-registered — scheduled-order webhook is ON"
+          : `Webhooks re-registered (Uber ${d.httpStatus ?? "?"})`,
       );
       overview.refetch();
     },
@@ -318,6 +343,19 @@ export function UberEatsManageModal({
               <Clock className="h-3.5 w-3.5" />
             )}
             Push hours + prep
+          </button>
+          <button
+            onClick={() => reactivate.mutate()}
+            disabled={reactivate.isPending}
+            title="Re-push POS integration data — re-registers the order, scheduled-order, release and delivery-status webhooks. Use after Uber re-integrates the store."
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+          >
+            {reactivate.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Webhook className="h-3.5 w-3.5" />
+            )}
+            Re-register webhooks
           </button>
           <div className="ml-auto">
             <button

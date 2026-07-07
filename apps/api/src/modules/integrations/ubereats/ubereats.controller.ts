@@ -388,6 +388,21 @@ export class UberEatsController {
     return this.connections.overview(user.tenantId, connectionId);
   }
 
+  @Post(":connectionId/reactivate")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Re-push POS integration data (re-registers order/scheduled/release/delivery webhooks) after Uber re-integrates the store",
+  })
+  reactivate(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.connections.reactivate(user.tenantId, connectionId);
+  }
+
   @Post(":connectionId/pause")
   @ApiBearerAuth()
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
