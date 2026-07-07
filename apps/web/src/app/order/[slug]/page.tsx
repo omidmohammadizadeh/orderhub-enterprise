@@ -160,10 +160,15 @@ type CartAction =
   | { type: "INCREMENT"; id: string }
   | { type: "DECREMENT"; id: string }
   | { type: "REMOVE"; id: string }
+  | { type: "SET"; lines: CartLine[] }
   | { type: "CLEAR" };
 
 function cartReducer(state: CartLine[], action: CartAction): CartLine[] {
   switch (action.type) {
+    // Replace the whole cart — used to hydrate a saved basket from
+    // localStorage on mount so a refresh/login doesn't lose it.
+    case "SET":
+      return action.lines;
     case "ADD":
       return [
         ...state,
@@ -234,6 +239,43 @@ function OrderPage() {
   const brandId = searchParams?.get("brand") ?? null;
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [cartOpen, setCartOpen] = useState(false);
+
+  // Persist the basket per storefront (slug + brand) so a page refresh, a
+  // login / Google-OAuth redirect, or closing and reopening the browser
+  // keeps the customer's cart. Hydrate once on mount; save on every change
+  // after. Keyed by brand so a multi-brand kitchen doesn't mix baskets.
+  const cartKey = `orderhub.cart.${slug}${brandId ? `:${brandId}` : ""}`;
+  const [cartHydrated, setCartHydrated] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(cartKey);
+      if (raw) {
+        const lines = JSON.parse(raw);
+        if (Array.isArray(lines) && lines.length > 0) {
+          dispatch({ type: "SET", lines });
+        }
+      }
+    } catch {
+      /* corrupt / unavailable storage — start empty */
+    }
+    setCartHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartKey]);
+  useEffect(() => {
+    // Skip the pre-hydration commit so we never overwrite a saved basket
+    // with the empty mount state before hydration applies.
+    if (typeof window === "undefined" || !cartHydrated) return;
+    try {
+      if (cart.length > 0) {
+        window.localStorage.setItem(cartKey, JSON.stringify(cart));
+      } else {
+        window.localStorage.removeItem(cartKey);
+      }
+    } catch {
+      /* quota / private mode — non-fatal */
+    }
+  }, [cart, cartKey, cartHydrated]);
 
   // Phase AP-5 — "Order again" hand-off from My Orders.
   //

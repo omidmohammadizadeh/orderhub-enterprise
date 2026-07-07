@@ -97,15 +97,22 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
         setCustomer(res.data);
       })
       .catch((err: any) => {
+        const status = err?.response?.status;
         // eslint-disable-next-line no-console
         console.error(
-          `[customer-auth] /me FAILED status=${err?.response?.status} message=${err?.response?.data?.message ?? err?.message}`,
+          `[customer-auth] /me FAILED status=${status} message=${err?.response?.data?.message ?? err?.message}`,
         );
-        // Token expired / invalid → drop it silently. The next gated
-        // action will reopen the login modal.
-        window.localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
-        setCustomer(null);
+        // ONLY drop the session on a real auth failure (401/403 = token
+        // expired or revoked). A network blip, CORS hiccup, or 5xx must
+        // NOT log the customer out — otherwise a transient error on revisit
+        // wipes their 30-day session and forces a needless re-login. Keep
+        // the token so the next request retries; leave customer null so the
+        // header briefly shows "Sign in" until /me succeeds.
+        if (status === 401 || status === 403) {
+          window.localStorage.removeItem(TOKEN_KEY);
+          setToken(null);
+          setCustomer(null);
+        }
       })
       .finally(() => setIsLoading(false));
   }, []);
