@@ -78,7 +78,13 @@ function withBrand(host: string, res: NextResponse): NextResponse {
 }
 
 export async function middleware(req: NextRequest) {
-  const host = ((req.headers.get("host") ?? "").split(":")[0] ?? "").toLowerCase();
+  // Prefer x-forwarded-host — behind Render's proxy `host` can be the
+  // internal origin, which would mis-brand + mis-route custom domains.
+  const rawHost =
+    req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  const host = ((rawHost.split(",")[0] ?? "").split(":")[0] ?? "")
+    .trim()
+    .toLowerCase();
   if (isPrimaryHost(host)) {
     // Forward the brand as a REQUEST header so getSiteBrand() can read it.
     const requestHeaders = new Headers(req.headers);

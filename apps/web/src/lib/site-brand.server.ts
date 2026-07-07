@@ -17,9 +17,13 @@ export type { SiteBrand } from "./site-brand";
 export async function getSiteBrand(): Promise<SiteBrand> {
   const h = await headers();
   const fromHeader = h.get("x-site-brand");
+  // Behind Render's proxy the real client host arrives in x-forwarded-host
+  // (host can be the internal origin), so prefer it in the fallback.
+  const rawHost = h.get("x-forwarded-host") || h.get("host");
+  const host = (rawHost ?? "").split(",")[0]?.trim() ?? "";
   const key: SiteBrandKey =
     fromHeader === "menumanager" || fromHeader === "orderhub"
       ? (fromHeader as SiteBrandKey)
-      : brandKeyFromHost(h.get("host"));
+      : brandKeyFromHost(host);
   return SITE_BRANDS[key] ?? SITE_BRANDS.orderhub;
 }
