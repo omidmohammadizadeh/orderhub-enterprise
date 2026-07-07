@@ -630,6 +630,34 @@ export class OrderingService {
       };
     }
 
+    // "Order on WhatsApp" CTA — surface the location's WhatsApp business
+    // number ONLY when the WhatsApp channel is both configured AND live:
+    // an Integration row (platform WHATSAPP) with status ACTIVE and a
+    // customer-facing display number. WhatsApp is per-location, so a
+    // kitchen running several brands shares one number. displayPhoneNumber
+    // is E.164 (e.g. "+447…"); the storefront strips it to a wa.me link.
+    let whatsapp: { enabled: boolean; displayPhoneNumber: string } | null =
+      null;
+    try {
+      const waInteg = await (this.prisma as any).integration.findUnique({
+        where: {
+          locationId_platform: {
+            locationId: location.id,
+            platform: "WHATSAPP",
+          },
+        },
+        select: { status: true, settings: true },
+      });
+      const waNumber =
+        waInteg?.status === "ACTIVE"
+          ? String((waInteg.settings as any)?.displayPhoneNumber ?? "").trim()
+          : "";
+      if (waNumber) whatsapp = { enabled: true, displayPhoneNumber: waNumber };
+    } catch {
+      // Never fail the storefront over the optional WhatsApp CTA.
+      whatsapp = null;
+    }
+
     return {
       directConfig,
       deliveryZones,
@@ -639,6 +667,7 @@ export class OrderingService {
       bogo,
       freeDelivery,
       freeItem,
+      whatsapp,
       location: locationView,
       brand: brandView,
       menu,
