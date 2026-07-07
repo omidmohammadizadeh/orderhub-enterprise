@@ -15,16 +15,21 @@ import {
   LegalSubHeading,
   LegalBasis,
 } from "@/components/marketing/legal-page";
+import { getSiteBrand } from "@/lib/site-brand.server";
 
-export const metadata: Metadata = {
-  title: "Privacy Notice · Order Hub",
-  description:
-    "How Order Hub collects, uses, and protects your personal data. Compliant with UK GDPR.",
-  // Allow indexing — Google's verification team uses the live page.
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getSiteBrand();
+  return {
+    title: `Privacy Notice · ${brand.shortName}`,
+    description: `How ${brand.shortName} collects, uses, and protects your personal data. Compliant with UK GDPR.`,
+    // Allow indexing — Google's verification team uses the live page.
+    robots: { index: true, follow: true },
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const brand = await getSiteBrand();
+  const name = brand.shortName;
   return (
     <LegalPage
       title="Privacy Notice"
@@ -33,7 +38,7 @@ export default function PrivacyPage() {
       preface={
         <>
           <p>
-            Order Hub (&ldquo;Order Hub&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;,
+            {name} (&ldquo;{name}&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;,
             or &ldquo;our&rdquo;) is committed to protecting your personal data
             and processing it in a lawful, fair, and transparent manner.
           </p>
@@ -54,7 +59,7 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>
-                Order Hub is a restaurant technology platform providing
+                {name} is a restaurant technology platform providing
                 solutions including:
               </p>
               <LegalList
@@ -122,7 +127,7 @@ export default function PrivacyPage() {
 
               <LegalSubHeading>IV. Platform Usage Data</LegalSubHeading>
               <p>
-                When using Order Hub, we may collect order data, menu data,
+                When using {name}, we may collect order data, menu data,
                 delivery and dispatch data, and system activity to operate and
                 improve our platform, provide analytics, and ensure system
                 performance.
@@ -385,10 +390,10 @@ export default function PrivacyPage() {
                 <p>
                   🌐{" "}
                   <a
-                    href="https://www.orderhubsolutions.com"
+                    href={`https://www.${brand.domain}`}
                     className="font-medium text-emerald-700 hover:underline"
                   >
-                    www.orderhubsolutions.com
+                    www.{brand.domain}
                   </a>
                 </p>
               </div>
