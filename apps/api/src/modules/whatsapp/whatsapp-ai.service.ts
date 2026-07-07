@@ -1233,8 +1233,10 @@ export class WhatsAppAiService {
     } as CanonicalOrder;
   }
 
-  /** Postcode → delivery fee, mirroring the storefront (brand zones preferred,
-   *  then location zones; longest-prefix match). */
+  /** Postcode → delivery fee, mirroring the storefront: delivery charges
+   *  for customer-facing online ordering come from BRAND settings only,
+   *  never the POS/location zones (POS keeps its own postcode charges).
+   *  Longest-prefix match. */
   private async resolveDeliveryFee(
     ctx: WaMenuContext,
     postcode: string,
@@ -1259,14 +1261,12 @@ export class WhatsAppAiService {
       return { hasZones: zones.length > 0, best };
     };
 
+    // Brand settings only — no fallback to POS/location zones.
     if (ctx.brandId) {
       const b = await pick({ brandId: ctx.brandId });
-      if (b.hasZones) {
-        return { matched: !!b.best, hasZones: true, fee: b.best?.fee ?? 0, minOrder: b.best?.minOrder ?? null };
-      }
+      return { matched: !!b.best, hasZones: b.hasZones, fee: b.best?.fee ?? 0, minOrder: b.best?.minOrder ?? null };
     }
-    const l = await pick({ locationId: ctx.locationId });
-    return { matched: !!l.best, hasZones: l.hasZones, fee: l.best?.fee ?? 0, minOrder: l.best?.minOrder ?? null };
+    return { matched: false, hasZones: false, fee: 0, minOrder: null };
   }
 
   /** Persist cart + rolling transcript + derived state for one turn. */

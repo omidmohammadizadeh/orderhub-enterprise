@@ -313,23 +313,23 @@ export class OrderingService {
         minOrderForDelivery: null,
         heroImageUrl: null,
       };
-    // Phase AW-30 — when a brand is pinned, brand zones win. Falls back
-    // to location zones when the brand has none configured yet so a
-    // half-set-up brand doesn't lose delivery entirely.
+    // Online ordering delivery charges are configured in BRAND settings
+    // (Brand → "Delivery postcodes & charges"), NOT the POS/location
+    // delivery zones. Resolve zones from the pinned brand (or the
+    // location's primary brand when the storefront URL carried no
+    // ?brand=). We deliberately do NOT fall back to location-scoped
+    // (POS) zones — POS and online ordering keep separate postcode
+    // charges, so an operator's till pricing never leaks onto the
+    // storefront. A brand with no zones configured simply has no
+    // postcode charges online until the operator sets them in brand
+    // settings.
     const zoneBrandId = overrideBrand?.id ?? location.brandId;
-    const brandZones = zoneBrandId
-      ? await (this.prisma as any).deliveryZone.findMany({
+    const deliveryZones = zoneBrandId
+      ? await this.prisma.deliveryZone.findMany({
           where: { brandId: zoneBrandId, isActive: true },
           select: { postcodePrefix: true, fee: true, minOrderValue: true },
         })
       : [];
-    const deliveryZones =
-      brandZones.length > 0
-        ? brandZones
-        : await this.prisma.deliveryZone.findMany({
-            where: { locationId: location.id, isActive: true },
-            select: { postcodePrefix: true, fee: true, minOrderValue: true },
-          });
 
     // Phase AP fix #4 — pick up categories that link to this menu
     // through the Phase-AK menuIds[] array but whose primary menuId
