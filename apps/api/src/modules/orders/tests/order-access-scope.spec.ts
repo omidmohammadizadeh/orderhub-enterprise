@@ -66,10 +66,10 @@ describe("OrdersService order access scoping", () => {
     expect(where).toEqual({ tenantId: "t1" });
   });
 
-  it("OWNER (account admin) is tenant-wide — sees everything", async () => {
-    const svc = makeService({ userLocations: ["l1"] }); // assignments ignored
+  it("OWNER is a SCOPED location-owner role (not admin) — limited to assignments", async () => {
+    const svc = makeService({ userLocations: ["l1"] });
     const where = await build(svc, user("OWNER"));
-    expect(where).toEqual({ tenantId: "t1" });
+    expect(where).toEqual({ tenantId: "t1", locationId: { in: ["l1"] } });
   });
 
   it("admin honours an explicit location filter", async () => {

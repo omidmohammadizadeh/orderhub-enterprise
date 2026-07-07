@@ -102,7 +102,7 @@ export class OrdersGateway
     role: string,
     locationId: string,
   ): Promise<boolean> {
-    if (["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"].includes(role)) return true;
+    if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(role)) return true;
     const byLocation = await (this.prisma as any).userLocation.count({
       where: { userId, locationId },
     });

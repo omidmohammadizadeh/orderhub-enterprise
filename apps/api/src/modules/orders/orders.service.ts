@@ -32,13 +32,12 @@ import type { CanonicalOrder } from "@orderhub/shared";
 // "Start preparing now" action on the Orders board instead.
 const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
 
-// Roles that see every location/brand in their tenant (full access, no
-// per-assignment scoping): the account owner (OWNER) and platform/tenant
-// admins. Everyone else — MANAGER / STAFF / DRIVER / DARK_KITCHEN_MANAGER
-// / … — is constrained to their UserLocation/UserBrand rows. Kept in sync
-// with the TENANT_WIDE_ROLES set in the locations + brands controllers and
-// the socket gateway so the switcher, orders, and settings all agree.
-const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"];
+// Admin roles that see every location/brand in their tenant (full access,
+// no per-assignment scoping). "OWNER" is a SCOPED location-owner role (not
+// an admin) — it's constrained to its assigned locations/brands like
+// MANAGER / STAFF / DRIVER. Kept in sync with the TENANT_WIDE_ROLES set in
+// the locations + brands controllers and the socket gateway.
+const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 
 const ORDER_INCLUDE = {
   items: true,

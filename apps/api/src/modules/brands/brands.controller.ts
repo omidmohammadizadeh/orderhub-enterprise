@@ -31,11 +31,7 @@ export class BrandsController {
   ) {
     // Phase AR — tenant-wide roles see every brand; everyone else
     // gets narrowed by UserBrand + brands at their UserLocation set.
-    const TENANT_WIDE_ROLES = new Set([
-      "PLATFORM_ADMIN",
-      "TENANT_OWNER",
-      "OWNER",
-    ]);
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
     const userId = TENANT_WIDE_ROLES.has(user.role as string)
       ? undefined
       : user.userId;

@@ -40,11 +40,7 @@ export class LocationsController {
     // UserLocation rows. The service falls back to tenant-wide if a
     // scoped role has no rows yet so a freshly-created OWNER who
     // hasn't been bound to specific locations isn't locked out.
-    const TENANT_WIDE_ROLES = new Set([
-      "PLATFORM_ADMIN",
-      "TENANT_OWNER",
-      "OWNER",
-    ]);
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
     const userId = TENANT_WIDE_ROLES.has(user.role as string)
       ? undefined
       : user.userId;
@@ -59,11 +55,7 @@ export class LocationsController {
   ) {
     // Phase AR — scope settings to the user's accessible locations, same
     // as the switcher list. Tenant-wide roles pass no userId (see all).
-    const TENANT_WIDE_ROLES = new Set([
-      "PLATFORM_ADMIN",
-      "TENANT_OWNER",
-      "OWNER",
-    ]);
+    const TENANT_WIDE_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
     const userId = TENANT_WIDE_ROLES.has(user.role as string)
       ? undefined
       : user.userId;
