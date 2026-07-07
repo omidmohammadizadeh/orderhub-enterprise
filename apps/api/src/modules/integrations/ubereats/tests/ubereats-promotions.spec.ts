@@ -21,8 +21,9 @@ const base = {
 };
 
 describe("UberEatsPromotionsService.buildPromotionBody", () => {
-  it("always includes the required top-level budget (uncapped by default)", () => {
-    // Uber 400s with "request is missing budget" when this is absent.
+  it("always includes the fields Uber's runtime requires (budget, currency, allow_unlimited_apply)", () => {
+    // Uber 400s one missing field at a time (budget → min_basket_constraint
+    // → …); these are present in every one of Uber's own create examples.
     for (const t of [
       { type: "PERCENTAGE_OFF", percentageOff: 20 },
       { type: "AMOUNT_OFF_ORDER", amountOff: 5 },
@@ -30,7 +31,21 @@ describe("UberEatsPromotionsService.buildPromotionBody", () => {
     ]) {
       const body: any = svc().buildPromotionBody({ ...base, ...t });
       expect(body.budget).toEqual({ unlimited_budget: true });
+      expect(body.allow_unlimited_apply).toBe(true);
+      expect(body.currency_code).toBe("GBP");
     }
+  });
+
+  it("percent-off always carries min_basket_constraint + max_discount_value (even with no minimum)", () => {
+    const body: any = svc().buildPromotionBody({
+      ...base,
+      minOrder: null, // no minimum
+      type: "PERCENTAGE_OFF",
+      percentageOff: 20,
+    });
+    const d = body.promotion_discount.percent_off_discount;
+    expect(d.min_basket_constraint.min_spend.amount).toBe(0);
+    expect(d.max_discount_value).toEqual({ amount: 100_000 });
   });
 
   it("uses a WEEKLY periodic budget (pence) when the campaign has a spend cap", () => {

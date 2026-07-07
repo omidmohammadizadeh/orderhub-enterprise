@@ -51,18 +51,25 @@ export class UberEatsPromotionsService {
 
   /** Build the spec-shaped create body for a campaign, or throw if unmappable. */
   buildPromotionBody(campaign: any): Record<string, unknown> {
-    const minBasket =
-      campaign.minOrder != null && Number(campaign.minOrder) > 0
-        ? {
-            min_basket_constraint: {
-              min_spend: { amount: pence(campaign.minOrder) },
-            },
-          }
-        : {};
+    // Uber's runtime REQUIRES min_basket_constraint on the discount even
+    // though the OpenAPI schema marks it optional (it 400s "request is
+    // missing min_basket_constraint" without it). Always send it; a
+    // campaign with no minimum order means min_spend = 0 (any basket).
+    const minBasket = {
+      min_basket_constraint: {
+        min_spend: { amount: pence(campaign.minOrder) },
+      },
+    };
     const common = {
       external_promotion_id: campaign.id,
       user_group:
         campaign.audience === "NEW" ? "FIRST_TIME_CUSTOMER" : "ALL_CUSTOMERS",
+      // Present in Uber's own create examples; include to avoid the
+      // one-missing-field-at-a-time 400 cycle. allow_unlimited_apply =
+      // the promo can apply on repeat orders. currency_code is GBP for our
+      // UK stores (make per-store when we onboard other regions).
+      allow_unlimited_apply: true,
+      currency_code: "GBP",
       // Uber REQUIRES a top-level `budget` on every promotion — omitting it
       // 400s with "request is missing budget". We default to an uncapped
       // budget (no total spend limit); when the campaign carries a spend
@@ -93,11 +100,23 @@ export class UberEatsPromotionsService {
         if (percent <= 0) {
           throw new BadRequestException("Campaign has no percentage set");
         }
+        // Uber's percent-off examples always carry max_discount_value (the
+        // £ cap on the discount), and the runtime rejects the promo without
+        // it. Default to an effectively-uncapped £1000 when the campaign
+        // doesn't set one; use the campaign's cap (pounds) when present.
+        const maxDiscount =
+          campaign.maxDiscount != null && Number(campaign.maxDiscount) > 0
+            ? pence(campaign.maxDiscount)
+            : 100_000;
         const body: Record<string, unknown> = {
           ...common,
           promo_type: "PERCENTOFF",
           promotion_discount: {
-            percent_off_discount: { percent_value: percent, ...minBasket },
+            percent_off_discount: {
+              percent_value: percent,
+              max_discount_value: { amount: maxDiscount },
+              ...minBasket,
+            },
           },
         };
         // Happy hour → daypart constraint from the campaign's daily window.
