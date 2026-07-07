@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.orderhubsolutions.pos",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -28,7 +28,12 @@
         "NSBluetoothAlwaysUsageDescription": "Order Hub connects to nearby Bluetooth receipt printers to print orders.",
         "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth receipt printers to print orders.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
-        "UISupportedExternalAccessoryProtocols": []
+        "UISupportedExternalAccessoryProtocols": [
+          "jp.star-m.starpro",
+          "com.epson.escpos",
+          "com.bixolon.escpos",
+          "com.zebra.rawport"
+        ]
       }
     },
     "android": {
