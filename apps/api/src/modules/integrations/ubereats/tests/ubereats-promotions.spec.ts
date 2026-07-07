@@ -44,7 +44,9 @@ describe("UberEatsPromotionsService.buildPromotionBody", () => {
       percentageOff: 20,
     });
     const d = body.promotion_discount.percent_off_discount;
-    expect(d.min_basket_constraint.min_spend.amount).toBe(0);
+    // Uber rejects a zero min_spend ("request should have a positive
+    // min_spend value"), so with no minimum we floor at 1 penny.
+    expect(d.min_basket_constraint.min_spend.amount).toBe(1);
     expect(d.max_discount_value).toEqual({ amount: 100_000 });
   });
 

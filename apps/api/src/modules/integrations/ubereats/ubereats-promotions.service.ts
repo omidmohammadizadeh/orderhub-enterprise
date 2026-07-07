@@ -53,11 +53,14 @@ export class UberEatsPromotionsService {
   buildPromotionBody(campaign: any): Record<string, unknown> {
     // Uber's runtime REQUIRES min_basket_constraint on the discount even
     // though the OpenAPI schema marks it optional (it 400s "request is
-    // missing min_basket_constraint" without it). Always send it; a
-    // campaign with no minimum order means min_spend = 0 (any basket).
+    // missing min_basket_constraint" without it), AND it rejects a zero
+    // min_spend ("request should have a positive min_spend value in
+    // min_basket_constraint"). So always send it, and when the campaign has
+    // no minimum order floor it at 1 penny — a positive value that imposes
+    // no real minimum (any non-empty basket qualifies).
     const minBasket = {
       min_basket_constraint: {
-        min_spend: { amount: pence(campaign.minOrder) },
+        min_spend: { amount: Math.max(1, pence(campaign.minOrder)) },
       },
     };
     const common = {
