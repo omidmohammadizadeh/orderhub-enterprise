@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // a brand custom domain and redirected to its storefront).
 const PRIMARY_HOSTS = (
   process.env.NEXT_PUBLIC_PRIMARY_HOSTS ??
-  "orderhubsolutions.com,www.orderhubsolutions.com"
+  "orderhubsolutions.com,www.orderhubsolutions.com,menumanager.uk,www.menumanager.uk"
 )
   .split(",")
   .map((s) => s.trim().toLowerCase())
