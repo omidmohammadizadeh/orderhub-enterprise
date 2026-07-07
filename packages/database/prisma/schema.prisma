@@ -1501,6 +1501,11 @@ model MarketingCampaign {
   // For BOGO: { mode: "free" | "half_price", trigger_item_id, reward_item_id }.
   metadata Json @default("{}")
 
+  // Per-order attribution — one row each time the campaign actually
+  // applied to an order (drives the Marketing page's performance
+  // insights: Sales, Orders, New customers).
+  redemptions CampaignRedemption[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy String?
@@ -1510,6 +1515,45 @@ model MarketingCampaign {
   @@index([tenantId, status])
   @@index([brandId, status])
   @@map("marketing_campaigns")
+}
+
+// Phase MK-INSIGHTS — records each time a MarketingCampaign discount was
+// applied to an order, so the Marketing page can show real per-campaign
+// performance (Sales/Orders/New customers) over a date range, like the
+// Uber Eats Manager "Offers" view. Written best-effort at checkout; a
+// missing row never fails an order. Attribution is forward-only — orders
+// placed before this shipped have no rows.
+model CampaignRedemption {
+  id         String            @id @default(cuid())
+  tenantId   String
+  campaignId String
+  campaign   MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  brandId    String
+  orderId    String
+  order      Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Channel the order came through (ONLINE, POS, …) — lets insights be
+  // sliced per channel later.
+  channel String @default("ONLINE")
+
+  // Who redeemed — null for guest checkouts. isNewCustomer is the
+  // audience bucket resolved at order time (first-ever order → true),
+  // so "New customers" can be counted without re-deriving history.
+  customerAccountId String?
+  isNewCustomer     Boolean @default(false)
+
+  // Money captured at redemption time. discountAmount = £ taken off by
+  // THIS campaign; orderTotal = the order's gross total (= "Sales").
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+  orderTotal     Decimal @default(0) @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, campaignId])
+  @@index([campaignId, createdAt])
+  @@index([tenantId])
+  @@index([brandId])
+  @@map("campaign_redemptions")
 }
 
 enum CampaignType {
@@ -1729,6 +1773,9 @@ model Order {
   printJobs        PrintJob[]
   driverAssignment DriverAssignment?
   payments         Payment[]
+
+  // Phase MK-INSIGHTS — marketing campaigns that applied to this order.
+  campaignRedemptions CampaignRedemption[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

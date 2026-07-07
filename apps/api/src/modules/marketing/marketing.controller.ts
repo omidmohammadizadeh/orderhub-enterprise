@@ -45,6 +45,25 @@ export class MarketingController {
     return this.svc.receiptOffer(user.tenantId, brandId, locationId);
   }
 
+  // Phase MK-INSIGHTS — per-campaign performance (Sales/Orders/New
+  // customers) over an optional date window, keyed by campaign id. The
+  // Marketing page merges this into the campaign list like Uber's Offers.
+  @Get("metrics")
+  @ApiOperation({ summary: "Per-campaign performance metrics for a date range" })
+  metrics(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("brandId") brandId?: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.svc.getMetrics({
+      tenantId: user.tenantId,
+      brandId,
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
+    });
+  }
+
   @Get("campaigns/:id")
   @ApiOperation({ summary: "Get a single campaign by id" })
   findOne(

@@ -189,6 +189,11 @@ export type PromoCode = $Result.DefaultSelection<Prisma.$PromoCodePayload>
  */
 export type MarketingCampaign = $Result.DefaultSelection<Prisma.$MarketingCampaignPayload>
 /**
+ * Model CampaignRedemption
+ * 
+ */
+export type CampaignRedemption = $Result.DefaultSelection<Prisma.$CampaignRedemptionPayload>
+/**
  * Model DeliveryZone
  * 
  */
@@ -1771,6 +1776,16 @@ export class PrismaClient<
   get marketingCampaign(): Prisma.MarketingCampaignDelegate<ExtArgs>;
 
   /**
+   * `prisma.campaignRedemption`: Exposes CRUD operations for the **CampaignRedemption** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CampaignRedemptions
+    * const campaignRedemptions = await prisma.campaignRedemption.findMany()
+    * ```
+    */
+  get campaignRedemption(): Prisma.CampaignRedemptionDelegate<ExtArgs>;
+
+  /**
    * `prisma.deliveryZone`: Exposes CRUD operations for the **DeliveryZone** model.
     * Example usage:
     * ```ts
@@ -2875,6 +2890,7 @@ export namespace Prisma {
     LoyaltyAccount: 'LoyaltyAccount',
     PromoCode: 'PromoCode',
     MarketingCampaign: 'MarketingCampaign',
+    CampaignRedemption: 'CampaignRedemption',
     DeliveryZone: 'DeliveryZone',
     LocationPaymentConfig: 'LocationPaymentConfig',
     Order: 'Order',
@@ -2953,7 +2969,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5404,6 +5420,76 @@ export namespace Prisma {
           count: {
             args: Prisma.MarketingCampaignCountArgs<ExtArgs>
             result: $Utils.Optional<MarketingCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      CampaignRedemption: {
+        payload: Prisma.$CampaignRedemptionPayload<ExtArgs>
+        fields: Prisma.CampaignRedemptionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CampaignRedemptionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CampaignRedemptionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          findFirst: {
+            args: Prisma.CampaignRedemptionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CampaignRedemptionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          findMany: {
+            args: Prisma.CampaignRedemptionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>[]
+          }
+          create: {
+            args: Prisma.CampaignRedemptionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          createMany: {
+            args: Prisma.CampaignRedemptionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CampaignRedemptionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>[]
+          }
+          delete: {
+            args: Prisma.CampaignRedemptionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          update: {
+            args: Prisma.CampaignRedemptionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          deleteMany: {
+            args: Prisma.CampaignRedemptionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CampaignRedemptionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CampaignRedemptionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CampaignRedemptionPayload>
+          }
+          aggregate: {
+            args: Prisma.CampaignRedemptionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCampaignRedemption>
+          }
+          groupBy: {
+            args: Prisma.CampaignRedemptionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CampaignRedemptionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CampaignRedemptionCountArgs<ExtArgs>
+            result: $Utils.Optional<CampaignRedemptionCountAggregateOutputType> | number
           }
         }
       }
@@ -10779,6 +10865,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type MarketingCampaignCountOutputType
+   */
+
+  export type MarketingCampaignCountOutputType = {
+    redemptions: number
+  }
+
+  export type MarketingCampaignCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    redemptions?: boolean | MarketingCampaignCountOutputTypeCountRedemptionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarketingCampaignCountOutputType without action
+   */
+  export type MarketingCampaignCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketingCampaignCountOutputType
+     */
+    select?: MarketingCampaignCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarketingCampaignCountOutputType without action
+   */
+  export type MarketingCampaignCountOutputTypeCountRedemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CampaignRedemptionWhereInput
+  }
+
+
+  /**
    * Count Type OrderCountOutputType
    */
 
@@ -10788,6 +10905,7 @@ export namespace Prisma {
     kdsTickets: number
     printJobs: number
     payments: number
+    campaignRedemptions: number
   }
 
   export type OrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10796,6 +10914,7 @@ export namespace Prisma {
     kdsTickets?: boolean | OrderCountOutputTypeCountKdsTicketsArgs
     printJobs?: boolean | OrderCountOutputTypeCountPrintJobsArgs
     payments?: boolean | OrderCountOutputTypeCountPaymentsArgs
+    campaignRedemptions?: boolean | OrderCountOutputTypeCountCampaignRedemptionsArgs
   }
 
   // Custom InputTypes
@@ -10842,6 +10961,13 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountPaymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PaymentWhereInput
+  }
+
+  /**
+   * OrderCountOutputType without action
+   */
+  export type OrderCountOutputTypeCountCampaignRedemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CampaignRedemptionWhereInput
   }
 
 
@@ -50523,6 +50649,8 @@ export namespace Prisma {
     createdBy?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     brand?: boolean | BrandDefaultArgs<ExtArgs>
+    redemptions?: boolean | MarketingCampaign$redemptionsArgs<ExtArgs>
+    _count?: boolean | MarketingCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["marketingCampaign"]>
 
   export type MarketingCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -50586,6 +50714,8 @@ export namespace Prisma {
   export type MarketingCampaignInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     brand?: boolean | BrandDefaultArgs<ExtArgs>
+    redemptions?: boolean | MarketingCampaign$redemptionsArgs<ExtArgs>
+    _count?: boolean | MarketingCampaignCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MarketingCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -50597,6 +50727,7 @@ export namespace Prisma {
     objects: {
       tenant: Prisma.$TenantPayload<ExtArgs>
       brand: Prisma.$BrandPayload<ExtArgs>
+      redemptions: Prisma.$CampaignRedemptionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -50990,6 +51121,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    redemptions<T extends MarketingCampaign$redemptionsArgs<ExtArgs> = {}>(args?: Subset<T, MarketingCampaign$redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -51362,6 +51494,26 @@ export namespace Prisma {
   }
 
   /**
+   * MarketingCampaign.redemptions
+   */
+  export type MarketingCampaign$redemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    where?: CampaignRedemptionWhereInput
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    cursor?: CampaignRedemptionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
+  }
+
+  /**
    * MarketingCampaign without action
    */
   export type MarketingCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -51373,6 +51525,1055 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MarketingCampaignInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CampaignRedemption
+   */
+
+  export type AggregateCampaignRedemption = {
+    _count: CampaignRedemptionCountAggregateOutputType | null
+    _avg: CampaignRedemptionAvgAggregateOutputType | null
+    _sum: CampaignRedemptionSumAggregateOutputType | null
+    _min: CampaignRedemptionMinAggregateOutputType | null
+    _max: CampaignRedemptionMaxAggregateOutputType | null
+  }
+
+  export type CampaignRedemptionAvgAggregateOutputType = {
+    discountAmount: Decimal | null
+    orderTotal: Decimal | null
+  }
+
+  export type CampaignRedemptionSumAggregateOutputType = {
+    discountAmount: Decimal | null
+    orderTotal: Decimal | null
+  }
+
+  export type CampaignRedemptionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    campaignId: string | null
+    brandId: string | null
+    orderId: string | null
+    channel: string | null
+    customerAccountId: string | null
+    isNewCustomer: boolean | null
+    discountAmount: Decimal | null
+    orderTotal: Decimal | null
+    createdAt: Date | null
+  }
+
+  export type CampaignRedemptionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    campaignId: string | null
+    brandId: string | null
+    orderId: string | null
+    channel: string | null
+    customerAccountId: string | null
+    isNewCustomer: boolean | null
+    discountAmount: Decimal | null
+    orderTotal: Decimal | null
+    createdAt: Date | null
+  }
+
+  export type CampaignRedemptionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    campaignId: number
+    brandId: number
+    orderId: number
+    channel: number
+    customerAccountId: number
+    isNewCustomer: number
+    discountAmount: number
+    orderTotal: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CampaignRedemptionAvgAggregateInputType = {
+    discountAmount?: true
+    orderTotal?: true
+  }
+
+  export type CampaignRedemptionSumAggregateInputType = {
+    discountAmount?: true
+    orderTotal?: true
+  }
+
+  export type CampaignRedemptionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    campaignId?: true
+    brandId?: true
+    orderId?: true
+    channel?: true
+    customerAccountId?: true
+    isNewCustomer?: true
+    discountAmount?: true
+    orderTotal?: true
+    createdAt?: true
+  }
+
+  export type CampaignRedemptionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    campaignId?: true
+    brandId?: true
+    orderId?: true
+    channel?: true
+    customerAccountId?: true
+    isNewCustomer?: true
+    discountAmount?: true
+    orderTotal?: true
+    createdAt?: true
+  }
+
+  export type CampaignRedemptionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    campaignId?: true
+    brandId?: true
+    orderId?: true
+    channel?: true
+    customerAccountId?: true
+    isNewCustomer?: true
+    discountAmount?: true
+    orderTotal?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CampaignRedemptionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CampaignRedemption to aggregate.
+     */
+    where?: CampaignRedemptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CampaignRedemptions to fetch.
+     */
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CampaignRedemptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CampaignRedemptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CampaignRedemptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CampaignRedemptions
+    **/
+    _count?: true | CampaignRedemptionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CampaignRedemptionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CampaignRedemptionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CampaignRedemptionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CampaignRedemptionMaxAggregateInputType
+  }
+
+  export type GetCampaignRedemptionAggregateType<T extends CampaignRedemptionAggregateArgs> = {
+        [P in keyof T & keyof AggregateCampaignRedemption]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCampaignRedemption[P]>
+      : GetScalarType<T[P], AggregateCampaignRedemption[P]>
+  }
+
+
+
+
+  export type CampaignRedemptionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CampaignRedemptionWhereInput
+    orderBy?: CampaignRedemptionOrderByWithAggregationInput | CampaignRedemptionOrderByWithAggregationInput[]
+    by: CampaignRedemptionScalarFieldEnum[] | CampaignRedemptionScalarFieldEnum
+    having?: CampaignRedemptionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CampaignRedemptionCountAggregateInputType | true
+    _avg?: CampaignRedemptionAvgAggregateInputType
+    _sum?: CampaignRedemptionSumAggregateInputType
+    _min?: CampaignRedemptionMinAggregateInputType
+    _max?: CampaignRedemptionMaxAggregateInputType
+  }
+
+  export type CampaignRedemptionGroupByOutputType = {
+    id: string
+    tenantId: string
+    campaignId: string
+    brandId: string
+    orderId: string
+    channel: string
+    customerAccountId: string | null
+    isNewCustomer: boolean
+    discountAmount: Decimal
+    orderTotal: Decimal
+    createdAt: Date
+    _count: CampaignRedemptionCountAggregateOutputType | null
+    _avg: CampaignRedemptionAvgAggregateOutputType | null
+    _sum: CampaignRedemptionSumAggregateOutputType | null
+    _min: CampaignRedemptionMinAggregateOutputType | null
+    _max: CampaignRedemptionMaxAggregateOutputType | null
+  }
+
+  type GetCampaignRedemptionGroupByPayload<T extends CampaignRedemptionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CampaignRedemptionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CampaignRedemptionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CampaignRedemptionGroupByOutputType[P]>
+            : GetScalarType<T[P], CampaignRedemptionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CampaignRedemptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    campaignId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    channel?: boolean
+    customerAccountId?: boolean
+    isNewCustomer?: boolean
+    discountAmount?: boolean
+    orderTotal?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingCampaignDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["campaignRedemption"]>
+
+  export type CampaignRedemptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    campaignId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    channel?: boolean
+    customerAccountId?: boolean
+    isNewCustomer?: boolean
+    discountAmount?: boolean
+    orderTotal?: boolean
+    createdAt?: boolean
+    campaign?: boolean | MarketingCampaignDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["campaignRedemption"]>
+
+  export type CampaignRedemptionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    campaignId?: boolean
+    brandId?: boolean
+    orderId?: boolean
+    channel?: boolean
+    customerAccountId?: boolean
+    isNewCustomer?: boolean
+    discountAmount?: boolean
+    orderTotal?: boolean
+    createdAt?: boolean
+  }
+
+  export type CampaignRedemptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingCampaignDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type CampaignRedemptionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    campaign?: boolean | MarketingCampaignDefaultArgs<ExtArgs>
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+
+  export type $CampaignRedemptionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CampaignRedemption"
+    objects: {
+      campaign: Prisma.$MarketingCampaignPayload<ExtArgs>
+      order: Prisma.$OrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      campaignId: string
+      brandId: string
+      orderId: string
+      channel: string
+      customerAccountId: string | null
+      isNewCustomer: boolean
+      discountAmount: Prisma.Decimal
+      orderTotal: Prisma.Decimal
+      createdAt: Date
+    }, ExtArgs["result"]["campaignRedemption"]>
+    composites: {}
+  }
+
+  type CampaignRedemptionGetPayload<S extends boolean | null | undefined | CampaignRedemptionDefaultArgs> = $Result.GetResult<Prisma.$CampaignRedemptionPayload, S>
+
+  type CampaignRedemptionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CampaignRedemptionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CampaignRedemptionCountAggregateInputType | true
+    }
+
+  export interface CampaignRedemptionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CampaignRedemption'], meta: { name: 'CampaignRedemption' } }
+    /**
+     * Find zero or one CampaignRedemption that matches the filter.
+     * @param {CampaignRedemptionFindUniqueArgs} args - Arguments to find a CampaignRedemption
+     * @example
+     * // Get one CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CampaignRedemptionFindUniqueArgs>(args: SelectSubset<T, CampaignRedemptionFindUniqueArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CampaignRedemption that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CampaignRedemptionFindUniqueOrThrowArgs} args - Arguments to find a CampaignRedemption
+     * @example
+     * // Get one CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CampaignRedemptionFindUniqueOrThrowArgs>(args: SelectSubset<T, CampaignRedemptionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CampaignRedemption that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionFindFirstArgs} args - Arguments to find a CampaignRedemption
+     * @example
+     * // Get one CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CampaignRedemptionFindFirstArgs>(args?: SelectSubset<T, CampaignRedemptionFindFirstArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CampaignRedemption that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionFindFirstOrThrowArgs} args - Arguments to find a CampaignRedemption
+     * @example
+     * // Get one CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CampaignRedemptionFindFirstOrThrowArgs>(args?: SelectSubset<T, CampaignRedemptionFindFirstOrThrowArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CampaignRedemptions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CampaignRedemptions
+     * const campaignRedemptions = await prisma.campaignRedemption.findMany()
+     * 
+     * // Get first 10 CampaignRedemptions
+     * const campaignRedemptions = await prisma.campaignRedemption.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const campaignRedemptionWithIdOnly = await prisma.campaignRedemption.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CampaignRedemptionFindManyArgs>(args?: SelectSubset<T, CampaignRedemptionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CampaignRedemption.
+     * @param {CampaignRedemptionCreateArgs} args - Arguments to create a CampaignRedemption.
+     * @example
+     * // Create one CampaignRedemption
+     * const CampaignRedemption = await prisma.campaignRedemption.create({
+     *   data: {
+     *     // ... data to create a CampaignRedemption
+     *   }
+     * })
+     * 
+     */
+    create<T extends CampaignRedemptionCreateArgs>(args: SelectSubset<T, CampaignRedemptionCreateArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CampaignRedemptions.
+     * @param {CampaignRedemptionCreateManyArgs} args - Arguments to create many CampaignRedemptions.
+     * @example
+     * // Create many CampaignRedemptions
+     * const campaignRedemption = await prisma.campaignRedemption.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CampaignRedemptionCreateManyArgs>(args?: SelectSubset<T, CampaignRedemptionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CampaignRedemptions and returns the data saved in the database.
+     * @param {CampaignRedemptionCreateManyAndReturnArgs} args - Arguments to create many CampaignRedemptions.
+     * @example
+     * // Create many CampaignRedemptions
+     * const campaignRedemption = await prisma.campaignRedemption.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CampaignRedemptions and only return the `id`
+     * const campaignRedemptionWithIdOnly = await prisma.campaignRedemption.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CampaignRedemptionCreateManyAndReturnArgs>(args?: SelectSubset<T, CampaignRedemptionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CampaignRedemption.
+     * @param {CampaignRedemptionDeleteArgs} args - Arguments to delete one CampaignRedemption.
+     * @example
+     * // Delete one CampaignRedemption
+     * const CampaignRedemption = await prisma.campaignRedemption.delete({
+     *   where: {
+     *     // ... filter to delete one CampaignRedemption
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CampaignRedemptionDeleteArgs>(args: SelectSubset<T, CampaignRedemptionDeleteArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CampaignRedemption.
+     * @param {CampaignRedemptionUpdateArgs} args - Arguments to update one CampaignRedemption.
+     * @example
+     * // Update one CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CampaignRedemptionUpdateArgs>(args: SelectSubset<T, CampaignRedemptionUpdateArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CampaignRedemptions.
+     * @param {CampaignRedemptionDeleteManyArgs} args - Arguments to filter CampaignRedemptions to delete.
+     * @example
+     * // Delete a few CampaignRedemptions
+     * const { count } = await prisma.campaignRedemption.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CampaignRedemptionDeleteManyArgs>(args?: SelectSubset<T, CampaignRedemptionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CampaignRedemptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CampaignRedemptions
+     * const campaignRedemption = await prisma.campaignRedemption.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CampaignRedemptionUpdateManyArgs>(args: SelectSubset<T, CampaignRedemptionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CampaignRedemption.
+     * @param {CampaignRedemptionUpsertArgs} args - Arguments to update or create a CampaignRedemption.
+     * @example
+     * // Update or create a CampaignRedemption
+     * const campaignRedemption = await prisma.campaignRedemption.upsert({
+     *   create: {
+     *     // ... data to create a CampaignRedemption
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CampaignRedemption we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CampaignRedemptionUpsertArgs>(args: SelectSubset<T, CampaignRedemptionUpsertArgs<ExtArgs>>): Prisma__CampaignRedemptionClient<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CampaignRedemptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionCountArgs} args - Arguments to filter CampaignRedemptions to count.
+     * @example
+     * // Count the number of CampaignRedemptions
+     * const count = await prisma.campaignRedemption.count({
+     *   where: {
+     *     // ... the filter for the CampaignRedemptions we want to count
+     *   }
+     * })
+    **/
+    count<T extends CampaignRedemptionCountArgs>(
+      args?: Subset<T, CampaignRedemptionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CampaignRedemptionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CampaignRedemption.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CampaignRedemptionAggregateArgs>(args: Subset<T, CampaignRedemptionAggregateArgs>): Prisma.PrismaPromise<GetCampaignRedemptionAggregateType<T>>
+
+    /**
+     * Group by CampaignRedemption.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CampaignRedemptionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CampaignRedemptionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CampaignRedemptionGroupByArgs['orderBy'] }
+        : { orderBy?: CampaignRedemptionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CampaignRedemptionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCampaignRedemptionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CampaignRedemption model
+   */
+  readonly fields: CampaignRedemptionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CampaignRedemption.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CampaignRedemptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    campaign<T extends MarketingCampaignDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarketingCampaignDefaultArgs<ExtArgs>>): Prisma__MarketingCampaignClient<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CampaignRedemption model
+   */ 
+  interface CampaignRedemptionFieldRefs {
+    readonly id: FieldRef<"CampaignRedemption", 'String'>
+    readonly tenantId: FieldRef<"CampaignRedemption", 'String'>
+    readonly campaignId: FieldRef<"CampaignRedemption", 'String'>
+    readonly brandId: FieldRef<"CampaignRedemption", 'String'>
+    readonly orderId: FieldRef<"CampaignRedemption", 'String'>
+    readonly channel: FieldRef<"CampaignRedemption", 'String'>
+    readonly customerAccountId: FieldRef<"CampaignRedemption", 'String'>
+    readonly isNewCustomer: FieldRef<"CampaignRedemption", 'Boolean'>
+    readonly discountAmount: FieldRef<"CampaignRedemption", 'Decimal'>
+    readonly orderTotal: FieldRef<"CampaignRedemption", 'Decimal'>
+    readonly createdAt: FieldRef<"CampaignRedemption", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CampaignRedemption findUnique
+   */
+  export type CampaignRedemptionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CampaignRedemption to fetch.
+     */
+    where: CampaignRedemptionWhereUniqueInput
+  }
+
+  /**
+   * CampaignRedemption findUniqueOrThrow
+   */
+  export type CampaignRedemptionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CampaignRedemption to fetch.
+     */
+    where: CampaignRedemptionWhereUniqueInput
+  }
+
+  /**
+   * CampaignRedemption findFirst
+   */
+  export type CampaignRedemptionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CampaignRedemption to fetch.
+     */
+    where?: CampaignRedemptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CampaignRedemptions to fetch.
+     */
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CampaignRedemptions.
+     */
+    cursor?: CampaignRedemptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CampaignRedemptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CampaignRedemptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CampaignRedemptions.
+     */
+    distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
+  }
+
+  /**
+   * CampaignRedemption findFirstOrThrow
+   */
+  export type CampaignRedemptionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CampaignRedemption to fetch.
+     */
+    where?: CampaignRedemptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CampaignRedemptions to fetch.
+     */
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CampaignRedemptions.
+     */
+    cursor?: CampaignRedemptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CampaignRedemptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CampaignRedemptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CampaignRedemptions.
+     */
+    distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
+  }
+
+  /**
+   * CampaignRedemption findMany
+   */
+  export type CampaignRedemptionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter, which CampaignRedemptions to fetch.
+     */
+    where?: CampaignRedemptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CampaignRedemptions to fetch.
+     */
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CampaignRedemptions.
+     */
+    cursor?: CampaignRedemptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CampaignRedemptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CampaignRedemptions.
+     */
+    skip?: number
+    distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
+  }
+
+  /**
+   * CampaignRedemption create
+   */
+  export type CampaignRedemptionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CampaignRedemption.
+     */
+    data: XOR<CampaignRedemptionCreateInput, CampaignRedemptionUncheckedCreateInput>
+  }
+
+  /**
+   * CampaignRedemption createMany
+   */
+  export type CampaignRedemptionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CampaignRedemptions.
+     */
+    data: CampaignRedemptionCreateManyInput | CampaignRedemptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CampaignRedemption createManyAndReturn
+   */
+  export type CampaignRedemptionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CampaignRedemptions.
+     */
+    data: CampaignRedemptionCreateManyInput | CampaignRedemptionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CampaignRedemption update
+   */
+  export type CampaignRedemptionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CampaignRedemption.
+     */
+    data: XOR<CampaignRedemptionUpdateInput, CampaignRedemptionUncheckedUpdateInput>
+    /**
+     * Choose, which CampaignRedemption to update.
+     */
+    where: CampaignRedemptionWhereUniqueInput
+  }
+
+  /**
+   * CampaignRedemption updateMany
+   */
+  export type CampaignRedemptionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CampaignRedemptions.
+     */
+    data: XOR<CampaignRedemptionUpdateManyMutationInput, CampaignRedemptionUncheckedUpdateManyInput>
+    /**
+     * Filter which CampaignRedemptions to update
+     */
+    where?: CampaignRedemptionWhereInput
+  }
+
+  /**
+   * CampaignRedemption upsert
+   */
+  export type CampaignRedemptionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CampaignRedemption to update in case it exists.
+     */
+    where: CampaignRedemptionWhereUniqueInput
+    /**
+     * In case the CampaignRedemption found by the `where` argument doesn't exist, create a new CampaignRedemption with this data.
+     */
+    create: XOR<CampaignRedemptionCreateInput, CampaignRedemptionUncheckedCreateInput>
+    /**
+     * In case the CampaignRedemption was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CampaignRedemptionUpdateInput, CampaignRedemptionUncheckedUpdateInput>
+  }
+
+  /**
+   * CampaignRedemption delete
+   */
+  export type CampaignRedemptionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    /**
+     * Filter which CampaignRedemption to delete.
+     */
+    where: CampaignRedemptionWhereUniqueInput
+  }
+
+  /**
+   * CampaignRedemption deleteMany
+   */
+  export type CampaignRedemptionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CampaignRedemptions to delete
+     */
+    where?: CampaignRedemptionWhereInput
+  }
+
+  /**
+   * CampaignRedemption without action
+   */
+  export type CampaignRedemptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
   }
 
 
@@ -54177,6 +55378,7 @@ export namespace Prisma {
     printJobs?: boolean | Order$printJobsArgs<ExtArgs>
     driverAssignment?: boolean | Order$driverAssignmentArgs<ExtArgs>
     payments?: boolean | Order$paymentsArgs<ExtArgs>
+    campaignRedemptions?: boolean | Order$campaignRedemptionsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
@@ -54341,6 +55543,7 @@ export namespace Prisma {
     printJobs?: boolean | Order$printJobsArgs<ExtArgs>
     driverAssignment?: boolean | Order$driverAssignmentArgs<ExtArgs>
     payments?: boolean | Order$paymentsArgs<ExtArgs>
+    campaignRedemptions?: boolean | Order$campaignRedemptionsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -54365,6 +55568,7 @@ export namespace Prisma {
       printJobs: Prisma.$PrintJobPayload<ExtArgs>[]
       driverAssignment: Prisma.$DriverAssignmentPayload<ExtArgs> | null
       payments: Prisma.$PaymentPayload<ExtArgs>[]
+      campaignRedemptions: Prisma.$CampaignRedemptionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -54811,6 +56015,7 @@ export namespace Prisma {
     printJobs<T extends Order$printJobsArgs<ExtArgs> = {}>(args?: Subset<T, Order$printJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrintJobPayload<ExtArgs>, T, "findMany"> | Null>
     driverAssignment<T extends Order$driverAssignmentArgs<ExtArgs> = {}>(args?: Subset<T, Order$driverAssignmentArgs<ExtArgs>>): Prisma__DriverAssignmentClient<$Result.GetResult<Prisma.$DriverAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     payments<T extends Order$paymentsArgs<ExtArgs> = {}>(args?: Subset<T, Order$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany"> | Null>
+    campaignRedemptions<T extends Order$campaignRedemptionsArgs<ExtArgs> = {}>(args?: Subset<T, Order$campaignRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CampaignRedemptionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -55384,6 +56589,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PaymentScalarFieldEnum | PaymentScalarFieldEnum[]
+  }
+
+  /**
+   * Order.campaignRedemptions
+   */
+  export type Order$campaignRedemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CampaignRedemption
+     */
+    select?: CampaignRedemptionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CampaignRedemptionInclude<ExtArgs> | null
+    where?: CampaignRedemptionWhereInput
+    orderBy?: CampaignRedemptionOrderByWithRelationInput | CampaignRedemptionOrderByWithRelationInput[]
+    cursor?: CampaignRedemptionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CampaignRedemptionScalarFieldEnum | CampaignRedemptionScalarFieldEnum[]
   }
 
   /**
@@ -117814,6 +119039,23 @@ export namespace Prisma {
   export type MarketingCampaignScalarFieldEnum = (typeof MarketingCampaignScalarFieldEnum)[keyof typeof MarketingCampaignScalarFieldEnum]
 
 
+  export const CampaignRedemptionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    campaignId: 'campaignId',
+    brandId: 'brandId',
+    orderId: 'orderId',
+    channel: 'channel',
+    customerAccountId: 'customerAccountId',
+    isNewCustomer: 'isNewCustomer',
+    discountAmount: 'discountAmount',
+    orderTotal: 'orderTotal',
+    createdAt: 'createdAt'
+  };
+
+  export type CampaignRedemptionScalarFieldEnum = (typeof CampaignRedemptionScalarFieldEnum)[keyof typeof CampaignRedemptionScalarFieldEnum]
+
+
   export const DeliveryZoneScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -119509,6 +120751,19 @@ export namespace Prisma {
   };
 
   export type MarketingCampaignOrderByRelevanceFieldEnum = (typeof MarketingCampaignOrderByRelevanceFieldEnum)[keyof typeof MarketingCampaignOrderByRelevanceFieldEnum]
+
+
+  export const CampaignRedemptionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    campaignId: 'campaignId',
+    brandId: 'brandId',
+    orderId: 'orderId',
+    channel: 'channel',
+    customerAccountId: 'customerAccountId'
+  };
+
+  export type CampaignRedemptionOrderByRelevanceFieldEnum = (typeof CampaignRedemptionOrderByRelevanceFieldEnum)[keyof typeof CampaignRedemptionOrderByRelevanceFieldEnum]
 
 
   export const DeliveryZoneOrderByRelevanceFieldEnum: {
@@ -125172,6 +126427,7 @@ export namespace Prisma {
     createdBy?: StringNullableFilter<"MarketingCampaign"> | string | null
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    redemptions?: CampaignRedemptionListRelationFilter
   }
 
   export type MarketingCampaignOrderByWithRelationInput = {
@@ -125202,6 +126458,7 @@ export namespace Prisma {
     createdBy?: SortOrderInput | SortOrder
     tenant?: TenantOrderByWithRelationInput
     brand?: BrandOrderByWithRelationInput
+    redemptions?: CampaignRedemptionOrderByRelationAggregateInput
     _relevance?: MarketingCampaignOrderByRelevanceInput
   }
 
@@ -125236,6 +126493,7 @@ export namespace Prisma {
     createdBy?: StringNullableFilter<"MarketingCampaign"> | string | null
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    redemptions?: CampaignRedemptionListRelationFilter
   }, "id">
 
   export type MarketingCampaignOrderByWithAggregationInput = {
@@ -125300,6 +126558,98 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"MarketingCampaign"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MarketingCampaign"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"MarketingCampaign"> | string | null
+  }
+
+  export type CampaignRedemptionWhereInput = {
+    AND?: CampaignRedemptionWhereInput | CampaignRedemptionWhereInput[]
+    OR?: CampaignRedemptionWhereInput[]
+    NOT?: CampaignRedemptionWhereInput | CampaignRedemptionWhereInput[]
+    id?: StringFilter<"CampaignRedemption"> | string
+    tenantId?: StringFilter<"CampaignRedemption"> | string
+    campaignId?: StringFilter<"CampaignRedemption"> | string
+    brandId?: StringFilter<"CampaignRedemption"> | string
+    orderId?: StringFilter<"CampaignRedemption"> | string
+    channel?: StringFilter<"CampaignRedemption"> | string
+    customerAccountId?: StringNullableFilter<"CampaignRedemption"> | string | null
+    isNewCustomer?: BoolFilter<"CampaignRedemption"> | boolean
+    discountAmount?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CampaignRedemption"> | Date | string
+    campaign?: XOR<MarketingCampaignRelationFilter, MarketingCampaignWhereInput>
+    order?: XOR<OrderRelationFilter, OrderWhereInput>
+  }
+
+  export type CampaignRedemptionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    campaignId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    channel?: SortOrder
+    customerAccountId?: SortOrderInput | SortOrder
+    isNewCustomer?: SortOrder
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+    createdAt?: SortOrder
+    campaign?: MarketingCampaignOrderByWithRelationInput
+    order?: OrderOrderByWithRelationInput
+    _relevance?: CampaignRedemptionOrderByRelevanceInput
+  }
+
+  export type CampaignRedemptionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId_campaignId?: CampaignRedemptionOrderIdCampaignIdCompoundUniqueInput
+    AND?: CampaignRedemptionWhereInput | CampaignRedemptionWhereInput[]
+    OR?: CampaignRedemptionWhereInput[]
+    NOT?: CampaignRedemptionWhereInput | CampaignRedemptionWhereInput[]
+    tenantId?: StringFilter<"CampaignRedemption"> | string
+    campaignId?: StringFilter<"CampaignRedemption"> | string
+    brandId?: StringFilter<"CampaignRedemption"> | string
+    orderId?: StringFilter<"CampaignRedemption"> | string
+    channel?: StringFilter<"CampaignRedemption"> | string
+    customerAccountId?: StringNullableFilter<"CampaignRedemption"> | string | null
+    isNewCustomer?: BoolFilter<"CampaignRedemption"> | boolean
+    discountAmount?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CampaignRedemption"> | Date | string
+    campaign?: XOR<MarketingCampaignRelationFilter, MarketingCampaignWhereInput>
+    order?: XOR<OrderRelationFilter, OrderWhereInput>
+  }, "id" | "orderId_campaignId">
+
+  export type CampaignRedemptionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    campaignId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    channel?: SortOrder
+    customerAccountId?: SortOrderInput | SortOrder
+    isNewCustomer?: SortOrder
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+    createdAt?: SortOrder
+    _count?: CampaignRedemptionCountOrderByAggregateInput
+    _avg?: CampaignRedemptionAvgOrderByAggregateInput
+    _max?: CampaignRedemptionMaxOrderByAggregateInput
+    _min?: CampaignRedemptionMinOrderByAggregateInput
+    _sum?: CampaignRedemptionSumOrderByAggregateInput
+  }
+
+  export type CampaignRedemptionScalarWhereWithAggregatesInput = {
+    AND?: CampaignRedemptionScalarWhereWithAggregatesInput | CampaignRedemptionScalarWhereWithAggregatesInput[]
+    OR?: CampaignRedemptionScalarWhereWithAggregatesInput[]
+    NOT?: CampaignRedemptionScalarWhereWithAggregatesInput | CampaignRedemptionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    tenantId?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    campaignId?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    brandId?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    orderId?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    channel?: StringWithAggregatesFilter<"CampaignRedemption"> | string
+    customerAccountId?: StringNullableWithAggregatesFilter<"CampaignRedemption"> | string | null
+    isNewCustomer?: BoolWithAggregatesFilter<"CampaignRedemption"> | boolean
+    discountAmount?: DecimalWithAggregatesFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalWithAggregatesFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeWithAggregatesFilter<"CampaignRedemption"> | Date | string
   }
 
   export type DeliveryZoneWhereInput = {
@@ -125555,6 +126905,7 @@ export namespace Prisma {
     printJobs?: PrintJobListRelationFilter
     driverAssignment?: XOR<DriverAssignmentNullableRelationFilter, DriverAssignmentWhereInput> | null
     payments?: PaymentListRelationFilter
+    campaignRedemptions?: CampaignRedemptionListRelationFilter
   }
 
   export type OrderOrderByWithRelationInput = {
@@ -125638,6 +126989,7 @@ export namespace Prisma {
     printJobs?: PrintJobOrderByRelationAggregateInput
     driverAssignment?: DriverAssignmentOrderByWithRelationInput
     payments?: PaymentOrderByRelationAggregateInput
+    campaignRedemptions?: CampaignRedemptionOrderByRelationAggregateInput
     _relevance?: OrderOrderByRelevanceInput
   }
 
@@ -125726,6 +127078,7 @@ export namespace Prisma {
     printJobs?: PrintJobListRelationFilter
     driverAssignment?: XOR<DriverAssignmentNullableRelationFilter, DriverAssignmentWhereInput> | null
     payments?: PaymentListRelationFilter
+    campaignRedemptions?: CampaignRedemptionListRelationFilter
   }, "id" | "idempotencyKey" | "externalId_platform">
 
   export type OrderOrderByWithAggregationInput = {
@@ -136080,6 +137433,7 @@ export namespace Prisma {
     createdBy?: string | null
     tenant: TenantCreateNestedOneWithoutMarketingCampaignsInput
     brand: BrandCreateNestedOneWithoutMarketingCampaignsInput
+    redemptions?: CampaignRedemptionCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignUncheckedCreateInput = {
@@ -136108,6 +137462,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    redemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignUpdateInput = {
@@ -136136,6 +137491,7 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     tenant?: TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput
     brand?: BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    redemptions?: CampaignRedemptionUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignUncheckedUpdateInput = {
@@ -136164,6 +137520,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    redemptions?: CampaignRedemptionUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignCreateManyInput = {
@@ -136246,6 +137603,102 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CampaignRedemptionCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    campaign: MarketingCampaignCreateNestedOneWithoutRedemptionsInput
+    order: OrderCreateNestedOneWithoutCampaignRedemptionsInput
+  }
+
+  export type CampaignRedemptionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    campaignId: string
+    brandId: string
+    orderId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingCampaignUpdateOneRequiredWithoutRedemptionsNestedInput
+    order?: OrderUpdateOneRequiredWithoutCampaignRedemptionsNestedInput
+  }
+
+  export type CampaignRedemptionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CampaignRedemptionCreateManyInput = {
+    id?: string
+    tenantId: string
+    campaignId: string
+    brandId: string
+    orderId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CampaignRedemptionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DeliveryZoneCreateInput = {
@@ -136503,6 +137956,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateInput = {
@@ -136581,6 +138035,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUpdateInput = {
@@ -136659,6 +138114,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateInput = {
@@ -136737,6 +138193,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderCreateManyInput = {
@@ -146491,6 +147948,16 @@ export namespace Prisma {
     not?: NestedEnumCampaignAudienceFilter<$PrismaModel> | $Enums.CampaignAudience
   }
 
+  export type CampaignRedemptionListRelationFilter = {
+    every?: CampaignRedemptionWhereInput
+    some?: CampaignRedemptionWhereInput
+    none?: CampaignRedemptionWhereInput
+  }
+
+  export type CampaignRedemptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type MarketingCampaignOrderByRelevanceInput = {
     fields: MarketingCampaignOrderByRelevanceFieldEnum | MarketingCampaignOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -146621,6 +148088,79 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumCampaignAudienceFilter<$PrismaModel>
     _max?: NestedEnumCampaignAudienceFilter<$PrismaModel>
+  }
+
+  export type MarketingCampaignRelationFilter = {
+    is?: MarketingCampaignWhereInput
+    isNot?: MarketingCampaignWhereInput
+  }
+
+  export type OrderRelationFilter = {
+    is?: OrderWhereInput
+    isNot?: OrderWhereInput
+  }
+
+  export type CampaignRedemptionOrderByRelevanceInput = {
+    fields: CampaignRedemptionOrderByRelevanceFieldEnum | CampaignRedemptionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type CampaignRedemptionOrderIdCampaignIdCompoundUniqueInput = {
+    orderId: string
+    campaignId: string
+  }
+
+  export type CampaignRedemptionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    campaignId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    channel?: SortOrder
+    customerAccountId?: SortOrder
+    isNewCustomer?: SortOrder
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CampaignRedemptionAvgOrderByAggregateInput = {
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+  }
+
+  export type CampaignRedemptionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    campaignId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    channel?: SortOrder
+    customerAccountId?: SortOrder
+    isNewCustomer?: SortOrder
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CampaignRedemptionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    campaignId?: SortOrder
+    brandId?: SortOrder
+    orderId?: SortOrder
+    channel?: SortOrder
+    customerAccountId?: SortOrder
+    isNewCustomer?: SortOrder
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CampaignRedemptionSumOrderByAggregateInput = {
+    discountAmount?: SortOrder
+    orderTotal?: SortOrder
   }
 
   export type DeliveryZoneOrderByRelevanceInput = {
@@ -147192,11 +148732,6 @@ export namespace Prisma {
 
   export type OrderNumberSequenceSumOrderByAggregateInput = {
     nextValue?: SortOrder
-  }
-
-  export type OrderRelationFilter = {
-    is?: OrderWhereInput
-    isNot?: OrderWhereInput
   }
 
   export type OrderItemOrderByRelevanceInput = {
@@ -155150,6 +156685,20 @@ export namespace Prisma {
     connect?: BrandWhereUniqueInput
   }
 
+  export type CampaignRedemptionCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput> | CampaignRedemptionCreateWithoutCampaignInput[] | CampaignRedemptionUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutCampaignInput | CampaignRedemptionCreateOrConnectWithoutCampaignInput[]
+    createMany?: CampaignRedemptionCreateManyCampaignInputEnvelope
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+  }
+
+  export type CampaignRedemptionUncheckedCreateNestedManyWithoutCampaignInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput> | CampaignRedemptionCreateWithoutCampaignInput[] | CampaignRedemptionUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutCampaignInput | CampaignRedemptionCreateOrConnectWithoutCampaignInput[]
+    createMany?: CampaignRedemptionCreateManyCampaignInputEnvelope
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+  }
+
   export type EnumCampaignTypeFieldUpdateOperationsInput = {
     set?: $Enums.CampaignType
   }
@@ -155186,6 +156735,62 @@ export namespace Prisma {
     upsert?: BrandUpsertWithoutMarketingCampaignsInput
     connect?: BrandWhereUniqueInput
     update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutMarketingCampaignsInput, BrandUpdateWithoutMarketingCampaignsInput>, BrandUncheckedUpdateWithoutMarketingCampaignsInput>
+  }
+
+  export type CampaignRedemptionUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput> | CampaignRedemptionCreateWithoutCampaignInput[] | CampaignRedemptionUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutCampaignInput | CampaignRedemptionCreateOrConnectWithoutCampaignInput[]
+    upsert?: CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput | CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: CampaignRedemptionCreateManyCampaignInputEnvelope
+    set?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    disconnect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    delete?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    update?: CampaignRedemptionUpdateWithWhereUniqueWithoutCampaignInput | CampaignRedemptionUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: CampaignRedemptionUpdateManyWithWhereWithoutCampaignInput | CampaignRedemptionUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+  }
+
+  export type CampaignRedemptionUncheckedUpdateManyWithoutCampaignNestedInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput> | CampaignRedemptionCreateWithoutCampaignInput[] | CampaignRedemptionUncheckedCreateWithoutCampaignInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutCampaignInput | CampaignRedemptionCreateOrConnectWithoutCampaignInput[]
+    upsert?: CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput | CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput[]
+    createMany?: CampaignRedemptionCreateManyCampaignInputEnvelope
+    set?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    disconnect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    delete?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    update?: CampaignRedemptionUpdateWithWhereUniqueWithoutCampaignInput | CampaignRedemptionUpdateWithWhereUniqueWithoutCampaignInput[]
+    updateMany?: CampaignRedemptionUpdateManyWithWhereWithoutCampaignInput | CampaignRedemptionUpdateManyWithWhereWithoutCampaignInput[]
+    deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+  }
+
+  export type MarketingCampaignCreateNestedOneWithoutRedemptionsInput = {
+    create?: XOR<MarketingCampaignCreateWithoutRedemptionsInput, MarketingCampaignUncheckedCreateWithoutRedemptionsInput>
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutRedemptionsInput
+    connect?: MarketingCampaignWhereUniqueInput
+  }
+
+  export type OrderCreateNestedOneWithoutCampaignRedemptionsInput = {
+    create?: XOR<OrderCreateWithoutCampaignRedemptionsInput, OrderUncheckedCreateWithoutCampaignRedemptionsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutCampaignRedemptionsInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type MarketingCampaignUpdateOneRequiredWithoutRedemptionsNestedInput = {
+    create?: XOR<MarketingCampaignCreateWithoutRedemptionsInput, MarketingCampaignUncheckedCreateWithoutRedemptionsInput>
+    connectOrCreate?: MarketingCampaignCreateOrConnectWithoutRedemptionsInput
+    upsert?: MarketingCampaignUpsertWithoutRedemptionsInput
+    connect?: MarketingCampaignWhereUniqueInput
+    update?: XOR<XOR<MarketingCampaignUpdateToOneWithWhereWithoutRedemptionsInput, MarketingCampaignUpdateWithoutRedemptionsInput>, MarketingCampaignUncheckedUpdateWithoutRedemptionsInput>
+  }
+
+  export type OrderUpdateOneRequiredWithoutCampaignRedemptionsNestedInput = {
+    create?: XOR<OrderCreateWithoutCampaignRedemptionsInput, OrderUncheckedCreateWithoutCampaignRedemptionsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutCampaignRedemptionsInput
+    upsert?: OrderUpsertWithoutCampaignRedemptionsInput
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutCampaignRedemptionsInput, OrderUpdateWithoutCampaignRedemptionsInput>, OrderUncheckedUpdateWithoutCampaignRedemptionsInput>
   }
 
   export type LocationCreateNestedOneWithoutDeliveryZonesInput = {
@@ -155305,6 +156910,13 @@ export namespace Prisma {
     connect?: PaymentWhereUniqueInput | PaymentWhereUniqueInput[]
   }
 
+  export type CampaignRedemptionCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput> | CampaignRedemptionCreateWithoutOrderInput[] | CampaignRedemptionUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutOrderInput | CampaignRedemptionCreateOrConnectWithoutOrderInput[]
+    createMany?: CampaignRedemptionCreateManyOrderInputEnvelope
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -155344,6 +156956,13 @@ export namespace Prisma {
     connectOrCreate?: PaymentCreateOrConnectWithoutOrderInput | PaymentCreateOrConnectWithoutOrderInput[]
     createMany?: PaymentCreateManyOrderInputEnvelope
     connect?: PaymentWhereUniqueInput | PaymentWhereUniqueInput[]
+  }
+
+  export type CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput> | CampaignRedemptionCreateWithoutOrderInput[] | CampaignRedemptionUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutOrderInput | CampaignRedemptionCreateOrConnectWithoutOrderInput[]
+    createMany?: CampaignRedemptionCreateManyOrderInputEnvelope
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
   }
 
   export type EnumOrderPlatformFieldUpdateOperationsInput = {
@@ -155504,6 +157123,20 @@ export namespace Prisma {
     deleteMany?: PaymentScalarWhereInput | PaymentScalarWhereInput[]
   }
 
+  export type CampaignRedemptionUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput> | CampaignRedemptionCreateWithoutOrderInput[] | CampaignRedemptionUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutOrderInput | CampaignRedemptionCreateOrConnectWithoutOrderInput[]
+    upsert?: CampaignRedemptionUpsertWithWhereUniqueWithoutOrderInput | CampaignRedemptionUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CampaignRedemptionCreateManyOrderInputEnvelope
+    set?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    disconnect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    delete?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    update?: CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput | CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CampaignRedemptionUpdateManyWithWhereWithoutOrderInput | CampaignRedemptionUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -155582,6 +157215,20 @@ export namespace Prisma {
     update?: PaymentUpdateWithWhereUniqueWithoutOrderInput | PaymentUpdateWithWhereUniqueWithoutOrderInput[]
     updateMany?: PaymentUpdateManyWithWhereWithoutOrderInput | PaymentUpdateManyWithWhereWithoutOrderInput[]
     deleteMany?: PaymentScalarWhereInput | PaymentScalarWhereInput[]
+  }
+
+  export type CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput> | CampaignRedemptionCreateWithoutOrderInput[] | CampaignRedemptionUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CampaignRedemptionCreateOrConnectWithoutOrderInput | CampaignRedemptionCreateOrConnectWithoutOrderInput[]
+    upsert?: CampaignRedemptionUpsertWithWhereUniqueWithoutOrderInput | CampaignRedemptionUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CampaignRedemptionCreateManyOrderInputEnvelope
+    set?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    disconnect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    delete?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    connect?: CampaignRedemptionWhereUniqueInput | CampaignRedemptionWhereUniqueInput[]
+    update?: CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput | CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CampaignRedemptionUpdateManyWithWhereWithoutOrderInput | CampaignRedemptionUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
   }
 
   export type OrderCreateNestedOneWithoutItemsInput = {
@@ -159428,6 +161075,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutTenantInput = {
@@ -159505,6 +161153,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutTenantInput = {
@@ -159702,6 +161351,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdBy?: string | null
     brand: BrandCreateNestedOneWithoutMarketingCampaignsInput
+    redemptions?: CampaignRedemptionCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignUncheckedCreateWithoutTenantInput = {
@@ -159729,6 +161379,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    redemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignCreateOrConnectWithoutTenantInput = {
@@ -162924,6 +164575,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerAccountInput = {
@@ -163001,6 +164653,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerAccountInput = {
@@ -164012,6 +165665,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutBrandInput = {
@@ -164089,6 +165743,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutBrandInput = {
@@ -164294,6 +165949,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdBy?: string | null
     tenant: TenantCreateNestedOneWithoutMarketingCampaignsInput
+    redemptions?: CampaignRedemptionCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignUncheckedCreateWithoutBrandInput = {
@@ -164321,6 +165977,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: string | null
+    redemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutCampaignInput
   }
 
   export type MarketingCampaignCreateOrConnectWithoutBrandInput = {
@@ -165166,6 +166823,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutLocationInput = {
@@ -165243,6 +166901,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutLocationInput = {
@@ -172259,6 +173918,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -172336,6 +173996,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -173590,6 +175251,42 @@ export namespace Prisma {
     create: XOR<BrandCreateWithoutMarketingCampaignsInput, BrandUncheckedCreateWithoutMarketingCampaignsInput>
   }
 
+  export type CampaignRedemptionCreateWithoutCampaignInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    order: OrderCreateNestedOneWithoutCampaignRedemptionsInput
+  }
+
+  export type CampaignRedemptionUncheckedCreateWithoutCampaignInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    orderId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionCreateOrConnectWithoutCampaignInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    create: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type CampaignRedemptionCreateManyCampaignInputEnvelope = {
+    data: CampaignRedemptionCreateManyCampaignInput | CampaignRedemptionCreateManyCampaignInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutMarketingCampaignsInput = {
     update: XOR<TenantUpdateWithoutMarketingCampaignsInput, TenantUncheckedUpdateWithoutMarketingCampaignsInput>
     create: XOR<TenantCreateWithoutMarketingCampaignsInput, TenantUncheckedCreateWithoutMarketingCampaignsInput>
@@ -173762,6 +175459,495 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    update: XOR<CampaignRedemptionUpdateWithoutCampaignInput, CampaignRedemptionUncheckedUpdateWithoutCampaignInput>
+    create: XOR<CampaignRedemptionCreateWithoutCampaignInput, CampaignRedemptionUncheckedCreateWithoutCampaignInput>
+  }
+
+  export type CampaignRedemptionUpdateWithWhereUniqueWithoutCampaignInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    data: XOR<CampaignRedemptionUpdateWithoutCampaignInput, CampaignRedemptionUncheckedUpdateWithoutCampaignInput>
+  }
+
+  export type CampaignRedemptionUpdateManyWithWhereWithoutCampaignInput = {
+    where: CampaignRedemptionScalarWhereInput
+    data: XOR<CampaignRedemptionUpdateManyMutationInput, CampaignRedemptionUncheckedUpdateManyWithoutCampaignInput>
+  }
+
+  export type CampaignRedemptionScalarWhereInput = {
+    AND?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+    OR?: CampaignRedemptionScalarWhereInput[]
+    NOT?: CampaignRedemptionScalarWhereInput | CampaignRedemptionScalarWhereInput[]
+    id?: StringFilter<"CampaignRedemption"> | string
+    tenantId?: StringFilter<"CampaignRedemption"> | string
+    campaignId?: StringFilter<"CampaignRedemption"> | string
+    brandId?: StringFilter<"CampaignRedemption"> | string
+    orderId?: StringFilter<"CampaignRedemption"> | string
+    channel?: StringFilter<"CampaignRedemption"> | string
+    customerAccountId?: StringNullableFilter<"CampaignRedemption"> | string | null
+    isNewCustomer?: BoolFilter<"CampaignRedemption"> | boolean
+    discountAmount?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFilter<"CampaignRedemption"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CampaignRedemption"> | Date | string
+  }
+
+  export type MarketingCampaignCreateWithoutRedemptionsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+    tenant: TenantCreateNestedOneWithoutMarketingCampaignsInput
+    brand: BrandCreateNestedOneWithoutMarketingCampaignsInput
+  }
+
+  export type MarketingCampaignUncheckedCreateWithoutRedemptionsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    description?: string | null
+    type: $Enums.CampaignType
+    status?: $Enums.CampaignStatus
+    audience?: $Enums.CampaignAudience
+    channels?: MarketingCampaignCreatechannelsInput | string[]
+    percentageOff?: Decimal | DecimalJsLike | number | string | null
+    amountOff?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
+    freeItemId?: string | null
+    itemIds?: MarketingCampaignCreateitemIdsInput | string[]
+    dailyStartTime?: string | null
+    dailyEndTime?: string | null
+    startsAt?: Date | string | null
+    endsAt?: Date | string | null
+    maxRedemptions?: number | null
+    perCustomerLimit?: number | null
+    redemptionCount?: number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type MarketingCampaignCreateOrConnectWithoutRedemptionsInput = {
+    where: MarketingCampaignWhereUniqueInput
+    create: XOR<MarketingCampaignCreateWithoutRedemptionsInput, MarketingCampaignUncheckedCreateWithoutRedemptionsInput>
+  }
+
+  export type OrderCreateWithoutCampaignRedemptionsInput = {
+    id?: string
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutOrdersInput
+    location: LocationCreateNestedOneWithoutOrdersInput
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    customerAccount?: CustomerAccountCreateNestedOneWithoutOrdersInput
+    brand?: BrandCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
+    payments?: PaymentCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutCampaignRedemptionsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    customerAccountId?: string | null
+    brandId?: string | null
+    externalId?: string | null
+    platform: $Enums.OrderPlatform
+    displayId?: string | null
+    orderNumber?: number | null
+    orderSource?: $Enums.OrderSource
+    integrationSource?: $Enums.IntegrationSource
+    viaHubrise?: boolean
+    deliveryType?: string | null
+    courierName?: string | null
+    courierPhone?: string | null
+    courierPhoneAccessCode?: string | null
+    courierTrackingUrl?: string | null
+    courierStatus?: string | null
+    courierAssignedAt?: Date | string | null
+    courierPickedUpAt?: Date | string | null
+    courierDeliveredAt?: Date | string | null
+    status?: $Enums.OrderStatus
+    fulfillmentType?: $Enums.FulfillmentType
+    customerInfo: JsonNullValueInput | InputJsonValue
+    customerName?: string | null
+    customerPhone?: string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: number | null
+    deliveryLng?: number | null
+    geocodedAt?: Date | string | null
+    subtotal: Decimal | DecimalJsLike | number | string
+    taxAmount?: Decimal | DecimalJsLike | number | string
+    serviceCharge?: Decimal | DecimalJsLike | number | string
+    deliveryFee?: Decimal | DecimalJsLike | number | string
+    discount?: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    isSandbox?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    paymentMethod?: string | null
+    promoCode?: string | null
+    promoDiscount?: Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: string | null
+    scheduledFor?: Date | string | null
+    scheduledAt?: Date | string | null
+    estimatedReadyAt?: Date | string | null
+    idempotencyKey?: string | null
+    collectionCode?: string | null
+    preparationMinutes?: number | null
+    failureReason?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    callerId?: string | null
+    discountType?: string | null
+    paymentProvider?: string | null
+    receivedAt?: Date | string
+    acceptedAt?: Date | string | null
+    preparingAt?: Date | string | null
+    readyAt?: Date | string | null
+    outForDeliveryAt?: Date | string | null
+    deliveredAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    statusHistory?: OrderStatusHistoryUncheckedCreateNestedManyWithoutOrderInput
+    kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
+    printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
+    driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutCampaignRedemptionsInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutCampaignRedemptionsInput, OrderUncheckedCreateWithoutCampaignRedemptionsInput>
+  }
+
+  export type MarketingCampaignUpsertWithoutRedemptionsInput = {
+    update: XOR<MarketingCampaignUpdateWithoutRedemptionsInput, MarketingCampaignUncheckedUpdateWithoutRedemptionsInput>
+    create: XOR<MarketingCampaignCreateWithoutRedemptionsInput, MarketingCampaignUncheckedCreateWithoutRedemptionsInput>
+    where?: MarketingCampaignWhereInput
+  }
+
+  export type MarketingCampaignUpdateToOneWithWhereWithoutRedemptionsInput = {
+    where?: MarketingCampaignWhereInput
+    data: XOR<MarketingCampaignUpdateWithoutRedemptionsInput, MarketingCampaignUncheckedUpdateWithoutRedemptionsInput>
+  }
+
+  export type MarketingCampaignUpdateWithoutRedemptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    brand?: BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+  }
+
+  export type MarketingCampaignUncheckedUpdateWithoutRedemptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCampaignTypeFieldUpdateOperationsInput | $Enums.CampaignType
+    status?: EnumCampaignStatusFieldUpdateOperationsInput | $Enums.CampaignStatus
+    audience?: EnumCampaignAudienceFieldUpdateOperationsInput | $Enums.CampaignAudience
+    channels?: MarketingCampaignUpdatechannelsInput | string[]
+    percentageOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    freeItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    itemIds?: MarketingCampaignUpdateitemIdsInput | string[]
+    dailyStartTime?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyEndTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    maxRedemptions?: NullableIntFieldUpdateOperationsInput | number | null
+    perCustomerLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    redemptionCount?: IntFieldUpdateOperationsInput | number
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type OrderUpsertWithoutCampaignRedemptionsInput = {
+    update: XOR<OrderUpdateWithoutCampaignRedemptionsInput, OrderUncheckedUpdateWithoutCampaignRedemptionsInput>
+    create: XOR<OrderCreateWithoutCampaignRedemptionsInput, OrderUncheckedCreateWithoutCampaignRedemptionsInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutCampaignRedemptionsInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutCampaignRedemptionsInput, OrderUncheckedUpdateWithoutCampaignRedemptionsInput>
+  }
+
+  export type OrderUpdateWithoutCampaignRedemptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutOrdersNestedInput
+    location?: LocationUpdateOneRequiredWithoutOrdersNestedInput
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    customerAccount?: CustomerAccountUpdateOneWithoutOrdersNestedInput
+    brand?: BrandUpdateOneWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutCampaignRedemptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
+    displayId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
+    integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
+    viaHubrise?: BoolFieldUpdateOperationsInput | boolean
+    deliveryType?: NullableStringFieldUpdateOperationsInput | string | null
+    courierName?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    courierPhoneAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    courierTrackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    courierStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    courierAssignedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierPickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    courierDeliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    fulfillmentType?: EnumFulfillmentTypeFieldUpdateOperationsInput | $Enums.FulfillmentType
+    customerInfo?: JsonNullValueInput | InputJsonValue
+    customerName?: NullableStringFieldUpdateOperationsInput | string | null
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryAddress?: NullableJsonNullValueInput | InputJsonValue
+    deliveryLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    deliveryLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    geocodedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    taxAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    serviceCharge?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isSandbox?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    promoCode?: NullableStringFieldUpdateOperationsInput | string | null
+    promoDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    specialInstructions?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    estimatedReadyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    collectionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    preparationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    callerId?: NullableStringFieldUpdateOperationsInput | string | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    preparingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readyAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    outForDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    sourceMetadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    statusHistory?: OrderStatusHistoryUncheckedUpdateManyWithoutOrderNestedInput
+    kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
+    printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
+    driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutDeliveryZonesInput = {
@@ -175216,6 +177402,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CampaignRedemptionCreateWithoutOrderInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    campaign: MarketingCampaignCreateNestedOneWithoutRedemptionsInput
+  }
+
+  export type CampaignRedemptionUncheckedCreateWithoutOrderInput = {
+    id?: string
+    tenantId: string
+    campaignId: string
+    brandId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionCreateOrConnectWithoutOrderInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    create: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CampaignRedemptionCreateManyOrderInputEnvelope = {
+    data: CampaignRedemptionCreateManyOrderInput | CampaignRedemptionCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutOrdersInput = {
     update: XOR<TenantUpdateWithoutOrdersInput, TenantUncheckedUpdateWithoutOrdersInput>
     create: XOR<TenantCreateWithoutOrdersInput, TenantUncheckedCreateWithoutOrdersInput>
@@ -175826,6 +178048,22 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Payment"> | Date | string
   }
 
+  export type CampaignRedemptionUpsertWithWhereUniqueWithoutOrderInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    update: XOR<CampaignRedemptionUpdateWithoutOrderInput, CampaignRedemptionUncheckedUpdateWithoutOrderInput>
+    create: XOR<CampaignRedemptionCreateWithoutOrderInput, CampaignRedemptionUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CampaignRedemptionUpdateWithWhereUniqueWithoutOrderInput = {
+    where: CampaignRedemptionWhereUniqueInput
+    data: XOR<CampaignRedemptionUpdateWithoutOrderInput, CampaignRedemptionUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type CampaignRedemptionUpdateManyWithWhereWithoutOrderInput = {
+    where: CampaignRedemptionScalarWhereInput
+    data: XOR<CampaignRedemptionUpdateManyMutationInput, CampaignRedemptionUncheckedUpdateManyWithoutOrderInput>
+  }
+
   export type OrderCreateWithoutItemsInput = {
     id?: string
     externalId?: string | null
@@ -175901,6 +178139,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutItemsInput = {
@@ -175978,6 +178217,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutItemsInput = {
@@ -176071,6 +178311,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -176148,6 +178389,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderCreateWithoutStatusHistoryInput = {
@@ -176225,6 +178467,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutStatusHistoryInput = {
@@ -176302,6 +178545,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutStatusHistoryInput = {
@@ -176395,6 +178639,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutStatusHistoryInput = {
@@ -176472,6 +178717,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutKdsScreensInput = {
@@ -176926,6 +179172,7 @@ export namespace Prisma {
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutKdsTicketsInput = {
@@ -177003,6 +179250,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutKdsTicketsInput = {
@@ -177131,6 +179379,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutKdsTicketsInput = {
@@ -177208,6 +179457,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type LocationCreateWithoutPrintersInput = {
@@ -178323,6 +180573,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutPrintJobsInput = {
@@ -178400,6 +180651,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutPrintJobsInput = {
@@ -178741,6 +180993,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutPrintJobsInput = {
@@ -178818,6 +181071,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type PrinterStationUpsertWithoutPrintJobsInput = {
@@ -181785,6 +184039,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     payments?: PaymentCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutDriverAssignmentInput = {
@@ -181862,6 +184117,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     payments?: PaymentUncheckedCreateNestedManyWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutDriverAssignmentInput = {
@@ -182024,6 +184280,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutDriverAssignmentInput = {
@@ -182101,6 +184358,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type DriverUpsertWithoutAssignmentsInput = {
@@ -182587,6 +184845,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentCreateNestedOneWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutPaymentsInput = {
@@ -182664,6 +184923,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedCreateNestedManyWithoutOrderInput
     printJobs?: PrintJobUncheckedCreateNestedManyWithoutOrderInput
     driverAssignment?: DriverAssignmentUncheckedCreateNestedOneWithoutOrderInput
+    campaignRedemptions?: CampaignRedemptionUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutPaymentsInput = {
@@ -182872,6 +185132,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutPaymentsInput = {
@@ -182949,6 +185210,7 @@ export namespace Prisma {
     kdsTickets?: KdsTicketUncheckedUpdateManyWithoutOrderNestedInput
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type StripeConnectAccountUpsertWithoutPaymentsInput = {
@@ -187669,6 +189931,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutTenantInput = {
@@ -187746,6 +190009,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutTenantInput = {
@@ -188035,6 +190299,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     brand?: BrandUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    redemptions?: CampaignRedemptionUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignUncheckedUpdateWithoutTenantInput = {
@@ -188062,6 +190327,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    redemptions?: CampaignRedemptionUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignUncheckedUpdateManyWithoutTenantInput = {
@@ -189070,6 +191336,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerAccountInput = {
@@ -189147,6 +191414,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerAccountInput = {
@@ -189989,6 +192257,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutBrandInput = {
@@ -190066,6 +192335,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutBrandInput = {
@@ -190356,6 +192626,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     tenant?: TenantUpdateOneRequiredWithoutMarketingCampaignsNestedInput
+    redemptions?: CampaignRedemptionUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignUncheckedUpdateWithoutBrandInput = {
@@ -190383,6 +192654,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    redemptions?: CampaignRedemptionUncheckedUpdateManyWithoutCampaignNestedInput
   }
 
   export type MarketingCampaignUncheckedUpdateManyWithoutBrandInput = {
@@ -190814,6 +193086,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutLocationInput = {
@@ -190891,6 +193164,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutLocationInput = {
@@ -192352,6 +194626,7 @@ export namespace Prisma {
     printJobs?: PrintJobUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUpdateOneWithoutOrderNestedInput
     payments?: PaymentUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -192429,6 +194704,7 @@ export namespace Prisma {
     printJobs?: PrintJobUncheckedUpdateManyWithoutOrderNestedInput
     driverAssignment?: DriverAssignmentUncheckedUpdateOneWithoutOrderNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
+    campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -192538,6 +194814,58 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CampaignRedemptionCreateManyCampaignInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    orderId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutCampaignRedemptionsNestedInput
+  }
+
+  export type CampaignRedemptionUncheckedUpdateWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CampaignRedemptionUncheckedUpdateManyWithoutCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderItemCreateManyOrderInput = {
     id?: string
     menuItemId?: string | null
@@ -192615,6 +194943,19 @@ export namespace Prisma {
     processingFee?: Decimal | DecimalJsLike | number | string
     netAmount: Decimal | DecimalJsLike | number | string
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type CampaignRedemptionCreateManyOrderInput = {
+    id?: string
+    tenantId: string
+    campaignId: string
+    brandId: string
+    channel?: string
+    customerAccountId?: string | null
+    isNewCustomer?: boolean
+    discountAmount?: Decimal | DecimalJsLike | number | string
+    orderTotal?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
 
@@ -192859,6 +195200,45 @@ export namespace Prisma {
     processingFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     netAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CampaignRedemptionUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    campaign?: MarketingCampaignUpdateOneRequiredWithoutRedemptionsNestedInput
+  }
+
+  export type CampaignRedemptionUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CampaignRedemptionUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    campaignId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    isNewCustomer?: BoolFieldUpdateOperationsInput | boolean
+    discountAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -195492,6 +197872,10 @@ export namespace Prisma {
      */
     export type CustomerCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use MarketingCampaignCountOutputTypeDefaultArgs instead
+     */
+    export type MarketingCampaignCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingCampaignCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use OrderCountOutputTypeDefaultArgs instead
      */
     export type OrderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderCountOutputTypeDefaultArgs<ExtArgs>
@@ -195703,6 +198087,10 @@ export namespace Prisma {
      * @deprecated Use MarketingCampaignDefaultArgs instead
      */
     export type MarketingCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CampaignRedemptionDefaultArgs instead
+     */
+    export type CampaignRedemptionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CampaignRedemptionDefaultArgs<ExtArgs>
     /**
      * @deprecated Use DeliveryZoneDefaultArgs instead
      */

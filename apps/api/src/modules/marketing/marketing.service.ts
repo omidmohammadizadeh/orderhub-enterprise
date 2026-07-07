@@ -58,6 +58,78 @@ export class MarketingService {
   }
 
   /**
+   * Phase MK-INSIGHTS — per-campaign performance over a date range, keyed
+   * by campaign id. Mirrors the Uber Eats Manager "Offers" view:
+   *   orders       — distinct orders the campaign applied to
+   *   sales        — Σ order gross total of those orders (revenue driven)
+   *   discount     — Σ discount this campaign gave
+   *   newCustomers — orders where the buyer was a first-time customer
+   *   redemptions  — total redemption rows (≥ orders when 2 campaigns
+   *                  hit one order; here 1 row = 1 order per campaign)
+   *
+   * Attribution is forward-only: orders placed before campaign_redemptions
+   * shipped have no rows, so historical campaigns read as zero.
+   */
+  async getMetrics(args: {
+    tenantId: string;
+    brandId?: string;
+    from?: Date;
+    to?: Date;
+  }): Promise<
+    Record<
+      string,
+      {
+        orders: number;
+        sales: number;
+        discount: number;
+        newCustomers: number;
+        redemptions: number;
+      }
+    >
+  > {
+    const where: any = {
+      tenantId: args.tenantId,
+      ...(args.brandId && { brandId: args.brandId }),
+      ...((args.from || args.to) && {
+        createdAt: {
+          ...(args.from && { gte: args.from }),
+          ...(args.to && { lte: args.to }),
+        },
+      }),
+    };
+
+    // One row per (order, campaign). Aggregate in the DB: count rows and
+    // sum money per campaign, then count the new-customer subset.
+    const grouped = await (this.prisma as any).campaignRedemption.groupBy({
+      by: ["campaignId"],
+      where,
+      _count: { _all: true },
+      _sum: { orderTotal: true, discountAmount: true },
+    });
+    const newGrouped = await (this.prisma as any).campaignRedemption.groupBy({
+      by: ["campaignId"],
+      where: { ...where, isNewCustomer: true },
+      _count: { _all: true },
+    });
+    const newByCampaign = new Map<string, number>(
+      newGrouped.map((g: any) => [g.campaignId, g._count?._all ?? 0]),
+    );
+
+    const out: Record<string, any> = {};
+    for (const g of grouped) {
+      const redemptions = g._count?._all ?? 0;
+      out[g.campaignId] = {
+        orders: redemptions,
+        redemptions,
+        sales: Number(g._sum?.orderTotal ?? 0),
+        discount: Number(g._sum?.discountAmount ?? 0),
+        newCustomers: newByCampaign.get(g.campaignId) ?? 0,
+      };
+    }
+    return out;
+  }
+
+  /**
    * Receipt QR offer for marketplace order tickets. Returns the brand's
    * direct-online-ordering URL (so a scan opens the storefront) plus a
    * "Scan me to get …" caption derived from the brand's live marketing.

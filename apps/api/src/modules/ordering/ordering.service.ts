@@ -771,11 +771,20 @@ export class OrderingService {
     const campaignBrandId =
       pinnedBrandId ?? (location as any).brandId;
     let campaignDiscount = 0;
+    // Phase MK-INSIGHTS — remember which campaigns actually applied so we
+    // can attribute the order to them after it's created (drives the
+    // Marketing page's Sales/Orders/New-customers insights). isNewCustomer
+    // is the audience bucket resolved from the customer's order history.
+    let isNewCustomer = false;
+    let customerAudience: "ALL" | "NEW" | "RETURNING" | "LAPSED" = "ALL";
+    let appliedDiscountCampaign: { id: string } | null = null;
+    let appliedFreeDeliveryCampaign: { campaignId: string } | null = null;
     try {
-      const customerAudience = await this.marketing.resolveAudience({
+      customerAudience = await this.marketing.resolveAudience({
         tenantId: location.brand.tenantId,
         customerAccountId: dto.customerAccountId ?? null,
       });
+      isNewCustomer = customerAudience === "NEW";
       const appliedCampaign = await this.pickStorefrontCampaign({
         brandId: campaignBrandId,
         audiences: ["ALL", customerAudience],
@@ -792,6 +801,9 @@ export class OrderingService {
         } else if (appliedCampaign.amountOff != null) {
           campaignDiscount = Math.min(dto.subtotal, appliedCampaign.amountOff);
         }
+        if (campaignDiscount > 0) {
+          appliedDiscountCampaign = { id: appliedCampaign.id };
+        }
       }
     } catch (err) {
       // Phase AW-19 — never fail checkout because campaign resolution
@@ -807,16 +819,13 @@ export class OrderingService {
     try {
       const fd = await this.marketing.resolveFreeDelivery(
         campaignBrandId,
-        [
-          "ALL",
-          await this.marketing.resolveAudience({
-            tenantId: location.brand.tenantId,
-            customerAccountId: dto.customerAccountId ?? null,
-          }),
-        ],
+        ["ALL", customerAudience as any],
         location.timezone,
       );
-      if (fd && dto.fulfillmentType === "DELIVERY") serverDeliveryFee = 0;
+      if (fd && dto.fulfillmentType === "DELIVERY") {
+        serverDeliveryFee = 0;
+        appliedFreeDeliveryCampaign = { campaignId: fd.campaignId };
+      }
     } catch (err) {
       this.logger.warn(
         `Free-delivery re-resolution failed for slug=${slug}: ${(err as Error).message}`,
@@ -863,6 +872,26 @@ export class OrderingService {
         customerAccountId: dto.customerAccountId,
       } as any,
       location.brand.tenantId,
+    );
+
+    // Phase MK-INSIGHTS — attribute the order to whichever campaigns
+    // actually applied, so the Marketing page can report real
+    // Sales/Orders/New-customers per campaign. Best-effort: a failure here
+    // must never break a placed order. discountAmount for free delivery is
+    // 0 (it zeroed the delivery fee, which isn't part of Order.discount).
+    void this.recordCampaignRedemptions({
+      order,
+      brandId: campaignBrandId,
+      tenantId: location.brand.tenantId,
+      customerAccountId: dto.customerAccountId ?? null,
+      isNewCustomer,
+      discountCampaignId: appliedDiscountCampaign?.id ?? null,
+      discountAmount: serverDiscount,
+      freeDeliveryCampaignId: appliedFreeDeliveryCampaign?.campaignId ?? null,
+    }).catch((err) =>
+      this.logger.warn(
+        `Campaign redemption recording failed for order ${order.id}: ${(err as Error).message}`,
+      ),
     );
 
     // Phase AP-8 — cash orders flow straight to the staff Orders board
@@ -1028,6 +1057,69 @@ export class OrderingService {
    * highest percentageOff so the customer sees the friendliest
    * offer. Min-order gating is left to the cart math.
    */
+  // Phase MK-INSIGHTS — write one campaign_redemptions row per campaign
+  // that applied to a placed order. Idempotent on (orderId, campaignId) so
+  // a retry can't double-count; also bumps the denormalised
+  // redemptionCount used for the max-redemptions cap. Best-effort — the
+  // caller swallows failures so an insight write never breaks checkout.
+  private async recordCampaignRedemptions(args: {
+    order: { id: string; total?: any };
+    brandId: string;
+    tenantId: string;
+    customerAccountId: string | null;
+    isNewCustomer: boolean;
+    discountCampaignId: string | null;
+    discountAmount: number;
+    freeDeliveryCampaignId: string | null;
+  }): Promise<void> {
+    const orderTotal = Number(args.order.total ?? 0);
+    const targets: Array<{ campaignId: string; discount: number }> = [];
+    if (args.discountCampaignId) {
+      targets.push({
+        campaignId: args.discountCampaignId,
+        discount: args.discountAmount,
+      });
+    }
+    if (
+      args.freeDeliveryCampaignId &&
+      args.freeDeliveryCampaignId !== args.discountCampaignId
+    ) {
+      // Free delivery discounts the delivery fee, which isn't part of
+      // Order.discount, so its attributed discountAmount is 0.
+      targets.push({ campaignId: args.freeDeliveryCampaignId, discount: 0 });
+    }
+    for (const t of targets) {
+      try {
+        await (this.prisma as any).campaignRedemption.create({
+          data: {
+            tenantId: args.tenantId,
+            campaignId: t.campaignId,
+            brandId: args.brandId,
+            orderId: args.order.id,
+            channel: "ONLINE",
+            customerAccountId: args.customerAccountId,
+            isNewCustomer: args.isNewCustomer,
+            discountAmount: t.discount,
+            orderTotal,
+          },
+        });
+        await (this.prisma as any).marketingCampaign.update({
+          where: { id: t.campaignId },
+          data: { redemptionCount: { increment: 1 } },
+        });
+      } catch (err: any) {
+        // Unique-violation (P2002) = the order was already attributed to
+        // this campaign (idempotent retry) — fine to ignore. Anything
+        // else is logged and skipped; insights must never break checkout.
+        if (err?.code !== "P2002") {
+          this.logger.warn(
+            `Redemption write skipped (order ${args.order.id}, campaign ${t.campaignId}): ${err?.message}`,
+          );
+        }
+      }
+    }
+  }
+
   private async pickStorefrontCampaign(args: {
     brandId: string;
     audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">;

@@ -8,7 +8,7 @@
 // six save the operator's intent as a DRAFT row with the picked type
 // and route them straight into a "coming soon" stub for now.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Megaphone,
@@ -17,6 +17,7 @@ import {
   Pause,
   Play,
   Trash2,
+  Pencil,
   Percent,
   ShoppingCart,
   Gift,
@@ -30,7 +31,11 @@ import {
   marketingClient,
   type MarketingCampaign,
   type CampaignType,
+  type CampaignStatus,
+  type CampaignMetrics,
+  type CampaignMetricsMap,
 } from "@/lib/api/marketing.client";
+import { EditCampaignModal } from "@/components/marketing/edit-campaign-modal";
 import { PercentageOffCampaignForm } from "@/components/marketing/percentage-off-form";
 import { AmountOffCampaignForm } from "@/components/marketing/amount-off-form";
 import { PercentOffItemsCampaignForm } from "@/components/marketing/percent-off-items-form";
@@ -102,15 +107,53 @@ const TYPE_TILES: TypeTile[] = [
   },
 ];
 
+// Phase MK-INSIGHTS — date windows for the performance filter, mirroring
+// Uber Eats Manager. `days: null` = all time (no `from`).
+const DATE_RANGES: Array<{ id: string; label: string; days: number | null }> = [
+  { id: "7", label: "Last 7 days", days: 7 },
+  { id: "30", label: "Last 30 days", days: 30 },
+  { id: "84", label: "Last 12 weeks", days: 84 },
+  { id: "365", label: "Last 12 months", days: 365 },
+  { id: "all", label: "All time", days: null },
+];
+
+const ALL_STATUSES: CampaignStatus[] = ["ACTIVE", "PAUSED", "DRAFT", "ENDED"];
+
 export default function MarketingPage() {
   const qc = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [formType, setFormType] = useState<CampaignType | null>(null);
+  const [editing, setEditing] = useState<MarketingCampaign | null>(null);
+
+  // Insight filters (Uber-style): a date window drives the metrics query;
+  // a status set filters the rows client-side.
+  const [rangeId, setRangeId] = useState("30");
+  const [statusFilter, setStatusFilter] =
+    useState<CampaignStatus[]>(ALL_STATUSES);
 
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["marketing", "campaigns"],
     queryFn: () => marketingClient.list(),
   });
+
+  // Per-campaign performance for the chosen window. Compute `from` in the
+  // browser; `to` defaults to now on the server.
+  const { data: metrics = {} } = useQuery<CampaignMetricsMap>({
+    queryKey: ["marketing", "metrics", rangeId],
+    queryFn: () => {
+      const days = DATE_RANGES.find((r) => r.id === rangeId)?.days ?? null;
+      const from =
+        days == null
+          ? undefined
+          : new Date(Date.now() - days * 86_400_000).toISOString();
+      return marketingClient.metrics(from ? { from } : undefined);
+    },
+  });
+
+  const visibleCampaigns = useMemo(
+    () => campaigns.filter((c) => statusFilter.includes(c.status)),
+    [campaigns, statusFilter],
+  );
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => marketingClient.remove(id),
@@ -167,23 +210,58 @@ export default function MarketingPage() {
           </p>
         </div>
       ) : (
-        <CampaignsTable
-          campaigns={campaigns}
-          onRemove={(id) => {
-            if (
-              !window.confirm(
-                "Delete this campaign? This cannot be undone.",
-              )
-            )
-              return;
-            removeMutation.mutate(id);
+        <>
+          <FilterBar
+            rangeId={rangeId}
+            onRange={setRangeId}
+            statusFilter={statusFilter}
+            onStatus={setStatusFilter}
+          />
+          <InsightsSummary
+            campaigns={visibleCampaigns}
+            metrics={metrics}
+            rangeLabel={
+              DATE_RANGES.find((r) => r.id === rangeId)?.label ?? ""
+            }
+          />
+          {visibleCampaigns.length === 0 ? (
+            <div className="rounded-xl border border-zinc-200 bg-white px-6 py-12 text-center text-sm text-zinc-500">
+              No campaigns match the selected status filter.
+            </div>
+          ) : (
+            <CampaignsTable
+              campaigns={visibleCampaigns}
+              metrics={metrics}
+              onEdit={(c) => setEditing(c)}
+              onRemove={(id) => {
+                if (
+                  !window.confirm(
+                    "Delete this campaign? This cannot be undone.",
+                  )
+                )
+                  return;
+                removeMutation.mutate(id);
+              }}
+              onTogglePause={(id, current) =>
+                togglePauseMutation.mutate({
+                  id,
+                  status: current === "ACTIVE" ? "PAUSED" : "ACTIVE",
+                })
+              }
+            />
+          )}
+        </>
+      )}
+
+      {editing && (
+        <EditCampaignModal
+          campaign={editing}
+          onCancel={() => setEditing(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            qc.invalidateQueries({ queryKey: ["marketing", "metrics"] });
+            setEditing(null);
           }}
-          onTogglePause={(id, current) =>
-            togglePauseMutation.mutate({
-              id,
-              status: current === "ACTIVE" ? "PAUSED" : "ACTIVE",
-            })
-          }
         />
       )}
 
@@ -279,90 +357,233 @@ export default function MarketingPage() {
 
 function CampaignsTable({
   campaigns,
+  metrics,
+  onEdit,
   onRemove,
   onTogglePause,
 }: {
   campaigns: MarketingCampaign[];
+  metrics: CampaignMetricsMap;
+  onEdit: (c: MarketingCampaign) => void;
   onRemove: (id: string) => void;
   onTogglePause: (id: string, status: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 overflow-hidden bg-white">
-      <table className="w-full text-sm">
+    <div className="rounded-xl border border-zinc-200 overflow-x-auto bg-white">
+      <table className="w-full text-sm min-w-[900px]">
         <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
           <tr>
-            <th className="text-left px-4 py-3">Name</th>
-            <th className="text-left px-4 py-3">Type</th>
+            <th className="text-left px-4 py-3">Campaign</th>
             <th className="text-left px-4 py-3">Audience</th>
             <th className="text-left px-4 py-3">Channels</th>
             <th className="text-left px-4 py-3">Window</th>
             <th className="text-left px-4 py-3">Status</th>
+            {/* Phase MK-INSIGHTS — performance columns, like Uber's Offers */}
+            <th className="text-right px-4 py-3">Sales</th>
+            <th className="text-right px-4 py-3">Orders</th>
+            <th className="text-right px-4 py-3">New customers</th>
             <th className="text-right px-4 py-3"></th>
           </tr>
         </thead>
         <tbody>
-          {campaigns.map((c) => (
-            <tr key={c.id} className="border-t border-zinc-100">
-              <td className="px-4 py-3 font-medium text-zinc-900">{c.name}</td>
-              <td className="px-4 py-3 text-zinc-600">
-                {prettyType(c.type)}
-                {c.percentageOff != null && (
-                  <span className="ml-1 text-[11px] text-zinc-400">
-                    ({Number(c.percentageOff)}%)
-                  </span>
-                )}
-              </td>
-              <td className="px-4 py-3 text-zinc-600">
-                {prettyAudience(c.audience)}
-              </td>
-              <td className="px-4 py-3 text-zinc-600">
-                {c.channels.length === 0 ? (
-                  <span className="text-zinc-400">—</span>
-                ) : (
-                  c.channels.map(prettyChannel).join(", ")
-                )}
-                <UberSyncBadge campaign={c} />
-              </td>
-              <td className="px-4 py-3 text-zinc-600">
-                {prettyWindow(c.startsAt, c.endsAt)}
-              </td>
-              <td className="px-4 py-3">
-                <StatusChip status={c.status} />
-              </td>
-              <td className="px-4 py-3 text-right">
-                <div className="inline-flex items-center gap-1">
-                  {(c.status === "ACTIVE" || c.status === "PAUSED") && (
+          {campaigns.map((c) => {
+            const m = metrics[c.id];
+            return (
+              <tr key={c.id} className="border-t border-zinc-100">
+                <td className="px-4 py-3">
+                  <div className="font-medium text-zinc-900">{c.name}</div>
+                  <div className="text-[11px] text-zinc-400">
+                    {prettyType(c.type)}
+                    {c.percentageOff != null && ` · ${Number(c.percentageOff)}%`}
+                    {c.amountOff != null && ` · £${Number(c.amountOff)}`}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-zinc-600">
+                  {prettyAudience(c.audience)}
+                </td>
+                <td className="px-4 py-3 text-zinc-600">
+                  {c.channels.length === 0 ? (
+                    <span className="text-zinc-400">—</span>
+                  ) : (
+                    c.channels.map(prettyChannel).join(", ")
+                  )}
+                  <UberSyncBadge campaign={c} />
+                </td>
+                <td className="px-4 py-3 text-zinc-600">
+                  {prettyWindow(c.startsAt, c.endsAt)}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusChip status={c.status} />
+                </td>
+                <td className="px-4 py-3 text-right font-medium text-zinc-900">
+                  {money(m?.sales)}
+                </td>
+                <td className="px-4 py-3 text-right text-zinc-700">
+                  {m?.orders ?? 0}
+                </td>
+                <td className="px-4 py-3 text-right text-zinc-700">
+                  {m?.newCustomers ?? 0}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="inline-flex items-center gap-1">
                     <button
                       type="button"
-                      title={
-                        c.status === "ACTIVE" ? "Pause campaign" : "Resume campaign"
-                      }
-                      onClick={() => onTogglePause(c.id, c.status)}
-                      className="rounded p-1 text-zinc-400 hover:text-violet-700 hover:bg-violet-50"
+                      title="Edit campaign"
+                      onClick={() => onEdit(c)}
+                      className="rounded p-1 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100"
                     >
-                      {c.status === "ACTIVE" ? (
-                        <Pause className="h-3.5 w-3.5" />
-                      ) : (
-                        <Play className="h-3.5 w-3.5" />
-                      )}
+                      <Pencil className="h-3.5 w-3.5" />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    title="Delete campaign"
-                    onClick={() => onRemove(c.id)}
-                    className="rounded p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                    {(c.status === "ACTIVE" || c.status === "PAUSED") && (
+                      <button
+                        type="button"
+                        title={
+                          c.status === "ACTIVE"
+                            ? "Pause campaign"
+                            : "Resume campaign"
+                        }
+                        onClick={() => onTogglePause(c.id, c.status)}
+                        className="rounded p-1 text-zinc-400 hover:text-violet-700 hover:bg-violet-50"
+                      >
+                        {c.status === "ACTIVE" ? (
+                          <Pause className="h-3.5 w-3.5" />
+                        ) : (
+                          <Play className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      title="Delete campaign"
+                      onClick={() => onRemove(c.id)}
+                      className="rounded p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
+}
+
+// ─── Insight filters + summary ───────────────────────────────────────
+
+function FilterBar({
+  rangeId,
+  onRange,
+  statusFilter,
+  onStatus,
+}: {
+  rangeId: string;
+  onRange: (id: string) => void;
+  statusFilter: CampaignStatus[];
+  onStatus: (s: CampaignStatus[]) => void;
+}) {
+  const toggle = (s: CampaignStatus) =>
+    onStatus(
+      statusFilter.includes(s)
+        ? statusFilter.filter((x) => x !== s)
+        : [...statusFilter, s],
+    );
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <select
+        value={rangeId}
+        onChange={(e) => onRange(e.target.value)}
+        className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-800"
+      >
+        {DATE_RANGES.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.label}
+          </option>
+        ))}
+      </select>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {ALL_STATUSES.map((s) => {
+          const on = statusFilter.includes(s);
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggle(s)}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                on
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300"
+              }`}
+            >
+              {s}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Roll-up cards over the visible campaigns for the chosen window.
+function InsightsSummary({
+  campaigns,
+  metrics,
+  rangeLabel,
+}: {
+  campaigns: MarketingCampaign[];
+  metrics: CampaignMetricsMap;
+  rangeLabel: string;
+}) {
+  const totals = campaigns.reduce(
+    (acc, c) => {
+      const m: CampaignMetrics | undefined = metrics[c.id];
+      if (m) {
+        acc.sales += m.sales;
+        acc.orders += m.orders;
+        acc.newCustomers += m.newCustomers;
+        acc.discount += m.discount;
+      }
+      return acc;
+    },
+    { sales: 0, orders: 0, newCustomers: 0, discount: 0 },
+  );
+  const cards = [
+    { label: "Attributed sales", value: money(totals.sales) },
+    { label: "Orders", value: String(totals.orders) },
+    { label: "New customers", value: String(totals.newCustomers) },
+    { label: "Total discounts", value: money(totals.discount) },
+  ];
+  return (
+    <div className="mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {cards.map((c) => (
+        <div
+          key={c.label}
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
+        >
+          <p className="text-[11px] uppercase tracking-wider text-zinc-400">
+            {c.label}
+          </p>
+          <p className="mt-1 text-lg font-semibold text-zinc-900">{c.value}</p>
+        </div>
+      ))}
+      <p className="col-span-2 sm:col-span-4 -mt-1 text-[11px] text-zinc-400">
+        Performance over {rangeLabel.toLowerCase()}, across online-ordering
+        orders that applied each offer. Tracking started when this feature
+        shipped — earlier orders aren't counted.
+      </p>
+    </div>
+  );
+}
+
+// £ formatter — whole pounds unless there are pence, matching Uber's list.
+function money(n: number | undefined): string {
+  const v = Number(n ?? 0);
+  return `£${v.toLocaleString("en-GB", {
+    minimumFractionDigits: v % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 // Campaigns with the Uber Eats channel are mirrored to Uber's Promotions

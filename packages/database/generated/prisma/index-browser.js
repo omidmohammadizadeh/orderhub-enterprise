@@ -796,6 +796,20 @@ exports.Prisma.MarketingCampaignScalarFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.CampaignRedemptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  campaignId: 'campaignId',
+  brandId: 'brandId',
+  orderId: 'orderId',
+  channel: 'channel',
+  customerAccountId: 'customerAccountId',
+  isNewCustomer: 'isNewCustomer',
+  discountAmount: 'discountAmount',
+  orderTotal: 'orderTotal',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.DeliveryZoneScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2181,6 +2195,16 @@ exports.Prisma.MarketingCampaignOrderByRelevanceFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.CampaignRedemptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  campaignId: 'campaignId',
+  brandId: 'brandId',
+  orderId: 'orderId',
+  channel: 'channel',
+  customerAccountId: 'customerAccountId'
+};
+
 exports.Prisma.DeliveryZoneOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3236,6 +3260,7 @@ exports.Prisma.ModelName = {
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',
   MarketingCampaign: 'MarketingCampaign',
+  CampaignRedemption: 'CampaignRedemption',
   DeliveryZone: 'DeliveryZone',
   LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',

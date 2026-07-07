@@ -61,11 +61,32 @@ export interface CreateCampaignInput {
   perCustomerLimit?: number;
 }
 
+// Phase MK-INSIGHTS — per-campaign performance, keyed by campaign id.
+export interface CampaignMetrics {
+  orders: number;
+  sales: number;
+  discount: number;
+  newCustomers: number;
+  redemptions: number;
+}
+export type CampaignMetricsMap = Record<string, CampaignMetrics>;
+
 export const marketingClient = {
   list: (brandId?: string) =>
     apiClient
       .get<MarketingCampaign[]>("/v1/marketing/campaigns", {
         params: brandId ? { brandId } : undefined,
+      })
+      .then((r) => r.data),
+  // Per-campaign Sales/Orders/New-customers over an optional date window
+  // (ISO strings). Merged into the campaign list on the Marketing page.
+  metrics: (params?: { brandId?: string; from?: string; to?: string }) =>
+    apiClient
+      .get<CampaignMetricsMap>("/v1/marketing/metrics", {
+        params:
+          params && (params.brandId || params.from || params.to)
+            ? params
+            : undefined,
       })
       .then((r) => r.data),
   get: (id: string) =>
