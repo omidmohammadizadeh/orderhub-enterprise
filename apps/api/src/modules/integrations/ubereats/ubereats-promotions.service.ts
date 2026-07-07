@@ -293,6 +293,12 @@ export class UberEatsPromotionsService {
       return;
     }
 
+    // Log the exact body we POST so a failed create can be diagnosed from
+    // the payload + Uber's field_violations in one place (no guessing).
+    this.logger.log(
+      `Uber Eats promotion body (campaign ${campaign.id}): ${JSON.stringify(body)}`,
+    );
+
     const created: Array<{ storeId: string; promotionId: string }> = [];
     const errors: string[] = [];
     const already = new Set(existing.map((e) => e.storeId));
