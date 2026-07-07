@@ -42,6 +42,34 @@ const tokenOk = () =>
     text: async () => "",
   }) as any;
 
+describe("HubRiseOauthService.buildAuthorizeUrl — scope", () => {
+  it("lists each resource type at most once (HubRise rejects duplicates)", () => {
+    const config = {
+      get: (k: string) =>
+        ({
+          "app.platforms.hubrise.appId": "client-abc",
+          "app.platforms.hubrise.oauthAuthorizeUrl":
+            "https://manager.hubrise.com/oauth2/v1/authorize",
+          "app.platforms.hubrise.redirectUri":
+            "https://api.example.com/api/v1/integrations/hubrise/callback",
+        })[k],
+    } as any;
+    const jwt = { sign: () => "state.jwt" } as any;
+    const svc = new HubRiseOauthService({} as any, jwt, config, {} as any);
+
+    const url = new URL(
+      svc.buildAuthorizeUrl({ tenantId: "T", userId: "U", locationId: "L" }),
+    );
+    const scope = url.searchParams.get("scope")!;
+    // e.g. "location[orders.write,catalog.write,customer_list.read]"
+    const inner = scope.replace(/^location\[/, "").replace(/\]$/, "");
+    const resources = inner.split(",").map((p) => p.split(".")[0]);
+    expect(new Set(resources).size).toBe(resources.length);
+    expect(resources).toContain("orders");
+    expect(resources).toContain("catalog");
+  });
+});
+
 describe("HubRiseOauthService.handleCallback — callback registration", () => {
   it("registers via POST /callback with a nested event map, then saves the token", async () => {
     const calls: any[] = [];

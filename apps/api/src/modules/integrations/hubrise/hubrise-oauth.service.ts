@@ -76,8 +76,16 @@ export class HubRiseOauthService {
       userId: args.userId,
       nonce: crypto.randomUUID(),
     });
-    const scope =
-      "location[orders.read,orders.write,catalog.read,catalog.write,customer_list.read]";
+    // HubRise scope rules: a resource type may appear ONCE, and `.write`
+    // includes `.read` (their own docs example is
+    // `location[orders.write,customer_list.write,catalog.read]`). Listing
+    // orders.read + orders.write (and catalog.read + catalog.write) fails
+    // authorize with "Resource type 'orders' specified more than once", so
+    // collapse each resource to the highest access we need:
+    //   orders.write   — read (fetch order on webhook) + write (status)
+    //   catalog.write  — read (import) + write (publish)
+    //   customer_list.read — future CRM
+    const scope = "location[orders.write,catalog.write,customer_list.read]";
     const u = new URL(authorizeBase);
     u.searchParams.set("client_id", clientId);
     u.searchParams.set("redirect_uri", redirectUri);
