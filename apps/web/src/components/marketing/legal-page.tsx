@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { SiteNav } from "./site-nav";
+import { getSiteBrand } from "@/lib/site-brand.server";
 
 interface Section {
   id: string;
@@ -28,13 +29,14 @@ interface Props {
   preface?: React.ReactNode;
 }
 
-export function LegalPage({
+export async function LegalPage({
   title,
   lede,
   lastUpdated,
   sections,
   preface,
 }: Props) {
+  const brand = await getSiteBrand();
   return (
     <div className="min-h-screen bg-white">
       <SiteNav />
@@ -119,7 +121,7 @@ export function LegalPage({
             href="/"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
           >
-            ← Back to Order Hub
+            ← Back to {brand.shortName}
           </Link>
         </div>
       </main>
@@ -127,7 +129,7 @@ export function LegalPage({
       <footer className="border-t border-zinc-100 bg-zinc-50/60 py-10">
         <div className="mx-auto max-w-3xl px-4 text-center text-xs text-zinc-500">
           <p>
-            © {new Date().getFullYear()} Order Hub Solutions. All rights reserved.
+            © {new Date().getFullYear()} {brand.name}. All rights reserved.
           </p>
           <p className="mt-2">
             <Link href="/privacy" className="hover:text-zinc-700">

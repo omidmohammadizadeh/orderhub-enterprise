@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { BrandLogo, type BrandKey } from "./brand-logo";
+import { getSiteBrand } from "@/lib/site-brand.server";
 
 interface MenuItem {
   label: string;
@@ -66,24 +67,24 @@ const RESOURCES: MenuItem[] = [
   { label: "Contact sales", description: "hello@orderhub.io", href: "mailto:hello@orderhub.io" },
 ];
 
-export function SiteNav() {
+export async function SiteNav() {
+  const brand = await getSiteBrand();
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-100 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          {/* Real Order Hub POS logo. The asset lives at
-              /orderhub-logo.png in apps/web/public — drop the image
-              file there once and it shows up in the header AND the
-              marquee strip below. PNG with transparent background
-              keeps it crisp on both white and tinted nav backgrounds. */}
-          <img
-            src="/orderhub-logo.png"
-            alt="Order Hub"
-            width={48}
-            height={48}
-            className="h-11 w-11 object-contain"
-          />
-          <span className="font-bold tracking-tight">Order Hub</span>
+          {/* Logo shown only for the Order Hub brand; the Menu Manager
+              domain (menumanager.uk) renders the wordmark on its own. */}
+          {brand.showLogo && (
+            <img
+              src="/orderhub-logo.png"
+              alt={brand.shortName}
+              width={48}
+              height={48}
+              className="h-11 w-11 object-contain"
+            />
+          )}
+          <span className="font-bold tracking-tight">{brand.shortName}</span>
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

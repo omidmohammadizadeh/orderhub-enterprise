@@ -20,12 +20,19 @@ import { InView } from "@/components/marketing/in-view";
 import { BrandLogo } from "@/components/marketing/brand-logo";
 import { ContactForm } from "@/components/marketing/contact-form";
 import { WhatsAppButton } from "@/components/marketing/whatsapp-button";
+import { getSiteBrand, type SiteBrand } from "@/lib/site-brand.server";
 
-export const metadata: Metadata = {
-  title: "Order Hub — One inbox for every restaurant order",
-  description:
-    "POS, online ordering, and every delivery platform — Uber Eats, Deliveroo, HubRise — unified. Built for UK takeaways and multi-location restaurants.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getSiteBrand();
+  return {
+    // Absolute so the root layout's "%s · Order Hub" template doesn't
+    // append the wrong brand on menumanager.uk.
+    title: {
+      absolute: `${brand.shortName} — One inbox for every restaurant order`,
+    },
+    description: brand.tagline,
+  };
+}
 
 // Hosts that should render the marketing site (everything else is treated as
 // a brand custom domain and redirected to its storefront).
@@ -84,6 +91,9 @@ export default async function MarketingHomePage({
 }) {
   noStore();
 
+  // Marketing brand for this host ("Order Hub" vs "Menu Manager").
+  const brand = await getSiteBrand();
+
   // Brand custom domain (e.g. order.pizzauno.com): resolve the host → that
   // brand's storefront and redirect. Mirrors /brand/[slug] but driven by the
   // incoming Host instead of a path slug. Primary hosts render marketing.
@@ -132,14 +142,14 @@ export default async function MarketingHomePage({
   return (
     <div className="min-h-screen bg-white text-zinc-900">
       <SiteNav />
-      <Hero />
+      <Hero brand={brand.shortName} />
       <MarqueeLogos />
       <StatCounters />
       <FeatureBlocks />
-      <CaseStudy />
+      <CaseStudy brand={brand.shortName} />
       <Contact webhookUrl={contactWebhookUrl} />
       <FinalCta />
-      <SiteFooter />
+      <SiteFooter brand={brand} />
       <WhatsAppButton />
     </div>
   );
@@ -147,7 +157,7 @@ export default async function MarketingHomePage({
 
 // ── Hero ─────────────────────────────────────────────────────────────────────
 
-function Hero() {
+function Hero({ brand }: { brand: string }) {
   return (
     <section className="relative overflow-hidden border-b border-zinc-100">
       <div
@@ -171,7 +181,7 @@ function Hero() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-zinc-600 sm:text-lg">
             POS, online ordering, and every delivery platform unified into a
-            single Order Hub. Stop juggling five tablets at the kitchen pass.
+            single {brand}. Stop juggling five tablets at the kitchen pass.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -199,7 +209,7 @@ function Hero() {
 
 // ── Case study spotlight ─────────────────────────────────────────────────────
 
-function CaseStudy() {
+function CaseStudy({ brand }: { brand: string }) {
   return (
     <section className="border-y border-zinc-100 bg-zinc-50 py-20">
       <div className="mx-auto max-w-6xl px-4">
@@ -211,7 +221,7 @@ function CaseStudy() {
                   Built around real takeaway operations
                 </p>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                  Pizza Uno Pelton runs every order through Order Hub
+                  Pizza Uno Pelton runs every order through {brand}
                 </h2>
                 <p className="mt-4 max-w-xl text-zinc-300 leading-relaxed">
                   Every walk-in, every Deliveroo ticket, every direct online
@@ -342,23 +352,23 @@ function FinalCta() {
 
 // ── Footer ───────────────────────────────────────────────────────────────────
 
-function SiteFooter() {
+function SiteFooter({ brand }: { brand: SiteBrand }) {
   return (
     <footer className="border-t border-zinc-100 bg-white py-14">
       <div className="mx-auto max-w-6xl px-4">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2">
-              {/* Same real logo as the header — sourced from
-                  apps/web/public/orderhub-logo.png. */}
-              <img
-                src="/orderhub-logo.png"
-                alt="Order Hub"
-                width={36}
-                height={36}
-                className="h-9 w-9 object-contain"
-              />
-              <span className="font-bold tracking-tight">Order Hub</span>
+              {brand.showLogo && (
+                <img
+                  src="/orderhub-logo.png"
+                  alt={brand.shortName}
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 object-contain"
+                />
+              )}
+              <span className="font-bold tracking-tight">{brand.shortName}</span>
             </Link>
             <p className="mt-3 text-sm text-zinc-500">
               Omnichannel order management for restaurants and takeaways.
@@ -386,7 +396,7 @@ function SiteFooter() {
             ]}
           />
           <FooterCol
-            heading="Order Hub"
+            heading={brand.shortName}
             items={[
               { label: "Features", href: "/#features" },
               { label: "How it works", href: "/#how" },
@@ -398,7 +408,7 @@ function SiteFooter() {
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-zinc-100 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center">
           <p>
-            © {new Date().getFullYear()} Order Hub Solutions. All rights
+            © {new Date().getFullYear()} {brand.name}. All rights
             reserved.
           </p>
           <div className="flex items-center gap-5">

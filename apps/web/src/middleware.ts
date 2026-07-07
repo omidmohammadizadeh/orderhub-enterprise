@@ -18,7 +18,10 @@ const API_URL = (
 
 const PRIMARY_HOSTS = (
   process.env.NEXT_PUBLIC_PRIMARY_HOSTS ??
-  "orderhubsolutions.com,www.orderhubsolutions.com"
+  // Both marketing domains + the app host serve the same Next build; they
+  // pass straight through (no storefront rewrite). menumanager.uk is the
+  // "Menu Manager"-branded marketing site (the POS website given to Uber).
+  "orderhubsolutions.com,www.orderhubsolutions.com,menumanager.uk,www.menumanager.uk"
 )
   .split(",")
   .map((s) => s.trim().toLowerCase())
@@ -32,6 +35,14 @@ function isPrimaryHost(host: string): boolean {
     host.endsWith(".vercel.app") ||
     PRIMARY_HOSTS.includes(host)
   );
+}
+
+// Which marketing brand this host renders as. menumanager.uk (+ www) →
+// "menumanager"; everything else → "orderhub". Passed downstream as the
+// `x-site-brand` request header so server components/metadata don't each
+// re-parse the Host.
+function siteBrandForHost(host: string): "menumanager" | "orderhub" {
+  return host.includes("menumanager") ? "menumanager" : "orderhub";
 }
 
 // Tiny in-process cache so we don't hit the API on every request.
@@ -59,9 +70,21 @@ async function resolveHost(host: string): Promise<{ slug: string; brandId: strin
   return value;
 }
 
+// Pass the resolved marketing brand downstream on every request so server
+// components + generateMetadata can read one header instead of re-parsing.
+function withBrand(host: string, res: NextResponse): NextResponse {
+  res.headers.set("x-site-brand", siteBrandForHost(host));
+  return res;
+}
+
 export async function middleware(req: NextRequest) {
   const host = ((req.headers.get("host") ?? "").split(":")[0] ?? "").toLowerCase();
-  if (isPrimaryHost(host)) return NextResponse.next();
+  if (isPrimaryHost(host)) {
+    // Forward the brand as a REQUEST header so getSiteBrand() can read it.
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-site-brand", siteBrandForHost(host));
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   // Custom domain. Only the root needs rewriting to the storefront; deeper
   // /order/<slug>/... paths already resolve by path on any host.
@@ -71,10 +94,12 @@ export async function middleware(req: NextRequest) {
       const url = req.nextUrl.clone();
       url.pathname = `/order/${resolved.slug}`;
       url.searchParams.set("brand", resolved.brandId);
-      return NextResponse.rewrite(url);
+      return withBrand(host, NextResponse.rewrite(url));
     }
   }
-  return NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-site-brand", siteBrandForHost(host));
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

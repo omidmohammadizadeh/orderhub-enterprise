@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { BrandLogo } from "../brand-logo";
 import { SOLUTIONS } from "./solutions-data";
 import { INTEGRATIONS } from "./integrations-data";
+import { useSiteBrand } from "@/lib/site-brand";
 
 export function DetailShell({
   accent = "#34d399",
@@ -28,18 +29,23 @@ export function DetailShell({
 }
 
 function DetailNav() {
+  const brand = useSiteBrand();
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070a12]/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          <img
-            src="/orderhub-logo.png"
-            alt="Order Hub"
-            width={44}
-            height={44}
-            className="h-10 w-10 rounded-lg bg-white/90 object-contain p-0.5"
-          />
-          <span className="font-bold tracking-tight text-white">Order Hub</span>
+          {brand.showLogo && (
+            <img
+              src="/orderhub-logo.png"
+              alt={brand.shortName}
+              width={44}
+              height={44}
+              className="h-10 w-10 rounded-lg bg-white/90 object-contain p-0.5"
+            />
+          )}
+          <span className="font-bold tracking-tight text-white">
+            {brand.shortName}
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -146,20 +152,25 @@ function MegaMenu({
 }
 
 function DetailFooter({ accent }: { accent: string }) {
+  const brand = useSiteBrand();
   return (
     <footer className="border-t border-white/10 bg-[#070a12] py-14">
       <div className="mx-auto max-w-6xl px-4">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2">
-              <img
-                src="/orderhub-logo.png"
-                alt="Order Hub"
-                width={36}
-                height={36}
-                className="h-9 w-9 rounded-lg bg-white/90 object-contain p-0.5"
-              />
-              <span className="font-bold tracking-tight text-white">Order Hub</span>
+              {brand.showLogo && (
+                <img
+                  src="/orderhub-logo.png"
+                  alt={brand.shortName}
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-lg bg-white/90 object-contain p-0.5"
+                />
+              )}
+              <span className="font-bold tracking-tight text-white">
+                {brand.shortName}
+              </span>
             </Link>
             <p className="mt-3 text-sm text-zinc-500">
               Omnichannel order management for restaurants and takeaways.
@@ -177,7 +188,7 @@ function DetailFooter({ accent }: { accent: string }) {
             }))}
           />
           <FooterCol
-            heading="Order Hub"
+            heading={brand.shortName}
             items={[
               { label: "Home", href: "/" },
               { label: "Pricing", href: "/#pricing" },
@@ -187,7 +198,7 @@ function DetailFooter({ accent }: { accent: string }) {
           />
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} Order Hub Solutions. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {brand.name}. All rights reserved.</p>
           <div className="flex items-center gap-5">
             <Link href="/terms" className="hover:text-zinc-300">Terms</Link>
             <Link href="/privacy" className="hover:text-zinc-300">Privacy</Link>
