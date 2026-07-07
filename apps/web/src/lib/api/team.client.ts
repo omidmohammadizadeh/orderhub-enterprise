@@ -112,7 +112,15 @@ export const ASSIGNABLE_ROLES: { value: string; label: string; description: stri
   { value: "FINANCIAL_AGENT", label: "Financial agent", description: "Subscription management." },
 ];
 
+// The account-admin roles (full tenant access) both display as "Admin".
+export const ADMIN_ROLES = ["TENANT_OWNER", "PLATFORM_ADMIN"];
+
+export function isAdminRole(role: string): boolean {
+  return ADMIN_ROLES.includes(role);
+}
+
 export function humaniseRole(role: string): string {
+  if (isAdminRole(role)) return "Admin";
   const known = ASSIGNABLE_ROLES.find((r) => r.value === role);
   if (known) return known.label;
   return role

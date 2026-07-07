@@ -20,6 +20,7 @@ import {
   MapPin,
   Pencil,
   AlertTriangle,
+  Lock,
 } from "lucide-react";
 import {
   teamClient,
@@ -27,6 +28,7 @@ import {
   type PendingInvitation,
   ASSIGNABLE_ROLES,
   humaniseRole,
+  isAdminRole,
 } from "@/lib/api/team.client";
 import { locationsClient, brandsClient } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -288,24 +290,38 @@ function MembersTable({
                 </span>
               </Td>
               <Td>
-                <div className="flex items-center justify-end gap-1">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(m)}
-                    title="Edit role, locations, brands"
-                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(m)}
-                    title="Remove from team"
-                    className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                {isAdminRole(m.role) ? (
+                  // Admin accounts (full access) are protected — no edit or
+                  // remove. Only a platform admin can change them (via a
+                  // dedicated flow), never from this screen.
+                  <div className="flex items-center justify-end gap-1 pr-1.5">
+                    <span
+                      title="Admin account — full access, protected"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400"
+                    >
+                      <Lock className="h-3.5 w-3.5" /> Protected
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(m)}
+                      title="Edit role, locations, brands"
+                      className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(m)}
+                      title="Remove from team"
+                      className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </Td>
             </tr>
           ))}

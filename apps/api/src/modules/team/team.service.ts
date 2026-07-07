@@ -95,6 +95,11 @@ export function allowedGrantsForRole(role: string): string[] {
   return ALLOWED_GRANTS[role] ?? [];
 }
 
+// Admin accounts — full tenant access, and protected from being edited or
+// deleted by anyone other than a PLATFORM_ADMIN (the account can't be
+// downgraded, re-scoped, or removed from the Team Roles screen).
+const PROTECTED_ADMIN_ROLES = new Set(["TENANT_OWNER", "PLATFORM_ADMIN"]);
+
 const INVITE_TTL_DAYS = 14;
 
 export interface AssignRoleDto {
@@ -240,6 +245,17 @@ export class TeamService {
         "User belongs to a different tenant.",
       );
     }
+    // Admin accounts (TENANT_OWNER / PLATFORM_ADMIN) can only be removed by
+    // a PLATFORM_ADMIN — an OWNER/MANAGER can never delete the account
+    // admin.
+    if (
+      PROTECTED_ADMIN_ROLES.has(String(target.role)) &&
+      callerRole !== "PLATFORM_ADMIN"
+    ) {
+      throw new BadRequestException(
+        "This is an admin account and can't be removed here.",
+      );
+    }
     // Refuse to delete higher-tier roles (e.g. an OWNER trying to
     // delete the TENANT_OWNER). The simplest rule: caller can only
     // delete users whose role they could also grant — same matrix as
@@ -279,9 +295,22 @@ export class TeamService {
 
     const target = await this.prisma.user.findUnique({
       where: { id: dto.userId },
-      select: { id: true, tenantId: true, email: true },
+      select: { id: true, tenantId: true, email: true, role: true },
     });
     if (!target) throw new NotFoundException("User not found");
+
+    // Admin accounts (TENANT_OWNER / PLATFORM_ADMIN) are protected: only a
+    // PLATFORM_ADMIN may change their role or scope. This stops a lower
+    // role (e.g. an OWNER, who can grant MANAGER) from downgrading or
+    // re-scoping the account admin.
+    if (
+      PROTECTED_ADMIN_ROLES.has(String(target.role)) &&
+      callerRole !== "PLATFORM_ADMIN"
+    ) {
+      throw new BadRequestException(
+        "This is an admin account and can't be edited here.",
+      );
+    }
 
     // For now, only allow assigning within the same tenant — cross-
     // tenant admin moves are PLATFORM_ADMIN-only territory and we
