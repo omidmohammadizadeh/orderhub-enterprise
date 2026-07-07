@@ -119,18 +119,52 @@ export async function printOrderViaBridge(order: any): Promise<string> {
   // Build the payload once + resolve the receipt logo / QR offer once.
   const payload = buildPrintPayload(order);
   applyReceiptOffer(payload, await resolveReceiptOffer(order));
+
+  // Print to each target independently. Crucially, one bad target must
+  // NOT fail the whole job: locations often accumulate a stale/duplicate
+  // printer row (a leftover LAN entry with a dead IP, or a re-registered
+  // Bluetooth printer that left a second record). Before this, the real
+  // receipt printed on the good printer, then the dead one threw, and the
+  // icon went red every time despite a perfectly good print. We keep the
+  // loop sequential (the native BT bridge holds one shared socket, so
+  // concurrent writes would fight over it) but isolate each target's
+  // failure and only report red if EVERY printer failed.
+  let printed = 0;
+  const failures: string[] = [];
   for (const p of targets) {
-    const copies = Math.max(
-      1,
-      Number((p as any).defaults?.copiesReprint ?? 1) || 1,
-    );
-    const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
-      printLogo: (p as any).defaults?.printLogo,
-      qrCode: (p as any).defaults?.qrCode,
-    });
-    await writeToPrinter(p, repeatReceipt(single, copies));
+    try {
+      const copies = Math.max(
+        1,
+        Number((p as any).defaults?.copiesReprint ?? 1) || 1,
+      );
+      const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
+        printLogo: (p as any).defaults?.printLogo,
+        qrCode: (p as any).defaults?.qrCode,
+      });
+      await writeToPrinter(p, repeatReceipt(single, copies));
+      printed++;
+    } catch (e: any) {
+      const label = (p as any)?.name ?? p.ipAddress ?? "printer";
+      failures.push(`${label}: ${e?.message ?? "failed"}`);
+    }
   }
-  // Clear this order's job(s) from the queue + bump "last print".
+
+  if (printed === 0) {
+    throw new Error(
+      failures.length
+        ? `Print failed — ${failures.join("; ")}`
+        : "Print failed — no printer accepted the job.",
+    );
+  }
+
+  // At least one printer produced the receipt — clear the order's queued
+  // job(s) + bump "last print".
   void printersClient.markOrderPrinted(order.id);
+
+  if (failures.length) {
+    // Success overall (green), but flag the printers that didn't take it so
+    // a stale entry is visible without turning a good print into an error.
+    return `Printed to ${printed} of ${targets.length} printers`;
+  }
   return targets.length === 1 ? "Printed" : `Printed to ${targets.length} printers`;
 }
