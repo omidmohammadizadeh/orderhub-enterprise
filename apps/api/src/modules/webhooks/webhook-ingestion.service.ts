@@ -44,6 +44,10 @@ export class WebhookIngestionService {
     let tenantId: string;
     let secret = "";
     let skipSignature = false;
+    // HubRise order webhooks are metadata-only (order id, no line items);
+    // we fetch the full order below. Capture the creds that fetch needs.
+    let hubriseCredentialsBlob: unknown = null;
+    let hubriseLocationId: string | null = null;
     if (platform === "HUBRISE") {
       const loc = await this.prisma.location.findFirst({
         where: { id: locationId, deletedAt: null },
@@ -55,6 +59,8 @@ export class WebhookIngestionService {
         );
       }
       tenantId = loc.brand.tenantId;
+      hubriseCredentialsBlob = (loc as any).hubriseCredentials;
+      hubriseLocationId = (loc as any).hubriseLocationId ?? null;
       // HUBRISE_WEBHOOK_SECRET is an optional global override. When
       // unset (the common case — HubRise doesn't issue per-integration
       // webhook secrets by default) we accept the body without HMAC
@@ -99,13 +105,31 @@ export class WebhookIngestionService {
     }
 
     // 5. Parse payload
-    const payload: unknown = opts.payload ?? (() => {
+    let payload: unknown = opts.payload ?? (() => {
       try {
         return JSON.parse(rawBody.toString("utf8"));
       } catch {
         throw new Error("Webhook body is not valid JSON");
       }
     })();
+
+    // 5b. HubRise order webhooks carry only the event envelope (an order
+    // id, NO line items), so the adapter's normalize() would drop them.
+    // Fetch the full order and merge it in — the same thing the global
+    // /integrations/hubrise/webhook receiver does, but here so the
+    // per-location URL we actually register with HubRise works without a
+    // reconnect. Log the raw envelope so the exact HubRise field shape is
+    // visible if anything still looks off.
+    if (platform === "HUBRISE") {
+      this.logger.log(
+        `HubRise webhook envelope: ${JSON.stringify(payload).slice(0, 700)}`,
+      );
+      payload = await this.enrichHubRiseOrderPayload(
+        payload,
+        hubriseCredentialsBlob,
+        hubriseLocationId,
+      );
+    }
 
     // 6. Idempotency — check via create + catch P2002 (prevents TOCTOU race)
     const externalEventId =
@@ -156,5 +180,56 @@ export class WebhookIngestionService {
       });
       throw err;
     }
+  }
+
+  /**
+   * HubRise sends order webhooks as an event envelope with only an order
+   * id — no line items. Fetch the full order via the location's HubRise
+   * token and merge it over the envelope so the adapter can normalise it.
+   * Tolerant on the id field (order_id / resource_id) since HubRise's docs
+   * have understated payload shapes before; if there's no order id or the
+   * body already has items, the payload is returned untouched.
+   */
+  private async enrichHubRiseOrderPayload(
+    payload: unknown,
+    credentialsBlob: unknown,
+    hubriseLocationId: string | null,
+  ): Promise<unknown> {
+    const p = (payload ?? {}) as Record<string, any>;
+    if (Array.isArray(p.items)) return payload; // already a full order body
+    const orderId: string | undefined = p.order_id ?? p.resource_id;
+    if (!orderId) return payload; // not an order event we can hydrate
+
+    if (!credentialsBlob || !hubriseLocationId) {
+      this.logger.warn(
+        `HubRise order ${orderId} can't be hydrated — missing token/locationId`,
+      );
+      return payload;
+    }
+    const decrypted = this.encryption.decrypt(
+      credentialsBlob as Record<string, unknown>,
+    ) as Record<string, string>;
+    const accessToken = decrypted?.accessToken;
+    if (!accessToken) return payload;
+
+    const baseUrl = process.env.HUBRISE_BASE_URL ?? "https://api.hubrise.com/v1";
+    // HubRise's REST API is case-sensitive on the location segment.
+    const url = `${baseUrl}/locations/${encodeURIComponent(
+      hubriseLocationId.toLowerCase(),
+    )}/orders/${encodeURIComponent(orderId)}`;
+    const res = await fetch(url, { headers: { "X-Access-Token": accessToken } });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      // Throw → 5xx → HubRise retries. Common cause: token revoked.
+      throw new Error(
+        `HubRise order fetch ${res.status} for ${orderId}: ${text.slice(0, 200)}`,
+      );
+    }
+    const order = (await res.json()) as Record<string, any>;
+    this.logger.log(
+      `HubRise order ${orderId} hydrated (${(order.items ?? []).length} items)`,
+    );
+    // Full order body wins; keep the envelope's event id for idempotency.
+    return { ...p, ...order, event_id: p.id, order_id: orderId };
   }
 }
