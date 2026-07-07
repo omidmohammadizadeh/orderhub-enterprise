@@ -1,13 +1,12 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-// The public marketing site is served on two domains that share one build:
+// Pure, isomorphic brand config — NO "use client" here. This module is
+// imported by BOTH server code (site-brand.server.ts / getSiteBrand) and
+// client code (use-site-brand.ts). A "use client" directive would turn
+// these exports into client-reference placeholders on the server, so
+// SITE_BRANDS would read as undefined server-side. Keep it plain.
+//
+// The marketing site serves two domains from one build:
 //   • orderhubsolutions.com  → "Order Hub Solutions"
-//   • menumanager.uk         → "Menu Manager"  (the POS website we give Uber)
-// Everything user-visible reads its brand from here so a single host check
-// rebrands every page. Server components resolve it via getSiteBrand()
-// (./site-brand.server); client components use the useSiteBrand() hook here.
+//   • menumanager.uk         → "Menu Manager"  (the POS website given to Uber)
 
 export type SiteBrandKey = "orderhub" | "menumanager";
 
@@ -51,17 +50,4 @@ export function brandKeyFromHost(host?: string | null): SiteBrandKey {
   const h = (host ?? "").toLowerCase();
   if (h.includes("menumanager")) return "menumanager";
   return "orderhub";
-}
-
-/**
- * Client-side brand resolver for Client Components (e.g. the detail-page
- * shell). Reads window.location.hostname after mount. Defaults to Order Hub
- * for SSR/first paint; on menumanager.uk it swaps to Menu Manager on hydrate.
- */
-export function useSiteBrand(): SiteBrand {
-  const [brand, setBrand] = useState<SiteBrand>(SITE_BRANDS.orderhub);
-  useEffect(() => {
-    setBrand(SITE_BRANDS[brandKeyFromHost(window.location.hostname)]);
-  }, []);
-  return brand;
 }

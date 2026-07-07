@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { BrandLogo } from "../brand-logo";
 import { SOLUTIONS } from "./solutions-data";
 import { INTEGRATIONS } from "./integrations-data";
-import { useSiteBrand } from "@/lib/site-brand";
+import { useSiteBrand } from "@/lib/use-site-brand";
 
 export function DetailShell({
   accent = "#34d399",
