@@ -103,7 +103,7 @@ export const teamClient = {
 };
 
 export const ASSIGNABLE_ROLES: { value: string; label: string; description: string }[] = [
-  { value: "OWNER", label: "Owner", description: "Full operator access to assigned locations." },
+  { value: "OWNER", label: "Admin", description: "Full access to every location and brand." },
   { value: "DARK_KITCHEN_MANAGER", label: "Dark kitchen manager", description: "Multi-location kitchen operations." },
   { value: "MANAGER", label: "Manager", description: "Orders, POS, analytics for assigned locations." },
   { value: "STAFF", label: "Staff", description: "Orders + POS." },

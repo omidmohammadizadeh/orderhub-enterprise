@@ -599,17 +599,37 @@ function RoleModal({
     [grantableQuery.data],
   );
 
-  // Default the role select to the first thing this caller can
-  // actually grant — otherwise the form lands on MANAGER (the
-  // default) and silently errors on submit when the caller can't
-  // grant it.
+  // Role options in the select. When EDITING, always include the member's
+  // CURRENT role — even one the caller can't normally grant (e.g. an Admin
+  // editing another Admin) — so opening the modal never drops it from the
+  // list and silently downgrades them on save. Keeping the same role is
+  // always allowed server-side; only CHANGING to a non-grantable role is
+  // blocked.
+  const roleOptions = useMemo(() => {
+    const opts = [...allowedRoles];
+    if (editTarget && !opts.find((r) => r.value === editTarget.role)) {
+      const known = ASSIGNABLE_ROLES.find((r) => r.value === editTarget.role);
+      opts.unshift({
+        value: editTarget.role,
+        label: `${known?.label ?? humaniseRole(editTarget.role)} (current)`,
+        description:
+          known?.description ?? "The member's current role — leave to keep it.",
+      });
+    }
+    return opts;
+  }, [allowedRoles, editTarget]);
+
+  // Only auto-pick a default for NEW assignments. When editing, keep the
+  // member's current role (roleOptions always includes it) so opening the
+  // modal never changes it.
   useEffect(() => {
+    if (editTarget) return;
     if (!allowedRoles.length) return;
     const first = allowedRoles[0];
     if (first && !allowedRoles.find((r) => r.value === role)) {
       setRole(first.value);
     }
-  }, [allowedRoles, role]);
+  }, [allowedRoles, role, editTarget]);
 
   const lookup = useMutation({
     mutationFn: () => teamClient.lookupUser(email),
@@ -751,14 +771,14 @@ function RoleModal({
               onChange={(e) => setRole(e.target.value)}
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
             >
-              {allowedRoles.map((r) => (
+              {roleOptions.map((r) => (
                 <option key={r.value} value={r.value}>
                   {r.label}
                 </option>
               ))}
             </select>
             <p className="mt-1 text-xs text-zinc-500">
-              {allowedRoles.find((r) => r.value === role)?.description}
+              {roleOptions.find((r) => r.value === role)?.description}
             </p>
           </div>
 

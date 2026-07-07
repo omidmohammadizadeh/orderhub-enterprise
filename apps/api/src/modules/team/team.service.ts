@@ -268,7 +268,20 @@ export class TeamService {
     if (!isValidRole(dto.role)) {
       throw new BadRequestException(`Unknown role: ${dto.role}`);
     }
-    if (callerRole) {
+
+    const target = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+      select: { id: true, tenantId: true, email: true, role: true },
+    });
+    if (!target) throw new NotFoundException("User not found");
+
+    // The grant matrix only gates CHANGING someone's role. Editing an
+    // existing member's locations/brands while keeping their current role
+    // must NOT require the caller to be able to grant that role — otherwise
+    // an OWNER can't re-scope another OWNER (or themselves) at all, and the
+    // edit modal silently downgrades the role to something grantable.
+    const roleChanging = String(target.role) !== dto.role;
+    if (callerRole && roleChanging) {
       const allowed = ALLOWED_GRANTS[callerRole] ?? [];
       if (!allowed.includes(dto.role)) {
         throw new BadRequestException(
@@ -276,12 +289,6 @@ export class TeamService {
         );
       }
     }
-
-    const target = await this.prisma.user.findUnique({
-      where: { id: dto.userId },
-      select: { id: true, tenantId: true, email: true },
-    });
-    if (!target) throw new NotFoundException("User not found");
 
     // For now, only allow assigning within the same tenant — cross-
     // tenant admin moves are PLATFORM_ADMIN-only territory and we
