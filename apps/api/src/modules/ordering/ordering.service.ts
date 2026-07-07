@@ -630,6 +630,33 @@ export class OrderingService {
       };
     }
 
+    // Re-anchor item-based promos (BOGO / free-item / per-item %) onto the
+    // SERVED menu. These campaigns store the MenuItem ids the operator
+    // picked when the campaign was built; if the storefront later serves a
+    // different menu row — a republish, or a per-location assignment
+    // (Phase BA) — those ids don't exist in the served menu, so the client
+    // can't match them and the promo silently stops applying. Map the
+    // stored ids to the served menu's equivalent items by a stable key
+    // (externalId, then normalised name) so promos survive menu changes.
+    const anchor = await this.anchorPromoItemsToServedMenu(menu, [
+      ...(bogo?.triggerItemIds ?? []),
+      ...(freeItem?.freeItemIds ?? []),
+      ...Object.keys(itemPromos ?? {}),
+    ]);
+    const remapIds = (ids: string[]): string[] =>
+      Array.from(
+        new Set(
+          ids.map((id) => anchor.get(id)).filter((x): x is string => !!x),
+        ),
+      );
+    if (bogo) bogo.triggerItemIds = remapIds(bogo.triggerItemIds);
+    if (freeItem) freeItem.freeItemIds = remapIds(freeItem.freeItemIds);
+    const itemPromosAnchored: Record<string, any> = {};
+    for (const [id, v] of Object.entries(itemPromos ?? {})) {
+      const served = anchor.get(id);
+      if (served) itemPromosAnchored[served] = v;
+    }
+
     // "Order on WhatsApp" CTA — surface the location's WhatsApp business
     // number ONLY when the WhatsApp channel is both configured AND live:
     // an Integration row (platform WHATSAPP) with status ACTIVE and a
@@ -663,7 +690,7 @@ export class OrderingService {
       deliveryZones,
       brandModifierGroups,
       campaign,
-      itemPromos,
+      itemPromos: itemPromosAnchored,
       bogo,
       freeDelivery,
       freeItem,
@@ -1147,6 +1174,60 @@ export class OrderingService {
         }
       }
     }
+  }
+
+  // Map campaign-stored MenuItem ids onto the SERVED menu's items, so
+  // item-based promos survive the operator republishing or a per-location
+  // menu assignment (Phase BA) pointing the storefront at a different menu
+  // row. Returns oldId → servedId for every id we can re-anchor; ids that
+  // already exist in the served menu map to themselves; ids with no
+  // equivalent (item not on this menu) are omitted. Stable keys, in order:
+  // externalId (survives re-imports/republishes), then normalised name.
+  private async anchorPromoItemsToServedMenu(
+    menu: any,
+    referencedIds: string[],
+  ): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    const ids = Array.from(new Set(referencedIds.filter(Boolean)));
+    if (ids.length === 0) return map;
+
+    const norm = (s: unknown) =>
+      String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+    const servedIds = new Set<string>();
+    const byExternal = new Map<string, string>();
+    const byName = new Map<string, string>();
+    for (const cat of menu?.categories ?? []) {
+      for (const link of cat.items ?? []) {
+        const it = link.item ?? {};
+        const id: string | undefined = it.id ?? link.itemId;
+        if (!id) continue;
+        servedIds.add(id);
+        if (it.externalId) byExternal.set(String(it.externalId), id);
+        if (it.name && !byName.has(norm(it.name))) byName.set(norm(it.name), id);
+      }
+    }
+
+    // Ids already on the served menu need no translation.
+    const stale: string[] = [];
+    for (const id of ids) {
+      if (servedIds.has(id)) map.set(id, id);
+      else stale.push(id);
+    }
+    if (stale.length === 0) return map;
+
+    // Look up the stale ids' stable keys and re-anchor by externalId → name.
+    const rows = await this.prisma.menuItem.findMany({
+      where: { id: { in: stale } },
+      select: { id: true, name: true, externalId: true },
+    });
+    for (const r of rows) {
+      const served =
+        (r.externalId && byExternal.get(String(r.externalId))) ||
+        (r.name && byName.get(norm(r.name))) ||
+        null;
+      if (served) map.set(r.id, served);
+    }
+    return map;
   }
 
   private async pickStorefrontCampaign(args: {
