@@ -107,7 +107,7 @@ export class OrdersController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? Math.min(parseInt(limit, 10), 200) : 50,
     };
-    return this.orders.findMany(user.tenantId, filters);
+    return this.orders.findMany(user, filters);
   }
 
   // ── GET /api/v1/orders/live ───────────────────────────
@@ -118,7 +118,7 @@ export class OrdersController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,
   ) {
-    return this.orders.findLiveOrders(user.tenantId, locationId);
+    return this.orders.findLiveOrders(user, locationId);
   }
 
   // ── GET /api/v1/orders/scheduled ──────────────────────
@@ -131,7 +131,7 @@ export class OrdersController {
     @CurrentUser() user: AuthenticatedUser,
     @Query("locationId") locationId?: string,
   ) {
-    return this.orders.findScheduledOrders(user.tenantId, locationId);
+    return this.orders.findScheduledOrders(user, locationId);
   }
 
   // ── POST /api/v1/orders/:id/start-preparing ───────────

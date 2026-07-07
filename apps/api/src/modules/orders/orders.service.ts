@@ -13,6 +13,7 @@ import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
 import { QUEUES, ORDER_JOBS } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../auth/services/audit-log.service";
 import { OutboxService } from "../outbox/outbox.service";
@@ -30,6 +31,11 @@ import type { CanonicalOrder } from "@orderhub/shared";
 // into the future, we suppress the immediate PrinterJob and surface a
 // "Start preparing now" action on the Orders board instead.
 const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
+
+// Roles that see every location/brand in their tenant (no per-assignment
+// scoping). Everyone else is constrained to their UserLocation/UserBrand
+// rows. Mirrors dispatch.service's ADMIN_ROLES.
+const ORDER_ADMIN_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"];
 
 const ORDER_INCLUDE = {
   items: true,
@@ -1362,7 +1368,96 @@ export class OrdersService {
 
   // ── Queries ───────────────────────────────────────────
 
-  async findMany(tenantId: string, filters: OrderFilters) {
+  // ── Access scoping (Phase AR team roles) ──────────────────────────────
+  //
+  // Orders must be scoped to the user's assigned locations AND brands. A
+  // user assigned to brand A at a location running brands A+B must never
+  // see brand B's orders, and "All locations" must never spill orders from
+  // a location the user isn't assigned to. Admin roles see the whole
+  // tenant. Scope is derived server-side from UserLocation/UserBrand — the
+  // client-supplied locationId is only ever a NARROWING filter, never a way
+  // to widen past the user's allowlist.
+
+  /**
+   * Resolve the user's order visibility. Returns id allowlists where
+   * `null` = unrestricted for that dimension. An empty `locationIds`
+   * array means the (non-admin) user has no assignments → sees nothing.
+   */
+  private async resolveOrderScope(user: AuthenticatedUser): Promise<{
+    locationIds: string[] | null;
+    brandIds: string[] | null;
+  }> {
+    if (ORDER_ADMIN_ROLES.includes(String(user.role))) {
+      return { locationIds: null, brandIds: null };
+    }
+    const [locs, brands] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId: user.userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const brandIds: string[] = brands.map((b: any) => b.brandId);
+    const locationIds = new Set<string>(
+      locs.map((l: any) => l.locationId as string),
+    );
+    // A brand-scoped user with no explicit location row still needs to see
+    // the locations their assigned brands operate at.
+    if (brandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: brandIds }, tenantId: user.tenantId },
+        select: {
+          primaryLocationId: true,
+          locations: { select: { id: true } },
+        },
+      });
+      for (const b of brandRows) {
+        if (b.primaryLocationId) locationIds.add(b.primaryLocationId);
+        for (const l of b.locations) locationIds.add(l.id);
+      }
+    }
+    return {
+      locationIds: Array.from(locationIds),
+      // Only constrain by brand when the user has explicit brand
+      // assignments; no UserBrand rows = every brand at their locations.
+      brandIds: brandIds.length ? brandIds : null,
+    };
+  }
+
+  /**
+   * Build the tenant + location + brand access constraint for an orders
+   * query. Returns null when a non-admin user has no assignments at all
+   * (caller returns an empty result rather than leaking the tenant). A
+   * requested locationId is honoured only when it's inside the allowlist.
+   */
+  private async resolveOrderAccessWhere(
+    user: AuthenticatedUser,
+    requestedLocationId?: string,
+  ): Promise<Prisma.OrderWhereInput | null> {
+    const scope = await this.resolveOrderScope(user);
+    const where: Prisma.OrderWhereInput = { tenantId: user.tenantId };
+
+    if (scope.locationIds === null) {
+      // Admin — whole tenant; honour an explicit location filter if given.
+      if (requestedLocationId) where.locationId = requestedLocationId;
+    } else {
+      if (scope.locationIds.length === 0) return null; // no access → nothing
+      if (requestedLocationId) {
+        if (!scope.locationIds.includes(requestedLocationId)) return null;
+        where.locationId = requestedLocationId;
+      } else {
+        where.locationId = { in: scope.locationIds };
+      }
+    }
+    // Brand scoping always applies, even for a single selected location.
+    if (scope.brandIds) where.brandId = { in: scope.brandIds };
+    return where;
+  }
+
+  async findMany(user: AuthenticatedUser, filters: OrderFilters) {
     const {
       locationId,
       status,
@@ -1374,9 +1469,11 @@ export class OrdersService {
       limit = 50,
     } = filters;
 
+    const access = await this.resolveOrderAccessWhere(user, locationId);
+    if (!access) return { total: 0, page, limit, orders: [] };
+
     const where: Prisma.OrderWhereInput = {
-      tenantId,
-      ...(locationId && { locationId }),
+      ...access,
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status,
       }),
@@ -1421,11 +1518,12 @@ export class OrdersService {
    * with a non-null scheduledAt in the future. Used by the Orders board to
    * render a dedicated Scheduled section.
    */
-  async findScheduledOrders(tenantId: string, locationId?: string) {
+  async findScheduledOrders(user: AuthenticatedUser, locationId?: string) {
+    const access = await this.resolveOrderAccessWhere(user, locationId);
+    if (!access) return [];
     return this.prisma.order.findMany({
       where: {
-        tenantId,
-        ...(locationId && { locationId }),
+        ...access,
         status: { in: ["PENDING"] },
         scheduledAt: { not: null, gte: new Date(Date.now() - 60 * 60 * 1000) },
       },
@@ -1509,7 +1607,7 @@ export class OrdersService {
     return new Date(todayReset.getTime() - drift);
   }
 
-  async findLiveOrders(tenantId: string, locationId?: string) {
+  async findLiveOrders(user: AuthenticatedUser, locationId?: string) {
     // Phase AW-23 — Business-day reset.
     //
     // Operators want yesterday's completed orders to drop off the
@@ -1528,6 +1626,8 @@ export class OrdersService {
     // threshold; computing per-location would require a second
     // query for every order's timezone, which isn't worth it for
     // the rare "all locations" view.
+    const access = await this.resolveOrderAccessWhere(user, locationId);
+    if (!access) return [];
     let timezone: string | undefined;
     if (locationId) {
       const loc = await this.prisma.location.findUnique({
@@ -1539,8 +1639,7 @@ export class OrdersService {
     const since24h = this.computeBusinessDayCutoff(timezone, 5);
     const rows = await this.prisma.order.findMany({
       where: {
-        tenantId,
-        ...(locationId && { locationId }),
+        ...access,
         // Phase AP-8 — card orders aren't real to the kitchen until the
         // customer's authorization webhook lands and we flip paymentStatus
         // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
@@ -1606,7 +1705,7 @@ export class OrdersService {
       include: ORDER_INCLUDE,
       orderBy: { createdAt: "desc" },
     });
-    return this.attachCustomerVisitCounts(rows, tenantId);
+    return this.attachCustomerVisitCounts(rows, user.tenantId);
   }
 
   /**

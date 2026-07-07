@@ -53,44 +53,93 @@ export class OrdersGateway
     this.logger.debug(`Client disconnected: ${client.id}`);
   }
 
-  // Clients join a room scoped to a specific location.
-  // Tenant isolation: verify the JWT tenantId owns the requested locationId.
+  // Clients join a room scoped to a specific location. Real-time order
+  // pushes go to `location:<id>` rooms, so joining IS the read grant —
+  // it must enforce the SAME per-user scoping as the REST orders endpoints
+  // (tenant isolation alone would let a scoped user subscribe to a sibling
+  // location's live orders). Admins may join any location in their tenant;
+  // everyone else only locations they're assigned to (UserLocation, or a
+  // location one of their UserBrand brands operates at).
   @SubscribeMessage("room:join")
   async handleJoinRoom(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() locationId: string,
   ) {
-    const tenantId = await this.extractTenantId(client);
-    if (!tenantId) {
+    const auth = await this.extractAuth(client);
+    if (!auth) {
       this.logger.warn(`${client.id} room:join rejected — no valid JWT`);
       client.disconnect();
       return;
     }
+    const { tenantId, userId, role } = auth;
 
     const location = await this.prisma.location.findFirst({
       where: { id: locationId, brand: { tenantId } },
       select: { id: true },
     });
-
     if (!location) {
       this.logger.warn(
         `${client.id} room:join denied — location ${locationId} not in tenant ${tenantId}`,
       );
-      return; // silently deny, don't disconnect (could be stale location reference)
+      return; // silently deny, don't disconnect (could be a stale reference)
+    }
+
+    if (!(await this.userCanAccessLocation(userId, role, locationId))) {
+      this.logger.warn(
+        `${client.id} room:join denied — user ${userId} not assigned to location ${locationId}`,
+      );
+      return;
     }
 
     client.join(`location:${locationId}`);
     this.logger.debug(`${client.id} (tenant:${tenantId}) joined location:${locationId}`);
   }
 
-  private async extractTenantId(client: TypedSocket): Promise<string | null> {
+  // Mirror OrdersService's ORDER_ADMIN_ROLES: these see every location in
+  // the tenant; everyone else is constrained to their assignments.
+  private async userCanAccessLocation(
+    userId: string,
+    role: string,
+    locationId: string,
+  ): Promise<boolean> {
+    if (["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"].includes(role)) return true;
+    const byLocation = await (this.prisma as any).userLocation.count({
+      where: { userId, locationId },
+    });
+    if (byLocation > 0) return true;
+    const byBrand = await (this.prisma as any).userBrand.count({
+      where: {
+        userId,
+        brand: {
+          OR: [
+            { primaryLocationId: locationId },
+            { locations: { some: { id: locationId } } },
+          ],
+        },
+      },
+    });
+    return byBrand > 0;
+  }
+
+  private async extractAuth(
+    client: TypedSocket,
+  ): Promise<{ tenantId: string; userId: string; role: string } | null> {
     try {
       const token =
         (client.handshake.auth?.token as string | undefined) ??
         (client.handshake.headers?.authorization?.replace("Bearer ", "") ?? "");
       if (!token) return null;
-      const payload = this.jwt.verify<{ tenantId: string }>(token);
-      return payload.tenantId ?? null;
+      const payload = this.jwt.verify<{
+        sub: string;
+        tenantId: string;
+        role: string;
+      }>(token);
+      if (!payload?.tenantId || !payload?.sub) return null;
+      return {
+        tenantId: payload.tenantId,
+        userId: payload.sub,
+        role: String(payload.role ?? ""),
+      };
     } catch {
       return null;
     }
