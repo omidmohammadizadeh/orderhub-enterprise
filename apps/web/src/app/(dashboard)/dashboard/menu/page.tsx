@@ -159,6 +159,18 @@ export default function MenuPage() {
       menusClient.importFromHubRise(brandId!, {
         locationId: selectedLocationId!,
       }),
+    // Snapshot which of this brand's menus already exist + their status,
+    // so onError can tell a genuinely-new/updated import apart from stale
+    // menus when it has to fall back to polling.
+    onMutate: () => {
+      const before = new Map<string, string>();
+      for (const m of (menus as Menu[]) ?? []) {
+        if ((m as any).brandId === brandId) {
+          before.set(m.id, (m as any).importStatus ?? "IDLE");
+        }
+      }
+      return { before };
+    },
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["menus"] });
       toast.success(
@@ -166,12 +178,84 @@ export default function MenuPage() {
       );
       router.push(`/dashboard/menu/${r.menuId}`);
     },
-    onError: (err: any) => {
-      toast.error(
-        `HubRise import failed: ${
-          err?.response?.data?.message ?? err?.message ?? "Unknown error"
-        }`,
+    onError: async (err: any, _vars, context) => {
+      const status = err?.response?.status;
+      // A real client-side rejection (no catalog configured, bad request,
+      // token revoked → 401/403, etc.) is a genuine failure — show it.
+      if (status && status >= 400 && status < 500) {
+        toast.error(
+          `HubRise import failed: ${
+            err?.response?.data?.message ?? err?.message ?? "Unknown error"
+          }`,
+        );
+        return;
+      }
+      // 5xx / network / gateway timeout: a HubRise import of a large
+      // catalog takes ~40s and a proxy in front severs the browser
+      // connection before it finishes — but the import keeps running
+      // server-side and flips the menu's importStatus to SUCCESS/FAILED.
+      // Poll that real outcome instead of showing a false "failed".
+      const before = (context as { before: Map<string, string> } | undefined)
+        ?.before ?? new Map<string, string>();
+      const toastId = toast.loading(
+        "Import is taking a while — finishing in the background…",
       );
+      const fetchMenus = () =>
+        selectedLocationId
+          ? menusClient.listMenusForLocation(selectedLocationId)
+          : menusClient.listMenusForTenant();
+      try {
+        for (let i = 0; i < 30; i++) {
+          await new Promise((r) => setTimeout(r, 4000));
+          const list = (await fetchMenus()) as Menu[];
+          qc.setQueryData(
+            selectedLocationId
+              ? ["menus", "location", selectedLocationId]
+              : ["menus", "tenant"],
+            list,
+          );
+          const mine = list.filter((m) => (m as any).brandId === brandId);
+          // The in-flight import is the menu that's new, or whose status
+          // changed since we started (IMPORTING → SUCCESS/FAILED).
+          const touched = mine.filter(
+            (m) =>
+              !before.has(m.id) ||
+              before.get(m.id) !== ((m as any).importStatus ?? "IDLE"),
+          );
+          if (touched.some((m) => (m as any).importStatus === "IMPORTING")) {
+            continue; // still running
+          }
+          const done = touched.find(
+            (m) => (m as any).importStatus === "SUCCESS",
+          );
+          const failed = touched.find(
+            (m) => (m as any).importStatus === "FAILED",
+          );
+          if (done) {
+            toast.success("HubRise menu imported.", { id: toastId });
+            qc.invalidateQueries({ queryKey: ["menus"] });
+            router.push(`/dashboard/menu/${done.id}`);
+            return;
+          }
+          if (failed) {
+            toast.error(
+              "HubRise import failed on the server. Check the catalog and try again.",
+              { id: toastId },
+            );
+            return;
+          }
+        }
+        toast(
+          "Import is still processing — it should appear shortly. Refresh if it doesn't.",
+          { id: toastId },
+        );
+        qc.invalidateQueries({ queryKey: ["menus"] });
+      } catch {
+        toast.error(
+          "Couldn't confirm the HubRise import. Refresh to check your menus.",
+          { id: toastId },
+        );
+      }
     },
   });
 

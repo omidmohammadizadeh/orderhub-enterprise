@@ -33,6 +33,11 @@ export interface Menu {
   logoImage?: string | null;
   heroImage?: string | null;
   publishedTo?: string[];
+  // Phase AW-11 — catalog import lifecycle on the menu row. Lets the UI
+  // recover a slow import whose HTTP response was severed by a proxy
+  // timeout: the import keeps running server-side and flips this to
+  // SUCCESS/FAILED, so the client polls it instead of showing a false error.
+  importStatus?: "IDLE" | "IMPORTING" | "SUCCESS" | "FAILED";
   // Phase BA — where this menu is currently SERVING. One row per
   // (location, channel, brand); source of truth for the Live-at badges
   // and the publish modal's pre-ticked locations.
