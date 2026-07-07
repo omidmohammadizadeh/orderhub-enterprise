@@ -171,10 +171,15 @@ export class TeamService {
     const isPlatformOrOnboarding =
       callerRole === "PLATFORM_ADMIN" || callerRole === "ONBOARDING_AGENT";
     const hidePlatform = callerRole !== "PLATFORM_ADMIN";
+    // Admin accounts (TENANT_OWNER / PLATFORM_ADMIN) are hidden from
+    // non-admin team members — a location manager shouldn't see the account
+    // owner's details in Team Roles. Admins still see everyone.
+    const callerIsAdmin = PROTECTED_ADMIN_ROLES.has(String(callerRole));
     return users
       .filter(
         (u: any) =>
           (!hidePlatform || !PLATFORM_ROLES.has(u.role)) &&
+          (callerIsAdmin || !PROTECTED_ADMIN_ROLES.has(u.role)) &&
           (isPlatformOrOnboarding ||
             u.locations.length > 0 ||
             u.brands.length > 0),

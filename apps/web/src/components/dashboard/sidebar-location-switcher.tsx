@@ -36,17 +36,24 @@ export function SidebarLocationSwitcher() {
     staleTime: 60_000,
   });
 
-  // POS guard — if the user lands on /pos with "All locations" active,
-  // force-pick the first real one so the page works.
+  // "All locations" only makes sense when the user actually has more than
+  // one location. A single-location user is always scoped to their one
+  // location (no "All locations" option).
+  const hasMultiple = (locations?.length ?? 0) > 1;
+  const allowAll = !isPosRoute && hasMultiple;
+
+  // Force-pick a single location when "All locations" isn't offered:
+  //   • POS always needs one location, and
+  //   • a user with exactly one accessible location should land on it
+  //     instead of the (now hidden) "All locations" view.
   useEffect(() => {
-    if (!isPosRoute) return;
+    if (allowAll) return;
     if (selectedLocationId) return;
     const first = locations?.[0];
     if (first) setSelectedLocationId(first.id);
-  }, [isPosRoute, selectedLocationId, locations, setSelectedLocationId]);
+  }, [allowAll, selectedLocationId, locations, setSelectedLocationId]);
 
   const selected = locations?.find((l) => l.id === selectedLocationId) ?? null;
-  const allowAll = !isPosRoute;
 
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
