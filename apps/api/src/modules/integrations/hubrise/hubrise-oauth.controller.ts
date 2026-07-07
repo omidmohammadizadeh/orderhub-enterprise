@@ -50,6 +50,44 @@ export class HubRiseOauthController {
     private readonly deliverySync: HubRiseDeliverySyncService,
   ) {}
 
+  // Public config probe — mirrors the Uber Eats /health endpoint. Lets the
+  // operator (or us) confirm at a glance whether the one-click "Connect
+  // with HubRise" flow can work on this deployment WITHOUT a login, and
+  // WITHOUT leaking the client secret. If `configured` is false the
+  // Connect button will error and operators are forced back to the manual
+  // token-paste flow — the usual reason connect "doesn't work".
+  @Public()
+  @Get("health")
+  @ApiOperation({ summary: "HubRise OAuth config probe (no secrets)" })
+  health() {
+    const clientId = this.config.get<string>("app.platforms.hubrise.appId");
+    const clientSecret = this.config.get<string>(
+      "app.platforms.hubrise.appSecret",
+    );
+    const redirectUri = this.config.get<string>(
+      "app.platforms.hubrise.redirectUri",
+    );
+    const authorizeUrl = this.config.get<string>(
+      "app.platforms.hubrise.oauthAuthorizeUrl",
+    );
+    const tokenUrl = this.config.get<string>(
+      "app.platforms.hubrise.oauthTokenUrl",
+    );
+    const clientIdSet = !!clientId;
+    const clientSecretSet = !!clientSecret;
+    return {
+      // The two things an operator actually has to set for OAuth to work.
+      configured: clientIdSet && clientSecretSet && !!redirectUri,
+      clientIdSet,
+      clientSecretSet,
+      // Safe to echo — these are public endpoints / URLs, not secrets.
+      redirectUri: redirectUri ?? null,
+      authorizeUrl: authorizeUrl ?? null,
+      tokenUrl: tokenUrl ?? null,
+      build: (process.env.RENDER_GIT_COMMIT ?? "dev").slice(0, 7),
+    };
+  }
+
   @Get("connect")
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get the HubRise authorize URL for a location" })
