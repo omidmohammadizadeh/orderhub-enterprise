@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, User, ChevronDown, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import { humaniseRole } from "@/lib/api/team.client";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
 import { ProfileDialog, DeleteAccountDialog } from "./account-dialogs";
@@ -86,8 +87,8 @@ export function UserMenu() {
               {user.firstName} {user.lastName}
             </p>
             <p className="text-xs text-zinc-500 truncate">{user.email}</p>
-            <span className="mt-1.5 inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 capitalize">
-              {user.role.replace(/_/g, " ").toLowerCase()}
+            <span className="mt-1.5 inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+              {humaniseRole(user.role)}
             </span>
           </div>
 

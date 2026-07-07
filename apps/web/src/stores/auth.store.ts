@@ -11,6 +11,7 @@ interface AuthActions {
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  setUser: (user: AuthState["user"]) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   clearTokens: () => void;
 }
@@ -91,6 +92,10 @@ export const useAuthStore = create<AuthStore>()(
           // If /me fails after a valid token, something is wrong — clear state
           get().clearTokens();
         }
+      },
+
+      setUser: (user) => {
+        set({ user });
       },
 
       setTokens: (accessToken, refreshToken) => {

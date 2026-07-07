@@ -35,7 +35,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const refreshUser = useAuthStore((s) => s.refreshUser);
+  const setUser = useAuthStore((s) => s.setUser);
   const clearTokens = useAuthStore((s) => s.clearTokens);
   const router = useRouter();
 
@@ -55,10 +55,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     // Token exists in store — validate it's still accepted by the server.
-    // This also refreshes the user profile (role / permissions may have changed).
+    // Write the fresh profile back into the store so role/permissions
+    // changes (e.g. an admin promotion done in the DB) take effect on the
+    // next load without a full re-login — /auth/me reads the role from the
+    // DB, not the possibly-stale JWT claim.
     authClient
       .getMe()
-      .then(() => {
+      .then((profile) => {
+        setUser(profile as any);
         setVerified(true);
       })
       .catch(() => {
@@ -68,7 +72,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         clearTokens();
         router.replace("/login");
       });
-  }, [mounted, isAuthenticated, accessToken, router, clearTokens]);
+  }, [mounted, isAuthenticated, accessToken, router, clearTokens, setUser]);
 
   if (!mounted || !verified) {
     return <AuthLoadingScreen />;

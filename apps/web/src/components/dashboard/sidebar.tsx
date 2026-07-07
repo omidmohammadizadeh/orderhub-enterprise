@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth.store";
+import { humaniseRole } from "@/lib/api/team.client";
 import { getInitials } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { leadsClient } from "@/lib/api/leads.client";
@@ -293,8 +294,8 @@ function _Sidebar() {
               <p className="text-xs font-medium text-white truncate">
                 {user.firstName} {user.lastName}
               </p>
-              <p className="text-[10px] text-zinc-500 truncate capitalize">
-                {user.role.replace("_", " ").toLowerCase()}
+              <p className="text-[10px] text-zinc-500 truncate">
+                {humaniseRole(user.role)}
               </p>
             </div>
           </div>
