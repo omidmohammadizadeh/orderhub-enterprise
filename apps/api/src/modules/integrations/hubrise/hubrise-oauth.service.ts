@@ -94,7 +94,11 @@ export class HubRiseOauthService {
   async handleCallback(args: {
     code: string;
     state: string;
-  }): Promise<{ locationId: string; tenantId: string }> {
+  }): Promise<{
+    locationId: string;
+    tenantId: string;
+    webhookRegistered: boolean;
+  }> {
     const decoded = this.verifyState(args.state);
     const tokenResponse = await this.exchangeCodeForToken(args.code);
     const accessToken = tokenResponse.access_token;
@@ -109,20 +113,21 @@ export class HubRiseOauthService {
     // operator to set later from Location settings.
     const catalogId = tokenResponse.catalog_id ?? null;
 
-    // Register the per-location webhook FIRST so we don't end up with
-    // a saved token + missing webhook if registration fails. If the
-    // webhook call returns 4xx we roll back and surface the error to
-    // the operator — better to retry the whole connect than save a
-    // half-connected state.
+    // Register the per-location callback. Best-effort + NON-FATAL: the
+    // token is what removes the manual terminal step, so a callback
+    // hiccup must never lose it (the previous version threw here, which
+    // rolled the whole connect back and forced operators back to
+    // curl). Menu publish / inventory 86 / pause all work with just the
+    // token; only inbound order webhooks need the callback, and the
+    // operator can re-run Connect to retry it.
     const webhookUrl = this.buildWebhookUrl(decoded.locationId);
+    let webhookRegistered = false;
     try {
       await this.registerWebhook(accessToken, webhookUrl);
+      webhookRegistered = true;
     } catch (err: any) {
       this.logger.error(
-        `HubRise webhook registration failed for location ${decoded.locationId}: ${err?.message}`,
-      );
-      throw new BadRequestException(
-        `Connected to HubRise but could not register the webhook callback (${err?.message}). Try again.`,
+        `HubRise callback registration failed for location ${decoded.locationId} (token still saved): ${err?.message}`,
       );
     }
 
@@ -148,7 +153,11 @@ export class HubRiseOauthService {
       },
     });
 
-    return { locationId: decoded.locationId, tenantId: decoded.tenantId };
+    return {
+      locationId: decoded.locationId,
+      tenantId: decoded.tenantId,
+      webhookRegistered,
+    };
   }
 
   // ── Helpers ────────────────────────────────────────────────────────
@@ -210,39 +219,59 @@ export class HubRiseOauthService {
   }
 
   /**
-   * Register a webhook against HubRise for this location. We subscribe
-   * to the events that drive day-to-day operations — orders + catalog
-   * lifecycle. customer events get added when we wire the CRM module.
+   * Register the callback against HubRise for this connection. HubRise's
+   * API is `POST /callback` (singular) and a connection can hold exactly
+   * ONE callback; the events are a nested resource→[event] map — NOT the
+   * `POST /webhooks` + dotted `["order.created"]` array the first cut of
+   * this code sent (that endpoint doesn't exist, so every connect 404'd
+   * at this step and rolled back). Event/resource names per the docs:
+   * resource ∈ {order,catalog,delivery,inventory,customer,…},
+   * event ∈ {create,update,patch,delete} — matching what our receiver
+   * (receiveWebhook) branches on.
    */
   private async registerWebhook(
     accessToken: string,
     webhookUrl: string,
   ): Promise<void> {
     const baseUrl = this.config.get<string>("app.platforms.hubrise.baseUrl");
-    const res = await fetch(`${baseUrl}/webhooks`, {
-      method: "POST",
-      headers: {
-        "X-Access-Token": accessToken,
-        "Content-Type": "application/json",
+    const body = JSON.stringify({
+      url: webhookUrl,
+      events: {
+        order: ["create", "update"],
+        catalog: ["update"],
+        delivery: ["create", "update"],
       },
-      body: JSON.stringify({
-        url: webhookUrl,
-        events: [
-          "order.created",
-          "order.updated",
-          "catalog.updated",
-        ],
-      }),
     });
-    // HubRise returns 201 on success, but some accounts already have a
-    // webhook for the same URL — that returns 409 which we treat as
-    // success because the end state ("a webhook is registered") is
-    // exactly what we want.
-    if (res.status === 409) return;
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`HubRise webhook POST ${res.status}: ${text}`);
+    const headers = {
+      "X-Access-Token": accessToken,
+      "Content-Type": "application/json",
+    };
+
+    const res = await fetch(`${baseUrl}/callback`, {
+      method: "POST",
+      headers,
+      body,
+    });
+    if (res.ok || res.status === 201) return;
+
+    // A connection can only have one callback: on reconnect the POST
+    // conflicts (already exists). Update it in place instead so the
+    // callback URL/events stay current.
+    if (res.status === 409 || res.status === 422) {
+      const put = await fetch(`${baseUrl}/callback`, {
+        method: "PUT",
+        headers,
+        body,
+      });
+      if (put.ok) return;
+      const putText = await put.text().catch(() => "");
+      throw new Error(
+        `HubRise callback PUT ${put.status}: ${putText.slice(0, 300)}`,
+      );
     }
+
+    const text = await res.text().catch(() => "");
+    throw new Error(`HubRise callback POST ${res.status}: ${text.slice(0, 300)}`);
   }
 
   private buildWebhookUrl(locationId: string): string {

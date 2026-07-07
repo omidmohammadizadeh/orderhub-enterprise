@@ -142,9 +142,17 @@ export class HubRiseOauthController {
     }
 
     try {
-      const { locationId } = await this.oauth.handleCallback({ code, state });
+      const { locationId, webhookRegistered } = await this.oauth.handleCallback({
+        code,
+        state,
+      });
       const back = this.dashboardUrl("/dashboard/locations");
       back.searchParams.set("hubrise_connected", locationId);
+      // Token saved but the order-webhook callback couldn't be registered:
+      // publish/86/pause still work; surface it so the operator can retry.
+      if (!webhookRegistered) {
+        back.searchParams.set("hubrise_webhook", "failed");
+      }
       return res.redirect(back.toString());
     } catch (err: any) {
       const back = this.dashboardUrl("/dashboard/locations");
