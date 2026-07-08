@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { BrandLogo, type BrandKey } from "./brand-logo";
+import { MobileNav } from "./mobile-nav";
 import { getSiteBrand } from "@/lib/site-brand.server";
 
 interface MenuItem {
@@ -101,19 +102,27 @@ export async function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-          >
-            Get started
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="hidden items-center gap-2 sm:flex">
+            <Link
+              href="/login"
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+            >
+              Get started
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {/* Mobile: hamburger + slide-in panel with every header option. */}
+          <MobileNav
+            solutions={SOLUTIONS}
+            integrations={INTEGRATIONS}
+            resources={RESOURCES}
+          />
         </div>
       </div>
     </header>
