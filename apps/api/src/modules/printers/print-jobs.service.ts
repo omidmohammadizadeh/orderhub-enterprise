@@ -23,9 +23,22 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintRoutingService, type PrintTarget } from "./print-routing.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+
+// Client-reported print outcome (used for the Logs feed). Success prints are
+// already logged server-side via markOrderPrinted; the client posts here for
+// FAILURES and test prints, which the server can't otherwise see.
+export interface PrintReportDto {
+  ok: boolean;
+  orderId?: string;
+  displayId?: string;
+  printerName?: string;
+  message?: string;
+  kind?: "order" | "auto" | "test" | "reprint";
+}
 
 export interface CreateJobsFromOrderDto {
   orderId: string;
@@ -58,7 +71,27 @@ export class PrintJobsService {
     private readonly prisma: PrismaService,
     private readonly routing: PrintRoutingService,
     private readonly socket: SocketService,
+    private readonly events: EventEmitter2,
   ) {}
+
+  // Fire a PRINTING row into the activity feed (Logs page). Best-effort:
+  // ActivityLogService listens for "activity.log" and never throws. Emitting
+  // an event keeps this service decoupled from the logs module.
+  private logPrint(entry: {
+    tenantId: string;
+    locationId?: string | null;
+    brandId?: string | null;
+    status: "SUCCESS" | "ERROR" | "INFO";
+    action: string;
+    message: string;
+    details?: Record<string, unknown>;
+  }): void {
+    try {
+      this.events.emit("activity.log", { category: "PRINTING", ...entry });
+    } catch {
+      // never let logging break the print flow
+    }
+  }
 
   // ── Auto-print rule evaluator ───────────────────────────────────────
   //
@@ -510,7 +543,65 @@ export class PrintJobsService {
       });
       this.emitUpdated(updated);
     }
+    // Log the successful print into the operator activity feed.
+    const order = await (this.prisma as any).order.findFirst({
+      where: { id: orderId, tenantId },
+      select: { displayId: true, orderNumber: true, locationId: true, brandId: true },
+    });
+    const label = order?.displayId ?? order?.orderNumber ?? orderId.slice(-5);
+    this.logPrint({
+      tenantId,
+      locationId: order?.locationId ?? null,
+      brandId: order?.brandId ?? null,
+      status: "SUCCESS",
+      action: "print.receipt",
+      message: `Receipt printed for order #${label}`,
+      details: { orderId, jobsCleared: jobs.length },
+    });
     return { printed: jobs.length };
+  }
+
+  // Client-reported print outcome → Logs feed. The tablet prints client-side,
+  // so the server can't see failures or test prints; the web app posts them
+  // here. Success order prints are already logged by markOrderPrinted.
+  async recordPrintReport(dto: PrintReportDto, tenantId: string) {
+    let locationId: string | null = null;
+    let brandId: string | null = null;
+    let displayId = dto.displayId ?? null;
+    if (dto.orderId) {
+      const order = await (this.prisma as any).order.findFirst({
+        where: { id: dto.orderId, tenantId },
+        select: { displayId: true, orderNumber: true, locationId: true, brandId: true },
+      });
+      if (order) {
+        locationId = order.locationId ?? null;
+        brandId = order.brandId ?? null;
+        displayId = displayId ?? order.displayId ?? order.orderNumber ?? null;
+      }
+    }
+    const kind = dto.kind ?? "order";
+    const who = dto.printerName ? ` (${dto.printerName})` : "";
+    const orderRef = displayId ? ` for order #${displayId}` : "";
+    const message = dto.ok
+      ? kind === "test"
+        ? `Test print sent${who}`
+        : `Receipt printed${orderRef}${who}`
+      : `Print failed${orderRef}${who}: ${dto.message ?? "unknown error"}`;
+    this.logPrint({
+      tenantId,
+      locationId,
+      brandId,
+      status: dto.ok ? (kind === "test" ? "INFO" : "SUCCESS") : "ERROR",
+      action: kind === "test" ? "print.test" : "print.receipt",
+      message,
+      details: {
+        orderId: dto.orderId ?? null,
+        printerName: dto.printerName ?? null,
+        error: dto.ok ? undefined : dto.message,
+        kind,
+      },
+    });
+    return { ok: true };
   }
 
   async markPrinted(jobId: string, agentId: string) {

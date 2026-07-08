@@ -23,6 +23,7 @@ export type ActivityCategory =
   | "INVENTORY"
   | "STATUS"
   | "PAYMENTS"
+  | "PRINTING"
   | "CONNECTION";
 
 export type ActivityStatus = "SUCCESS" | "ERROR" | "INFO" | "WARNING";

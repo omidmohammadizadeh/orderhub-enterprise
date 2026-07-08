@@ -140,6 +140,14 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           const msg = `FAILED → ${p.name}: ${e?.message ?? e}`;
           console.error("[auto-print]", msg, e);
           setStatus((s) => ({ ...s, lastMessage: msg }));
+          // Surface auto-print failures in the activity feed.
+          void printersClient.reportPrint({
+            ok: false,
+            orderId: order.id,
+            printerName: p.name,
+            message: e?.message ?? String(e),
+            kind: "auto",
+          });
         }
       }
       // Clear this order's server-side job(s) from the queue + bump

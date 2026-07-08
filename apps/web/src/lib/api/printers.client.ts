@@ -131,6 +131,20 @@ export const printersClient = {
       .post(`/v1/print-jobs/order/${orderId}/printed`, {})
       .then((r) => r.data)
       .catch(() => null),
+  // Log a print outcome (failure or test) into the activity feed. Success
+  // order prints are already logged by markOrderPrinted, so this is mainly
+  // for failures + test prints. Best-effort — never throws.
+  reportPrint: (report: {
+    ok: boolean;
+    orderId?: string;
+    printerName?: string;
+    message?: string;
+    kind?: "order" | "auto" | "test" | "reprint";
+  }) =>
+    apiClient
+      .post(`/v1/print-jobs/report`, report)
+      .then((r) => r.data)
+      .catch(() => null),
   // Turn automatic order printing on/off for this printer's location.
   setReceiptDefault: (id: string, active: boolean) =>
     apiClient

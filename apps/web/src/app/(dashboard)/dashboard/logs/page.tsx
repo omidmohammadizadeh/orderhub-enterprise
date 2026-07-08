@@ -20,6 +20,7 @@ import {
   Loader2,
   Plug,
   Package,
+  Printer,
   RefreshCw,
   ScrollText,
   ShoppingBag,
@@ -53,6 +54,7 @@ const TABS = [
   { key: "INVENTORY", label: "Inventory", icon: Package },
   { key: "STATUS", label: "Status", icon: Activity },
   { key: "PAYMENTS", label: "Payments", icon: CreditCard },
+  { key: "PRINTING", label: "Printing", icon: Printer },
   { key: "CONNECTION", label: "Connections", icon: Plug },
 ] as const;
 

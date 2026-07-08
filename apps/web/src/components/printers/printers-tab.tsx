@@ -67,9 +67,22 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
           ? buildTestReceiptStar(printer.paperWidth ?? 80)
           : buildTestReceipt(printer.paperWidth ?? 80);
         await writeToPrinter(printer, bytes);
+        void printersClient.reportPrint({
+          ok: true,
+          printerName: printer.name,
+          kind: "test",
+        });
         return { ok: true } as any;
       }
       return printersClient.testPrint(printer.id);
+    },
+    onError: (e: any, printer: any) => {
+      void printersClient.reportPrint({
+        ok: false,
+        printerName: printer?.name,
+        message: e?.message ?? String(e),
+        kind: "test",
+      });
     },
   });
   const remove = useMutation({

@@ -165,18 +165,31 @@ export async function printOrderViaBridge(order: any): Promise<string> {
   }
 
   if (printed === 0) {
-    throw new Error(
-      failures.length
-        ? `Print failed — ${failures.join("; ")}`
-        : "Print failed — no printer accepted the job.",
-    );
+    const msg = failures.length
+      ? failures.join("; ")
+      : "no printer accepted the job";
+    // Log the failure to the activity feed so operators/support can see it.
+    void printersClient.reportPrint({
+      ok: false,
+      orderId: order.id,
+      message: msg,
+      kind: "order",
+    });
+    throw new Error(`Print failed — ${msg}`);
   }
 
   // At least one printer produced the receipt — clear the order's queued
-  // job(s) + bump "last print".
+  // job(s) + bump "last print" (this also logs the success server-side).
   void printersClient.markOrderPrinted(order.id);
 
   if (failures.length) {
+    // Some (not all) printers failed — log the dead one(s) too.
+    void printersClient.reportPrint({
+      ok: false,
+      orderId: order.id,
+      message: `some printers failed — ${failures.join("; ")}`,
+      kind: "order",
+    });
     // Success overall (green), but flag the printers that didn't take it so
     // a stale entry is visible without turning a good print into an error.
     return `Printed to ${printed} of ${targets.length} printers`;

@@ -46,6 +46,7 @@ import {
 } from "./print-agents.service";
 import {
   PrintJobsService,
+  type PrintReportDto,
   type ReprintDto,
 } from "./print-jobs.service";
 
@@ -380,6 +381,20 @@ export class PrintJobsController {
       tenantId: user.tenantId,
       printerId: body.printerId,
     });
+  }
+
+  // Client-reported print outcome for the Logs feed. The tablet prints
+  // client-side (Bluetooth/LAN bridge), so the server can't see failures or
+  // test prints — the web app posts them here so they appear in Logs.
+  @Post("report")
+  @ApiBearerAuth()
+  @Roles(...MANAGE_PRINT_ROLES, "STAFF")
+  @HttpCode(HttpStatus.OK)
+  reportPrint(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: PrintReportDto,
+  ) {
+    return this.jobs.recordPrintReport(dto, user.tenantId);
   }
 
   // ── Agent protocol ─────────────────────────────────────────────────
