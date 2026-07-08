@@ -16,6 +16,7 @@ import { StripeService } from "./stripe.service";
 import { BillingService } from "./billing.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { PaymentsService } from "../payments/payments.service";
 
 @ApiTags("webhooks")
 @Controller({ path: "webhooks/stripe", version: "1" })
@@ -27,6 +28,7 @@ export class StripeWebhookController {
     private readonly billing: BillingService,
     private readonly subscriptions: SubscriptionsService,
     private readonly prisma: PrismaService,
+    private readonly payments: PaymentsService,
   ) {}
 
   @Post()
@@ -150,6 +152,18 @@ export class StripeWebhookController {
       } catch (err: any) {
         this.logger.warn(
           `MerchantSubscription sync skipped for ${event.type}: ${err?.message ?? err}`,
+        );
+      }
+      // This endpoint receives connected-account PAYMENT events too (direct
+      // charges) — forward them to PaymentsService so card orders authorise
+      // (payment_intent.amount_capturable_updated → markAuthorized → board),
+      // cancel, capture-settle and refund. Guarded so a payment-side error
+      // doesn't block marking the event processed.
+      try {
+        await this.payments.dispatchStripeEvent(event);
+      } catch (err: any) {
+        this.logger.warn(
+          `Payment webhook dispatch skipped for ${event.type}: ${err?.message ?? err}`,
         );
       }
       await db.stripeWebhookEvent.update({

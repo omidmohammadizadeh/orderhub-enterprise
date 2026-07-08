@@ -9,9 +9,14 @@ import { StripeWebhookController } from "./stripe-webhook.controller";
 import { UsageService } from "./usage.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SubscriptionsModule } from "../subscriptions/subscriptions.module";
+import { PaymentsModule } from "../payments/payments.module";
 
 @Module({
-  imports: [ConfigModule, SubscriptionsModule],
+  // PaymentsModule: the /webhooks/stripe route Stripe posts to lives here, so
+  // it must be able to forward connected-account payment events to
+  // PaymentsService (markAuthorized etc.). PaymentsModule doesn't import
+  // billing, so there's no circular dependency.
+  imports: [ConfigModule, SubscriptionsModule, PaymentsModule],
   controllers: [BillingController, StripeWebhookController],
   providers: [
     StripeService,

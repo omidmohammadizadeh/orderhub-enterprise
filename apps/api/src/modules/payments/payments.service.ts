@@ -2139,6 +2139,19 @@ export class PaymentsService {
       }
     }
 
+    await this.dispatchStripeEvent(event);
+    return { received: true };
+  }
+
+  /**
+   * Dispatch an ALREADY-VERIFIED Stripe event to the right handler. Split out
+   * of handleStripeWebhook so the billing webhook controller — which owns the
+   * /api/v1/webhooks/stripe route Stripe actually posts connected-account
+   * payment events to — can forward them here. Without this,
+   * payment_intent.amount_capturable_updated never reaches markAuthorized and
+   * card orders never appear on the board to accept/reject.
+   */
+  async dispatchStripeEvent(event: any): Promise<void> {
     this.logger.log(`Stripe webhook received: ${event.type}`);
 
     switch (event.type) {
@@ -2263,7 +2276,5 @@ export class PaymentsService {
       default:
         this.logger.debug(`Unhandled Stripe event type: ${event.type}`);
     }
-
-    return { received: true };
   }
 }
