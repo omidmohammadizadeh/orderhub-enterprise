@@ -569,6 +569,228 @@ export function buildOrderReceipt(
   return new Uint8Array(buf);
 }
 
+// ── Star Line Mode (Star Micronics printers) ────────────────────────
+//
+// Star printers ship in "Star Line Mode" by default, which does NOT
+// understand ESC/POS — send ESC/POS to a Star and you get a blank or
+// garbage ticket (the exact symptom operators hit). These printers use
+// Star's own command set. We render the same receipt content with Star
+// commands so Star LAN/Bluetooth printers work without the operator
+// having to flip the printer into ESC/POS emulation.
+//
+// Text + cut only for now: Star's raster (logo) and QR commands differ
+// from ESC/POS and aren't implemented yet, so Star tickets print clean
+// text without the logo/QR. Epson + Sunmi keep the full ESC/POS path.
+const STAR_ALIGN_LEFT = [ESC, GS, 0x61, 0x00];
+const STAR_ALIGN_CENTER = [ESC, GS, 0x61, 0x01];
+const STAR_BOLD_ON = [ESC, 0x45];
+const STAR_BOLD_OFF = [ESC, 0x46];
+const STAR_EXPAND_ON = [ESC, 0x69, 0x01, 0x01]; // ESC i 1 1 — double height+width
+const STAR_EXPAND_OFF = [ESC, 0x69, 0x00, 0x00];
+const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
+
+export function buildOrderReceiptStar(
+  payload: any,
+  paperWidth: number = 80,
+): Uint8Array {
+  const cols = colsFor(paperWidth);
+  const buf: number[] = [];
+  buf.push(ESC, 0x40); // ESC @ — initialise
+
+  // ── Banner (e.g. ORDER CANCELLED) ─────────────────────────────────
+  if (payload?.banner) {
+    buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+    for (const w of wrap(String(payload.banner), Math.floor(cols / 2)))
+      line(buf, w);
+    buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);
+    line(buf, "");
+  }
+
+  // ── Header ────────────────────────────────────────────────────────
+  buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+  const brandName = String(payload?.brandName ?? payload?.locationName ?? "");
+  if (brandName) line(buf, brandName.slice(0, Math.floor(cols / 2)));
+  buf.push(...STAR_EXPAND_OFF);
+  if (payload?.locationAddress)
+    for (const w of wrap(String(payload.locationAddress), cols)) line(buf, w);
+  if (payload?.locationPhone) line(buf, `Tel: ${payload.locationPhone}`);
+  buf.push(...STAR_BOLD_OFF);
+  line(buf, "");
+
+  // ── Returning-customer banner ─────────────────────────────────────
+  if (payload?.customerVisitTag) {
+    buf.push(...STAR_BOLD_ON);
+    for (const w of wrap(String(payload.customerVisitTag), cols)) line(buf, w);
+    buf.push(...STAR_BOLD_OFF);
+    line(buf, "");
+  }
+
+  // ── Order number ──────────────────────────────────────────────────
+  buf.push(...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+  const orderNo = String(payload?.displayId ?? payload?.orderNumber ?? "");
+  if (orderNo) line(buf, `#${orderNo}`);
+  buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);
+  line(
+    buf,
+    payload?.receivedAt
+      ? new Date(payload.receivedAt).toLocaleString()
+      : new Date().toLocaleString(),
+  );
+  line(buf, "");
+
+  // ── SCHEDULED banner ──────────────────────────────────────────────
+  if (payload?.scheduledFor) {
+    buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+    line(buf, "SCHEDULED");
+    buf.push(...STAR_EXPAND_OFF);
+    for (const w of wrap(fmtWhen(payload.scheduledFor), cols)) line(buf, w);
+    buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
+    line(buf, "");
+  }
+
+  // ── Order meta ────────────────────────────────────────────────────
+  buf.push(...STAR_ALIGN_LEFT);
+  if (payload?.platform || payload?.orderSource)
+    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
+  if (payload?.fulfillmentType)
+    line(buf, `Type    : ${payload.fulfillmentType}`);
+  {
+    const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
+    const label = isDelivery ? "Deliver " : "Collect ";
+    const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
+    buf.push(...STAR_BOLD_ON);
+    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
+    buf.push(...STAR_BOLD_OFF);
+  }
+  if (payload?.customerName)
+    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
+  if (payload?.customerPhone) line(buf, `Phone   : ${payload.customerPhone}`);
+  if (payload?.deliveryAddress) {
+    line(buf, "Address :");
+    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
+      line(buf, `  ${w}`);
+  }
+  line(buf, "-".repeat(cols));
+
+  // ── Items ─────────────────────────────────────────────────────────
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  for (const it of items) {
+    const qty = String(it?.quantity ?? 1);
+    const name = String(it?.name ?? it?.productName ?? it?.title ?? "Item");
+    const lineTotal =
+      typeof it?.totalPrice === "number"
+        ? it.totalPrice
+        : typeof it?.price === "number"
+          ? it.price * (it?.quantity ?? 1)
+          : NaN;
+    const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
+    buf.push(...STAR_BOLD_ON);
+    const head = `${qty}x ${name}`;
+    if (head.length + 1 + priceStr.length <= cols) {
+      line(buf, padBetween(head, priceStr, cols));
+    } else {
+      const wrapped = wrap(head, cols - priceStr.length - 1);
+      for (let i = 0; i < wrapped.length; i++) {
+        if (i === 0) line(buf, padBetween(wrapped[i]!, priceStr, cols));
+        else line(buf, wrapped[i]!);
+      }
+    }
+    buf.push(...STAR_BOLD_OFF);
+    if (Array.isArray(it?.modifiers)) {
+      for (const m of it.modifiers) {
+        const mname = String(m?.name ?? m?.title ?? "");
+        if (!mname) continue;
+        const mprice =
+          typeof m?.price === "number" && m.price > 0
+            ? `+${money(m.price)}`
+            : "";
+        const mline = `  + ${mname}`;
+        if (mprice && mline.length + 1 + mprice.length <= cols)
+          line(buf, padBetween(mline, mprice, cols));
+        else line(buf, mline);
+      }
+    }
+    if (it?.notes)
+      for (const w of wrap(`! ${String(it.notes)}`, cols - 4))
+        line(buf, `   ${w}`);
+  }
+  line(buf, "-".repeat(cols));
+
+  // ── Totals ────────────────────────────────────────────────────────
+  const showRow = (label: string, value: any) => {
+    const s = money(value);
+    if (s) line(buf, padBetween(label, s, cols));
+  };
+  showRow("Subtotal", payload?.subtotal);
+  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
+    showRow("Delivery", payload.deliveryFee);
+  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
+    showRow("Tax", payload.taxAmount);
+  if (typeof payload?.discount === "number" && payload.discount > 0)
+    showRow("Discount", -payload.discount);
+  if (
+    typeof payload?.total === "number" ||
+    typeof payload?.totalAmount === "number"
+  ) {
+    const total = payload?.total ?? payload?.totalAmount;
+    buf.push(...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+    line(buf, padBetween("TOTAL", money(total), Math.floor(cols / 2)));
+    buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);
+  }
+  line(buf, "");
+
+  // ── Payment ───────────────────────────────────────────────────────
+  if (payload?.paymentLabel) {
+    buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
+    for (const w of wrap(String(payload.paymentLabel), cols)) line(buf, w);
+    buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
+  } else if (payload?.paymentMethod) {
+    buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
+    line(
+      buf,
+      `${payload.paymentMethod}${
+        payload?.paymentStatus ? ` - ${payload.paymentStatus}` : ""
+      }`,
+    );
+    buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
+  }
+
+  // ── Special instructions ──────────────────────────────────────────
+  if (payload?.specialInstructions) {
+    line(buf, "");
+    buf.push(...STAR_BOLD_ON);
+    line(buf, "Special instructions:");
+    buf.push(...STAR_BOLD_OFF);
+    for (const w of wrap(String(payload.specialInstructions), cols))
+      line(buf, w);
+  }
+
+  buf.push(LF, LF, LF, LF);
+  buf.push(...STAR_CUT);
+  return new Uint8Array(buf);
+}
+
+// Star Line Mode test receipt — mirrors buildTestReceipt for Star printers.
+export function buildTestReceiptStar(paperWidth: number = 80): Uint8Array {
+  const buf: number[] = [];
+  buf.push(ESC, 0x40);
+  buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+  line(buf, "ORDER HUB");
+  buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);
+  line(buf, "");
+  line(buf, "TEST PRINT (Star)");
+  line(buf, new Date().toLocaleString());
+  line(buf, "");
+  buf.push(...STAR_ALIGN_LEFT);
+  line(buf, "-".repeat(colsFor(paperWidth)));
+  line(buf, "Star Line Mode receipt OK");
+  line(buf, "Automatic order printing ready.");
+  line(buf, "-".repeat(colsFor(paperWidth)));
+  buf.push(LF, LF, LF);
+  buf.push(...STAR_CUT);
+  return new Uint8Array(buf);
+}
+
 // Async wrapper that prepares graphics (logo raster) then builds the
 // receipt. Logo prints by default when the payload carries a brand logo
 // (disable per-printer with defaults.printLogo === false); the QR prints
@@ -577,8 +799,13 @@ export function buildOrderReceipt(
 export async function renderReceiptBytes(
   payload: any,
   paperWidth: number = 80,
-  opts?: { printLogo?: boolean; qrCode?: boolean },
+  opts?: { printLogo?: boolean; qrCode?: boolean; commandSet?: string },
 ): Promise<Uint8Array> {
+  // Star printers speak Star Line Mode, not ESC/POS — render their own
+  // command set (text + cut; logo/QR are ESC/POS-only for now).
+  if (String(opts?.commandSet ?? "").toUpperCase() === "STAR") {
+    return buildOrderReceiptStar(payload, paperWidth);
+  }
   let logoBytes: number[] | null = null;
   if (opts?.printLogo !== false && payload?.brandLogoUrl) {
     const maxDots = paperWidth === 58 ? 360 : 512;

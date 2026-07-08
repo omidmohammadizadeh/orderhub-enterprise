@@ -9,6 +9,7 @@ import {
   bridgeSupportsPrinter,
   writeToPrinter,
   buildTestReceipt,
+  buildTestReceiptStar,
 } from "@/lib/printing/bridge";
 import {
   Plus,
@@ -56,7 +57,15 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
       ) {
         if (!printer.ipAddress)
           throw new Error("No address saved for this printer");
-        const bytes = buildTestReceipt(printer.paperWidth ?? 80);
+        const isStar =
+          String((printer as any)?.defaults?.commandSet ?? "").toUpperCase() ===
+            "STAR" ||
+          String((printer as any)?.defaults?.brand ?? "").toLowerCase() ===
+            "star" ||
+          /star/i.test(String((printer as any)?.model ?? ""));
+        const bytes = isStar
+          ? buildTestReceiptStar(printer.paperWidth ?? 80)
+          : buildTestReceipt(printer.paperWidth ?? 80);
         await writeToPrinter(printer, bytes);
         return { ok: true } as any;
       }
@@ -247,6 +256,11 @@ function PrinterWizard({
   const [btMac, setBtMac] = useState("");
   const [paperWidth, setPaperWidth] = useState<58 | 80>(80);
   const [model, setModel] = useState("");
+  // Receipt command language. Star printers speak Star Line Mode; Epson,
+  // Sunmi and generic thermal printers speak ESC/POS.
+  const [brand, setBrand] = useState<"epson" | "star" | "sunmi" | "other">(
+    "epson",
+  );
 
   // Native bridge — exposed by the OrderHub Solutions Android app via
   // window.OrderHubBT. When present we can list the tablet's paired
@@ -327,6 +341,12 @@ function PrinterWizard({
         ...(connectionType === "BLUETOOTH" && btMac && { ipAddress: btMac }),
         paperWidth,
         model: model || null,
+        // Renderer picks the right byte stream per printer: Star Line Mode
+        // for Star, ESC/POS for Epson / Sunmi / other.
+        defaults: {
+          brand,
+          commandSet: brand === "star" ? "STAR" : "ESCPOS",
+        },
         kind:
           type === "RECEIPT"
             ? "FRONT_COUNTER"
@@ -598,11 +618,28 @@ function PrinterWizard({
                   ))}
                 </div>
               </Field>
+              <Field label="Printer brand">
+                <select
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value as typeof brand)}
+                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                >
+                  <option value="epson">Epson (ESC/POS)</option>
+                  <option value="sunmi">Sunmi (ESC/POS)</option>
+                  <option value="star">Star (Star Line Mode)</option>
+                  <option value="other">Other / generic (ESC/POS)</option>
+                </select>
+                <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                  Star printers use a different command language — pick{" "}
+                  <span className="font-medium">Star</span> for any Star
+                  Micronics model or the receipt prints blank/garbled.
+                </p>
+              </Field>
               <Field label="Model (optional)">
                 <input
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  placeholder="Epson TM-m30"
+                  placeholder="Epson TM-m30 / Star TSP143 / Sunmi NT311"
                   className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
                 />
               </Field>

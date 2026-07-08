@@ -94,6 +94,20 @@ export function applyReceiptOffer(payload: any, offer: ReceiptOffer | null) {
   }
 }
 
+// Which command language to render for this printer. Star printers need
+// Star Line Mode; Epson / Sunmi / generic all use ESC/POS. Prefer the
+// explicit commandSet saved on the printer, fall back to the brand, then
+// sniff the free-text model (so a printer already labelled "Star …" works
+// without re-adding it).
+function resolveCommandSet(p: any): string {
+  const explicit = String(p?.defaults?.commandSet ?? "").toUpperCase();
+  if (explicit) return explicit;
+  const brand = String(p?.defaults?.brand ?? "").toLowerCase();
+  if (brand === "star") return "STAR";
+  if (/star/i.test(String(p?.model ?? ""))) return "STAR";
+  return "ESCPOS";
+}
+
 export async function printOrderViaBridge(order: any): Promise<string> {
   if (!hasNativeBridge()) {
     throw new Error(
@@ -140,6 +154,7 @@ export async function printOrderViaBridge(order: any): Promise<string> {
       const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
         printLogo: (p as any).defaults?.printLogo,
         qrCode: (p as any).defaults?.qrCode,
+        commandSet: resolveCommandSet(p),
       });
       await writeToPrinter(p, repeatReceipt(single, copies));
       printed++;
