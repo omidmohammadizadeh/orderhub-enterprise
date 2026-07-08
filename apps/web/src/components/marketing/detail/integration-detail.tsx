@@ -17,10 +17,11 @@ import {
 } from "./kit";
 import { FinalCta } from "./solution-detail";
 import {
-  INTEGRATIONS,
-  INTEGRATIONS_BY_SLUG,
+  integrationForBrand,
+  integrationsForBrand,
   type IntegrationStatus,
 } from "./integrations-data";
+import { useSiteBrand } from "@/lib/use-site-brand";
 
 const STATUS_META: Record<IntegrationStatus, { label: string; tint: string }> = {
   live: { label: "Live", tint: "#34d399" },
@@ -29,11 +30,14 @@ const STATUS_META: Record<IntegrationStatus, { label: string; tint: string }> = 
 };
 
 export function IntegrationDetail({ slug }: { slug: string }) {
-  const integration = INTEGRATIONS_BY_SLUG[slug];
+  const brand = useSiteBrand();
+  const integration = integrationForBrand(slug, brand.key);
   if (!integration) return null;
   const accent = integration.accent;
   const status = STATUS_META[integration.status];
-  const others = INTEGRATIONS.filter((i) => i.slug !== integration.slug).slice(0, 4);
+  const others = integrationsForBrand(brand.key)
+    .filter((i) => i.slug !== integration.slug)
+    .slice(0, 4);
 
   return (
     <DetailShell accent={accent}>

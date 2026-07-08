@@ -9,7 +9,8 @@ import { BrandLogo } from "../brand-logo";
 import { DetailShell } from "./shell";
 import { GlassCard, GradientText, GridGlow, Pill, Reveal } from "./kit";
 import { FinalCta } from "./solution-detail";
-import { INTEGRATIONS, type Integration } from "./integrations-data";
+import { integrationsForBrand, type Integration } from "./integrations-data";
+import { useSiteBrand } from "@/lib/use-site-brand";
 
 const CATEGORIES: Integration["category"][] = [
   "Marketplace",
@@ -25,6 +26,8 @@ const STATUS_TINT: Record<Integration["status"], string> = {
 };
 
 export function IntegrationsOverview() {
+  const brand = useSiteBrand();
+  const integrations = integrationsForBrand(brand.key);
   return (
     <DetailShell>
       <section className="relative overflow-hidden border-b border-white/10">
@@ -50,7 +53,7 @@ export function IntegrationsOverview() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl space-y-14 px-4">
           {CATEGORIES.map((cat) => {
-            const items = INTEGRATIONS.filter((i) => i.category === cat);
+            const items = integrations.filter((i) => i.category === cat);
             if (!items.length) return null;
             return (
               <div key={cat}>

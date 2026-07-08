@@ -57,6 +57,7 @@ const INTEGRATIONS: MenuItem[] = [
   { label: "Stuart", href: "/integrations/stuart", brand: "stuart" },
   { label: "HubRise", href: "/integrations/hubrise", brand: "hubrise" },
   { label: "Just Eat", href: "/integrations/justeat", brand: "justeat" },
+  { label: "WhatsApp", href: "/integrations/whatsapp", brand: "whatsapp" },
   { label: "Order Hub POS", href: "/integrations/orderhub", brand: "orderhub" },
   { label: "Stripe", href: "/integrations/stripe", brand: "stripe" },
 ];

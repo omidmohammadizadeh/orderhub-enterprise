@@ -93,6 +93,12 @@ export const INTEGRATION_META: RouteMeta[] = [
       "Card payments across Order Hub — storefront checkout, WhatsApp pay links and in-person Stripe Terminal, all settling direct to you.",
   },
   {
+    slug: "whatsapp",
+    name: "WhatsApp",
+    description:
+      "Customers order on WhatsApp in plain English — an AI assistant builds the basket, sends a Stripe pay link and drops the order on your board.",
+  },
+  {
     slug: "orderhub",
     name: "Order Hub POS",
     description:

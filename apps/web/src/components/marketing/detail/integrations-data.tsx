@@ -15,8 +15,10 @@ import {
   FileBarChart,
   Layers,
   MapPin,
+  MessageCircle,
   Radio,
   RefreshCw,
+  Sparkles,
   Store,
   Tag,
   Terminal,
@@ -26,6 +28,7 @@ import {
   Wallet,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import type { SiteBrandKey } from "@/lib/site-brand";
 import type { BrandKey } from "../brand-logo";
 import {
   DispatchConsoleMockup,
@@ -263,6 +266,35 @@ export const INTEGRATIONS: Integration[] = [
     ],
   },
 
+  // ── WhatsApp ──────────────────────────────────────────────────────────────
+  {
+    slug: "whatsapp",
+    name: "WhatsApp",
+    brand: "whatsapp",
+    navDescription: "AI ordering inside WhatsApp chat",
+    category: "Platform",
+    accent: "#25D366",
+    status: "live",
+    badge: "Channel · AI ordering",
+    title: "Take orders right inside WhatsApp",
+    subtitle:
+      "Customers order by chatting on WhatsApp — an AI assistant reads your live menu, builds the basket and sends a secure Stripe pay link, and the order lands on your board and prints like any other.",
+    highlights: ["AI chat ordering", "Stripe pay links", "Lands on your board"],
+    heroMockup: <PosBoardMockup />,
+    capabilities: [
+      { icon: MessageCircle, title: "Chat ordering", body: "Customers message your WhatsApp number and order in plain English — no app to download, no login." },
+      { icon: Sparkles, title: "AI builds the basket", body: "The assistant reads your live menu, understands sizes and modifiers, and assembles the order for them." },
+      { icon: Wallet, title: "Stripe pay links", body: "A hosted Stripe link is sent right in the chat, so the customer pays securely without leaving WhatsApp." },
+      { icon: Activity, title: "Lands on your board", body: "Confirmed, paid orders drop onto the same board as every channel and print in the kitchen." },
+    ],
+    flow: [
+      { title: "Customer messages", body: "They text your WhatsApp number to start an order." },
+      { title: "AI takes the order", body: "The assistant walks them through the menu and builds the basket." },
+      { title: "Pay in chat", body: "A Stripe pay link is sent; the customer pays inside WhatsApp." },
+      { title: "On your board", body: "The paid order lands on your POS board and prints automatically." },
+    ],
+  },
+
   // ── Order Hub POS ─────────────────────────────────────────────────────────
   {
     slug: "orderhub",
@@ -296,6 +328,64 @@ export const INTEGRATIONS: Integration[] = [
 export const INTEGRATIONS_BY_SLUG: Record<string, Integration> = Object.fromEntries(
   INTEGRATIONS.map((i) => [i.slug, i]),
 );
+
+// menumanager.uk presents a different launch story than orderhubsolutions.com:
+// Uber Eats + Uber Direct show as "coming soon" and Just Eat as live. These
+// overrides apply ONLY for the Menu Manager brand; orderhubsolutions.com keeps
+// the accurate live/soon statuses from the base catalog above.
+const MENUMANAGER_SOON = new Set(["ubereats", "uberdirect"]);
+
+const JUSTEAT_LIVE: Integration = {
+  ...INTEGRATIONS_BY_SLUG.justeat!,
+  status: "live",
+  navDescription: "Direct orders and menu sync",
+  badge: "Marketplace · Direct integration",
+  title: "Just Eat, wired in direct",
+  subtitle:
+    "A direct Just Eat integration — orders arrive on your board and your menu publishes straight across, on the same board as every other channel.",
+  highlights: ["Direct order sync", "Menu publishing", "Same unified board"],
+  capabilities: [
+    { icon: Activity, title: "Order sync", body: "Just Eat orders land on the same board as your POS, storefront and other marketplaces." },
+    { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to Just Eat with sizes, modifiers and per-channel pricing." },
+    { icon: Store, title: "One printer queue", body: "Just Eat tickets print from the same kitchen printer as everything else." },
+  ],
+  flow: [
+    { title: "Connect Just Eat", body: "Link your Just Eat store to Order Hub." },
+    { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
+    { title: "Orders arrive", body: "New Just Eat orders land on your board and print automatically." },
+    { title: "One board", body: "Just Eat joins your unified orders board alongside every channel." },
+  ],
+};
+
+function forMenuManager(i: Integration): Integration {
+  if (MENUMANAGER_SOON.has(i.slug)) {
+    return {
+      ...i,
+      status: "soon",
+      navDescription: "Coming soon",
+      badge: `${i.category} · Coming soon`,
+    };
+  }
+  if (i.slug === "justeat") return JUSTEAT_LIVE;
+  return i;
+}
+
+/** Integrations list for a marketing brand. menumanager.uk gets the coming-soon
+ *  overrides; every other brand gets the accurate base catalog. */
+export function integrationsForBrand(key: SiteBrandKey): Integration[] {
+  if (key !== "menumanager") return INTEGRATIONS;
+  return INTEGRATIONS.map(forMenuManager);
+}
+
+/** A single integration by slug, brand-aware (mirrors integrationsForBrand). */
+export function integrationForBrand(
+  slug: string,
+  key: SiteBrandKey,
+): Integration | undefined {
+  const base = INTEGRATIONS_BY_SLUG[slug];
+  if (!base) return undefined;
+  return key === "menumanager" ? forMenuManager(base) : base;
+}
 
 // Small inline payment mockup, kept here so Stripe has a bespoke hero visual.
 function PaymentMockup() {

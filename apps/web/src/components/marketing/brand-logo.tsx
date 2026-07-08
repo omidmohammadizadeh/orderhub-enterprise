@@ -25,7 +25,8 @@ export type BrandKey =
   | "stuart"
   | "hubrise"
   | "orderhub"
-  | "stripe";
+  | "stripe"
+  | "whatsapp";
 
 interface Props {
   brand: BrandKey;
@@ -56,6 +57,7 @@ const BRAND_META: Record<BrandKey, BrandMeta> = {
   hubrise:    { name: "HubRise",       bg: "#7C3AED", slug: "hubrise" },
   orderhub:   { name: "Order Hub POS", bg: "#FFFFFF", slug: "orderhub" },
   stripe:     { name: "Stripe",        bg: "#635BFF", slug: "stripe",     iconSlug: "stripe" },
+  whatsapp:   { name: "WhatsApp",      bg: "#25D366", slug: "whatsapp",   iconSlug: "whatsapp" },
 };
 
 export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
