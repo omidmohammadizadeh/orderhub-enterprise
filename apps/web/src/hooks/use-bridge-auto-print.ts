@@ -117,9 +117,17 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         );
         if (copies < 1) continue;
         try {
+          // Star printers need Star Line Mode; Epson/Sunmi use ESC/POS.
+          const commandSet =
+            String((p as any).defaults?.commandSet ?? "").toUpperCase() ||
+            (String((p as any).defaults?.brand ?? "").toLowerCase() === "star" ||
+            /star/i.test(String((p as any).model ?? ""))
+              ? "STAR"
+              : "ESCPOS");
           const single = await renderReceiptBytes(payload, p.paperWidth ?? 80, {
             printLogo: p.defaults?.printLogo,
             qrCode: p.defaults?.qrCode,
+            commandSet,
           });
           await writeToPrinter(p, repeatReceipt(single, copies));
           printedAny = true;

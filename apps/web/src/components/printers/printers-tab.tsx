@@ -715,6 +715,15 @@ function PrinterSettingsDrawer({
   const [largeFont, setLargeFont] = useState<boolean>(!!d.largeFont);
   const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
+  // Command language. Star printers speak Star Line Mode; Epson/Sunmi/other
+  // speak ESC/POS. Seed from the saved value (or the free-text model).
+  const [brand, setBrand] = useState<"epson" | "star" | "sunmi" | "other">(
+    (d.brand as any) ??
+      (String(d.commandSet ?? "").toUpperCase() === "STAR" ||
+      /star/i.test(String((printer as any).model ?? ""))
+        ? "star"
+        : "epson"),
+  );
 
   const save = useMutation({
     mutationFn: () =>
@@ -731,6 +740,8 @@ function PrinterSettingsDrawer({
           qrCode: printQr,
           largeFont,
           openCashDrawer: openDrawer,
+          brand,
+          commandSet: brand === "star" ? "STAR" : "ESCPOS",
         },
         supportsCut: autoCut,
       } as any),
@@ -770,6 +781,24 @@ function PrinterSettingsDrawer({
                 className="h-5 w-5"
               />
             </label>
+          </Section>
+
+          <Section title="Printer brand / language">
+            <select
+              value={brand}
+              onChange={(e) => setBrand(e.target.value as typeof brand)}
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            >
+              <option value="epson">Epson (ESC/POS)</option>
+              <option value="sunmi">Sunmi (ESC/POS)</option>
+              <option value="star">Star (Star Line Mode)</option>
+              <option value="other">Other / generic (ESC/POS)</option>
+            </select>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+              Star printers use a different command language. If your ticket
+              prints blank or garbled on a Star Micronics printer, set this to{" "}
+              <span className="font-medium">Star</span> and save.
+            </p>
           </Section>
 
           <Section title="Copies">
