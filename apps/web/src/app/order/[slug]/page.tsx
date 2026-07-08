@@ -1023,7 +1023,7 @@ function OrderPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             {logoUrl ? (
-              <img src={logoUrl} alt="" className="h-9 w-9 rounded-md object-cover" />
+              <img src={logoUrl} alt="" className="h-9 w-9 rounded-md bg-white object-contain" />
             ) : (
               <div className="grid h-9 w-9 place-items-center rounded-md bg-orange-500 text-sm font-bold text-white">
                 {headerTitle.slice(0, 1).toUpperCase()}
@@ -1103,7 +1103,7 @@ function OrderPage() {
               <img
                 src={logoUrl}
                 alt=""
-                className="h-16 w-16 rounded-lg object-cover ring-2 ring-white shadow"
+                className="h-16 w-16 rounded-lg bg-white object-contain p-1 ring-2 ring-white shadow"
               />
             ) : (
               <div className="grid h-16 w-16 place-items-center rounded-lg bg-orange-500 text-2xl font-bold text-white ring-2 ring-white shadow">

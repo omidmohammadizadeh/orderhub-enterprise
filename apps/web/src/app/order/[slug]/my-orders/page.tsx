@@ -490,7 +490,7 @@ function LocationAvatar({
       <img
         src={location.logoUrl}
         alt=""
-        className="h-12 w-12 rounded-lg border border-zinc-100 object-cover"
+        className="h-12 w-12 rounded-lg border border-zinc-100 bg-white object-contain p-0.5"
       />
     );
   }
