@@ -1103,10 +1103,10 @@ function OrderPage() {
               <img
                 src={logoUrl}
                 alt=""
-                className="h-16 w-16 rounded-lg bg-white object-contain p-1 ring-2 ring-white shadow"
+                className="h-24 w-24 shrink-0 rounded-lg bg-white object-contain p-1.5 ring-2 ring-white shadow sm:h-28 sm:w-28"
               />
             ) : (
-              <div className="grid h-16 w-16 place-items-center rounded-lg bg-orange-500 text-2xl font-bold text-white ring-2 ring-white shadow">
+              <div className="grid h-24 w-24 shrink-0 place-items-center rounded-lg bg-orange-500 text-3xl font-bold text-white ring-2 ring-white shadow sm:h-28 sm:w-28">
                 {headerTitle.slice(0, 1).toUpperCase()}
               </div>
             )}
