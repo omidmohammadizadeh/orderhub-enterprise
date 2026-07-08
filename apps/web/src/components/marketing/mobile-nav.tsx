@@ -5,7 +5,8 @@
 // own tappable panel with every header option. Rendered as a client island
 // inside the (server) SiteNav — it receives the same nav data as props.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 
@@ -26,21 +27,16 @@ export function MobileNav({
   resources: MenuItem[];
 }) {
   const [open, setOpen] = useState(false);
+  // Portal target only exists after mount (SSR has no document). The panel
+  // MUST render at document.body, not inside the header: the header uses
+  // backdrop-blur (a backdrop-filter), which makes it the containing block
+  // for position:fixed children — trapping a "fixed inset-0" overlay inside
+  // the short header bar instead of covering the viewport.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const close = () => setOpen(false);
 
-  return (
-    <>
-      <button
-        type="button"
-        aria-label="Open menu"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center rounded-md p-2 text-zinc-700 hover:bg-zinc-100 sm:hidden"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
-
-      {open && (
+  const panel = (
         <div className="fixed inset-0 z-50 sm:hidden">
           <div
             className="absolute inset-0 bg-zinc-900/40"
@@ -92,7 +88,20 @@ export function MobileNav({
             </div>
           </div>
         </div>
-      )}
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Open menu"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center justify-center rounded-md p-2 text-zinc-700 hover:bg-zinc-100 sm:hidden"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+      {open && mounted ? createPortal(panel, document.body) : null}
     </>
   );
 }
