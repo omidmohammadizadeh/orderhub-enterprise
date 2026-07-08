@@ -10,8 +10,11 @@
 // fade so logos drift in and out of view smoothly.
 
 import { BrandLogo, type BrandKey } from "./brand-logo";
+import type { SiteBrandKey } from "@/lib/site-brand";
 
-const LOGOS: Array<{ brand: BrandKey; name: string; soon?: boolean }> = [
+type LogoItem = { brand: BrandKey; name: string; soon?: boolean };
+
+const BASE_LOGOS: LogoItem[] = [
   { brand: "ubereats", name: "Uber Eats" },
   { brand: "deliveroo", name: "Deliveroo" },
   { brand: "justeat", name: "Just Eat", soon: true },
@@ -20,9 +23,23 @@ const LOGOS: Array<{ brand: BrandKey; name: string; soon?: boolean }> = [
   { brand: "hubrise", name: "HubRise" },
   { brand: "orderhub", name: "Order Hub POS" },
   { brand: "stripe", name: "Stripe" },
+  { brand: "whatsapp", name: "WhatsApp" },
 ];
 
-export function MarqueeLogos() {
+// menumanager.uk shows a different launch story: Uber Eats + Uber Direct as
+// "Soon" and Just Eat as live. orderhubsolutions.com keeps the accurate state
+// (Just Eat "Soon", Uber Eats live).
+function logosForBrand(key: SiteBrandKey): LogoItem[] {
+  if (key !== "menumanager") return BASE_LOGOS;
+  return BASE_LOGOS.map((l) => {
+    if (l.brand === "ubereats" || l.brand === "uberdirect") return { ...l, soon: true };
+    if (l.brand === "justeat") return { ...l, soon: false };
+    return l;
+  });
+}
+
+export function MarqueeLogos({ brandKey }: { brandKey: SiteBrandKey }) {
+  const logos = logosForBrand(brandKey);
   return (
     <section className="relative overflow-hidden border-y border-zinc-100 bg-zinc-50/40 py-16">
       <p className="mb-6 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -45,7 +62,7 @@ export function MarqueeLogos() {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-zinc-50/95 to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-zinc-50/95 to-transparent" />
         <div className="marquee-track flex items-center gap-20">
-          {[...LOGOS, ...LOGOS].map((l, i) => (
+          {[...logos, ...logos].map((l, i) => (
             <LogoTile key={`${l.brand}-${i}`} logo={l} />
           ))}
         </div>

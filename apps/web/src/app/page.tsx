@@ -143,7 +143,7 @@ export default async function MarketingHomePage({
     <div className="min-h-screen bg-white text-zinc-900">
       <SiteNav />
       <Hero brand={brand.shortName} />
-      <MarqueeLogos />
+      <MarqueeLogos brandKey={brand.key} />
       <StatCounters />
       <FeatureBlocks />
       <CaseStudy brand={brand.shortName} />
@@ -387,13 +387,24 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
           />
           <FooterCol
             heading="Integrations"
-            items={[
-              { label: "Uber Eats", href: "/integrations/ubereats" },
-              { label: "Deliveroo", href: "/integrations/deliveroo" },
-              { label: "HubRise", href: "/integrations/hubrise" },
-              { label: "Just Eat (coming soon)", href: "/integrations/justeat" },
-              { label: "Stripe", href: "/integrations/stripe" },
-            ]}
+            items={
+              brand.key === "menumanager"
+                ? [
+                    { label: "Uber Eats (coming soon)", href: "/integrations/ubereats" },
+                    { label: "Uber Direct (coming soon)", href: "/integrations/uberdirect" },
+                    { label: "Deliveroo", href: "/integrations/deliveroo" },
+                    { label: "Just Eat", href: "/integrations/justeat" },
+                    { label: "WhatsApp", href: "/integrations/whatsapp" },
+                    { label: "Stripe", href: "/integrations/stripe" },
+                  ]
+                : [
+                    { label: "Uber Eats", href: "/integrations/ubereats" },
+                    { label: "Deliveroo", href: "/integrations/deliveroo" },
+                    { label: "HubRise", href: "/integrations/hubrise" },
+                    { label: "Just Eat (coming soon)", href: "/integrations/justeat" },
+                    { label: "Stripe", href: "/integrations/stripe" },
+                  ]
+            }
           />
           <FooterCol
             heading={brand.shortName}
