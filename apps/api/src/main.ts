@@ -25,6 +25,15 @@ async function bootstrap() {
   // draining in-flight requests and closing DB/Redis connections cleanly.
   app.enableShutdownHooks();
 
+  // ── Trust the platform proxy ────────────────────────────
+  // Render terminates TLS and forwards requests, so without this Express
+  // reports the proxy's IP for every request — which makes the rate limiter
+  // (ThrottlerGuard keys on req.ip) bucket EVERY client together and return
+  // 429s once total platform traffic exceeds one shared limit. Trusting the
+  // first hop makes req.ip the real client IP from X-Forwarded-For, so limits
+  // apply per restaurant, and also fixes https detection behind the proxy.
+  app.set("trust proxy", 1);
+
   // ── Security ────────────────────────────────────────────
   app.use(
     helmet({

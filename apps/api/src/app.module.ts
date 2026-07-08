@@ -140,8 +140,20 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
-        { name: "short",   ttl: 1000,  limit: 10 },   // 10 req/s — burst protection
-        { name: "medium",  ttl: 60000, limit: 200 },   // 200 req/min — sustained
+        // A single dashboard load fires ~15 parallel calls, and a busy shop
+        // runs several tablets behind one NAT IP — so these general limits are
+        // generous. Abuse-sensitive routes keep their own strict buckets
+        // (login 10/min, webhook 300/min) via @Throttle decorators.
+        {
+          name: "short",
+          ttl: config.get<number>("app.throttle.shortTtl") ?? 1000,
+          limit: config.get<number>("app.throttle.shortLimit") ?? 50,
+        }, // 50 req/s — burst protection
+        {
+          name: "medium",
+          ttl: config.get<number>("app.throttle.mediumTtl") ?? 60000,
+          limit: config.get<number>("app.throttle.mediumLimit") ?? 1000,
+        }, // 1000 req/min — sustained polling across a shop's tablets
         {
           name: "webhook",
           ttl: config.get<number>("app.throttle.webhookTtl") ?? 60000,
