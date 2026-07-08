@@ -926,14 +926,22 @@ export class PaymentsService {
     // Direct-charge created the PI on a connected account but our
     // Payment row may not be FK-linked (raw-acct_ id path). Look the
     // Order up and re-resolve through the location.
-    const order = await this.prisma.order.findUnique({
+    const order = await (this.prisma as any).order.findUnique({
       where: { id: payment.orderId },
-      select: { tenantId: true, locationId: true },
+      // brandId is load-bearing. createCheckoutSession resolves the Connect
+      // account WITH the order's brandId, so a brand that pasted its own
+      // acct_… (brand-level escape hatch) has its Checkout Session created ON
+      // that brand account. Re-resolving here WITHOUT brandId returned the
+      // location/tenant account instead — so retrieve/capture/cancel/refund
+      // hit the wrong account → "No such checkout.session" → card orders never
+      // authorised and never appeared on the board.
+      select: { tenantId: true, locationId: true, brandId: true },
     });
     if (!order) return null;
     const connect = await this.resolveConnectAccount(
       order.tenantId,
       order.locationId,
+      order.brandId ?? null,
     );
     return connect?.stripeAccountId ?? null;
   }
