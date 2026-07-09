@@ -27,14 +27,25 @@ export interface PredictionStatus {
 export class ReplicateProvider {
   private readonly logger = new Logger(ReplicateProvider.name);
   private readonly token?: string;
-  // Default to Wan 2.2 image-to-video (fast) — cheapest solid option. Override
-  // with VIDEO_STUDIO_MODEL="owner/name" once the exact slug is confirmed.
+  // Confirmed on Replicate: wan-video/wan-2.2-i2v-fast is the cheapest/fastest
+  // image-to-video model and takes `image` + `prompt`. All env-overridable so
+  // we can switch models (or adapt a model with a different image key / a
+  // pinned version) without a code change.
   readonly model: string;
+  private readonly modelVersion?: string;
+  private readonly imageKey: string;
 
   constructor(private readonly config: ConfigService) {
     this.token = this.config.get<string>("REPLICATE_API_TOKEN") || undefined;
     this.model =
       this.config.get<string>("VIDEO_STUDIO_MODEL") || "wan-video/wan-2.2-i2v-fast";
+    // Optional: pin a specific version (community models that aren't callable
+    // by bare slug need this — set VIDEO_STUDIO_MODEL_VERSION to the hash).
+    this.modelVersion =
+      this.config.get<string>("VIDEO_STUDIO_MODEL_VERSION") || undefined;
+    // Some models name the start-image differently (start_image /
+    // first_frame_image). Default matches Wan.
+    this.imageKey = this.config.get<string>("VIDEO_STUDIO_IMAGE_KEY") || "image";
   }
 
   isConfigured(): boolean {
@@ -59,15 +70,29 @@ export class ReplicateProvider {
     extra?: Record<string, unknown>;
   }): Promise<CreatePredictionResult> {
     if (!this.token) throw new Error("REPLICATE_API_TOKEN not configured");
-    const [owner, name] = this.model.split("/");
-    if (!owner || !name) throw new Error(`Invalid VIDEO_STUDIO_MODEL: ${this.model}`);
-
-    const res = await fetch(`${API_BASE}/models/${owner}/${name}/predictions`, {
+    const payloadInput = {
+      [this.imageKey]: input.image,
+      prompt: input.prompt,
+      ...(input.extra ?? {}),
+    };
+    // Pinned version → generic predictions endpoint; otherwise call the model
+    // by slug (works for official/partner models like Wan).
+    let url: string;
+    let body: Record<string, unknown>;
+    if (this.modelVersion) {
+      url = `${API_BASE}/predictions`;
+      body = { version: this.modelVersion, input: payloadInput };
+    } else {
+      const [owner, name] = this.model.split("/");
+      if (!owner || !name)
+        throw new Error(`Invalid VIDEO_STUDIO_MODEL: ${this.model}`);
+      url = `${API_BASE}/models/${owner}/${name}/predictions`;
+      body = { input: payloadInput };
+    }
+    const res = await fetch(url, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({
-        input: { image: input.image, prompt: input.prompt, ...(input.extra ?? {}) },
-      }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
