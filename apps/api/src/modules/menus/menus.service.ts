@@ -11,6 +11,7 @@ import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
@@ -563,10 +564,24 @@ export class MenusService {
 
   // ── MenuItem CRUD ─────────────────────────────────────────────────────────
 
-  async findItemsByBrand(brandId: string, tenantId: string) {
-    await this.assertBrandAccess(brandId, tenantId);
+  async findItemsByBrand(brandId: string, user: AuthenticatedUser) {
+    await this.assertBrandAccess(brandId, user.tenantId);
+    // Only surface the brand's library to users who can access this brand.
+    const scope = await this.resolveCatalogScope(user);
+    if (scope.brandIds !== null && !scope.brandIds.includes(brandId)) return [];
     return this.prisma.menuItem.findMany({
-      where: { brandId },
+      where: {
+        brandId,
+        // Non-admins see only items stamped to their accessible locations,
+        // plus brand-only (unassigned) library items — never another
+        // location's products.
+        ...(scope.locationIds !== null && {
+          OR: [
+            { locationId: { in: scope.locationIds } },
+            { locationId: null },
+          ],
+        }),
+      },
       include: {
         modifierGroupLinks: {
           include: { group: { include: { options: true } } },
@@ -605,8 +620,13 @@ export class MenusService {
    * with locationId=null are intentionally NOT included — those are
    * legacy brand-only rows the operator can re-assign from the UI.
    */
-  async findItemsByLocation(locationId: string, tenantId: string) {
-    await this.assertLocationAccess(locationId, tenantId);
+  async findItemsByLocation(locationId: string, user: AuthenticatedUser) {
+    await this.assertLocationAccess(locationId, user.tenantId);
+    // Never trust the client's locationId — a user may only see products for
+    // locations they're assigned to.
+    const scope = await this.resolveCatalogScope(user);
+    if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
+      return [];
     return this.prisma.menuItem.findMany({
       where: { locationId },
       include: {
@@ -1355,6 +1375,59 @@ export class MenusService {
   }
 
   // ── Access guards ──────────────────────────────────────────────────────────
+
+  // Per-user catalog access. Admins (tenant-wide) see everything; every
+  // other user is limited to the locations/brands they're assigned to, so
+  // the Products tab only shows products for locations they can access.
+  //   locationIds = UserLocation ∪ (all locations of ASSIGNED brands)
+  //   brandIds    = UserBrand ∪ (brands of their direct UserLocations)
+  // A single UserLocation does NOT unlock the brand's OTHER locations — a
+  // user with a,b,c never gains d just because it shares a brand.
+  // Returns null/null for admins = no restriction.
+  private async resolveCatalogScope(
+    user: AuthenticatedUser,
+  ): Promise<{ locationIds: string[] | null; brandIds: string[] | null }> {
+    if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(String(user.role))) {
+      return { locationIds: null, brandIds: null };
+    }
+    const [locs, brands] = await Promise.all([
+      (this.prisma as any).userLocation.findMany({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      }),
+      (this.prisma as any).userBrand.findMany({
+        where: { userId: user.userId },
+        select: { brandId: true },
+      }),
+    ]);
+    const directLocationIds: string[] = locs.map((l: any) => l.locationId);
+    const directBrandIds: string[] = brands.map((b: any) => b.brandId);
+    const locationIds = new Set<string>(directLocationIds);
+    const brandIds = new Set<string>(directBrandIds);
+
+    // Assigned brands unlock ALL their locations.
+    if (directBrandIds.length) {
+      const brandRows = await this.prisma.brand.findMany({
+        where: { id: { in: directBrandIds }, tenantId: user.tenantId },
+        select: { primaryLocationId: true, locations: { select: { id: true } } },
+      });
+      for (const b of brandRows) {
+        if ((b as any).primaryLocationId)
+          locationIds.add((b as any).primaryLocationId);
+        for (const l of b.locations) locationIds.add(l.id);
+      }
+    }
+    // Brands the user's direct locations belong to → they may view those
+    // brands' item library (but NOT the brands' other locations).
+    if (directLocationIds.length) {
+      const locRows = await this.prisma.location.findMany({
+        where: { id: { in: directLocationIds }, brand: { tenantId: user.tenantId } },
+        select: { brandId: true },
+      });
+      for (const l of locRows) if (l.brandId) brandIds.add(l.brandId);
+    }
+    return { locationIds: Array.from(locationIds), brandIds: Array.from(brandIds) };
+  }
 
   private async assertBrandAccess(brandId: string, tenantId: string) {
     const brand = await this.prisma.brand.findFirst({

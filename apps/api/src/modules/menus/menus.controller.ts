@@ -478,7 +478,7 @@ export class MenusController {
     @Param("brandId") brandId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.findItemsByBrand(brandId, user.tenantId);
+    return this.menus.findItemsByBrand(brandId, user);
   }
 
   // Phase AW-12 — single-item hydration for the edit form. Previously
@@ -503,7 +503,7 @@ export class MenusController {
     @Param("locationId") locationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.menus.findItemsByLocation(locationId, user.tenantId);
+    return this.menus.findItemsByLocation(locationId, user);
   }
 
   @Post("brands/:brandId/items")
