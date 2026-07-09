@@ -20,6 +20,40 @@ import {
 } from "@/lib/api/video-studio.client";
 import { uploadsClient } from "@/lib/api/catalog.client";
 
+// Resize a picked image to at most `max` px on its long edge and return a
+// JPEG data URL. Keeps upload/generation payloads small and consistent.
+async function downscaleImage(file: File, max: number): Promise<string> {
+  const readAsDataUrl = () =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = () => reject(new Error("Couldn't read the image"));
+      r.readAsDataURL(file);
+    });
+  const original = await readAsDataUrl();
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Couldn't decode the image"));
+      el.src = original;
+    });
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return original;
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } catch {
+    // If canvas processing fails for any reason, use the original bytes.
+    return original;
+  }
+}
+
 export default function VideoStudioPage() {
   const qc = useQueryClient();
 
@@ -56,19 +90,23 @@ export default function VideoStudioPage() {
     setError(null);
     setUploading(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result));
-        r.onerror = () => reject(new Error("Couldn't read the image"));
-        r.readAsDataURL(file);
-      });
-      const { publicUrl } = await uploadsClient.uploadProductImage({
-        dataUrl,
-        folder: "video-studio-src",
-      });
-      setImageUrl(publicUrl);
+      // Downscale to a compact JPEG data URL first — keeps the payload small
+      // (phone photos are huge) and gives Replicate a clean image input.
+      const dataUrl = await downscaleImage(file, 1024);
+      // Prefer a hosted URL when image storage is configured. If it isn't
+      // (Supabase not set up), fall back to the data URL — Replicate accepts a
+      // data URI as the image input, so generation still works.
+      try {
+        const { publicUrl } = await uploadsClient.uploadProductImage({
+          dataUrl,
+          folder: "video-studio-src",
+        });
+        setImageUrl(publicUrl);
+      } catch {
+        setImageUrl(dataUrl);
+      }
     } catch (e: any) {
-      setError(e?.message ?? "Image upload failed");
+      setError(e?.message ?? "Couldn't read the image");
     } finally {
       setUploading(false);
     }
