@@ -8,6 +8,7 @@ export interface VideoStatus {
   balance: number;
   providerReady: boolean;
   model: string;
+  canTestActivate?: boolean;
 }
 
 export type VideoGenStatus = "QUEUED" | "RENDERING" | "READY" | "FAILED";

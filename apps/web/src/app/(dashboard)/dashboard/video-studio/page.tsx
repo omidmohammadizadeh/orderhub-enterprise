@@ -19,18 +19,18 @@ import {
   type VideoGeneration,
 } from "@/lib/api/video-studio.client";
 import { uploadsClient } from "@/lib/api/catalog.client";
-import { useAuthStore } from "@/stores/auth.store";
 
 export default function VideoStudioPage() {
   const qc = useQueryClient();
-  const role = useAuthStore((s) => s.user?.role);
-  const isAdmin = role === "PLATFORM_ADMIN";
 
   const statusQuery = useQuery({
     queryKey: ["video-studio", "status"],
     queryFn: videoStudioClient.status,
   });
   const status = statusQuery.data;
+  // Server decides who can use the temporary test-activation hooks (platform
+  // admin, or a tenant owner when VIDEO_STUDIO_TEST_MODE is on).
+  const canTest = status?.canTestActivate ?? false;
 
   const gensQuery = useQuery({
     queryKey: ["video-studio", "generations"],
@@ -135,7 +135,7 @@ export default function VideoStudioPage() {
             ads. Add it to your plan to get a monthly batch of videos, plus
             top-up packs whenever you need more.
           </p>
-          {isAdmin ? (
+          {canTest ? (
             <button
               onClick={() => activate.mutate()}
               disabled={activate.isPending}
@@ -217,7 +217,7 @@ export default function VideoStudioPage() {
                   You're out of credits — top up or wait for your monthly reset.
                 </p>
               )}
-              {isAdmin && (
+              {canTest && (
                 <button
                   onClick={() => topup.mutate()}
                   disabled={topup.isPending}

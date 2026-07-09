@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -30,10 +31,23 @@ const CREATE_ROLES = [
 export class VideoStudioController {
   constructor(private readonly studio: VideoStudioService) {}
 
+  // The admin test hooks (activate / top-up for free) are PLATFORM_ADMIN only
+  // by default — a tenant owner must NOT be able to grant themselves free
+  // credits in production. Set VIDEO_STUDIO_TEST_MODE=true to also let a
+  // TENANT_OWNER use them while testing before Stripe is wired.
+  private testActivationAllowed(user: AuthenticatedUser): boolean {
+    if (String(user.role) === "PLATFORM_ADMIN") return true;
+    return (
+      process.env.VIDEO_STUDIO_TEST_MODE === "true" &&
+      String(user.role) === "TENANT_OWNER"
+    );
+  }
+
   @Get()
   @ApiOperation({ summary: "Video Studio status + credit balance" })
-  status(@CurrentUser() user: AuthenticatedUser) {
-    return this.studio.getStatus(user.tenantId);
+  async status(@CurrentUser() user: AuthenticatedUser) {
+    const s = await this.studio.getStatus(user.tenantId);
+    return { ...s, canTestActivate: this.testActivationAllowed(user) };
   }
 
   @Post("generate")
@@ -67,26 +81,41 @@ export class VideoStudioController {
 
   // ── Admin/testing hooks (Stripe wiring replaces these in Phase 2) ─────────
   @Post("admin/activate")
-  @Roles("PLATFORM_ADMIN")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Activate the add-on for a tenant (grants allowance)" })
   activate(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: { tenantId?: string; includedMonthly?: number },
   ) {
-    return this.studio.activateAddon(body.tenantId ?? user.tenantId, {
+    if (!this.testActivationAllowed(user)) {
+      throw new ForbiddenException("Test activation is not enabled.");
+    }
+    // A TENANT_OWNER in test mode can only activate their OWN tenant.
+    const tenantId =
+      String(user.role) === "PLATFORM_ADMIN"
+        ? body.tenantId ?? user.tenantId
+        : user.tenantId;
+    return this.studio.activateAddon(tenantId, {
       includedMonthly: body.includedMonthly ?? 15,
     });
   }
 
   @Post("admin/topup")
-  @Roles("PLATFORM_ADMIN")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Add top-up credits to a tenant" })
   topup(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: { tenantId?: string; credits?: number },
   ) {
-    return this.studio.topup(body.tenantId ?? user.tenantId, body.credits ?? 10);
+    if (!this.testActivationAllowed(user)) {
+      throw new ForbiddenException("Test top-up is not enabled.");
+    }
+    const tenantId =
+      String(user.role) === "PLATFORM_ADMIN"
+        ? body.tenantId ?? user.tenantId
+        : user.tenantId;
+    return this.studio.topup(tenantId, body.credits ?? 10);
   }
 }
