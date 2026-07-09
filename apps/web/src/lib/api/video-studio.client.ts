@@ -6,6 +6,7 @@ export interface VideoStyle {
   credits: number;
   audio: boolean;
   needsScript: boolean;
+  supportsFormat?: boolean;
 }
 
 export interface VideoStatus {
@@ -40,6 +41,7 @@ export const videoStudioClient = {
     prompt: string;
     style?: string;
     script?: string;
+    format?: string;
     locationId?: string;
     brandId?: string;
   }) =>

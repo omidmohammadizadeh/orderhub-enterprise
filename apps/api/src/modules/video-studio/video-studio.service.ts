@@ -15,6 +15,7 @@ export interface GenerateVideoDto {
   prompt: string; // the marketing description / scene direction
   style?: string; // "cinematic" (default) | "spokesperson"
   script?: string; // what the spokesperson says (spokesperson style only)
+  format?: string; // "landscape" | "vertical" | "square"
   locationId?: string;
   brandId?: string;
 }
@@ -27,10 +28,21 @@ interface AdStyle {
   label: string;
   model?: string; // undefined = base VIDEO_STUDIO_MODEL (Wan)
   imageKey?: string; // undefined = provider default ("image"); "" = no image
+  // Field name the model uses for aspect ratio (e.g. Veo "aspect_ratio"). When
+  // set, the chosen format is passed through. undefined = model ignores format
+  // (e.g. Wan i2v output follows the input photo's shape).
+  aspectKey?: string;
   credits: number;
   audio: boolean; // does the model produce a voiceover / sound?
   needsScript: boolean; // does the UI collect a spoken script?
 }
+
+// Social formats the UI offers → the aspect-ratio value we pass to the model.
+const ASPECT_RATIOS: Record<string, string> = {
+  landscape: "16:9",
+  vertical: "9:16",
+  square: "1:1",
+};
 
 function envInt(key: string, fallback: number): number {
   const n = Number(process.env[key]);
@@ -59,6 +71,9 @@ export class VideoStudioService {
         label: "Cinematic product video",
         model: undefined, // base Wan i2v
         imageKey: undefined,
+        // Wan i2v output follows the input photo's shape; only honour a format
+        // field if one is configured for the base model.
+        aspectKey: process.env.VIDEO_STUDIO_CINEMATIC_ASPECT_KEY || undefined,
         credits: envInt("VIDEO_STUDIO_CINEMATIC_CREDITS", 1),
         audio: false,
         needsScript: false,
@@ -70,6 +85,7 @@ export class VideoStudioService {
         // Veo takes a first-frame "image". Set VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY=""
         // to fall back to pure text-to-video if a model rejects the image field.
         imageKey: process.env.VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY ?? "image",
+        aspectKey: process.env.VIDEO_STUDIO_SPOKESPERSON_ASPECT_KEY ?? "aspect_ratio",
         credits: envInt("VIDEO_STUDIO_SPOKESPERSON_CREDITS", 4),
         audio: true,
         needsScript: true,
@@ -118,6 +134,7 @@ export class VideoStudioService {
         credits: s.credits,
         audio: s.audio,
         needsScript: s.needsScript,
+        supportsFormat: !!s.aspectKey,
       })),
     };
   }
@@ -161,6 +178,11 @@ export class VideoStudioService {
     }
     const finalPrompt = this.buildPrompt(style, dto.prompt, dto.script);
     const cost = style.credits;
+    // Format → aspect ratio, only when the model supports a format field.
+    const extra: Record<string, unknown> = {};
+    if (style.aspectKey && dto.format && ASPECT_RATIOS[dto.format]) {
+      extra[style.aspectKey] = ASPECT_RATIOS[dto.format];
+    }
 
     // Atomic debit BEFORE we ever call the provider — take from the monthly
     // allowance first, then purchased top-ups. The guarded updateMany makes
@@ -217,6 +239,7 @@ export class VideoStudioService {
         prompt: finalPrompt,
         model: style.model,
         imageKey: style.imageKey,
+        extra,
       });
       return this.db().videoGeneration.update({
         where: { id: gen.id },

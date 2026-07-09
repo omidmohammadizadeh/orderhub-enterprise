@@ -83,6 +83,7 @@ export default function VideoStudioPage() {
   const [prompt, setPrompt] = useState("");
   const [script, setScript] = useState("");
   const [styleId, setStyleId] = useState("cinematic");
+  const [format, setFormat] = useState("vertical");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +126,7 @@ export default function VideoStudioPage() {
         prompt: prompt.trim(),
         style: styleId,
         script: script.trim() || undefined,
+        format,
       }),
     onSuccess: () => {
       setPrompt("");
@@ -308,6 +310,44 @@ export default function VideoStudioPage() {
                     Keep it short — about one or two sentences (~8 seconds of speech).
                   </p>
                 </>
+              )}
+              {/* Format / aspect ratio */}
+              <label className="mb-1.5 mt-3 block text-sm font-semibold text-zinc-800">
+                Format
+              </label>
+              {style?.supportsFormat ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "vertical", label: "Vertical", ratio: "9:16", where: "TikTok · Reels" },
+                    { id: "landscape", label: "Landscape", ratio: "16:9", where: "YouTube · FB" },
+                    { id: "square", label: "Square", ratio: "1:1", where: "Feed" },
+                  ].map((f) => {
+                    const active = f.id === format;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFormat(f.id)}
+                        className={`rounded-lg border p-2 text-center transition ${
+                          active
+                            ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
+                            : "border-zinc-200 hover:border-violet-300"
+                        }`}
+                      >
+                        <span className="block text-xs font-semibold text-zinc-800">
+                          {f.label}
+                        </span>
+                        <span className="block text-[11px] text-zinc-500">{f.ratio}</span>
+                        <span className="block text-[10px] text-zinc-400">{f.where}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-500">
+                  This style follows your photo&apos;s shape — upload a tall photo for
+                  a vertical clip, or a wide one for landscape.
+                </p>
               )}
               <button
                 onClick={() => generate.mutate()}
