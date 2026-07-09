@@ -508,6 +508,21 @@ export type SystemSecret = $Result.DefaultSelection<Prisma.$SystemSecretPayload>
  * 
  */
 export type OutboxEvent = $Result.DefaultSelection<Prisma.$OutboxEventPayload>
+/**
+ * Model VideoStudioAccount
+ * 
+ */
+export type VideoStudioAccount = $Result.DefaultSelection<Prisma.$VideoStudioAccountPayload>
+/**
+ * Model VideoCreditTxn
+ * 
+ */
+export type VideoCreditTxn = $Result.DefaultSelection<Prisma.$VideoCreditTxnPayload>
+/**
+ * Model VideoGeneration
+ * 
+ */
+export type VideoGeneration = $Result.DefaultSelection<Prisma.$VideoGenerationPayload>
 
 /**
  * Enums
@@ -1093,6 +1108,27 @@ export const OutboxEventStatus: {
 
 export type OutboxEventStatus = (typeof OutboxEventStatus)[keyof typeof OutboxEventStatus]
 
+
+export const VideoCreditReason: {
+  GRANT: 'GRANT',
+  TOPUP: 'TOPUP',
+  DEBIT: 'DEBIT',
+  REFUND: 'REFUND',
+  ADJUST: 'ADJUST'
+};
+
+export type VideoCreditReason = (typeof VideoCreditReason)[keyof typeof VideoCreditReason]
+
+
+export const VideoGenStatus: {
+  QUEUED: 'QUEUED',
+  RENDERING: 'RENDERING',
+  READY: 'READY',
+  FAILED: 'FAILED'
+};
+
+export type VideoGenStatus = (typeof VideoGenStatus)[keyof typeof VideoGenStatus]
+
 }
 
 export type TenantPlan = $Enums.TenantPlan
@@ -1290,6 +1326,14 @@ export const ProviderCategory: typeof $Enums.ProviderCategory
 export type OutboxEventStatus = $Enums.OutboxEventStatus
 
 export const OutboxEventStatus: typeof $Enums.OutboxEventStatus
+
+export type VideoCreditReason = $Enums.VideoCreditReason
+
+export const VideoCreditReason: typeof $Enums.VideoCreditReason
+
+export type VideoGenStatus = $Enums.VideoGenStatus
+
+export const VideoGenStatus: typeof $Enums.VideoGenStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2414,6 +2458,36 @@ export class PrismaClient<
     * ```
     */
   get outboxEvent(): Prisma.OutboxEventDelegate<ExtArgs>;
+
+  /**
+   * `prisma.videoStudioAccount`: Exposes CRUD operations for the **VideoStudioAccount** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VideoStudioAccounts
+    * const videoStudioAccounts = await prisma.videoStudioAccount.findMany()
+    * ```
+    */
+  get videoStudioAccount(): Prisma.VideoStudioAccountDelegate<ExtArgs>;
+
+  /**
+   * `prisma.videoCreditTxn`: Exposes CRUD operations for the **VideoCreditTxn** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VideoCreditTxns
+    * const videoCreditTxns = await prisma.videoCreditTxn.findMany()
+    * ```
+    */
+  get videoCreditTxn(): Prisma.VideoCreditTxnDelegate<ExtArgs>;
+
+  /**
+   * `prisma.videoGeneration`: Exposes CRUD operations for the **VideoGeneration** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VideoGenerations
+    * const videoGenerations = await prisma.videoGeneration.findMany()
+    * ```
+    */
+  get videoGeneration(): Prisma.VideoGenerationDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -2953,7 +3027,10 @@ export namespace Prisma {
     MobileSession: 'MobileSession',
     WebPushSubscription: 'WebPushSubscription',
     SystemSecret: 'SystemSecret',
-    OutboxEvent: 'OutboxEvent'
+    OutboxEvent: 'OutboxEvent',
+    VideoStudioAccount: 'VideoStudioAccount',
+    VideoCreditTxn: 'VideoCreditTxn',
+    VideoGeneration: 'VideoGeneration'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -2969,7 +3046,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -9900,6 +9977,216 @@ export namespace Prisma {
           count: {
             args: Prisma.OutboxEventCountArgs<ExtArgs>
             result: $Utils.Optional<OutboxEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      VideoStudioAccount: {
+        payload: Prisma.$VideoStudioAccountPayload<ExtArgs>
+        fields: Prisma.VideoStudioAccountFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VideoStudioAccountFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VideoStudioAccountFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          findFirst: {
+            args: Prisma.VideoStudioAccountFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VideoStudioAccountFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          findMany: {
+            args: Prisma.VideoStudioAccountFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>[]
+          }
+          create: {
+            args: Prisma.VideoStudioAccountCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          createMany: {
+            args: Prisma.VideoStudioAccountCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VideoStudioAccountCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>[]
+          }
+          delete: {
+            args: Prisma.VideoStudioAccountDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          update: {
+            args: Prisma.VideoStudioAccountUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          deleteMany: {
+            args: Prisma.VideoStudioAccountDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VideoStudioAccountUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.VideoStudioAccountUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoStudioAccountPayload>
+          }
+          aggregate: {
+            args: Prisma.VideoStudioAccountAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVideoStudioAccount>
+          }
+          groupBy: {
+            args: Prisma.VideoStudioAccountGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VideoStudioAccountGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VideoStudioAccountCountArgs<ExtArgs>
+            result: $Utils.Optional<VideoStudioAccountCountAggregateOutputType> | number
+          }
+        }
+      }
+      VideoCreditTxn: {
+        payload: Prisma.$VideoCreditTxnPayload<ExtArgs>
+        fields: Prisma.VideoCreditTxnFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VideoCreditTxnFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VideoCreditTxnFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          findFirst: {
+            args: Prisma.VideoCreditTxnFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VideoCreditTxnFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          findMany: {
+            args: Prisma.VideoCreditTxnFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>[]
+          }
+          create: {
+            args: Prisma.VideoCreditTxnCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          createMany: {
+            args: Prisma.VideoCreditTxnCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VideoCreditTxnCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>[]
+          }
+          delete: {
+            args: Prisma.VideoCreditTxnDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          update: {
+            args: Prisma.VideoCreditTxnUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          deleteMany: {
+            args: Prisma.VideoCreditTxnDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VideoCreditTxnUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.VideoCreditTxnUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoCreditTxnPayload>
+          }
+          aggregate: {
+            args: Prisma.VideoCreditTxnAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVideoCreditTxn>
+          }
+          groupBy: {
+            args: Prisma.VideoCreditTxnGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VideoCreditTxnGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VideoCreditTxnCountArgs<ExtArgs>
+            result: $Utils.Optional<VideoCreditTxnCountAggregateOutputType> | number
+          }
+        }
+      }
+      VideoGeneration: {
+        payload: Prisma.$VideoGenerationPayload<ExtArgs>
+        fields: Prisma.VideoGenerationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VideoGenerationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VideoGenerationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          findFirst: {
+            args: Prisma.VideoGenerationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VideoGenerationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          findMany: {
+            args: Prisma.VideoGenerationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>[]
+          }
+          create: {
+            args: Prisma.VideoGenerationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          createMany: {
+            args: Prisma.VideoGenerationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VideoGenerationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>[]
+          }
+          delete: {
+            args: Prisma.VideoGenerationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          update: {
+            args: Prisma.VideoGenerationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          deleteMany: {
+            args: Prisma.VideoGenerationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VideoGenerationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.VideoGenerationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VideoGenerationPayload>
+          }
+          aggregate: {
+            args: Prisma.VideoGenerationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVideoGeneration>
+          }
+          groupBy: {
+            args: Prisma.VideoGenerationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VideoGenerationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VideoGenerationCountArgs<ExtArgs>
+            result: $Utils.Optional<VideoGenerationCountAggregateOutputType> | number
           }
         }
       }
@@ -118247,6 +118534,2966 @@ export namespace Prisma {
 
 
   /**
+   * Model VideoStudioAccount
+   */
+
+  export type AggregateVideoStudioAccount = {
+    _count: VideoStudioAccountCountAggregateOutputType | null
+    _avg: VideoStudioAccountAvgAggregateOutputType | null
+    _sum: VideoStudioAccountSumAggregateOutputType | null
+    _min: VideoStudioAccountMinAggregateOutputType | null
+    _max: VideoStudioAccountMaxAggregateOutputType | null
+  }
+
+  export type VideoStudioAccountAvgAggregateOutputType = {
+    includedMonthly: number | null
+    includedBalance: number | null
+    topupBalance: number | null
+  }
+
+  export type VideoStudioAccountSumAggregateOutputType = {
+    includedMonthly: number | null
+    includedBalance: number | null
+    topupBalance: number | null
+  }
+
+  export type VideoStudioAccountMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    addonActive: boolean | null
+    stripeSubscriptionId: string | null
+    includedMonthly: number | null
+    includedBalance: number | null
+    topupBalance: number | null
+    lastGrantAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VideoStudioAccountMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    addonActive: boolean | null
+    stripeSubscriptionId: string | null
+    includedMonthly: number | null
+    includedBalance: number | null
+    topupBalance: number | null
+    lastGrantAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VideoStudioAccountCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    addonActive: number
+    stripeSubscriptionId: number
+    includedMonthly: number
+    includedBalance: number
+    topupBalance: number
+    lastGrantAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VideoStudioAccountAvgAggregateInputType = {
+    includedMonthly?: true
+    includedBalance?: true
+    topupBalance?: true
+  }
+
+  export type VideoStudioAccountSumAggregateInputType = {
+    includedMonthly?: true
+    includedBalance?: true
+    topupBalance?: true
+  }
+
+  export type VideoStudioAccountMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    addonActive?: true
+    stripeSubscriptionId?: true
+    includedMonthly?: true
+    includedBalance?: true
+    topupBalance?: true
+    lastGrantAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VideoStudioAccountMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    addonActive?: true
+    stripeSubscriptionId?: true
+    includedMonthly?: true
+    includedBalance?: true
+    topupBalance?: true
+    lastGrantAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VideoStudioAccountCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    addonActive?: true
+    stripeSubscriptionId?: true
+    includedMonthly?: true
+    includedBalance?: true
+    topupBalance?: true
+    lastGrantAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VideoStudioAccountAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoStudioAccount to aggregate.
+     */
+    where?: VideoStudioAccountWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoStudioAccounts to fetch.
+     */
+    orderBy?: VideoStudioAccountOrderByWithRelationInput | VideoStudioAccountOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VideoStudioAccountWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoStudioAccounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoStudioAccounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VideoStudioAccounts
+    **/
+    _count?: true | VideoStudioAccountCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: VideoStudioAccountAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: VideoStudioAccountSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VideoStudioAccountMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VideoStudioAccountMaxAggregateInputType
+  }
+
+  export type GetVideoStudioAccountAggregateType<T extends VideoStudioAccountAggregateArgs> = {
+        [P in keyof T & keyof AggregateVideoStudioAccount]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVideoStudioAccount[P]>
+      : GetScalarType<T[P], AggregateVideoStudioAccount[P]>
+  }
+
+
+
+
+  export type VideoStudioAccountGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VideoStudioAccountWhereInput
+    orderBy?: VideoStudioAccountOrderByWithAggregationInput | VideoStudioAccountOrderByWithAggregationInput[]
+    by: VideoStudioAccountScalarFieldEnum[] | VideoStudioAccountScalarFieldEnum
+    having?: VideoStudioAccountScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VideoStudioAccountCountAggregateInputType | true
+    _avg?: VideoStudioAccountAvgAggregateInputType
+    _sum?: VideoStudioAccountSumAggregateInputType
+    _min?: VideoStudioAccountMinAggregateInputType
+    _max?: VideoStudioAccountMaxAggregateInputType
+  }
+
+  export type VideoStudioAccountGroupByOutputType = {
+    id: string
+    tenantId: string
+    addonActive: boolean
+    stripeSubscriptionId: string | null
+    includedMonthly: number
+    includedBalance: number
+    topupBalance: number
+    lastGrantAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: VideoStudioAccountCountAggregateOutputType | null
+    _avg: VideoStudioAccountAvgAggregateOutputType | null
+    _sum: VideoStudioAccountSumAggregateOutputType | null
+    _min: VideoStudioAccountMinAggregateOutputType | null
+    _max: VideoStudioAccountMaxAggregateOutputType | null
+  }
+
+  type GetVideoStudioAccountGroupByPayload<T extends VideoStudioAccountGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VideoStudioAccountGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VideoStudioAccountGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VideoStudioAccountGroupByOutputType[P]>
+            : GetScalarType<T[P], VideoStudioAccountGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VideoStudioAccountSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    addonActive?: boolean
+    stripeSubscriptionId?: boolean
+    includedMonthly?: boolean
+    includedBalance?: boolean
+    topupBalance?: boolean
+    lastGrantAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["videoStudioAccount"]>
+
+  export type VideoStudioAccountSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    addonActive?: boolean
+    stripeSubscriptionId?: boolean
+    includedMonthly?: boolean
+    includedBalance?: boolean
+    topupBalance?: boolean
+    lastGrantAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["videoStudioAccount"]>
+
+  export type VideoStudioAccountSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    addonActive?: boolean
+    stripeSubscriptionId?: boolean
+    includedMonthly?: boolean
+    includedBalance?: boolean
+    topupBalance?: boolean
+    lastGrantAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $VideoStudioAccountPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VideoStudioAccount"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      addonActive: boolean
+      stripeSubscriptionId: string | null
+      includedMonthly: number
+      includedBalance: number
+      topupBalance: number
+      lastGrantAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["videoStudioAccount"]>
+    composites: {}
+  }
+
+  type VideoStudioAccountGetPayload<S extends boolean | null | undefined | VideoStudioAccountDefaultArgs> = $Result.GetResult<Prisma.$VideoStudioAccountPayload, S>
+
+  type VideoStudioAccountCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<VideoStudioAccountFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: VideoStudioAccountCountAggregateInputType | true
+    }
+
+  export interface VideoStudioAccountDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VideoStudioAccount'], meta: { name: 'VideoStudioAccount' } }
+    /**
+     * Find zero or one VideoStudioAccount that matches the filter.
+     * @param {VideoStudioAccountFindUniqueArgs} args - Arguments to find a VideoStudioAccount
+     * @example
+     * // Get one VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VideoStudioAccountFindUniqueArgs>(args: SelectSubset<T, VideoStudioAccountFindUniqueArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one VideoStudioAccount that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {VideoStudioAccountFindUniqueOrThrowArgs} args - Arguments to find a VideoStudioAccount
+     * @example
+     * // Get one VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VideoStudioAccountFindUniqueOrThrowArgs>(args: SelectSubset<T, VideoStudioAccountFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first VideoStudioAccount that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountFindFirstArgs} args - Arguments to find a VideoStudioAccount
+     * @example
+     * // Get one VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VideoStudioAccountFindFirstArgs>(args?: SelectSubset<T, VideoStudioAccountFindFirstArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first VideoStudioAccount that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountFindFirstOrThrowArgs} args - Arguments to find a VideoStudioAccount
+     * @example
+     * // Get one VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VideoStudioAccountFindFirstOrThrowArgs>(args?: SelectSubset<T, VideoStudioAccountFindFirstOrThrowArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more VideoStudioAccounts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VideoStudioAccounts
+     * const videoStudioAccounts = await prisma.videoStudioAccount.findMany()
+     * 
+     * // Get first 10 VideoStudioAccounts
+     * const videoStudioAccounts = await prisma.videoStudioAccount.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const videoStudioAccountWithIdOnly = await prisma.videoStudioAccount.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VideoStudioAccountFindManyArgs>(args?: SelectSubset<T, VideoStudioAccountFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a VideoStudioAccount.
+     * @param {VideoStudioAccountCreateArgs} args - Arguments to create a VideoStudioAccount.
+     * @example
+     * // Create one VideoStudioAccount
+     * const VideoStudioAccount = await prisma.videoStudioAccount.create({
+     *   data: {
+     *     // ... data to create a VideoStudioAccount
+     *   }
+     * })
+     * 
+     */
+    create<T extends VideoStudioAccountCreateArgs>(args: SelectSubset<T, VideoStudioAccountCreateArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many VideoStudioAccounts.
+     * @param {VideoStudioAccountCreateManyArgs} args - Arguments to create many VideoStudioAccounts.
+     * @example
+     * // Create many VideoStudioAccounts
+     * const videoStudioAccount = await prisma.videoStudioAccount.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VideoStudioAccountCreateManyArgs>(args?: SelectSubset<T, VideoStudioAccountCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VideoStudioAccounts and returns the data saved in the database.
+     * @param {VideoStudioAccountCreateManyAndReturnArgs} args - Arguments to create many VideoStudioAccounts.
+     * @example
+     * // Create many VideoStudioAccounts
+     * const videoStudioAccount = await prisma.videoStudioAccount.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VideoStudioAccounts and only return the `id`
+     * const videoStudioAccountWithIdOnly = await prisma.videoStudioAccount.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VideoStudioAccountCreateManyAndReturnArgs>(args?: SelectSubset<T, VideoStudioAccountCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a VideoStudioAccount.
+     * @param {VideoStudioAccountDeleteArgs} args - Arguments to delete one VideoStudioAccount.
+     * @example
+     * // Delete one VideoStudioAccount
+     * const VideoStudioAccount = await prisma.videoStudioAccount.delete({
+     *   where: {
+     *     // ... filter to delete one VideoStudioAccount
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VideoStudioAccountDeleteArgs>(args: SelectSubset<T, VideoStudioAccountDeleteArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one VideoStudioAccount.
+     * @param {VideoStudioAccountUpdateArgs} args - Arguments to update one VideoStudioAccount.
+     * @example
+     * // Update one VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VideoStudioAccountUpdateArgs>(args: SelectSubset<T, VideoStudioAccountUpdateArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more VideoStudioAccounts.
+     * @param {VideoStudioAccountDeleteManyArgs} args - Arguments to filter VideoStudioAccounts to delete.
+     * @example
+     * // Delete a few VideoStudioAccounts
+     * const { count } = await prisma.videoStudioAccount.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VideoStudioAccountDeleteManyArgs>(args?: SelectSubset<T, VideoStudioAccountDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VideoStudioAccounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VideoStudioAccounts
+     * const videoStudioAccount = await prisma.videoStudioAccount.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VideoStudioAccountUpdateManyArgs>(args: SelectSubset<T, VideoStudioAccountUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one VideoStudioAccount.
+     * @param {VideoStudioAccountUpsertArgs} args - Arguments to update or create a VideoStudioAccount.
+     * @example
+     * // Update or create a VideoStudioAccount
+     * const videoStudioAccount = await prisma.videoStudioAccount.upsert({
+     *   create: {
+     *     // ... data to create a VideoStudioAccount
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VideoStudioAccount we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VideoStudioAccountUpsertArgs>(args: SelectSubset<T, VideoStudioAccountUpsertArgs<ExtArgs>>): Prisma__VideoStudioAccountClient<$Result.GetResult<Prisma.$VideoStudioAccountPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of VideoStudioAccounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountCountArgs} args - Arguments to filter VideoStudioAccounts to count.
+     * @example
+     * // Count the number of VideoStudioAccounts
+     * const count = await prisma.videoStudioAccount.count({
+     *   where: {
+     *     // ... the filter for the VideoStudioAccounts we want to count
+     *   }
+     * })
+    **/
+    count<T extends VideoStudioAccountCountArgs>(
+      args?: Subset<T, VideoStudioAccountCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VideoStudioAccountCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VideoStudioAccount.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VideoStudioAccountAggregateArgs>(args: Subset<T, VideoStudioAccountAggregateArgs>): Prisma.PrismaPromise<GetVideoStudioAccountAggregateType<T>>
+
+    /**
+     * Group by VideoStudioAccount.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoStudioAccountGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VideoStudioAccountGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VideoStudioAccountGroupByArgs['orderBy'] }
+        : { orderBy?: VideoStudioAccountGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VideoStudioAccountGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVideoStudioAccountGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VideoStudioAccount model
+   */
+  readonly fields: VideoStudioAccountFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VideoStudioAccount.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VideoStudioAccountClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VideoStudioAccount model
+   */ 
+  interface VideoStudioAccountFieldRefs {
+    readonly id: FieldRef<"VideoStudioAccount", 'String'>
+    readonly tenantId: FieldRef<"VideoStudioAccount", 'String'>
+    readonly addonActive: FieldRef<"VideoStudioAccount", 'Boolean'>
+    readonly stripeSubscriptionId: FieldRef<"VideoStudioAccount", 'String'>
+    readonly includedMonthly: FieldRef<"VideoStudioAccount", 'Int'>
+    readonly includedBalance: FieldRef<"VideoStudioAccount", 'Int'>
+    readonly topupBalance: FieldRef<"VideoStudioAccount", 'Int'>
+    readonly lastGrantAt: FieldRef<"VideoStudioAccount", 'DateTime'>
+    readonly createdAt: FieldRef<"VideoStudioAccount", 'DateTime'>
+    readonly updatedAt: FieldRef<"VideoStudioAccount", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VideoStudioAccount findUnique
+   */
+  export type VideoStudioAccountFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoStudioAccount to fetch.
+     */
+    where: VideoStudioAccountWhereUniqueInput
+  }
+
+  /**
+   * VideoStudioAccount findUniqueOrThrow
+   */
+  export type VideoStudioAccountFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoStudioAccount to fetch.
+     */
+    where: VideoStudioAccountWhereUniqueInput
+  }
+
+  /**
+   * VideoStudioAccount findFirst
+   */
+  export type VideoStudioAccountFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoStudioAccount to fetch.
+     */
+    where?: VideoStudioAccountWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoStudioAccounts to fetch.
+     */
+    orderBy?: VideoStudioAccountOrderByWithRelationInput | VideoStudioAccountOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoStudioAccounts.
+     */
+    cursor?: VideoStudioAccountWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoStudioAccounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoStudioAccounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoStudioAccounts.
+     */
+    distinct?: VideoStudioAccountScalarFieldEnum | VideoStudioAccountScalarFieldEnum[]
+  }
+
+  /**
+   * VideoStudioAccount findFirstOrThrow
+   */
+  export type VideoStudioAccountFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoStudioAccount to fetch.
+     */
+    where?: VideoStudioAccountWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoStudioAccounts to fetch.
+     */
+    orderBy?: VideoStudioAccountOrderByWithRelationInput | VideoStudioAccountOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoStudioAccounts.
+     */
+    cursor?: VideoStudioAccountWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoStudioAccounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoStudioAccounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoStudioAccounts.
+     */
+    distinct?: VideoStudioAccountScalarFieldEnum | VideoStudioAccountScalarFieldEnum[]
+  }
+
+  /**
+   * VideoStudioAccount findMany
+   */
+  export type VideoStudioAccountFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoStudioAccounts to fetch.
+     */
+    where?: VideoStudioAccountWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoStudioAccounts to fetch.
+     */
+    orderBy?: VideoStudioAccountOrderByWithRelationInput | VideoStudioAccountOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VideoStudioAccounts.
+     */
+    cursor?: VideoStudioAccountWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoStudioAccounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoStudioAccounts.
+     */
+    skip?: number
+    distinct?: VideoStudioAccountScalarFieldEnum | VideoStudioAccountScalarFieldEnum[]
+  }
+
+  /**
+   * VideoStudioAccount create
+   */
+  export type VideoStudioAccountCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * The data needed to create a VideoStudioAccount.
+     */
+    data: XOR<VideoStudioAccountCreateInput, VideoStudioAccountUncheckedCreateInput>
+  }
+
+  /**
+   * VideoStudioAccount createMany
+   */
+  export type VideoStudioAccountCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VideoStudioAccounts.
+     */
+    data: VideoStudioAccountCreateManyInput | VideoStudioAccountCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoStudioAccount createManyAndReturn
+   */
+  export type VideoStudioAccountCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many VideoStudioAccounts.
+     */
+    data: VideoStudioAccountCreateManyInput | VideoStudioAccountCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoStudioAccount update
+   */
+  export type VideoStudioAccountUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * The data needed to update a VideoStudioAccount.
+     */
+    data: XOR<VideoStudioAccountUpdateInput, VideoStudioAccountUncheckedUpdateInput>
+    /**
+     * Choose, which VideoStudioAccount to update.
+     */
+    where: VideoStudioAccountWhereUniqueInput
+  }
+
+  /**
+   * VideoStudioAccount updateMany
+   */
+  export type VideoStudioAccountUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VideoStudioAccounts.
+     */
+    data: XOR<VideoStudioAccountUpdateManyMutationInput, VideoStudioAccountUncheckedUpdateManyInput>
+    /**
+     * Filter which VideoStudioAccounts to update
+     */
+    where?: VideoStudioAccountWhereInput
+  }
+
+  /**
+   * VideoStudioAccount upsert
+   */
+  export type VideoStudioAccountUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * The filter to search for the VideoStudioAccount to update in case it exists.
+     */
+    where: VideoStudioAccountWhereUniqueInput
+    /**
+     * In case the VideoStudioAccount found by the `where` argument doesn't exist, create a new VideoStudioAccount with this data.
+     */
+    create: XOR<VideoStudioAccountCreateInput, VideoStudioAccountUncheckedCreateInput>
+    /**
+     * In case the VideoStudioAccount was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VideoStudioAccountUpdateInput, VideoStudioAccountUncheckedUpdateInput>
+  }
+
+  /**
+   * VideoStudioAccount delete
+   */
+  export type VideoStudioAccountDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+    /**
+     * Filter which VideoStudioAccount to delete.
+     */
+    where: VideoStudioAccountWhereUniqueInput
+  }
+
+  /**
+   * VideoStudioAccount deleteMany
+   */
+  export type VideoStudioAccountDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoStudioAccounts to delete
+     */
+    where?: VideoStudioAccountWhereInput
+  }
+
+  /**
+   * VideoStudioAccount without action
+   */
+  export type VideoStudioAccountDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoStudioAccount
+     */
+    select?: VideoStudioAccountSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VideoCreditTxn
+   */
+
+  export type AggregateVideoCreditTxn = {
+    _count: VideoCreditTxnCountAggregateOutputType | null
+    _avg: VideoCreditTxnAvgAggregateOutputType | null
+    _sum: VideoCreditTxnSumAggregateOutputType | null
+    _min: VideoCreditTxnMinAggregateOutputType | null
+    _max: VideoCreditTxnMaxAggregateOutputType | null
+  }
+
+  export type VideoCreditTxnAvgAggregateOutputType = {
+    delta: number | null
+  }
+
+  export type VideoCreditTxnSumAggregateOutputType = {
+    delta: number | null
+  }
+
+  export type VideoCreditTxnMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    delta: number | null
+    reason: $Enums.VideoCreditReason | null
+    source: string | null
+    generationId: string | null
+    note: string | null
+    createdAt: Date | null
+  }
+
+  export type VideoCreditTxnMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    delta: number | null
+    reason: $Enums.VideoCreditReason | null
+    source: string | null
+    generationId: string | null
+    note: string | null
+    createdAt: Date | null
+  }
+
+  export type VideoCreditTxnCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    delta: number
+    reason: number
+    source: number
+    generationId: number
+    note: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type VideoCreditTxnAvgAggregateInputType = {
+    delta?: true
+  }
+
+  export type VideoCreditTxnSumAggregateInputType = {
+    delta?: true
+  }
+
+  export type VideoCreditTxnMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    delta?: true
+    reason?: true
+    source?: true
+    generationId?: true
+    note?: true
+    createdAt?: true
+  }
+
+  export type VideoCreditTxnMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    delta?: true
+    reason?: true
+    source?: true
+    generationId?: true
+    note?: true
+    createdAt?: true
+  }
+
+  export type VideoCreditTxnCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    delta?: true
+    reason?: true
+    source?: true
+    generationId?: true
+    note?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type VideoCreditTxnAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoCreditTxn to aggregate.
+     */
+    where?: VideoCreditTxnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoCreditTxns to fetch.
+     */
+    orderBy?: VideoCreditTxnOrderByWithRelationInput | VideoCreditTxnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VideoCreditTxnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoCreditTxns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoCreditTxns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VideoCreditTxns
+    **/
+    _count?: true | VideoCreditTxnCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: VideoCreditTxnAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: VideoCreditTxnSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VideoCreditTxnMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VideoCreditTxnMaxAggregateInputType
+  }
+
+  export type GetVideoCreditTxnAggregateType<T extends VideoCreditTxnAggregateArgs> = {
+        [P in keyof T & keyof AggregateVideoCreditTxn]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVideoCreditTxn[P]>
+      : GetScalarType<T[P], AggregateVideoCreditTxn[P]>
+  }
+
+
+
+
+  export type VideoCreditTxnGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VideoCreditTxnWhereInput
+    orderBy?: VideoCreditTxnOrderByWithAggregationInput | VideoCreditTxnOrderByWithAggregationInput[]
+    by: VideoCreditTxnScalarFieldEnum[] | VideoCreditTxnScalarFieldEnum
+    having?: VideoCreditTxnScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VideoCreditTxnCountAggregateInputType | true
+    _avg?: VideoCreditTxnAvgAggregateInputType
+    _sum?: VideoCreditTxnSumAggregateInputType
+    _min?: VideoCreditTxnMinAggregateInputType
+    _max?: VideoCreditTxnMaxAggregateInputType
+  }
+
+  export type VideoCreditTxnGroupByOutputType = {
+    id: string
+    tenantId: string
+    delta: number
+    reason: $Enums.VideoCreditReason
+    source: string | null
+    generationId: string | null
+    note: string | null
+    createdAt: Date
+    _count: VideoCreditTxnCountAggregateOutputType | null
+    _avg: VideoCreditTxnAvgAggregateOutputType | null
+    _sum: VideoCreditTxnSumAggregateOutputType | null
+    _min: VideoCreditTxnMinAggregateOutputType | null
+    _max: VideoCreditTxnMaxAggregateOutputType | null
+  }
+
+  type GetVideoCreditTxnGroupByPayload<T extends VideoCreditTxnGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VideoCreditTxnGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VideoCreditTxnGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VideoCreditTxnGroupByOutputType[P]>
+            : GetScalarType<T[P], VideoCreditTxnGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VideoCreditTxnSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    delta?: boolean
+    reason?: boolean
+    source?: boolean
+    generationId?: boolean
+    note?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["videoCreditTxn"]>
+
+  export type VideoCreditTxnSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    delta?: boolean
+    reason?: boolean
+    source?: boolean
+    generationId?: boolean
+    note?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["videoCreditTxn"]>
+
+  export type VideoCreditTxnSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    delta?: boolean
+    reason?: boolean
+    source?: boolean
+    generationId?: boolean
+    note?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $VideoCreditTxnPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VideoCreditTxn"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      delta: number
+      reason: $Enums.VideoCreditReason
+      source: string | null
+      generationId: string | null
+      note: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["videoCreditTxn"]>
+    composites: {}
+  }
+
+  type VideoCreditTxnGetPayload<S extends boolean | null | undefined | VideoCreditTxnDefaultArgs> = $Result.GetResult<Prisma.$VideoCreditTxnPayload, S>
+
+  type VideoCreditTxnCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<VideoCreditTxnFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: VideoCreditTxnCountAggregateInputType | true
+    }
+
+  export interface VideoCreditTxnDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VideoCreditTxn'], meta: { name: 'VideoCreditTxn' } }
+    /**
+     * Find zero or one VideoCreditTxn that matches the filter.
+     * @param {VideoCreditTxnFindUniqueArgs} args - Arguments to find a VideoCreditTxn
+     * @example
+     * // Get one VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VideoCreditTxnFindUniqueArgs>(args: SelectSubset<T, VideoCreditTxnFindUniqueArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one VideoCreditTxn that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {VideoCreditTxnFindUniqueOrThrowArgs} args - Arguments to find a VideoCreditTxn
+     * @example
+     * // Get one VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VideoCreditTxnFindUniqueOrThrowArgs>(args: SelectSubset<T, VideoCreditTxnFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first VideoCreditTxn that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnFindFirstArgs} args - Arguments to find a VideoCreditTxn
+     * @example
+     * // Get one VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VideoCreditTxnFindFirstArgs>(args?: SelectSubset<T, VideoCreditTxnFindFirstArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first VideoCreditTxn that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnFindFirstOrThrowArgs} args - Arguments to find a VideoCreditTxn
+     * @example
+     * // Get one VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VideoCreditTxnFindFirstOrThrowArgs>(args?: SelectSubset<T, VideoCreditTxnFindFirstOrThrowArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more VideoCreditTxns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VideoCreditTxns
+     * const videoCreditTxns = await prisma.videoCreditTxn.findMany()
+     * 
+     * // Get first 10 VideoCreditTxns
+     * const videoCreditTxns = await prisma.videoCreditTxn.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const videoCreditTxnWithIdOnly = await prisma.videoCreditTxn.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VideoCreditTxnFindManyArgs>(args?: SelectSubset<T, VideoCreditTxnFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a VideoCreditTxn.
+     * @param {VideoCreditTxnCreateArgs} args - Arguments to create a VideoCreditTxn.
+     * @example
+     * // Create one VideoCreditTxn
+     * const VideoCreditTxn = await prisma.videoCreditTxn.create({
+     *   data: {
+     *     // ... data to create a VideoCreditTxn
+     *   }
+     * })
+     * 
+     */
+    create<T extends VideoCreditTxnCreateArgs>(args: SelectSubset<T, VideoCreditTxnCreateArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many VideoCreditTxns.
+     * @param {VideoCreditTxnCreateManyArgs} args - Arguments to create many VideoCreditTxns.
+     * @example
+     * // Create many VideoCreditTxns
+     * const videoCreditTxn = await prisma.videoCreditTxn.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VideoCreditTxnCreateManyArgs>(args?: SelectSubset<T, VideoCreditTxnCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VideoCreditTxns and returns the data saved in the database.
+     * @param {VideoCreditTxnCreateManyAndReturnArgs} args - Arguments to create many VideoCreditTxns.
+     * @example
+     * // Create many VideoCreditTxns
+     * const videoCreditTxn = await prisma.videoCreditTxn.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VideoCreditTxns and only return the `id`
+     * const videoCreditTxnWithIdOnly = await prisma.videoCreditTxn.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VideoCreditTxnCreateManyAndReturnArgs>(args?: SelectSubset<T, VideoCreditTxnCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a VideoCreditTxn.
+     * @param {VideoCreditTxnDeleteArgs} args - Arguments to delete one VideoCreditTxn.
+     * @example
+     * // Delete one VideoCreditTxn
+     * const VideoCreditTxn = await prisma.videoCreditTxn.delete({
+     *   where: {
+     *     // ... filter to delete one VideoCreditTxn
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VideoCreditTxnDeleteArgs>(args: SelectSubset<T, VideoCreditTxnDeleteArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one VideoCreditTxn.
+     * @param {VideoCreditTxnUpdateArgs} args - Arguments to update one VideoCreditTxn.
+     * @example
+     * // Update one VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VideoCreditTxnUpdateArgs>(args: SelectSubset<T, VideoCreditTxnUpdateArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more VideoCreditTxns.
+     * @param {VideoCreditTxnDeleteManyArgs} args - Arguments to filter VideoCreditTxns to delete.
+     * @example
+     * // Delete a few VideoCreditTxns
+     * const { count } = await prisma.videoCreditTxn.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VideoCreditTxnDeleteManyArgs>(args?: SelectSubset<T, VideoCreditTxnDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VideoCreditTxns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VideoCreditTxns
+     * const videoCreditTxn = await prisma.videoCreditTxn.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VideoCreditTxnUpdateManyArgs>(args: SelectSubset<T, VideoCreditTxnUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one VideoCreditTxn.
+     * @param {VideoCreditTxnUpsertArgs} args - Arguments to update or create a VideoCreditTxn.
+     * @example
+     * // Update or create a VideoCreditTxn
+     * const videoCreditTxn = await prisma.videoCreditTxn.upsert({
+     *   create: {
+     *     // ... data to create a VideoCreditTxn
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VideoCreditTxn we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VideoCreditTxnUpsertArgs>(args: SelectSubset<T, VideoCreditTxnUpsertArgs<ExtArgs>>): Prisma__VideoCreditTxnClient<$Result.GetResult<Prisma.$VideoCreditTxnPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of VideoCreditTxns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnCountArgs} args - Arguments to filter VideoCreditTxns to count.
+     * @example
+     * // Count the number of VideoCreditTxns
+     * const count = await prisma.videoCreditTxn.count({
+     *   where: {
+     *     // ... the filter for the VideoCreditTxns we want to count
+     *   }
+     * })
+    **/
+    count<T extends VideoCreditTxnCountArgs>(
+      args?: Subset<T, VideoCreditTxnCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VideoCreditTxnCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VideoCreditTxn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VideoCreditTxnAggregateArgs>(args: Subset<T, VideoCreditTxnAggregateArgs>): Prisma.PrismaPromise<GetVideoCreditTxnAggregateType<T>>
+
+    /**
+     * Group by VideoCreditTxn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoCreditTxnGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VideoCreditTxnGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VideoCreditTxnGroupByArgs['orderBy'] }
+        : { orderBy?: VideoCreditTxnGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VideoCreditTxnGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVideoCreditTxnGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VideoCreditTxn model
+   */
+  readonly fields: VideoCreditTxnFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VideoCreditTxn.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VideoCreditTxnClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VideoCreditTxn model
+   */ 
+  interface VideoCreditTxnFieldRefs {
+    readonly id: FieldRef<"VideoCreditTxn", 'String'>
+    readonly tenantId: FieldRef<"VideoCreditTxn", 'String'>
+    readonly delta: FieldRef<"VideoCreditTxn", 'Int'>
+    readonly reason: FieldRef<"VideoCreditTxn", 'VideoCreditReason'>
+    readonly source: FieldRef<"VideoCreditTxn", 'String'>
+    readonly generationId: FieldRef<"VideoCreditTxn", 'String'>
+    readonly note: FieldRef<"VideoCreditTxn", 'String'>
+    readonly createdAt: FieldRef<"VideoCreditTxn", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VideoCreditTxn findUnique
+   */
+  export type VideoCreditTxnFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoCreditTxn to fetch.
+     */
+    where: VideoCreditTxnWhereUniqueInput
+  }
+
+  /**
+   * VideoCreditTxn findUniqueOrThrow
+   */
+  export type VideoCreditTxnFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoCreditTxn to fetch.
+     */
+    where: VideoCreditTxnWhereUniqueInput
+  }
+
+  /**
+   * VideoCreditTxn findFirst
+   */
+  export type VideoCreditTxnFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoCreditTxn to fetch.
+     */
+    where?: VideoCreditTxnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoCreditTxns to fetch.
+     */
+    orderBy?: VideoCreditTxnOrderByWithRelationInput | VideoCreditTxnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoCreditTxns.
+     */
+    cursor?: VideoCreditTxnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoCreditTxns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoCreditTxns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoCreditTxns.
+     */
+    distinct?: VideoCreditTxnScalarFieldEnum | VideoCreditTxnScalarFieldEnum[]
+  }
+
+  /**
+   * VideoCreditTxn findFirstOrThrow
+   */
+  export type VideoCreditTxnFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoCreditTxn to fetch.
+     */
+    where?: VideoCreditTxnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoCreditTxns to fetch.
+     */
+    orderBy?: VideoCreditTxnOrderByWithRelationInput | VideoCreditTxnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoCreditTxns.
+     */
+    cursor?: VideoCreditTxnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoCreditTxns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoCreditTxns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoCreditTxns.
+     */
+    distinct?: VideoCreditTxnScalarFieldEnum | VideoCreditTxnScalarFieldEnum[]
+  }
+
+  /**
+   * VideoCreditTxn findMany
+   */
+  export type VideoCreditTxnFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoCreditTxns to fetch.
+     */
+    where?: VideoCreditTxnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoCreditTxns to fetch.
+     */
+    orderBy?: VideoCreditTxnOrderByWithRelationInput | VideoCreditTxnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VideoCreditTxns.
+     */
+    cursor?: VideoCreditTxnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoCreditTxns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoCreditTxns.
+     */
+    skip?: number
+    distinct?: VideoCreditTxnScalarFieldEnum | VideoCreditTxnScalarFieldEnum[]
+  }
+
+  /**
+   * VideoCreditTxn create
+   */
+  export type VideoCreditTxnCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * The data needed to create a VideoCreditTxn.
+     */
+    data: XOR<VideoCreditTxnCreateInput, VideoCreditTxnUncheckedCreateInput>
+  }
+
+  /**
+   * VideoCreditTxn createMany
+   */
+  export type VideoCreditTxnCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VideoCreditTxns.
+     */
+    data: VideoCreditTxnCreateManyInput | VideoCreditTxnCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoCreditTxn createManyAndReturn
+   */
+  export type VideoCreditTxnCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many VideoCreditTxns.
+     */
+    data: VideoCreditTxnCreateManyInput | VideoCreditTxnCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoCreditTxn update
+   */
+  export type VideoCreditTxnUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * The data needed to update a VideoCreditTxn.
+     */
+    data: XOR<VideoCreditTxnUpdateInput, VideoCreditTxnUncheckedUpdateInput>
+    /**
+     * Choose, which VideoCreditTxn to update.
+     */
+    where: VideoCreditTxnWhereUniqueInput
+  }
+
+  /**
+   * VideoCreditTxn updateMany
+   */
+  export type VideoCreditTxnUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VideoCreditTxns.
+     */
+    data: XOR<VideoCreditTxnUpdateManyMutationInput, VideoCreditTxnUncheckedUpdateManyInput>
+    /**
+     * Filter which VideoCreditTxns to update
+     */
+    where?: VideoCreditTxnWhereInput
+  }
+
+  /**
+   * VideoCreditTxn upsert
+   */
+  export type VideoCreditTxnUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * The filter to search for the VideoCreditTxn to update in case it exists.
+     */
+    where: VideoCreditTxnWhereUniqueInput
+    /**
+     * In case the VideoCreditTxn found by the `where` argument doesn't exist, create a new VideoCreditTxn with this data.
+     */
+    create: XOR<VideoCreditTxnCreateInput, VideoCreditTxnUncheckedCreateInput>
+    /**
+     * In case the VideoCreditTxn was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VideoCreditTxnUpdateInput, VideoCreditTxnUncheckedUpdateInput>
+  }
+
+  /**
+   * VideoCreditTxn delete
+   */
+  export type VideoCreditTxnDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+    /**
+     * Filter which VideoCreditTxn to delete.
+     */
+    where: VideoCreditTxnWhereUniqueInput
+  }
+
+  /**
+   * VideoCreditTxn deleteMany
+   */
+  export type VideoCreditTxnDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoCreditTxns to delete
+     */
+    where?: VideoCreditTxnWhereInput
+  }
+
+  /**
+   * VideoCreditTxn without action
+   */
+  export type VideoCreditTxnDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoCreditTxn
+     */
+    select?: VideoCreditTxnSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model VideoGeneration
+   */
+
+  export type AggregateVideoGeneration = {
+    _count: VideoGenerationCountAggregateOutputType | null
+    _avg: VideoGenerationAvgAggregateOutputType | null
+    _sum: VideoGenerationSumAggregateOutputType | null
+    _min: VideoGenerationMinAggregateOutputType | null
+    _max: VideoGenerationMaxAggregateOutputType | null
+  }
+
+  export type VideoGenerationAvgAggregateOutputType = {
+    creditsCost: number | null
+  }
+
+  export type VideoGenerationSumAggregateOutputType = {
+    creditsCost: number | null
+  }
+
+  export type VideoGenerationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    userId: string | null
+    locationId: string | null
+    brandId: string | null
+    status: $Enums.VideoGenStatus | null
+    model: string | null
+    prompt: string | null
+    sourceImageUrl: string | null
+    resultUrl: string | null
+    replicatePredictionId: string | null
+    creditsCost: number | null
+    error: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VideoGenerationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    userId: string | null
+    locationId: string | null
+    brandId: string | null
+    status: $Enums.VideoGenStatus | null
+    model: string | null
+    prompt: string | null
+    sourceImageUrl: string | null
+    resultUrl: string | null
+    replicatePredictionId: string | null
+    creditsCost: number | null
+    error: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VideoGenerationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    userId: number
+    locationId: number
+    brandId: number
+    status: number
+    model: number
+    prompt: number
+    sourceImageUrl: number
+    resultUrl: number
+    replicatePredictionId: number
+    creditsCost: number
+    error: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VideoGenerationAvgAggregateInputType = {
+    creditsCost?: true
+  }
+
+  export type VideoGenerationSumAggregateInputType = {
+    creditsCost?: true
+  }
+
+  export type VideoGenerationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    locationId?: true
+    brandId?: true
+    status?: true
+    model?: true
+    prompt?: true
+    sourceImageUrl?: true
+    resultUrl?: true
+    replicatePredictionId?: true
+    creditsCost?: true
+    error?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VideoGenerationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    locationId?: true
+    brandId?: true
+    status?: true
+    model?: true
+    prompt?: true
+    sourceImageUrl?: true
+    resultUrl?: true
+    replicatePredictionId?: true
+    creditsCost?: true
+    error?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VideoGenerationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    locationId?: true
+    brandId?: true
+    status?: true
+    model?: true
+    prompt?: true
+    sourceImageUrl?: true
+    resultUrl?: true
+    replicatePredictionId?: true
+    creditsCost?: true
+    error?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VideoGenerationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoGeneration to aggregate.
+     */
+    where?: VideoGenerationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoGenerations to fetch.
+     */
+    orderBy?: VideoGenerationOrderByWithRelationInput | VideoGenerationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VideoGenerationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoGenerations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoGenerations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VideoGenerations
+    **/
+    _count?: true | VideoGenerationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: VideoGenerationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: VideoGenerationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VideoGenerationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VideoGenerationMaxAggregateInputType
+  }
+
+  export type GetVideoGenerationAggregateType<T extends VideoGenerationAggregateArgs> = {
+        [P in keyof T & keyof AggregateVideoGeneration]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVideoGeneration[P]>
+      : GetScalarType<T[P], AggregateVideoGeneration[P]>
+  }
+
+
+
+
+  export type VideoGenerationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VideoGenerationWhereInput
+    orderBy?: VideoGenerationOrderByWithAggregationInput | VideoGenerationOrderByWithAggregationInput[]
+    by: VideoGenerationScalarFieldEnum[] | VideoGenerationScalarFieldEnum
+    having?: VideoGenerationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VideoGenerationCountAggregateInputType | true
+    _avg?: VideoGenerationAvgAggregateInputType
+    _sum?: VideoGenerationSumAggregateInputType
+    _min?: VideoGenerationMinAggregateInputType
+    _max?: VideoGenerationMaxAggregateInputType
+  }
+
+  export type VideoGenerationGroupByOutputType = {
+    id: string
+    tenantId: string
+    userId: string | null
+    locationId: string | null
+    brandId: string | null
+    status: $Enums.VideoGenStatus
+    model: string
+    prompt: string
+    sourceImageUrl: string
+    resultUrl: string | null
+    replicatePredictionId: string | null
+    creditsCost: number
+    error: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: VideoGenerationCountAggregateOutputType | null
+    _avg: VideoGenerationAvgAggregateOutputType | null
+    _sum: VideoGenerationSumAggregateOutputType | null
+    _min: VideoGenerationMinAggregateOutputType | null
+    _max: VideoGenerationMaxAggregateOutputType | null
+  }
+
+  type GetVideoGenerationGroupByPayload<T extends VideoGenerationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VideoGenerationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VideoGenerationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VideoGenerationGroupByOutputType[P]>
+            : GetScalarType<T[P], VideoGenerationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VideoGenerationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    status?: boolean
+    model?: boolean
+    prompt?: boolean
+    sourceImageUrl?: boolean
+    resultUrl?: boolean
+    replicatePredictionId?: boolean
+    creditsCost?: boolean
+    error?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["videoGeneration"]>
+
+  export type VideoGenerationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    status?: boolean
+    model?: boolean
+    prompt?: boolean
+    sourceImageUrl?: boolean
+    resultUrl?: boolean
+    replicatePredictionId?: boolean
+    creditsCost?: boolean
+    error?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["videoGeneration"]>
+
+  export type VideoGenerationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    status?: boolean
+    model?: boolean
+    prompt?: boolean
+    sourceImageUrl?: boolean
+    resultUrl?: boolean
+    replicatePredictionId?: boolean
+    creditsCost?: boolean
+    error?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $VideoGenerationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VideoGeneration"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      userId: string | null
+      locationId: string | null
+      brandId: string | null
+      status: $Enums.VideoGenStatus
+      model: string
+      prompt: string
+      sourceImageUrl: string
+      resultUrl: string | null
+      replicatePredictionId: string | null
+      creditsCost: number
+      error: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["videoGeneration"]>
+    composites: {}
+  }
+
+  type VideoGenerationGetPayload<S extends boolean | null | undefined | VideoGenerationDefaultArgs> = $Result.GetResult<Prisma.$VideoGenerationPayload, S>
+
+  type VideoGenerationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<VideoGenerationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: VideoGenerationCountAggregateInputType | true
+    }
+
+  export interface VideoGenerationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VideoGeneration'], meta: { name: 'VideoGeneration' } }
+    /**
+     * Find zero or one VideoGeneration that matches the filter.
+     * @param {VideoGenerationFindUniqueArgs} args - Arguments to find a VideoGeneration
+     * @example
+     * // Get one VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VideoGenerationFindUniqueArgs>(args: SelectSubset<T, VideoGenerationFindUniqueArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one VideoGeneration that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {VideoGenerationFindUniqueOrThrowArgs} args - Arguments to find a VideoGeneration
+     * @example
+     * // Get one VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VideoGenerationFindUniqueOrThrowArgs>(args: SelectSubset<T, VideoGenerationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first VideoGeneration that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationFindFirstArgs} args - Arguments to find a VideoGeneration
+     * @example
+     * // Get one VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VideoGenerationFindFirstArgs>(args?: SelectSubset<T, VideoGenerationFindFirstArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first VideoGeneration that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationFindFirstOrThrowArgs} args - Arguments to find a VideoGeneration
+     * @example
+     * // Get one VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VideoGenerationFindFirstOrThrowArgs>(args?: SelectSubset<T, VideoGenerationFindFirstOrThrowArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more VideoGenerations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VideoGenerations
+     * const videoGenerations = await prisma.videoGeneration.findMany()
+     * 
+     * // Get first 10 VideoGenerations
+     * const videoGenerations = await prisma.videoGeneration.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const videoGenerationWithIdOnly = await prisma.videoGeneration.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VideoGenerationFindManyArgs>(args?: SelectSubset<T, VideoGenerationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a VideoGeneration.
+     * @param {VideoGenerationCreateArgs} args - Arguments to create a VideoGeneration.
+     * @example
+     * // Create one VideoGeneration
+     * const VideoGeneration = await prisma.videoGeneration.create({
+     *   data: {
+     *     // ... data to create a VideoGeneration
+     *   }
+     * })
+     * 
+     */
+    create<T extends VideoGenerationCreateArgs>(args: SelectSubset<T, VideoGenerationCreateArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many VideoGenerations.
+     * @param {VideoGenerationCreateManyArgs} args - Arguments to create many VideoGenerations.
+     * @example
+     * // Create many VideoGenerations
+     * const videoGeneration = await prisma.videoGeneration.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VideoGenerationCreateManyArgs>(args?: SelectSubset<T, VideoGenerationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VideoGenerations and returns the data saved in the database.
+     * @param {VideoGenerationCreateManyAndReturnArgs} args - Arguments to create many VideoGenerations.
+     * @example
+     * // Create many VideoGenerations
+     * const videoGeneration = await prisma.videoGeneration.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VideoGenerations and only return the `id`
+     * const videoGenerationWithIdOnly = await prisma.videoGeneration.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VideoGenerationCreateManyAndReturnArgs>(args?: SelectSubset<T, VideoGenerationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a VideoGeneration.
+     * @param {VideoGenerationDeleteArgs} args - Arguments to delete one VideoGeneration.
+     * @example
+     * // Delete one VideoGeneration
+     * const VideoGeneration = await prisma.videoGeneration.delete({
+     *   where: {
+     *     // ... filter to delete one VideoGeneration
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VideoGenerationDeleteArgs>(args: SelectSubset<T, VideoGenerationDeleteArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one VideoGeneration.
+     * @param {VideoGenerationUpdateArgs} args - Arguments to update one VideoGeneration.
+     * @example
+     * // Update one VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VideoGenerationUpdateArgs>(args: SelectSubset<T, VideoGenerationUpdateArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more VideoGenerations.
+     * @param {VideoGenerationDeleteManyArgs} args - Arguments to filter VideoGenerations to delete.
+     * @example
+     * // Delete a few VideoGenerations
+     * const { count } = await prisma.videoGeneration.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VideoGenerationDeleteManyArgs>(args?: SelectSubset<T, VideoGenerationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VideoGenerations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VideoGenerations
+     * const videoGeneration = await prisma.videoGeneration.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VideoGenerationUpdateManyArgs>(args: SelectSubset<T, VideoGenerationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one VideoGeneration.
+     * @param {VideoGenerationUpsertArgs} args - Arguments to update or create a VideoGeneration.
+     * @example
+     * // Update or create a VideoGeneration
+     * const videoGeneration = await prisma.videoGeneration.upsert({
+     *   create: {
+     *     // ... data to create a VideoGeneration
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VideoGeneration we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VideoGenerationUpsertArgs>(args: SelectSubset<T, VideoGenerationUpsertArgs<ExtArgs>>): Prisma__VideoGenerationClient<$Result.GetResult<Prisma.$VideoGenerationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of VideoGenerations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationCountArgs} args - Arguments to filter VideoGenerations to count.
+     * @example
+     * // Count the number of VideoGenerations
+     * const count = await prisma.videoGeneration.count({
+     *   where: {
+     *     // ... the filter for the VideoGenerations we want to count
+     *   }
+     * })
+    **/
+    count<T extends VideoGenerationCountArgs>(
+      args?: Subset<T, VideoGenerationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VideoGenerationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VideoGeneration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VideoGenerationAggregateArgs>(args: Subset<T, VideoGenerationAggregateArgs>): Prisma.PrismaPromise<GetVideoGenerationAggregateType<T>>
+
+    /**
+     * Group by VideoGeneration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VideoGenerationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VideoGenerationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VideoGenerationGroupByArgs['orderBy'] }
+        : { orderBy?: VideoGenerationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VideoGenerationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVideoGenerationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VideoGeneration model
+   */
+  readonly fields: VideoGenerationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VideoGeneration.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VideoGenerationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VideoGeneration model
+   */ 
+  interface VideoGenerationFieldRefs {
+    readonly id: FieldRef<"VideoGeneration", 'String'>
+    readonly tenantId: FieldRef<"VideoGeneration", 'String'>
+    readonly userId: FieldRef<"VideoGeneration", 'String'>
+    readonly locationId: FieldRef<"VideoGeneration", 'String'>
+    readonly brandId: FieldRef<"VideoGeneration", 'String'>
+    readonly status: FieldRef<"VideoGeneration", 'VideoGenStatus'>
+    readonly model: FieldRef<"VideoGeneration", 'String'>
+    readonly prompt: FieldRef<"VideoGeneration", 'String'>
+    readonly sourceImageUrl: FieldRef<"VideoGeneration", 'String'>
+    readonly resultUrl: FieldRef<"VideoGeneration", 'String'>
+    readonly replicatePredictionId: FieldRef<"VideoGeneration", 'String'>
+    readonly creditsCost: FieldRef<"VideoGeneration", 'Int'>
+    readonly error: FieldRef<"VideoGeneration", 'String'>
+    readonly createdAt: FieldRef<"VideoGeneration", 'DateTime'>
+    readonly updatedAt: FieldRef<"VideoGeneration", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VideoGeneration findUnique
+   */
+  export type VideoGenerationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoGeneration to fetch.
+     */
+    where: VideoGenerationWhereUniqueInput
+  }
+
+  /**
+   * VideoGeneration findUniqueOrThrow
+   */
+  export type VideoGenerationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoGeneration to fetch.
+     */
+    where: VideoGenerationWhereUniqueInput
+  }
+
+  /**
+   * VideoGeneration findFirst
+   */
+  export type VideoGenerationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoGeneration to fetch.
+     */
+    where?: VideoGenerationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoGenerations to fetch.
+     */
+    orderBy?: VideoGenerationOrderByWithRelationInput | VideoGenerationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoGenerations.
+     */
+    cursor?: VideoGenerationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoGenerations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoGenerations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoGenerations.
+     */
+    distinct?: VideoGenerationScalarFieldEnum | VideoGenerationScalarFieldEnum[]
+  }
+
+  /**
+   * VideoGeneration findFirstOrThrow
+   */
+  export type VideoGenerationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoGeneration to fetch.
+     */
+    where?: VideoGenerationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoGenerations to fetch.
+     */
+    orderBy?: VideoGenerationOrderByWithRelationInput | VideoGenerationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VideoGenerations.
+     */
+    cursor?: VideoGenerationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoGenerations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoGenerations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VideoGenerations.
+     */
+    distinct?: VideoGenerationScalarFieldEnum | VideoGenerationScalarFieldEnum[]
+  }
+
+  /**
+   * VideoGeneration findMany
+   */
+  export type VideoGenerationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter, which VideoGenerations to fetch.
+     */
+    where?: VideoGenerationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VideoGenerations to fetch.
+     */
+    orderBy?: VideoGenerationOrderByWithRelationInput | VideoGenerationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VideoGenerations.
+     */
+    cursor?: VideoGenerationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VideoGenerations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VideoGenerations.
+     */
+    skip?: number
+    distinct?: VideoGenerationScalarFieldEnum | VideoGenerationScalarFieldEnum[]
+  }
+
+  /**
+   * VideoGeneration create
+   */
+  export type VideoGenerationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a VideoGeneration.
+     */
+    data: XOR<VideoGenerationCreateInput, VideoGenerationUncheckedCreateInput>
+  }
+
+  /**
+   * VideoGeneration createMany
+   */
+  export type VideoGenerationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VideoGenerations.
+     */
+    data: VideoGenerationCreateManyInput | VideoGenerationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoGeneration createManyAndReturn
+   */
+  export type VideoGenerationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many VideoGenerations.
+     */
+    data: VideoGenerationCreateManyInput | VideoGenerationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VideoGeneration update
+   */
+  export type VideoGenerationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a VideoGeneration.
+     */
+    data: XOR<VideoGenerationUpdateInput, VideoGenerationUncheckedUpdateInput>
+    /**
+     * Choose, which VideoGeneration to update.
+     */
+    where: VideoGenerationWhereUniqueInput
+  }
+
+  /**
+   * VideoGeneration updateMany
+   */
+  export type VideoGenerationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VideoGenerations.
+     */
+    data: XOR<VideoGenerationUpdateManyMutationInput, VideoGenerationUncheckedUpdateManyInput>
+    /**
+     * Filter which VideoGenerations to update
+     */
+    where?: VideoGenerationWhereInput
+  }
+
+  /**
+   * VideoGeneration upsert
+   */
+  export type VideoGenerationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the VideoGeneration to update in case it exists.
+     */
+    where: VideoGenerationWhereUniqueInput
+    /**
+     * In case the VideoGeneration found by the `where` argument doesn't exist, create a new VideoGeneration with this data.
+     */
+    create: XOR<VideoGenerationCreateInput, VideoGenerationUncheckedCreateInput>
+    /**
+     * In case the VideoGeneration was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VideoGenerationUpdateInput, VideoGenerationUncheckedUpdateInput>
+  }
+
+  /**
+   * VideoGeneration delete
+   */
+  export type VideoGenerationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+    /**
+     * Filter which VideoGeneration to delete.
+     */
+    where: VideoGenerationWhereUniqueInput
+  }
+
+  /**
+   * VideoGeneration deleteMany
+   */
+  export type VideoGenerationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VideoGenerations to delete
+     */
+    where?: VideoGenerationWhereInput
+  }
+
+  /**
+   * VideoGeneration without action
+   */
+  export type VideoGenerationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VideoGeneration
+     */
+    select?: VideoGenerationSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -120196,6 +123443,57 @@ export namespace Prisma {
   export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
 
 
+  export const VideoStudioAccountScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    addonActive: 'addonActive',
+    stripeSubscriptionId: 'stripeSubscriptionId',
+    includedMonthly: 'includedMonthly',
+    includedBalance: 'includedBalance',
+    topupBalance: 'topupBalance',
+    lastGrantAt: 'lastGrantAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VideoStudioAccountScalarFieldEnum = (typeof VideoStudioAccountScalarFieldEnum)[keyof typeof VideoStudioAccountScalarFieldEnum]
+
+
+  export const VideoCreditTxnScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    delta: 'delta',
+    reason: 'reason',
+    source: 'source',
+    generationId: 'generationId',
+    note: 'note',
+    createdAt: 'createdAt'
+  };
+
+  export type VideoCreditTxnScalarFieldEnum = (typeof VideoCreditTxnScalarFieldEnum)[keyof typeof VideoCreditTxnScalarFieldEnum]
+
+
+  export const VideoGenerationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    userId: 'userId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    status: 'status',
+    model: 'model',
+    prompt: 'prompt',
+    sourceImageUrl: 'sourceImageUrl',
+    resultUrl: 'resultUrl',
+    replicatePredictionId: 'replicatePredictionId',
+    creditsCost: 'creditsCost',
+    error: 'error',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VideoGenerationScalarFieldEnum = (typeof VideoGenerationScalarFieldEnum)[keyof typeof VideoGenerationScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -121541,6 +124839,43 @@ export namespace Prisma {
   export type OutboxEventOrderByRelevanceFieldEnum = (typeof OutboxEventOrderByRelevanceFieldEnum)[keyof typeof OutboxEventOrderByRelevanceFieldEnum]
 
 
+  export const VideoStudioAccountOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    stripeSubscriptionId: 'stripeSubscriptionId'
+  };
+
+  export type VideoStudioAccountOrderByRelevanceFieldEnum = (typeof VideoStudioAccountOrderByRelevanceFieldEnum)[keyof typeof VideoStudioAccountOrderByRelevanceFieldEnum]
+
+
+  export const VideoCreditTxnOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    source: 'source',
+    generationId: 'generationId',
+    note: 'note'
+  };
+
+  export type VideoCreditTxnOrderByRelevanceFieldEnum = (typeof VideoCreditTxnOrderByRelevanceFieldEnum)[keyof typeof VideoCreditTxnOrderByRelevanceFieldEnum]
+
+
+  export const VideoGenerationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    userId: 'userId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    model: 'model',
+    prompt: 'prompt',
+    sourceImageUrl: 'sourceImageUrl',
+    resultUrl: 'resultUrl',
+    replicatePredictionId: 'replicatePredictionId',
+    error: 'error'
+  };
+
+  export type VideoGenerationOrderByRelevanceFieldEnum = (typeof VideoGenerationOrderByRelevanceFieldEnum)[keyof typeof VideoGenerationOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references 
    */
@@ -122313,6 +125648,34 @@ export namespace Prisma {
    * Reference to a field of type 'OutboxEventStatus[]'
    */
   export type ListEnumOutboxEventStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutboxEventStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'VideoCreditReason'
+   */
+  export type EnumVideoCreditReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoCreditReason'>
+    
+
+
+  /**
+   * Reference to a field of type 'VideoCreditReason[]'
+   */
+  export type ListEnumVideoCreditReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoCreditReason[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'VideoGenStatus'
+   */
+  export type EnumVideoGenStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoGenStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'VideoGenStatus[]'
+   */
+  export type ListEnumVideoGenStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoGenStatus[]'>
     
   /**
    * Deep Input Types
@@ -132632,6 +135995,261 @@ export namespace Prisma {
     idempotencyKey?: StringWithAggregatesFilter<"OutboxEvent"> | string
     createdAt?: DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
+  }
+
+  export type VideoStudioAccountWhereInput = {
+    AND?: VideoStudioAccountWhereInput | VideoStudioAccountWhereInput[]
+    OR?: VideoStudioAccountWhereInput[]
+    NOT?: VideoStudioAccountWhereInput | VideoStudioAccountWhereInput[]
+    id?: StringFilter<"VideoStudioAccount"> | string
+    tenantId?: StringFilter<"VideoStudioAccount"> | string
+    addonActive?: BoolFilter<"VideoStudioAccount"> | boolean
+    stripeSubscriptionId?: StringNullableFilter<"VideoStudioAccount"> | string | null
+    includedMonthly?: IntFilter<"VideoStudioAccount"> | number
+    includedBalance?: IntFilter<"VideoStudioAccount"> | number
+    topupBalance?: IntFilter<"VideoStudioAccount"> | number
+    lastGrantAt?: DateTimeNullableFilter<"VideoStudioAccount"> | Date | string | null
+    createdAt?: DateTimeFilter<"VideoStudioAccount"> | Date | string
+    updatedAt?: DateTimeFilter<"VideoStudioAccount"> | Date | string
+  }
+
+  export type VideoStudioAccountOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    addonActive?: SortOrder
+    stripeSubscriptionId?: SortOrderInput | SortOrder
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+    lastGrantAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: VideoStudioAccountOrderByRelevanceInput
+  }
+
+  export type VideoStudioAccountWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId?: string
+    stripeSubscriptionId?: string
+    AND?: VideoStudioAccountWhereInput | VideoStudioAccountWhereInput[]
+    OR?: VideoStudioAccountWhereInput[]
+    NOT?: VideoStudioAccountWhereInput | VideoStudioAccountWhereInput[]
+    addonActive?: BoolFilter<"VideoStudioAccount"> | boolean
+    includedMonthly?: IntFilter<"VideoStudioAccount"> | number
+    includedBalance?: IntFilter<"VideoStudioAccount"> | number
+    topupBalance?: IntFilter<"VideoStudioAccount"> | number
+    lastGrantAt?: DateTimeNullableFilter<"VideoStudioAccount"> | Date | string | null
+    createdAt?: DateTimeFilter<"VideoStudioAccount"> | Date | string
+    updatedAt?: DateTimeFilter<"VideoStudioAccount"> | Date | string
+  }, "id" | "tenantId" | "stripeSubscriptionId">
+
+  export type VideoStudioAccountOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    addonActive?: SortOrder
+    stripeSubscriptionId?: SortOrderInput | SortOrder
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+    lastGrantAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VideoStudioAccountCountOrderByAggregateInput
+    _avg?: VideoStudioAccountAvgOrderByAggregateInput
+    _max?: VideoStudioAccountMaxOrderByAggregateInput
+    _min?: VideoStudioAccountMinOrderByAggregateInput
+    _sum?: VideoStudioAccountSumOrderByAggregateInput
+  }
+
+  export type VideoStudioAccountScalarWhereWithAggregatesInput = {
+    AND?: VideoStudioAccountScalarWhereWithAggregatesInput | VideoStudioAccountScalarWhereWithAggregatesInput[]
+    OR?: VideoStudioAccountScalarWhereWithAggregatesInput[]
+    NOT?: VideoStudioAccountScalarWhereWithAggregatesInput | VideoStudioAccountScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VideoStudioAccount"> | string
+    tenantId?: StringWithAggregatesFilter<"VideoStudioAccount"> | string
+    addonActive?: BoolWithAggregatesFilter<"VideoStudioAccount"> | boolean
+    stripeSubscriptionId?: StringNullableWithAggregatesFilter<"VideoStudioAccount"> | string | null
+    includedMonthly?: IntWithAggregatesFilter<"VideoStudioAccount"> | number
+    includedBalance?: IntWithAggregatesFilter<"VideoStudioAccount"> | number
+    topupBalance?: IntWithAggregatesFilter<"VideoStudioAccount"> | number
+    lastGrantAt?: DateTimeNullableWithAggregatesFilter<"VideoStudioAccount"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VideoStudioAccount"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VideoStudioAccount"> | Date | string
+  }
+
+  export type VideoCreditTxnWhereInput = {
+    AND?: VideoCreditTxnWhereInput | VideoCreditTxnWhereInput[]
+    OR?: VideoCreditTxnWhereInput[]
+    NOT?: VideoCreditTxnWhereInput | VideoCreditTxnWhereInput[]
+    id?: StringFilter<"VideoCreditTxn"> | string
+    tenantId?: StringFilter<"VideoCreditTxn"> | string
+    delta?: IntFilter<"VideoCreditTxn"> | number
+    reason?: EnumVideoCreditReasonFilter<"VideoCreditTxn"> | $Enums.VideoCreditReason
+    source?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    generationId?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    note?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    createdAt?: DateTimeFilter<"VideoCreditTxn"> | Date | string
+  }
+
+  export type VideoCreditTxnOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    delta?: SortOrder
+    reason?: SortOrder
+    source?: SortOrderInput | SortOrder
+    generationId?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: VideoCreditTxnOrderByRelevanceInput
+  }
+
+  export type VideoCreditTxnWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: VideoCreditTxnWhereInput | VideoCreditTxnWhereInput[]
+    OR?: VideoCreditTxnWhereInput[]
+    NOT?: VideoCreditTxnWhereInput | VideoCreditTxnWhereInput[]
+    tenantId?: StringFilter<"VideoCreditTxn"> | string
+    delta?: IntFilter<"VideoCreditTxn"> | number
+    reason?: EnumVideoCreditReasonFilter<"VideoCreditTxn"> | $Enums.VideoCreditReason
+    source?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    generationId?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    note?: StringNullableFilter<"VideoCreditTxn"> | string | null
+    createdAt?: DateTimeFilter<"VideoCreditTxn"> | Date | string
+  }, "id">
+
+  export type VideoCreditTxnOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    delta?: SortOrder
+    reason?: SortOrder
+    source?: SortOrderInput | SortOrder
+    generationId?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: VideoCreditTxnCountOrderByAggregateInput
+    _avg?: VideoCreditTxnAvgOrderByAggregateInput
+    _max?: VideoCreditTxnMaxOrderByAggregateInput
+    _min?: VideoCreditTxnMinOrderByAggregateInput
+    _sum?: VideoCreditTxnSumOrderByAggregateInput
+  }
+
+  export type VideoCreditTxnScalarWhereWithAggregatesInput = {
+    AND?: VideoCreditTxnScalarWhereWithAggregatesInput | VideoCreditTxnScalarWhereWithAggregatesInput[]
+    OR?: VideoCreditTxnScalarWhereWithAggregatesInput[]
+    NOT?: VideoCreditTxnScalarWhereWithAggregatesInput | VideoCreditTxnScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VideoCreditTxn"> | string
+    tenantId?: StringWithAggregatesFilter<"VideoCreditTxn"> | string
+    delta?: IntWithAggregatesFilter<"VideoCreditTxn"> | number
+    reason?: EnumVideoCreditReasonWithAggregatesFilter<"VideoCreditTxn"> | $Enums.VideoCreditReason
+    source?: StringNullableWithAggregatesFilter<"VideoCreditTxn"> | string | null
+    generationId?: StringNullableWithAggregatesFilter<"VideoCreditTxn"> | string | null
+    note?: StringNullableWithAggregatesFilter<"VideoCreditTxn"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VideoCreditTxn"> | Date | string
+  }
+
+  export type VideoGenerationWhereInput = {
+    AND?: VideoGenerationWhereInput | VideoGenerationWhereInput[]
+    OR?: VideoGenerationWhereInput[]
+    NOT?: VideoGenerationWhereInput | VideoGenerationWhereInput[]
+    id?: StringFilter<"VideoGeneration"> | string
+    tenantId?: StringFilter<"VideoGeneration"> | string
+    userId?: StringNullableFilter<"VideoGeneration"> | string | null
+    locationId?: StringNullableFilter<"VideoGeneration"> | string | null
+    brandId?: StringNullableFilter<"VideoGeneration"> | string | null
+    status?: EnumVideoGenStatusFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    model?: StringFilter<"VideoGeneration"> | string
+    prompt?: StringFilter<"VideoGeneration"> | string
+    sourceImageUrl?: StringFilter<"VideoGeneration"> | string
+    resultUrl?: StringNullableFilter<"VideoGeneration"> | string | null
+    replicatePredictionId?: StringNullableFilter<"VideoGeneration"> | string | null
+    creditsCost?: IntFilter<"VideoGeneration"> | number
+    error?: StringNullableFilter<"VideoGeneration"> | string | null
+    createdAt?: DateTimeFilter<"VideoGeneration"> | Date | string
+    updatedAt?: DateTimeFilter<"VideoGeneration"> | Date | string
+  }
+
+  export type VideoGenerationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    model?: SortOrder
+    prompt?: SortOrder
+    sourceImageUrl?: SortOrder
+    resultUrl?: SortOrderInput | SortOrder
+    replicatePredictionId?: SortOrderInput | SortOrder
+    creditsCost?: SortOrder
+    error?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: VideoGenerationOrderByRelevanceInput
+  }
+
+  export type VideoGenerationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: VideoGenerationWhereInput | VideoGenerationWhereInput[]
+    OR?: VideoGenerationWhereInput[]
+    NOT?: VideoGenerationWhereInput | VideoGenerationWhereInput[]
+    tenantId?: StringFilter<"VideoGeneration"> | string
+    userId?: StringNullableFilter<"VideoGeneration"> | string | null
+    locationId?: StringNullableFilter<"VideoGeneration"> | string | null
+    brandId?: StringNullableFilter<"VideoGeneration"> | string | null
+    status?: EnumVideoGenStatusFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    model?: StringFilter<"VideoGeneration"> | string
+    prompt?: StringFilter<"VideoGeneration"> | string
+    sourceImageUrl?: StringFilter<"VideoGeneration"> | string
+    resultUrl?: StringNullableFilter<"VideoGeneration"> | string | null
+    replicatePredictionId?: StringNullableFilter<"VideoGeneration"> | string | null
+    creditsCost?: IntFilter<"VideoGeneration"> | number
+    error?: StringNullableFilter<"VideoGeneration"> | string | null
+    createdAt?: DateTimeFilter<"VideoGeneration"> | Date | string
+    updatedAt?: DateTimeFilter<"VideoGeneration"> | Date | string
+  }, "id">
+
+  export type VideoGenerationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    model?: SortOrder
+    prompt?: SortOrder
+    sourceImageUrl?: SortOrder
+    resultUrl?: SortOrderInput | SortOrder
+    replicatePredictionId?: SortOrderInput | SortOrder
+    creditsCost?: SortOrder
+    error?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VideoGenerationCountOrderByAggregateInput
+    _avg?: VideoGenerationAvgOrderByAggregateInput
+    _max?: VideoGenerationMaxOrderByAggregateInput
+    _min?: VideoGenerationMinOrderByAggregateInput
+    _sum?: VideoGenerationSumOrderByAggregateInput
+  }
+
+  export type VideoGenerationScalarWhereWithAggregatesInput = {
+    AND?: VideoGenerationScalarWhereWithAggregatesInput | VideoGenerationScalarWhereWithAggregatesInput[]
+    OR?: VideoGenerationScalarWhereWithAggregatesInput[]
+    NOT?: VideoGenerationScalarWhereWithAggregatesInput | VideoGenerationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VideoGeneration"> | string
+    tenantId?: StringWithAggregatesFilter<"VideoGeneration"> | string
+    userId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    locationId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    status?: EnumVideoGenStatusWithAggregatesFilter<"VideoGeneration"> | $Enums.VideoGenStatus
+    model?: StringWithAggregatesFilter<"VideoGeneration"> | string
+    prompt?: StringWithAggregatesFilter<"VideoGeneration"> | string
+    sourceImageUrl?: StringWithAggregatesFilter<"VideoGeneration"> | string
+    resultUrl?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    replicatePredictionId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    creditsCost?: IntWithAggregatesFilter<"VideoGeneration"> | number
+    error?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -144455,6 +148073,300 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VideoStudioAccountCreateInput = {
+    id?: string
+    tenantId: string
+    addonActive?: boolean
+    stripeSubscriptionId?: string | null
+    includedMonthly?: number
+    includedBalance?: number
+    topupBalance?: number
+    lastGrantAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoStudioAccountUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    addonActive?: boolean
+    stripeSubscriptionId?: string | null
+    includedMonthly?: number
+    includedBalance?: number
+    topupBalance?: number
+    lastGrantAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoStudioAccountUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    addonActive?: BoolFieldUpdateOperationsInput | boolean
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    includedMonthly?: IntFieldUpdateOperationsInput | number
+    includedBalance?: IntFieldUpdateOperationsInput | number
+    topupBalance?: IntFieldUpdateOperationsInput | number
+    lastGrantAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoStudioAccountUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    addonActive?: BoolFieldUpdateOperationsInput | boolean
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    includedMonthly?: IntFieldUpdateOperationsInput | number
+    includedBalance?: IntFieldUpdateOperationsInput | number
+    topupBalance?: IntFieldUpdateOperationsInput | number
+    lastGrantAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoStudioAccountCreateManyInput = {
+    id?: string
+    tenantId: string
+    addonActive?: boolean
+    stripeSubscriptionId?: string | null
+    includedMonthly?: number
+    includedBalance?: number
+    topupBalance?: number
+    lastGrantAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoStudioAccountUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    addonActive?: BoolFieldUpdateOperationsInput | boolean
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    includedMonthly?: IntFieldUpdateOperationsInput | number
+    includedBalance?: IntFieldUpdateOperationsInput | number
+    topupBalance?: IntFieldUpdateOperationsInput | number
+    lastGrantAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoStudioAccountUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    addonActive?: BoolFieldUpdateOperationsInput | boolean
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    includedMonthly?: IntFieldUpdateOperationsInput | number
+    includedBalance?: IntFieldUpdateOperationsInput | number
+    topupBalance?: IntFieldUpdateOperationsInput | number
+    lastGrantAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoCreditTxnCreateInput = {
+    id?: string
+    tenantId: string
+    delta: number
+    reason: $Enums.VideoCreditReason
+    source?: string | null
+    generationId?: string | null
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type VideoCreditTxnUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    delta: number
+    reason: $Enums.VideoCreditReason
+    source?: string | null
+    generationId?: string | null
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type VideoCreditTxnUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    delta?: IntFieldUpdateOperationsInput | number
+    reason?: EnumVideoCreditReasonFieldUpdateOperationsInput | $Enums.VideoCreditReason
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    generationId?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoCreditTxnUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    delta?: IntFieldUpdateOperationsInput | number
+    reason?: EnumVideoCreditReasonFieldUpdateOperationsInput | $Enums.VideoCreditReason
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    generationId?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoCreditTxnCreateManyInput = {
+    id?: string
+    tenantId: string
+    delta: number
+    reason: $Enums.VideoCreditReason
+    source?: string | null
+    generationId?: string | null
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type VideoCreditTxnUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    delta?: IntFieldUpdateOperationsInput | number
+    reason?: EnumVideoCreditReasonFieldUpdateOperationsInput | $Enums.VideoCreditReason
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    generationId?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoCreditTxnUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    delta?: IntFieldUpdateOperationsInput | number
+    reason?: EnumVideoCreditReasonFieldUpdateOperationsInput | $Enums.VideoCreditReason
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    generationId?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoGenerationCreateInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    locationId?: string | null
+    brandId?: string | null
+    status?: $Enums.VideoGenStatus
+    model: string
+    prompt: string
+    sourceImageUrl: string
+    resultUrl?: string | null
+    replicatePredictionId?: string | null
+    creditsCost?: number
+    error?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoGenerationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    locationId?: string | null
+    brandId?: string | null
+    status?: $Enums.VideoGenStatus
+    model: string
+    prompt: string
+    sourceImageUrl: string
+    resultUrl?: string | null
+    replicatePredictionId?: string | null
+    creditsCost?: number
+    error?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoGenerationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    model?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
+    sourceImageUrl?: StringFieldUpdateOperationsInput | string
+    resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
+    creditsCost?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoGenerationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    model?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
+    sourceImageUrl?: StringFieldUpdateOperationsInput | string
+    resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
+    creditsCost?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoGenerationCreateManyInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    locationId?: string | null
+    brandId?: string | null
+    status?: $Enums.VideoGenStatus
+    model: string
+    prompt: string
+    sourceImageUrl: string
+    resultUrl?: string | null
+    replicatePredictionId?: string | null
+    creditsCost?: number
+    error?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VideoGenerationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    model?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
+    sourceImageUrl?: StringFieldUpdateOperationsInput | string
+    resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
+    creditsCost?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VideoGenerationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumVideoGenStatusFieldUpdateOperationsInput | $Enums.VideoGenStatus
+    model?: StringFieldUpdateOperationsInput | string
+    prompt?: StringFieldUpdateOperationsInput | string
+    sourceImageUrl?: StringFieldUpdateOperationsInput | string
+    resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
+    creditsCost?: IntFieldUpdateOperationsInput | number
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -152698,6 +156610,212 @@ export namespace Prisma {
     _max?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
   }
 
+  export type VideoStudioAccountOrderByRelevanceInput = {
+    fields: VideoStudioAccountOrderByRelevanceFieldEnum | VideoStudioAccountOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type VideoStudioAccountCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    addonActive?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+    lastGrantAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoStudioAccountAvgOrderByAggregateInput = {
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+  }
+
+  export type VideoStudioAccountMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    addonActive?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+    lastGrantAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoStudioAccountMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    addonActive?: SortOrder
+    stripeSubscriptionId?: SortOrder
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+    lastGrantAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoStudioAccountSumOrderByAggregateInput = {
+    includedMonthly?: SortOrder
+    includedBalance?: SortOrder
+    topupBalance?: SortOrder
+  }
+
+  export type EnumVideoCreditReasonFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoCreditReason | EnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoCreditReasonFilter<$PrismaModel> | $Enums.VideoCreditReason
+  }
+
+  export type VideoCreditTxnOrderByRelevanceInput = {
+    fields: VideoCreditTxnOrderByRelevanceFieldEnum | VideoCreditTxnOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type VideoCreditTxnCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    delta?: SortOrder
+    reason?: SortOrder
+    source?: SortOrder
+    generationId?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VideoCreditTxnAvgOrderByAggregateInput = {
+    delta?: SortOrder
+  }
+
+  export type VideoCreditTxnMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    delta?: SortOrder
+    reason?: SortOrder
+    source?: SortOrder
+    generationId?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VideoCreditTxnMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    delta?: SortOrder
+    reason?: SortOrder
+    source?: SortOrder
+    generationId?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type VideoCreditTxnSumOrderByAggregateInput = {
+    delta?: SortOrder
+  }
+
+  export type EnumVideoCreditReasonWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoCreditReason | EnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoCreditReasonWithAggregatesFilter<$PrismaModel> | $Enums.VideoCreditReason
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVideoCreditReasonFilter<$PrismaModel>
+    _max?: NestedEnumVideoCreditReasonFilter<$PrismaModel>
+  }
+
+  export type EnumVideoGenStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoGenStatus | EnumVideoGenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoGenStatusFilter<$PrismaModel> | $Enums.VideoGenStatus
+  }
+
+  export type VideoGenerationOrderByRelevanceInput = {
+    fields: VideoGenerationOrderByRelevanceFieldEnum | VideoGenerationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type VideoGenerationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    status?: SortOrder
+    model?: SortOrder
+    prompt?: SortOrder
+    sourceImageUrl?: SortOrder
+    resultUrl?: SortOrder
+    replicatePredictionId?: SortOrder
+    creditsCost?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoGenerationAvgOrderByAggregateInput = {
+    creditsCost?: SortOrder
+  }
+
+  export type VideoGenerationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    status?: SortOrder
+    model?: SortOrder
+    prompt?: SortOrder
+    sourceImageUrl?: SortOrder
+    resultUrl?: SortOrder
+    replicatePredictionId?: SortOrder
+    creditsCost?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoGenerationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    status?: SortOrder
+    model?: SortOrder
+    prompt?: SortOrder
+    sourceImageUrl?: SortOrder
+    resultUrl?: SortOrder
+    replicatePredictionId?: SortOrder
+    creditsCost?: SortOrder
+    error?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VideoGenerationSumOrderByAggregateInput = {
+    creditsCost?: SortOrder
+  }
+
+  export type EnumVideoGenStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoGenStatus | EnumVideoGenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoGenStatusWithAggregatesFilter<$PrismaModel> | $Enums.VideoGenStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVideoGenStatusFilter<$PrismaModel>
+    _max?: NestedEnumVideoGenStatusFilter<$PrismaModel>
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -159613,6 +163731,14 @@ export namespace Prisma {
     set?: $Enums.OutboxEventStatus
   }
 
+  export type EnumVideoCreditReasonFieldUpdateOperationsInput = {
+    set?: $Enums.VideoCreditReason
+  }
+
+  export type EnumVideoGenStatusFieldUpdateOperationsInput = {
+    set?: $Enums.VideoGenStatus
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -160796,6 +164922,40 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
     _max?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumVideoCreditReasonFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoCreditReason | EnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoCreditReasonFilter<$PrismaModel> | $Enums.VideoCreditReason
+  }
+
+  export type NestedEnumVideoCreditReasonWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoCreditReason | EnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoCreditReasonWithAggregatesFilter<$PrismaModel> | $Enums.VideoCreditReason
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVideoCreditReasonFilter<$PrismaModel>
+    _max?: NestedEnumVideoCreditReasonFilter<$PrismaModel>
+  }
+
+  export type NestedEnumVideoGenStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoGenStatus | EnumVideoGenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoGenStatusFilter<$PrismaModel> | $Enums.VideoGenStatus
+  }
+
+  export type NestedEnumVideoGenStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VideoGenStatus | EnumVideoGenStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VideoGenStatus[] | ListEnumVideoGenStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVideoGenStatusWithAggregatesFilter<$PrismaModel> | $Enums.VideoGenStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVideoGenStatusFilter<$PrismaModel>
+    _max?: NestedEnumVideoGenStatusFilter<$PrismaModel>
   }
 
   export type BrandCreateWithoutTenantInput = {
@@ -198343,6 +202503,18 @@ export namespace Prisma {
      * @deprecated Use OutboxEventDefaultArgs instead
      */
     export type OutboxEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OutboxEventDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use VideoStudioAccountDefaultArgs instead
+     */
+    export type VideoStudioAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = VideoStudioAccountDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use VideoCreditTxnDefaultArgs instead
+     */
+    export type VideoCreditTxnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = VideoCreditTxnDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use VideoGenerationDefaultArgs instead
+     */
+    export type VideoGenerationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = VideoGenerationDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

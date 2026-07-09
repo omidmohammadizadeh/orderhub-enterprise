@@ -1761,6 +1761,48 @@ exports.Prisma.OutboxEventScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.VideoStudioAccountScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  addonActive: 'addonActive',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  includedMonthly: 'includedMonthly',
+  includedBalance: 'includedBalance',
+  topupBalance: 'topupBalance',
+  lastGrantAt: 'lastGrantAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VideoCreditTxnScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  delta: 'delta',
+  reason: 'reason',
+  source: 'source',
+  generationId: 'generationId',
+  note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.VideoGenerationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  status: 'status',
+  model: 'model',
+  prompt: 'prompt',
+  sourceImageUrl: 'sourceImageUrl',
+  resultUrl: 'resultUrl',
+  replicatePredictionId: 'replicatePredictionId',
+  creditsCost: 'creditsCost',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2790,6 +2832,34 @@ exports.Prisma.OutboxEventOrderByRelevanceFieldEnum = {
   lastError: 'lastError',
   idempotencyKey: 'idempotencyKey'
 };
+
+exports.Prisma.VideoStudioAccountOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  stripeSubscriptionId: 'stripeSubscriptionId'
+};
+
+exports.Prisma.VideoCreditTxnOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  source: 'source',
+  generationId: 'generationId',
+  note: 'note'
+};
+
+exports.Prisma.VideoGenerationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  model: 'model',
+  prompt: 'prompt',
+  sourceImageUrl: 'sourceImageUrl',
+  resultUrl: 'resultUrl',
+  replicatePredictionId: 'replicatePredictionId',
+  error: 'error'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3224,6 +3294,21 @@ exports.OutboxEventStatus = exports.$Enums.OutboxEventStatus = {
   DEAD: 'DEAD'
 };
 
+exports.VideoCreditReason = exports.$Enums.VideoCreditReason = {
+  GRANT: 'GRANT',
+  TOPUP: 'TOPUP',
+  DEBIT: 'DEBIT',
+  REFUND: 'REFUND',
+  ADJUST: 'ADJUST'
+};
+
+exports.VideoGenStatus = exports.$Enums.VideoGenStatus = {
+  QUEUED: 'QUEUED',
+  RENDERING: 'RENDERING',
+  READY: 'READY',
+  FAILED: 'FAILED'
+};
+
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   User: 'User',
@@ -3323,7 +3408,10 @@ exports.Prisma.ModelName = {
   MobileSession: 'MobileSession',
   WebPushSubscription: 'WebPushSubscription',
   SystemSecret: 'SystemSecret',
-  OutboxEvent: 'OutboxEvent'
+  OutboxEvent: 'OutboxEvent',
+  VideoStudioAccount: 'VideoStudioAccount',
+  VideoCreditTxn: 'VideoCreditTxn',
+  VideoGeneration: 'VideoGeneration'
 };
 
 /**

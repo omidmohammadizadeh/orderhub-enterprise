@@ -3685,3 +3685,80 @@ enum ProviderCategory {
   MARKETING
   PAYMENT
 }
+
+// ── AI Video Studio ──────────────────────────────────────────────────────────
+// Paid add-on: merchants generate short marketing videos from a product photo
+// + description via an AI model (Replicate). Monetised with credits — an add-on
+// subscription grants a monthly allowance (resets each period) and extra videos
+// are prepaid top-up packs. Each generation debits one credit BEFORE the
+// provider is called and refunds it if the render fails, so a merchant can
+// never spend past their balance.
+
+enum VideoGenStatus {
+  QUEUED
+  RENDERING
+  READY
+  FAILED
+}
+
+enum VideoCreditReason {
+  GRANT
+  TOPUP
+  DEBIT
+  REFUND
+  ADJUST
+}
+
+model VideoStudioAccount {
+  id       String @id @default(cuid())
+  tenantId String @unique
+  // Add-on entitlement — flipped on by the Stripe add-on subscription webhook.
+  addonActive          Boolean @default(false)
+  stripeSubscriptionId String? @unique
+  // Monthly included allowance (reset each billing period) vs purchased
+  // top-ups (persist). Total spendable = includedBalance + topupBalance.
+  includedMonthly Int       @default(0)
+  includedBalance Int       @default(0)
+  topupBalance    Int       @default(0)
+  lastGrantAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("video_studio_accounts")
+}
+
+model VideoCreditTxn {
+  id           String            @id @default(cuid())
+  tenantId     String
+  delta        Int // +credit, -debit
+  reason       VideoCreditReason
+  source       String? // "included" | "topup" for debits
+  generationId String?
+  note         String?
+  createdAt    DateTime          @default(now())
+
+  @@index([tenantId, createdAt])
+  @@map("video_credit_txns")
+}
+
+model VideoGeneration {
+  id                    String         @id @default(cuid())
+  tenantId              String
+  userId                String?
+  locationId            String?
+  brandId               String?
+  status                VideoGenStatus @default(QUEUED)
+  model                 String
+  prompt                String
+  sourceImageUrl        String
+  resultUrl             String?
+  replicatePredictionId String?
+  creditsCost           Int            @default(1)
+  error                 String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("video_generations")
+}

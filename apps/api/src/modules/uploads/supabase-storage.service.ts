@@ -62,6 +62,31 @@ export class SupabaseStorageService {
     return data.publicUrl;
   }
 
+  /**
+   * Upload raw bytes (e.g. a generated MP4) and return the public URL. Used by
+   * the Video Studio to persist finished renders — the provider's output URL is
+   * temporary, so we re-host it.
+   */
+  async uploadBuffer(
+    buffer: Buffer,
+    contentType: string,
+    folder = "videos",
+    ext = "mp4",
+  ): Promise<string> {
+    if (!this.client) throw new Error("Supabase storage is not configured");
+    const body = new Blob([buffer], { type: contentType });
+    const path = `${folder}/${randomUUID()}.${ext}`;
+    const { error } = await this.client.storage
+      .from(this.bucket)
+      .upload(path, body, { contentType, upsert: false });
+    if (error) {
+      this.logger.error(`Supabase upload (buffer) failed: ${error.message}`);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+    const { data } = this.client.storage.from(this.bucket).getPublicUrl(path);
+    return data.publicUrl;
+  }
+
   private extFor(contentType: string): string {
     switch (contentType) {
       case "image/jpeg":
