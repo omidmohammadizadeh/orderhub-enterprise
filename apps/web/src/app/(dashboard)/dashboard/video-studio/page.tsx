@@ -81,10 +81,16 @@ export default function VideoStudioPage() {
   const generations = gensQuery.data ?? [];
 
   const [prompt, setPrompt] = useState("");
+  const [script, setScript] = useState("");
+  const [styleId, setStyleId] = useState("cinematic");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const styles = status?.styles ?? [];
+  const style = styles.find((s) => s.id === styleId) ?? styles[0];
+  const cost = style?.credits ?? 1;
 
   const onPickFile = async (file: File) => {
     setError(null);
@@ -114,9 +120,15 @@ export default function VideoStudioPage() {
 
   const generate = useMutation({
     mutationFn: () =>
-      videoStudioClient.generate({ imageUrl: imageUrl!, prompt: prompt.trim() }),
+      videoStudioClient.generate({
+        imageUrl: imageUrl!,
+        prompt: prompt.trim(),
+        style: styleId,
+        script: script.trim() || undefined,
+      }),
     onSuccess: () => {
       setPrompt("");
+      setScript("");
       setImageUrl(null);
       if (fileRef.current) fileRef.current.value = "";
       qc.invalidateQueries({ queryKey: ["video-studio"] });
@@ -135,7 +147,11 @@ export default function VideoStudioPage() {
   });
 
   const canGenerate =
-    !!imageUrl && prompt.trim().length > 3 && (status?.balance ?? 0) > 0 && !uploading;
+    !!imageUrl &&
+    prompt.trim().length > 3 &&
+    (!style?.needsScript || script.trim().length > 3) &&
+    (status?.balance ?? 0) >= cost &&
+    !uploading;
 
   const balanceLabel = useMemo(() => {
     if (!status) return "";
@@ -193,7 +209,41 @@ export default function VideoStudioPage() {
       {/* Subscribed → generator */}
       {status?.addonActive && (
         <>
-          <div className="mt-6 grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 sm:grid-cols-2">
+          {/* Ad style picker */}
+          {styles.length > 1 && (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {styles.map((s) => {
+                const active = s.id === styleId;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setStyleId(s.id)}
+                    className={`rounded-xl border p-4 text-left transition ${
+                      active
+                        ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
+                        : "border-zinc-200 bg-white hover:border-violet-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-zinc-900">
+                        {s.label}
+                      </span>
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                        {s.credits} credit{s.credits === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      {s.audio
+                        ? "A presenter speaks your script — with voice + sound."
+                        : "Cinematic motion over your product photo (no audio)."}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div className="mt-4 grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 sm:grid-cols-2">
             {/* Image */}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-zinc-800">
@@ -229,15 +279,36 @@ export default function VideoStudioPage() {
             {/* Prompt + action */}
             <div className="flex flex-col">
               <label className="mb-1.5 block text-sm font-semibold text-zinc-800">
-                Describe the video
+                {style?.needsScript ? "Scene / setting" : "Describe the video"}
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                rows={5}
-                placeholder="e.g. Cinematic advert of this pizza, steam rising, warm lighting, slow zoom"
-                className="w-full flex-1 resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                rows={style?.needsScript ? 3 : 5}
+                placeholder={
+                  style?.needsScript
+                    ? "e.g. Bright modern takeaway counter, friendly young presenter holding the meal"
+                    : "e.g. Cinematic advert of this pizza, steam rising, warm lighting, slow zoom"
+                }
+                className="w-full resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm"
               />
+              {style?.needsScript && (
+                <>
+                  <label className="mb-1.5 mt-3 block text-sm font-semibold text-zinc-800">
+                    What should they say? (voiceover script)
+                  </label>
+                  <textarea
+                    value={script}
+                    onChange={(e) => setScript(e.target.value)}
+                    rows={3}
+                    placeholder="e.g. Craving a proper feast? Grab our Solo Meal — a juicy gyros wrap, golden fries and a cold drink. Order now!"
+                    className="w-full resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                  />
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Keep it short — about one or two sentences (~8 seconds of speech).
+                  </p>
+                </>
+              )}
               <button
                 onClick={() => generate.mutate()}
                 disabled={!canGenerate || generate.isPending}
@@ -248,11 +319,13 @@ export default function VideoStudioPage() {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Generate video (1 credit)
+                Generate video ({cost} credit{cost === 1 ? "" : "s"})
               </button>
-              {(status.balance ?? 0) === 0 && (
+              {(status.balance ?? 0) < cost && (
                 <p className="mt-2 text-xs text-amber-700">
-                  You're out of credits — top up or wait for your monthly reset.
+                  {(status.balance ?? 0) === 0
+                    ? "You're out of credits — top up or wait for your monthly reset."
+                    : `This style needs ${cost} credits — you have ${status.balance}. Top up or pick the cinematic style.`}
                 </p>
               )}
               {canTest && (

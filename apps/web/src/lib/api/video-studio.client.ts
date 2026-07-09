@@ -1,5 +1,13 @@
 import { apiClient } from "./client";
 
+export interface VideoStyle {
+  id: string;
+  label: string;
+  credits: number;
+  audio: boolean;
+  needsScript: boolean;
+}
+
 export interface VideoStatus {
   addonActive: boolean;
   includedMonthly: number;
@@ -8,6 +16,7 @@ export interface VideoStatus {
   balance: number;
   providerReady: boolean;
   model: string;
+  styles?: VideoStyle[];
   canTestActivate?: boolean;
 }
 
@@ -29,6 +38,8 @@ export const videoStudioClient = {
   generate: (body: {
     imageUrl: string;
     prompt: string;
+    style?: string;
+    script?: string;
     locationId?: string;
     brandId?: string;
   }) =>

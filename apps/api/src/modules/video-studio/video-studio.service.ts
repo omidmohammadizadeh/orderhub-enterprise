@@ -11,10 +11,30 @@ import { ReplicateProvider } from "./replicate.provider";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface GenerateVideoDto {
-  imageUrl: string; // public URL of the product photo
-  prompt: string; // the marketing description
+  imageUrl: string; // public URL (or data URI) of the product photo
+  prompt: string; // the marketing description / scene direction
+  style?: string; // "cinematic" (default) | "spokesperson"
+  script?: string; // what the spokesperson says (spokesperson style only)
   locationId?: string;
   brandId?: string;
+}
+
+// An ad "style" = which model to call + how many credits it costs. Everything
+// is env-overridable so the model slug / image field / price can be tuned in
+// Render without a code deploy.
+interface AdStyle {
+  id: string;
+  label: string;
+  model?: string; // undefined = base VIDEO_STUDIO_MODEL (Wan)
+  imageKey?: string; // undefined = provider default ("image"); "" = no image
+  credits: number;
+  audio: boolean; // does the model produce a voiceover / sound?
+  needsScript: boolean; // does the UI collect a spoken script?
+}
+
+function envInt(key: string, fallback: number): number {
+  const n = Number(process.env[key]);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
 @Injectable()
@@ -29,6 +49,48 @@ export class VideoStudioService {
 
   private db() {
     return this.prisma as any;
+  }
+
+  /** The ad styles offered in the UI. Model/price env-overridable. */
+  styles(): AdStyle[] {
+    return [
+      {
+        id: "cinematic",
+        label: "Cinematic product video",
+        model: undefined, // base Wan i2v
+        imageKey: undefined,
+        credits: envInt("VIDEO_STUDIO_CINEMATIC_CREDITS", 1),
+        audio: false,
+        needsScript: false,
+      },
+      {
+        id: "spokesperson",
+        label: "Talking spokesperson (voice + sound)",
+        model: process.env.VIDEO_STUDIO_SPOKESPERSON_MODEL || "google/veo-3-fast",
+        // Veo takes a first-frame "image". Set VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY=""
+        // to fall back to pure text-to-video if a model rejects the image field.
+        imageKey: process.env.VIDEO_STUDIO_SPOKESPERSON_IMAGE_KEY ?? "image",
+        credits: envInt("VIDEO_STUDIO_SPOKESPERSON_CREDITS", 4),
+        audio: true,
+        needsScript: true,
+      },
+    ];
+  }
+
+  private styleById(id?: string): AdStyle {
+    const styles = this.styles();
+    return styles.find((s) => s.id === (id || "cinematic")) ?? styles[0]!;
+  }
+
+  /** Build the final model prompt for a style (folds in the spoken script). */
+  private buildPrompt(style: AdStyle, scene: string, script?: string): string {
+    if (!style.needsScript || !script?.trim()) return scene.trim();
+    const line = script.trim();
+    return (
+      `${scene.trim()}. A friendly presenter speaks directly to camera and ` +
+      `enthusiastically says: "${line}". Natural clear voiceover, upbeat ` +
+      `background music, appetising food advert, energetic and inviting.`
+    );
   }
 
   async getOrCreateAccount(tenantId: string) {
@@ -50,6 +112,13 @@ export class VideoStudioService {
       balance: acc.includedBalance + acc.topupBalance,
       providerReady: this.replicate.isConfigured(),
       model: this.replicate.model,
+      styles: this.styles().map((s) => ({
+        id: s.id,
+        label: s.label,
+        credits: s.credits,
+        audio: s.audio,
+        needsScript: s.needsScript,
+      })),
     };
   }
 
@@ -86,7 +155,12 @@ export class VideoStudioService {
     if (!this.replicate.isConfigured()) {
       throw new BadRequestException("Video generation isn't configured on the server.");
     }
-    const cost = 1;
+    const style = this.styleById(dto.style);
+    if (style.needsScript && !dto.script?.trim()) {
+      throw new BadRequestException("Add a short script for the spokesperson to say.");
+    }
+    const finalPrompt = this.buildPrompt(style, dto.prompt, dto.script);
+    const cost = style.credits;
 
     // Atomic debit BEFORE we ever call the provider — take from the monthly
     // allowance first, then purchased top-ups. The guarded updateMany makes
@@ -118,8 +192,8 @@ export class VideoStudioService {
           locationId: dto.locationId ?? null,
           brandId: dto.brandId ?? null,
           status: "QUEUED",
-          model: this.replicate.model,
-          prompt: dto.prompt,
+          model: style.model || this.replicate.model,
+          prompt: finalPrompt,
           sourceImageUrl: dto.imageUrl,
           creditsCost: cost,
         },
@@ -140,7 +214,9 @@ export class VideoStudioService {
     try {
       const prediction = await this.replicate.createPrediction({
         image: dto.imageUrl,
-        prompt: dto.prompt,
+        prompt: finalPrompt,
+        model: style.model,
+        imageKey: style.imageKey,
       });
       return this.db().videoGeneration.update({
         where: { id: gen.id },

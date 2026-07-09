@@ -65,27 +65,35 @@ export class ReplicateProvider {
    * photo; `prompt` is the marketing description.
    */
   async createPrediction(input: {
-    image: string;
     prompt: string;
+    image?: string;
+    // Override the model slug (e.g. a premium Veo style). Defaults to the base
+    // VIDEO_STUDIO_MODEL. When an override is given we always call by slug (the
+    // base model's optional version pin only applies to the base model).
+    model?: string;
+    // Field name for the start image. Defaults to the base image key. Pass an
+    // empty string to omit the image entirely (text-to-video models).
+    imageKey?: string;
     extra?: Record<string, unknown>;
   }): Promise<CreatePredictionResult> {
     if (!this.token) throw new Error("REPLICATE_API_TOKEN not configured");
-    const payloadInput = {
-      [this.imageKey]: input.image,
+    const modelSlug = input.model || this.model;
+    const imageKey = input.imageKey ?? this.imageKey;
+    const payloadInput: Record<string, unknown> = {
       prompt: input.prompt,
+      ...(imageKey && input.image ? { [imageKey]: input.image } : {}),
       ...(input.extra ?? {}),
     };
-    // Pinned version → generic predictions endpoint; otherwise call the model
-    // by slug (works for official/partner models like Wan).
+    // Base model may be pinned to a version; any override model is called by
+    // slug (works for official/partner models like Wan and Veo).
     let url: string;
     let body: Record<string, unknown>;
-    if (this.modelVersion) {
+    if (!input.model && this.modelVersion) {
       url = `${API_BASE}/predictions`;
       body = { version: this.modelVersion, input: payloadInput };
     } else {
-      const [owner, name] = this.model.split("/");
-      if (!owner || !name)
-        throw new Error(`Invalid VIDEO_STUDIO_MODEL: ${this.model}`);
+      const [owner, name] = modelSlug.split("/");
+      if (!owner || !name) throw new Error(`Invalid model slug: ${modelSlug}`);
       url = `${API_BASE}/models/${owner}/${name}/predictions`;
       body = { input: payloadInput };
     }
