@@ -86,6 +86,21 @@ export function useLiveOrders(locationId?: string) {
     if (!token) return;
     const socket = getSocket(token);
 
+    // Defense-in-depth location filter. The server only broadcasts to the
+    // `location:<id>` room, so this SHOULD already be a no-op — but a client
+    // can end up joined to more than one location's room (e.g. the switch
+    // below leaves the room it's given, but any other path that ever calls
+    // room:join without a matching leave, a reconnect that re-joins before
+    // the old room naturally times out, etc.). Every one of those failure
+    // modes turns into "location A shows location B's order" if the board
+    // blindly trusts room membership — so it never does: an event for any
+    // location other than the one this hook is scoped to is dropped before
+    // it reaches the store, full stop. `locationId` undefined means "all
+    // locations" (the admin all-locations view) — that's the one case
+    // everything is allowed through.
+    const belongsHere = (eventLocationId: string) =>
+      !locationId || eventLocationId === locationId;
+
     // Wrap each handler so we can play the matching sound *in addition*
     // to running the store mutation. We thread the original payload
     // through unchanged so all the existing optimistic-update logic
@@ -95,10 +110,12 @@ export function useLiveOrders(locationId?: string) {
     // shapes (orderId, not id) — not the full Order from the REST list
     // endpoint.
     const onNew = (payload: OrderEventPayload) => {
+      if (!belongsHere(payload.locationId)) return;
       play("new", alertOpts("NEW_ORDER"));
       applyNewOrder(payload);
     };
     const onUpdated = (payload: OrderEventPayload) => {
+      if (!belongsHere(payload.locationId)) return;
       // Only sound the rider-arrived alert when the status genuinely
       // transitioned *into* RIDER_ARRIVED — any re-emit of the same
       // status (idempotent webhook retries, board re-syncs) shouldn't
@@ -114,6 +131,7 @@ export function useLiveOrders(locationId?: string) {
       applyOrderUpdated(payload);
     };
     const onCancelled = (payload: OrderCancelledPayload) => {
+      if (!belongsHere(payload.locationId)) return;
       play("cancelled", alertOpts("ORDER_CANCELLED"));
       applyOrderCancelled(payload);
     };
@@ -128,6 +146,12 @@ export function useLiveOrders(locationId?: string) {
       socket.off("order:new", onNew);
       socket.off("order:updated", onUpdated);
       socket.off("order:cancelled", onCancelled);
+      // Leave the room we joined above — without this, switching locations
+      // (or an admin flipping through several boards in one session) leaves
+      // the socket subscribed to every location it's ever visited, and any
+      // later fix to the server-side broadcast scoping would still leak
+      // through this stale membership.
+      if (locationId) socket.emit("room:leave", locationId);
     };
   }, [token, locationId, applyNewOrder, applyOrderUpdated, applyOrderCancelled, play]);
 

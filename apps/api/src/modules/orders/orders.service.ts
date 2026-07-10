@@ -278,19 +278,29 @@ export class OrdersService {
             deletedAt: null,
             name: { equals: hint, mode: "insensitive" as const },
           };
-          const sel = { id: true, name: true };
-          const match =
-            (await this.prisma.brand.findFirst({
-              where: { ...nameWhere, primaryLocationId: locationId },
-              select: sel,
-            })) ??
+          const sel = { id: true, name: true, primaryLocationId: true };
+          const byPrimaryLocation = await this.prisma.brand.findFirst({
+            where: { ...nameWhere, primaryLocationId: locationId },
+            select: sel,
+          });
+          const byConnectionHere =
+            byPrimaryLocation ??
             (await this.prisma.brand.findFirst({
               where: {
                 ...nameWhere,
                 platformConnections: { some: { locationId } },
               },
               select: sel,
-            })) ??
+            }));
+          // The first two tiers both confirm the brand actually operates AT
+          // this webhook's location (primary site, or a platform connection
+          // here) — trusting the webhook's locationId is correct there. This
+          // last tier is a BARE NAME MATCH with zero location signal at all —
+          // it only fires when the brand has no presence at this location
+          // whatsoever, which means the brand's real home is elsewhere and
+          // this webhook simply isn't where it's supposed to be routed.
+          const match =
+            byConnectionHere ??
             (await this.prisma.brand.findFirst({
               where: nameWhere,
               select: sel,
@@ -300,6 +310,27 @@ export class OrdersService {
             this.logger.log(
               `Matched ${canonical.platform} order to brand "${match.name}" (${match.id}) from hint "${hint}"`,
             );
+            // Re-route to the brand's real home location. Without this, an
+            // order for a brand that has no connection at this webhook's
+            // location (e.g. two brands share one HubRise catalog/callback
+            // but operate from genuinely different kitchens) stayed
+            // permanently mis-attributed to whichever location's webhook
+            // happened to fire — showing up on the wrong location's board
+            // with no way to correct it after the fact. Only reassign when
+            // we found the brand with NO location evidence at all
+            // (byConnectionHere is null) and it has a distinct home to send
+            // it to; a brand that's confirmed to operate here, or has no
+            // configured home location of its own, is left exactly as-is.
+            if (
+              !byConnectionHere &&
+              match.primaryLocationId &&
+              match.primaryLocationId !== locationId
+            ) {
+              this.logger.warn(
+                `Brand "${match.name}" has no presence at location ${locationId} — rerouting ${canonical.platform} order to its home location ${match.primaryLocationId}`,
+              );
+              locationId = match.primaryLocationId;
+            }
           } else {
             this.logger.warn(
               `No brand named "${hint}" for tenant ${tenantId} — ${canonical.platform} order stays on location default`,
