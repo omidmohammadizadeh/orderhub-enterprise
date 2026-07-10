@@ -960,6 +960,10 @@ function formatHubRisePrice(amount: number, currency: string): string {
   return `${amount.toFixed(2)} ${currency}`;
 }
 
+// Standalone module-level function (not a class method, no `this.logger`
+// available) — its own logger instance for the empty-option-list warning.
+const catalogTransformLogger = new Logger("HubRiseCatalogService");
+
 /**
  * Walk our Menu graph and emit HubRise's catalog data shape.
  * Currency defaults to GBP — operator can change in a future phase.
@@ -1008,6 +1012,25 @@ export function transformMenuToCatalog(
   // every SKU's option_list_refs lines up with a defined option_list.
   const groupRefFor = (g: any): string => g?.externalId ?? `grp_${g?.id}`;
 
+  // HubRise rejects an option_list with zero options outright (422:
+  // "must have at least 1 item(s)"), and it fails the WHOLE publish, not
+  // just that one group — a single empty/unpopulated modifier group (e.g.
+  // one carried over from a source menu that never got options added)
+  // blocks every other product in the menu from publishing too. Skip empty
+  // groups from option_lists, and — just as importantly — strip their ref
+  // from every product/SKU's option_list_refs below, otherwise HubRise
+  // would instead reject the payload for referencing an option_list that
+  // was never defined.
+  const groupHasOptions = (g: any): boolean =>
+    Array.isArray(g?.options) && g.options.length > 0;
+  for (const g of groupById.values()) {
+    if (!groupHasOptions(g)) {
+      catalogTransformLogger.warn(
+        `HubRise publish: skipping modifier group "${g.name}" (${g.id}) — it has no options, HubRise would reject the whole catalog`,
+      );
+    }
+  }
+
   // ModifierGroups + options — emit every group referenced by any
   // product in this menu, deduplicated. Iterate the pre-fetched
   // groupById map (which already covers BOTH modifierGroupLinks and
@@ -1015,6 +1038,7 @@ export function transformMenuToCatalog(
   // are not silently dropped.
   const optionLists: HubRiseOptionList[] = [];
   for (const g of groupById.values()) {
+    if (!groupHasOptions(g)) continue;
     const maxSel = g.maxSelections ?? null;
     // HubRise rejects multiple_selection=true when max_selections is 0 or 1
     // (422: "cannot be true when max_selections is 0 or 1") — those are
@@ -1082,7 +1106,7 @@ export function transformMenuToCatalog(
               ...restrictions,
               option_list_refs: (s.modifierGroups ?? [])
                 .map((gid: string) => groupById.get(gid))
-                .filter(Boolean)
+                .filter((g: any) => g && groupHasOptions(g))
                 .map(groupRefFor),
             };
           })
@@ -1105,7 +1129,7 @@ export function transformMenuToCatalog(
                 ...restrictions,
                 option_list_refs: (item.modifierGroupLinks ?? [])
                   .map((l: any) => l.group)
-                  .filter(Boolean)
+                  .filter((g: any) => g && groupHasOptions(g))
                   .map(groupRefFor),
               },
             ];
