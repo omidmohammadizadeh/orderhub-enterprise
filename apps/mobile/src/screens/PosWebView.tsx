@@ -1,12 +1,19 @@
 // PosWebView — the full-screen native shell around the existing web POS.
 //
 // Three things make this feel native instead of "just a browser":
-//   1. The JWT pair is handed off via /auth/oauth/callback?access=…&refresh=…
-//      — that page already exists for the web's Google OAuth flow and
-//      populates the Zustand auth store (`orderhub-auth`) the right way,
-//      then redirects to /dashboard. We can't just localStorage.setItem
-//      directly: the web persists a wrapped Zustand shape with user +
-//      isAuthenticated flags, not a bare token.
+//   1. On a FRESH native login only, the JWT pair is handed off via
+//      /auth/oauth/callback?access=…&refresh=… — that page already exists
+//      for the web's Google OAuth flow and populates the Zustand auth store
+//      (`orderhub-auth`) the right way, then redirects to /dashboard. We
+//      can't just localStorage.setItem directly: the web persists a wrapped
+//      Zustand shape with user + isAuthenticated flags, not a bare token.
+//      On an app RELAUNCH we load /dashboard directly instead and trust the
+//      WebView's own persisted session (domStorage/cookies survive across
+//      launches, see below) — re-running the handoff with the RN-held
+//      snapshot would clobber whatever fresher refresh token the WebView's
+//      own JS has since rotated to, since RN's copy is never updated after
+//      the initial login. That clobber was a real bug: the stale token
+//      later got presented as "reused", which the server treated as theft.
 //   2. mediaPlaybackRequiresUserAction={false} +
 //      allowsInlineMediaPlayback so the web POS can play its order
 //      sound via HTML5 Audio without a tap-to-unlock.
@@ -38,12 +45,26 @@ const WEB_URL =
 
 interface Props {
   tokens: AuthTokens;
+  // True only immediately after a fresh native login (Google/Apple/email) —
+  // the WebView has never seen this token pair, so it needs the handoff.
+  // False on an app relaunch that hydrated from SecureStore: that snapshot
+  // goes stale the moment the WebView's own JS rotates its refresh token
+  // (which happens independently while the app is open), so re-injecting it
+  // via the handoff would clobber the WebView's own further-rotated session
+  // — the exact bug that caused a stale-token replay to nuke every session
+  // for the user (fixed server-side too, but this is the actual root cause).
+  fromFreshLogin: boolean;
   onSignOut: () => void;
 }
 
-export function PosWebView({ tokens, onSignOut }: Props) {
+export function PosWebView({ tokens, fromFreshLogin, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
+  // Only the very first mount after a fresh login should use the handoff
+  // URL. Capture it once so a later re-render (e.g. tokens object identity
+  // changing for unrelated reasons) can't flip an already-loaded WebView
+  // back to the handoff URL and re-clobber its session.
+  const [useHandoff] = useState(fromFreshLogin);
 
   // Caller-ID hub (Android only, no-ops elsewhere): read the CTI Comet USB
   // box on the shop's analogue line and hand every ring to the web app,
@@ -66,13 +87,18 @@ export function PosWebView({ tokens, onSignOut }: Props) {
   // Hand both tokens to the web via its existing OAuth-callback page —
   // that page sets the Zustand store + fetches /me, then router.replace
   // to /dashboard. Far more reliable than guessing the persist shape.
-  const handoffUrl = useMemo(() => {
+  // Only used on a fresh login (see useHandoff above); a relaunch instead
+  // loads the dashboard directly and trusts the WebView's own persisted
+  // session (domStorage/cookies survive across launches — enabled below).
+  const initialUrl = useMemo(() => {
+    if (!useHandoff) return `${WEB_URL}/dashboard`;
     const qs = new URLSearchParams({
       access: tokens.accessToken,
       refresh: tokens.refreshToken,
     });
     return `${WEB_URL}/auth/oauth/callback?${qs.toString()}`;
-  }, [tokens]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useHandoff]);
 
   // Native ↔ web bridge.
   //
@@ -223,7 +249,7 @@ export function PosWebView({ tokens, onSignOut }: Props) {
       <View style={styles.flex}>
         <WebView
           ref={webRef}
-          source={{ uri: handoffUrl }}
+          source={{ uri: initialUrl }}
           injectedJavaScriptBeforeContentLoaded={injectedBeforeLoad}
           onMessage={onMessage}
           onNavigationStateChange={handleNavStateChange}

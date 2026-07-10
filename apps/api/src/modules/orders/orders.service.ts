@@ -209,12 +209,26 @@ export class OrdersService {
       // the swallowed catch made it look like auto-accept "didn't work".
       const fresh = await this.prisma.order.findUnique({
         where: { id: orderId },
-        select: { status: true, platform: true, orderSource: true },
+        select: { status: true, platform: true, orderSource: true, metadata: true },
       });
       if (!fresh) return;
       if (fresh.status !== "PENDING") {
         this.logger.log(
           `Auto-accept skipped order ${orderId} — already ${fresh.status}`,
+        );
+        return;
+      }
+      // POS "scheduled for later" orders (metadata.isScheduled, set at
+      // creation — see create() below) must stay PENDING until the operator
+      // clicks "Start preparing now"; that's the entire point of the
+      // Scheduled Orders strip. This check was documented above the emit
+      // call further down but never actually implemented, so a location
+      // with auto-accept ON would silently accept a scheduled order early —
+      // which then vanished from BOTH the scheduled strip (no longer
+      // PENDING) and the live board (scheduledAt still in the future).
+      if ((fresh.metadata as any)?.isScheduled === true) {
+        this.logger.log(
+          `Auto-accept skipped order ${orderId} — scheduled for later`,
         );
         return;
       }
@@ -478,14 +492,24 @@ export class OrdersService {
         ((canonical as any).integrationSource &&
           (canonical as any).integrationSource !== "DIRECT");
       const waitForOurAuth = !isPlatformOrder && isUnpaidCard;
-      // Scheduled orders auto-accept on arrival too — the kitchen sees
-      // them straight away with the scheduled date/time on the ticket,
-      // rather than being parked until their slot.
+      // POS "scheduled for later" orders (metadata.isScheduled) are the one
+      // exception maybeAutoAccept itself enforces — they stay PENDING
+      // regardless of the location's auto-accept setting. A marketplace
+      // order's own future delivery slot (scheduledFor with no
+      // metadata.isScheduled) auto-accepts immediately as normal — the
+      // kitchen sees it straight away with the scheduled time on the ticket.
       if (!waitForOurAuth) {
         void this.maybeAutoAccept(order.id, tenantId, locationId);
       }
 
-      if (!isUnpaidCard) this.socket.emitNewOrder(locationId, {
+      // Same "parked until the operator starts it" rule applies to the
+      // realtime board: a POS scheduled order must not flash onto the live
+      // "happening now" board via the socket push only to vanish once a
+      // page refresh re-syncs with /orders/live, which correctly excludes
+      // it. It's still visible immediately via the Scheduled Orders strip's
+      // own poll of /orders/scheduled.
+      const isScheduledForLater = meta.isScheduled === true;
+      if (!isUnpaidCard && !isScheduledForLater) this.socket.emitNewOrder(locationId, {
         orderId: order.id,
         tenantId,
         locationId,

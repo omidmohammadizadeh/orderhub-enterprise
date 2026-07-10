@@ -43,6 +43,15 @@ api.interceptors.request.use((config) => {
 export function useAuth() {
   const [tokens, setTokensState] = useState<AuthTokens | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  // Tokens read from SecureStore on launch are a SNAPSHOT — the WebView's
+  // own JS keeps rotating its refresh token independently while the app is
+  // open, so this snapshot goes stale the moment that first happens. Only a
+  // genuine fresh login (setTokens called from a login screen) has a token
+  // pair the WebView hasn't seen yet and needs handed off; a relaunch that
+  // hydrates from SecureStore should let the WebView's own already-persisted
+  // (and likely further-rotated) session carry on instead. See PosWebView's
+  // fromFreshLogin usage for why this distinction exists.
+  const [fromFreshLogin, setFromFreshLogin] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(TOKEN_KEY)
@@ -53,6 +62,7 @@ export function useAuth() {
           if (parsed?.accessToken) {
             inMemoryAccess = parsed.accessToken;
             setTokensState(parsed);
+            setFromFreshLogin(false);
           }
         } catch {
           // Old single-string token from a previous app version — discard.
@@ -64,6 +74,7 @@ export function useAuth() {
   const setTokens = useCallback(async (next: AuthTokens | null) => {
     inMemoryAccess = next?.accessToken ?? null;
     setTokensState(next);
+    setFromFreshLogin(next !== null);
     if (next) {
       await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(next));
     } else {
@@ -71,7 +82,7 @@ export function useAuth() {
     }
   }, []);
 
-  return { tokens, hydrated, setTokens };
+  return { tokens, hydrated, fromFreshLogin, setTokens };
 }
 
 // API login responses: { tokens: { accessToken, refreshToken, ... }, user }.

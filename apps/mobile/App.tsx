@@ -22,7 +22,7 @@ import { useAuth } from "@/services/auth";
 import { configureGoogleSignIn } from "@/services/google";
 
 export default function App() {
-  const { tokens, hydrated, setTokens } = useAuth();
+  const { tokens, hydrated, fromFreshLogin, setTokens } = useAuth();
   const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,11 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       {tokens ? (
-        <PosWebView tokens={tokens} onSignOut={() => setTokens(null)} />
+        <PosWebView
+          tokens={tokens}
+          fromFreshLogin={fromFreshLogin}
+          onSignOut={() => setTokens(null)}
+        />
       ) : (
         <LoginScreen onSignedIn={(t) => setTokens(t)} />
       )}

@@ -88,19 +88,29 @@ export class TokenService {
     // the token the winner just rotated. Nuking every session for that made
     // the product "randomly log me out everywhere". So: replays within a
     // short grace window of the rotation are treated as the same client and
-    // get a fresh pair; replays after the window are treated as theft and
-    // revoke everything (the real-theft signal is a REPLAY LONG AFTER the
-    // legitimate client rotated).
+    // get a fresh pair; replays after the window are treated as theft.
+    //
+    // A separate benign cause (confirmed 2026-07-10): the mobile POS shell
+    // hands its native-held token snapshot to the WebView via
+    // /auth/oauth/callback on every app launch. If the WebView's own JS has
+    // since rotated past that snapshot (independent refreshes while the app
+    // was open), an app relaunch re-injects the STALE snapshot, which later
+    // gets presented as "reused" long after the real rotation. This is a
+    // stale COPY of one device's own chain — not a signal that every OTHER
+    // device/session is compromised. So on a stale replay we revoke only the
+    // reused token's own rotation lineage (walk forward via
+    // replacedByTokenId), never every session for the user — a genuinely
+    // stolen token only ever produces replays within its own chain.
     if (stored.revokedAt !== null) {
       const GRACE_MS = 60_000;
       const sinceRevoke = Date.now() - stored.revokedAt.getTime();
       if (sinceRevoke > GRACE_MS) {
         this.logger.warn(
-          `Refresh token reuse detected for user ${stored.userId} (${Math.round(sinceRevoke / 1000)}s after rotation) — revoking all sessions`,
+          `Refresh token reuse detected for user ${stored.userId} (${Math.round(sinceRevoke / 1000)}s after rotation) — revoking that session's chain`,
         );
-        await this.revokeAllUserRefreshTokens(stored.userId);
+        const revoked = await this.revokeTokenChain(stored.id);
         throw new UnauthorizedException(
-          "Refresh token has already been used. All sessions have been invalidated.",
+          `Refresh token has already been used. This session (and ${revoked - 1} rotated descendant${revoked - 1 === 1 ? "" : "s"}) have been invalidated.`,
         );
       }
       this.logger.log(
@@ -171,6 +181,33 @@ export class TokenService {
       where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  // Revoke a reused token's own rotation lineage — the token itself plus
+  // every descendant reachable via replacedByTokenId — WITHOUT touching any
+  // other of the user's sessions. A genuinely stolen token can only ever
+  // replay within its own chain, so this is the correctly-scoped response;
+  // revoking every device (revokeAllUserRefreshTokens) is reserved for an
+  // explicit "log out everywhere" action, not automatic theft detection.
+  private async revokeTokenChain(startTokenId: string): Promise<number> {
+    const ids: string[] = [];
+    let currentId: string | null = startTokenId;
+    while (currentId) {
+      ids.push(currentId);
+      const next: { replacedByTokenId: string | null } | null =
+        await this.prisma.refreshToken.findUnique({
+          where: { id: currentId },
+          select: { replacedByTokenId: true },
+        });
+      currentId = next?.replacedByTokenId ?? null;
+    }
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { id: { in: ids }, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    // The starting token was already revoked (that's what "reuse" means);
+    // count it too so the message reflects the whole chain we just closed.
+    return result.count + 1;
   }
 
   async revokeAllUserRefreshTokens(userId: string): Promise<number> {
