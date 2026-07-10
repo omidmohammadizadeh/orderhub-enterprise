@@ -4,9 +4,9 @@
 // Selecting one routes to the matching follow-up modal (which the
 // parent renders) — we just emit the chosen kind here.
 
-import { X, BookOpen, Folder, Calculator, Sparkles } from "lucide-react";
+import { X, BookOpen, Folder, Calculator, Sparkles, Layers } from "lucide-react";
 
-type MenuKind = "create" | "import-ai" | "import-channel" | "import-pos";
+type MenuKind = "create" | "import-ai" | "import-channel" | "import-pos" | "master";
 
 interface Props {
   open: boolean;
@@ -54,6 +54,12 @@ export function AddMenuModal({ open, onPick, onCancel }: Props) {
             title="Import from POS"
             description="Import from your point of sale"
             onClick={() => onPick("import-pos")}
+          />
+          <Card
+            icon={<Layers className="h-5 w-5" />}
+            title="Master menu"
+            description="Combine several of this location's menus (one per brand) into one — for a single HubRise catalog serving every brand"
+            onClick={() => onPick("master")}
           />
         </div>
       </div>

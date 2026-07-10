@@ -70,6 +70,20 @@ export class CreateMenuDto {
   publishedTo?: string[];
 }
 
+// Phase BC — Master Menu. Merges the categories/items of several existing
+// menus (typically one per brand) at a location into one combined menu, so
+// a single HubRise connection (one menu per location) can carry every
+// brand's catalog via per-brand pricing variants + restrictions.
+export class CreateMasterMenuDto {
+  @ApiProperty() @IsString() @MaxLength(120) name!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsString({ each: true })
+  sourceMenuIds!: string[];
+}
+
 export class UpdateMenuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;

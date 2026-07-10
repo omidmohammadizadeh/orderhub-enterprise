@@ -26,6 +26,7 @@ import { AddMenuModal } from "@/components/menu/add-menu-modal";
 import { CreateMenuModal } from "@/components/menu/create-menu-modal";
 import { AiImportMenuModal } from "@/components/menu/ai-import-menu-modal";
 import { ImportMenuModal } from "@/components/menu/import-menu-modal";
+import { MasterMenuModal } from "@/components/menu/master-menu-modal";
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
@@ -52,7 +53,7 @@ export default function MenuPage() {
   //   addStep "import-pos"       → ImportMenuModal sourced from POS
   //   addStep null               → no modal showing
   const [addStep, setAddStep] = useState<
-    null | "chooser" | "create" | "import-ai" | "import-channel" | "import-pos"
+    null | "chooser" | "create" | "import-ai" | "import-channel" | "import-pos" | "master"
   >(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
@@ -432,6 +433,13 @@ export default function MenuPage() {
           else if (kind === "import-ai") setAddStep("import-ai");
           else if (kind === "import-channel") setAddStep("import-channel");
           else if (kind === "import-pos") setAddStep("import-pos");
+          else if (kind === "master") {
+            if (!selectedLocationId) {
+              toast.error("Select a single location first (not \"All locations\").");
+              return;
+            }
+            setAddStep("master");
+          }
         }}
         onCancel={() => setAddStep(null)}
       />
@@ -468,6 +476,21 @@ export default function MenuPage() {
         source="pos"
         onCancel={() => setAddStep(null)}
       />
+      {selectedLocationId && (
+        <MasterMenuModal
+          open={addStep === "master"}
+          locationId={selectedLocationId}
+          menus={menus as Menu[]}
+          brands={brands}
+          onCreated={(menu) => {
+            qc.invalidateQueries({ queryKey: ["menus"] });
+            setAddStep(null);
+            toast.success("Master menu created.");
+            router.push(`/dashboard/menu/${menu.id}`);
+          }}
+          onCancel={() => setAddStep(null)}
+        />
+      )}
 
       {/* Phase AP — brand chip strip removed. The Menu tab is now
           location-scoped (see the LocationSelector in the header).

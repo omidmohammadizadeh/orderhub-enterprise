@@ -15,10 +15,18 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { PluService } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
-import { QUEUES, MENU_JOBS, normalizePricingVariants } from "@orderhub/shared";
+import {
+  QUEUES,
+  MENU_JOBS,
+  normalizePricingVariants,
+  brandChannelRef,
+  CHANNEL_VARIANT_PRESETS,
+  type PricingVariant,
+} from "@orderhub/shared";
 import type {
   CreateMenuDto,
   UpdateMenuDto,
+  CreateMasterMenuDto,
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateMenuItemDto,
@@ -440,6 +448,144 @@ export class MenusService {
       }
 
       return cloned;
+    });
+  }
+
+  /**
+   * Phase BC — Master Menu. HubRise only connects one menu per location, but
+   * a kitchen can sell several brands. This merges the categories/items of
+   * several existing menus at a location into one new menu — WITHOUT
+   * duplicating any MenuItem/ModifierGroup row (same pattern as clone():
+   * new MenuCategory rows that link to the SAME itemId). Because brand
+   * association lives on the item itself (MenuItem.brandId), not derived
+   * from which menu it's in, every item keeps its original brand no matter
+   * how many source menus are merged. We also seed pricingVariants with a
+   * brand×channel leaf per distinct brand found among the merged items, so
+   * the HubRise publish path's per-brand `restrictions.variant_refs` (see
+   * variantRefsForBrands) works immediately without manual setup.
+   */
+  async createMasterMenu(
+    locationId: string,
+    tenantId: string,
+    dto: CreateMasterMenuDto,
+  ) {
+    const location = await this.assertLocationAccess(locationId, tenantId);
+    const sourceMenuIds = Array.from(new Set(dto.sourceMenuIds ?? []));
+    if (sourceMenuIds.length === 0) {
+      throw new BadRequestException("Select at least one menu to combine.");
+    }
+
+    const sources = await this.prisma.menu.findMany({
+      where: { id: { in: sourceMenuIds }, deletedAt: null, brand: { tenantId } },
+      include: {
+        brand: { select: { id: true, name: true } },
+        categories: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            items: {
+              orderBy: { sortOrder: "asc" },
+              include: { item: { select: { id: true, brandId: true, brandIds: true } } },
+            },
+          },
+        },
+      },
+    });
+    if (sources.length !== sourceMenuIds.length) {
+      throw new NotFoundException("One or more selected menus were not found.");
+    }
+    // Keep the requested order (findMany doesn't preserve `in` order) so
+    // category numbering/collision suffixing is deterministic.
+    const sourceById = new Map(sources.map((m) => [m.id, m]));
+    const orderedSources = sourceMenuIds
+      .map((id) => sourceById.get(id))
+      .filter((m): m is (typeof sources)[number] => !!m);
+
+    // Every distinct brand found on a merged item gets a pricing-variant
+    // leaf per channel preset, matching the manual "Add brand" flow in
+    // VariantsManagerModal — so the operator can publish per-brand prices
+    // straight away instead of re-building variants from scratch.
+    const brandIds = new Set<string>();
+    for (const menu of orderedSources) {
+      for (const cat of menu.categories) {
+        for (const link of cat.items) {
+          brandIds.add(link.item.brandId);
+          for (const b of link.item.brandIds ?? []) brandIds.add(b);
+        }
+      }
+    }
+    const brandRows = brandIds.size
+      ? await this.prisma.brand.findMany({
+          where: { id: { in: Array.from(brandIds) }, tenantId },
+          select: { id: true, name: true },
+        })
+      : [];
+    const pricingVariants: PricingVariant[] = brandRows.flatMap((b) =>
+      CHANNEL_VARIANT_PRESETS.map((preset) => ({
+        ref: brandChannelRef(b.id, preset.channelKey),
+        name: `${b.name} — ${preset.name}`,
+        channelKey: preset.channelKey,
+        brandId: b.id,
+        brandName: b.name,
+      })),
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      const master = await tx.menu.create({
+        data: {
+          brandId: location.brandId,
+          locationId,
+          name: dto.name,
+          description: dto.description,
+          status: "DRAFT",
+          pricingVariants: pricingVariants as any,
+        },
+      });
+
+      // Disambiguate categories that collide by name ONLY across different
+      // source brands (e.g. two brands both have "Sides") — keeps the
+      // common single-brand-per-source-menu case clean (no needless
+      // suffixing) while avoiding a confusing merged "Sides" that silently
+      // mixes two brands' items under one heading.
+      const nameOwner = new Map<string, string>();
+      let sortOrder = 0;
+      for (const menu of orderedSources) {
+        const ownerKey = menu.brandId;
+        for (const cat of menu.categories) {
+          const collides =
+            nameOwner.has(cat.name) && nameOwner.get(cat.name) !== ownerKey;
+          if (!nameOwner.has(cat.name)) nameOwner.set(cat.name, ownerKey);
+          const name = collides ? `${cat.name} (${menu.brand.name})` : cat.name;
+
+          const newCat = await tx.menuCategory.create({
+            data: {
+              menuId: master.id,
+              name,
+              description: cat.description ?? null,
+              imageUrl: cat.imageUrl ?? null,
+              sortOrder: sortOrder++,
+              isVisible: cat.isVisible,
+              available: cat.available,
+              visibleToCustomers: cat.visibleToCustomers,
+            },
+          });
+          for (const link of cat.items) {
+            await tx.menuItemOnCategory.create({
+              data: {
+                categoryId: newCat.id,
+                itemId: link.itemId,
+                sortOrder: link.sortOrder,
+                priceOverride: link.priceOverride,
+                isVisible: link.isVisible,
+              },
+            });
+          }
+        }
+      }
+
+      this.logger.log(
+        `Master menu ${master.id} created at location=${locationId} from menus=[${sourceMenuIds.join(", ")}] (${brandRows.length} brands)`,
+      );
+      return master;
     });
   }
 

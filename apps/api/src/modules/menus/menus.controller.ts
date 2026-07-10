@@ -28,6 +28,7 @@ import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-me
 import {
   CreateMenuDto,
   UpdateMenuDto,
+  CreateMasterMenuDto,
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateMenuItemDto,
@@ -365,6 +366,20 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.create(brandId, user.tenantId, dto);
+  }
+
+  // Phase BC — Master Menu. Combines several existing menus at a location
+  // (typically one per brand) into one new menu, so a single HubRise
+  // connection (one menu per location) can carry every brand's catalog.
+  @Post("locations/:locationId/menus/master")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Create a Master Menu combining several existing menus at a location" })
+  createMasterMenu(
+    @Param("locationId") locationId: string,
+    @Body() dto: CreateMasterMenuDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.createMasterMenu(locationId, user.tenantId, dto);
   }
 
   @Patch("menus/:menuId")
