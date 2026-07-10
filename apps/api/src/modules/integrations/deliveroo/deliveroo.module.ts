@@ -9,6 +9,7 @@ import { DeliverooController } from "./deliveroo.controller";
 import { DeliverooWebhookController } from "./deliveroo-webhook.controller";
 import { OrdersModule } from "../../orders/orders.module";
 import { DeliverooAdapter } from "../../webhooks/adapters/deliveroo.adapter";
+import { VariantPriceResolverModule } from "../../menus/variant-price-resolver.module";
 
 // Phase BA — Deliveroo direct integration. OAuth client + webhook verifier
 // (BA-1), per-brand connection + store control (BA-2), the inbound webhook
@@ -20,7 +21,7 @@ import { DeliverooAdapter } from "../../webhooks/adapters/deliveroo.adapter";
 // dependency-free normaliser reused from the webhooks module for order
 // payload parsing.
 @Module({
-  imports: [ConfigModule, OrdersModule],
+  imports: [ConfigModule, OrdersModule, VariantPriceResolverModule],
   controllers: [DeliverooController, DeliverooWebhookController],
   providers: [
     DeliverooClientService,

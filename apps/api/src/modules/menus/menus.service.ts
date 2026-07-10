@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Logger,
   Inject,
   forwardRef,
@@ -53,6 +54,18 @@ const MENU_INCLUDE = {
           },
         },
       },
+    },
+  },
+  // Phase BF — so the publish modal can pre-seed each channel's "Variant
+  // menu" toggle from what's already configured for this menu's slots.
+  assignments: {
+    select: {
+      locationId: true,
+      channel: true,
+      brandId: true,
+      publishedAt: true,
+      variantSourceMenuId: true,
+      variantRef: true,
     },
   },
 } satisfies Prisma.MenuInclude;
@@ -133,6 +146,10 @@ export class MenusService {
             channel: true,
             brandId: true,
             publishedAt: true,
+            // Phase BF — so the publish modal can pre-seed each channel's
+            // "Variant menu" toggle from what's already configured.
+            variantSourceMenuId: true,
+            variantRef: true,
           },
         },
       },
@@ -186,6 +203,10 @@ export class MenusService {
             channel: true,
             brandId: true,
             publishedAt: true,
+            // Phase BF — so the publish modal can pre-seed each channel's
+            // "Variant menu" toggle from what's already configured.
+            variantSourceMenuId: true,
+            variantRef: true,
           },
         },
       },
@@ -256,6 +277,30 @@ export class MenusService {
       }
     }
 
+    // Phase BF — variant-menu publish. Verify every referenced source menu
+    // belongs to this tenant before we let a channel slot point at it —
+    // without this a crafted menuId could leak another tenant's prices.
+    const channelVariants = dto.channelVariants;
+    if (channelVariants) {
+      const sourceMenuIds = Array.from(
+        new Set(
+          Object.values(channelVariants)
+            .map((v) => v?.variantSourceMenuId)
+            .filter((id): id is string => !!id),
+        ),
+      );
+      if (sourceMenuIds.length) {
+        const owned = await this.prisma.menu.count({
+          where: { id: { in: sourceMenuIds }, brand: { tenantId } },
+        });
+        if (owned !== sourceMenuIds.length) {
+          throw new ForbiddenException(
+            "One of the selected variant-source menus doesn't belong to this tenant.",
+          );
+        }
+      }
+    }
+
     const menuRow = await this.prisma.menu.findUnique({
       where: { id: menuId },
       select: { brandId: true, brand: { select: { tenantId: true } } },
@@ -310,8 +355,20 @@ export class MenusService {
     const [updated] = await this.prisma.$transaction([
       menuUpdate,
       ...locationIds.flatMap((locationId) =>
-        channels.map((channel) =>
-          (this.prisma as any).menuChannelAssignment.upsert({
+        channels.map((channel) => {
+          // Phase BF — only touch variantSourceMenuId/variantRef when the
+          // caller explicitly sent a config for THIS channel; omitted
+          // channels keep whatever variant setting was there before (a
+          // publish that doesn't mention "WHATSAPP" shouldn't silently
+          // clear an operator's earlier WhatsApp variant selection).
+          const variantCfg = channelVariants?.[channel];
+          const variantFields = variantCfg
+            ? {
+                variantSourceMenuId: variantCfg.variantSourceMenuId ?? null,
+                variantRef: variantCfg.variantRef ?? null,
+              }
+            : {};
+          return (this.prisma as any).menuChannelAssignment.upsert({
             where: {
               locationId_channel_brandId: {
                 locationId,
@@ -327,10 +384,11 @@ export class MenusService {
               channel,
               publishedAt: now,
               createdBy: userId ?? null,
+              ...variantFields,
             },
-            update: { menuId, publishedAt: now },
-          }),
-        ),
+            update: { menuId, publishedAt: now, ...variantFields },
+          });
+        }),
       ),
       ...(locationIds.length > 0
         ? [

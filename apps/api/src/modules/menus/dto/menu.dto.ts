@@ -122,6 +122,18 @@ export class UpdateMenuDto {
   // Plain-object array (no nested DTO) so the elements pass through the
   // global ValidationPipe untouched.
   @ApiPropertyOptional() @IsOptional() @IsArray() pricingVariants?: Array<Record<string, unknown>>;
+  // Phase BF — variant-menu publish for direct channels. Keyed by channel
+  // (ONLINE | WHATSAPP | JUST_EAT | UBER_EATS | DELIVEROO); each entry's
+  // slot prices from a DIFFERENT menu's named pricing variant instead of
+  // this menu's own base prices. `null` fields clear a previously-set
+  // variant source, reverting that channel's slot to normal pricing.
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  channelVariants?: Record<
+    string,
+    { variantSourceMenuId?: string | null; variantRef?: string | null }
+  >;
 }
 
 // ── Create category ───────────────────────────────────────────────────────────

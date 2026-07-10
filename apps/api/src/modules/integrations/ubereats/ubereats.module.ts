@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "../../auth/auth.module";
 import { IntegrationsModule } from "../integrations.module";
 import { OrdersModule } from "../../orders/orders.module";
+import { VariantPriceResolverModule } from "../../menus/variant-price-resolver.module";
 import { UberEatsClientService } from "./ubereats-client.service";
 import { UberEatsOauthService } from "./ubereats-oauth.service";
 import { UberEatsConnectionService } from "./ubereats-connection.service";
@@ -27,7 +28,13 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
   // OrdersModule is a one-way import (nothing in Orders reaches back into
   // UberEats — the outbound sync listens to the order.status_changed event),
   // so no forwardRef is needed, same as DeliverooModule.
-  imports: [ConfigModule, AuthModule, IntegrationsModule, OrdersModule],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    IntegrationsModule,
+    OrdersModule,
+    VariantPriceResolverModule,
+  ],
   controllers: [UberEatsController, UberEatsWebhookController],
   providers: [
     UberEatsClientService,

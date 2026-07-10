@@ -13,6 +13,7 @@ import { PaymentsModule } from "../payments/payments.module";
 import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
 import { MenuAssignmentsModule } from "../menus/menu-assignments.module";
+import { VariantPriceResolverModule } from "../menus/variant-price-resolver.module";
 
 // Phase AY — WhatsApp ordering channel (Meta Cloud API).
 //   P1: webhook verify + inbound parse.
@@ -20,7 +21,14 @@ import { MenuAssignmentsModule } from "../menus/menu-assignments.module";
 //       interactive replies (this module's services).
 //   P3+: order creation, payments, status replies, dashboard connect.
 @Module({
-  imports: [OrdersModule, PaymentsModule, PauseModule, MarketingModule, MenuAssignmentsModule],
+  imports: [
+    OrdersModule,
+    PaymentsModule,
+    PauseModule,
+    MarketingModule,
+    MenuAssignmentsModule,
+    VariantPriceResolverModule,
+  ],
   controllers: [WhatsAppController, WhatsAppConnectionController],
   providers: [
     WhatsAppService,

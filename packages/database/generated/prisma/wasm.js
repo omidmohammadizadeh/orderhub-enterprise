@@ -451,6 +451,8 @@ exports.Prisma.MenuChannelAssignmentScalarFieldEnum = {
   channel: 'channel',
   publishedAt: 'publishedAt',
   createdBy: 'createdBy',
+  variantSourceMenuId: 'variantSourceMenuId',
+  variantRef: 'variantRef',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2040,7 +2042,9 @@ exports.Prisma.MenuChannelAssignmentOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   brandId: 'brandId',
   channel: 'channel',
-  createdBy: 'createdBy'
+  createdBy: 'createdBy',
+  variantSourceMenuId: 'variantSourceMenuId',
+  variantRef: 'variantRef'
 };
 
 exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {

@@ -10896,12 +10896,14 @@ export namespace Prisma {
     categories: number
     versions: number
     assignments: number
+    variantSourceFor: number
   }
 
   export type MenuCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     categories?: boolean | MenuCountOutputTypeCountCategoriesArgs
     versions?: boolean | MenuCountOutputTypeCountVersionsArgs
     assignments?: boolean | MenuCountOutputTypeCountAssignmentsArgs
+    variantSourceFor?: boolean | MenuCountOutputTypeCountVariantSourceForArgs
   }
 
   // Custom InputTypes
@@ -10933,6 +10935,13 @@ export namespace Prisma {
    * MenuCountOutputType without action
    */
   export type MenuCountOutputTypeCountAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuChannelAssignmentWhereInput
+  }
+
+  /**
+   * MenuCountOutputType without action
+   */
+  export type MenuCountOutputTypeCountVariantSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuChannelAssignmentWhereInput
   }
 
@@ -29720,6 +29729,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
+    variantSourceFor?: boolean | Menu$variantSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menu"]>
 
@@ -29803,6 +29813,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
+    variantSourceFor?: boolean | Menu$variantSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29816,6 +29827,7 @@ export namespace Prisma {
       categories: Prisma.$MenuCategoryPayload<ExtArgs>[]
       versions: Prisma.$MenuVersionPayload<ExtArgs>[]
       assignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
+      variantSourceFor: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30220,6 +30232,7 @@ export namespace Prisma {
     categories<T extends Menu$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, Menu$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryPayload<ExtArgs>, T, "findMany"> | Null>
     versions<T extends Menu$versionsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuVersionPayload<ExtArgs>, T, "findMany"> | Null>
     assignments<T extends Menu$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
+    variantSourceFor<T extends Menu$variantSourceForArgs<ExtArgs> = {}>(args?: Subset<T, Menu$variantSourceForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -30661,6 +30674,26 @@ export namespace Prisma {
   }
 
   /**
+   * Menu.variantSourceFor
+   */
+  export type Menu$variantSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuChannelAssignment
+     */
+    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuChannelAssignmentInclude<ExtArgs> | null
+    where?: MenuChannelAssignmentWhereInput
+    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
+    cursor?: MenuChannelAssignmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
    * Menu without action
    */
   export type MenuDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -30694,6 +30727,8 @@ export namespace Prisma {
     channel: string | null
     publishedAt: Date | null
     createdBy: string | null
+    variantSourceMenuId: string | null
+    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -30707,6 +30742,8 @@ export namespace Prisma {
     channel: string | null
     publishedAt: Date | null
     createdBy: string | null
+    variantSourceMenuId: string | null
+    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -30720,6 +30757,8 @@ export namespace Prisma {
     channel: number
     publishedAt: number
     createdBy: number
+    variantSourceMenuId: number
+    variantRef: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -30735,6 +30774,8 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
+    variantSourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -30748,6 +30789,8 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
+    variantSourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -30761,6 +30804,8 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
+    variantSourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -30847,6 +30892,8 @@ export namespace Prisma {
     channel: string
     publishedAt: Date
     createdBy: string | null
+    variantSourceMenuId: string | null
+    variantRef: string | null
     createdAt: Date
     updatedAt: Date
     _count: MenuChannelAssignmentCountAggregateOutputType | null
@@ -30877,10 +30924,13 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
+    variantSourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }, ExtArgs["result"]["menuChannelAssignment"]>
 
   export type MenuChannelAssignmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -30892,10 +30942,13 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
+    variantSourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }, ExtArgs["result"]["menuChannelAssignment"]>
 
   export type MenuChannelAssignmentSelectScalar = {
@@ -30907,6 +30960,8 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
+    variantSourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -30914,10 +30969,12 @@ export namespace Prisma {
   export type MenuChannelAssignmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }
   export type MenuChannelAssignmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }
 
   export type $MenuChannelAssignmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -30925,6 +30982,7 @@ export namespace Prisma {
     objects: {
       menu: Prisma.$MenuPayload<ExtArgs>
       location: Prisma.$LocationPayload<ExtArgs>
+      variantSourceMenu: Prisma.$MenuPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30935,6 +30993,8 @@ export namespace Prisma {
       channel: string
       publishedAt: Date
       createdBy: string | null
+      variantSourceMenuId: string | null
+      variantRef: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["menuChannelAssignment"]>
@@ -31303,6 +31363,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     menu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    variantSourceMenu<T extends MenuChannelAssignment$variantSourceMenuArgs<ExtArgs> = {}>(args?: Subset<T, MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -31340,6 +31401,8 @@ export namespace Prisma {
     readonly channel: FieldRef<"MenuChannelAssignment", 'String'>
     readonly publishedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
     readonly createdBy: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly variantSourceMenuId: FieldRef<"MenuChannelAssignment", 'String'>
+    readonly variantRef: FieldRef<"MenuChannelAssignment", 'String'>
     readonly createdAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
     readonly updatedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
   }
@@ -31657,6 +31720,21 @@ export namespace Prisma {
      * Filter which MenuChannelAssignments to delete
      */
     where?: MenuChannelAssignmentWhereInput
+  }
+
+  /**
+   * MenuChannelAssignment.variantSourceMenu
+   */
+  export type MenuChannelAssignment$variantSourceMenuArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Menu
+     */
+    select?: MenuSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuInclude<ExtArgs> | null
+    where?: MenuWhereInput
   }
 
   /**
@@ -121884,6 +121962,8 @@ export namespace Prisma {
     channel: 'channel',
     publishedAt: 'publishedAt',
     createdBy: 'createdBy',
+    variantSourceMenuId: 'variantSourceMenuId',
+    variantRef: 'variantRef',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -123797,7 +123877,9 @@ export namespace Prisma {
     locationId: 'locationId',
     brandId: 'brandId',
     channel: 'channel',
-    createdBy: 'createdBy'
+    createdBy: 'createdBy',
+    variantSourceMenuId: 'variantSourceMenuId',
+    variantRef: 'variantRef'
   };
 
   export type MenuChannelAssignmentOrderByRelevanceFieldEnum = (typeof MenuChannelAssignmentOrderByRelevanceFieldEnum)[keyof typeof MenuChannelAssignmentOrderByRelevanceFieldEnum]
@@ -127572,6 +127654,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
+    variantSourceFor?: MenuChannelAssignmentListRelationFilter
   }
 
   export type MenuOrderByWithRelationInput = {
@@ -127613,6 +127696,7 @@ export namespace Prisma {
     categories?: MenuCategoryOrderByRelationAggregateInput
     versions?: MenuVersionOrderByRelationAggregateInput
     assignments?: MenuChannelAssignmentOrderByRelationAggregateInput
+    variantSourceFor?: MenuChannelAssignmentOrderByRelationAggregateInput
     _relevance?: MenuOrderByRelevanceInput
   }
 
@@ -127658,6 +127742,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
+    variantSourceFor?: MenuChannelAssignmentListRelationFilter
   }, "id">
 
   export type MenuOrderByWithAggregationInput = {
@@ -127754,10 +127839,13 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    variantSourceMenu?: XOR<MenuNullableRelationFilter, MenuWhereInput> | null
   }
 
   export type MenuChannelAssignmentOrderByWithRelationInput = {
@@ -127769,10 +127857,13 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    variantSourceMenuId?: SortOrderInput | SortOrder
+    variantRef?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     menu?: MenuOrderByWithRelationInput
     location?: LocationOrderByWithRelationInput
+    variantSourceMenu?: MenuOrderByWithRelationInput
     _relevance?: MenuChannelAssignmentOrderByRelevanceInput
   }
 
@@ -127789,10 +127880,13 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    variantSourceMenu?: XOR<MenuNullableRelationFilter, MenuWhereInput> | null
   }, "id" | "locationId_channel_brandId">
 
   export type MenuChannelAssignmentOrderByWithAggregationInput = {
@@ -127804,6 +127898,8 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    variantSourceMenuId?: SortOrderInput | SortOrder
+    variantRef?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MenuChannelAssignmentCountOrderByAggregateInput
@@ -127823,6 +127919,8 @@ export namespace Prisma {
     channel?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
+    variantSourceMenuId?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
+    variantRef?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
   }
@@ -138470,6 +138568,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUncheckedCreateInput = {
@@ -138510,6 +138609,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUpdateInput = {
@@ -138550,6 +138650,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateInput = {
@@ -138590,6 +138691,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuCreateManyInput = {
@@ -138709,10 +138811,12 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutAssignmentsInput
     location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateInput = {
@@ -138724,6 +138828,8 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -138735,10 +138841,12 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
     location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateInput = {
@@ -138750,6 +138858,8 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -138763,6 +138873,8 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -138774,6 +138886,7 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -138787,6 +138900,8 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -150417,6 +150532,11 @@ export namespace Prisma {
     isNot?: MenuWhereInput
   }
 
+  export type MenuNullableRelationFilter = {
+    is?: MenuWhereInput | null
+    isNot?: MenuWhereInput | null
+  }
+
   export type MenuChannelAssignmentOrderByRelevanceInput = {
     fields: MenuChannelAssignmentOrderByRelevanceFieldEnum | MenuChannelAssignmentOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -150438,6 +150558,8 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
+    variantSourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -150451,6 +150573,8 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
+    variantSourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -150464,6 +150588,8 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
+    variantSourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -159511,6 +159637,13 @@ export namespace Prisma {
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
+  export type MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
   export type MenuCategoryUncheckedCreateNestedManyWithoutMenuInput = {
     create?: XOR<MenuCategoryCreateWithoutMenuInput, MenuCategoryUncheckedCreateWithoutMenuInput> | MenuCategoryCreateWithoutMenuInput[] | MenuCategoryUncheckedCreateWithoutMenuInput[]
     connectOrCreate?: MenuCategoryCreateOrConnectWithoutMenuInput | MenuCategoryCreateOrConnectWithoutMenuInput[]
@@ -159529,6 +159662,13 @@ export namespace Prisma {
     create?: XOR<MenuChannelAssignmentCreateWithoutMenuInput, MenuChannelAssignmentUncheckedCreateWithoutMenuInput> | MenuChannelAssignmentCreateWithoutMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutMenuInput[]
     connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
     createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
@@ -159599,6 +159739,20 @@ export namespace Prisma {
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
   }
 
+  export type MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
   export type MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput = {
     create?: XOR<MenuCategoryCreateWithoutMenuInput, MenuCategoryUncheckedCreateWithoutMenuInput> | MenuCategoryCreateWithoutMenuInput[] | MenuCategoryUncheckedCreateWithoutMenuInput[]
     connectOrCreate?: MenuCategoryCreateOrConnectWithoutMenuInput | MenuCategoryCreateOrConnectWithoutMenuInput[]
@@ -159641,6 +159795,20 @@ export namespace Prisma {
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
   }
 
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput = {
+    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
+    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
+    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput[]
+    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
+    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput[]
+    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput[]
+    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
   export type MenuCreateNestedOneWithoutAssignmentsInput = {
     create?: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
     connectOrCreate?: MenuCreateOrConnectWithoutAssignmentsInput
@@ -159651,6 +159819,12 @@ export namespace Prisma {
     create?: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
     connectOrCreate?: LocationCreateOrConnectWithoutMenuAssignmentsInput
     connect?: LocationWhereUniqueInput
+  }
+
+  export type MenuCreateNestedOneWithoutVariantSourceForInput = {
+    create?: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutVariantSourceForInput
+    connect?: MenuWhereUniqueInput
   }
 
   export type MenuUpdateOneRequiredWithoutAssignmentsNestedInput = {
@@ -159667,6 +159841,16 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutMenuAssignmentsInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutMenuAssignmentsInput, LocationUpdateWithoutMenuAssignmentsInput>, LocationUncheckedUpdateWithoutMenuAssignmentsInput>
+  }
+
+  export type MenuUpdateOneWithoutVariantSourceForNestedInput = {
+    create?: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutVariantSourceForInput
+    upsert?: MenuUpsertWithoutVariantSourceForInput
+    disconnect?: MenuWhereInput | boolean
+    delete?: MenuWhereInput | boolean
+    connect?: MenuWhereUniqueInput
+    update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutVariantSourceForInput, MenuUpdateWithoutVariantSourceForInput>, MenuUncheckedUpdateWithoutVariantSourceForInput>
   }
 
   export type MenuCategoryCreatemenuIdsInput = {
@@ -169629,6 +169813,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutBrandInput = {
@@ -169668,6 +169853,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutBrandInput = {
@@ -171560,9 +171746,11 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutAssignmentsInput
+    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateWithoutLocationInput = {
@@ -171573,6 +171761,8 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -172353,6 +172543,8 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
+    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
   }
@@ -173615,9 +173807,11 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateWithoutMenuInput = {
@@ -173628,6 +173822,8 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -173639,6 +173835,44 @@ export namespace Prisma {
 
   export type MenuChannelAssignmentCreateManyMenuInputEnvelope = {
     data: MenuChannelAssignmentCreateManyMenuInput | MenuChannelAssignmentCreateManyMenuInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MenuChannelAssignmentCreateWithoutVariantSourceMenuInput = {
+    id?: string
+    tenantId?: string | null
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    variantRef?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menu: MenuCreateNestedOneWithoutAssignmentsInput
+    location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+  }
+
+  export type MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    variantRef?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    create: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput>
+  }
+
+  export type MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope = {
+    data: MenuChannelAssignmentCreateManyVariantSourceMenuInput | MenuChannelAssignmentCreateManyVariantSourceMenuInput[]
     skipDuplicates?: boolean
   }
 
@@ -173832,6 +174066,22 @@ export namespace Prisma {
     data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutMenuInput>
   }
 
+  export type MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    update: XOR<MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput>
+    create: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput>
+  }
+
+  export type MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput = {
+    where: MenuChannelAssignmentWhereUniqueInput
+    data: XOR<MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput>
+  }
+
+  export type MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput = {
+    where: MenuChannelAssignmentScalarWhereInput
+    data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuInput>
+  }
+
   export type MenuCreateWithoutAssignmentsInput = {
     id?: string
     locationId?: string | null
@@ -173869,6 +174119,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutAssignmentsInput = {
@@ -173908,6 +174159,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutAssignmentsInput = {
@@ -174064,6 +174316,91 @@ export namespace Prisma {
     create: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
   }
 
+  export type MenuCreateWithoutVariantSourceForInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutMenusInput
+    categories?: MenuCategoryCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuUncheckedCreateWithoutVariantSourceForInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuCreateOrConnectWithoutVariantSourceForInput = {
+    where: MenuWhereUniqueInput
+    create: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
+  }
+
   export type MenuUpsertWithoutAssignmentsInput = {
     update: XOR<MenuUpdateWithoutAssignmentsInput, MenuUncheckedUpdateWithoutAssignmentsInput>
     create: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
@@ -174112,6 +174449,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutAssignmentsInput = {
@@ -174151,6 +174489,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type LocationUpsertWithoutMenuAssignmentsInput = {
@@ -174308,6 +174647,97 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
+  export type MenuUpsertWithoutVariantSourceForInput = {
+    update: XOR<MenuUpdateWithoutVariantSourceForInput, MenuUncheckedUpdateWithoutVariantSourceForInput>
+    create: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
+    where?: MenuWhereInput
+  }
+
+  export type MenuUpdateToOneWithWhereWithoutVariantSourceForInput = {
+    where?: MenuWhereInput
+    data: XOR<MenuUpdateWithoutVariantSourceForInput, MenuUncheckedUpdateWithoutVariantSourceForInput>
+  }
+
+  export type MenuUpdateWithoutVariantSourceForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
+    categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+  }
+
+  export type MenuUncheckedUpdateWithoutVariantSourceForInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+  }
+
   export type MenuCreateWithoutCategoriesInput = {
     id?: string
     locationId?: string | null
@@ -174345,6 +174775,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutCategoriesInput = {
@@ -174384,6 +174815,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutCategoriesInput = {
@@ -174485,6 +174917,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutCategoriesInput = {
@@ -174524,6 +174957,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -177769,6 +178203,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutVersionsInput = {
@@ -177808,6 +178243,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutVersionsInput = {
@@ -177863,6 +178299,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutVersionsInput = {
@@ -177902,6 +178339,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type TenantCreateWithoutCustomersInput = {
@@ -196179,6 +196617,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutBrandInput = {
@@ -196218,6 +196657,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateManyWithoutBrandInput = {
@@ -197103,6 +197543,8 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -197812,9 +198254,11 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
+    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateWithoutLocationInput = {
@@ -197825,6 +198269,8 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -197837,6 +198283,8 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -197917,6 +198365,22 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
+    variantSourceMenuId?: string | null
+    variantRef?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuChannelAssignmentCreateManyVariantSourceMenuInput = {
+    id?: string
+    tenantId?: string | null
+    menuId: string
+    locationId: string
+    brandId: string
+    channel: string
+    publishedAt?: Date | string
+    createdBy?: string | null
+    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -198019,9 +198483,11 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateWithoutMenuInput = {
@@ -198032,6 +198498,8 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198044,6 +198512,50 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
+    location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
+    menuId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

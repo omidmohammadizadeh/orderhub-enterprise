@@ -46,6 +46,9 @@ export interface Menu {
     channel: string;
     brandId: string;
     publishedAt: string;
+    // Phase BF — variant-menu publish: this slot's price source, if set.
+    variantSourceMenuId?: string | null;
+    variantRef?: string | null;
   }>;
   // Phase AZ — named pricing variants (channel presets + custom) for
   // one-menu-controls-all per-channel/brand pricing.
@@ -294,6 +297,14 @@ export const menusClient = {
       brandId: string;
       // Phase AZ — named pricing variants.
       pricingVariants: PricingVariant[];
+      // Phase BF — variant-menu publish for direct channels. Keyed by
+      // channel; each entry's slot prices from a DIFFERENT menu's named
+      // variant instead of this menu's own base prices. Passing null
+      // fields clears a previously-set source, reverting to normal pricing.
+      channelVariants: Record<
+        string,
+        { variantSourceMenuId: string | null; variantRef: string | null }
+      >;
     }>,
   ) => apiClient.patch<Menu>(`/v1/menus/${menuId}`, data).then((r) => r.data),
 

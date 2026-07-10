@@ -729,9 +729,13 @@ model Menu {
   // Published to HubRise as data.variants[] + price_overrides[].
   pricingVariants Json @default("[]")
 
-  categories  MenuCategory[]
-  versions    MenuVersion[]
-  assignments MenuChannelAssignment[]
+  categories       MenuCategory[]
+  versions         MenuVersion[]
+  assignments      MenuChannelAssignment[]
+  // Other menus' channel assignments that borrow THIS menu's variant
+  // pricing (Phase BF) — e.g. this is the "Variant menu" other menus point
+  // their Uber Eats/Deliveroo/WhatsApp/Online publish at.
+  variantSourceFor MenuChannelAssignment[] @relation("VariantSourceMenu")
 
   metadata  Json     @default("{}")
   createdAt DateTime @default(now())
@@ -768,12 +772,25 @@ model MenuChannelAssignment {
   publishedAt DateTime @default(now())
   createdBy   String?
 
+  // Phase BF — variant-menu publish for direct channels. When set, this
+  // slot's price comes from ANOTHER menu's named pricing variant instead of
+  // this menu's own base prices — the same variant-pricing data already
+  // used for the shared HubRise catalog, now reusable for a direct
+  // Uber Eats/Deliveroo/WhatsApp/Online-ordering publish too. Items are
+  // matched across the two menus by externalId, falling back to a
+  // normalised name match (see VariantPriceResolverService); an item with
+  // no match or no override for this variantRef keeps its own base price.
+  variantSourceMenuId String?
+  variantSourceMenu   Menu?   @relation("VariantSourceMenu", fields: [variantSourceMenuId], references: [id], onDelete: SetNull)
+  variantRef          String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([locationId, channel, brandId])
   @@index([menuId])
   @@index([locationId, channel])
+  @@index([variantSourceMenuId])
   @@map("menu_channel_assignments")
 }
 
@@ -1250,7 +1267,7 @@ model MealDeal {
   @@map("meal_deals")
 }
 
-// ── Phase AL — Upsell Groups (master catalog) ────────────────────────────────
+// ── Phase AL �� Upsell Groups (master catalog) ────────────────────────────────
 // "Customers who added X also liked Y" — surfaced on the cart screen or in
 // the customer storefront. Trigger products are what makes the upsell fire;
 // suggested products are what gets shown.
@@ -1877,7 +1894,7 @@ model WebhookEvent {
   @@map("webhook_events")
 }
 
-// ── ActivityLog ───────────────────────────────────────────────────────────────
+// ── ActivityLog ────────────────────────────────────────────────────��──────────
 // Phase LG — operator-facing activity feed (HubRise-style "what happened").
 // One row per integration/system action: menu publishes, order pushes,
 // stock changes, store pauses. Distinct from AuditLog (security/user audit)
@@ -3133,7 +3150,7 @@ model ItemPerformanceSnapshot {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — PROVIDER / MARKETPLACE REGISTRY
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════���════════════════════════════════════════════════════════════════
 
 // Registry of all supported integration providers
 model ProviderDefinition {

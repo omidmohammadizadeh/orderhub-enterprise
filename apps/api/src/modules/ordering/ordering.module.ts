@@ -6,6 +6,7 @@ import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { InventoryModule } from "../inventory/inventory.module";
 import { MenuAssignmentsModule } from "../menus/menu-assignments.module";
+import { VariantPriceResolverModule } from "../menus/variant-price-resolver.module";
 import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
 
@@ -27,6 +28,7 @@ import { MarketingModule } from "../marketing/marketing.module";
     PaymentsModule,
     InventoryModule,
     MenuAssignmentsModule,
+    VariantPriceResolverModule,
     PauseModule,
     MarketingModule,
   ],

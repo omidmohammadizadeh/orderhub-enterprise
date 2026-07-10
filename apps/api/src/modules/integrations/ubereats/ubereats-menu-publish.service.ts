@@ -22,6 +22,10 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { UberEatsClientService } from "./ubereats-client.service";
 import {
+  VariantPriceResolverService,
+  type VariantPriceMap,
+} from "../../menus/variant-price-resolver.service";
+import {
   buildUberEatsMenu,
   toUberServiceAvailability,
 } from "./ubereats-menu.transformer";
@@ -48,6 +52,7 @@ export class UberEatsMenuPublishService {
     private readonly prisma: PrismaService,
     private readonly client: UberEatsClientService,
     private readonly config: ConfigService,
+    private readonly variantResolver: VariantPriceResolverService,
     // Optional so manually-constructed unit tests keep working.
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
@@ -115,6 +120,8 @@ export class UberEatsMenuPublishService {
         menuId,
         menuName: menu.name,
         storeId: conn.externalStoreId!,
+        locationId: targetLocationId ?? undefined,
+        brandId: targetBrandId,
       });
       this.activity?.record({
         ...logCtx,
@@ -454,6 +461,8 @@ export class UberEatsMenuPublishService {
       menuId: menu.id,
       menuName: menu.name,
       storeId: uberStoreId,
+      locationId: conn.locationId ?? undefined,
+      brandId: conn.brandId,
     });
     this.activity?.record({
       tenantId: conn.tenantId,
@@ -477,8 +486,22 @@ export class UberEatsMenuPublishService {
     menuId: string;
     menuName: string;
     storeId: string;
+    locationId?: string;
+    brandId?: string;
   }) {
-    const categories = await this.loadCategories(args.menuId);
+    // Phase BF — variant-menu publish. Only set when the operator ticked
+    // "Variant menu" for UBER_EATS on this (location, brand) slot; null
+    // otherwise, in which case every price falls back to this menu's own
+    // platformPricingOverrides["UBER_EATS"] / base price exactly as before.
+    const variantMap =
+      args.locationId && args.brandId
+        ? await this.variantResolver.forAssignment({
+            locationId: args.locationId,
+            channel: "UBER_EATS",
+            brandId: args.brandId,
+          })
+        : null;
+    const categories = await this.loadCategories(args.menuId, variantMap);
     if (categories.length === 0) {
       throw new BadRequestException(
         "This menu has no categories/items to publish.",
@@ -567,7 +590,10 @@ export class UberEatsMenuPublishService {
     return v != null && Number.isFinite(Number(v)) ? Number(v) : fallback;
   }
 
-  private async loadCategories(menuId: string): Promise<SrcCategory[]> {
+  private async loadCategories(
+    menuId: string,
+    variantMap: VariantPriceMap | null,
+  ): Promise<SrcCategory[]> {
     const cats = await this.prisma.menuCategory.findMany({
       where: { menuId, isVisible: true },
       orderBy: { sortOrder: "asc" },
@@ -597,7 +623,10 @@ export class UberEatsMenuPublishService {
       }
     }
 
-    const groupsByItem = await this.loadGroupsByItem(Array.from(singleItemIds));
+    const groupsByItem = await this.loadGroupsByItem(
+      Array.from(singleItemIds),
+      variantMap,
+    );
     const groupsById = await this.loadGroupsById(Array.from(skuGroupIds));
 
     return cats.map((c) => ({
@@ -607,7 +636,7 @@ export class UberEatsMenuPublishService {
       products: c.items
         .filter((l) => l.isVisible && l.item)
         .flatMap((l) =>
-          this.toSrcProducts(l, skusByItem, groupsByItem, groupsById),
+          this.toSrcProducts(l, skusByItem, groupsByItem, groupsById, variantMap),
         ),
     }));
   }
@@ -633,6 +662,7 @@ export class UberEatsMenuPublishService {
     skusByItem: Map<string, ProductSku[]>,
     groupsByItem: Map<string, SrcGroup[]>,
     groupsById: Map<string, any>,
+    variantMap: VariantPriceMap | null,
   ) {
     const it = link.item;
     const taxRate = Number(it.deliveryTax);
@@ -654,10 +684,12 @@ export class UberEatsMenuPublishService {
             .map((o: any) => ({
               id: `${o.id}__${this.sizeSlug(sizeKey)}`,
               name: o.name,
-              price: this.uberPrice(
-                o.platformPricingOverrides,
-                getModifierPrice(o, sizeKey),
-              ),
+              price:
+                variantMap?.optionPrice(o) ??
+                this.uberPrice(
+                  o.platformPricingOverrides,
+                  getModifierPrice(o, sizeKey),
+                ),
               plu: getModifierPlu(o, sizeKey) ?? o.id,
               taxRate: Number(o.deliveryTax),
               available: o.isAvailable !== false,
@@ -674,10 +706,9 @@ export class UberEatsMenuPublishService {
           });
         }
         // Per-SKU variant override (pricing variants keyed by platform ref).
-        const skuPrice = this.uberPrice(
-          (sku as any).priceOverrides,
-          Number(sku.price) || 0,
-        );
+        const skuPrice =
+          variantMap?.skuPrice(it, sku) ??
+          this.uberPrice((sku as any).priceOverrides, Number(sku.price) || 0);
         return {
           id: `${it.id}__s${i}`,
           name: `${it.name} - ${sku.name}`,
@@ -701,7 +732,9 @@ export class UberEatsMenuPublishService {
         id: it.id,
         name: it.name,
         description: it.description ?? null,
-        price: this.uberPrice(it.platformPricingOverrides, basePrice),
+        price:
+          variantMap?.itemPrice(it) ??
+          this.uberPrice(it.platformPricingOverrides, basePrice),
         plu: it.plu ?? it.sku ?? null,
         taxRate,
         imageUrl,
@@ -715,6 +748,9 @@ export class UberEatsMenuPublishService {
     return String(key).replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "x";
   }
 
+  // Note: no variantMap param here — this loader returns raw groups; the
+  // caller (toSrcProducts, multi-SKU inline group building) applies pricing
+  // itself with the variantMap it already has.
   private async loadGroupsById(groupIds: string[]): Promise<Map<string, any>> {
     const out = new Map<string, any>();
     if (groupIds.length === 0) return out;
@@ -733,6 +769,7 @@ export class UberEatsMenuPublishService {
 
   private async loadGroupsByItem(
     itemIds: string[],
+    variantMap: VariantPriceMap | null,
   ): Promise<Map<string, SrcGroup[]>> {
     const out = new Map<string, SrcGroup[]>();
     if (itemIds.length === 0) return out;
@@ -765,10 +802,12 @@ export class UberEatsMenuPublishService {
         options: (g.options ?? []).map((o) => ({
           id: o.id,
           name: o.name,
-          price: this.uberPrice(
-            (o as any).platformPricingOverrides,
-            Number(o.priceAdjustment),
-          ),
+          price:
+            variantMap?.optionPrice(o) ??
+            this.uberPrice(
+              (o as any).platformPricingOverrides,
+              Number(o.priceAdjustment),
+            ),
           plu: o.plu ?? null,
           taxRate: Number(o.deliveryTax),
           available: o.isAvailable !== false,

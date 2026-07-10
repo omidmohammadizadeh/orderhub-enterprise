@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
+import { VariantPriceResolverService } from "../menus/variant-price-resolver.service";
 
 // Phase AY (P2) — serves the LIVE published menu for the location behind a
 // WhatsApp business number. We do NOT push a catalog to Meta (unlike HubRise);
@@ -94,6 +95,8 @@ export class WhatsAppMenuService {
     private readonly config: ConfigService,
     // Phase BA — serving-assignment resolver (assignment-first menu pick).
     private readonly menuAssignments: MenuAssignmentsService,
+    // Phase BF — variant-menu publish (price from a different menu's variant).
+    private readonly variantResolver: VariantPriceResolverService,
   ) {}
 
   /** Resolve the location + live menu for an inbound WhatsApp message. */
@@ -120,6 +123,18 @@ export class WhatsAppMenuService {
       this.logger.warn(`WhatsApp location ${locationId} not found`);
       return null;
     }
+
+    // Phase BF — variant-menu publish. Only set when the operator ticked
+    // "Variant menu" for WHATSAPP on this (location, brand) slot; null
+    // otherwise, in which case every price falls back to normal (base
+    // price / category priceOverride) exactly as before.
+    const variantMap = location.brandId
+      ? await this.variantResolver.forAssignment({
+          locationId: location.id,
+          channel: "WHATSAPP",
+          brandId: location.brandId,
+        })
+      : null;
 
     // Operator-pinned menu wins (set in the WhatsApp panel). Falls back to the
     // storefront rule: location-scoped active menu, then brand-scoped.
@@ -240,7 +255,11 @@ export class WhatsAppMenuService {
         const options: WaMenuModifierOption[] = (g.options ?? [])
           .filter((o: any) => o.visibleToCustomers)
           .map((o: any) => {
-            const opt = { id: o.id, name: o.name, price: Number(o.priceAdjustment) };
+            const opt = {
+              id: o.id,
+              name: o.name,
+              price: variantMap?.optionPrice(o) ?? Number(o.priceAdjustment),
+            };
             optionIndex.set(o.id, { groupId: g.id, itemId: waItemId, option: opt });
             return opt;
           });
@@ -288,7 +307,7 @@ export class WhatsAppMenuService {
               id: waId,
               name: `${item.name} (${sizeName})`,
               description: item.description ?? undefined,
-              price: Number(sku?.price ?? 0),
+              price: variantMap?.skuPrice(item, sku) ?? Number(sku?.price ?? 0),
               imageUrl: item.imageUrl ?? undefined,
               categoryName: category.name,
               modifierGroups: toWaGroups(groups, waId),
@@ -302,7 +321,9 @@ export class WhatsAppMenuService {
             id: item.id,
             name: item.name,
             description: item.description ?? undefined,
-            price: Number(link.priceOverride ?? item.basePrice),
+            price:
+              variantMap?.itemPrice(item) ??
+              Number(link.priceOverride ?? item.basePrice),
             imageUrl: item.imageUrl ?? undefined,
             categoryName: category.name,
             modifierGroups: toWaGroups(groups, item.id),

@@ -13,6 +13,10 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { DeliverooClientService } from "./deliveroo-client.service";
 import {
+  VariantPriceResolverService,
+  type VariantPriceMap,
+} from "../../menus/variant-price-resolver.service";
+import {
   buildDeliverooMenu,
   type SrcCategory,
   type SrcGroup,
@@ -39,6 +43,7 @@ export class DeliverooMenuPublishService {
     private readonly prisma: PrismaService,
     private readonly client: DeliverooClientService,
     private readonly config: ConfigService,
+    private readonly variantResolver: VariantPriceResolverService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
 
@@ -108,7 +113,18 @@ export class DeliverooMenuPublishService {
       );
     }
 
-    const categories = await this.loadCategories(menuId);
+    // Phase BF — variant-menu publish. Only set when the operator ticked
+    // "Variant menu" for DELIVEROO on this (location, brand) slot; null
+    // otherwise, in which case every price falls back to normal (base
+    // price / category priceOverride) exactly as before.
+    const variantMap = targetLocationId
+      ? await this.variantResolver.forAssignment({
+          locationId: targetLocationId,
+          channel: "DELIVEROO",
+          brandId: menu.brandId,
+        })
+      : null;
+    const categories = await this.loadCategories(menuId, variantMap);
     if (categories.length === 0) {
       throw new BadRequestException(
         "This menu has no categories/items to publish.",
@@ -211,7 +227,10 @@ export class DeliverooMenuPublishService {
    * its own item at the 12-inch price with the 12-inch modifier groups (each
    * option priced from the size-aware pricesBySize map).
    */
-  private async loadCategories(menuId: string): Promise<SrcCategory[]> {
+  private async loadCategories(
+    menuId: string,
+    variantMap: VariantPriceMap | null,
+  ): Promise<SrcCategory[]> {
     const cats = await this.prisma.menuCategory.findMany({
       where: { menuId, isVisible: true },
       orderBy: { sortOrder: "asc" },
@@ -245,7 +264,10 @@ export class DeliverooMenuPublishService {
       }
     }
 
-    const groupsByItem = await this.loadGroupsByItem(Array.from(singleItemIds));
+    const groupsByItem = await this.loadGroupsByItem(
+      Array.from(singleItemIds),
+      variantMap,
+    );
     const groupsById = await this.loadGroupsById(Array.from(skuGroupIds));
 
     return cats.map((c) => ({
@@ -255,7 +277,7 @@ export class DeliverooMenuPublishService {
       products: c.items
         .filter((l) => l.isVisible && l.item)
         .flatMap((l) =>
-          this.toSrcProducts(l, skusByItem, groupsByItem, groupsById),
+          this.toSrcProducts(l, skusByItem, groupsByItem, groupsById, variantMap),
         ),
     }));
   }
@@ -283,6 +305,7 @@ export class DeliverooMenuPublishService {
     skusByItem: Map<string, ProductSku[]>,
     groupsByItem: Map<string, SrcGroup[]>,
     groupsById: Map<string, any>,
+    variantMap: VariantPriceMap | null,
   ): SrcProduct[] {
     const it = link.item;
     const taxRate = Number(it.deliveryTax);
@@ -304,7 +327,7 @@ export class DeliverooMenuPublishService {
             .map((o: any) => ({
               id: `${o.id}__${this.sizeSlug(sizeKey)}`,
               name: o.name,
-              price: getModifierPrice(o, sizeKey),
+              price: variantMap?.optionPrice(o) ?? getModifierPrice(o, sizeKey),
               plu: getModifierPlu(o, sizeKey) ?? o.id,
               taxRate: Number(o.deliveryTax),
               available: o.isAvailable !== false,
@@ -324,7 +347,7 @@ export class DeliverooMenuPublishService {
           id: `${it.id}__s${i}`,
           name: `${it.name} - ${sku.name}`,
           description: it.description ?? null,
-          price: Number(sku.price) || 0,
+          price: variantMap?.skuPrice(it, sku) ?? (Number(sku.price) || 0),
           plu: sku.plu || it.plu || it.id,
           taxRate,
           imageUrl,
@@ -336,9 +359,10 @@ export class DeliverooMenuPublishService {
 
     // Single-price item.
     const price =
-      link.priceOverride != null
+      variantMap?.itemPrice(it) ??
+      (link.priceOverride != null
         ? Number(link.priceOverride)
-        : Number(it.basePrice);
+        : Number(it.basePrice));
     return [
       {
         id: it.id,
@@ -380,6 +404,7 @@ export class DeliverooMenuPublishService {
 
   private async loadGroupsByItem(
     itemIds: string[],
+    variantMap: VariantPriceMap | null,
   ): Promise<Map<string, SrcGroup[]>> {
     const out = new Map<string, SrcGroup[]>();
     if (itemIds.length === 0) return out;
@@ -412,7 +437,7 @@ export class DeliverooMenuPublishService {
         options: (g.options ?? []).map((o) => ({
           id: o.id,
           name: o.name,
-          price: Number(o.priceAdjustment),
+          price: variantMap?.optionPrice(o) ?? Number(o.priceAdjustment),
           plu: o.plu ?? null,
           taxRate: Number(o.deliveryTax),
           available: o.isAvailable !== false,

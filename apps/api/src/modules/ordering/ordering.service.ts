@@ -10,6 +10,10 @@ import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
+import {
+  VariantPriceResolverService,
+  type VariantPriceMap,
+} from "../menus/variant-price-resolver.service";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 
@@ -65,6 +69,8 @@ export class OrderingService {
     private readonly menuAvailability: MenuAvailabilityService,
     // Phase BA — serving-assignment resolver (assignment-first menu pick).
     private readonly menuAssignments: MenuAssignmentsService,
+    // Phase BF — variant-menu publish (price from a different menu's variant).
+    private readonly variantResolver: VariantPriceResolverService,
     // Phase AW-15 — resolve current pause state so the storefront can
     // render the "currently not accepting orders" banner and checkout
     // can refuse to land a new Order against a paused brand.
@@ -280,6 +286,20 @@ export class OrderingService {
             orderBy: { updatedAt: "desc" },
             include: menuInclude,
           })));
+
+    // Phase BF — variant-menu publish. Only set when the operator ticked
+    // "Variant menu" for ONLINE on this (location, brand) slot; null
+    // otherwise, in which case every price stays exactly as stored on the
+    // menu (unchanged behaviour). Mutates the resolved menu's item/SKU/
+    // option prices in place before it's returned to the customer.
+    if (menu) {
+      const variantMap = await this.variantResolver.forAssignment({
+        locationId: location.id,
+        channel: "ONLINE",
+        brandId: menuBrandId,
+      });
+      if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
+    }
 
     // Phase AP — surface the direct-ordering config + delivery zones so
     // the storefront can render prep times, accepted methods, and auto-
@@ -1183,6 +1203,37 @@ export class OrderingService {
   // already exist in the served menu map to themselves; ids with no
   // equivalent (item not on this menu) are omitted. Stable keys, in order:
   // externalId (survives re-imports/republishes), then normalised name.
+  /**
+   * Phase BF — overwrite each item/SKU/modifier-option price in place with
+   * its override from `variantMap`, when one exists; anything with no
+   * override for this variant keeps its own stored price untouched. Called
+   * on the menu object right before it's returned to the customer, so the
+   * storefront never has to know variant pricing exists.
+   */
+  private applyVariantPriceOverrides(menu: any, variantMap: VariantPriceMap): void {
+    for (const category of menu.categories ?? []) {
+      for (const link of category.items ?? []) {
+        const item = link.item;
+        if (!item) continue;
+        if (item.hasMultipleSkus && Array.isArray(item.productSkus)) {
+          for (const sku of item.productSkus) {
+            const override = variantMap.skuPrice(item, sku);
+            if (override !== undefined) sku.price = override;
+          }
+        } else {
+          const override = variantMap.itemPrice(item);
+          if (override !== undefined) item.basePrice = override;
+        }
+        for (const gl of item.modifierGroupLinks ?? []) {
+          for (const opt of gl.group?.options ?? []) {
+            const override = variantMap.optionPrice(opt);
+            if (override !== undefined) opt.priceAdjustment = override;
+          }
+        }
+      }
+    }
+  }
+
   private async anchorPromoItemsToServedMenu(
     menu: any,
     referencedIds: string[],

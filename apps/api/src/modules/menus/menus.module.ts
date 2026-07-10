@@ -14,6 +14,7 @@ import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { UberEatsModule } from '../integrations/ubereats/ubereats.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { MenuAssignmentsModule } from './menu-assignments.module';
+import { VariantPriceResolverModule } from './variant-price-resolver.module';
 import { QUEUES } from '@orderhub/shared';
 
 @Module({
@@ -33,6 +34,8 @@ import { QUEUES } from '@orderhub/shared';
     forwardRef(() => InventoryModule),
     // Phase BA — serving-assignment resolver (cycle-free: only Prisma).
     MenuAssignmentsModule,
+    // Phase BF — variant-menu publish resolver (cycle-free: only Prisma).
+    VariantPriceResolverModule,
   ],
   controllers: [MenusController],
   providers: [
