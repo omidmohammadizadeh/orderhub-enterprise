@@ -13,6 +13,7 @@ import { X, Plus, Trash2, Sparkles, Store } from "lucide-react";
 import {
   CHANNEL_VARIANT_PRESETS,
   brandChannelRef,
+  slugifyChannelKey,
   type PricingVariant,
 } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,9 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
   const [leaves, setLeaves] = useState<PricingVariant[]>([]);
   const [groups, setGroups] = useState<BrandGroup[]>([]);
   const [addBrandId, setAddBrandId] = useState("");
+  // Free-text custom channel name being typed, per brand (Careem, Talabat,
+  // WhatsApp, Online ordering, POS, ...) — not limited to the 3 presets.
+  const [customChannel, setCustomChannel] = useState<Record<string, string>>({});
 
   const { data: brands = [] } = useQuery({
     queryKey: ["brands"],
@@ -106,6 +110,18 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
 
   const removeLeaf = (ref: string) =>
     setLeaves(leaves.filter((l) => l.ref !== ref));
+
+  const addCustomChannel = (g: BrandGroup) => {
+    const name = (customChannel[g.brandId] ?? "").trim();
+    const channelKey = slugifyChannelKey(name);
+    if (!name || !channelKey) return;
+    if (leaves.some((l) => l.brandId === g.brandId && l.channelKey === channelKey)) {
+      setCustomChannel({ ...customChannel, [g.brandId]: "" });
+      return;
+    }
+    addChannel(g, channelKey, name);
+    setCustomChannel({ ...customChannel, [g.brandId]: "" });
+  };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
@@ -200,6 +216,31 @@ export function VariantsManagerModal({ open, menuId, variants, onClose }: Props)
                           ))}
                         </div>
                       )}
+                      {/* Any other channel — Careem, Talabat, WhatsApp,
+                          Online ordering, POS, etc. Not limited to presets. */}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <input
+                          value={customChannel[g.brandId] ?? ""}
+                          onChange={(e) =>
+                            setCustomChannel({ ...customChannel, [g.brandId]: e.target.value })
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addCustomChannel(g);
+                            }
+                          }}
+                          placeholder="Other channel (Careem, Talabat, WhatsApp…)"
+                          className="h-7 flex-1 rounded-full border border-dashed border-zinc-200 bg-white px-3 text-xs focus:border-violet-400 focus:outline-none"
+                        />
+                        <button
+                          onClick={() => addCustomChannel(g)}
+                          disabled={!(customChannel[g.brandId] ?? "").trim()}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:border-violet-300 hover:bg-violet-50 disabled:opacity-40"
+                        >
+                          <Plus className="h-3 w-3" /> Add
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

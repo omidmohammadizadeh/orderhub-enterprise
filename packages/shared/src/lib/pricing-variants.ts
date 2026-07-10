@@ -41,6 +41,18 @@ export function brandChannelRef(brandId: string, channelKey: string): string {
   return `${brandId}__${channelKey}`;
 }
 
+/** Turn a free-text channel name into a stable UPPER_SNAKE key, for custom
+ *  channels beyond the built-in presets (e.g. "Careem", "Talabat", "WhatsApp",
+ *  "Online ordering" -> "ONLINE_ORDERING"). Empty when the name has no
+ *  alphanumeric characters — callers should reject that case. */
+export function slugifyChannelKey(name: string): string {
+  return name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 /** Built-in channel presets an operator can one-click add as variants.
  *  Refs deliberately equal the keys already used in
  *  MenuItem.platformPricingOverrides so existing per-channel prices map

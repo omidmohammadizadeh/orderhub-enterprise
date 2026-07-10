@@ -22,6 +22,7 @@ import { X, Plus, Store } from "lucide-react";
 import {
   CHANNEL_VARIANT_PRESETS,
   brandChannelRef,
+  slugifyChannelKey,
   type PricingVariant,
 } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
@@ -178,8 +179,12 @@ export function ProductVariantPricingModal({
   };
 
   // Which channels are active per brand (init from the menu's existing
-  // variants for these brands; operator can add more inline).
-  const [active, setActive] = useState<Record<string, string[]>>({});
+  // variants for these brands; operator can add more inline — including
+  // custom channels beyond the 3 presets, e.g. Careem/Talabat/WhatsApp).
+  // Keeping {channelKey, name} (not just the key) so a custom channel's
+  // typed name survives — CHANNEL_VARIANT_PRESETS only covers the 3 presets.
+  const [active, setActive] = useState<Record<string, Array<{ channelKey: string; name: string }>>>({});
+  const [customChannel, setCustomChannel] = useState<Record<string, string>>({});
   const [itemOv, setItemOv] = useState<OvMap>({});
   const [skuOv, setSkuOv] = useState<OvMap[]>([]);
   const [optOv, setOptOv] = useState<Record<string, OvMap>>({});
@@ -188,11 +193,19 @@ export function ProductVariantPricingModal({
 
   useEffect(() => {
     if (!open) return;
-    const init: Record<string, string[]> = {};
+    const init: Record<string, Array<{ channelKey: string; name: string }>> = {};
     for (const bId of productBrandIds) init[bId] = [];
     for (const v of variants ?? []) {
       const arr = v.brandId ? init[v.brandId] : undefined;
-      if (arr && v.channelKey && !arr.includes(v.channelKey)) arr.push(v.channelKey);
+      if (arr && v.channelKey && !arr.some((c) => c.channelKey === v.channelKey)) {
+        // Persisted name is "Brand — Channel" (see save() below) — take
+        // everything after the first " — " as the channel-only label so a
+        // custom channel's typed name round-trips correctly.
+        const label = v.name.includes(" — ")
+          ? v.name.split(" — ").slice(1).join(" — ")
+          : v.name;
+        arr.push({ channelKey: v.channelKey, name: label });
+      }
     }
     setActive(init);
     setSelectedBrand((cur) =>
@@ -233,13 +246,12 @@ export function ProductVariantPricingModal({
     for (const bId of productBrandIds) {
       const bName = brandLabel(bId);
       for (const ch of active[bId] ?? []) {
-        const preset = CHANNEL_VARIANT_PRESETS.find((c) => c.channelKey === ch);
         out.push({
-          ref: brandChannelRef(bId, ch),
+          ref: brandChannelRef(bId, ch.channelKey),
           brandId: bId,
           brandName: bName,
-          channelKey: ch,
-          channelName: preset?.name ?? ch,
+          channelKey: ch.channelKey,
+          channelName: ch.name,
         });
       }
     }
@@ -263,17 +275,29 @@ export function ProductVariantPricingModal({
     return out;
   };
 
-  const addChannel = (brandId: string, channelKey: string) =>
+  const addChannel = (brandId: string, channelKey: string, name: string) =>
     setActive((prev) => ({
       ...prev,
-      [brandId]: [...(prev[brandId] ?? []), channelKey],
+      [brandId]: [...(prev[brandId] ?? []), { channelKey, name }],
     }));
 
   const removeChannel = (brandId: string, channelKey: string) =>
     setActive((prev) => ({
       ...prev,
-      [brandId]: (prev[brandId] ?? []).filter((c) => c !== channelKey),
+      [brandId]: (prev[brandId] ?? []).filter((c) => c.channelKey !== channelKey),
     }));
+
+  const addCustomChannel = (brandId: string) => {
+    const name = (customChannel[brandId] ?? "").trim();
+    const channelKey = slugifyChannelKey(name);
+    if (!name || !channelKey) return;
+    if ((active[brandId] ?? []).some((c) => c.channelKey === channelKey)) {
+      setCustomChannel({ ...customChannel, [brandId]: "" });
+      return;
+    }
+    addChannel(brandId, channelKey, name);
+    setCustomChannel({ ...customChannel, [brandId]: "" });
+  };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -432,37 +456,55 @@ export function ProductVariantPricingModal({
               <>
                 {/* Channel chips for the selected brand */}
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {(active[selectedBrand] ?? []).map((ch) => {
-                    const preset = CHANNEL_VARIANT_PRESETS.find(
-                      (c) => c.channelKey === ch,
-                    );
-                    return (
-                      <span
-                        key={ch}
-                        className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700"
+                  {(active[selectedBrand] ?? []).map((ch) => (
+                    <span
+                      key={ch.channelKey}
+                      className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700"
+                    >
+                      {ch.name}
+                      <button
+                        onClick={() => removeChannel(selectedBrand, ch.channelKey)}
+                        className="text-violet-400 hover:text-violet-700"
+                        aria-label="Remove channel"
                       >
-                        {preset?.name ?? ch}
-                        <button
-                          onClick={() => removeChannel(selectedBrand, ch)}
-                          className="text-violet-400 hover:text-violet-700"
-                          aria-label="Remove channel"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    );
-                  })}
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
                   {CHANNEL_VARIANT_PRESETS.filter(
-                    (c) => !(active[selectedBrand] ?? []).includes(c.channelKey),
+                    (c) => !(active[selectedBrand] ?? []).some((x) => x.channelKey === c.channelKey),
                   ).map((c) => (
                     <button
                       key={c.channelKey}
-                      onClick={() => addChannel(selectedBrand, c.channelKey)}
+                      onClick={() => addChannel(selectedBrand, c.channelKey, c.name)}
                       className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
                     >
                       <Plus className="h-3 w-3" /> {c.name}
                     </button>
                   ))}
+                  {/* Any other channel — Careem, Talabat, WhatsApp, Online
+                      ordering, POS, etc. Not limited to presets. */}
+                  <input
+                    value={customChannel[selectedBrand] ?? ""}
+                    onChange={(e) =>
+                      setCustomChannel({ ...customChannel, [selectedBrand]: e.target.value })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomChannel(selectedBrand);
+                      }
+                    }}
+                    placeholder="Other channel…"
+                    className="h-7 w-40 rounded-full border border-dashed border-zinc-200 bg-white px-3 text-xs focus:border-violet-400 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => addCustomChannel(selectedBrand)}
+                    disabled={!(customChannel[selectedBrand] ?? "").trim()}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:border-violet-300 hover:bg-violet-50 disabled:opacity-40"
+                  >
+                    <Plus className="h-3 w-3" /> Add
+                  </button>
                 </div>
 
                 {/* Pricing table for the selected brand */}
