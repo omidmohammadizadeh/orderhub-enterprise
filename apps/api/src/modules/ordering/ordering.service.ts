@@ -287,16 +287,15 @@ export class OrderingService {
             include: menuInclude,
           })));
 
-    // Phase BF — variant-menu publish. Only set when the operator ticked
-    // "Variant menu" for ONLINE on this (location, brand) slot; null
-    // otherwise, in which case every price stays exactly as stored on the
-    // menu (unchanged behaviour). Mutates the resolved menu's item/SKU/
-    // option prices in place before it's returned to the customer.
+    // Phase BF — variant-menu publish. Only set when the brand's Channels
+    // settings name a source menu for ONLINE; null otherwise, in which
+    // case every price stays exactly as stored on the menu (unchanged
+    // behaviour). Mutates the resolved menu's item/SKU/option prices in
+    // place before it's returned to the customer.
     if (menu) {
-      const variantMap = await this.variantResolver.forAssignment({
-        locationId: location.id,
-        channel: "ONLINE",
+      const variantMap = await this.variantResolver.forBrandChannel({
         brandId: menuBrandId,
+        channel: "ONLINE",
       });
       if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
     }

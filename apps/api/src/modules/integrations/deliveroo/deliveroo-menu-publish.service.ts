@@ -113,17 +113,14 @@ export class DeliverooMenuPublishService {
       );
     }
 
-    // Phase BF — variant-menu publish. Only set when the operator ticked
-    // "Variant menu" for DELIVEROO on this (location, brand) slot; null
-    // otherwise, in which case every price falls back to normal (base
-    // price / category priceOverride) exactly as before.
-    const variantMap = targetLocationId
-      ? await this.variantResolver.forAssignment({
-          locationId: targetLocationId,
-          channel: "DELIVEROO",
-          brandId: menu.brandId,
-        })
-      : null;
+    // Phase BF — variant-menu publish. Only set when the brand's Channels
+    // settings name a source menu for DELIVEROO; null otherwise, in which
+    // case every price falls back to normal (base price / category
+    // priceOverride) exactly as before.
+    const variantMap = await this.variantResolver.forBrandChannel({
+      brandId: menu.brandId,
+      channel: "DELIVEROO",
+    });
     const categories = await this.loadCategories(menuId, variantMap);
     if (categories.length === 0) {
       throw new BadRequestException(

@@ -451,8 +451,15 @@ exports.Prisma.MenuChannelAssignmentScalarFieldEnum = {
   channel: 'channel',
   publishedAt: 'publishedAt',
   createdBy: 'createdBy',
-  variantSourceMenuId: 'variantSourceMenuId',
-  variantRef: 'variantRef',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BrandChannelSourceScalarFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  channel: 'channel',
+  sourceMenuId: 'sourceMenuId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2042,9 +2049,14 @@ exports.Prisma.MenuChannelAssignmentOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   brandId: 'brandId',
   channel: 'channel',
-  createdBy: 'createdBy',
-  variantSourceMenuId: 'variantSourceMenuId',
-  variantRef: 'variantRef'
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.BrandChannelSourceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  brandId: 'brandId',
+  channel: 'channel',
+  sourceMenuId: 'sourceMenuId'
 };
 
 exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
@@ -3331,6 +3343,7 @@ exports.Prisma.ModelName = {
   Integration: 'Integration',
   Menu: 'Menu',
   MenuChannelAssignment: 'MenuChannelAssignment',
+  BrandChannelSource: 'BrandChannelSource',
   MenuCategory: 'MenuCategory',
   MenuItem: 'MenuItem',
   ChannelPause: 'ChannelPause',

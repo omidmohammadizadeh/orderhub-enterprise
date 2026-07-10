@@ -124,15 +124,14 @@ export class WhatsAppMenuService {
       return null;
     }
 
-    // Phase BF — variant-menu publish. Only set when the operator ticked
-    // "Variant menu" for WHATSAPP on this (location, brand) slot; null
-    // otherwise, in which case every price falls back to normal (base
-    // price / category priceOverride) exactly as before.
+    // Phase BF — variant-menu publish. Only set when the brand's Channels
+    // settings name a source menu for WHATSAPP; null otherwise, in which
+    // case every price falls back to normal (base price / category
+    // priceOverride) exactly as before.
     const variantMap = location.brandId
-      ? await this.variantResolver.forAssignment({
-          locationId: location.id,
-          channel: "WHATSAPP",
+      ? await this.variantResolver.forBrandChannel({
           brandId: location.brandId,
+          channel: "WHATSAPP",
         })
       : null;
 

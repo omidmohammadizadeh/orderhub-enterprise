@@ -1,15 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { brandChannelRef } from "@orderhub/shared";
 
-// Phase BF — variant-menu publish for direct channels. Lets a menu's
-// (location, channel, brand) publish slot price itself from a NAMED PRICING
-// VARIANT defined on a DIFFERENT ("source") menu — e.g. one central menu
-// holds every brand's per-channel prices (the "Variant menu"), and every
-// other menu's Uber Eats/Deliveroo/WhatsApp/Online publish can point at it
-// instead of re-entering prices. This is genuinely new: HubRise's existing
-// variant publish (hubrise-catalog.service.ts) only ever reads overrides
-// from the SAME menu being published — nothing before this resolved a
-// variant from a different menu.
+// Phase BF — variant-menu publish for direct channels. Lets a BRAND'S
+// per-channel pricing (a standing setting, brand's Channels tab) come from
+// a NAMED PRICING VARIANT defined on a DIFFERENT ("source") menu — e.g. one
+// central menu holds every brand's per-channel prices (the "Variant
+// menu"), and each brand's Uber Eats/Deliveroo/WhatsApp/Online channel
+// points at it once. Mirrors how HubRise already resolves per-brand
+// pricing in one shared catalog (a variant already carries its own brandId
+// + channelKey) — no separate "pick a variant" step, and it applies to
+// EVERY future publish for that channel, not just the one active when it
+// was configured. This cross-menu resolution is genuinely new: HubRise's
+// existing variant publish (hubrise-catalog.service.ts) only ever reads
+// overrides from the SAME menu being published — nothing before this
+// resolved a variant from a different menu.
 //
 // Items are matched across the two menus by externalId, falling back to a
 // normalised name match — the same strategy ordering.service.ts's
@@ -178,28 +183,24 @@ export class VariantPriceResolverService {
   }
 
   /**
-   * Convenience: look up the (location, channel, brand) assignment and
-   * return its variant price map, or null when this slot isn't configured
-   * for variant-menu publish (the caller should fall back to normal
-   * pricing — this is opt-in per slot, not a replacement for it).
+   * Standing per-(brand, channel) lookup — mirrors how HubRise already
+   * resolves per-brand pricing in a shared catalog: the variant is already
+   * tagged with its own brandId + channelKey, so once the brand's
+   * "Channels" settings name a source menu, the variant ref is derived
+   * automatically (brandChannelRef) — no separate "pick a variant" step,
+   * and no re-selection on every future publish. Returns null when this
+   * brand+channel has no source menu configured (the caller falls back to
+   * normal pricing — this is opt-in, not a replacement for it).
    */
-  async forAssignment(args: {
-    tenantId?: string;
-    locationId: string;
-    channel: string;
+  async forBrandChannel(args: {
     brandId: string;
+    channel: string;
   }): Promise<VariantPriceMap | null> {
-    const assignment = await (this.prisma as any).menuChannelAssignment.findUnique({
-      where: {
-        locationId_channel_brandId: {
-          locationId: args.locationId,
-          channel: args.channel,
-          brandId: args.brandId,
-        },
-      },
-      select: { variantSourceMenuId: true, variantRef: true },
+    const source = await (this.prisma as any).brandChannelSource.findUnique({
+      where: { brandId_channel: { brandId: args.brandId, channel: args.channel } },
+      select: { sourceMenuId: true },
     });
-    if (!assignment?.variantSourceMenuId || !assignment?.variantRef) return null;
-    return this.buildPriceMap(assignment.variantSourceMenuId, assignment.variantRef);
+    if (!source?.sourceMenuId) return null;
+    return this.buildPriceMap(source.sourceMenuId, brandChannelRef(args.brandId, args.channel));
   }
 }

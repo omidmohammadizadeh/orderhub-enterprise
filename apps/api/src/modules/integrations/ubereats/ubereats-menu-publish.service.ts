@@ -120,7 +120,6 @@ export class UberEatsMenuPublishService {
         menuId,
         menuName: menu.name,
         storeId: conn.externalStoreId!,
-        locationId: targetLocationId ?? undefined,
         brandId: targetBrandId,
       });
       this.activity?.record({
@@ -461,7 +460,6 @@ export class UberEatsMenuPublishService {
       menuId: menu.id,
       menuName: menu.name,
       storeId: uberStoreId,
-      locationId: conn.locationId ?? undefined,
       brandId: conn.brandId,
     });
     this.activity?.record({
@@ -486,21 +484,18 @@ export class UberEatsMenuPublishService {
     menuId: string;
     menuName: string;
     storeId: string;
-    locationId?: string;
     brandId?: string;
   }) {
-    // Phase BF — variant-menu publish. Only set when the operator ticked
-    // "Variant menu" for UBER_EATS on this (location, brand) slot; null
-    // otherwise, in which case every price falls back to this menu's own
+    // Phase BF — variant-menu publish. Only set when the brand's Channels
+    // settings name a source menu for UBER_EATS; null otherwise, in which
+    // case every price falls back to this menu's own
     // platformPricingOverrides["UBER_EATS"] / base price exactly as before.
-    const variantMap =
-      args.locationId && args.brandId
-        ? await this.variantResolver.forAssignment({
-            locationId: args.locationId,
-            channel: "UBER_EATS",
-            brandId: args.brandId,
-          })
-        : null;
+    const variantMap = args.brandId
+      ? await this.variantResolver.forBrandChannel({
+          brandId: args.brandId,
+          channel: "UBER_EATS",
+        })
+      : null;
     const categories = await this.loadCategories(args.menuId, variantMap);
     if (categories.length === 0) {
       throw new BadRequestException(

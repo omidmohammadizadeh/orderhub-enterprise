@@ -14,8 +14,8 @@
 // landed against MenuConfig.publishedTo.
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { X, Check, ChevronLeft, Loader2, Sparkles } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { X, Check, ChevronLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
@@ -25,30 +25,6 @@ import {
   type Brand,
 } from "@/lib/api/locations.client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
-
-// Phase BF — channels that can price themselves from a DIFFERENT menu's
-// named pricing variant instead of this menu's own base prices. HubRise
-// already has its own dedicated "Pricing variants" manager (one shared
-// catalog resolves every brand's variant itself); POS always uses this
-// menu's own default prices — neither needs this per-channel picker.
-const VARIANT_CAPABLE_CHANNELS = new Set([
-  "ONLINE",
-  "WHATSAPP",
-  "JUST_EAT",
-  "UBER_EATS",
-  "DELIVEROO",
-]);
-
-interface ChannelVariantConfig {
-  enabled: boolean;
-  sourceMenuId: string;
-  variantRef: string;
-}
-const EMPTY_VARIANT_CONFIG: ChannelVariantConfig = {
-  enabled: false,
-  sourceMenuId: "",
-  variantRef: "",
-};
 
 interface Props {
   open: boolean;
@@ -145,21 +121,6 @@ export function PublishMenuModal({
   // where the menu is currently live (assignments) plus the dashboard's
   // selected location.
   const [selLocations, setSelLocations] = useState<Set<string>>(new Set());
-  // Phase BF — per-channel "Variant menu" config: price this channel's
-  // slot from a named variant on a DIFFERENT menu instead of this menu's
-  // own base prices. Keyed by channel id.
-  const [channelVariant, setChannelVariant] = useState<
-    Record<string, ChannelVariantConfig>
-  >({});
-
-  // Full menu (with assignments, incl. any existing variant config) — only
-  // needed to pre-seed channelVariant on reopen; the rest of the modal
-  // already works off the lighter props passed in.
-  const menuQuery = useQuery({
-    queryKey: ["menu", menuId, "publish-modal"],
-    queryFn: () => menusClient.getMenu(menuId),
-    enabled: open,
-  });
 
   // Re-seed on every open so the modal shows the menu's current state.
   useEffect(() => {
@@ -170,67 +131,8 @@ export function PublishMenuModal({
       const seed = new Set(assignedLocationIds ?? []);
       if (locationId) seed.add(locationId);
       setSelLocations(seed);
-      setChannelVariant({});
     }
   }, [open, initiallyPublishedTo, currentBrandId, locationId, assignedLocationIds]);
-
-  // Pre-seed channelVariant once the menu's assignments load — first
-  // matching row (by channel, at any of this menu's serving locations)
-  // wins; if different locations have different configs today, this
-  // picker will apply one uniform choice across every ticked location,
-  // same as publishedTo/brandId already do.
-  useEffect(() => {
-    const assignments = menuQuery.data?.assignments;
-    if (!open || !assignments) return;
-    const seed: Record<string, ChannelVariantConfig> = {};
-    for (const a of assignments) {
-      if (a.variantSourceMenuId && a.variantRef && !seed[a.channel]) {
-        seed[a.channel] = {
-          enabled: true,
-          sourceMenuId: a.variantSourceMenuId,
-          variantRef: a.variantRef,
-        };
-      }
-    }
-    if (Object.keys(seed).length) setChannelVariant((prev) => ({ ...seed, ...prev }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, menuQuery.data]);
-
-  // Menus available at the current location, for the "borrow pricing from"
-  // picker. Keyed off the dashboard's selected location (available from
-  // the very first step, before the location/brand steps run).
-  const menuOptionsQuery = useQuery({
-    queryKey: ["menus", "location", locationId, "publish-modal"],
-    queryFn: () => menusClient.listMenusForLocation(locationId!),
-    enabled: open && !!locationId,
-  });
-  const menuOptions = (menuOptionsQuery.data ?? []).filter((m) => m.id !== menuId);
-
-  // Fetch pricingVariants for every distinct source menu currently chosen
-  // across channels (almost always 0 or 1 in practice — one central
-  // "Variant menu" — but this supports picking a different source per
-  // channel too).
-  const distinctSourceMenuIds = Array.from(
-    new Set(Object.values(channelVariant).map((c) => c.sourceMenuId).filter(Boolean)),
-  );
-  const sourceMenuQueries = useQueries({
-    queries: distinctSourceMenuIds.map((id) => ({
-      queryKey: ["menu", id, "variants-only"],
-      queryFn: () => menusClient.getMenu(id),
-      enabled: open,
-    })),
-  });
-  const variantsForSourceMenu = (sourceMenuId: string) =>
-    sourceMenuQueries[distinctSourceMenuIds.indexOf(sourceMenuId)]?.data?.pricingVariants ?? [];
-
-  const setChannelVariantField = (
-    channel: string,
-    patch: Partial<ChannelVariantConfig>,
-  ) =>
-    setChannelVariant((prev) => ({
-      ...prev,
-      [channel]: { ...(prev[channel] ?? EMPTY_VARIANT_CONFIG), ...patch },
-    }));
 
   const locationsQuery = useQuery({
     queryKey: ["locations"],
@@ -260,35 +162,16 @@ export function PublishMenuModal({
       // locationIds is only sent when the flow actually showed the
       // location step (HubRise/WhatsApp-only publishes skip it and must
       // not touch assignments).
-      // Phase BF — a channel's variant config is written onto the SAME
-      // per-(location, channel, brand) assignment row publishedTo already
-      // writes, so it needs locationIds sent even for HubRise/WhatsApp-only
-      // publishes (which otherwise skip the location step entirely — those
-      // channels resolve their own location, so publishedTo alone doesn't
-      // need it, but the assignment row that carries the variant config
-      // does).
-      const hasVariantConfig = Object.keys(channelVariant).length > 0;
       const pickedLocations =
         !next.includes("HUBRISE") && !next.includes("WHATSAPP")
           ? Array.from(selLocations)
-          : hasVariantConfig
-            ? Array.from(selLocations)
-            : null;
-      const channelVariantsPayload = Object.fromEntries(
-        Object.entries(channelVariant).map(([channel, cfg]) => [
-          channel,
-          cfg.enabled && cfg.sourceMenuId && cfg.variantRef
-            ? { variantSourceMenuId: cfg.sourceMenuId, variantRef: cfg.variantRef }
-            : { variantSourceMenuId: null, variantRef: null },
-        ]),
-      );
+          : null;
       await menusClient.updateMenu(menuId, {
         publishedTo: next,
         brandId,
         ...(pickedLocations && pickedLocations.length > 0 && {
           locationIds: pickedLocations,
         }),
-        ...(hasVariantConfig && { channelVariants: channelVariantsPayload }),
         ...(anyWired && { status: "PUBLISHED" as const, isActive: true }),
       } as any);
       // Step 2 — fire the real external pushes. POS / Online ordering need
@@ -419,109 +302,42 @@ export function PublishMenuModal({
           {step === "channels" ? (
             TARGETS.map((t) => {
               const isOn = selected.has(t.id);
-              const variantCapable = VARIANT_CAPABLE_CHANNELS.has(t.id);
-              const cfg = channelVariant[t.id] ?? EMPTY_VARIANT_CONFIG;
               return (
-                <div key={t.id}>
-                  <button
-                    type="button"
-                    onClick={() => toggle(t.id)}
-                    className={`relative w-full flex items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggle(t.id)}
+                  className={`relative w-full flex items-center gap-4 rounded-xl border p-4 text-left transition-colors ${
+                    isOn
+                      ? "border-orange-300 bg-orange-50"
+                      : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                  }`}
+                >
+                  <PlatformLogo platform={t.id} size={44} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {t.title}
+                    </p>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {t.description}
+                    </p>
+                    {!t.wired && (
+                      <p className="text-[10px] text-amber-700 mt-1.5">
+                        Channel integration coming soon — connect in
+                        Integrations first.
+                      </p>
+                    )}
+                  </div>
+                  <span
+                    className={`grid h-5 w-5 place-items-center rounded border-2 flex-shrink-0 ${
                       isOn
-                        ? "border-orange-300 bg-orange-50"
-                        : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
-                    } ${isOn && variantCapable && cfg.enabled ? "rounded-b-none border-b-0" : ""}`}
+                        ? "border-orange-500 bg-orange-500 text-white"
+                        : "border-zinc-300 bg-white"
+                    }`}
                   >
-                    <PlatformLogo platform={t.id} size={44} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900">
-                        {t.title}
-                      </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
-                        {t.description}
-                      </p>
-                      {!t.wired && (
-                        <p className="text-[10px] text-amber-700 mt-1.5">
-                          Channel integration coming soon — connect in
-                          Integrations first.
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`grid h-5 w-5 place-items-center rounded border-2 flex-shrink-0 ${
-                        isOn
-                          ? "border-orange-500 bg-orange-500 text-white"
-                          : "border-zinc-300 bg-white"
-                      }`}
-                    >
-                      {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </span>
-                  </button>
-                  {isOn && variantCapable && (
-                    <div
-                      className={`rounded-b-xl border border-t-0 border-orange-300 bg-orange-50/60 px-4 pb-3 pt-2`}
-                    >
-                      <label className="flex items-center gap-2 text-xs font-medium text-zinc-700">
-                        <input
-                          type="checkbox"
-                          checked={cfg.enabled}
-                          onChange={(e) =>
-                            setChannelVariantField(t.id, { enabled: e.target.checked })
-                          }
-                          className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
-                        />
-                        <Sparkles className="h-3.5 w-3.5 text-violet-500" />
-                        Variant menu — price this channel from another menu's
-                        variant
-                      </label>
-                      {cfg.enabled && (
-                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                          <select
-                            value={cfg.sourceMenuId}
-                            onChange={(e) =>
-                              setChannelVariantField(t.id, {
-                                sourceMenuId: e.target.value,
-                                variantRef: "",
-                              })
-                            }
-                            className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs focus:border-violet-400 focus:outline-none"
-                          >
-                            <option value="">
-                              {menuOptionsQuery.isLoading
-                                ? "Loading menus…"
-                                : "Pick a menu…"}
-                            </option>
-                            {menuOptions.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.name}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={cfg.variantRef}
-                            disabled={!cfg.sourceMenuId}
-                            onChange={(e) =>
-                              setChannelVariantField(t.id, { variantRef: e.target.value })
-                            }
-                            className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs focus:border-violet-400 focus:outline-none disabled:opacity-50"
-                          >
-                            <option value="">Pick a variant…</option>
-                            {variantsForSourceMenu(cfg.sourceMenuId).map((v) => (
-                              <option key={v.ref} value={v.ref}>
-                                {v.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      {cfg.enabled && cfg.sourceMenuId && !cfg.variantRef && (
-                        <p className="mt-1.5 text-[10px] text-amber-700">
-                          Pick a variant, or this channel keeps its own prices.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
+                  </span>
+                </button>
               );
             })
           ) : step === "location" ? (

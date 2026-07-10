@@ -185,6 +185,79 @@ export class BrandsService {
     return brand;
   }
 
+  // ── Channel pricing sources (Phase BF) ──────────────────────────────────
+  //
+  // Standing per-(brand, channel) setting: "this channel's Uber Eats/
+  // Deliveroo/WhatsApp/Online-ordering/Just-Eat pricing comes from THIS
+  // menu's variant for this brand+channel." Mirrors how HubRise already
+  // works — a pricing variant is already tagged with its own brandId +
+  // channelKey (brandChannelRef), so picking a source menu here is the
+  // ONLY step; the exact variant is resolved automatically at publish
+  // time by VariantPriceResolverService, every time, not just once.
+
+  private static readonly CHANNELS = [
+    "ONLINE",
+    "WHATSAPP",
+    "JUST_EAT",
+    "UBER_EATS",
+    "DELIVEROO",
+  ] as const;
+
+  async getChannelSources(brandId: string, tenantId: string) {
+    await this.findOne(brandId, tenantId); // 404s if not ours
+    const rows = await (this.prisma as any).brandChannelSource.findMany({
+      where: { brandId },
+      include: { sourceMenu: { select: { id: true, name: true } } },
+    });
+    const byChannel = new Map(rows.map((r: any) => [r.channel, r]));
+    return BrandsService.CHANNELS.map((channel) => {
+      const row = byChannel.get(channel) as any;
+      return {
+        channel,
+        sourceMenuId: row?.sourceMenu?.id ?? null,
+        sourceMenuName: row?.sourceMenu?.name ?? null,
+      };
+    });
+  }
+
+  async setChannelSource(
+    brandId: string,
+    tenantId: string,
+    channel: string,
+    sourceMenuId: string | null,
+  ) {
+    if (!BrandsService.CHANNELS.includes(channel as any)) {
+      throw new BadRequestException(`Unknown channel: ${channel}`);
+    }
+    await this.findOne(brandId, tenantId); // 404s if not ours
+
+    if (!sourceMenuId) {
+      await (this.prisma as any).brandChannelSource.deleteMany({
+        where: { brandId, channel },
+      });
+      return { channel, sourceMenuId: null, sourceMenuName: null };
+    }
+
+    // The source menu just needs to belong to this tenant — it doesn't
+    // have to be assigned to THIS brand; a shared "Variant menu" carrying
+    // every brand's pricing (tagged per-brand via pricingVariants) is
+    // exactly the intended use case.
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: sourceMenuId, deletedAt: null, brand: { tenantId } },
+      select: { id: true, name: true },
+    });
+    if (!menu) {
+      throw new NotFoundException("Source menu not found for this tenant");
+    }
+
+    await (this.prisma as any).brandChannelSource.upsert({
+      where: { brandId_channel: { brandId, channel } },
+      create: { brandId, channel, sourceMenuId },
+      update: { sourceMenuId },
+    });
+    return { channel, sourceMenuId: menu.id, sourceMenuName: menu.name };
+  }
+
   async create(tenantId: string, dto: CreateBrandDto) {
     const slug = dto.slug ?? slugify(dto.name);
     const existing = await this.prisma.brand.findUnique({

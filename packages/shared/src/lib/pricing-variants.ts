@@ -66,6 +66,13 @@ export const CHANNEL_VARIANT_PRESETS: ReadonlyArray<ChannelPreset> = [
   { channelKey: "UBER_EATS", name: "Uber Eats" },
   { channelKey: "DELIVEROO", name: "Deliveroo" },
   { channelKey: "JUST_EAT", name: "Just Eat" },
+  // Phase BF — these channelKeys are also the exact direct-publish channel
+  // constants (ordering/whatsapp), so a brand's "Channels" setting can
+  // auto-derive brandChannelRef(brandId, "ONLINE"|"WHATSAPP") with no
+  // separate variant-picker step, the same way it already does for the
+  // three marketplace presets above.
+  { channelKey: "ONLINE", name: "Online ordering" },
+  { channelKey: "WHATSAPP", name: "WhatsApp" },
 ];
 
 /** Coerce a stored JSON value into a clean PricingVariant[]. Tolerates

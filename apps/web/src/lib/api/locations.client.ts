@@ -214,6 +214,28 @@ export const brandsClient = {
         {},
       )
       .then((r) => r.data),
+  // Phase BF — per-(brand, channel) pricing source menu. Standing setting:
+  // once picked, every future publish to that channel for this brand
+  // resolves its own brandChannelRef variant from the chosen menu — no
+  // per-publish re-selection, same as HubRise already resolves per-brand
+  // pricing in a shared catalog.
+  getChannelSources: (brandId: string) =>
+    apiClient
+      .get<
+        Array<{
+          channel: string;
+          sourceMenuId: string | null;
+          sourceMenuName: string | null;
+        }>
+      >(`/v1/brands/${brandId}/channel-sources`)
+      .then((r) => r.data),
+  setChannelSource: (brandId: string, channel: string, sourceMenuId: string | null) =>
+    apiClient
+      .patch<{ channel: string; sourceMenuId: string | null; sourceMenuName: string | null }>(
+        `/v1/brands/${brandId}/channel-sources/${channel}`,
+        { sourceMenuId },
+      )
+      .then((r) => r.data),
 };
 
 // ── Brand-platform connections ──

@@ -99,6 +99,11 @@ export type Menu = $Result.DefaultSelection<Prisma.$MenuPayload>
  */
 export type MenuChannelAssignment = $Result.DefaultSelection<Prisma.$MenuChannelAssignmentPayload>
 /**
+ * Model BrandChannelSource
+ * 
+ */
+export type BrandChannelSource = $Result.DefaultSelection<Prisma.$BrandChannelSourcePayload>
+/**
  * Model MenuCategory
  * 
  */
@@ -1640,6 +1645,16 @@ export class PrismaClient<
   get menuChannelAssignment(): Prisma.MenuChannelAssignmentDelegate<ExtArgs>;
 
   /**
+   * `prisma.brandChannelSource`: Exposes CRUD operations for the **BrandChannelSource** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BrandChannelSources
+    * const brandChannelSources = await prisma.brandChannelSource.findMany()
+    * ```
+    */
+  get brandChannelSource(): Prisma.BrandChannelSourceDelegate<ExtArgs>;
+
+  /**
    * `prisma.menuCategory`: Exposes CRUD operations for the **MenuCategory** model.
     * Example usage:
     * ```ts
@@ -2946,6 +2961,7 @@ export namespace Prisma {
     Integration: 'Integration',
     Menu: 'Menu',
     MenuChannelAssignment: 'MenuChannelAssignment',
+    BrandChannelSource: 'BrandChannelSource',
     MenuCategory: 'MenuCategory',
     MenuItem: 'MenuItem',
     ChannelPause: 'ChannelPause',
@@ -3046,7 +3062,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4237,6 +4253,76 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuChannelAssignmentCountArgs<ExtArgs>
             result: $Utils.Optional<MenuChannelAssignmentCountAggregateOutputType> | number
+          }
+        }
+      }
+      BrandChannelSource: {
+        payload: Prisma.$BrandChannelSourcePayload<ExtArgs>
+        fields: Prisma.BrandChannelSourceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BrandChannelSourceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BrandChannelSourceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          findFirst: {
+            args: Prisma.BrandChannelSourceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BrandChannelSourceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          findMany: {
+            args: Prisma.BrandChannelSourceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>[]
+          }
+          create: {
+            args: Prisma.BrandChannelSourceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          createMany: {
+            args: Prisma.BrandChannelSourceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BrandChannelSourceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>[]
+          }
+          delete: {
+            args: Prisma.BrandChannelSourceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          update: {
+            args: Prisma.BrandChannelSourceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          deleteMany: {
+            args: Prisma.BrandChannelSourceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BrandChannelSourceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BrandChannelSourceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BrandChannelSourcePayload>
+          }
+          aggregate: {
+            args: Prisma.BrandChannelSourceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBrandChannelSource>
+          }
+          groupBy: {
+            args: Prisma.BrandChannelSourceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BrandChannelSourceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BrandChannelSourceCountArgs<ExtArgs>
+            result: $Utils.Optional<BrandChannelSourceCountAggregateOutputType> | number
           }
         }
       }
@@ -10661,6 +10747,7 @@ export namespace Prisma {
     userBrands: number
     marketingCampaigns: number
     deliveryZones: number
+    channelSources: number
   }
 
   export type BrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10674,6 +10761,7 @@ export namespace Prisma {
     userBrands?: boolean | BrandCountOutputTypeCountUserBrandsArgs
     marketingCampaigns?: boolean | BrandCountOutputTypeCountMarketingCampaignsArgs
     deliveryZones?: boolean | BrandCountOutputTypeCountDeliveryZonesArgs
+    channelSources?: boolean | BrandCountOutputTypeCountChannelSourcesArgs
   }
 
   // Custom InputTypes
@@ -10755,6 +10843,13 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountDeliveryZonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DeliveryZoneWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountChannelSourcesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandChannelSourceWhereInput
   }
 
 
@@ -10896,14 +10991,14 @@ export namespace Prisma {
     categories: number
     versions: number
     assignments: number
-    variantSourceFor: number
+    channelSourceFor: number
   }
 
   export type MenuCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     categories?: boolean | MenuCountOutputTypeCountCategoriesArgs
     versions?: boolean | MenuCountOutputTypeCountVersionsArgs
     assignments?: boolean | MenuCountOutputTypeCountAssignmentsArgs
-    variantSourceFor?: boolean | MenuCountOutputTypeCountVariantSourceForArgs
+    channelSourceFor?: boolean | MenuCountOutputTypeCountChannelSourceForArgs
   }
 
   // Custom InputTypes
@@ -10941,8 +11036,8 @@ export namespace Prisma {
   /**
    * MenuCountOutputType without action
    */
-  export type MenuCountOutputTypeCountVariantSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: MenuChannelAssignmentWhereInput
+  export type MenuCountOutputTypeCountChannelSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandChannelSourceWhereInput
   }
 
 
@@ -24103,6 +24198,7 @@ export namespace Prisma {
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
+    channelSources?: boolean | Brand$channelSourcesArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["brand"]>
@@ -24196,6 +24292,7 @@ export namespace Prisma {
     userBrands?: boolean | Brand$userBrandsArgs<ExtArgs>
     marketingCampaigns?: boolean | Brand$marketingCampaignsArgs<ExtArgs>
     deliveryZones?: boolean | Brand$deliveryZonesArgs<ExtArgs>
+    channelSources?: boolean | Brand$channelSourcesArgs<ExtArgs>
     defaultStation?: boolean | Brand$defaultStationArgs<ExtArgs>
     _count?: boolean | BrandCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -24219,6 +24316,7 @@ export namespace Prisma {
       userBrands: Prisma.$UserBrandPayload<ExtArgs>[]
       marketingCampaigns: Prisma.$MarketingCampaignPayload<ExtArgs>[]
       deliveryZones: Prisma.$DeliveryZonePayload<ExtArgs>[]
+      channelSources: Prisma.$BrandChannelSourcePayload<ExtArgs>[]
       defaultStation: Prisma.$PrinterStationPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -24632,6 +24730,7 @@ export namespace Prisma {
     userBrands<T extends Brand$userBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$userBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBrandPayload<ExtArgs>, T, "findMany"> | Null>
     marketingCampaigns<T extends Brand$marketingCampaignsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$marketingCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketingCampaignPayload<ExtArgs>, T, "findMany"> | Null>
     deliveryZones<T extends Brand$deliveryZonesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$deliveryZonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DeliveryZonePayload<ExtArgs>, T, "findMany"> | Null>
+    channelSources<T extends Brand$channelSourcesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$channelSourcesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findMany"> | Null>
     defaultStation<T extends Brand$defaultStationArgs<ExtArgs> = {}>(args?: Subset<T, Brand$defaultStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -25226,6 +25325,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: DeliveryZoneScalarFieldEnum | DeliveryZoneScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.channelSources
+   */
+  export type Brand$channelSourcesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    where?: BrandChannelSourceWhereInput
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    cursor?: BrandChannelSourceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
   }
 
   /**
@@ -29729,7 +29848,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
-    variantSourceFor?: boolean | Menu$variantSourceForArgs<ExtArgs>
+    channelSourceFor?: boolean | Menu$channelSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menu"]>
 
@@ -29813,7 +29932,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
-    variantSourceFor?: boolean | Menu$variantSourceForArgs<ExtArgs>
+    channelSourceFor?: boolean | Menu$channelSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MenuIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29827,7 +29946,7 @@ export namespace Prisma {
       categories: Prisma.$MenuCategoryPayload<ExtArgs>[]
       versions: Prisma.$MenuVersionPayload<ExtArgs>[]
       assignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
-      variantSourceFor: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
+      channelSourceFor: Prisma.$BrandChannelSourcePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30232,7 +30351,7 @@ export namespace Prisma {
     categories<T extends Menu$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, Menu$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryPayload<ExtArgs>, T, "findMany"> | Null>
     versions<T extends Menu$versionsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuVersionPayload<ExtArgs>, T, "findMany"> | Null>
     assignments<T extends Menu$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
-    variantSourceFor<T extends Menu$variantSourceForArgs<ExtArgs> = {}>(args?: Subset<T, Menu$variantSourceForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
+    channelSourceFor<T extends Menu$channelSourceForArgs<ExtArgs> = {}>(args?: Subset<T, Menu$channelSourceForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -30674,23 +30793,23 @@ export namespace Prisma {
   }
 
   /**
-   * Menu.variantSourceFor
+   * Menu.channelSourceFor
    */
-  export type Menu$variantSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Menu$channelSourceForArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the MenuChannelAssignment
+     * Select specific fields to fetch from the BrandChannelSource
      */
-    select?: MenuChannelAssignmentSelect<ExtArgs> | null
+    select?: BrandChannelSourceSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: MenuChannelAssignmentInclude<ExtArgs> | null
-    where?: MenuChannelAssignmentWhereInput
-    orderBy?: MenuChannelAssignmentOrderByWithRelationInput | MenuChannelAssignmentOrderByWithRelationInput[]
-    cursor?: MenuChannelAssignmentWhereUniqueInput
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    where?: BrandChannelSourceWhereInput
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    cursor?: BrandChannelSourceWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+    distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
   }
 
   /**
@@ -30727,8 +30846,6 @@ export namespace Prisma {
     channel: string | null
     publishedAt: Date | null
     createdBy: string | null
-    variantSourceMenuId: string | null
-    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -30742,8 +30859,6 @@ export namespace Prisma {
     channel: string | null
     publishedAt: Date | null
     createdBy: string | null
-    variantSourceMenuId: string | null
-    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -30757,8 +30872,6 @@ export namespace Prisma {
     channel: number
     publishedAt: number
     createdBy: number
-    variantSourceMenuId: number
-    variantRef: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -30774,8 +30887,6 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
-    variantSourceMenuId?: true
-    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -30789,8 +30900,6 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
-    variantSourceMenuId?: true
-    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -30804,8 +30913,6 @@ export namespace Prisma {
     channel?: true
     publishedAt?: true
     createdBy?: true
-    variantSourceMenuId?: true
-    variantRef?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -30892,8 +30999,6 @@ export namespace Prisma {
     channel: string
     publishedAt: Date
     createdBy: string | null
-    variantSourceMenuId: string | null
-    variantRef: string | null
     createdAt: Date
     updatedAt: Date
     _count: MenuChannelAssignmentCountAggregateOutputType | null
@@ -30924,13 +31029,10 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
-    variantSourceMenuId?: boolean
-    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
-    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }, ExtArgs["result"]["menuChannelAssignment"]>
 
   export type MenuChannelAssignmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -30942,13 +31044,10 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
-    variantSourceMenuId?: boolean
-    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
-    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }, ExtArgs["result"]["menuChannelAssignment"]>
 
   export type MenuChannelAssignmentSelectScalar = {
@@ -30960,8 +31059,6 @@ export namespace Prisma {
     channel?: boolean
     publishedAt?: boolean
     createdBy?: boolean
-    variantSourceMenuId?: boolean
-    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -30969,12 +31066,10 @@ export namespace Prisma {
   export type MenuChannelAssignmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
-    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }
   export type MenuChannelAssignmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     menu?: boolean | MenuDefaultArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
-    variantSourceMenu?: boolean | MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>
   }
 
   export type $MenuChannelAssignmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -30982,7 +31077,6 @@ export namespace Prisma {
     objects: {
       menu: Prisma.$MenuPayload<ExtArgs>
       location: Prisma.$LocationPayload<ExtArgs>
-      variantSourceMenu: Prisma.$MenuPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -30993,8 +31087,6 @@ export namespace Prisma {
       channel: string
       publishedAt: Date
       createdBy: string | null
-      variantSourceMenuId: string | null
-      variantRef: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["menuChannelAssignment"]>
@@ -31363,7 +31455,6 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     menu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    variantSourceMenu<T extends MenuChannelAssignment$variantSourceMenuArgs<ExtArgs> = {}>(args?: Subset<T, MenuChannelAssignment$variantSourceMenuArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -31401,8 +31492,6 @@ export namespace Prisma {
     readonly channel: FieldRef<"MenuChannelAssignment", 'String'>
     readonly publishedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
     readonly createdBy: FieldRef<"MenuChannelAssignment", 'String'>
-    readonly variantSourceMenuId: FieldRef<"MenuChannelAssignment", 'String'>
-    readonly variantRef: FieldRef<"MenuChannelAssignment", 'String'>
     readonly createdAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
     readonly updatedAt: FieldRef<"MenuChannelAssignment", 'DateTime'>
   }
@@ -31723,21 +31812,6 @@ export namespace Prisma {
   }
 
   /**
-   * MenuChannelAssignment.variantSourceMenu
-   */
-  export type MenuChannelAssignment$variantSourceMenuArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Menu
-     */
-    select?: MenuSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: MenuInclude<ExtArgs> | null
-    where?: MenuWhereInput
-  }
-
-  /**
    * MenuChannelAssignment without action
    */
   export type MenuChannelAssignmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -31749,6 +31823,957 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MenuChannelAssignmentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BrandChannelSource
+   */
+
+  export type AggregateBrandChannelSource = {
+    _count: BrandChannelSourceCountAggregateOutputType | null
+    _min: BrandChannelSourceMinAggregateOutputType | null
+    _max: BrandChannelSourceMaxAggregateOutputType | null
+  }
+
+  export type BrandChannelSourceMinAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    channel: string | null
+    sourceMenuId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BrandChannelSourceMaxAggregateOutputType = {
+    id: string | null
+    brandId: string | null
+    channel: string | null
+    sourceMenuId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BrandChannelSourceCountAggregateOutputType = {
+    id: number
+    brandId: number
+    channel: number
+    sourceMenuId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BrandChannelSourceMinAggregateInputType = {
+    id?: true
+    brandId?: true
+    channel?: true
+    sourceMenuId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BrandChannelSourceMaxAggregateInputType = {
+    id?: true
+    brandId?: true
+    channel?: true
+    sourceMenuId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BrandChannelSourceCountAggregateInputType = {
+    id?: true
+    brandId?: true
+    channel?: true
+    sourceMenuId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BrandChannelSourceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BrandChannelSource to aggregate.
+     */
+    where?: BrandChannelSourceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandChannelSources to fetch.
+     */
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BrandChannelSourceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandChannelSources from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandChannelSources.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BrandChannelSources
+    **/
+    _count?: true | BrandChannelSourceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BrandChannelSourceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BrandChannelSourceMaxAggregateInputType
+  }
+
+  export type GetBrandChannelSourceAggregateType<T extends BrandChannelSourceAggregateArgs> = {
+        [P in keyof T & keyof AggregateBrandChannelSource]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBrandChannelSource[P]>
+      : GetScalarType<T[P], AggregateBrandChannelSource[P]>
+  }
+
+
+
+
+  export type BrandChannelSourceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BrandChannelSourceWhereInput
+    orderBy?: BrandChannelSourceOrderByWithAggregationInput | BrandChannelSourceOrderByWithAggregationInput[]
+    by: BrandChannelSourceScalarFieldEnum[] | BrandChannelSourceScalarFieldEnum
+    having?: BrandChannelSourceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BrandChannelSourceCountAggregateInputType | true
+    _min?: BrandChannelSourceMinAggregateInputType
+    _max?: BrandChannelSourceMaxAggregateInputType
+  }
+
+  export type BrandChannelSourceGroupByOutputType = {
+    id: string
+    brandId: string
+    channel: string
+    sourceMenuId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: BrandChannelSourceCountAggregateOutputType | null
+    _min: BrandChannelSourceMinAggregateOutputType | null
+    _max: BrandChannelSourceMaxAggregateOutputType | null
+  }
+
+  type GetBrandChannelSourceGroupByPayload<T extends BrandChannelSourceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BrandChannelSourceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BrandChannelSourceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BrandChannelSourceGroupByOutputType[P]>
+            : GetScalarType<T[P], BrandChannelSourceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BrandChannelSourceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    channel?: boolean
+    sourceMenuId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    sourceMenu?: boolean | MenuDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["brandChannelSource"]>
+
+  export type BrandChannelSourceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    brandId?: boolean
+    channel?: boolean
+    sourceMenuId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    sourceMenu?: boolean | MenuDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["brandChannelSource"]>
+
+  export type BrandChannelSourceSelectScalar = {
+    id?: boolean
+    brandId?: boolean
+    channel?: boolean
+    sourceMenuId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BrandChannelSourceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    sourceMenu?: boolean | MenuDefaultArgs<ExtArgs>
+  }
+  export type BrandChannelSourceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    sourceMenu?: boolean | MenuDefaultArgs<ExtArgs>
+  }
+
+  export type $BrandChannelSourcePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BrandChannelSource"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+      sourceMenu: Prisma.$MenuPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      brandId: string
+      channel: string
+      sourceMenuId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["brandChannelSource"]>
+    composites: {}
+  }
+
+  type BrandChannelSourceGetPayload<S extends boolean | null | undefined | BrandChannelSourceDefaultArgs> = $Result.GetResult<Prisma.$BrandChannelSourcePayload, S>
+
+  type BrandChannelSourceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BrandChannelSourceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BrandChannelSourceCountAggregateInputType | true
+    }
+
+  export interface BrandChannelSourceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BrandChannelSource'], meta: { name: 'BrandChannelSource' } }
+    /**
+     * Find zero or one BrandChannelSource that matches the filter.
+     * @param {BrandChannelSourceFindUniqueArgs} args - Arguments to find a BrandChannelSource
+     * @example
+     * // Get one BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BrandChannelSourceFindUniqueArgs>(args: SelectSubset<T, BrandChannelSourceFindUniqueArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BrandChannelSource that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BrandChannelSourceFindUniqueOrThrowArgs} args - Arguments to find a BrandChannelSource
+     * @example
+     * // Get one BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BrandChannelSourceFindUniqueOrThrowArgs>(args: SelectSubset<T, BrandChannelSourceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BrandChannelSource that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceFindFirstArgs} args - Arguments to find a BrandChannelSource
+     * @example
+     * // Get one BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BrandChannelSourceFindFirstArgs>(args?: SelectSubset<T, BrandChannelSourceFindFirstArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BrandChannelSource that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceFindFirstOrThrowArgs} args - Arguments to find a BrandChannelSource
+     * @example
+     * // Get one BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BrandChannelSourceFindFirstOrThrowArgs>(args?: SelectSubset<T, BrandChannelSourceFindFirstOrThrowArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BrandChannelSources that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BrandChannelSources
+     * const brandChannelSources = await prisma.brandChannelSource.findMany()
+     * 
+     * // Get first 10 BrandChannelSources
+     * const brandChannelSources = await prisma.brandChannelSource.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const brandChannelSourceWithIdOnly = await prisma.brandChannelSource.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BrandChannelSourceFindManyArgs>(args?: SelectSubset<T, BrandChannelSourceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BrandChannelSource.
+     * @param {BrandChannelSourceCreateArgs} args - Arguments to create a BrandChannelSource.
+     * @example
+     * // Create one BrandChannelSource
+     * const BrandChannelSource = await prisma.brandChannelSource.create({
+     *   data: {
+     *     // ... data to create a BrandChannelSource
+     *   }
+     * })
+     * 
+     */
+    create<T extends BrandChannelSourceCreateArgs>(args: SelectSubset<T, BrandChannelSourceCreateArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BrandChannelSources.
+     * @param {BrandChannelSourceCreateManyArgs} args - Arguments to create many BrandChannelSources.
+     * @example
+     * // Create many BrandChannelSources
+     * const brandChannelSource = await prisma.brandChannelSource.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BrandChannelSourceCreateManyArgs>(args?: SelectSubset<T, BrandChannelSourceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BrandChannelSources and returns the data saved in the database.
+     * @param {BrandChannelSourceCreateManyAndReturnArgs} args - Arguments to create many BrandChannelSources.
+     * @example
+     * // Create many BrandChannelSources
+     * const brandChannelSource = await prisma.brandChannelSource.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BrandChannelSources and only return the `id`
+     * const brandChannelSourceWithIdOnly = await prisma.brandChannelSource.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BrandChannelSourceCreateManyAndReturnArgs>(args?: SelectSubset<T, BrandChannelSourceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BrandChannelSource.
+     * @param {BrandChannelSourceDeleteArgs} args - Arguments to delete one BrandChannelSource.
+     * @example
+     * // Delete one BrandChannelSource
+     * const BrandChannelSource = await prisma.brandChannelSource.delete({
+     *   where: {
+     *     // ... filter to delete one BrandChannelSource
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BrandChannelSourceDeleteArgs>(args: SelectSubset<T, BrandChannelSourceDeleteArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BrandChannelSource.
+     * @param {BrandChannelSourceUpdateArgs} args - Arguments to update one BrandChannelSource.
+     * @example
+     * // Update one BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BrandChannelSourceUpdateArgs>(args: SelectSubset<T, BrandChannelSourceUpdateArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BrandChannelSources.
+     * @param {BrandChannelSourceDeleteManyArgs} args - Arguments to filter BrandChannelSources to delete.
+     * @example
+     * // Delete a few BrandChannelSources
+     * const { count } = await prisma.brandChannelSource.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BrandChannelSourceDeleteManyArgs>(args?: SelectSubset<T, BrandChannelSourceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BrandChannelSources.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BrandChannelSources
+     * const brandChannelSource = await prisma.brandChannelSource.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BrandChannelSourceUpdateManyArgs>(args: SelectSubset<T, BrandChannelSourceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BrandChannelSource.
+     * @param {BrandChannelSourceUpsertArgs} args - Arguments to update or create a BrandChannelSource.
+     * @example
+     * // Update or create a BrandChannelSource
+     * const brandChannelSource = await prisma.brandChannelSource.upsert({
+     *   create: {
+     *     // ... data to create a BrandChannelSource
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BrandChannelSource we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BrandChannelSourceUpsertArgs>(args: SelectSubset<T, BrandChannelSourceUpsertArgs<ExtArgs>>): Prisma__BrandChannelSourceClient<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BrandChannelSources.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceCountArgs} args - Arguments to filter BrandChannelSources to count.
+     * @example
+     * // Count the number of BrandChannelSources
+     * const count = await prisma.brandChannelSource.count({
+     *   where: {
+     *     // ... the filter for the BrandChannelSources we want to count
+     *   }
+     * })
+    **/
+    count<T extends BrandChannelSourceCountArgs>(
+      args?: Subset<T, BrandChannelSourceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BrandChannelSourceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BrandChannelSource.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BrandChannelSourceAggregateArgs>(args: Subset<T, BrandChannelSourceAggregateArgs>): Prisma.PrismaPromise<GetBrandChannelSourceAggregateType<T>>
+
+    /**
+     * Group by BrandChannelSource.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BrandChannelSourceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BrandChannelSourceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BrandChannelSourceGroupByArgs['orderBy'] }
+        : { orderBy?: BrandChannelSourceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BrandChannelSourceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBrandChannelSourceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BrandChannelSource model
+   */
+  readonly fields: BrandChannelSourceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BrandChannelSource.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BrandChannelSourceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    sourceMenu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BrandChannelSource model
+   */ 
+  interface BrandChannelSourceFieldRefs {
+    readonly id: FieldRef<"BrandChannelSource", 'String'>
+    readonly brandId: FieldRef<"BrandChannelSource", 'String'>
+    readonly channel: FieldRef<"BrandChannelSource", 'String'>
+    readonly sourceMenuId: FieldRef<"BrandChannelSource", 'String'>
+    readonly createdAt: FieldRef<"BrandChannelSource", 'DateTime'>
+    readonly updatedAt: FieldRef<"BrandChannelSource", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BrandChannelSource findUnique
+   */
+  export type BrandChannelSourceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandChannelSource to fetch.
+     */
+    where: BrandChannelSourceWhereUniqueInput
+  }
+
+  /**
+   * BrandChannelSource findUniqueOrThrow
+   */
+  export type BrandChannelSourceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandChannelSource to fetch.
+     */
+    where: BrandChannelSourceWhereUniqueInput
+  }
+
+  /**
+   * BrandChannelSource findFirst
+   */
+  export type BrandChannelSourceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandChannelSource to fetch.
+     */
+    where?: BrandChannelSourceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandChannelSources to fetch.
+     */
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BrandChannelSources.
+     */
+    cursor?: BrandChannelSourceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandChannelSources from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandChannelSources.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BrandChannelSources.
+     */
+    distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
+  }
+
+  /**
+   * BrandChannelSource findFirstOrThrow
+   */
+  export type BrandChannelSourceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandChannelSource to fetch.
+     */
+    where?: BrandChannelSourceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandChannelSources to fetch.
+     */
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BrandChannelSources.
+     */
+    cursor?: BrandChannelSourceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandChannelSources from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandChannelSources.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BrandChannelSources.
+     */
+    distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
+  }
+
+  /**
+   * BrandChannelSource findMany
+   */
+  export type BrandChannelSourceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter, which BrandChannelSources to fetch.
+     */
+    where?: BrandChannelSourceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BrandChannelSources to fetch.
+     */
+    orderBy?: BrandChannelSourceOrderByWithRelationInput | BrandChannelSourceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BrandChannelSources.
+     */
+    cursor?: BrandChannelSourceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BrandChannelSources from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BrandChannelSources.
+     */
+    skip?: number
+    distinct?: BrandChannelSourceScalarFieldEnum | BrandChannelSourceScalarFieldEnum[]
+  }
+
+  /**
+   * BrandChannelSource create
+   */
+  export type BrandChannelSourceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BrandChannelSource.
+     */
+    data: XOR<BrandChannelSourceCreateInput, BrandChannelSourceUncheckedCreateInput>
+  }
+
+  /**
+   * BrandChannelSource createMany
+   */
+  export type BrandChannelSourceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BrandChannelSources.
+     */
+    data: BrandChannelSourceCreateManyInput | BrandChannelSourceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BrandChannelSource createManyAndReturn
+   */
+  export type BrandChannelSourceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BrandChannelSources.
+     */
+    data: BrandChannelSourceCreateManyInput | BrandChannelSourceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BrandChannelSource update
+   */
+  export type BrandChannelSourceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BrandChannelSource.
+     */
+    data: XOR<BrandChannelSourceUpdateInput, BrandChannelSourceUncheckedUpdateInput>
+    /**
+     * Choose, which BrandChannelSource to update.
+     */
+    where: BrandChannelSourceWhereUniqueInput
+  }
+
+  /**
+   * BrandChannelSource updateMany
+   */
+  export type BrandChannelSourceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BrandChannelSources.
+     */
+    data: XOR<BrandChannelSourceUpdateManyMutationInput, BrandChannelSourceUncheckedUpdateManyInput>
+    /**
+     * Filter which BrandChannelSources to update
+     */
+    where?: BrandChannelSourceWhereInput
+  }
+
+  /**
+   * BrandChannelSource upsert
+   */
+  export type BrandChannelSourceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BrandChannelSource to update in case it exists.
+     */
+    where: BrandChannelSourceWhereUniqueInput
+    /**
+     * In case the BrandChannelSource found by the `where` argument doesn't exist, create a new BrandChannelSource with this data.
+     */
+    create: XOR<BrandChannelSourceCreateInput, BrandChannelSourceUncheckedCreateInput>
+    /**
+     * In case the BrandChannelSource was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BrandChannelSourceUpdateInput, BrandChannelSourceUncheckedUpdateInput>
+  }
+
+  /**
+   * BrandChannelSource delete
+   */
+  export type BrandChannelSourceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
+    /**
+     * Filter which BrandChannelSource to delete.
+     */
+    where: BrandChannelSourceWhereUniqueInput
+  }
+
+  /**
+   * BrandChannelSource deleteMany
+   */
+  export type BrandChannelSourceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BrandChannelSources to delete
+     */
+    where?: BrandChannelSourceWhereInput
+  }
+
+  /**
+   * BrandChannelSource without action
+   */
+  export type BrandChannelSourceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BrandChannelSource
+     */
+    select?: BrandChannelSourceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BrandChannelSourceInclude<ExtArgs> | null
   }
 
 
@@ -121962,13 +122987,23 @@ export namespace Prisma {
     channel: 'channel',
     publishedAt: 'publishedAt',
     createdBy: 'createdBy',
-    variantSourceMenuId: 'variantSourceMenuId',
-    variantRef: 'variantRef',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type MenuChannelAssignmentScalarFieldEnum = (typeof MenuChannelAssignmentScalarFieldEnum)[keyof typeof MenuChannelAssignmentScalarFieldEnum]
+
+
+  export const BrandChannelSourceScalarFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    channel: 'channel',
+    sourceMenuId: 'sourceMenuId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BrandChannelSourceScalarFieldEnum = (typeof BrandChannelSourceScalarFieldEnum)[keyof typeof BrandChannelSourceScalarFieldEnum]
 
 
   export const MenuCategoryScalarFieldEnum: {
@@ -123877,12 +124912,20 @@ export namespace Prisma {
     locationId: 'locationId',
     brandId: 'brandId',
     channel: 'channel',
-    createdBy: 'createdBy',
-    variantSourceMenuId: 'variantSourceMenuId',
-    variantRef: 'variantRef'
+    createdBy: 'createdBy'
   };
 
   export type MenuChannelAssignmentOrderByRelevanceFieldEnum = (typeof MenuChannelAssignmentOrderByRelevanceFieldEnum)[keyof typeof MenuChannelAssignmentOrderByRelevanceFieldEnum]
+
+
+  export const BrandChannelSourceOrderByRelevanceFieldEnum: {
+    id: 'id',
+    brandId: 'brandId',
+    channel: 'channel',
+    sourceMenuId: 'sourceMenuId'
+  };
+
+  export type BrandChannelSourceOrderByRelevanceFieldEnum = (typeof BrandChannelSourceOrderByRelevanceFieldEnum)[keyof typeof BrandChannelSourceOrderByRelevanceFieldEnum]
 
 
   export const MenuCategoryOrderByRelevanceFieldEnum: {
@@ -126843,6 +127886,7 @@ export namespace Prisma {
     userBrands?: UserBrandListRelationFilter
     marketingCampaigns?: MarketingCampaignListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
+    channelSources?: BrandChannelSourceListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }
 
@@ -126893,6 +127937,7 @@ export namespace Prisma {
     userBrands?: UserBrandOrderByRelationAggregateInput
     marketingCampaigns?: MarketingCampaignOrderByRelationAggregateInput
     deliveryZones?: DeliveryZoneOrderByRelationAggregateInput
+    channelSources?: BrandChannelSourceOrderByRelationAggregateInput
     defaultStation?: PrinterStationOrderByWithRelationInput
     _relevance?: BrandOrderByRelevanceInput
   }
@@ -126948,6 +127993,7 @@ export namespace Prisma {
     userBrands?: UserBrandListRelationFilter
     marketingCampaigns?: MarketingCampaignListRelationFilter
     deliveryZones?: DeliveryZoneListRelationFilter
+    channelSources?: BrandChannelSourceListRelationFilter
     defaultStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
   }, "id" | "onlineOrderingSlug" | "tenantId_slug">
 
@@ -127654,7 +128700,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
-    variantSourceFor?: MenuChannelAssignmentListRelationFilter
+    channelSourceFor?: BrandChannelSourceListRelationFilter
   }
 
   export type MenuOrderByWithRelationInput = {
@@ -127696,7 +128742,7 @@ export namespace Prisma {
     categories?: MenuCategoryOrderByRelationAggregateInput
     versions?: MenuVersionOrderByRelationAggregateInput
     assignments?: MenuChannelAssignmentOrderByRelationAggregateInput
-    variantSourceFor?: MenuChannelAssignmentOrderByRelationAggregateInput
+    channelSourceFor?: BrandChannelSourceOrderByRelationAggregateInput
     _relevance?: MenuOrderByRelevanceInput
   }
 
@@ -127742,7 +128788,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
-    variantSourceFor?: MenuChannelAssignmentListRelationFilter
+    channelSourceFor?: BrandChannelSourceListRelationFilter
   }, "id">
 
   export type MenuOrderByWithAggregationInput = {
@@ -127839,13 +128885,10 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
-    variantSourceMenu?: XOR<MenuNullableRelationFilter, MenuWhereInput> | null
   }
 
   export type MenuChannelAssignmentOrderByWithRelationInput = {
@@ -127857,13 +128900,10 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
-    variantSourceMenuId?: SortOrderInput | SortOrder
-    variantRef?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     menu?: MenuOrderByWithRelationInput
     location?: LocationOrderByWithRelationInput
-    variantSourceMenu?: MenuOrderByWithRelationInput
     _relevance?: MenuChannelAssignmentOrderByRelevanceInput
   }
 
@@ -127880,13 +128920,10 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     menu?: XOR<MenuRelationFilter, MenuWhereInput>
     location?: XOR<LocationRelationFilter, LocationWhereInput>
-    variantSourceMenu?: XOR<MenuNullableRelationFilter, MenuWhereInput> | null
   }, "id" | "locationId_channel_brandId">
 
   export type MenuChannelAssignmentOrderByWithAggregationInput = {
@@ -127898,8 +128935,6 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
-    variantSourceMenuId?: SortOrderInput | SortOrder
-    variantRef?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MenuChannelAssignmentCountOrderByAggregateInput
@@ -127919,10 +128954,73 @@ export namespace Prisma {
     channel?: StringWithAggregatesFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
-    variantSourceMenuId?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
-    variantRef?: StringNullableWithAggregatesFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuChannelAssignment"> | Date | string
+  }
+
+  export type BrandChannelSourceWhereInput = {
+    AND?: BrandChannelSourceWhereInput | BrandChannelSourceWhereInput[]
+    OR?: BrandChannelSourceWhereInput[]
+    NOT?: BrandChannelSourceWhereInput | BrandChannelSourceWhereInput[]
+    id?: StringFilter<"BrandChannelSource"> | string
+    brandId?: StringFilter<"BrandChannelSource"> | string
+    channel?: StringFilter<"BrandChannelSource"> | string
+    sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    sourceMenu?: XOR<MenuRelationFilter, MenuWhereInput>
+  }
+
+  export type BrandChannelSourceOrderByWithRelationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    sourceMenuId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    sourceMenu?: MenuOrderByWithRelationInput
+    _relevance?: BrandChannelSourceOrderByRelevanceInput
+  }
+
+  export type BrandChannelSourceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId_channel?: BrandChannelSourceBrandIdChannelCompoundUniqueInput
+    AND?: BrandChannelSourceWhereInput | BrandChannelSourceWhereInput[]
+    OR?: BrandChannelSourceWhereInput[]
+    NOT?: BrandChannelSourceWhereInput | BrandChannelSourceWhereInput[]
+    brandId?: StringFilter<"BrandChannelSource"> | string
+    channel?: StringFilter<"BrandChannelSource"> | string
+    sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    sourceMenu?: XOR<MenuRelationFilter, MenuWhereInput>
+  }, "id" | "brandId_channel">
+
+  export type BrandChannelSourceOrderByWithAggregationInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    sourceMenuId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BrandChannelSourceCountOrderByAggregateInput
+    _max?: BrandChannelSourceMaxOrderByAggregateInput
+    _min?: BrandChannelSourceMinOrderByAggregateInput
+  }
+
+  export type BrandChannelSourceScalarWhereWithAggregatesInput = {
+    AND?: BrandChannelSourceScalarWhereWithAggregatesInput | BrandChannelSourceScalarWhereWithAggregatesInput[]
+    OR?: BrandChannelSourceScalarWhereWithAggregatesInput[]
+    NOT?: BrandChannelSourceScalarWhereWithAggregatesInput | BrandChannelSourceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BrandChannelSource"> | string
+    brandId?: StringWithAggregatesFilter<"BrandChannelSource"> | string
+    channel?: StringWithAggregatesFilter<"BrandChannelSource"> | string
+    sourceMenuId?: StringWithAggregatesFilter<"BrandChannelSource"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"BrandChannelSource"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BrandChannelSource"> | Date | string
   }
 
   export type MenuCategoryWhereInput = {
@@ -137563,6 +138661,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -137612,6 +138711,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUpdateInput = {
@@ -137659,6 +138759,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -137708,6 +138809,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateManyInput = {
@@ -138568,7 +139670,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUncheckedCreateInput = {
@@ -138609,7 +139711,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUpdateInput = {
@@ -138650,7 +139752,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateInput = {
@@ -138691,7 +139793,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuCreateManyInput = {
@@ -138811,12 +139913,10 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutAssignmentsInput
     location: LocationCreateNestedOneWithoutMenuAssignmentsInput
-    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateInput = {
@@ -138828,8 +139928,6 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -138841,12 +139939,10 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
     location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
-    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateInput = {
@@ -138858,8 +139954,6 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -138873,8 +139967,6 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -138886,7 +139978,6 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -138900,8 +139991,67 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandChannelSourceCreateInput = {
+    id?: string
+    channel: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutChannelSourcesInput
+    sourceMenu: MenuCreateNestedOneWithoutChannelSourceForInput
+  }
+
+  export type BrandChannelSourceUncheckedCreateInput = {
+    id?: string
+    brandId: string
+    channel: string
+    sourceMenuId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandChannelSourceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutChannelSourcesNestedInput
+    sourceMenu?: MenuUpdateOneRequiredWithoutChannelSourceForNestedInput
+  }
+
+  export type BrandChannelSourceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    sourceMenuId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandChannelSourceCreateManyInput = {
+    id?: string
+    brandId: string
+    channel: string
+    sourceMenuId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandChannelSourceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandChannelSourceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    sourceMenuId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -149690,6 +150840,12 @@ export namespace Prisma {
     none?: DeliveryZoneWhereInput
   }
 
+  export type BrandChannelSourceListRelationFilter = {
+    every?: BrandChannelSourceWhereInput
+    some?: BrandChannelSourceWhereInput
+    none?: BrandChannelSourceWhereInput
+  }
+
   export type PrinterStationNullableRelationFilter = {
     is?: PrinterStationWhereInput | null
     isNot?: PrinterStationWhereInput | null
@@ -149720,6 +150876,10 @@ export namespace Prisma {
   }
 
   export type DeliveryZoneOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BrandChannelSourceOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -150532,11 +151692,6 @@ export namespace Prisma {
     isNot?: MenuWhereInput
   }
 
-  export type MenuNullableRelationFilter = {
-    is?: MenuWhereInput | null
-    isNot?: MenuWhereInput | null
-  }
-
   export type MenuChannelAssignmentOrderByRelevanceInput = {
     fields: MenuChannelAssignmentOrderByRelevanceFieldEnum | MenuChannelAssignmentOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -150558,8 +151713,6 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
-    variantSourceMenuId?: SortOrder
-    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -150573,8 +151726,6 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
-    variantSourceMenuId?: SortOrder
-    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -150588,8 +151739,44 @@ export namespace Prisma {
     channel?: SortOrder
     publishedAt?: SortOrder
     createdBy?: SortOrder
-    variantSourceMenuId?: SortOrder
-    variantRef?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BrandChannelSourceOrderByRelevanceInput = {
+    fields: BrandChannelSourceOrderByRelevanceFieldEnum | BrandChannelSourceOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BrandChannelSourceBrandIdChannelCompoundUniqueInput = {
+    brandId: string
+    channel: string
+  }
+
+  export type BrandChannelSourceCountOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    sourceMenuId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BrandChannelSourceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    sourceMenuId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BrandChannelSourceMinOrderByAggregateInput = {
+    id?: SortOrder
+    brandId?: SortOrder
+    channel?: SortOrder
+    sourceMenuId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -158466,6 +159653,13 @@ export namespace Prisma {
     connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
   }
 
+  export type BrandChannelSourceCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput> | BrandChannelSourceCreateWithoutBrandInput[] | BrandChannelSourceUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutBrandInput | BrandChannelSourceCreateOrConnectWithoutBrandInput[]
+    createMany?: BrandChannelSourceCreateManyBrandInputEnvelope
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutBrandDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -158546,6 +159740,13 @@ export namespace Prisma {
     connectOrCreate?: DeliveryZoneCreateOrConnectWithoutBrandInput | DeliveryZoneCreateOrConnectWithoutBrandInput[]
     createMany?: DeliveryZoneCreateManyBrandInputEnvelope
     connect?: DeliveryZoneWhereUniqueInput | DeliveryZoneWhereUniqueInput[]
+  }
+
+  export type BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput> | BrandChannelSourceCreateWithoutBrandInput[] | BrandChannelSourceUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutBrandInput | BrandChannelSourceCreateOrConnectWithoutBrandInput[]
+    createMany?: BrandChannelSourceCreateManyBrandInputEnvelope
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
   }
 
   export type NullableDecimalFieldUpdateOperationsInput = {
@@ -158722,6 +159923,20 @@ export namespace Prisma {
     deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
   }
 
+  export type BrandChannelSourceUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput> | BrandChannelSourceCreateWithoutBrandInput[] | BrandChannelSourceUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutBrandInput | BrandChannelSourceCreateOrConnectWithoutBrandInput[]
+    upsert?: BrandChannelSourceUpsertWithWhereUniqueWithoutBrandInput | BrandChannelSourceUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BrandChannelSourceCreateManyBrandInputEnvelope
+    set?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    disconnect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    delete?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    update?: BrandChannelSourceUpdateWithWhereUniqueWithoutBrandInput | BrandChannelSourceUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BrandChannelSourceUpdateManyWithWhereWithoutBrandInput | BrandChannelSourceUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutBrandDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutBrandDefaultsInput
@@ -158880,6 +160095,20 @@ export namespace Prisma {
     update?: DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput | DeliveryZoneUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: DeliveryZoneUpdateManyWithWhereWithoutBrandInput | DeliveryZoneUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: DeliveryZoneScalarWhereInput | DeliveryZoneScalarWhereInput[]
+  }
+
+  export type BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput> | BrandChannelSourceCreateWithoutBrandInput[] | BrandChannelSourceUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutBrandInput | BrandChannelSourceCreateOrConnectWithoutBrandInput[]
+    upsert?: BrandChannelSourceUpsertWithWhereUniqueWithoutBrandInput | BrandChannelSourceUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BrandChannelSourceCreateManyBrandInputEnvelope
+    set?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    disconnect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    delete?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    update?: BrandChannelSourceUpdateWithWhereUniqueWithoutBrandInput | BrandChannelSourceUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BrandChannelSourceUpdateManyWithWhereWithoutBrandInput | BrandChannelSourceUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
   }
 
   export type BrandCreateNestedOneWithoutLocationsInput = {
@@ -159637,11 +160866,11 @@ export namespace Prisma {
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
-  export type MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput = {
-    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
-    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
-    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
-    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  export type BrandChannelSourceCreateNestedManyWithoutSourceMenuInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
+    createMany?: BrandChannelSourceCreateManySourceMenuInputEnvelope
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
   }
 
   export type MenuCategoryUncheckedCreateNestedManyWithoutMenuInput = {
@@ -159665,11 +160894,11 @@ export namespace Prisma {
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
-  export type MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput = {
-    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
-    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
-    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
-    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  export type BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
+    createMany?: BrandChannelSourceCreateManySourceMenuInputEnvelope
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
   }
 
   export type EnumMenuTypeFieldUpdateOperationsInput = {
@@ -159739,18 +160968,18 @@ export namespace Prisma {
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
   }
 
-  export type MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput = {
-    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
-    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
-    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput[]
-    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
-    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput[]
-    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput[]
-    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  export type BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
+    upsert?: BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput | BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput[]
+    createMany?: BrandChannelSourceCreateManySourceMenuInputEnvelope
+    set?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    disconnect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    delete?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    update?: BrandChannelSourceUpdateWithWhereUniqueWithoutSourceMenuInput | BrandChannelSourceUpdateWithWhereUniqueWithoutSourceMenuInput[]
+    updateMany?: BrandChannelSourceUpdateManyWithWhereWithoutSourceMenuInput | BrandChannelSourceUpdateManyWithWhereWithoutSourceMenuInput[]
+    deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
   }
 
   export type MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput = {
@@ -159795,18 +161024,18 @@ export namespace Prisma {
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
   }
 
-  export type MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput = {
-    create?: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput> | MenuChannelAssignmentCreateWithoutVariantSourceMenuInput[] | MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput[]
-    connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput | MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput[]
-    upsert?: MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput[]
-    createMany?: MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope
-    set?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    disconnect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    delete?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
-    update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput[]
-    updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput[]
-    deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  export type BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput = {
+    create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
+    connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
+    upsert?: BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput | BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput[]
+    createMany?: BrandChannelSourceCreateManySourceMenuInputEnvelope
+    set?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    disconnect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    delete?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    connect?: BrandChannelSourceWhereUniqueInput | BrandChannelSourceWhereUniqueInput[]
+    update?: BrandChannelSourceUpdateWithWhereUniqueWithoutSourceMenuInput | BrandChannelSourceUpdateWithWhereUniqueWithoutSourceMenuInput[]
+    updateMany?: BrandChannelSourceUpdateManyWithWhereWithoutSourceMenuInput | BrandChannelSourceUpdateManyWithWhereWithoutSourceMenuInput[]
+    deleteMany?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
   }
 
   export type MenuCreateNestedOneWithoutAssignmentsInput = {
@@ -159819,12 +161048,6 @@ export namespace Prisma {
     create?: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
     connectOrCreate?: LocationCreateOrConnectWithoutMenuAssignmentsInput
     connect?: LocationWhereUniqueInput
-  }
-
-  export type MenuCreateNestedOneWithoutVariantSourceForInput = {
-    create?: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
-    connectOrCreate?: MenuCreateOrConnectWithoutVariantSourceForInput
-    connect?: MenuWhereUniqueInput
   }
 
   export type MenuUpdateOneRequiredWithoutAssignmentsNestedInput = {
@@ -159843,14 +161066,32 @@ export namespace Prisma {
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutMenuAssignmentsInput, LocationUpdateWithoutMenuAssignmentsInput>, LocationUncheckedUpdateWithoutMenuAssignmentsInput>
   }
 
-  export type MenuUpdateOneWithoutVariantSourceForNestedInput = {
-    create?: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
-    connectOrCreate?: MenuCreateOrConnectWithoutVariantSourceForInput
-    upsert?: MenuUpsertWithoutVariantSourceForInput
-    disconnect?: MenuWhereInput | boolean
-    delete?: MenuWhereInput | boolean
+  export type BrandCreateNestedOneWithoutChannelSourcesInput = {
+    create?: XOR<BrandCreateWithoutChannelSourcesInput, BrandUncheckedCreateWithoutChannelSourcesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutChannelSourcesInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type MenuCreateNestedOneWithoutChannelSourceForInput = {
+    create?: XOR<MenuCreateWithoutChannelSourceForInput, MenuUncheckedCreateWithoutChannelSourceForInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutChannelSourceForInput
     connect?: MenuWhereUniqueInput
-    update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutVariantSourceForInput, MenuUpdateWithoutVariantSourceForInput>, MenuUncheckedUpdateWithoutVariantSourceForInput>
+  }
+
+  export type BrandUpdateOneRequiredWithoutChannelSourcesNestedInput = {
+    create?: XOR<BrandCreateWithoutChannelSourcesInput, BrandUncheckedCreateWithoutChannelSourcesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutChannelSourcesInput
+    upsert?: BrandUpsertWithoutChannelSourcesInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutChannelSourcesInput, BrandUpdateWithoutChannelSourcesInput>, BrandUncheckedUpdateWithoutChannelSourcesInput>
+  }
+
+  export type MenuUpdateOneRequiredWithoutChannelSourceForNestedInput = {
+    create?: XOR<MenuCreateWithoutChannelSourceForInput, MenuUncheckedCreateWithoutChannelSourceForInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutChannelSourceForInput
+    upsert?: MenuUpsertWithoutChannelSourceForInput
+    connect?: MenuWhereUniqueInput
+    update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutChannelSourceForInput, MenuUpdateWithoutChannelSourceForInput>, MenuUncheckedUpdateWithoutChannelSourceForInput>
   }
 
   export type MenuCategoryCreatemenuIdsInput = {
@@ -165186,6 +166427,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -165234,6 +166476,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutTenantInput = {
@@ -168249,6 +169492,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -168297,6 +169541,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUserBrandsInput = {
@@ -168422,6 +169667,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -168470,6 +169716,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type TenantCreateWithoutInvitationsInput = {
@@ -169813,7 +171060,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutBrandInput = {
@@ -169853,7 +171100,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutBrandInput = {
@@ -170367,6 +171614,32 @@ export namespace Prisma {
 
   export type DeliveryZoneCreateManyBrandInputEnvelope = {
     data: DeliveryZoneCreateManyBrandInput | DeliveryZoneCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BrandChannelSourceCreateWithoutBrandInput = {
+    id?: string
+    channel: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sourceMenu: MenuCreateNestedOneWithoutChannelSourceForInput
+  }
+
+  export type BrandChannelSourceUncheckedCreateWithoutBrandInput = {
+    id?: string
+    channel: string
+    sourceMenuId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BrandChannelSourceCreateOrConnectWithoutBrandInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    create: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BrandChannelSourceCreateManyBrandInputEnvelope = {
+    data: BrandChannelSourceCreateManyBrandInput | BrandChannelSourceCreateManyBrandInput[]
     skipDuplicates?: boolean
   }
 
@@ -170904,6 +172177,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"DeliveryZone"> | Date | string
   }
 
+  export type BrandChannelSourceUpsertWithWhereUniqueWithoutBrandInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    update: XOR<BrandChannelSourceUpdateWithoutBrandInput, BrandChannelSourceUncheckedUpdateWithoutBrandInput>
+    create: XOR<BrandChannelSourceCreateWithoutBrandInput, BrandChannelSourceUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BrandChannelSourceUpdateWithWhereUniqueWithoutBrandInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    data: XOR<BrandChannelSourceUpdateWithoutBrandInput, BrandChannelSourceUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type BrandChannelSourceUpdateManyWithWhereWithoutBrandInput = {
+    where: BrandChannelSourceScalarWhereInput
+    data: XOR<BrandChannelSourceUpdateManyMutationInput, BrandChannelSourceUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type BrandChannelSourceScalarWhereInput = {
+    AND?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
+    OR?: BrandChannelSourceScalarWhereInput[]
+    NOT?: BrandChannelSourceScalarWhereInput | BrandChannelSourceScalarWhereInput[]
+    id?: StringFilter<"BrandChannelSource"> | string
+    brandId?: StringFilter<"BrandChannelSource"> | string
+    channel?: StringFilter<"BrandChannelSource"> | string
+    sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+    updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutBrandDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutBrandDefaultsInput, PrinterStationUncheckedUpdateWithoutBrandDefaultsInput>
     create: XOR<PrinterStationCreateWithoutBrandDefaultsInput, PrinterStationUncheckedCreateWithoutBrandDefaultsInput>
@@ -170995,6 +172296,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -171043,6 +172345,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutLocationsInput = {
@@ -171746,11 +173049,9 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     menu: MenuCreateNestedOneWithoutAssignmentsInput
-    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateWithoutLocationInput = {
@@ -171761,8 +173062,6 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -172075,6 +173374,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -172123,6 +173423,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type IntegrationUpsertWithWhereUniqueWithoutLocationInput = {
@@ -172543,8 +173844,6 @@ export namespace Prisma {
     channel?: StringFilter<"MenuChannelAssignment"> | string
     publishedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     createdBy?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantSourceMenuId?: StringNullableFilter<"MenuChannelAssignment"> | string | null
-    variantRef?: StringNullableFilter<"MenuChannelAssignment"> | string | null
     createdAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
     updatedAt?: DateTimeFilter<"MenuChannelAssignment"> | Date | string
   }
@@ -172851,6 +174150,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -172899,6 +174199,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutPlatformConnectionsInput = {
@@ -173110,6 +174411,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -173158,6 +174460,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationUpsertWithoutPlatformConnectionsInput = {
@@ -173663,6 +174966,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -173711,6 +175015,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMenusInput = {
@@ -173807,11 +175112,9 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutMenuAssignmentsInput
-    variantSourceMenu?: MenuCreateNestedOneWithoutVariantSourceForInput
   }
 
   export type MenuChannelAssignmentUncheckedCreateWithoutMenuInput = {
@@ -173822,8 +175125,6 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -173838,41 +175139,29 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type MenuChannelAssignmentCreateWithoutVariantSourceMenuInput = {
+  export type BrandChannelSourceCreateWithoutSourceMenuInput = {
     id?: string
-    tenantId?: string | null
-    brandId: string
     channel: string
-    publishedAt?: Date | string
-    createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    menu: MenuCreateNestedOneWithoutAssignmentsInput
-    location: LocationCreateNestedOneWithoutMenuAssignmentsInput
+    brand: BrandCreateNestedOneWithoutChannelSourcesInput
   }
 
-  export type MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput = {
+  export type BrandChannelSourceUncheckedCreateWithoutSourceMenuInput = {
     id?: string
-    tenantId?: string | null
-    menuId: string
-    locationId: string
     brandId: string
     channel: string
-    publishedAt?: Date | string
-    createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type MenuChannelAssignmentCreateOrConnectWithoutVariantSourceMenuInput = {
-    where: MenuChannelAssignmentWhereUniqueInput
-    create: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput>
+  export type BrandChannelSourceCreateOrConnectWithoutSourceMenuInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    create: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput>
   }
 
-  export type MenuChannelAssignmentCreateManyVariantSourceMenuInputEnvelope = {
-    data: MenuChannelAssignmentCreateManyVariantSourceMenuInput | MenuChannelAssignmentCreateManyVariantSourceMenuInput[]
+  export type BrandChannelSourceCreateManySourceMenuInputEnvelope = {
+    data: BrandChannelSourceCreateManySourceMenuInput | BrandChannelSourceCreateManySourceMenuInput[]
     skipDuplicates?: boolean
   }
 
@@ -173931,6 +175220,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -173979,6 +175269,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCategoryUpsertWithWhereUniqueWithoutMenuInput = {
@@ -174066,20 +175357,20 @@ export namespace Prisma {
     data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutMenuInput>
   }
 
-  export type MenuChannelAssignmentUpsertWithWhereUniqueWithoutVariantSourceMenuInput = {
-    where: MenuChannelAssignmentWhereUniqueInput
-    update: XOR<MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput>
-    create: XOR<MenuChannelAssignmentCreateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedCreateWithoutVariantSourceMenuInput>
+  export type BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    update: XOR<BrandChannelSourceUpdateWithoutSourceMenuInput, BrandChannelSourceUncheckedUpdateWithoutSourceMenuInput>
+    create: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput>
   }
 
-  export type MenuChannelAssignmentUpdateWithWhereUniqueWithoutVariantSourceMenuInput = {
-    where: MenuChannelAssignmentWhereUniqueInput
-    data: XOR<MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput, MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput>
+  export type BrandChannelSourceUpdateWithWhereUniqueWithoutSourceMenuInput = {
+    where: BrandChannelSourceWhereUniqueInput
+    data: XOR<BrandChannelSourceUpdateWithoutSourceMenuInput, BrandChannelSourceUncheckedUpdateWithoutSourceMenuInput>
   }
 
-  export type MenuChannelAssignmentUpdateManyWithWhereWithoutVariantSourceMenuInput = {
-    where: MenuChannelAssignmentScalarWhereInput
-    data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuInput>
+  export type BrandChannelSourceUpdateManyWithWhereWithoutSourceMenuInput = {
+    where: BrandChannelSourceScalarWhereInput
+    data: XOR<BrandChannelSourceUpdateManyMutationInput, BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuInput>
   }
 
   export type MenuCreateWithoutAssignmentsInput = {
@@ -174119,7 +175410,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutAssignmentsInput = {
@@ -174159,7 +175450,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutAssignmentsInput = {
@@ -174316,91 +175607,6 @@ export namespace Prisma {
     create: XOR<LocationCreateWithoutMenuAssignmentsInput, LocationUncheckedCreateWithoutMenuAssignmentsInput>
   }
 
-  export type MenuCreateWithoutVariantSourceForInput = {
-    id?: string
-    locationId?: string | null
-    name: string
-    description?: string | null
-    menuType?: $Enums.MenuType
-    bannerImage?: string | null
-    heroImage?: string | null
-    logoImage?: string | null
-    status?: $Enums.MenuStatus
-    isActive?: boolean
-    deletedAt?: Date | string | null
-    importStatus?: $Enums.MenuImportStatus
-    importLock?: boolean
-    importedAt?: Date | string | null
-    syncVersion?: number
-    rawImportPayload?: JsonNullValueInput | InputJsonValue
-    menuData?: JsonNullValueInput | InputJsonValue
-    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
-    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
-    platformSource?: string | null
-    externalId?: string | null
-    externalParentId?: string | null
-    lastSyncedAt?: Date | string | null
-    syncStatus?: string | null
-    syncHash?: string | null
-    publishedTo?: MenuCreatepublishedToInput | string[]
-    lastPublishedAt?: Date | string | null
-    autoScheduleEnabled?: boolean
-    autoSchedule?: JsonNullValueInput | InputJsonValue
-    pricingVariants?: JsonNullValueInput | InputJsonValue
-    metadata?: JsonNullValueInput | InputJsonValue
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    brand: BrandCreateNestedOneWithoutMenusInput
-    categories?: MenuCategoryCreateNestedManyWithoutMenuInput
-    versions?: MenuVersionCreateNestedManyWithoutMenuInput
-    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
-  }
-
-  export type MenuUncheckedCreateWithoutVariantSourceForInput = {
-    id?: string
-    brandId: string
-    locationId?: string | null
-    name: string
-    description?: string | null
-    menuType?: $Enums.MenuType
-    bannerImage?: string | null
-    heroImage?: string | null
-    logoImage?: string | null
-    status?: $Enums.MenuStatus
-    isActive?: boolean
-    deletedAt?: Date | string | null
-    importStatus?: $Enums.MenuImportStatus
-    importLock?: boolean
-    importedAt?: Date | string | null
-    syncVersion?: number
-    rawImportPayload?: JsonNullValueInput | InputJsonValue
-    menuData?: JsonNullValueInput | InputJsonValue
-    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
-    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
-    platformSource?: string | null
-    externalId?: string | null
-    externalParentId?: string | null
-    lastSyncedAt?: Date | string | null
-    syncStatus?: string | null
-    syncHash?: string | null
-    publishedTo?: MenuCreatepublishedToInput | string[]
-    lastPublishedAt?: Date | string | null
-    autoScheduleEnabled?: boolean
-    autoSchedule?: JsonNullValueInput | InputJsonValue
-    pricingVariants?: JsonNullValueInput | InputJsonValue
-    metadata?: JsonNullValueInput | InputJsonValue
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
-    versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
-    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
-  }
-
-  export type MenuCreateOrConnectWithoutVariantSourceForInput = {
-    where: MenuWhereUniqueInput
-    create: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
-  }
-
   export type MenuUpsertWithoutAssignmentsInput = {
     update: XOR<MenuUpdateWithoutAssignmentsInput, MenuUncheckedUpdateWithoutAssignmentsInput>
     create: XOR<MenuCreateWithoutAssignmentsInput, MenuUncheckedCreateWithoutAssignmentsInput>
@@ -174449,7 +175655,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutAssignmentsInput = {
@@ -174489,7 +175695,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type LocationUpsertWithoutMenuAssignmentsInput = {
@@ -174647,18 +175853,311 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
   }
 
-  export type MenuUpsertWithoutVariantSourceForInput = {
-    update: XOR<MenuUpdateWithoutVariantSourceForInput, MenuUncheckedUpdateWithoutVariantSourceForInput>
-    create: XOR<MenuCreateWithoutVariantSourceForInput, MenuUncheckedCreateWithoutVariantSourceForInput>
+  export type BrandCreateWithoutChannelSourcesInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutChannelSourcesInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutChannelSourcesInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutChannelSourcesInput, BrandUncheckedCreateWithoutChannelSourcesInput>
+  }
+
+  export type MenuCreateWithoutChannelSourceForInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutMenusInput
+    categories?: MenuCategoryCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuUncheckedCreateWithoutChannelSourceForInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+  }
+
+  export type MenuCreateOrConnectWithoutChannelSourceForInput = {
+    where: MenuWhereUniqueInput
+    create: XOR<MenuCreateWithoutChannelSourceForInput, MenuUncheckedCreateWithoutChannelSourceForInput>
+  }
+
+  export type BrandUpsertWithoutChannelSourcesInput = {
+    update: XOR<BrandUpdateWithoutChannelSourcesInput, BrandUncheckedUpdateWithoutChannelSourcesInput>
+    create: XOR<BrandCreateWithoutChannelSourcesInput, BrandUncheckedCreateWithoutChannelSourcesInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutChannelSourcesInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutChannelSourcesInput, BrandUncheckedUpdateWithoutChannelSourcesInput>
+  }
+
+  export type BrandUpdateWithoutChannelSourcesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutChannelSourcesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type MenuUpsertWithoutChannelSourceForInput = {
+    update: XOR<MenuUpdateWithoutChannelSourceForInput, MenuUncheckedUpdateWithoutChannelSourceForInput>
+    create: XOR<MenuCreateWithoutChannelSourceForInput, MenuUncheckedCreateWithoutChannelSourceForInput>
     where?: MenuWhereInput
   }
 
-  export type MenuUpdateToOneWithWhereWithoutVariantSourceForInput = {
+  export type MenuUpdateToOneWithWhereWithoutChannelSourceForInput = {
     where?: MenuWhereInput
-    data: XOR<MenuUpdateWithoutVariantSourceForInput, MenuUncheckedUpdateWithoutVariantSourceForInput>
+    data: XOR<MenuUpdateWithoutChannelSourceForInput, MenuUncheckedUpdateWithoutChannelSourceForInput>
   }
 
-  export type MenuUpdateWithoutVariantSourceForInput = {
+  export type MenuUpdateWithoutChannelSourceForInput = {
     id?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
@@ -174698,7 +176197,7 @@ export namespace Prisma {
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
   }
 
-  export type MenuUncheckedUpdateWithoutVariantSourceForInput = {
+  export type MenuUncheckedUpdateWithoutChannelSourceForInput = {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -174775,7 +176274,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutCategoriesInput = {
@@ -174815,7 +176314,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutCategoriesInput = {
@@ -174917,7 +176416,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutCategoriesInput = {
@@ -174957,7 +176456,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuItemOnCategoryUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -176477,6 +177976,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -176525,6 +178025,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutModifierGroupsInput = {
@@ -176781,6 +178282,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -176829,6 +178331,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type ModifierOptionUpsertWithWhereUniqueWithoutGroupInput = {
@@ -177802,6 +179305,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -177850,6 +179354,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMealDealsInput = {
@@ -177912,6 +179417,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -177960,6 +179466,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandCreateWithoutUpsellGroupsInput = {
@@ -178006,6 +179513,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -178054,6 +179562,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutUpsellGroupsInput = {
@@ -178116,6 +179625,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -178164,6 +179674,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type MenuCreateWithoutVersionsInput = {
@@ -178203,7 +179714,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuUncheckedCreateWithoutVersionsInput = {
@@ -178243,7 +179754,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutVariantSourceMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
   export type MenuCreateOrConnectWithoutVersionsInput = {
@@ -178299,7 +179810,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutVersionsInput = {
@@ -178339,7 +179850,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type TenantCreateWithoutCustomersInput = {
@@ -179048,6 +180559,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -179096,6 +180608,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDirectOrderingConfigInput = {
@@ -179313,6 +180826,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -179361,6 +180875,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CustomerCreateWithoutAddressesInput = {
@@ -179794,6 +181309,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -179842,6 +181358,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutMarketingCampaignsInput = {
@@ -180009,6 +181526,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -180057,6 +181575,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type CampaignRedemptionUpsertWithWhereUniqueWithoutCampaignInput = {
@@ -180741,6 +182260,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -180789,6 +182309,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDeliveryZonesInput = {
@@ -181006,6 +182527,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -181054,6 +182576,7 @@ export namespace Prisma {
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type LocationCreateWithoutPaymentConfigInput = {
@@ -181700,6 +183223,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
     defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
   }
 
@@ -181748,6 +183272,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutOrdersInput = {
@@ -182411,6 +183936,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -182459,6 +183985,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -186180,6 +187707,7 @@ export namespace Prisma {
     userBrands?: UserBrandCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
   }
 
   export type BrandUncheckedCreateWithoutDefaultStationInput = {
@@ -186227,6 +187755,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
     marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
     deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
   }
 
   export type BrandCreateOrConnectWithoutDefaultStationInput = {
@@ -194261,6 +195790,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
     defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
   }
 
@@ -194309,6 +195839,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutTenantInput = {
@@ -196379,6 +197910,14 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type BrandChannelSourceCreateManyBrandInput = {
+    id?: string
+    channel: string
+    sourceMenuId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LocationUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -196617,7 +198156,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutBrandInput = {
@@ -196657,7 +198196,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
-    variantSourceFor?: MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
   export type MenuUncheckedUpdateManyWithoutBrandInput = {
@@ -197320,6 +198859,30 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BrandChannelSourceUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sourceMenu?: MenuUpdateOneRequiredWithoutChannelSourceForNestedInput
+  }
+
+  export type BrandChannelSourceUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    sourceMenuId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandChannelSourceUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    sourceMenuId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntegrationCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -197543,8 +199106,6 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -198254,11 +199815,9 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
-    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateWithoutLocationInput = {
@@ -198269,8 +199828,6 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198283,8 +199840,6 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198365,22 +199920,14 @@ export namespace Prisma {
     channel: string
     publishedAt?: Date | string
     createdBy?: string | null
-    variantSourceMenuId?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type MenuChannelAssignmentCreateManyVariantSourceMenuInput = {
+  export type BrandChannelSourceCreateManySourceMenuInput = {
     id?: string
-    tenantId?: string | null
-    menuId: string
-    locationId: string
     brandId: string
     channel: string
-    publishedAt?: Date | string
-    createdBy?: string | null
-    variantRef?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -198483,11 +200030,9 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
-    variantSourceMenu?: MenuUpdateOneWithoutVariantSourceForNestedInput
   }
 
   export type MenuChannelAssignmentUncheckedUpdateWithoutMenuInput = {
@@ -198498,8 +200043,6 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198512,50 +200055,30 @@ export namespace Prisma {
     channel?: StringFieldUpdateOperationsInput | string
     publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantSourceMenuId?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type MenuChannelAssignmentUpdateWithoutVariantSourceMenuInput = {
+  export type BrandChannelSourceUpdateWithoutSourceMenuInput = {
     id?: StringFieldUpdateOperationsInput | string
-    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
-    brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
-    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    menu?: MenuUpdateOneRequiredWithoutAssignmentsNestedInput
-    location?: LocationUpdateOneRequiredWithoutMenuAssignmentsNestedInput
+    brand?: BrandUpdateOneRequiredWithoutChannelSourcesNestedInput
   }
 
-  export type MenuChannelAssignmentUncheckedUpdateWithoutVariantSourceMenuInput = {
+  export type BrandChannelSourceUncheckedUpdateWithoutSourceMenuInput = {
     id?: StringFieldUpdateOperationsInput | string
-    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
-    menuId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
-    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type MenuChannelAssignmentUncheckedUpdateManyWithoutVariantSourceMenuInput = {
+  export type BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuInput = {
     id?: StringFieldUpdateOperationsInput | string
-    tenantId?: NullableStringFieldUpdateOperationsInput | string | null
-    menuId?: StringFieldUpdateOperationsInput | string
-    locationId?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
-    publishedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    variantRef?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -200876,6 +202399,7 @@ export namespace Prisma {
     userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateWithoutDefaultStationInput = {
@@ -200923,6 +202447,7 @@ export namespace Prisma {
     userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
     marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
     deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
   }
 
   export type BrandUncheckedUpdateManyWithoutDefaultStationInput = {
@@ -202687,6 +204212,10 @@ export namespace Prisma {
      * @deprecated Use MenuChannelAssignmentDefaultArgs instead
      */
     export type MenuChannelAssignmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuChannelAssignmentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BrandChannelSourceDefaultArgs instead
+     */
+    export type BrandChannelSourceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BrandChannelSourceDefaultArgs<ExtArgs>
     /**
      * @deprecated Use MenuCategoryDefaultArgs instead
      */

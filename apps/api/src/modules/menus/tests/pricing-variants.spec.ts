@@ -66,11 +66,16 @@ describe("buildHubRisePriceOverrides", () => {
 });
 
 describe("CHANNEL_VARIANT_PRESETS", () => {
-  it("carries a channelKey + name for each delivery channel", () => {
+  it("carries a channelKey + name for each direct-publish channel", () => {
+    // Phase BF — ONLINE/WHATSAPP joined the 3 marketplace presets so their
+    // channelKey exactly matches the direct-publish channel constants
+    // (brandChannelRef auto-derivation for BrandChannelSource).
     expect(CHANNEL_VARIANT_PRESETS.map((p) => p.channelKey)).toEqual([
       "UBER_EATS",
       "DELIVEROO",
       "JUST_EAT",
+      "ONLINE",
+      "WHATSAPP",
     ]);
   });
 });

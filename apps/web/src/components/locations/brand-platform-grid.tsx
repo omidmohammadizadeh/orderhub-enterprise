@@ -26,6 +26,7 @@ import {
 } from "@/lib/api/locations.client";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
+import { BrandChannelPricingSources } from "./brand-channel-pricing-sources";
 import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
@@ -170,6 +171,8 @@ export function BrandPlatformGrid({ brand, locationId }: Props) {
           );
         })}
       </ul>
+
+      <BrandChannelPricingSources brandId={brandId} locationId={locationId} />
 
       <BrandSettingsDrawer
         brand={currentBrand}

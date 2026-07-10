@@ -165,6 +165,36 @@ export class BrandsController {
     return this.brands.resolveCustomDomain(host);
   }
 
+  // ── Channel pricing sources (Phase BF) ──────────────────────────────────
+  // Standing per-(brand, channel) setting: pick a menu whose named pricing
+  // variant (already tagged per-brand+channel, same as HubRise) drives this
+  // channel's prices going forward — no per-publish re-selection.
+  @Get(":brandId/channel-sources")
+  @ApiOperation({ summary: "Get this brand's per-channel pricing source menus" })
+  getChannelSources(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.getChannelSources(brandId, user.tenantId);
+  }
+
+  @Patch(":brandId/channel-sources/:channel")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Set (or clear) a channel's pricing source menu" })
+  setChannelSource(
+    @Param("brandId") brandId: string,
+    @Param("channel") channel: string,
+    @Body() body: { sourceMenuId: string | null },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.brands.setChannelSource(
+      brandId,
+      user.tenantId,
+      channel,
+      body?.sourceMenuId ?? null,
+    );
+  }
+
   @Delete(":brandId")
   @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
