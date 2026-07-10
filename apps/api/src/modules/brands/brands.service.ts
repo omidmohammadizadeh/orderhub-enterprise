@@ -14,6 +14,7 @@ import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
 import { hoursConfigured } from "../../common/opening-hours.util";
+import { normalizePricingVariants } from "@orderhub/shared";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -216,6 +217,7 @@ export class BrandsService {
         channel,
         sourceMenuId: row?.sourceMenu?.id ?? null,
         sourceMenuName: row?.sourceMenu?.name ?? null,
+        variantRef: row?.variantRef ?? null,
       };
     });
   }
@@ -225,17 +227,18 @@ export class BrandsService {
     tenantId: string,
     channel: string,
     sourceMenuId: string | null,
+    variantRef: string | null,
   ) {
     if (!BrandsService.CHANNELS.includes(channel as any)) {
       throw new BadRequestException(`Unknown channel: ${channel}`);
     }
     await this.findOne(brandId, tenantId); // 404s if not ours
 
-    if (!sourceMenuId) {
+    if (!sourceMenuId || !variantRef) {
       await (this.prisma as any).brandChannelSource.deleteMany({
         where: { brandId, channel },
       });
-      return { channel, sourceMenuId: null, sourceMenuName: null };
+      return { channel, sourceMenuId: null, sourceMenuName: null, variantRef: null };
     }
 
     // The source menu just needs to belong to this tenant — it doesn't
@@ -244,18 +247,24 @@ export class BrandsService {
     // exactly the intended use case.
     const menu = await this.prisma.menu.findFirst({
       where: { id: sourceMenuId, deletedAt: null, brand: { tenantId } },
-      select: { id: true, name: true },
+      select: { id: true, name: true, pricingVariants: true },
     });
     if (!menu) {
       throw new NotFoundException("Source menu not found for this tenant");
     }
+    const variants = normalizePricingVariants(menu.pricingVariants);
+    if (!variants.some((v) => v.ref === variantRef)) {
+      throw new BadRequestException(
+        "That variant doesn't exist on the selected menu — pick one from its pricing variants.",
+      );
+    }
 
     await (this.prisma as any).brandChannelSource.upsert({
       where: { brandId_channel: { brandId, channel } },
-      create: { brandId, channel, sourceMenuId },
-      update: { sourceMenuId },
+      create: { brandId, channel, sourceMenuId, variantRef },
+      update: { sourceMenuId, variantRef },
     });
-    return { channel, sourceMenuId: menu.id, sourceMenuName: menu.name };
+    return { channel, sourceMenuId: menu.id, sourceMenuName: menu.name, variantRef };
   }
 
   async create(tenantId: string, dto: CreateBrandDto) {

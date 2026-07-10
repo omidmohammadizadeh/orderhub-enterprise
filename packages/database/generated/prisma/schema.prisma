@@ -802,6 +802,14 @@ model BrandChannelSource {
   channel      String
   sourceMenuId String
   sourceMenu   Menu   @relation(fields: [sourceMenuId], references: [id], onDelete: Cascade)
+  // The operator picks this explicitly from the source menu's
+  // pricingVariants (e.g. "monster burgerz — Deliveroo") — not derived.
+  // Publish for this channel/brand then does BOTH: prices every item from
+  // this variant's overrides, AND restricts the published item set to only
+  // items belonging to this variant's own brand — the channel sees ONLY
+  // that brand's items/prices, nothing else, matching how HubRise's
+  // restrictions.variant_refs already scopes a shared catalog per brand.
+  variantRef   String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

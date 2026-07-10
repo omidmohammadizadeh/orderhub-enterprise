@@ -629,7 +629,10 @@ export class UberEatsMenuPublishService {
       name: c.name,
       description: c.description ?? null,
       products: c.items
-        .filter((l) => l.isVisible && l.item)
+        // A configured variant restricts this store to ONLY that
+        // variant's own brand's items — everything else is dropped from
+        // the publish entirely, not merely left at its own price.
+        .filter((l) => l.isVisible && l.item && (variantMap?.appliesToItem(l.item) ?? true))
         .flatMap((l) =>
           this.toSrcProducts(l, skusByItem, groupsByItem, groupsById, variantMap),
         ),

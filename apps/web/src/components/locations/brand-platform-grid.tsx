@@ -634,6 +634,8 @@ function UberEatsRow({
         <UberEatsManageModal
           connectionId={connection!.id as string}
           storeId={(connection?.externalStoreId as string) ?? null}
+          brandId={brandId}
+          locationId={locationId}
           open={manageOpen}
           onClose={() => setManageOpen(false)}
           onChanged={onChanged}

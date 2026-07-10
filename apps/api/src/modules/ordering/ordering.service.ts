@@ -1211,9 +1211,14 @@ export class OrderingService {
    */
   private applyVariantPriceOverrides(menu: any, variantMap: VariantPriceMap): void {
     for (const category of menu.categories ?? []) {
-      for (const link of category.items ?? []) {
+      // A configured variant restricts the storefront to ONLY that
+      // variant's own brand's items — everything else is removed from the
+      // category entirely, not merely left at its own price.
+      category.items = (category.items ?? []).filter(
+        (link: any) => link.item && variantMap.appliesToItem(link.item),
+      );
+      for (const link of category.items) {
         const item = link.item;
-        if (!item) continue;
         if (item.hasMultipleSkus && Array.isArray(item.productSkus)) {
           for (const sku of item.productSkus) {
             const override = variantMap.skuPrice(item, sku);

@@ -166,11 +166,12 @@ export class BrandsController {
   }
 
   // ── Channel pricing sources (Phase BF) ──────────────────────────────────
-  // Standing per-(brand, channel) setting: pick a menu whose named pricing
-  // variant (already tagged per-brand+channel, same as HubRise) drives this
-  // channel's prices going forward — no per-publish re-selection.
+  // Standing per-(brand, channel) setting: pick a menu + one of its named
+  // pricing variants (e.g. "monster burgerz — Deliveroo") and this channel
+  // publishes ONLY that variant's brand's items, priced from that variant
+  // — same restriction HubRise's shared catalog already applies per brand.
   @Get(":brandId/channel-sources")
-  @ApiOperation({ summary: "Get this brand's per-channel pricing source menus" })
+  @ApiOperation({ summary: "Get this brand's per-channel pricing sources" })
   getChannelSources(
     @Param("brandId") brandId: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -180,11 +181,11 @@ export class BrandsController {
 
   @Patch(":brandId/channel-sources/:channel")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
-  @ApiOperation({ summary: "Set (or clear) a channel's pricing source menu" })
+  @ApiOperation({ summary: "Set (or clear) a channel's pricing source menu + variant" })
   setChannelSource(
     @Param("brandId") brandId: string,
     @Param("channel") channel: string,
-    @Body() body: { sourceMenuId: string | null },
+    @Body() body: { sourceMenuId: string | null; variantRef: string | null },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.brands.setChannelSource(
@@ -192,6 +193,7 @@ export class BrandsController {
       user.tenantId,
       channel,
       body?.sourceMenuId ?? null,
+      body?.variantRef ?? null,
     );
   }
 

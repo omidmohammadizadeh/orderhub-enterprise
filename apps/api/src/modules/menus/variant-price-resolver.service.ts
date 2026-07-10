@@ -1,20 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { brandChannelRef } from "@orderhub/shared";
+import { normalizePricingVariants } from "@orderhub/shared";
 
 // Phase BF — variant-menu publish for direct channels. Lets a BRAND'S
-// per-channel pricing (a standing setting, brand's Channels tab) come from
-// a NAMED PRICING VARIANT defined on a DIFFERENT ("source") menu — e.g. one
-// central menu holds every brand's per-channel prices (the "Variant
-// menu"), and each brand's Uber Eats/Deliveroo/WhatsApp/Online channel
-// points at it once. Mirrors how HubRise already resolves per-brand
-// pricing in one shared catalog (a variant already carries its own brandId
-// + channelKey) — no separate "pick a variant" step, and it applies to
-// EVERY future publish for that channel, not just the one active when it
-// was configured. This cross-menu resolution is genuinely new: HubRise's
-// existing variant publish (hubrise-catalog.service.ts) only ever reads
-// overrides from the SAME menu being published — nothing before this
-// resolved a variant from a different menu.
+// per-channel catalog (a standing setting, configured once from that
+// channel's Manage modal → Menu tab) come from a NAMED PRICING VARIANT on a
+// DIFFERENT ("source") menu — e.g. one central "Variant menu" holds every
+// brand's per-channel prices, and each brand's Uber Eats/Deliveroo/
+// WhatsApp/Online channel points at its own variant on it once. This does
+// TWO things, matching how HubRise's restrictions.variant_refs already
+// scopes a shared catalog per brand:
+//   1. PRICES every item/SKU/option from that variant's overrides.
+//   2. RESTRICTS the published set to only items belonging to that
+//      variant's own brand — the channel sees ONLY that brand's items,
+//      not everything in the source menu.
+// This cross-menu resolution is genuinely new: HubRise's existing variant
+// publish (hubrise-catalog.service.ts) only ever reads overrides from the
+// SAME menu being published; nothing before this resolved a variant (or a
+// brand restriction) from a different menu.
 //
 // Items are matched across the two menus by externalId, falling back to a
 // normalised name match — the same strategy ordering.service.ts's
@@ -33,7 +36,18 @@ export class VariantPriceMap {
     private readonly skuByName: Map<string, number>,
     private readonly optionByExternal: Map<string, number>,
     private readonly optionByName: Map<string, number>,
+    /** The variant's own brand — null means it's a global/unscoped variant
+     *  (no restriction, price-only). Non-null means the channel is
+     *  restricted to ONLY items belonging to this brand. */
+    private readonly restrictToBrandId: string | null,
   ) {}
+
+  /** Whether this item should be published at all under this variant. */
+  appliesToItem(item: { brandId?: string | null; brandIds?: string[] | null }): boolean {
+    if (!this.restrictToBrandId) return true;
+    if (item.brandId === this.restrictToBrandId) return true;
+    return (item.brandIds ?? []).includes(this.restrictToBrandId);
+  }
 
   /** Override price for an item's base price, or undefined = keep its own price. */
   itemPrice(item: { externalId?: string | null; name?: string | null }): number | undefined {
@@ -73,15 +87,18 @@ export class VariantPriceResolverService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Build a price lookup for `variantRef` from `sourceMenuId`'s items, SKUs,
-   * and modifier options. An item/SKU/option with no override for this
-   * specific variant simply has no entry — callers fall back to whatever
-   * price they'd otherwise have used.
+   * Build a price + brand-restriction lookup for `variantRef` from
+   * `sourceMenuId`. An item/SKU/option with no override for this specific
+   * variant simply has no price entry — callers fall back to whatever
+   * price they'd otherwise have used. Items outside the variant's own
+   * brand fail `appliesToItem` and should be dropped from the publish
+   * entirely, not merely left at their own price.
    */
   async buildPriceMap(sourceMenuId: string, variantRef: string): Promise<VariantPriceMap> {
     const menu = await this.prisma.menu.findUnique({
       where: { id: sourceMenuId },
       select: {
+        pricingVariants: true,
         categories: {
           select: {
             items: {
@@ -117,6 +134,10 @@ export class VariantPriceResolverService {
         },
       },
     });
+
+    const variants = normalizePricingVariants(menu?.pricingVariants);
+    const restrictToBrandId =
+      variants.find((v) => v.ref === variantRef)?.brandId ?? null;
 
     const itemByExternal = new Map<string, number>();
     const itemByName = new Map<string, number>();
@@ -179,18 +200,17 @@ export class VariantPriceResolverService {
       skuByName,
       optionByExternal,
       optionByName,
+      restrictToBrandId,
     );
   }
 
   /**
-   * Standing per-(brand, channel) lookup — mirrors how HubRise already
-   * resolves per-brand pricing in a shared catalog: the variant is already
-   * tagged with its own brandId + channelKey, so once the brand's
-   * "Channels" settings name a source menu, the variant ref is derived
-   * automatically (brandChannelRef) — no separate "pick a variant" step,
-   * and no re-selection on every future publish. Returns null when this
-   * brand+channel has no source menu configured (the caller falls back to
-   * normal pricing — this is opt-in, not a replacement for it).
+   * Standing per-(brand, channel) lookup, configured once from that
+   * channel's Manage modal → Menu tab (source menu + an EXPLICITLY chosen
+   * variant — never auto-derived, since the variant also determines the
+   * brand restriction). Returns null when this brand+channel has no
+   * variant configured (the caller publishes normally — this is opt-in,
+   * not a replacement for normal publishing).
    */
   async forBrandChannel(args: {
     brandId: string;
@@ -198,9 +218,9 @@ export class VariantPriceResolverService {
   }): Promise<VariantPriceMap | null> {
     const source = await (this.prisma as any).brandChannelSource.findUnique({
       where: { brandId_channel: { brandId: args.brandId, channel: args.channel } },
-      select: { sourceMenuId: true },
+      select: { sourceMenuId: true, variantRef: true },
     });
-    if (!source?.sourceMenuId) return null;
-    return this.buildPriceMap(source.sourceMenuId, brandChannelRef(args.brandId, args.channel));
+    if (!source?.sourceMenuId || !source?.variantRef) return null;
+    return this.buildPriceMap(source.sourceMenuId, source.variantRef);
   }
 }

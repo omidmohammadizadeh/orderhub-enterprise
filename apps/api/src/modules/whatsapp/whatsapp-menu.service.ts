@@ -287,6 +287,10 @@ export class WhatsAppMenuService {
       for (const link of category.items) {
         const item = link.item as any;
         if (!item) continue;
+        // A configured variant restricts WhatsApp to ONLY that variant's
+        // own brand's items — everything else is dropped entirely, not
+        // merely left at its own price.
+        if (variantMap && !variantMap.appliesToItem(item)) continue;
         const multi =
           !!item.hasMultipleSkus &&
           Array.isArray(item.productSkus) &&

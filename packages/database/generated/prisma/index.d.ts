@@ -31841,6 +31841,7 @@ export namespace Prisma {
     brandId: string | null
     channel: string | null
     sourceMenuId: string | null
+    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -31850,6 +31851,7 @@ export namespace Prisma {
     brandId: string | null
     channel: string | null
     sourceMenuId: string | null
+    variantRef: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -31859,6 +31861,7 @@ export namespace Prisma {
     brandId: number
     channel: number
     sourceMenuId: number
+    variantRef: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -31870,6 +31873,7 @@ export namespace Prisma {
     brandId?: true
     channel?: true
     sourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -31879,6 +31883,7 @@ export namespace Prisma {
     brandId?: true
     channel?: true
     sourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -31888,6 +31893,7 @@ export namespace Prisma {
     brandId?: true
     channel?: true
     sourceMenuId?: true
+    variantRef?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -31970,6 +31976,7 @@ export namespace Prisma {
     brandId: string
     channel: string
     sourceMenuId: string
+    variantRef: string
     createdAt: Date
     updatedAt: Date
     _count: BrandChannelSourceCountAggregateOutputType | null
@@ -31996,6 +32003,7 @@ export namespace Prisma {
     brandId?: boolean
     channel?: boolean
     sourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -32007,6 +32015,7 @@ export namespace Prisma {
     brandId?: boolean
     channel?: boolean
     sourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     brand?: boolean | BrandDefaultArgs<ExtArgs>
@@ -32018,6 +32027,7 @@ export namespace Prisma {
     brandId?: boolean
     channel?: boolean
     sourceMenuId?: boolean
+    variantRef?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -32042,6 +32052,7 @@ export namespace Prisma {
       brandId: string
       channel: string
       sourceMenuId: string
+      variantRef: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["brandChannelSource"]>
@@ -32443,6 +32454,7 @@ export namespace Prisma {
     readonly brandId: FieldRef<"BrandChannelSource", 'String'>
     readonly channel: FieldRef<"BrandChannelSource", 'String'>
     readonly sourceMenuId: FieldRef<"BrandChannelSource", 'String'>
+    readonly variantRef: FieldRef<"BrandChannelSource", 'String'>
     readonly createdAt: FieldRef<"BrandChannelSource", 'DateTime'>
     readonly updatedAt: FieldRef<"BrandChannelSource", 'DateTime'>
   }
@@ -122999,6 +123011,7 @@ export namespace Prisma {
     brandId: 'brandId',
     channel: 'channel',
     sourceMenuId: 'sourceMenuId',
+    variantRef: 'variantRef',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -124922,7 +124935,8 @@ export namespace Prisma {
     id: 'id',
     brandId: 'brandId',
     channel: 'channel',
-    sourceMenuId: 'sourceMenuId'
+    sourceMenuId: 'sourceMenuId',
+    variantRef: 'variantRef'
   };
 
   export type BrandChannelSourceOrderByRelevanceFieldEnum = (typeof BrandChannelSourceOrderByRelevanceFieldEnum)[keyof typeof BrandChannelSourceOrderByRelevanceFieldEnum]
@@ -128966,6 +128980,7 @@ export namespace Prisma {
     brandId?: StringFilter<"BrandChannelSource"> | string
     channel?: StringFilter<"BrandChannelSource"> | string
     sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    variantRef?: StringFilter<"BrandChannelSource"> | string
     createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
     updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -128977,6 +128992,7 @@ export namespace Prisma {
     brandId?: SortOrder
     channel?: SortOrder
     sourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     brand?: BrandOrderByWithRelationInput
@@ -128993,6 +129009,7 @@ export namespace Prisma {
     brandId?: StringFilter<"BrandChannelSource"> | string
     channel?: StringFilter<"BrandChannelSource"> | string
     sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    variantRef?: StringFilter<"BrandChannelSource"> | string
     createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
     updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
     brand?: XOR<BrandRelationFilter, BrandWhereInput>
@@ -129004,6 +129021,7 @@ export namespace Prisma {
     brandId?: SortOrder
     channel?: SortOrder
     sourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BrandChannelSourceCountOrderByAggregateInput
@@ -129019,6 +129037,7 @@ export namespace Prisma {
     brandId?: StringWithAggregatesFilter<"BrandChannelSource"> | string
     channel?: StringWithAggregatesFilter<"BrandChannelSource"> | string
     sourceMenuId?: StringWithAggregatesFilter<"BrandChannelSource"> | string
+    variantRef?: StringWithAggregatesFilter<"BrandChannelSource"> | string
     createdAt?: DateTimeWithAggregatesFilter<"BrandChannelSource"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BrandChannelSource"> | Date | string
   }
@@ -139998,6 +140017,7 @@ export namespace Prisma {
   export type BrandChannelSourceCreateInput = {
     id?: string
     channel: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutChannelSourcesInput
@@ -140009,6 +140029,7 @@ export namespace Prisma {
     brandId: string
     channel: string
     sourceMenuId: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -140016,6 +140037,7 @@ export namespace Prisma {
   export type BrandChannelSourceUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutChannelSourcesNestedInput
@@ -140027,6 +140049,7 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
     sourceMenuId?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -140036,6 +140059,7 @@ export namespace Prisma {
     brandId: string
     channel: string
     sourceMenuId: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -140043,6 +140067,7 @@ export namespace Prisma {
   export type BrandChannelSourceUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -140052,6 +140077,7 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
     sourceMenuId?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -151759,6 +151785,7 @@ export namespace Prisma {
     brandId?: SortOrder
     channel?: SortOrder
     sourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -151768,6 +151795,7 @@ export namespace Prisma {
     brandId?: SortOrder
     channel?: SortOrder
     sourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -151777,6 +151805,7 @@ export namespace Prisma {
     brandId?: SortOrder
     channel?: SortOrder
     sourceMenuId?: SortOrder
+    variantRef?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -171620,6 +171649,7 @@ export namespace Prisma {
   export type BrandChannelSourceCreateWithoutBrandInput = {
     id?: string
     channel: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
     sourceMenu: MenuCreateNestedOneWithoutChannelSourceForInput
@@ -171629,6 +171659,7 @@ export namespace Prisma {
     id?: string
     channel: string
     sourceMenuId: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -172201,6 +172232,7 @@ export namespace Prisma {
     brandId?: StringFilter<"BrandChannelSource"> | string
     channel?: StringFilter<"BrandChannelSource"> | string
     sourceMenuId?: StringFilter<"BrandChannelSource"> | string
+    variantRef?: StringFilter<"BrandChannelSource"> | string
     createdAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
     updatedAt?: DateTimeFilter<"BrandChannelSource"> | Date | string
   }
@@ -175142,6 +175174,7 @@ export namespace Prisma {
   export type BrandChannelSourceCreateWithoutSourceMenuInput = {
     id?: string
     channel: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
     brand: BrandCreateNestedOneWithoutChannelSourcesInput
@@ -175151,6 +175184,7 @@ export namespace Prisma {
     id?: string
     brandId: string
     channel: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -197914,6 +197948,7 @@ export namespace Prisma {
     id?: string
     channel: string
     sourceMenuId: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -198862,6 +198897,7 @@ export namespace Prisma {
   export type BrandChannelSourceUpdateWithoutBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sourceMenu?: MenuUpdateOneRequiredWithoutChannelSourceForNestedInput
@@ -198871,6 +198907,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
     sourceMenuId?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -198879,6 +198916,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
     sourceMenuId?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -199928,6 +199966,7 @@ export namespace Prisma {
     id?: string
     brandId: string
     channel: string
+    variantRef: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -200062,6 +200101,7 @@ export namespace Prisma {
   export type BrandChannelSourceUpdateWithoutSourceMenuInput = {
     id?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     brand?: BrandUpdateOneRequiredWithoutChannelSourcesNestedInput
@@ -200071,6 +200111,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -200079,6 +200120,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     brandId?: StringFieldUpdateOperationsInput | string
     channel?: StringFieldUpdateOperationsInput | string
+    variantRef?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

@@ -214,11 +214,12 @@ export const brandsClient = {
         {},
       )
       .then((r) => r.data),
-  // Phase BF — per-(brand, channel) pricing source menu. Standing setting:
-  // once picked, every future publish to that channel for this brand
-  // resolves its own brandChannelRef variant from the chosen menu — no
-  // per-publish re-selection, same as HubRise already resolves per-brand
-  // pricing in a shared catalog.
+  // Phase BF — per-(brand, channel) pricing source: a menu + one of its
+  // EXPLICITLY chosen named variants (e.g. "monster burgerz — Deliveroo").
+  // Standing setting: once picked, every future publish to that channel
+  // for this brand publishes ONLY that variant's brand's items, priced
+  // from that variant — same restriction HubRise's shared catalog already
+  // applies per brand. No per-publish re-selection.
   getChannelSources: (brandId: string) =>
     apiClient
       .get<
@@ -226,15 +227,23 @@ export const brandsClient = {
           channel: string;
           sourceMenuId: string | null;
           sourceMenuName: string | null;
+          variantRef: string | null;
         }>
       >(`/v1/brands/${brandId}/channel-sources`)
       .then((r) => r.data),
-  setChannelSource: (brandId: string, channel: string, sourceMenuId: string | null) =>
+  setChannelSource: (
+    brandId: string,
+    channel: string,
+    sourceMenuId: string | null,
+    variantRef: string | null,
+  ) =>
     apiClient
-      .patch<{ channel: string; sourceMenuId: string | null; sourceMenuName: string | null }>(
-        `/v1/brands/${brandId}/channel-sources/${channel}`,
-        { sourceMenuId },
-      )
+      .patch<{
+        channel: string;
+        sourceMenuId: string | null;
+        sourceMenuName: string | null;
+        variantRef: string | null;
+      }>(`/v1/brands/${brandId}/channel-sources/${channel}`, { sourceMenuId, variantRef })
       .then((r) => r.data),
 };
 

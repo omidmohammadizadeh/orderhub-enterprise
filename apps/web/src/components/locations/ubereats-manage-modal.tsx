@@ -22,11 +22,13 @@ import {
   X,
   Settings2,
   BarChart3,
+  UtensilsCrossed,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api/client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 import { UberEatsReportingTab } from "@/components/locations/ubereats-reporting-tab";
+import { ChannelVariantMenuPanel } from "@/components/locations/channel-variant-menu-panel";
 
 type UberOverview = {
   storeId: string | null;
@@ -70,12 +72,16 @@ type UberHoliday = {
 export function UberEatsManageModal({
   connectionId,
   storeId,
+  brandId,
+  locationId,
   open,
   onClose,
   onChanged,
 }: {
   connectionId: string;
   storeId: string | null;
+  brandId: string;
+  locationId: string;
   open: boolean;
   onClose: () => void;
   onChanged: () => void;
@@ -85,7 +91,7 @@ export function UberEatsManageModal({
       e?.response?.data?.message ?? e?.message ?? "Uber Eats request failed",
     );
 
-  const [tab, setTab] = useState<"status" | "reporting">("status");
+  const [tab, setTab] = useState<"status" | "menu" | "reporting">("status");
   const overview = useQuery({
     queryKey: ["ubereats-overview", connectionId],
     queryFn: () =>
@@ -288,6 +294,7 @@ export function UberEatsManageModal({
         <div className="flex items-center gap-1 border-b border-zinc-200 bg-white px-5 pt-2">
           {[
             { id: "status" as const, label: "Status", icon: Settings2 },
+            { id: "menu" as const, label: "Menu", icon: UtensilsCrossed },
             { id: "reporting" as const, label: "Reporting", icon: BarChart3 },
           ].map((t) => {
             const active = tab === t.id;
@@ -376,6 +383,12 @@ export function UberEatsManageModal({
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
           {tab === "reporting" ? (
             <UberEatsReportingTab />
+          ) : tab === "menu" ? (
+            <ChannelVariantMenuPanel
+              brandId={brandId}
+              locationId={locationId}
+              channel="UBER_EATS"
+            />
           ) : (
           <>
           {/* Endpoint acknowledgments — live cert evidence */}

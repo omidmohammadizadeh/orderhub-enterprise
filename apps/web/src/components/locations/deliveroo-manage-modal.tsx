@@ -12,12 +12,15 @@ import {
   Loader2,
   Pause,
   Play,
+  Settings2,
   Trash2,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
+import { ChannelVariantMenuPanel } from "@/components/locations/channel-variant-menu-panel";
 
 export function DeliverooManageModal({
   connectionId,
@@ -41,6 +44,7 @@ export function DeliverooManageModal({
   const [editSite, setEditSite] = useState(siteId ?? "");
   const [editBrand, setEditBrand] = useState(deliverooBrandId ?? "");
   const [dirty, setDirty] = useState(false);
+  const [tab, setTab] = useState<"status" | "menu">("status");
 
   useEffect(() => {
     if (!dirty) {
@@ -129,7 +133,28 @@ export function DeliverooManageModal({
           </button>
         </header>
 
-        {/* Action bar */}
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-zinc-200 bg-white px-5 pt-2">
+          {[
+            { id: "status" as const, label: "Status", icon: Settings2 },
+            { id: "menu" as const, label: "Menu", icon: UtensilsCrossed },
+          ].map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium ${active ? "border-zinc-900 text-zinc-900" : "border-transparent text-zinc-500 hover:text-zinc-800"}`}
+              >
+                <t.icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Action bar (status tab only) */}
+        {tab === "status" && (
         <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 bg-white px-5 py-3">
           <button
             onClick={() => resume.mutate()}
@@ -169,9 +194,18 @@ export function DeliverooManageModal({
             Push hours + prep
           </button>
         </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
+          {tab === "menu" ? (
+            <ChannelVariantMenuPanel
+              brandId={brandId}
+              locationId={locationId}
+              channel="DELIVEROO"
+            />
+          ) : (
+          <>
           <section className="rounded-xl border border-zinc-200 bg-white p-4">
             <h3 className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-zinc-800">
               <Link2 className="h-3.5 w-3.5 text-zinc-400" />
@@ -265,6 +299,8 @@ export function DeliverooManageModal({
               </button>
             </div>
           </section>
+          </>
+          )}
         </div>
       </div>
     </div>

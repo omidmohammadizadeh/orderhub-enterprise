@@ -460,6 +460,7 @@ exports.Prisma.BrandChannelSourceScalarFieldEnum = {
   brandId: 'brandId',
   channel: 'channel',
   sourceMenuId: 'sourceMenuId',
+  variantRef: 'variantRef',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2056,7 +2057,8 @@ exports.Prisma.BrandChannelSourceOrderByRelevanceFieldEnum = {
   id: 'id',
   brandId: 'brandId',
   channel: 'channel',
-  sourceMenuId: 'sourceMenuId'
+  sourceMenuId: 'sourceMenuId',
+  variantRef: 'variantRef'
 };
 
 exports.Prisma.MenuCategoryOrderByRelevanceFieldEnum = {
