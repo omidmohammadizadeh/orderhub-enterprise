@@ -423,6 +423,14 @@ export class WhatsAppAiService {
     if (text.startsWith("item:")) {
       const item = ctx.itemIndex.get(text.slice(5));
       if (item) {
+        // Diagnostic: shows in Render logs exactly why the Flow form did or
+        // didn't fire — flowsEnabled (env) vs flowEligible (item shape).
+        this.logger.log(
+          `WA flow gate "${item.name}": flowsEnabled=${this.flowsEnabled} ` +
+            `(flowId=${!!this.flowId}, mode=${this.flowMode}) ` +
+            `flowEligible=${this.flowEligible(item)} groups=${item.modifierGroups.length} ` +
+            `groupKinds=[${item.modifierGroups.map((g) => `${g.selectionType}/max${g.max}`).join(",")}]`,
+        );
         // Native form when published (Business Verification done).
         if (this.flowsEnabled && this.flowEligible(item)) {
           for (const img of this.imageFor(item)) {
